@@ -38,15 +38,15 @@ export function useBottomNavItems({
     // Render above to prevent layout shift as much as possible
     isTrial
       ? {
-          name: "skip_trial",
-          href: "",
-          isLoading: skipTeamTrialsMutation.isPending,
-          icon: "clock",
-          onClick: (e: { preventDefault: () => void }) => {
-            e.preventDefault();
-            skipTeamTrialsMutation.mutate({});
-          },
-        }
+        name: "skip_trial",
+        href: "",
+        isLoading: skipTeamTrialsMutation.isPending,
+        icon: "clock",
+        onClick: (e: { preventDefault: () => void }) => {
+          e.preventDefault();
+          skipTeamTrialsMutation.mutate({});
+        },
+      }
       : null,
     {
       name: "view_public_page",
@@ -66,21 +66,21 @@ export function useBottomNavItems({
     },
     IS_DUB_REFERRALS_ENABLED
       ? {
-          name: "referral_text",
-          href: "/refer",
-          icon: "gift",
-          onClick: () => {
-            posthog.capture("refer_and_earn_clicked");
-          },
+        name: "referral_text",
+        href: "/refer",
+        icon: "gift",
+        onClick: () => {
+          posthog.capture("refer_and_earn_clicked")
         }
+      }
       : null,
 
     isAdmin
       ? {
-          name: "impersonation",
-          href: "/settings/admin/impersonation",
-          icon: "lock",
-        }
+        name: "impersonation",
+        href: "/settings/admin/impersonation",
+        icon: "lock",
+      }
       : null,
     {
       name: "settings",

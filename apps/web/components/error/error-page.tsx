@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import "@calcom/embed-core/src/embed-iframe";
 import { HttpError } from "@calcom/lib/http-error";
 import { Button } from "@calcom/ui/components/button";
 
@@ -75,7 +76,7 @@ export const ErrorPage: React.FC<Props> = (props) => {
             <p className="text-default mb-4 max-w-2xl text-sm">
               Please provide the following text when contacting support to better help you:
             </p>
-            <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">
+            <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal wrap-break-word rounded-md p-4">
               {message}
             </pre>
           </div>

@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import db from "@calcom/prisma";
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -15,6 +16,7 @@ import {
 export class PermissionRepository implements IPermissionRepository {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private client: PrismaClientWithExtensions;
+  private readonly logger = logger.getSubLogger({ prefix: ["PermissionRepository"] });
 
   constructor(client: PrismaClientWithExtensions = db) {
     this.client = client;
@@ -132,35 +134,29 @@ export class PermissionRepository implements IPermissionRepository {
       const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
-    const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
-    const resources = permissionPairs.map((p) => p.resource);
-    const actions = permissionPairs.map((p) => p.action);
 
+    // Convert permission pairs to JSONB for proper serialization
+    const permissionPairsJson = JSON.stringify(permissionPairs);
+
+    // Check if each requested permission is satisfied by at least one role permission
     const matchingPermissions = await this.client.$queryRaw<[{ count: bigint }]>`
-      WITH permission_checks AS (
-        -- Universal permission (*,*)
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "resource" = '*' AND "action" = '*'
-
-        UNION ALL
-
-        -- Wildcard resource with specific actions
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "resource" = '*' AND "action" = ANY(${actions})
-
-        UNION ALL
-
-        -- Specific resources with wildcard action
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "action" = '*' AND "resource" = ANY(${resources})
-
-        UNION ALL
-
-        -- Exact resource-action pairs
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND ("resource", "action") = ANY(${resourceActions})
+      SELECT COUNT(*) as count
+      FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
+      WHERE EXISTS (
+        SELECT 1
+        FROM "RolePermission" rp
+        WHERE rp."roleId" = ${roleId}
+          AND (
+            -- Universal permission (*,*)
+            (rp."resource" = '*' AND rp."action" = '*') OR
+            -- Wildcard resource with specific action
+            (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
+            -- Specific resource with wildcard action
+            (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
+            -- Exact resource-action pair
+            (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
+          )
       )
-      SELECT COUNT(*) as count FROM permission_checks
     `;
 
     return Number(matchingPermissions[0].count) >= permissions.length;
@@ -243,7 +239,16 @@ export class PermissionRepository implements IPermissionRepository {
       return { resource, action };
     });
 
+    const permissionPairsJson = JSON.stringify(permissionPairs);
+
+    // Teams with PBAC permissions (direct memberships + child teams via org membership)
     const teamsWithPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
+      WITH required_permissions AS (
+        SELECT 
+          required_perm->>'resource' as resource,
+          required_perm->>'action' as action
+        FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
+      )
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Role" r ON m."customRoleId" = r.id
@@ -252,26 +257,61 @@ export class PermissionRepository implements IPermissionRepository {
         AND m."customRoleId" IS NOT NULL
         AND (
           SELECT COUNT(*)
-          FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
+          FROM required_permissions rp_req
           WHERE EXISTS (
             SELECT 1
             FROM "RolePermission" rp
             WHERE rp."roleId" = r.id
               AND (
                 (rp."resource" = '*' AND rp."action" = '*') OR
-                (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
-                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
-                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
+                (rp."resource" = '*' AND rp."action" = rp_req.action) OR
+                (rp."resource" = rp_req.resource AND rp."action" = '*') OR
+                (rp."resource" = rp_req.resource AND rp."action" = rp_req.action)
+              )
+          )
+        ) = ${permissions.length}
+      UNION
+      SELECT DISTINCT child."id"
+      FROM "Membership" m
+      INNER JOIN "Role" r ON m."customRoleId" = r.id
+      INNER JOIN "Team" org ON m."teamId" = org.id
+      INNER JOIN "Team" child ON child."parentId" = org.id
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."customRoleId" IS NOT NULL
+        AND (
+          SELECT COUNT(*)
+          FROM required_permissions rp_req
+          WHERE EXISTS (
+            SELECT 1
+            FROM "RolePermission" rp
+            WHERE rp."roleId" = r.id
+              AND (
+                (rp."resource" = '*' AND rp."action" = '*') OR
+                (rp."resource" = '*' AND rp."action" = rp_req.action) OR
+                (rp."resource" = rp_req.resource AND rp."action" = '*') OR
+                (rp."resource" = rp_req.resource AND rp."action" = rp_req.action)
               )
           )
         ) = ${permissions.length}
     `;
 
+    // Teams with fallback roles (direct memberships + child teams via org membership, PBAC disabled)
     const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Team" t ON m."teamId" = t.id
-      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+      LEFT JOIN "TeamFeatures" f ON f."teamId" = t.id AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."role"::text = ANY(${fallbackRoles})
+        AND f."teamId" IS NULL
+      UNION
+      SELECT DISTINCT child."id"
+      FROM "Membership" m
+      INNER JOIN "Team" org ON m."teamId" = org.id
+      INNER JOIN "Team" child ON child."parentId" = org.id
+      LEFT JOIN "TeamFeatures" f ON f."teamId" = org.id AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
       WHERE m."userId" = ${userId}
         AND m."accepted" = true
         AND m."role"::text = ANY(${fallbackRoles})

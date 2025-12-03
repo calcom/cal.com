@@ -705,6 +705,111 @@ describe("OAuth Client Users Endpoints", () => {
         .expect(200);
     });
 
+    describe("managed user time zone", () => {
+      describe("negative tests", () => {
+        it("should not allow '' time zone", async () => {
+          const requestBody = {
+            email: "whatever2@gmail.com",
+            timeZone: "",
+            name: "Bob Smithson",
+          };
+
+          await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(400);
+        });
+
+        it("should not allow 'invalid-timezone' time zone", async () => {
+          const requestBody = {
+            email: "whatever2@gmail.com",
+            timeZone: "invalid-timezone",
+            name: "Bob Smithson",
+          };
+
+          await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(400);
+        });
+      });
+
+      describe("positive tests", () => {
+        it("should allow null timezone", async () => {
+          const requestBody = {
+            email: "whatever1@gmail.com",
+            timeZone: null,
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+
+        it("should allow undefined time zone", async () => {
+          const requestBody = {
+            email: "whatever3@gmail.com",
+            timeZone: undefined,
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+
+        it("should allow valid time zone", async () => {
+          const requestBody = {
+            email: "whatever4@gmail.com",
+            timeZone: "Europe/Rome",
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toBe("Europe/Rome");
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+
+        it("should allow without any time zone", async () => {
+          const requestBody = {
+            email: "whatever5@gmail.com",
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+      });
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await oauthClientRepositoryFixture.delete(oAuthClientEventTypesDisabled.id);
@@ -712,12 +817,12 @@ describe("OAuth Client Users Endpoints", () => {
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(postResponseData2.user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(postResponseDataTwo.user.id);
@@ -727,7 +832,7 @@ describe("OAuth Client Users Endpoints", () => {
       try {
         await userRepositoryFixture.delete(platformAdmin.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });
@@ -936,7 +1041,7 @@ describe("OAuth Client Users Endpoints", () => {
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });

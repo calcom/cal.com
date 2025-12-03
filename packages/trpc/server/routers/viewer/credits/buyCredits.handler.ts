@@ -1,9 +1,9 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -70,7 +70,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   }
 
-  const billingService = new StripeBillingService();
+  const billingService = getBillingProviderService();
 
   const { checkoutUrl } = await billingService.createOneTimeCheckout({
     priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID,

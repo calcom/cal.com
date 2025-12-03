@@ -1,11 +1,11 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
-import { EventCollectionProvider } from "next-collect/client";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -19,6 +19,8 @@ import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
 
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
+
+import DynamicPostHogPageView from "@calcom/features/ee/event-tracking/lib/posthog/web/pageViewDynamic";
 
 import { getThemeProviderProps } from "./getThemeProviderProps";
 
@@ -77,6 +79,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
+        //eslint-disable-next-line react/no-unknown-property
         <style jsx global>
           {`
             .dark {
@@ -112,13 +115,13 @@ const AppProviders = (props: PageWrapperProps) => {
 
   const RemainingProviders = (
     <>
-      <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-        <TooltipProvider>
-          {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-          <CalcomThemeProvider
-            nonce={props.nonce}
-            isThemeSupported={isThemeSupported}
-            isBookingPage={props.isBookingPage || isBookingPage}>
+      <TooltipProvider>
+        {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+        <CalcomThemeProvider
+          nonce={props.nonce}
+          isThemeSupported={isThemeSupported}
+          isBookingPage={props.isBookingPage || isBookingPage}>
+          <NuqsAdapter>
             <FeatureFlagsProvider>
               {props.isBookingPage || isBookingPage ? (
                 <OrgBrandProvider>{props.children}</OrgBrandProvider>
@@ -128,9 +131,9 @@ const AppProviders = (props: PageWrapperProps) => {
                 </DynamicIntercomProvider>
               )}
             </FeatureFlagsProvider>
-          </CalcomThemeProvider>
-        </TooltipProvider>
-      </EventCollectionProvider>
+          </NuqsAdapter>
+        </CalcomThemeProvider>
+      </TooltipProvider>
     </>
   );
 
@@ -141,7 +144,10 @@ const AppProviders = (props: PageWrapperProps) => {
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
+        <DynamicPostHogProvider>
+          <DynamicPostHogPageView />
+          {RemainingProviders}
+        </DynamicPostHogProvider>
       </DynamicHelpscoutProvider>
     </>
   );

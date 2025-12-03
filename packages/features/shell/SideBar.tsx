@@ -4,9 +4,9 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
@@ -85,7 +85,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
       <aside
         style={!isPlatformPages ? sidebarStylingAttributes : {}}
         className={classNames(
-          "bg-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
+          "bg-cal-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
           !isPlatformPages && "max-h-screen"
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
@@ -124,7 +124,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
                 <Icon
                   name="arrow-left"
-                  className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
+                  className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0"
                 />
               </button>
               <button
@@ -133,7 +133,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
                 <Icon
                   name="arrow-right"
-                  className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
+                  className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0"
                 />
               </button>
               {!!user?.org && (
@@ -169,8 +169,8 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                     <Icon
                       name={item.isLoading ? "rotate-cw" : item.icon}
                       className={classNames(
-                        "h-4 w-4 flex-shrink-0 [&[aria-current='page']]:text-inherit",
-                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
+                        "h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit",
+                        "ml-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
                         item.isLoading && "animate-spin"
                       )}
                       aria-hidden="true"

@@ -172,7 +172,7 @@ export const updateMeetingTokenIfExpired = async ({
 
   try {
     await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
-  } catch (err) {
+  } catch {
     const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: {
         room_name: roomName,
@@ -202,10 +202,9 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
   userId,
 }: {
   meetingToken: string | null;
-  userId?: number;
+  userId?: number | string;
 }) => {
   if (!meetingToken) return null;
-
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
   const guestMeetingToken = await postToDailyAPI("/meeting-tokens", {
     properties: {
@@ -318,7 +317,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
               bucket_region: process.env.CAL_VIDEO_BUCKET_REGION,
               assume_role_arn: process.env.CAL_VIDEO_ASSUME_ROLE_ARN,
               allow_api_access: true,
-              allow_streaming_from_bucket: true,
+              allow_streaming_from_bucket: false,
             },
           }),
         enable_transcription_storage: isTranscriptionEnabled,
@@ -367,7 +366,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
               bucket_region: process.env.CAL_VIDEO_BUCKET_REGION,
               assume_role_arn: process.env.CAL_VIDEO_ASSUME_ROLE_ARN,
               allow_api_access: true,
-              allow_streaming_from_bucket: true,
+              allow_streaming_from_bucket: false,
             },
           }),
         start_video_off: true,
@@ -426,7 +425,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           getRecordingsResponseSchema.parse
         );
         return Promise.resolve(res);
-      } catch (err) {
+      } catch {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },
@@ -444,9 +443,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getAllTranscriptsAccessLinkFromRoomName: async (roomName: string): Promise<Array<string>> => {
       try {
-        const res = await fetcher(`/rooms/${roomName}`).then(getRooms.parse);
-        const roomId = res.id;
-        const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
+        const allTranscripts = await fetcher(`/transcript?room_name=${roomName}`).then(getTranscripts.parse);
 
         if (!allTranscripts.data.length) return [];
 

@@ -1,3 +1,4 @@
+import { getCredentialForSelectedCalendar } from "@calcom/app-store/delegationCredential";
 import type {
   AdapterFactory,
   CalendarSubscriptionProvider,
@@ -9,10 +10,9 @@ import type {
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getCredentialForSelectedCalendar } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
-import { SelectedCalendar } from "@calcom/prisma/client";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
@@ -204,9 +204,14 @@ export class CalendarSubscriptionService {
    * Subscribe periodically to new calendars
    */
   async checkForNewSubscriptions() {
+    const teamIds = await this.deps.featuresRepository.getTeamsWithFeatureEnabled(
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+    );
+
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
+      teamIds,
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
     await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));

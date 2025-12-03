@@ -145,6 +145,7 @@ export const Components: Record<FieldType, Component> = {
             value={value}
             required={variantField.required}
             type="text"
+            autoComplete="name"
             onChange={(e) => {
               props.setValue(e.target.value);
             }}
@@ -163,7 +164,7 @@ export const Components: Record<FieldType, Component> = {
           {variant.fields.map((variantField) => (
             <InputField
               // Because the container is flex(and thus margin is being computed towards container height), I need to explicitly ensure that margin-bottom for the input becomes 0, which is mb-2 otherwise
-              className="!mb-0"
+              className="mb-0!"
               showAsteriskIndicator={true}
               key={variantField.name}
               name={variantField.name}
@@ -174,6 +175,13 @@ export const Components: Record<FieldType, Component> = {
               value={value[variantField.name as keyof typeof value]}
               required={variantField.required}
               type="text"
+              autoComplete={
+                variantField.name === "firstName"
+                  ? "given-name"
+                  : variantField.name === "lastName"
+                  ? "family-name"
+                  : undefined
+              }
               onChange={(e) => onChange(variantField.name, e.target.value)}
             />
           ))}
@@ -211,6 +219,7 @@ export const Components: Record<FieldType, Component> = {
           type="email"
           id={props.name}
           noLabel={true}
+          autoComplete="email"
           {...props}
           onChange={(e) => props.setValue(e.target.value)}
         />
@@ -443,7 +452,7 @@ export const Components: Record<FieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] transition after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
+                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:bg-brand-default dark:checked:after:bg-brand-accent dark:hover:bg-subtle dark:checked:hover:bg-brand-default text-(--cal-brand) flex h-4 w-4 cursor-pointer items-center justify-center transition after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
@@ -543,7 +552,7 @@ export const Components: Record<FieldType, Component> = {
   url: {
     propsType: propsTypes.url,
     factory: (props) => {
-      return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
+      return <Widgets.TextWidget type="url" autoComplete="url" noLabel={true} {...props} />;
     },
   },
 } as const;

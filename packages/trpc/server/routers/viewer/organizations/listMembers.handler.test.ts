@@ -3,6 +3,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import type { FilterType } from "@calcom/types/data-table";
 
 import { listMembersHandler } from "./listMembers.handler";
 
@@ -36,7 +37,7 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
 }));
 
 // Mock UserRepository
-vi.mock("@calcom/lib/server/repository/user", () => ({
+vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   UserRepository: vi.fn().mockImplementation(() => ({
     enrichUserWithItsProfile: vi.fn().mockImplementation(({ user }) => user),
   })),
@@ -76,6 +77,7 @@ describe("listMembersHandler", () => {
     prisma.membership.count.mockResolvedValue(0);
     prisma.membership.findFirst.mockResolvedValue({ role: "ADMIN" });
     // Mock team.findUnique to return only isPrivate field since that's what the handler selects
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prisma.team.findUnique.mockResolvedValue({ isPrivate: false } as any);
   });
 
@@ -83,7 +85,7 @@ describe("listMembersHandler", () => {
     // Mock PBAC enabled
     mockCheckIfTeamHasFeature.mockResolvedValue(true);
 
-    const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
+    const roleFilter: TypedColumnFilter<Extract<FilterType, "ms">> = {
       id: "role",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -122,7 +124,7 @@ describe("listMembersHandler", () => {
     // Mock PBAC disabled
     mockCheckIfTeamHasFeature.mockResolvedValue(false);
 
-    const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
+    const roleFilter: TypedColumnFilter<Extract<FilterType, "ms">> = {
       id: "role",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -157,7 +159,7 @@ describe("listMembersHandler", () => {
     // Mock PBAC disabled for this test
     mockCheckIfTeamHasFeature.mockResolvedValue(false);
 
-    const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
+    const roleFilter: TypedColumnFilter<Extract<FilterType, "ms">> = {
       id: "role",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -165,7 +167,7 @@ describe("listMembersHandler", () => {
       },
     };
 
-    const teamFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
+    const teamFilter: TypedColumnFilter<Extract<FilterType, "ms">> = {
       id: "teams",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -173,7 +175,7 @@ describe("listMembersHandler", () => {
       },
     };
 
-    const attributeFilter1: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
+    const attributeFilter1: TypedColumnFilter<Extract<FilterType, "ms">> = {
       id: "1",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -181,7 +183,7 @@ describe("listMembersHandler", () => {
       },
     };
 
-    const attributeFilter2: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
+    const attributeFilter2: TypedColumnFilter<Extract<FilterType, "ms">> = {
       id: "2",
       value: {
         type: ColumnFilterType.MULTI_SELECT,

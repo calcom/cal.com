@@ -48,7 +48,7 @@ import { ApiResponse } from "@calcom/platform-types";
 @DocsTags("Slots")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to ${VERSION_2024_09_04}`,
+  description: `Must be set to ${VERSION_2024_09_04}. If not set to this value, the endpoint will default to an older version.`,
   example: VERSION_2024_09_04,
   required: true,
   schema: {
@@ -86,6 +86,8 @@ export class SlotsController_2024_09_04 {
       - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.
       - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
       - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.
+
+       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
   @ApiQuery({
@@ -186,7 +188,8 @@ export class SlotsController_2024_09_04 {
   @DocsResponse({
     status: 200,
     description: `A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.
-      For seated slots each object will have attendeesCount and bookingUid properties.`,
+      For seated slots each object will have attendeesCount and bookingUid properties.
+      If no slots are available, the data field will be an empty object {}.`,
     schema: {
       oneOf: [
         {
@@ -256,7 +259,10 @@ export class SlotsController_2024_09_04 {
   @ApiOperation({
     summary: "Reserve a slot",
     description: `Make a slot not available for others to book for a certain period of time. If you authenticate using oAuth credentials, api key or access token
-    then you can also specify custom duration for how long the slot should be reserved for (defaults to 5 minutes).`,
+    then you can also specify custom duration for how long the slot should be reserved for (defaults to 5 minutes).
+    
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>    
+    `,
   })
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
@@ -278,6 +284,7 @@ export class SlotsController_2024_09_04 {
   @Get("/reservations/:uid")
   @ApiOperation({
     summary: "Get reserved slot",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
   })
   async getReservedSlot(@Param("uid") uid: string): Promise<GetReservedSlotOutput_2024_09_04> {
     const reservedSlot = await this.slotsService.getReservedSlot(uid);
@@ -293,6 +300,7 @@ export class SlotsController_2024_09_04 {
   @Patch("/reservations/:uid")
   @ApiOperation({
     summary: "Update a reserved slot",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
   })
   @HttpCode(HttpStatus.OK)
   async updateReservedSlot(
@@ -312,6 +320,7 @@ export class SlotsController_2024_09_04 {
   @Delete("/reservations/:uid")
   @ApiOperation({
     summary: "Delete a reserved slot",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
   })
   @HttpCode(HttpStatus.OK)
   @DocsResponse({

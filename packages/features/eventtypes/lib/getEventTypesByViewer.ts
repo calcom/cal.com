@@ -1,25 +1,24 @@
-// eslint-disable-next-line no-restricted-imports
 import { orderBy } from "lodash";
 
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
@@ -40,7 +39,7 @@ export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer
 
 export const getEventTypesByViewer = async (user: User, filters?: Filters, forRoutingForms?: boolean) => {
   const userProfile = user.profile;
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
+  const profile = await ProfileRepository.findByUpIdWithAuth(userProfile.upId, user.id);
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
   const isFilterSet = filters && hasFilter(filters);
@@ -97,7 +96,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   ]);
 
   if (!profile) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Profile not found");
   }
 
   const memberships = profileMemberships.map((membership) => ({
@@ -123,7 +122,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
       ...eventType,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
       users: await Promise.all(
-        (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+        (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
           async (u) =>
             await userRepo.enrichUserWithItsProfile({
               user: u,

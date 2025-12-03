@@ -125,7 +125,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
       <TextField
         className="max-w-64"
         addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
+        containerClassName="max-w-64 focus:ring-offset-0! mb-4"
         type="search"
         value={searchTerm}
         autoComplete="false"
@@ -144,15 +144,17 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
           debouncedSearchTerm={debouncedSearchTerm}
         />
       )}
-      <div className="text-default p-4 text-center" ref={buttonInView.ref}>
-        <Button
-          color="minimal"
-          loading={query.isFetchingNextPage}
-          disabled={!query.hasNextPage}
-          onClick={() => query.fetchNextPage()}>
-          {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-        </Button>
-      </div>
+      {(query.data?.pages?.[0]?.eventTypes?.length ?? 0) > 0 && (
+        <div className="text-default p-4 text-center" ref={buttonInView.ref}>
+          <Button
+            color="minimal"
+            loading={query.isFetchingNextPage}
+            disabled={!query.hasNextPage}
+            onClick={() => query.fetchNextPage()}>
+            {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -176,7 +178,7 @@ const Item = ({
   const content = () => (
     <div>
       <span
-        className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+        className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
         data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
@@ -210,7 +212,7 @@ const Item = ({
           <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
             <div>
               <span
-                className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+                className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
                 data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
@@ -271,7 +273,7 @@ export const InfiniteEventTypeList = ({
     },
   });
 
-  const setHiddenMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+  const setHiddenMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onMutate: async (data) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
@@ -481,7 +483,7 @@ export const InfiniteEventTypeList = ({
 
   return (
     <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
-      <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
+      <ul ref={parent} className="divide-subtle static! w-full divide-y" data-testid="event-types">
         {pages.map((page, pageIdx) => {
           return page?.eventTypes?.map((type, index) => {
             const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -503,7 +505,7 @@ export const InfiniteEventTypeList = ({
               type.schedulingType !== SchedulingType.MANAGED;
             return (
               <li key={type.id}>
-                <div className="hover:bg-muted flex w-full items-center justify-between transition">
+                <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
                   <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                     {!(firstItem && firstItem.id === type.id) && (
                       <ArrowButton
@@ -615,7 +617,7 @@ export const InfiniteEventTypeList = ({
                                   color="secondary"
                                   StartIcon="ellipsis"
                                   // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
-                                  className="ltr:radix-state-open:rounded-r-[--btn-group-radius] rtl:radix-state-open:rounded-l-[--btn-group-radius]"
+                                  className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                                 />
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
@@ -875,12 +877,15 @@ const EmptyEventTypeList = ({
   return (
     <>
       <EmptyScreen
+        Icon="link"
         headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
+        description={t("new_team_event_type_description")}
+        className="mb-16"
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
             variant="button"
-            className="mt-5">
+          >
             {t("create")}
           </Button>
         }
@@ -998,9 +1003,10 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
      */
     const redirectUrl = localStorage.getItem("onBoardingRedirect");
     localStorage.removeItem("onBoardingRedirect");
-    redirectUrl && router.push(redirectUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (redirectUrl) {
+      router.push(redirectUrl);
+    }
+  }, [router]);
 
   useEffect(() => {
     setShowProfileBanner(

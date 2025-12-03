@@ -15,7 +15,7 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -98,6 +98,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const h = await headers();
   const nonce = h.get("x-csp-nonce") ?? "";
 
+  const country = h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || "Unknown";
+
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
   const ns = "common";
@@ -115,7 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
@@ -131,9 +133,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
                 // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
                 visibility: "hidden",
+                // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
+                opacity: 0,
               }
             : {
                 visibility: "visible",
+                opacity: 1,
               }
         }>
         <IconSprites />
@@ -151,7 +156,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers isEmbed={isEmbed} nonce={nonce}>
+        <Providers isEmbed={isEmbed} nonce={nonce} country={country}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>

@@ -23,7 +23,7 @@ const mockFindFirstEventType = (
   return eventType;
 };
 
-vi.mock("@calcom/emails/email-manager", () => {
+vi.mock("@calcom/emails/integration-email-service", () => {
   return {
     sendSlugReplacementEmail: () => ({}),
   };
@@ -126,7 +126,6 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateDescriptionEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -189,7 +188,6 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -300,7 +298,6 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -366,7 +363,6 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -423,7 +419,7 @@ describe("handleChildrenEventTypes", () => {
         timeZone: _timeZone,
         parentId: _parentId,
         userId: _userId,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
@@ -432,7 +428,6 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -456,7 +451,6 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
         useEventTypeDestinationCalendarEmail: false,
-        showOptimizedSlots: false,
         workflows: [],
         parentId: 1,
         locations: [],

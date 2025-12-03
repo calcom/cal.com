@@ -1,4 +1,3 @@
-import type { TFunction } from "i18next";
 import { default as cloneDeep } from "lodash/cloneDeep";
 import type { z } from "zod";
 
@@ -22,65 +21,27 @@ import EventRequestSMS from "../sms/attendee/event-request-sms";
 import EventRequestToRescheduleSMS from "../sms/attendee/event-request-to-reschedule-sms";
 import EventSuccessfullyReScheduledSMS from "../sms/attendee/event-rescheduled-sms";
 import EventSuccessfullyScheduledSMS from "../sms/attendee/event-scheduled-sms";
-import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
-import type { OrganizationAdminNoSlotsEmailInput } from "./src/templates/OrganizationAdminNoSlots";
-import type { EmailVerifyLink } from "./templates/account-verify-email";
-import AccountVerifyEmail from "./templates/account-verify-email";
-import type { OrganizationNotification } from "./templates/admin-organization-notification";
-import AdminOrganizationNotification from "./templates/admin-organization-notification";
 import AttendeeAddGuestsEmail from "./templates/attendee-add-guests-email";
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
-import AttendeeDailyVideoDownloadRecordingEmail from "./templates/attendee-daily-video-download-recording-email";
-import AttendeeDailyVideoDownloadTranscriptEmail from "./templates/attendee-daily-video-download-transcript-email";
 import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
 import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
 import AttendeeRequestEmail from "./templates/attendee-request-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import AttendeeUpdatedEmail from "./templates/attendee-updated-email";
-import type { EmailVerifyCode } from "./templates/attendee-verify-email";
-import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
-import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
-import type { IBookingRedirect } from "./templates/booking-redirect-notification";
-import BrokenIntegrationEmail from "./templates/broken-integration-email";
-import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
-import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
-import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
-import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
-import DelegationCredentialDisabledEmail from "./templates/delegation-credential-disabled-email";
-import DisabledAppEmail from "./templates/disabled-app-email";
-import type { Feedback } from "./templates/feedback-email";
-import FeedbackEmail from "./templates/feedback-email";
-import type { PasswordReset } from "./templates/forgot-password-email";
-import ForgotPasswordEmail from "./templates/forgot-password-email";
-import MonthlyDigestEmail from "./templates/monthly-digest-email";
-import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
-import OrganizationAdminNoSlotsEmail from "./templates/organization-admin-no-slots-email";
-import type { OrganizationCreation } from "./templates/organization-creation-email";
-import OrganizationCreationEmail from "./templates/organization-creation-email";
-import type { OrganizationEmailVerify } from "./templates/organization-email-verification";
-import OrganizationEmailVerification from "./templates/organization-email-verification";
 import OrganizerAddGuestsEmail from "./templates/organizer-add-guests-email";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
-import OrganizerDailyVideoDownloadRecordingEmail from "./templates/organizer-daily-video-download-recording-email";
-import OrganizerDailyVideoDownloadTranscriptEmail from "./templates/organizer-daily-video-download-transcript-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
-import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
 import OrganizerReassignedEmail from "./templates/organizer-reassigned-email";
 import OrganizerRequestEmail from "./templates/organizer-request-email";
 import OrganizerRequestReminderEmail from "./templates/organizer-request-reminder-email";
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
-import SlugReplacementEmail from "./templates/slug-replacement-email";
-import type { TeamInvite } from "./templates/team-invite-email";
-import TeamInviteEmail from "./templates/team-invite-email";
-import type { WorkflowEmailData } from "./templates/workflow-email";
-import WorkflowEmail from "./templates/workflow-email";
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -156,7 +117,8 @@ export const sendScheduledEmailsAndSMS = withReporting(
 );
 
 // for rescheduled round robin booking that assigned new members
-export const sendRoundRobinScheduledEmailsAndSMS = async ({
+// or for reassignment of a managed event
+export const sendReassignedScheduledEmailsAndSMS = async ({
   calEvent,
   members,
   eventTypeMetadata,
@@ -217,7 +179,7 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRoundRobinUpdatedEmailsAndSMS = async ({
+export const sendReassignedUpdatedEmailsAndSMS = async ({
   calEvent,
   eventTypeMetadata,
 }: {
@@ -258,7 +220,7 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRoundRobinReassignedEmailsAndSMS = async (args: {
+export const sendReassignedEmailsAndSMS = async (args: {
   calEvent: CalendarEvent;
   members: Person[];
   reassignedTo: { name: string | null; email: string };
@@ -570,52 +532,6 @@ export const sendAwaitingPaymentEmailAndSMS = async (
   await awaitingPaymentSMS.sendSMSToAttendees();
 };
 
-export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEvent) => {
-  const emailsToSend: Promise<unknown>[] = [];
-  emailsToSend.push(sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent })));
-
-  if (calEvent.team?.members) {
-    for (const teamMember of calEvent.team.members) {
-      emailsToSend.push(sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent, teamMember })));
-    }
-  }
-
-  await Promise.all(emailsToSend);
-};
-
-export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) => {
-  await sendEmail(() => new ForgotPasswordEmail(passwordResetEvent));
-};
-
-export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
-  await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
-};
-
-export const sendCustomWorkflowEmail = async (emailData: WorkflowEmailData) => {
-  await sendEmail(() => new WorkflowEmail(emailData));
-};
-
-export const sendOrganizationCreationEmail = async (organizationCreationEvent: OrganizationCreation) => {
-  await sendEmail(() => new OrganizationCreationEmail(organizationCreationEvent));
-};
-
-export const sendOrganizationAdminNoSlotsNotification = async (
-  orgInviteEvent: OrganizationAdminNoSlotsEmailInput
-) => {
-  await sendEmail(() => new OrganizationAdminNoSlotsEmail(orgInviteEvent));
-};
-
-export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
-  await sendEmail(() => new AccountVerifyEmail(verificationInput));
-};
-
-export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
-  await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
-};
-
-export const sendChangeOfEmailVerificationLink = async (verificationInput: ChangeOfEmailVerifyLink) => {
-  await sendEmail(() => new ChangeOfEmailVerifyEmail(verificationInput));
-};
 
 export const sendRequestRescheduleEmailAndSMS = async (
   calEvent: CalendarEvent,
@@ -695,195 +611,44 @@ export const sendAddGuestsEmails = async (calEvent: CalendarEvent, newGuests: st
 
   await Promise.all(emailsToSend);
 };
-export const sendFeedbackEmail = async (feedback: Feedback) => {
-  await sendEmail(() => new FeedbackEmail(feedback));
-};
 
-export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "video" | "calendar") => {
-  const calendarEvent = formatCalEvent(evt);
-  await sendEmail(() => new BrokenIntegrationEmail(calendarEvent, type));
-};
-
-export const sendDisabledAppEmail = async ({
-  email,
-  appName,
-  appType,
-  t,
-  title = undefined,
-  eventTypeId = undefined,
-}: {
-  email: string;
-  appName: string;
-  appType: string[];
-  t: TFunction;
-  title?: string;
-  eventTypeId?: number;
+export const sendAddGuestsEmailsAndSMS = async (args: {
+  calEvent: CalendarEvent;
+  newGuests: string[];
+  eventTypeMetadata?: EventTypeMetadata;
 }) => {
-  await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
-};
-
-export const sendSlugReplacementEmail = async ({
-  email,
-  name,
-  teamName,
-  t,
-  slug,
-}: {
-  email: string;
-  name: string;
-  teamName: string | null;
-  t: TFunction;
-  slug: string;
-}) => {
-  await sendEmail(() => new SlugReplacementEmail(email, name, teamName, slug, t));
-};
-
-export const sendNoShowFeeChargedEmail = async (
-  attendee: Person,
-  evt: CalendarEvent,
-  eventTypeMetadata?: EventTypeMetadata
-) => {
-  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
-  await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
-};
-
-export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
+  const { calEvent, newGuests, eventTypeMetadata } = args;
   const calendarEvent = formatCalEvent(calEvent);
-  const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(
-    sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calendarEvent, downloadLink))
-  );
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
 
-  for (const attendee of calendarEvent.attendees) {
-    emailsToSend.push(
-      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink))
-    );
-  }
-  await Promise.all(emailsToSend);
-};
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsAndSMSToSend.push(sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent })));
 
-export const sendDailyVideoTranscriptEmails = async (calEvent: CalendarEvent, transcripts: string[]) => {
-  const emailsToSend: Promise<unknown>[] = [];
-
-  emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadTranscriptEmail(calEvent, transcripts)));
-
-  for (const attendee of calEvent.attendees) {
-    emailsToSend.push(
-      sendEmail(() => new AttendeeDailyVideoDownloadTranscriptEmail(calEvent, attendee, transcripts))
-    );
-  }
-  await Promise.all(emailsToSend);
-};
-
-export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
-  await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
-};
-
-export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData) => {
-  await sendEmail(() => new MonthlyDigestEmail(eventData));
-};
-
-export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
-  await sendEmail(() => new AdminOrganizationNotification(input));
-};
-
-export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
-  await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
-};
-
-export const sendCreditBalanceLowWarningEmails = async (input: {
-  team?: {
-    name: string | null;
-    id: number;
-    adminAndOwners: {
-      id: number;
-      name: string | null;
-      email: string;
-      t: TFunction;
-    }[];
-  };
-  user?: {
-    id: number;
-    name: string | null;
-    email: string;
-    t: TFunction;
-  };
-  balance: number;
-}) => {
-  const { team, balance, user } = input;
-  if ((!team || !team.adminAndOwners.length) && !user) return;
-
-  if (team) {
-    const emailsToSend: Promise<unknown>[] = [];
-
-    for (const admin of team.adminAndOwners) {
-      emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail({ user: admin, balance, team })));
+    if (calendarEvent.team?.members) {
+      for (const teamMember of calendarEvent.team.members) {
+        emailsAndSMSToSend.push(
+          sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
     }
-
-    await Promise.all(emailsToSend);
   }
 
-  if (user) {
-    await sendEmail(() => new CreditBalanceLowWarningEmail({ user, balance }));
-  }
-};
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+    const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
 
-export const sendCreditBalanceLimitReachedEmails = async ({
-  team,
-  user,
-}: {
-  team?: {
-    name: string;
-    id: number;
-    adminAndOwners: {
-      id: number;
-      name: string | null;
-      email: string;
-      t: TFunction;
-    }[];
-  };
-  user?: {
-    id: number;
-    name: string | null;
-    email: string;
-    t: TFunction;
-  };
-}) => {
-  if ((!team || !team.adminAndOwners.length) && !user) return;
+    for (const attendee of calendarEvent.attendees) {
+      if (newGuests.includes(attendee.email)) {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeScheduledEmail(calendarEvent, attendee)));
 
-  if (team) {
-    const emailsToSend: Promise<unknown>[] = [];
-
-    for (const admin of team.adminAndOwners) {
-      emailsToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail({ user: admin, team })));
+        if (attendee.phoneNumber) {
+          emailsAndSMSToSend.push(eventScheduledSMS.sendSMSToAttendee(attendee));
+        }
+      } else {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeAddGuestsEmail(calendarEvent, attendee)));
+      }
     }
-    await Promise.all(emailsToSend);
   }
 
-  if (user) {
-    await sendEmail(() => new CreditBalanceLimitReachedEmail({ user }));
-  }
-};
-
-export const sendDelegationCredentialDisabledEmail = async ({
-  recipientEmail,
-  recipientName,
-  calendarAppName,
-  conferencingAppName,
-}: {
-  recipientEmail: string;
-  recipientName?: string;
-  calendarAppName: string;
-  conferencingAppName: string;
-}) => {
-  await sendEmail(
-    () =>
-      new DelegationCredentialDisabledEmail({
-        recipientEmail,
-        recipientName,
-        calendarAppName,
-        conferencingAppName,
-      })
-  );
+  await Promise.all(emailsAndSMSToSend);
 };

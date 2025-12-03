@@ -355,6 +355,11 @@ describe("Organizations Event Types Endpoints", () => {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
         },
+        emailSettings: {
+          disableEmailsToAttendees: true,
+          disableEmailsToHosts: true,
+        },
+        rescheduleWithSameRoundRobinHost: true,
       };
 
       return request(app.getHttpServer())
@@ -385,6 +390,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
+          expect(data.emailSettings).toEqual(body.emailSettings);
           collectiveEventType = responseBody.data;
         });
     });
@@ -600,6 +606,11 @@ describe("Organizations Event Types Endpoints", () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         hosts: newHosts,
         successRedirectUrl: "https://new-url-success.com",
+        emailSettings: {
+          disableEmailsToAttendees: false,
+          disableEmailsToHosts: false,
+        },
+        rescheduleWithSameRoundRobinHost: false,
       };
 
       return request(app.getHttpServer())
@@ -614,6 +625,8 @@ describe("Organizations Event Types Endpoints", () => {
           expect(eventType.successRedirectUrl).toEqual("https://new-url-success.com");
           expect(eventType.title).toEqual(collectiveEventType.title);
           expect(eventType.hosts.length).toEqual(1);
+          expect(eventType.emailSettings).toEqual(body.emailSettings);
+          expect(eventType.rescheduleWithSameRoundRobinHost).toEqual(body.rescheduleWithSameRoundRobinHost);
           evaluateHost(eventType.hosts[0], newHosts[0]);
         });
     });
@@ -1215,6 +1228,70 @@ describe("Organizations Event Types Endpoints", () => {
             throw new Error("Team event not found");
           }
         });
+    });
+
+    it("should preserve seatsPerTimeSlot when doing partial update", async () => {
+      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation with seats",
+        slug: `organizations-event-types-seats-${randomString()}`,
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+          },
+        ],
+        seats: {
+          seatsPerTimeSlot: 5,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(createBody)
+        .expect(201);
+
+      const createdEventType: TeamEventTypeOutput_2024_06_14 = createResponse.body.data;
+      const createdSeats = createdEventType.seats;
+      expect(createdSeats).toBeDefined();
+      expect(createdSeats && "seatsPerTimeSlot" in createdSeats).toBe(true);
+      if (createdSeats && "seatsPerTimeSlot" in createdSeats) {
+        expect(createdSeats.seatsPerTimeSlot).toEqual(5);
+        expect(createdSeats.showAttendeeInfo).toEqual(true);
+        expect(createdSeats.showAvailabilityCount).toEqual(true);
+      }
+
+      // Now do a partial update that only changes a different field (not seats)
+      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
+        bookingRequiresAuthentication: false,
+      };
+
+      const updateResponse = await request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${createdEventType.id}`)
+        .send(updateBody)
+        .expect(200);
+
+      const updatedEventType: TeamEventTypeOutput_2024_06_14 = updateResponse.body.data;
+
+      // Verify that seatsPerTimeSlot is preserved and not reset to null
+      const updatedSeats = updatedEventType.seats;
+      expect(updatedSeats).toBeDefined();
+      expect(updatedSeats && "seatsPerTimeSlot" in updatedSeats).toBe(true);
+      if (updatedSeats && "seatsPerTimeSlot" in updatedSeats) {
+        expect(updatedSeats.seatsPerTimeSlot).toEqual(5);
+        expect(updatedSeats.showAttendeeInfo).toEqual(true);
+        expect(updatedSeats.showAvailabilityCount).toEqual(true);
+      }
+      expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
     function evaluateHost(expected: Host, received: Host | undefined) {
