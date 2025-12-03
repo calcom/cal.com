@@ -55,12 +55,13 @@ export default defineConfig({
           env: {
             NEXT_PUBLIC_IS_E2E: "1",
             NODE_ENV: "test",
-            NEXT_PUBLIC_X_CAL_ID: process.env.ATOMS_E2E_OAUTH_CLIENT_ID ?? "",
-            X_CAL_SECRET_KEY: process.env.ATOMS_E2E_OAUTH_CLIENT_SECRET ?? "",
-            NEXT_PUBLIC_CALCOM_API_URL: process.env.ATOMS_E2E_API_URL ?? "",
-            VITE_BOOKER_EMBED_OAUTH_CLIENT_ID: process.env.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED ?? "",
-            VITE_BOOKER_EMBED_API_URL: process.env.ATOMS_E2E_API_URL ?? "",
-            ORGANIZATION_ID: String(process.env.ATOMS_E2E_ORG_ID ?? ""),
+            NEXT_PUBLIC_X_CAL_ID: process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 ?? "",
+            X_CAL_SECRET_KEY: process.env.ATOMS_E2E_OAUTH_CLIENT_SECRET_2025_12 ?? "",
+            NEXT_PUBLIC_CALCOM_API_URL: process.env.ATOMS_E2E_API_URL_2025_12 ?? "",
+            VITE_BOOKER_EMBED_OAUTH_CLIENT_ID:
+              process.env.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED_2025_12 ?? "",
+            VITE_BOOKER_EMBED_API_URL: process.env.ATOMS_E2E_API_URL_2025_12 ?? "",
+            ORGANIZATION_ID: String(process.env.ATOMS_E2E_ORG_ID_2025_12 ?? ""),
           },
         }
       : {}),
