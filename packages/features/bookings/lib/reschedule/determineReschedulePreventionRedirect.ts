@@ -93,16 +93,12 @@ export function determineReschedulePreventionRedirect(
   // Only apply this restriction if the user is NOT the booking organizer
   const isUserOrganizer = input.currentUserId && booking.userId && input.currentUserId === booking.userId;
   const { minimumRescheduleNotice } = booking.eventType;
-  if (!isUserOrganizer && minimumRescheduleNotice && minimumRescheduleNotice > 0 && booking.startTime) {
-    const now = new Date();
-    const bookingStartTime = new Date(booking.startTime);
-    const timeUntilBooking = bookingStartTime.getTime() - now.getTime();
-    const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
-
-    if (timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs) {
-      // Rescheduling is not allowed within the minimum notice period (only for non-organizers)
-      return `/booking/${booking.uid}`;
-    }
+  if (
+    !isUserOrganizer &&
+    isWithinMinimumRescheduleNotice(booking.startTime, minimumRescheduleNotice ?? null)
+  ) {
+    // Rescheduling is not allowed within the minimum notice period (only for non-organizers)
+    return `/booking/${booking.uid}`;
   }
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
