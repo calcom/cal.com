@@ -39,7 +39,6 @@ class HolidayServiceClass {
     const currentYear = dayjs().year();
     const nextYear = currentYear + 1;
 
-    // Get holidays for current and next year
     const [currentYearHolidays, nextYearHolidays] = await Promise.all([
       GoogleHolidayService.getHolidaysForCountry(countryCode, currentYear),
       GoogleHolidayService.getHolidaysForCountry(countryCode, nextYear),
@@ -47,8 +46,6 @@ class HolidayServiceClass {
 
     const allHolidays = [...currentYearHolidays, ...nextYearHolidays];
     const disabledSet = new Set(disabledIds);
-
-    // Filter to only show upcoming holidays
     const today = dayjs().startOf("day");
 
     return allHolidays

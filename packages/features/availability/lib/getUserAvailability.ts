@@ -558,7 +558,6 @@ export class UserAvailabilityService {
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
-    // Get holiday blocked dates
     const holidayBlockedDates = await this.calculateHolidayBlockedDates(
       user.id,
       dateFrom.toDate(),
@@ -566,7 +565,6 @@ export class UserAvailabilityService {
       availability
     );
 
-    // Merge holiday dates with OOO dates (OOO takes precedence over holidays)
     for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
       if (!datesOutOfOffice[date]) {
         datesOutOfOffice[date] = holidayData;
@@ -698,16 +696,12 @@ export class UserAvailabilityService {
 
   getUsersAvailability = withReporting(this._getUsersAvailability.bind(this), "getUsersAvailability");
 
-  /**
-   * Calculate blocked dates from user's holiday settings
-   */
   async calculateHolidayBlockedDates(
     userId: number,
     startDate: Date,
     endDate: Date,
     availability: GetUserAvailabilityParamsDTO["availability"]
   ): Promise<IOutOfOfficeData> {
-    // Fetch user's holiday settings
     const holidaySettings = await prisma.userHolidaySettings.findUnique({
       where: { userId },
     });
@@ -716,7 +710,6 @@ export class UserAvailabilityService {
       return {};
     }
 
-    // Get holiday dates in range
     const holidayDates = await HolidayService.getHolidayDatesInRange(
       holidaySettings.countryCode,
       holidaySettings.disabledIds,
@@ -728,29 +721,25 @@ export class UserAvailabilityService {
       return {};
     }
 
-    // Get availability days to filter holidays
     const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
       (a, b) => a - b
     );
 
-    // Convert holidays to IOutOfOfficeData format
     const result: IOutOfOfficeData = {};
 
     for (const { date, holiday } of holidayDates) {
       const holidayDate = dayjs(date);
       const dayOfWeek = holidayDate.day();
 
-      // Only include if the day is in the user's availability schedule
       if (!flattenDays.includes(dayOfWeek)) {
         continue;
       }
 
       result[date] = {
-        fromUser: null, // Holiday doesn't have a specific user
-        toUser: null, // No redirect for holidays
+        fromUser: null,
+        toUser: null,
         reason: holiday.name,
-        emoji: "📆", // Holiday emoji
-
+        emoji: "📆",
       };
     }
 

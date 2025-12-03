@@ -46,7 +46,6 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
     return { conflicts: [] };
   }
 
-  // Build OR conditions for each holiday date - more efficient than fetching all bookings
   const dateConditions = holidayDates.map((h) => {
     const holidayStart = dayjs(h.date).startOf("day").toDate();
     const holidayEnd = dayjs(h.date).endOf("day").toDate();

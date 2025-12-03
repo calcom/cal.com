@@ -17,13 +17,11 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
-// Placeholder to maintain consistent layout with OOO pages that have an "Add" button
 function HolidaysCTA() {
   const { t } = useLocale();
   return (
     <div className="flex gap-2">
       <OutOfOfficeToggleGroup />
-      {/* Invisible placeholder using actual Button to match exact dimensions */}
       <Button color="primary" StartIcon="plus" className="invisible" aria-hidden="true" tabIndex={-1}>
         {t("add")}
       </Button>
@@ -34,7 +32,6 @@ function HolidaysCTA() {
 type HolidayWithStatus = RouterOutputs["viewer"]["holidays"]["getUserSettings"]["holidays"][number];
 type Country = { code: string; name: string };
 
-// Memoized country selector to prevent unnecessary re-renders
 const CountrySelector = memo(function CountrySelector({
   countries,
   value,
@@ -188,13 +185,11 @@ export function HolidaysView() {
     error: settingsError,
   } = trpc.viewer.holidays.getUserSettings.useQuery({});
 
-  // Memoize disabled IDs to prevent unnecessary re-renders
   const disabledIds = useMemo(
     () => settings?.holidays?.filter((h) => !h.enabled).map((h) => h.id) || [],
     [settings?.holidays]
   );
 
-  // Check for conflicts when country is set - defer this query
   const { data: conflictsData } = trpc.viewer.holidays.checkConflicts.useQuery(
     {
       countryCode: settings?.countryCode || "",
@@ -205,7 +200,6 @@ export function HolidaysView() {
     }
   );
 
-  // Mutations
   const updateSettingsMutation = trpc.viewer.holidays.updateSettings.useMutation({
     onSuccess: () => {
       utils.viewer.holidays.getUserSettings.invalidate();
@@ -275,7 +269,6 @@ export function HolidaysView() {
   return (
     <SettingsHeader title={t("holidays")} description={t("holidays_description")} CTA={<HolidaysCTA />}>
       <div className="space-y-6">
-        {/* Country selector */}
         <div className="border-subtle bg-default rounded-md border p-6">
           <Label>{t("country_for_holidays")}</Label>
           <CountrySelector
@@ -286,12 +279,10 @@ export function HolidaysView() {
           />
         </div>
 
-        {/* Conflict warning */}
         {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
           <ConflictWarning conflicts={conflictsData.conflicts} />
         )}
 
-        {/* Holidays list */}
         {settings?.countryCode ? (
           <div>
             <div className="mb-4 flex items-center justify-between">

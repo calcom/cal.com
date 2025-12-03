@@ -48,9 +48,6 @@ class GoogleHolidayServiceClass {
     return key;
   }
 
-  /**
-   * Fetch holidays from Google Calendar API for a specific country
-   */
   async fetchHolidaysFromGoogle(countryCode: string, year: number): Promise<CachedHoliday[]> {
     const calendarConfig = GOOGLE_HOLIDAY_CALENDARS[countryCode];
     if (!calendarConfig) {
@@ -77,10 +74,8 @@ class GoogleHolidayServiceClass {
       return [];
     }
 
-    // Keep only official public holidays (filter out observances)
     return data.items
       .filter((event) => {
-        // Include events with "Public holiday" in description
         const desc = event.description?.toLowerCase() || "";
         return desc.includes("public holiday");
       })
@@ -99,9 +94,6 @@ class GoogleHolidayServiceClass {
       });
   }
 
-  /**
-   * Check if cache is stale (older than configured days)
-   */
   async isCacheStale(countryCode: string, year: number): Promise<boolean> {
     const cacheDays = getHolidayCacheDays();
     const staleDate = dayjs().subtract(cacheDays, "days").toDate();
@@ -123,9 +115,6 @@ class GoogleHolidayServiceClass {
     return cachedEntry.updatedAt < staleDate;
   }
 
-  /**
-   * Get holidays from cache, fetching from Google if stale
-   */
   async getHolidaysForCountry(countryCode: string, year: number): Promise<CachedHoliday[]> {
     const isStale = await this.isCacheStale(countryCode, year);
 
@@ -153,9 +142,6 @@ class GoogleHolidayServiceClass {
     }));
   }
 
-  /**
-   * Refresh cache for a specific country and year
-   */
   async refreshCache(countryCode: string, year: number): Promise<void> {
     const calendarConfig = GOOGLE_HOLIDAY_CALENDARS[countryCode];
     if (!calendarConfig) {
@@ -165,9 +151,7 @@ class GoogleHolidayServiceClass {
     try {
       const holidays = await this.fetchHolidaysFromGoogle(countryCode, year);
 
-      // Use transaction to ensure atomic delete + insert
       await prisma.$transaction(async (tx) => {
-        // Delete existing cache for this country/year
         await tx.holidayCache.deleteMany({
           where: {
             countryCode,
@@ -175,7 +159,6 @@ class GoogleHolidayServiceClass {
           },
         });
 
-        // Insert new holidays
         if (holidays.length > 0) {
           await tx.holidayCache.createMany({
             data: holidays.map((h) => ({
@@ -192,18 +175,13 @@ class GoogleHolidayServiceClass {
       });
     } catch (error) {
       console.error(`Failed to refresh holiday cache for ${countryCode}:`, error);
-      // Don't throw - if transaction fails, stale cache remains intact
     }
   }
 
-  /**
-   * Get holidays for a date range
-   */
   async getHolidaysInRange(countryCode: string, startDate: Date, endDate: Date): Promise<CachedHoliday[]> {
     const startYear = dayjs(startDate).year();
     const endYear = dayjs(endDate).year();
 
-    // Ensure cache is fresh for all years in range
     for (let year = startYear; year <= endYear; year++) {
       const isStale = await this.isCacheStale(countryCode, year);
       if (isStale) {
