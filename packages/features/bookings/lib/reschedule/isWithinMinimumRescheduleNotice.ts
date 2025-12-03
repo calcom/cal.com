@@ -11,6 +11,5 @@ export function isWithinMinimumRescheduleNotice(
   const timeUntilBooking = bookingStart.getTime() - now.getTime();
   const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000;
 
-  // Return true if we're within the minimum notice period (but booking hasn't started yet)
   return timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs;
 }

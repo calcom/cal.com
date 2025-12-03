@@ -44,14 +44,11 @@ export default function DisableReschedulingController({
   );
   const radioGroupOnValueChangeRef = useRef<((val: string) => void) | null>(null);
 
-  // Determine if radio buttons should be shown
-  // Show when: disableRescheduling is true (toggle is ON), OR there's already a minimumRescheduleNotice set
   const shouldShowRadioButtons =
     disableRescheduling ||
     (currentMinimumRescheduleNotice !== null && currentMinimumRescheduleNotice > 0) ||
     eventType.disableRescheduling !== undefined;
 
-  // Sync local state when form value changes externally
   useEffect(() => {
     if (currentMinimumRescheduleNotice && currentMinimumRescheduleNotice > 0) {
       setMinimumRescheduleNoticeValue(currentMinimumRescheduleNotice);
@@ -90,15 +87,15 @@ export default function DisableReschedulingController({
                   href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-rescheduling"
                 />
               }
-              checked={disableRescheduling}
+              checked={shouldShowRadioButtons}
               onCheckedChange={(val) => {
-                onChange(val);
-                onDisableRescheduling(val);
                 if (val) {
-                  // Toggle ON = disable rescheduling, show radio buttons, default to "always"
+                  onChange(true);
+                  onDisableRescheduling(true);
                   formMethods.setValue("minimumRescheduleNotice", null, { shouldDirty: true });
                 } else {
-                  // Toggle OFF = enable rescheduling, hide radio buttons
+                  onChange(false);
+                  onDisableRescheduling(false);
                   formMethods.setValue("minimumRescheduleNotice", null, { shouldDirty: true });
                 }
               }}>
@@ -113,16 +110,13 @@ export default function DisableReschedulingController({
                         : "always"
                     }
                     onValueChange={(val) => {
-                      // Store handler in ref for Input to use
                       const handler = (val: string) => {
                         if (val === "always") {
-                          // "Always" = completely disable rescheduling
                           onChange(true);
                           onDisableRescheduling(true);
                           formMethods.setValue("minimumRescheduleNotice", null, { shouldDirty: true });
                           setMinimumRescheduleNoticeValue(0);
                         } else if (val === "notice") {
-                          // Input option = enable rescheduling with restriction
                           onChange(false);
                           onDisableRescheduling(false);
                           const valueToSet =
@@ -172,10 +166,7 @@ export default function DisableReschedulingController({
                                         formMethods.setValue("minimumRescheduleNotice", val, {
                                           shouldDirty: true,
                                         });
-                                        // When input changes, ensure "notice" option is selected
-                                        if (radioGroupOnValueChangeRef.current) {
-                                          radioGroupOnValueChangeRef.current("notice");
-                                        }
+                                        radioGroupOnValueChangeRef.current?.("notice");
                                       }
                                     }}
                                     className={classNames(
