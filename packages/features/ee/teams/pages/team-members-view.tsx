@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 
@@ -13,7 +13,6 @@ import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitationModal";
 import MemberList from "../components/MemberList";
 import TeamInviteList from "../components/TeamInviteList";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const MembersView = () => {
   const { t } = useLocale();
@@ -45,32 +44,13 @@ const MembersView = () => {
     [teamError]
   );
 
-  // Get permissions from server using PBAC (with fallback to role-based)
-  const { data: permissions, isPending: isPermissionsLoading } =
-    trpc.viewer.pbac.getTeamMemberPermissions.useQuery(
-      { teamId },
-      {
-        enabled: !!teamId && !!team,
-      }
-    );
-
-  const isPending = isTeamsLoading || isPermissionsLoading;
+  const isPending = isTeamsLoading;
 
   const isInviteOpen = !team?.membership.accepted;
 
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   const isOrgAdminOrOwner = checkAdminOrOwner(org?.role);
-
-  const fallbackPermissions: MemberPermissions = {
-    canListMembers: false,
-    canInvite: false,
-    canChangeMemberRole: false,
-    canRemove: false,
-    canImpersonate: false,
-  };
-
-  const memberPermissions = permissions ?? fallbackPermissions;
 
   const hideInvitationModal = () => {
     setShowMemberInvitationModal(false);
@@ -105,7 +85,6 @@ const MembersView = () => {
                   team={team}
                   isOrgAdminOrOwner={isOrgAdminOrOwner}
                   setShowMemberInvitationModal={setShowMemberInvitationModal}
-                  permissions={memberPermissions}
                 />
               </div>
             )}

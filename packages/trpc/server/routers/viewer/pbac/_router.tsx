@@ -1,18 +1,12 @@
 import { z } from "zod";
 
-import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
-import { getTeamMemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
-import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { prisma } from "@calcom/prisma";
 import { RoleType, MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
@@ -217,64 +211,6 @@ export const permissionsRouter = router({
 
       const roleService = new RoleService();
       return roleService.getTeamRoles(input.teamId);
-    }),
-
-  getTeamMemberPermissions: authedProcedure
-    .input(
-      z.object({
-        teamId: z.number(),
-      })
-    )
-    .query(async ({ ctx, input }): Promise<MemberPermissions> => {
-      if (!ctx.user?.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Unauthorized",
-        });
-      }
-
-      // Check if user is a member of the team
-      const teamMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId: ctx.user.id,
-        teamId: input.teamId,
-      });
-
-      if (!teamMembership) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "You are not a member of this team.",
-        });
-      }
-
-      // Get team data using the same pattern as teams.get handler
-      const team = await getTeamWithoutMembers({
-        id: input.teamId,
-        userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
-        isOrgView: false,
-      });
-
-      if (!team) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Team not found",
-        });
-      }
-
-      // Add membership info to team object (required by getTeamMemberPermissions)
-      const teamWithMembership = {
-        ...team,
-        membership: {
-          role: teamMembership.role,
-          accepted: teamMembership.accepted,
-        },
-      };
-
-      const permissions = await getTeamMemberPermissions({
-        userId: ctx.user.id,
-        team: teamWithMembership,
-      });
-
-      return permissions;
     }),
 
   enablePbac: authedProcedure.mutation(async ({ ctx }) => {
