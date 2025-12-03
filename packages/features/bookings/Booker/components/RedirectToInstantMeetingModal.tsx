@@ -72,7 +72,7 @@ export const RedirectToInstantMeetingModal = ({
   }, [expiryTime, hasInstantMeetingTokenExpired, instantVideoMeetingUrl]);
 
   useEffect(() => {
-    if (!!instantVideoMeetingUrl) {
+    if (instantVideoMeetingUrl) {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       router.push(instantVideoMeetingUrl);
     }

@@ -137,7 +137,7 @@ export class NoopLicenseKeyService implements ILicenseKeyService {
 export class LicenseKeySingleton {
   private static instance: ILicenseKeyService | null = null;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function -- Private constructor to prevent direct instantiation
+   
   private constructor() {}
 
   public static async getInstance(deploymentRepo: IDeploymentRepository): Promise<ILicenseKeyService> {

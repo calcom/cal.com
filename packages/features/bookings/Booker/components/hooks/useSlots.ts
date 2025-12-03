@@ -51,7 +51,7 @@ const useQuickAvailabilityChecks = ({
     {
       slots: slotsToCheck,
       // enabled flag can't be true if eventTypeId is nullish
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       eventTypeId: eventTypeId!,
     },
     {

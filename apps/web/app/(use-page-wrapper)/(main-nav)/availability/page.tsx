@@ -7,18 +7,15 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { prisma } from "@calcom/prisma";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
-import { HolidaysView } from "~/availability/holidays-view";
 
 import { ShellMainAppDir } from "../ShellMainAppDir";
 
@@ -79,15 +76,6 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   });
   const canViewTeamAvailability = teamIdsWithPermission.length > 0 || !isOrgPrivate;
 
-  // Check if holidays feature is enabled
-  const featuresRepository = new FeaturesRepository(prisma);
-  const isHolidaysEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("holidays");
-
-  // If holidays tab is accessed but feature is disabled, redirect
-  if (searchParams?.type === "holidays" && !isHolidaysEnabled) {
-    redirect("/availability");
-  }
-
   return (
     <ShellMainAppDir
       heading={t("availability")}
@@ -97,8 +85,6 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
       }>
       {searchParams?.type === "team" && canViewTeamAvailability ? (
         <AvailabilitySliderTable isOrg={!!organizationId} />
-      ) : searchParams?.type === "holidays" && isHolidaysEnabled ? (
-        <HolidaysView />
       ) : (
         <AvailabilityList availabilities={availabilities ?? { schedules: [] }} />
       )}

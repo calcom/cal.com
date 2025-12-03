@@ -125,7 +125,7 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           uid: createdBooking.uid!,
           eventTypeId: null,
           status: BookingStatus.ACCEPTED,

@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import kebabCase from "lodash/kebabCase";
 import { useMemo } from "react";
 

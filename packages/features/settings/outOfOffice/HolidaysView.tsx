@@ -3,15 +3,38 @@
 import { memo, useMemo, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
+
+// Placeholder to maintain consistent layout with OOO pages that have an "Add" button
+function HolidaysCTA() {
+  const { t } = useLocale();
+  return (
+    <div className="flex gap-2">
+      <OutOfOfficeToggleGroup />
+      {/* Invisible placeholder using actual Button to match exact dimensions */}
+      <Button
+        color="primary"
+        StartIcon="plus"
+        className="invisible"
+        aria-hidden="true"
+        tabIndex={-1}>
+        {t("add")}
+      </Button>
+    </div>
+  );
+}
 
 type HolidayWithStatus = RouterOutputs["viewer"]["holidays"]["getUserSettings"]["holidays"][number];
 type Country = { code: string; name: string };
@@ -233,34 +256,43 @@ export function HolidaysView() {
 
   if (isLoading) {
     return (
-      <SkeletonContainer>
-        <div className="space-y-4">
-          <SkeletonText className="h-10 w-64" />
-          <SkeletonText className="h-64 w-full" />
-        </div>
-      </SkeletonContainer>
+      <SettingsHeader
+        title={t("holidays")}
+        description={t("holidays_description")}
+        CTA={<HolidaysCTA />}>
+        <SkeletonContainer>
+          <div className="space-y-4">
+            <SkeletonText className="h-10 w-64" />
+            <SkeletonText className="h-64 w-full" />
+          </div>
+        </SkeletonContainer>
+      </SettingsHeader>
     );
   }
 
   if (hasError) {
     return (
-      <Alert
-        severity="error"
-        title={t("something_went_wrong")}
-        message={countriesError?.message || settingsError?.message}
-      />
+      <SettingsHeader
+        title={t("holidays")}
+        description={t("holidays_description")}
+        CTA={<HolidaysCTA />}>
+        <Alert
+          severity="error"
+          title={t("something_went_wrong")}
+          message={countriesError?.message || settingsError?.message}
+        />
+      </SettingsHeader>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="border-subtle bg-default rounded-md border p-6">
-        <h2 className="text-emphasis text-lg font-semibold">{t("holidays")}</h2>
-        <p className="text-subtle mt-1 text-sm">{t("holidays_description")}</p>
-
+    <SettingsHeader
+      title={t("holidays")}
+      description={t("holidays_description")}
+      CTA={<HolidaysCTA />}>
+      <div className="space-y-6">
         {/* Country selector */}
-        <div className="mt-4">
+        <div className="border-subtle bg-default rounded-md border p-6">
           <Label>{t("country_for_holidays")}</Label>
           <CountrySelector
             countries={countries || []}
@@ -269,36 +301,37 @@ export function HolidaysView() {
             isLoading={isLoadingCountries}
           />
         </div>
-      </div>
 
-      {/* Conflict warning */}
-      {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
-        <ConflictWarning conflicts={conflictsData.conflicts} />
-      )}
+        {/* Conflict warning */}
+        {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
+          <ConflictWarning conflicts={conflictsData.conflicts} />
+        )}
 
-      {/* Holidays list */}
-      {settings?.countryCode ? (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-emphasis font-medium">
-              {t("holidays_list")} ({settings.holidays?.filter((h) => h.enabled).length || 0} {t("enabled")})
-            </h3>
+        {/* Holidays list */}
+        {settings?.countryCode ? (
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-emphasis font-medium">
+                {t("holidays_list")} ({settings.holidays?.filter((h) => h.enabled).length || 0} {t("enabled")})
+              </h3>
+            </div>
+            <HolidaysList
+              holidays={settings.holidays || []}
+              onToggle={handleToggleHoliday}
+              togglingId={
+                toggleHolidayMutation.isPending ? toggleHolidayMutation.variables?.holidayId || null : null
+              }
+            />
           </div>
-          <HolidaysList
-            holidays={settings.holidays || []}
-            onToggle={handleToggleHoliday}
-            togglingId={
-              toggleHolidayMutation.isPending ? toggleHolidayMutation.variables?.holidayId || null : null
-            }
+        ) : (
+          <EmptyScreen
+            Icon="calendar"
+            headline={t("no_holidays_selected")}
+            description={t("select_country_to_see_holidays")}
           />
-        </div>
-      ) : (
-        <EmptyScreen
-          Icon="calendar"
-          headline={t("no_holidays_selected")}
-          description={t("select_country_to_see_holidays")}
-        />
-      )}
-    </div>
+        )}
+      </div>
+    </SettingsHeader>
   );
 }
+

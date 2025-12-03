@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { Fragment } from "react";
 
 const initPostProvider = () => {
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
+   
   if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     return Fragment;
   }

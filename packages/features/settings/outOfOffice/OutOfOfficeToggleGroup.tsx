@@ -4,12 +4,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import { useCompatSearchParams } from "@calcom/embed-core/src/useCompatSearchParams";
+import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
 export enum OutOfOfficeTab {
   MINE = "mine",
   TEAM = "team",
+  HOLIDAYS = "holidays",
 }
 
 export const OutOfOfficeToggleGroup = () => {
@@ -17,6 +19,7 @@ export const OutOfOfficeToggleGroup = () => {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const flags = useFlags();
 
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -33,6 +36,7 @@ export const OutOfOfficeToggleGroup = () => {
   const toggleGroupOptions = [
     { value: OutOfOfficeTab.MINE, label: t("my_ooo") },
     { value: OutOfOfficeTab.TEAM, label: t("team_ooo") },
+    ...(flags.holidays ? [{ value: OutOfOfficeTab.HOLIDAYS, label: t("holidays") }] : []),
   ];
 
   return (

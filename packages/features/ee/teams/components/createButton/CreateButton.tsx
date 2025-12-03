@@ -81,7 +81,7 @@ export function CreateButton(props: CreateBtnProps) {
         <Button
           size="sm"
           onClick={() =>
-            !!CreateDialog
+            CreateDialog
               ? openModal(options[0])
               : createFunction
               ? createFunction(options[0].teamId || undefined)
@@ -118,7 +118,7 @@ export function CreateButton(props: CreateBtnProps) {
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
                   CustomStartIcon={<Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
                   onClick={() =>
-                    !!CreateDialog
+                    CreateDialog
                       ? openModal(option)
                       : createFunction
                       ? createFunction(option.teamId || undefined, option.platform)

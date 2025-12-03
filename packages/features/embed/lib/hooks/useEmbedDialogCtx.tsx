@@ -29,7 +29,7 @@ export function useEmbedDialogCtx(noQueryParamMode: boolean) {
   } else {
     return {
       embedState: null,
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+       
       setEmbedState: ((_state: EmbedState) => {}) as React.Dispatch<React.SetStateAction<EmbedState>>,
     };
   }

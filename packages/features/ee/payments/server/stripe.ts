@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var stripe: Stripe | undefined;
 }
 
