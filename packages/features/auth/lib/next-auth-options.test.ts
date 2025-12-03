@@ -1,20 +1,22 @@
 import type { User } from "next-auth";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 
 import { ErrorCode } from "./ErrorCode";
 
 // Mock dependencies
+const mockPrismaUpdate = vi.fn();
+
 vi.mock("@calcom/prisma", () => ({
   prisma: {
     user: {
-      update: vi.fn(),
+      update: mockPrismaUpdate,
     },
   },
   default: {
     user: {
-      update: vi.fn(),
+      update: mockPrismaUpdate,
     },
   },
 }));
@@ -41,8 +43,10 @@ vi.mock("@calcom/lib/server/PiiHasher", () => ({
   hashEmail: vi.fn((email: string) => `hashed_${email}`),
 }));
 
+const mockTotpAuthenticatorCheck = vi.fn();
+
 vi.mock("@calcom/lib/totp", () => ({
-  totpAuthenticatorCheck: vi.fn(),
+  totpAuthenticatorCheck: mockTotpAuthenticatorCheck,
 }));
 
 vi.mock("@calcom/lib/crypto", () => ({
@@ -102,6 +106,8 @@ describe("CredentialsProvider authorize", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockFindByEmailAndIncludeProfilesAndPassword.mockReset();
+    mockPrismaUpdate.mockReset();
+    mockTotpAuthenticatorCheck.mockReset();
 
     const verifyPasswordModule = await import("./verifyPassword");
     verifyPassword = verifyPasswordModule.verifyPassword;
@@ -137,40 +143,10 @@ describe("CredentialsProvider authorize", () => {
   });
 
   describe("Password validation", () => {
-    it("should throw error when user has no password hash with CAL identity provider", async () => {
+    it("should throw error when user has no password hash (regardless of identity provider)", async () => {
       const mockUser = createMockUser({
         password: null,
         identityProvider: IdentityProvider.CAL,
-      });
-      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
-
-      await expect(
-        authorizeCredentials({
-          email: "test@example.com",
-          password: "password123",
-        } as any)
-      ).rejects.toThrow(ErrorCode.IncorrectEmailPassword);
-    });
-
-    it("should throw error when user has no password hash with Google identity provider", async () => {
-      const mockUser = createMockUser({
-        password: null,
-        identityProvider: IdentityProvider.GOOGLE,
-      });
-      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
-
-      await expect(
-        authorizeCredentials({
-          email: "test@example.com",
-          password: "password123",
-        } as any)
-      ).rejects.toThrow(ErrorCode.IncorrectEmailPassword);
-    });
-
-    it("should throw error when user has no password hash with SAML identity provider", async () => {
-      const mockUser = createMockUser({
-        password: null,
-        identityProvider: IdentityProvider.SAML,
       });
       mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
 
@@ -197,37 +173,368 @@ describe("CredentialsProvider authorize", () => {
         } as any)
       ).rejects.toThrow(ErrorCode.IncorrectEmailPassword);
     });
+  });
 
-    it("should throw error when user has no password hash with Google identity provider and TOTP code", async () => {
-      const mockUser = createMockUser({
-        password: null,
-        identityProvider: IdentityProvider.GOOGLE,
-      });
+  describe("Password verification", () => {
+    it("should throw error when incorrect password is provided", async () => {
+      const mockUser = createMockUser();
       mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(false);
 
       await expect(
         authorizeCredentials({
           email: "test@example.com",
-          password: "password123",
-          totpCode: "123456",
+          password: "wrongpassword",
         } as any)
       ).rejects.toThrow(ErrorCode.IncorrectEmailPassword);
+
+      expect(verifyPassword).toHaveBeenCalledWith("wrongpassword", mockUser.password.hash);
+    });
+  });
+
+  describe("Two-Factor Authentication - TOTP", () => {
+    beforeEach(() => {
+      process.env.CALENDSO_ENCRYPTION_KEY = "test_encryption_key_32_chars!!";
     });
 
-    it("should throw error when user has no password hash with SAML identity provider and TOTP code", async () => {
+    afterEach(() => {
+      delete process.env.CALENDSO_ENCRYPTION_KEY;
+    });
+
+    it("should require TOTP code when two-factor is enabled", async () => {
       const mockUser = createMockUser({
-        password: null,
-        identityProvider: IdentityProvider.SAML,
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted_secret",
       });
       mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
 
       await expect(
         authorizeCredentials({
           email: "test@example.com",
-          password: "password123",
+          password: "correctpassword",
+        } as any)
+      ).rejects.toThrow(ErrorCode.SecondFactorRequired);
+    });
+
+    it("should throw error when TOTP code is invalid", async () => {
+      const { symmetricDecrypt } = await import("@calcom/lib/crypto");
+
+      const mockUser = createMockUser({
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted_secret",
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+      vi.mocked(symmetricDecrypt).mockReturnValue("decrypted_secret_32_chars_long!!");
+      mockTotpAuthenticatorCheck.mockReturnValue(false);
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "correctpassword",
+          totpCode: "wrongcode",
+        } as any)
+      ).rejects.toThrow(ErrorCode.IncorrectTwoFactorCode);
+
+      expect(mockTotpAuthenticatorCheck).toHaveBeenCalledWith(
+        "wrongcode",
+        "decrypted_secret_32_chars_long!!"
+      );
+    });
+
+    it("should throw error when encryption key is missing", async () => {
+      delete process.env.CALENDSO_ENCRYPTION_KEY;
+
+      const mockUser = createMockUser({
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted_secret",
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "correctpassword",
           totpCode: "123456",
         } as any)
-      ).rejects.toThrow(ErrorCode.IncorrectEmailPassword);
+      ).rejects.toThrow(ErrorCode.InternalServerError);
+    });
+
+    it("should throw error when twoFactorSecret is missing", async () => {
+      const mockUser = createMockUser({
+        twoFactorEnabled: true,
+        twoFactorSecret: null,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "correctpassword",
+          totpCode: "123456",
+        } as any)
+      ).rejects.toThrow(ErrorCode.InternalServerError);
+    });
+
+    it("should throw error when secret decryption fails (invalid length)", async () => {
+      const { symmetricDecrypt } = await import("@calcom/lib/crypto");
+
+      const mockUser = createMockUser({
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted_secret",
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+      vi.mocked(symmetricDecrypt).mockReturnValue("short_secret"); // Not 32 chars
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "correctpassword",
+          totpCode: "123456",
+        } as any)
+      ).rejects.toThrow(ErrorCode.InternalServerError);
+    });
+  });
+
+  describe("Backup Codes", () => {
+    beforeEach(() => {
+      process.env.CALENDSO_ENCRYPTION_KEY = "test_encryption_key_32_chars!!";
+    });
+
+    afterEach(() => {
+      delete process.env.CALENDSO_ENCRYPTION_KEY;
+    });
+
+    it("should throw error when backup code is invalid", async () => {
+      const { symmetricDecrypt } = await import("@calcom/lib/crypto");
+
+      const mockUser = createMockUser({
+        twoFactorEnabled: true,
+        backupCodes: "encrypted_backup_codes",
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+      vi.mocked(symmetricDecrypt).mockReturnValue(JSON.stringify(["backupcode1", "backupcode2"]));
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "correctpassword",
+          backupCode: "invalidcode",
+        } as any)
+      ).rejects.toThrow(ErrorCode.IncorrectBackupCode);
+    });
+
+    it("should throw error when backup codes are missing", async () => {
+      const mockUser = createMockUser({
+        twoFactorEnabled: true,
+        backupCodes: null,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "correctpassword",
+          backupCode: "backupcode1",
+        } as any)
+      ).rejects.toThrow(ErrorCode.MissingBackupCodes);
+    });
+
+    it("should throw error when encryption key is missing for backup codes", async () => {
+      delete process.env.CALENDSO_ENCRYPTION_KEY;
+
+      const mockUser = createMockUser({
+        twoFactorEnabled: true,
+        backupCodes: "encrypted_backup_codes",
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "correctpassword",
+          backupCode: "backupcode1",
+        } as any)
+      ).rejects.toThrow(ErrorCode.InternalServerError);
+    });
+
+    it("should delete used backup code and re-encrypt remaining codes", async () => {
+      const { symmetricDecrypt, symmetricEncrypt } = await import("@calcom/lib/crypto");
+
+      const mockUser = createMockUser({
+        twoFactorEnabled: true,
+        backupCodes: "encrypted_backup_codes",
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+      vi.mocked(symmetricDecrypt).mockReturnValue(JSON.stringify(["code1", "code2", "code3"]));
+      vi.mocked(symmetricEncrypt).mockReturnValue("re_encrypted_codes");
+      mockPrismaUpdate.mockResolvedValue({});
+
+      await authorizeCredentials({
+        email: "test@example.com",
+        password: "correctpassword",
+        backupCode: "code2",
+      } as any);
+
+      // Verify that symmetricEncrypt was called with codes array where code2 is null
+      expect(symmetricEncrypt).toHaveBeenCalled();
+      const encryptCall = vi.mocked(symmetricEncrypt).mock.calls[0];
+      const encryptedData = JSON.parse(encryptCall[0] as string);
+      expect(encryptedData).toEqual(["code1", null, "code3"]);
+
+      // Verify database update was called
+      expect(mockPrismaUpdate).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: {
+          backupCodes: "re_encrypted_codes",
+        },
+      });
+    });
+  });
+
+  describe("Admin Security Requirements", () => {
+    let isPasswordValid: any;
+
+    beforeEach(async () => {
+      const isPasswordValidModule = await import("@calcom/lib/auth/isPasswordValid");
+      isPasswordValid = isPasswordValidModule.isPasswordValid;
+    });
+
+    it("should return INACTIVE_ADMIN for admin with weak password and no 2FA", async () => {
+      const mockUser = createMockUser({
+        role: UserPermissionRole.ADMIN,
+        identityProvider: IdentityProvider.CAL,
+        twoFactorEnabled: false,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+      vi.mocked(isPasswordValid).mockReturnValue(false);
+
+      const result = await authorizeCredentials({
+        email: "test@example.com",
+        password: "weakpassword",
+      } as any);
+
+      expect(isPasswordValid).toHaveBeenCalledWith("weakpassword", false, true);
+      expect(result?.role).toBe("INACTIVE_ADMIN");
+    });
+
+    it("should return ADMIN for admin with strong password and 2FA enabled", async () => {
+      const mockUser = createMockUser({
+        role: UserPermissionRole.ADMIN,
+        identityProvider: IdentityProvider.CAL,
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted_secret",
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+      vi.mocked(isPasswordValid).mockReturnValue(true);
+
+      process.env.CALENDSO_ENCRYPTION_KEY = "test_encryption_key_32_chars!!";
+      const { symmetricDecrypt } = await import("@calcom/lib/crypto");
+      const { totpAuthenticatorCheck } = await import("@calcom/lib/totp");
+      vi.mocked(symmetricDecrypt).mockReturnValue("decrypted_secret_32_chars_long!!");
+      mockTotpAuthenticatorCheck.mockReturnValue(true);
+
+      const result = await authorizeCredentials({
+        email: "test@example.com",
+        password: "StrongPassword123!",
+        totpCode: "123456",
+      } as any);
+
+      expect(result?.role).toBe(UserPermissionRole.ADMIN);
+      delete process.env.CALENDSO_ENCRYPTION_KEY;
+    });
+
+    it("should return ADMIN for admin with non-CAL identity provider (bypass security check)", async () => {
+      const mockUser = createMockUser({
+        role: UserPermissionRole.ADMIN,
+        identityProvider: IdentityProvider.GOOGLE,
+        twoFactorEnabled: false,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+
+      const result = await authorizeCredentials({
+        email: "test@example.com",
+        password: "weakpassword",
+      } as any);
+
+      expect(isPasswordValid).not.toHaveBeenCalled();
+      expect(result?.role).toBe(UserPermissionRole.ADMIN);
+    });
+
+    it("should return ADMIN in E2E environment (bypass security check)", async () => {
+      process.env.NEXT_PUBLIC_IS_E2E = "true";
+
+      const mockUser = createMockUser({
+        role: UserPermissionRole.ADMIN,
+        identityProvider: IdentityProvider.CAL,
+        twoFactorEnabled: false,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+
+      const result = await authorizeCredentials({
+        email: "test@example.com",
+        password: "weakpassword",
+      } as any);
+
+      expect(result?.role).toBe(UserPermissionRole.ADMIN);
+      delete process.env.NEXT_PUBLIC_IS_E2E;
+    });
+
+    it("should return INACTIVE_ADMIN for admin with strong password but no 2FA", async () => {
+      const mockUser = createMockUser({
+        role: UserPermissionRole.ADMIN,
+        identityProvider: IdentityProvider.CAL,
+        twoFactorEnabled: false,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+      vi.mocked(isPasswordValid).mockReturnValue(true);
+
+      const result = await authorizeCredentials({
+        email: "test@example.com",
+        password: "StrongPassword123!",
+      } as any);
+
+      expect(result?.role).toBe("INACTIVE_ADMIN");
+    });
+
+    it("should return INACTIVE_ADMIN for admin with 2FA but weak password", async () => {
+      const mockUser = createMockUser({
+        role: UserPermissionRole.ADMIN,
+        identityProvider: IdentityProvider.CAL,
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted_secret",
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      verifyPassword.mockResolvedValue(true);
+      vi.mocked(isPasswordValid).mockReturnValue(false);
+
+      process.env.CALENDSO_ENCRYPTION_KEY = "test_encryption_key_32_chars!!";
+      const { symmetricDecrypt } = await import("@calcom/lib/crypto");
+      const { totpAuthenticatorCheck } = await import("@calcom/lib/totp");
+      vi.mocked(symmetricDecrypt).mockReturnValue("decrypted_secret_32_chars_long!!");
+      mockTotpAuthenticatorCheck.mockReturnValue(true);
+
+      const result = await authorizeCredentials({
+        email: "test@example.com",
+        password: "weakpassword",
+        totpCode: "123456",
+      } as any);
+
+      expect(result?.role).toBe("INACTIVE_ADMIN");
+      delete process.env.CALENDSO_ENCRYPTION_KEY;
     });
   });
 });
