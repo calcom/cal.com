@@ -7,7 +7,6 @@ Cal.config.forwardQueryParams = true;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const callback = function (e: any) {
   const detail = e.detail;
-  console.log("Event: ", e.type, detail);
 };
 
 // @ts-expect-error  window.calOrigin is set in index.html
