@@ -184,7 +184,7 @@ function BookingDetailsSheetInner({
   return (
     <Sheet open={true} onOpenChange={handleClose}>
       <SheetContent className="overflow-y-auto">
-        <SheetHeader showCloseButton={false} className="w-full">
+        <SheetHeader showCloseButton={false} className="-mt-1 w-full">
           <div className="flex items-center justify-between gap-x-4">
             <div className="flex min-w-0 flex-col gap-y-1">
               <BookingHeaderBadges
