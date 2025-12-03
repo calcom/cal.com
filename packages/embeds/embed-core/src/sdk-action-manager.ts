@@ -41,6 +41,15 @@ export type EventDataMap = {
     eventId: number;
     eventSlug: string;
   };
+  bookerLoadedEvent: {
+    eventId: number;
+    eventSlug: string;
+    slotsLoaded: boolean;
+  };
+  availabilityRefreshed: {
+    eventId: number;
+    eventSlug: string;
+  };
   __connectInitiated: Record<string, never>;
   __connectCompleted: Record<string, never>;
   bookingSuccessfulV2: BaseBookingEventPayload & {

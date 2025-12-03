@@ -1,6 +1,7 @@
+import { useRef } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import { updateEmbedBookerState, useIsEmbedPrerendering } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
@@ -31,16 +32,38 @@ export type UseScheduleWithCacheArgs = {
   enabled?: boolean;
 };
 
-const getAvailabilityLoadedEventPayload = ({
-  eventId,
-  eventSlug,
-}: {
-  eventId: number;
-  eventSlug: string;
-}) => {
-  return {
+/**
+ * Hook that returns a function to fire availabilityLoaded or availabilityRefreshed events.
+ * Manages the lastDataUpdatedAt timestamp internally to distinguish initial load from refreshes.
+ * Prevents firing events during prerender mode.
+ */
+const useAvailabilityEvents = () => {
+  const lastDataUpdatedAtRef = useRef<number | null>(null);
+  const isEmbedPrerendering = useIsEmbedPrerendering();
+
+  return function fireAvailabilityEvents({
     eventId,
     eventSlug,
+    availabilityDataUpdateTime,
+  }: {
+    eventId: number;
+    eventSlug: string;
+    availabilityDataUpdateTime: number;
+  }) {
+    if (isEmbedPrerendering) {
+      return;
+    }
+
+    const lastDataUpdatedAt = lastDataUpdatedAtRef.current;
+
+    if (lastDataUpdatedAt === null) {
+      // First successful load - fire availabilityLoaded
+      sdkActionManager?.fire("availabilityLoaded", { eventId, eventSlug });
+    } else if (availabilityDataUpdateTime > lastDataUpdatedAt) {
+      // Data was refreshed - fire availabilityRefreshed
+      sdkActionManager?.fire("availabilityRefreshed", { eventId, eventSlug });
+    }
+    lastDataUpdatedAtRef.current = availabilityDataUpdateTime;
   };
 };
 
@@ -63,6 +86,7 @@ export const useSchedule = ({
   enabled: enabledProp = true,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
+  const fireAvailabilityEvents = useAvailabilityEvents();
 
   const [startTime, endTime] = useTimesForSchedule({
     month,
@@ -160,10 +184,11 @@ export const useSchedule = ({
     });
 
     if (teamScheduleV2.isSuccess && eventId && eventSlug) {
-      sdkActionManager?.fire(
-        "availabilityLoaded",
-        getAvailabilityLoadedEventPayload({ eventId, eventSlug })
-      );
+      fireAvailabilityEvents({
+        eventId,
+        eventSlug,
+        availabilityDataUpdateTime: teamScheduleV2.dataUpdatedAt,
+      });
     }
 
     return {
@@ -183,10 +208,11 @@ export const useSchedule = ({
   });
 
   if (schedule.isSuccess && eventId && eventSlug) {
-    sdkActionManager?.fire(
-      "availabilityLoaded",
-      getAvailabilityLoadedEventPayload({ eventId, eventSlug })
-    );
+    fireAvailabilityEvents({
+      eventId,
+      eventSlug,
+      availabilityDataUpdateTime: schedule.dataUpdatedAt,
+    });
   }
 
   return {

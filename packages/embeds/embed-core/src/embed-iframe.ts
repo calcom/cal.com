@@ -282,6 +282,11 @@ export const useEmbedType = () => {
   return state;
 };
 
+export const useIsEmbedPrerendering = () => {
+  const searchParams = useCompatSearchParams();
+  return searchParams?.get("prerender") === "true";
+};
+
 function makeBodyVisible() {
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";

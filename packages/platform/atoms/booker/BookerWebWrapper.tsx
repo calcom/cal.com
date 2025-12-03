@@ -1,15 +1,13 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useCallback, useEffect } from "react";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useMemo, useCallback, useEffect, useRef } from "react";
 import React from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed, useIsEmbedPrerendering } from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import {
@@ -37,6 +35,32 @@ export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
+const useFirebookerLoadedEvent = ({
+  eventId,
+  eventSlug,
+  slotsLoaded,
+}: {
+  eventId: number | undefined;
+  eventSlug: string | undefined;
+  slotsLoaded: boolean;
+}) => {
+  const isEmbedPrerendering = useIsEmbedPrerendering();
+  const hasFiredbookerLoadedEventRef = useRef<boolean>(false);
+
+  if (isEmbedPrerendering) {
+    return;
+  }
+
+  if (eventId && eventSlug && !hasFiredbookerLoadedEventRef.current) {
+    sdkActionManager?.fire("bookerLoadedEvent", {
+      eventId,
+      eventSlug,
+      slotsLoaded,
+    });
+    hasFiredbookerLoadedEventRef.current = true;
+  }
+};
+
 const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -47,11 +71,11 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   });
   const event = props.eventData
     ? {
-        data: props.eventData,
-        isSuccess: true,
-        isError: false,
-        isPending: false,
-      }
+      data: props.eventData,
+      isSuccess: true,
+      isError: false,
+      isPending: false,
+    }
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
@@ -172,6 +196,12 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     teamMemberEmail: props.teamMemberEmail,
   });
 
+  useFirebookerLoadedEvent({
+    eventId: event.data?.id,
+    eventSlug: event.data?.slug,
+    slotsLoaded: schedule.isSuccess,
+  });
+
   const verifyCode = useVerifyCode({
     onSuccess: () => {
       if (!bookerForm.formEmail) return;
@@ -205,10 +235,10 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const areInstantMeetingParametersSet = Boolean(
     event.data?.instantMeetingParameters &&
-      searchParams &&
-      event.data.instantMeetingParameters?.every?.((param) =>
-        Array.from(searchParams.values()).includes(param)
-      )
+    searchParams &&
+    event.data.instantMeetingParameters?.every?.((param) =>
+      Array.from(searchParams.values()).includes(param)
+    )
   );
 
   useEffect(() => {
