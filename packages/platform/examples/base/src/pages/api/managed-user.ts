@@ -19,23 +19,13 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
     },
   });
 
-  console.log(
-    `4 wiz NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
-    process.env.NEXT_PUBLIC_X_CAL_ID
-  );
-  console.log(
-    `4 wiz ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 ${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12}`,
-    process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12
-  );
-
   const managedUserResponse = await fetch(
-     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-         
+
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
       },
       body: JSON.stringify({
@@ -81,6 +71,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       accessToken: existingUser.accessToken ?? "",
     });
   }
+
+  console.log(
+    `4 wiz NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
+    process.env.NEXT_PUBLIC_X_CAL_ID
+  );
+  console.log(
+    `4 wiz ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 ${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12}`,
+    process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12
+  );
 
   const managedUserResponseOne = await createUserWithDefaultSchedule(
     emailOne,
@@ -150,15 +149,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
 async function createTeam(orgId: number, name: string) {
   const response = await fetch(
-     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-         
+
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-         
+
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
       },
       body: JSON.stringify({
@@ -174,15 +172,14 @@ async function createTeam(orgId: number, name: string) {
 
 async function createOrgTeamMembershipMember(orgId: number, teamId: number, userId: number) {
   await fetch(
-     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams/${teamId}/memberships`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-         
+
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-         
+
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
       },
       body: JSON.stringify({
@@ -195,38 +192,33 @@ async function createOrgTeamMembershipMember(orgId: number, teamId: number, user
 }
 
 async function createOrgMembershipAdmin(orgId: number, userId: number) {
-  await fetch(
-     
-    `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/memberships`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-         
-        [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-         
-        [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
-      },
-      body: JSON.stringify({
-        userId,
-        accepted: true,
-        role: "ADMIN",
-      }),
-    }
-  );
+  await fetch(`${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/memberships`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+
+      [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
+
+      [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
+    },
+    body: JSON.stringify({
+      userId,
+      accepted: true,
+      role: "ADMIN",
+    }),
+  });
 }
 
 async function createCollectiveEventType(orgId: number, teamId: number, userIds: number[]) {
   await fetch(
-     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams/${teamId}/event-types`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-         
+
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-         
+
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
       },
       body: JSON.stringify({
@@ -242,15 +234,14 @@ async function createCollectiveEventType(orgId: number, teamId: number, userIds:
 
 async function createRoundRobinEventType(orgId: number, teamId: number, userIds: number[]) {
   await fetch(
-     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams/${teamId}/event-types`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-         
+
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-         
+
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
       },
       body: JSON.stringify({
@@ -269,23 +260,19 @@ async function createDefaultSchedule(accessToken: string) {
   const timeZone = "Europe/London";
   const isDefault = true;
 
-  const response = await fetch(
-     
-    `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/schedules`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-         
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        name,
-        timeZone,
-        isDefault,
-      }),
-    }
-  );
+  const response = await fetch(`${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/schedules`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      name,
+      timeZone,
+      isDefault,
+    }),
+  });
 
   const schedule = await response.json();
   return schedule;
