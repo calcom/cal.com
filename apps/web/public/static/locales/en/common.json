@@ -1644,6 +1644,7 @@
   "check_for_recordings": "Check for recordings",
   "adding_events_to": "Adding events to",
   "follow_system_preferences": "Follow system preferences",
+  "enable_custom_branding": "Enable Custom branding",
   "custom_brand_colors": "Custom brand colors",
   "custom_brand_logo": "Custom brand logo",
   "custom_brand_logo_description": "Add your own brand logo into your booking page.",
@@ -3644,7 +3645,7 @@
   "share_your_cal_id": "Share your Cal ID",
   "explore_more_features": "Explore More Features",
   "request_feature": "Request a feature",
-  "no_meetings_today": "No meetings today",
+  "no_meetings": "No meetings",
   "you_re_all_set": "You're all set! Enjoy your free day or schedule a meeting to get started.",
   "today_s_meetings": "Today's Meetings",
   "meeting": "Meeting",
@@ -3655,5 +3656,6 @@
   "view_all_apps": "View all apps",
   "share_now": "Share now",
   "choose_platform": "Choose your preferred platform",
-  "share_on_social_platforms": "Share on social platforms"
+  "share_on_social_platforms": "Share on social platforms",
+  "coming_soon": "Coming Soon"
 }

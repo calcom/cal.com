@@ -44,10 +44,10 @@ export const featureCardContent: Feature[] = [
     pageSlug: "/apps/razorpay",
   },
   {
-    icon: "workflow",
-    title: "Create Workflows",
-    description: "Create workflows to send automated messages to your bookers.",
-    pageSlug: "/workflows",
+    icon: "paintbrush",
+    title: "Custom Branding",
+    description: "Customize your booking page with your own branding.",
+    pageSlug: "/settings/my-account/appearance",
   },
   {
     icon: "wallpaper",

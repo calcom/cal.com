@@ -21,6 +21,7 @@ const Card = ({
   isComingSoon,
   pageSlug,
 }: Feature & { onClick?: () => void; isClickable?: boolean }) => {
+  const { t } = useLocale();
   const handleClick = () => {
     if (onClick) {
       onClick();
@@ -45,16 +46,16 @@ const Card = ({
       </div>
 
       <div className="relative z-10 flex min-w-0 flex-1 flex-col">
-        <div className="mb-1 flex items-center gap-2">
-          <h3 className="text-default text-sm font-semibold">{title}</h3>
+        <div className="mb-1 flex min-w-0 items-center gap-2">
+          <h3 className="text-default min-w-0 flex-1 truncate text-sm font-semibold">{title}</h3>
           {isNew && (
             <Badge className="bg-success text-success" size="sm">
-              New
+              {t("new")}
             </Badge>
           )}
           {isComingSoon && (
             <Badge variant="attention" size="sm">
-              Coming Soon
+              {t("coming_soon")}
             </Badge>
           )}
         </div>
@@ -83,7 +84,7 @@ export function MoreFeatures() {
         setRow1CardIndex((prev) => (prev + 1) % newFeatureCardContent.length);
         setIsAnimating(false);
       }, 300);
-    }, 30000);
+    }, 7000);
 
     return () => clearInterval(interval);
   }, []);

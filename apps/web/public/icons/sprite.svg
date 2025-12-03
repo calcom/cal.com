@@ -410,6 +410,14 @@
   <circle cx="12" cy="12" r="10" ></circle>
   <path d="m9 12 2 2 4-4" ></path>
 </symbol>
+<symbol class="lucide lucide-circle-chevron-left" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="circle-chevron-left">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <path d="m14 16-4-4 4-4" ></path>
+</symbol>
+<symbol class="lucide lucide-circle-chevron-right" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="circle-chevron-right">
+  <circle cx="12" cy="12" r="10" ></circle>
+  <path d="m10 8 4 4-4 4" ></path>
+</symbol>
 <symbol class="lucide lucide-circle-help" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="circle-help">
   <circle cx="12" cy="12" r="10" ></circle>
   <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" ></path>

@@ -71,6 +71,8 @@ export type IconName =
   | "circle-arrow-up"
   | "circle-check-big"
   | "circle-check"
+  | "circle-chevron-left"
+  | "circle-chevron-right"
   | "circle-help"
   | "circle-x"
   | "circle"
