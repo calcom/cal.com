@@ -4062,13 +4062,14 @@
   "select_country_to_see_holidays": "Select a country to see available holidays",
   "holiday_settings_updated": "Holiday settings updated",
   "holiday_no_availability": "No availability on this holiday",
-  "holiday_booking_conflict_warning": "You have {{count}} booking(s) on holidays",
+  "holiday_booking_conflict_warning_one": "You have {{count}} booking on holidays",
+  "holiday_booking_conflict_warning_other": "You have {{count}} bookings on holidays",
   "holiday_overlap_info": "Holiday notice",
   "holiday_overlap_message_single": "{{date}} is {{holiday}}, which is already blocked as a holiday",
   "holiday_overlap_message_multiple": "{{count}} days in this range are holidays ({{holidays}})",
   "no_holidays_found_for_country": "No holidays found for this country.",
-  "one_booking": "1 booking",
-  "multiple_bookings": "{{count}} bookings",
+  "booking_count_one": "{{count}} booking",
+  "booking_count_other": "{{count}} bookings",
   "and_more_holidays_with_conflicts": "... and {{count}} more holidays with conflicts",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

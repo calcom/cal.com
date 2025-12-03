@@ -158,9 +158,7 @@ function ConflictWarning({
       {conflicts.slice(0, 3).map((conflict) => (
         <li key={conflict.holidayId}>
           {conflict.holidayName} ({dayjs(conflict.date).format("D MMM")}) -{" "}
-          {conflict.bookings.length === 1
-            ? t("one_booking")
-            : t("multiple_bookings", { count: conflict.bookings.length })}
+          {t("booking_count", { count: conflict.bookings.length })}
         </li>
       ))}
       {conflicts.length > 3 && (

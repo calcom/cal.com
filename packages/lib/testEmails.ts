@@ -1,5 +1,4 @@
 declare global {
-   
   var testEmails: {
     icalEvent?: {
       filename: string;
