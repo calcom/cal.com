@@ -121,15 +121,15 @@ function BookingCalendarInner({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button color="secondary" onClick={goToToday} className="capitalize" size="sm">
+          <Button color="secondary" onClick={goToToday} className="capitalize">
             {t("today")}
           </Button>
           <ButtonGroup combined>
-            <Button size="sm" color="secondary" onClick={goToPreviousWeek}>
+            <Button color="secondary" onClick={goToPreviousWeek}>
               <span className="sr-only">{t("view_previous_week")}</span>
               <Icon name="chevron-left" className="h-4 w-4" />
             </Button>
-            <Button size="sm" color="secondary" onClick={goToNextWeek}>
+            <Button color="secondary" onClick={goToNextWeek}>
               <span className="sr-only">{t("view_next_week")}</span>
               <Icon name="chevron-right" className="h-4 w-4" />
             </Button>

@@ -194,10 +194,11 @@ function BookingDetailsSheetInner({
                 recurringInfo={recurringInfo}
               />
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               <Button
                 variant="icon"
-                color="minimal"
+                size="sm"
+                color="secondary"
                 StartIcon="chevron-up"
                 disabled={!hasPrevious}
                 onClick={(e) => {
@@ -207,7 +208,8 @@ function BookingDetailsSheetInner({
               />
               <Button
                 variant="icon"
-                color="minimal"
+                size="sm"
+                color="secondary"
                 StartIcon="chevron-down"
                 disabled={!hasNext}
                 onClick={(e) => {
@@ -217,7 +219,8 @@ function BookingDetailsSheetInner({
               />
               <Button
                 variant="icon"
-                color="minimal"
+                size="sm"
+                color="secondary"
                 StartIcon="x"
                 onClick={(e) => {
                   e.preventDefault();
@@ -388,7 +391,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {booking.user && (
           <div className="flex items-center gap-4">
             <Avatar
