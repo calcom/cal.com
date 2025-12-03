@@ -1,3 +1,12 @@
+/**
+ * PAGES ROUTER ONLY - Used exclusively by Next.js Pages Router
+ * 
+ * Currently only serves the /router endpoint (routing forms redirect page).
+ * DO NOT add new features here - this file will be deprecated once we remove apps/web/pages.
+ * 
+ * For App Router, use PageWrapperAppDir.tsx instead.
+ */
+
 "use client";
 
 import { DefaultSeo } from "next-seo";
@@ -24,7 +33,7 @@ export interface CalPageWrapper {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
 }
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -80,7 +89,7 @@ function PageWrapper(props: AppProps) {
 
       <style jsx global>{`
         :root {
-          --font-inter: ${interFont.style.fontFamily};
+          --font-sans: ${interFont.style.fontFamily};
           --font-cal: ${calFont.style.fontFamily};
         }
       `}</style>
