@@ -230,6 +230,8 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: recordings,
+      message:
+        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
@@ -256,6 +258,8 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: transcripts ?? [],
+      message:
+        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
