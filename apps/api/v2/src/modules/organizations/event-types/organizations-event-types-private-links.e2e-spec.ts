@@ -111,12 +111,14 @@ describe("Organizations / Teams / Event Types / Private Links Endpoints", () => 
     expect(response.body.data.linkId).toBeDefined();
     expect(response.body.data.maxUsageCount).toBe(5);
     expect(response.body.data.usageCount).toBeDefined();
-    
+
     expect(response.body.data.bookingUrl).toBeDefined();
     expect(response.body.data.bookingUrl).toContain(org.slug);
     expect(response.body.data.bookingUrl).toContain("/d/");
     expect(response.body.data.bookingUrl).toContain(eventType.slug);
-    expect(response.body.data.bookingUrl).toMatch(new RegExp(`${org.slug}.*\\/d\\/[^/]+\\/${eventType.slug}`));
+    expect(response.body.data.bookingUrl).toMatch(
+      new RegExp(`${org.slug}.*\\/d\\/[^/]+\\/${eventType.slug}`)
+    );
   });
 
   it("GET /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links - list", async () => {
@@ -127,7 +129,8 @@ describe("Organizations / Teams / Event Types / Private Links Endpoints", () => 
 
     expect(response.body.status).toBe(SUCCESS_STATUS);
     expect(Array.isArray(response.body.data)).toBe(true);
-    
+    expect(response.body.data.length > 0).toBe(true);
+
     if (response.body.data.length > 0) {
       const link = response.body.data[0];
       expect(link.bookingUrl).toBeDefined();
@@ -157,12 +160,14 @@ describe("Organizations / Teams / Event Types / Private Links Endpoints", () => 
 
     expect(response.body.status).toBe(SUCCESS_STATUS);
     expect(response.body.data.maxUsageCount).toBe(10);
-    
+
     expect(response.body.data.bookingUrl).toBeDefined();
     expect(response.body.data.bookingUrl).toContain(org.slug);
     expect(response.body.data.bookingUrl).toContain("/d/");
     expect(response.body.data.bookingUrl).toContain(eventType.slug);
-    expect(response.body.data.bookingUrl).toMatch(new RegExp(`${org.slug}.*\\/d\\/[^/]+\\/${eventType.slug}`));
+    expect(response.body.data.bookingUrl).toMatch(
+      new RegExp(`${org.slug}.*\\/d\\/[^/]+\\/${eventType.slug}`)
+    );
   });
 
   it("DELETE /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links/:linkId - delete", async () => {
