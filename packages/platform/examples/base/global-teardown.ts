@@ -35,12 +35,12 @@ async function globalTeardown() {
             },
           });
           if (deleteResponse.ok) {
-            console.log(`Deleted managed user: ${user.email}`);
+            console.log(`Deleted managed user: with id = ${user.id}`);
           } else {
-            console.error(`Failed to delete user ${user.email}:`, await deleteResponse.text());
+            console.error(`Failed to delete user with id = ${user.id}:`, await deleteResponse.text());
           }
         } catch (error) {
-          console.error(`Error deleting user ${user.email}:`, error);
+          console.error(`Error deleting user with id = ${user.id}:`, error);
         }
       }
     } else {
