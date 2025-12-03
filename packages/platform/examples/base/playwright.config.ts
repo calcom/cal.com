@@ -6,6 +6,10 @@ console.log(
   `1 asap NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
   process.env.NEXT_PUBLIC_X_CAL_ID
 );
+console.log(
+  `2 asap ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 ${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12}`,
+  process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12
+);
 
 if (!process.env.CI) {
   dotenv.config({ path: path.resolve(__dirname, ".env.e2e") });
@@ -14,6 +18,10 @@ if (!process.env.CI) {
 console.log(
   `2 asap NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
   process.env.NEXT_PUBLIC_X_CAL_ID
+);
+console.log(
+  `2 asap ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 ${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12}`,
+  process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12
 );
 
 const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
