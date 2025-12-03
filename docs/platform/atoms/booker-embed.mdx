@@ -81,6 +81,29 @@ For a demonstration of the Booker Embed atom along with week view, please refer 
 
 <p></p>
 
+For team events, you need to pass `isTeamEvent` and `teamId` prop to the booker along with the other necessary props. The `teamId` is the ID of the team that owns the event type.
+
+Here is an example of how to use the Booker Embed atom for a team event:
+
+```js
+import { BookerEmbed } from "@calcom/atoms";
+
+export default function BookerEmbed( props : BookerEmbedProps ) {
+  return (
+    <>
+      <BookerEmbed
+        eventSlug={props.eventTypeSlug}
+        isTeamEvent={true}
+        teamId={props.teamId}
+        onCreateBookingSuccess={() => {
+          console.log("Booking created successfully!");
+         }}
+      />
+    </>
+  )
+}
+```
+
 We offer all kinds of customizations to the Booker Embed atom via props and customClassNames.
 
 Below is a list of props that can be passed to the Booker Embed atom.
@@ -136,6 +159,12 @@ Below is a list of props that can be passed to the Booker Embed atom.
 | silentlyHandleCalendarFailures  | No       | Boolean when true the booker still displays slots when the third party calendars credentials are invalid or expired, Booker may show stale availability when enabled                                                                     |
 | hideEventMetadata               | No       | Boolean that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information. Defaults to `false`.                           |
 | defaultPhoneCountry             | No       | Sets the default country code for phone number inputs in the booking form. Accepts ISO 3166-1 alpha-2 country codes (e.g., `"us"`, `"gb"`, `"in"`, `"ee"`). When set, phone inputs will default to the specified country's dialing code. |
+
+<Note>
+  Required props vary by usage: <br />
+  1. Individual booking: `username` + `eventSlug` <br />
+  2. Team booking: `teamId` + `isTeamEvent` + `eventSlug`
+</Note>
 
 ## Styling
 
@@ -269,12 +298,12 @@ export default function BookerEmbed( props : BookerProps ) {
 
 For team events, you need to pass isTeamEvent and teamId prop to the booker along with the other necessary props. This will allow the booker to display the reschedule form and handle the rescheduling process. The `teamId` is the team ID you get when you create a team event.
 
-Here is an example of how to use the booker atom for rescheduling a team event:
+Here is an example of how to use the Booker Embed atom for rescheduling a team event:
 
 ```js
 import { BookerEmbed } from "@calcom/atoms";
 
-export default function BookerEmbed( props : BookerProps ) {
+export default function BookerEmbed( props : BookerEmbedProps ) {
   return (
     <>
       <BookerEmbed
