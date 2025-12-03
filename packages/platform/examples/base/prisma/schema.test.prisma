@@ -15,5 +15,5 @@ model User {
   refreshToken String? @unique(map: "TestUser_refreshToken_key")
   accessToken String? @unique(map: "TestUser_accessToken_key")
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
