@@ -173,10 +173,7 @@ export class EmailWorkflowService {
         const schedulingType = evt.schedulingType;
 
         if (schedulingType === SchedulingType.COLLECTIVE && evt.team?.members) {
-          // For collective events, send to all hosts that are in the attendees list
-          const hosts = evt.team.members
-            ?.filter((member) => evt.attendees.some((attendee) => member.email === attendee.email))
-            .map((member) => member.email);
+          const hosts = evt.team.members.map((member) => member.email);
           if (hosts) {
             sendTo = sendTo.concat(hosts);
           }
@@ -411,8 +408,18 @@ export class EmailWorkflowService {
 
     const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
 
+    const calendarEvent = evt as CalendarEvent;
+    
+    if (calendarEvent.schedulingType !== SchedulingType.COLLECTIVE) {
+      calendarEvent.team = undefined;
+    }
+    const teamMemberEmails = new Set(calendarEvent.team?.members.map((member) => member.email.toLowerCase()) || []);
+    const uniqueAttendees = evt.attendees.filter(
+      (attendee) => !teamMemberEmails.has(attendee.email.toLowerCase())
+    );
+
     const processedAttendees = await Promise.all(
-      evt.attendees.map(async (attendee) => {
+      uniqueAttendees.map(async (attendee) => {
         const attendeeT = await getTranslation(attendee.language.locale || "en", "common");
         return {
           ...attendee,
@@ -424,7 +431,6 @@ export class EmailWorkflowService {
 
     const emailEvent = {
       ...evt,
-      team: undefined,
       type: evt.eventType?.slug || "",
       organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
       attendees: processedAttendees,
