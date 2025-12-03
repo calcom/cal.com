@@ -122,19 +122,13 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 color="minimal"
                 onClick={() => window.history.back()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon
-                  name="arrow-left"
-                  className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0"
-                />
+                <Icon name="arrow-left" className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon
-                  name="arrow-right"
-                  className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0"
-                />
+                <Icon name="arrow-right" className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
               </button>
               {!!user?.org && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
@@ -207,7 +201,11 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                       {content}
                     </button>
                   ) : isInternal ? (
-                    <Link href={item.href!} className={commonClassName} aria-label={t(item.name)}>
+                    <Link
+                      href={item.href!}
+                      className={commonClassName}
+                      aria-label={t(item.name)}
+                      onClick={item.onClick}>
                       {content}
                     </Link>
                   ) : (
