@@ -256,15 +256,21 @@ function isWithinMinimumRescheduleNotice(
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling } = context;
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isAttendee } = context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
-      const isWithinMinimumNotice = isWithinMinimumRescheduleNotice(
-        booking.startTime,
-        booking.eventType.minimumRescheduleNotice ?? null
-      );
+      // Only apply minimum reschedule notice restriction if user is NOT the organizer
+      // If user is an attendee (or not authenticated), apply the restriction
+      const isUserOrganizer =
+        !isAttendee &&
+        booking.loggedInUser?.userId &&
+        booking.user?.id &&
+        booking.loggedInUser.userId === booking.user.id;
+      const isWithinMinimumNotice =
+        !isUserOrganizer &&
+        isWithinMinimumRescheduleNotice(booking.startTime, booking.eventType.minimumRescheduleNotice ?? null);
       return (
         (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
         isDisabledRescheduling ||

@@ -25,6 +25,7 @@ const createTestBooking = (overrides?: {
   startTime?: Date | null;
   endTime?: Date | null;
   responses?: JsonValue;
+  userId?: number | null;
   eventType?: {
     disableRescheduling?: boolean | null;
     allowReschedulingPastBookings?: boolean | null;
@@ -45,6 +46,7 @@ const createTestBooking = (overrides?: {
     name: "John Doe",
     email: "john.doe@example.com",
   },
+  userId: overrides?.userId !== undefined ? overrides.userId : 1,
   eventType:
     overrides?.eventType !== undefined
       ? overrides.eventType
@@ -64,10 +66,12 @@ const createReschedulePreventionRedirectInput = (overrides?: {
   booking?: ReturnType<typeof createTestBooking>;
   eventUrl?: string;
   forceRescheduleForCancelledBooking?: boolean;
+  currentUserId?: number | null;
 }): ReschedulePreventionRedirectInput => ({
   booking: overrides?.booking || createTestBooking(),
   eventUrl: overrides?.eventUrl || "https://example.com/event",
   forceRescheduleForCancelledBooking: overrides?.forceRescheduleForCancelledBooking || false,
+  currentUserId: overrides?.currentUserId !== undefined ? overrides.currentUserId : null,
 });
 
 const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -579,6 +583,76 @@ describe("determineReschedulePreventionRedirect", () => {
 
       // At exactly the boundary, timeUntilBooking equals minimumRescheduleNoticeMs, so it should not prevent
       expectToNotPreventReschedule(result);
+    });
+
+    it("should allow organizer to reschedule even within the minimum notice period", () => {
+      const organizerUserId = 1;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+          },
+        }),
+        currentUserId: organizerUserId, // User is the organizer
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Organizer should be able to reschedule even within minimum notice period
+      expectToNotPreventReschedule(result);
+    });
+
+    it("should prevent attendee from rescheduling within the minimum notice period", () => {
+      const organizerUserId = 1;
+      const attendeeUserId = 2;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+          },
+        }),
+        currentUserId: attendeeUserId, // User is NOT the organizer
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Attendee should be prevented from rescheduling within minimum notice period
+      expectRedirectToBookingDetailsPage(result, input.booking.uid);
+    });
+
+    it("should prevent unauthenticated user from rescheduling within the minimum notice period", () => {
+      const organizerUserId = 1;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+          },
+        }),
+        currentUserId: null, // User is not authenticated
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Unauthenticated user should be prevented from rescheduling within minimum notice period
+      expectRedirectToBookingDetailsPage(result, input.booking.uid);
     });
   });
 });

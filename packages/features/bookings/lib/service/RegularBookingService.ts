@@ -629,6 +629,32 @@ async function handler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
+  // Backend validation: Check minimum reschedule notice if rescheduling
+  if (originalRescheduledBooking && rescheduleUid) {
+    const isUserOrganizer =
+      userId && originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
+    const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
+
+    if (
+      !isUserOrganizer &&
+      minimumRescheduleNotice &&
+      minimumRescheduleNotice > 0 &&
+      originalRescheduledBooking.startTime
+    ) {
+      const now = new Date();
+      const bookingStartTime = new Date(originalRescheduledBooking.startTime);
+      const timeUntilBooking = bookingStartTime.getTime() - now.getTime();
+      const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
+
+      if (timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "Rescheduling is not allowed within the minimum notice period before the event",
+        });
+      }
+    }
+  }
+
   const paymentAppData = getPaymentAppData({
     ...eventType,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
