@@ -1,6 +1,6 @@
 "use client";
 
-import { TrpcProvider } from "app/_trpc/trpc-provider";
+import dynamic from "next/dynamic";
 import { SessionProvider } from "next-auth/react";
 import CacheProvider from "react-inlinesvg/provider";
 
@@ -10,6 +10,14 @@ import { NotificationSoundHandler } from "@calcom/web/components/notification-so
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 
 import { GeoProvider } from "./GeoContext";
+
+/**
+ * Lazy load TrpcProvider to avoid compiling heavy TRPC types on initial page load.
+ * This significantly reduces Turbopack dev compilation time.
+ */
+const TrpcProvider = dynamic(() => import("app/_trpc/trpc-provider").then((mod) => mod.TrpcProvider), {
+  ssr: true,
+});
 
 type ProvidersProps = {
   isEmbed: boolean;
