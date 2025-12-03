@@ -49,10 +49,10 @@ const createSessionGetter = (userId: number) => async () => {
         organizationId: null,
         organization: null,
         username: "",
-        upId: "",
+        upId: `usr-${userId}`,
       } satisfies UserProfile,
     },
-    upId: "",
+    upId: `usr-${userId}`,
     hasValidLicense: true,
     expires: "" /* Not used in this context */,
   };
