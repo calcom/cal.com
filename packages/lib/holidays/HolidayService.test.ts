@@ -1,134 +1,119 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { HolidayServiceClass } from "./HolidayService";
+import { GOOGLE_HOLIDAY_CALENDARS } from "./constants";
+import type { CachedHoliday } from "./GoogleHolidayService";
 
-// Mock data
-const mockHolidayData = {
-  generatedAt: "2024-01-01T00:00:00.000Z",
-  yearsIncluded: [2025, 2026],
-  countries: [
-    {
-      code: "US",
-      name: "United States",
-      holidays: [
-        {
-          id: "new_years_day",
-          name: "New Year's Day",
-          type: "public",
-          dates: [
-            { year: 2025, date: "2025-01-01" },
-            { year: 2026, date: "2026-01-01" },
-          ],
-        },
-        {
-          id: "christmas_day",
-          name: "Christmas Day",
-          type: "public",
-          dates: [
-            { year: 2025, date: "2025-12-25" },
-            { year: 2026, date: "2026-12-25" },
-          ],
-        },
-      ],
-    },
-    {
-      code: "GB",
-      name: "United Kingdom",
-      holidays: [
-        {
-          id: "boxing_day",
-          name: "Boxing Day",
-          type: "public",
-          dates: [{ year: 2025, date: "2025-12-26" }],
-        },
-      ],
-    },
-  ],
-};
+// Mock the GoogleHolidayService
+vi.mock("./GoogleHolidayService", () => ({
+  GoogleHolidayService: {
+    getHolidaysForCountry: vi.fn(),
+    getHolidaysInRange: vi.fn(),
+  },
+}));
 
-// Test instance with mock data
-class TestHolidayService extends HolidayServiceClass {
-  constructor() {
-    super();
-    // @ts-expect-error - accessing private property for testing
-    this.data = mockHolidayData;
-  }
-}
+// Import after mocking
+import { GoogleHolidayService } from "./GoogleHolidayService";
+import { HolidayService } from "./HolidayService";
+
+const mockHolidays: CachedHoliday[] = [
+  {
+    id: "1",
+    countryCode: "US",
+    eventId: "new_years_day_2025",
+    name: "New Year's Day",
+    date: new Date("2025-01-01"),
+    year: 2025,
+  },
+  {
+    id: "2",
+    countryCode: "US",
+    eventId: "christmas_day_2025",
+    name: "Christmas Day",
+    date: new Date("2025-12-25"),
+    year: 2025,
+  },
+];
 
 describe("HolidayService", () => {
-  const service = new TestHolidayService();
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   describe("getSupportedCountries", () => {
-    it("should return list of countries with code and name", () => {
-      const countries = service.getSupportedCountries();
+    it("should return list of countries from GOOGLE_HOLIDAY_CALENDARS", () => {
+      const countries = HolidayService.getSupportedCountries();
 
-      expect(countries).toEqual([
-        { code: "US", name: "United States" },
-        { code: "GB", name: "United Kingdom" },
-      ]);
+      expect(countries.length).toBe(Object.keys(GOOGLE_HOLIDAY_CALENDARS).length);
+      expect(countries.find((c) => c.code === "US")).toEqual({
+        code: "US",
+        name: "United States",
+      });
     });
   });
 
   describe("getHolidaysForCountry", () => {
-    it("should return holidays for valid country", () => {
-      const holidays = service.getHolidaysForCountry("US");
+    it("should return holidays from GoogleHolidayService", async () => {
+      vi.mocked(GoogleHolidayService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
+      const holidays = await HolidayService.getHolidaysForCountry("US", 2025);
+
+      expect(GoogleHolidayService.getHolidaysForCountry).toHaveBeenCalledWith("US", 2025);
       expect(holidays).toHaveLength(2);
-      expect(holidays[0].id).toBe("new_years_day");
-    });
-
-    it("should return empty array for invalid country", () => {
-      expect(service.getHolidaysForCountry("INVALID")).toEqual([]);
+      expect(holidays[0].name).toBe("New Year's Day");
     });
   });
 
   describe("getHolidaysWithStatus", () => {
-    it("should mark holidays as enabled by default", () => {
+    it("should mark holidays as enabled by default", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2025-06-15"));
+      vi.mocked(GoogleHolidayService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
-      const holidays = service.getHolidaysWithStatus("US", []);
+      const holidays = await HolidayService.getHolidaysWithStatus("US", []);
 
-      expect(holidays[0].enabled).toBe(true);
-      expect(holidays[1].enabled).toBe(true);
+      expect(holidays.find((h) => h.id === "christmas_day_2025")?.enabled).toBe(true);
 
       vi.useRealTimers();
     });
 
-    it("should mark disabled holidays correctly", () => {
+    it("should mark disabled holidays correctly", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2025-06-15"));
+      vi.mocked(GoogleHolidayService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
-      const holidays = service.getHolidaysWithStatus("US", ["christmas_day"]);
+      const holidays = await HolidayService.getHolidaysWithStatus("US", ["christmas_day_2025"]);
 
-      const christmas = holidays.find((h) => h.id === "christmas_day");
-      expect(christmas?.enabled).toBe(false);
+      expect(holidays.find((h) => h.id === "christmas_day_2025")?.enabled).toBe(false);
 
       vi.useRealTimers();
     });
   });
 
   describe("getHolidayOnDate", () => {
-    it("should return holiday if date matches", () => {
-      const holiday = service.getHolidayOnDate(new Date("2025-12-25"), "US");
+    it("should return holiday if date matches", async () => {
+      vi.mocked(GoogleHolidayService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
-      expect(holiday?.id).toBe("christmas_day");
+      const holiday = await HolidayService.getHolidayOnDate(new Date("2025-12-25"), "US");
+
+      expect(holiday?.name).toBe("Christmas Day");
     });
 
-    it("should return null if date is not a holiday", () => {
-      expect(service.getHolidayOnDate(new Date("2025-06-15"), "US")).toBeNull();
-    });
+    it("should return null if holiday is disabled", async () => {
+      vi.mocked(GoogleHolidayService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
-    it("should return null if holiday is disabled", () => {
-      const holiday = service.getHolidayOnDate(new Date("2025-12-25"), "US", ["christmas_day"]);
+      const holiday = await HolidayService.getHolidayOnDate(new Date("2025-12-25"), "US", [
+        "christmas_day_2025",
+      ]);
 
       expect(holiday).toBeNull();
     });
   });
 
   describe("getHolidayDatesInRange", () => {
-    it("should return holidays within date range", () => {
-      const holidays = service.getHolidayDatesInRange(
+    it("should return holidays within date range", async () => {
+      vi.mocked(GoogleHolidayService.getHolidaysInRange).mockResolvedValue([mockHolidays[1]]);
+
+      const holidays = await HolidayService.getHolidayDatesInRange(
         "US",
         [],
         new Date("2025-12-01"),
@@ -136,13 +121,15 @@ describe("HolidayService", () => {
       );
 
       expect(holidays).toHaveLength(1);
-      expect(holidays[0].holiday.id).toBe("christmas_day");
+      expect(holidays[0].holiday.name).toBe("Christmas Day");
     });
 
-    it("should exclude disabled holidays", () => {
-      const holidays = service.getHolidayDatesInRange(
+    it("should exclude disabled holidays", async () => {
+      vi.mocked(GoogleHolidayService.getHolidaysInRange).mockResolvedValue([mockHolidays[1]]);
+
+      const holidays = await HolidayService.getHolidayDatesInRange(
         "US",
-        ["christmas_day"],
+        ["christmas_day_2025"],
         new Date("2025-12-01"),
         new Date("2025-12-31")
       );

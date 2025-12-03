@@ -1,129 +1,117 @@
-import holidayData from "./data/holidays.json";
-import type { Country, Holiday, HolidayData, HolidayWithStatus } from "./types";
+import dayjs from "@calcom/dayjs";
+
+import { GOOGLE_HOLIDAY_CALENDARS } from "./constants";
+import { GoogleHolidayService, type CachedHoliday } from "./GoogleHolidayService";
+import type { Country, Holiday, HolidayWithStatus } from "./types";
 
 class HolidayServiceClass {
-  private data: HolidayData;
   private countriesCache: Country[] | null = null;
-  private holidaysByCountryCache: Map<string, Holiday[]> = new Map();
-
-  constructor() {
-    this.data = holidayData as HolidayData;
-  }
 
   getSupportedCountries(): Country[] {
     if (this.countriesCache) {
       return this.countriesCache;
     }
 
-    this.countriesCache = this.data.countries.map((c) => ({
-      code: c.code,
-      name: c.name,
+    this.countriesCache = Object.entries(GOOGLE_HOLIDAY_CALENDARS).map(([code, config]) => ({
+      code,
+      name: config.name,
     }));
 
     return this.countriesCache;
   }
 
-  getHolidaysForCountry(countryCode: string): Holiday[] {
-    const cached = this.holidaysByCountryCache.get(countryCode);
-    if (cached) {
-      return cached;
-    }
-
-    const country = this.data.countries.find((c) => c.code === countryCode);
-    const holidays = country?.holidays || [];
-
-    this.holidaysByCountryCache.set(countryCode, holidays);
-    return holidays;
+  private cachedHolidayToHoliday(cached: CachedHoliday): Holiday {
+    return {
+      id: cached.eventId,
+      name: cached.name,
+      date: dayjs(cached.date).format("YYYY-MM-DD"),
+      year: cached.year,
+    };
   }
 
-  getHolidaysWithStatus(countryCode: string, disabledIds: string[]): HolidayWithStatus[] {
-    const holidays = this.getHolidaysForCountry(countryCode);
+  async getHolidaysForCountry(countryCode: string, year?: number): Promise<Holiday[]> {
+    const targetYear = year || dayjs().year();
+    const cached = await GoogleHolidayService.getHolidaysForCountry(countryCode, targetYear);
+    return cached.map(this.cachedHolidayToHoliday);
+  }
+
+  async getHolidaysWithStatus(countryCode: string, disabledIds: string[]): Promise<HolidayWithStatus[]> {
+    const currentYear = dayjs().year();
+    const nextYear = currentYear + 1;
+
+    // Get holidays for current and next year
+    const [currentYearHolidays, nextYearHolidays] = await Promise.all([
+      GoogleHolidayService.getHolidaysForCountry(countryCode, currentYear),
+      GoogleHolidayService.getHolidaysForCountry(countryCode, nextYear),
+    ]);
+
+    const allHolidays = [...currentYearHolidays, ...nextYearHolidays];
     const disabledSet = new Set(disabledIds);
 
-    return holidays.map((holiday) => ({
-      ...holiday,
-      enabled: !disabledSet.has(holiday.id),
-      nextDate: this.getNextOccurrence(holiday),
-    }));
+    // Filter to only show upcoming holidays
+    const today = dayjs().startOf("day");
+
+    return allHolidays
+      .filter((h) => dayjs(h.date).isAfter(today) || dayjs(h.date).isSame(today))
+      .map((h) => ({
+        id: h.eventId,
+        name: h.name,
+        date: dayjs(h.date).format("YYYY-MM-DD"),
+        year: h.year,
+        enabled: !disabledSet.has(h.eventId),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  getNextOccurrence(holiday: Holiday): string | null {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (const dateInfo of holiday.dates) {
-      const holidayDate = new Date(dateInfo.date);
-      if (holidayDate >= today) {
-        return dateInfo.date;
-      }
-    }
-
-    return null;
-  }
-
-  getHolidayDate(holidayId: string, countryCode: string, year: number): string | null {
-    const holidays = this.getHolidaysForCountry(countryCode);
-    const holiday = holidays.find((h) => h.id === holidayId);
-
-    if (!holiday) return null;
-
-    const dateInfo = holiday.dates.find((d) => d.year === year);
-    return dateInfo?.date || null;
-  }
-
-  getHolidayOnDate(date: Date, countryCode: string, disabledIds: string[] = []): Holiday | null {
-    const holidays = this.getHolidaysForCountry(countryCode);
-    const dateStr = date.toISOString().split("T")[0];
+  async getHolidayOnDate(
+    date: Date,
+    countryCode: string,
+    disabledIds: string[] = []
+  ): Promise<Holiday | null> {
+    const year = dayjs(date).year();
+    const dateStr = dayjs(date).format("YYYY-MM-DD");
     const disabledSet = new Set(disabledIds);
+
+    const holidays = await GoogleHolidayService.getHolidaysForCountry(countryCode, year);
 
     for (const holiday of holidays) {
-      if (disabledSet.has(holiday.id)) continue;
+      if (disabledSet.has(holiday.eventId)) continue;
 
-      for (const dateInfo of holiday.dates) {
-        if (dateInfo.date === dateStr) {
-          return holiday;
-        }
+      if (dayjs(holiday.date).format("YYYY-MM-DD") === dateStr) {
+        return this.cachedHolidayToHoliday(holiday);
       }
     }
 
     return null;
   }
 
-  getHolidayDatesInRange(
+  async getHolidayDatesInRange(
     countryCode: string,
     disabledIds: string[],
     startDate: Date,
     endDate: Date
-  ): Array<{ date: string; holiday: Holiday }> {
-    const holidays = this.getHolidaysForCountry(countryCode);
+  ): Promise<Array<{ date: string; holiday: Holiday }>> {
     const disabledSet = new Set(disabledIds);
-    const results: Array<{ date: string; holiday: Holiday }> = [];
 
-    const start = startDate.toISOString().split("T")[0];
-    const end = endDate.toISOString().split("T")[0];
+    const holidays = await GoogleHolidayService.getHolidaysInRange(countryCode, startDate, endDate);
 
-    for (const holiday of holidays) {
-      if (disabledSet.has(holiday.id)) continue;
-
-      for (const dateInfo of holiday.dates) {
-        if (dateInfo.date >= start && dateInfo.date <= end) {
-          results.push({
-            date: dateInfo.date,
-            holiday,
-          });
-        }
-      }
-    }
-
-    return results.sort((a, b) => a.date.localeCompare(b.date));
+    return holidays
+      .filter((h) => !disabledSet.has(h.eventId))
+      .map((h) => ({
+        date: dayjs(h.date).format("YYYY-MM-DD"),
+        holiday: this.cachedHolidayToHoliday(h),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  hasHolidaysInRange(countryCode: string, disabledIds: string[], startDate: Date, endDate: Date): boolean {
-    return this.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate).length > 0;
-  }
-
-  getYearsIncluded(): number[] {
-    return this.data.yearsIncluded;
+  async hasHolidaysInRange(
+    countryCode: string,
+    disabledIds: string[],
+    startDate: Date,
+    endDate: Date
+  ): Promise<boolean> {
+    const holidays = await this.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate);
+    return holidays.length > 0;
   }
 }
 

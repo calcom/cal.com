@@ -1,3 +1,4 @@
 export { HolidayService, HolidayServiceClass } from "./HolidayService";
-export type { Country, Holiday, HolidayData, HolidayDate, HolidayWithStatus } from "./types";
-
+export { GoogleHolidayService } from "./GoogleHolidayService";
+export type { Country, Holiday, HolidayWithStatus } from "./types";
+export type { CachedHoliday } from "./GoogleHolidayService";

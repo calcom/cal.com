@@ -25,7 +25,7 @@ export async function getUserSettingsHandler({ ctx }: GetUserSettingsOptions) {
     };
   }
 
-  const holidays = HolidayService.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
+  const holidays = await HolidayService.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
 
   return {
     countryCode: settings.countryCode,

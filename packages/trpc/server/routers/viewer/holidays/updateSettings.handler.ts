@@ -42,7 +42,7 @@ export async function updateSettingsHandler({ ctx, input }: UpdateSettingsOption
   });
 
   if (settings.countryCode) {
-    const holidays = HolidayService.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
+    const holidays = await HolidayService.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
     return {
       countryCode: settings.countryCode,
       holidays,

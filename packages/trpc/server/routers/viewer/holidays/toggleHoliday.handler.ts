@@ -28,7 +28,7 @@ export async function toggleHolidayHandler({ ctx, input }: ToggleHolidayOptions)
     });
   }
 
-  const holidays = HolidayService.getHolidaysForCountry(settings.countryCode);
+  const holidays = await HolidayService.getHolidaysForCountry(settings.countryCode);
   const holidayExists = holidays.some((h) => h.id === holidayId);
 
   if (!holidayExists) {
@@ -53,7 +53,7 @@ export async function toggleHolidayHandler({ ctx, input }: ToggleHolidayOptions)
     data: { disabledIds },
   });
 
-  const updatedHolidays = HolidayService.getHolidaysWithStatus(settings.countryCode, disabledIds);
+  const updatedHolidays = await HolidayService.getHolidaysWithStatus(settings.countryCode, disabledIds);
 
   return {
     countryCode: settings.countryCode,

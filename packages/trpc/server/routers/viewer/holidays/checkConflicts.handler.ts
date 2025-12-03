@@ -40,7 +40,7 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
   const startDate = new Date();
   const endDate = dayjs().add(CONFLICT_CHECK_MONTHS, "months").toDate();
 
-  const holidayDates = HolidayService.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate);
+  const holidayDates = await HolidayService.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate);
 
   if (holidayDates.length === 0) {
     return { conflicts: [] };

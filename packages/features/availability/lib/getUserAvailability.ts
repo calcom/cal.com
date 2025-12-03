@@ -713,7 +713,7 @@ export class UserAvailabilityService {
     }
 
     // Get holiday dates in range
-    const holidayDates = HolidayService.getHolidayDatesInRange(
+    const holidayDates = await HolidayService.getHolidayDatesInRange(
       holidaySettings.countryCode,
       holidaySettings.disabledIds,
       startDate,

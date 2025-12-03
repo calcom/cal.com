@@ -1970,6 +1970,24 @@ model UserHolidaySettings {
   @@index([userId])
 }
 
+// Holiday cache for Google Calendar public holidays
+model HolidayCache {
+  id          String   @id @default(uuid())
+  countryCode String
+  calendarId  String
+  eventId     String
+  name        String
+  date        DateTime
+  year        Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryCode, eventId])
+  @@index([countryCode, year])
+  @@index([countryCode, date])
+}
+
 // Platform
 model PlatformOAuthClient {
   id             String   @id @default(cuid())

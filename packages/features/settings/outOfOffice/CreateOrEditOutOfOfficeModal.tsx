@@ -4,7 +4,6 @@ import { Controller, useForm } from "react-hook-form";
 import dayjs from "@calcom/dayjs";
 import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { HolidayService } from "@calcom/lib/holidays";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -173,14 +172,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       return [];
     }
 
-    const holidays = HolidayService.getHolidayDatesInRange(
-      holidaySettings.countryCode,
-      holidaySettings.holidays?.filter((h) => !h.enabled).map((h) => h.id) || [],
-      watchedDateRange.startDate,
-      watchedDateRange.endDate
-    );
+    // Filter holidays that are enabled and fall within the date range
+    const startStr = dayjs(watchedDateRange.startDate).format("YYYY-MM-DD");
+    const endStr = dayjs(watchedDateRange.endDate).format("YYYY-MM-DD");
 
-    return holidays;
+    return (holidaySettings.holidays || [])
+      .filter((h) => h.enabled && h.date >= startStr && h.date <= endStr)
+      .map((h) => ({ date: h.date, holiday: { id: h.id, name: h.name } }));
   }, [holidaySettings, watchedDateRange]);
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({

@@ -70,9 +70,7 @@ const HolidayListItem = memo(function HolidayListItem({
   onToggle: (holidayId: string, enabled: boolean) => void;
   isToggling: boolean;
 }) {
-  const { t } = useLocale();
-
-  const nextDate = holiday.nextDate ? dayjs(holiday.nextDate).format("D MMM YYYY") : null;
+  const formattedDate = holiday.date ? dayjs(holiday.date).format("D MMM YYYY") : null;
 
   return (
     <div className="border-subtle flex items-center justify-between border-b px-4 py-4 last:border-b-0">
@@ -80,11 +78,7 @@ const HolidayListItem = memo(function HolidayListItem({
         <div className="text-2xl">🎄</div>
         <div>
           <p className="text-emphasis font-medium">{holiday.name}</p>
-          {nextDate && (
-            <p className="text-subtle text-sm">
-              {t("next")}: {nextDate}
-            </p>
-          )}
+          {formattedDate && <p className="text-subtle text-sm">{formattedDate}</p>}
         </div>
       </div>
       <Switch
