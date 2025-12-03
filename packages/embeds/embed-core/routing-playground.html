@@ -163,7 +163,6 @@
           const trackLatencyInShowingSlots = (namespace) => {
             let apiStartTime = null;
             let isAvailabilityLoaded = false;
-            let cleanupCallbacks = [];
 
             const trackAvailabilityLoaded = (source) => {
               if (isAvailabilityLoaded || !apiStartTime) return;
@@ -172,9 +171,6 @@
               const endTime = performance.now();
               const timeDiff = endTime - apiStartTime;
               console.log("[Performance] Embed Modal API to Availability Loaded:", timeDiff.toFixed(2), "ms", "- triggered by:", source);
-              
-              cleanupCallbacks.forEach(cb => cb());
-              cleanupCallbacks = [];
             };
 
             // Track API start
@@ -185,12 +181,12 @@
             isAvailabilityLoaded = false;
             const api = namespace ? Cal.ns[namespace] : Cal;
 
-            const bookerLoadedCallback = (e) => {
+            const bookerViewedCallback = (e) => {
               const data = e.detail.data;
               if (data.slotsLoaded === true) {
-                trackAvailabilityLoaded("bookerLoadedEvent (slotsLoaded: true)");
+                trackAvailabilityLoaded("bookerViewed (slotsLoaded: true)");
               } else {
-                console.log("[Performance] CTA clicked before prerender was completed, so wait for availabilityLoaded event to fire");
+                console.log("[Performance] Booker is ready but waiting for slots to load");
               }
             };
 
@@ -198,13 +194,8 @@
               trackAvailabilityLoaded("availabilityLoaded event");
             };
 
-            api("on", { action: "bookerLoadedEvent", callback: bookerLoadedCallback });
+            api("on", { action: "bookerViewed", callback: bookerViewedCallback });
             api("on", { action: "availabilityLoaded", callback: availabilityLoadedCallback });
-
-            cleanupCallbacks.push(() => {
-              api("off", { action: "bookerLoadedEvent", callback: bookerLoadedCallback });
-              api("off", { action: "availabilityLoaded", callback: availabilityLoadedCallback });
-            });
           };
 
           window.routingFormFullPrerender = {
@@ -290,8 +281,8 @@
             type: "modal",
             pageType: "team.event.booking.slots",
             options: {
-              // slotsStaleTimeMs: 10 * 1000,
-              // iframeForceReloadThresholdMs: 30 * 1000,
+              //  slotsStaleTimeMs: 20 * 1000,
+              //  iframeForceReloadThresholdMs: 30 * 1000,
             },
           });
         }

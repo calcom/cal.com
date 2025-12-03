@@ -283,8 +283,23 @@ export const useEmbedType = () => {
 };
 
 export const useIsEmbedPrerendering = () => {
-  const searchParams = useCompatSearchParams();
-  return searchParams?.get("prerender") === "true";
+  return isPrerendering()
+};
+
+// Track linkReady counter to detect when embed reopens
+let linkReadyCounter = 0;
+
+export const useEmbedReopened = () => {
+  const [lastCounter, setLastCounter] = useState(linkReadyCounter);
+  const hasReopened = linkReadyCounter > lastCounter;
+
+  useEffect(() => {
+    if (hasReopened) {
+      setLastCounter(linkReadyCounter);
+    }
+  }, [hasReopened]);
+
+  return hasReopened;
 };
 
 function makeBodyVisible() {
@@ -571,6 +586,11 @@ function main() {
       // Because the iframe can take the entire width but the actual content could still be smaller and everything beyond that would be considered backdrop
       sdkActionManager?.fire("__closeIframe", {});
     }
+  });
+
+  // Increment linkReady counter whenever linkReady event is fired
+  sdkActionManager?.on("linkReady", () => {
+    linkReadyCounter++;
   });
 
   sdkActionManager?.on("*", (e) => {

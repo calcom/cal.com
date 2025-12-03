@@ -41,10 +41,16 @@ export type EventDataMap = {
     eventId: number;
     eventSlug: string;
   };
-  bookerLoadedEvent: {
+  bookerViewed:
+  | {
     eventId: number;
     eventSlug: string;
-    slotsLoaded: boolean;
+    slotsLoaded: true;
+  }
+  | {
+    eventId: null;
+    eventSlug: null;
+    slotsLoaded: false;
   };
   availabilityRefreshed: {
     eventId: number;

@@ -7,7 +7,12 @@ import React from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { sdkActionManager, useIsEmbed, useIsEmbedPrerendering } from "@calcom/embed-core/embed-iframe";
+import {
+  sdkActionManager,
+  useIsEmbed,
+  useIsEmbedPrerendering,
+  useEmbedReopened,
+} from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import {
@@ -35,7 +40,7 @@ export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
-const useFirebookerLoadedEvent = ({
+const useFireBookerViewedEvent = ({
   eventId,
   eventSlug,
   slotsLoaded,
@@ -46,17 +51,38 @@ const useFirebookerLoadedEvent = ({
 }) => {
   const isEmbedPrerendering = useIsEmbedPrerendering();
   const hasFiredbookerLoadedEventRef = useRef<boolean>(false);
+  const embedReopened = useEmbedReopened();
+
+  // Reset the fired flag when embed reopens
+  useEffect(() => {
+    if (embedReopened) {
+      hasFiredbookerLoadedEventRef.current = false;
+    }
+  }, [embedReopened]);
 
   if (isEmbedPrerendering) {
     return;
   }
 
-  if (eventId && eventSlug && !hasFiredbookerLoadedEventRef.current) {
-    sdkActionManager?.fire("bookerLoadedEvent", {
-      eventId,
-      eventSlug,
-      slotsLoaded,
-    });
+  if (!hasFiredbookerLoadedEventRef.current) {
+    if (slotsLoaded) {
+      if (eventId && eventSlug) {
+        sdkActionManager?.fire("bookerViewed", {
+          eventId,
+          eventSlug,
+          slotsLoaded: true,
+        });
+      } else {
+        // This situation shouldn't arise but not throwing error because for a tracking event we don't want to crash booker
+        console.error("BookerViewed event not fired because slotsLoaded is true but eventId or eventSlug are falsy");
+      }
+    } else {
+      sdkActionManager?.fire("bookerViewed", {
+        eventId: null,
+        eventSlug: null,
+        slotsLoaded: false,
+      });
+    }
     hasFiredbookerLoadedEventRef.current = true;
   }
 };
@@ -196,7 +222,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     teamMemberEmail: props.teamMemberEmail,
   });
 
-  useFirebookerLoadedEvent({
+  useFireBookerViewedEvent({
     eventId: event.data?.id,
     eventSlug: event.data?.slug,
     slotsLoaded: schedule.isSuccess,

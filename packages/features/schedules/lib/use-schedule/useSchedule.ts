@@ -56,12 +56,24 @@ const useAvailabilityEvents = () => {
 
     const lastDataUpdatedAt = lastDataUpdatedAtRef.current;
 
+    // Send on next tick to ensure that bookerViewed which also uses useSchedule hook's return value is fired first always.
+    // Otherwise, in the case of clicking CTA when prerendered/prerendering, we are at a risk of firing availabilityLoaded event before bookerViewed.
+    // This is because prerender doesn't allow firing bookerViewed and the very first chance it gets after leaving prerender mode useSchedule hook ends up firing availabilityLoaded event.
+    function scheduleEventOnNextTick(callback: () => void) {
+      setTimeout(() => {
+        callback();
+      }, 0);
+    }
     if (lastDataUpdatedAt === null) {
       // First successful load - fire availabilityLoaded
-      sdkActionManager?.fire("availabilityLoaded", { eventId, eventSlug });
+      scheduleEventOnNextTick(() => {
+        sdkActionManager?.fire("availabilityLoaded", { eventId, eventSlug });
+      });
     } else if (availabilityDataUpdateTime > lastDataUpdatedAt) {
       // Data was refreshed - fire availabilityRefreshed
-      sdkActionManager?.fire("availabilityRefreshed", { eventId, eventSlug });
+      scheduleEventOnNextTick(() => {
+        sdkActionManager?.fire("availabilityRefreshed", { eventId, eventSlug });
+      });
     }
     lastDataUpdatedAtRef.current = availabilityDataUpdateTime;
   };
