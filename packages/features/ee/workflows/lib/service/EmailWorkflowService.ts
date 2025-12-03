@@ -409,11 +409,14 @@ export class EmailWorkflowService {
     const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
 
     const calendarEvent = evt as CalendarEvent;
-    
+
     if (calendarEvent.schedulingType !== SchedulingType.COLLECTIVE) {
       calendarEvent.team = undefined;
     }
-    const teamMemberEmails = new Set(calendarEvent.team?.members.map((member) => member.email.toLowerCase()) || []);
+
+    const teamMemberEmails = new Set(
+      calendarEvent.team?.members.map((member) => member.email.toLowerCase()) || []
+    );
     const uniqueAttendees = evt.attendees.filter(
       (attendee) => !teamMemberEmails.has(attendee.email.toLowerCase())
     );
