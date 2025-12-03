@@ -254,7 +254,11 @@ export default function CancelBooking(props: Props) {
             </div>
           )}
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
-            <div className="ml-auto flex w-full space-x-4 ">
+            <div
+              className={classNames(
+                "ml-auto flex w-full space-x-4",
+                isRenderedAsCancelDialog && "justify-end"
+              )}>
               <Button
                 className="ml-auto"
                 color="secondary"
