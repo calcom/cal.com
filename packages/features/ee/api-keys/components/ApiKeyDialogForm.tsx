@@ -119,7 +119,7 @@ export default function ApiKeyDialogForm({
                   }}
                   type="button"
                   className="rounded-l-none text-base"
-                  StartIcon="copy">
+                  StartIcon="clipboard">
                   {t("copy")}
                 </Button>
               </Tooltip>
