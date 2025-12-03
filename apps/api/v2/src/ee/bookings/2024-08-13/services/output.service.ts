@@ -93,6 +93,10 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
+  private cleanOAuthEmailSuffix(email: string): string {
+    return email.replace(/\+[a-zA-Z0-9]{25}/, "");
+  }
+
   async getOutputBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
@@ -126,7 +130,7 @@ export class OutputBookingsService_2024_08_13 {
       eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
-        email: attendee.email,
+        email: this.cleanOAuthEmailSuffix(attendee.email),
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
@@ -149,6 +153,25 @@ export class OutputBookingsService_2024_08_13 {
     // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
     bookingTransformed.bookingFieldsResponses = bookingResponses;
     bookingTransformed.metadata = this.getUserDefinedMetadata(metadata);
+
+    if (
+      bookingTransformed.bookingFieldsResponses?.email &&
+      typeof bookingTransformed.bookingFieldsResponses.email === "string"
+    ) {
+      bookingTransformed.bookingFieldsResponses.email = this.cleanOAuthEmailSuffix(
+        bookingTransformed.bookingFieldsResponses.email
+      );
+    }
+
+    if (
+      bookingTransformed.bookingFieldsResponses?.guests &&
+      Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
+    ) {
+      bookingTransformed.bookingFieldsResponses.guests = bookingTransformed.bookingFieldsResponses.guests.map(
+        (guest: string) => this.cleanOAuthEmailSuffix(guest)
+      );
+    }
+
     return bookingTransformed;
   }
 
@@ -198,6 +221,7 @@ export class OutputBookingsService_2024_08_13 {
 
     return {
       ...user,
+      email: this.cleanOAuthEmailSuffix(user.email),
       username: user.username || "unknown",
     };
   }
@@ -248,7 +272,7 @@ export class OutputBookingsService_2024_08_13 {
       eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
-        email: attendee.email,
+        email: this.cleanOAuthEmailSuffix(attendee.email),
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
@@ -272,6 +296,25 @@ export class OutputBookingsService_2024_08_13 {
     // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
     bookingTransformed.bookingFieldsResponses = bookingResponses;
     bookingTransformed.metadata = this.getUserDefinedMetadata(metadata);
+
+    if (
+      bookingTransformed.bookingFieldsResponses?.email &&
+      typeof bookingTransformed.bookingFieldsResponses.email === "string"
+    ) {
+      bookingTransformed.bookingFieldsResponses.email = this.cleanOAuthEmailSuffix(
+        bookingTransformed.bookingFieldsResponses.email
+      );
+    }
+
+    if (
+      bookingTransformed.bookingFieldsResponses?.guests &&
+      Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
+    ) {
+      bookingTransformed.bookingFieldsResponses.guests = bookingTransformed.bookingFieldsResponses.guests.map(
+        (guest: string) => this.cleanOAuthEmailSuffix(guest)
+      );
+    }
+
     return bookingTransformed;
   }
 
@@ -336,7 +379,7 @@ export class OutputBookingsService_2024_08_13 {
 
           const attendeeData = {
             name: attendee.name,
-            email: attendee.email,
+            email: this.cleanOAuthEmailSuffix(attendee.email),
             timeZone: attendee.timeZone,
             language: attendee.locale,
             absent: !!attendee.noShow,
@@ -464,7 +507,7 @@ export class OutputBookingsService_2024_08_13 {
 
           const attendeeData = {
             name: attendee.name,
-            email: attendee.email,
+            email: this.cleanOAuthEmailSuffix(attendee.email),
             timeZone: attendee.timeZone,
             language: attendee.locale,
             absent: !!attendee.noShow,
@@ -496,7 +539,9 @@ export class OutputBookingsService_2024_08_13 {
       reassignedTo: {
         id: databaseBooking?.user?.id || 0,
         name: databaseBooking?.user?.name || "unknown",
-        email: databaseBooking?.user?.email || "unknown",
+        email: databaseBooking?.user?.email
+          ? this.cleanOAuthEmailSuffix(databaseBooking.user.email)
+          : "unknown",
       },
     };
   }
