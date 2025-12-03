@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
 
+console.log("asap the value of process.env.CI", process.env.CI);
+
 if (!process.env.CI) {
   dotenv.config({ path: path.resolve(__dirname, ".env.e2e") });
 }
