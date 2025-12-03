@@ -566,8 +566,12 @@ export class UserAvailabilityService {
       availability
     );
 
-    // Merge holiday dates with OOO dates
-    Object.assign(datesOutOfOffice, holidayBlockedDates);
+    // Merge holiday dates with OOO dates (OOO takes precedence over holidays)
+    for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
+      if (!datesOutOfOffice[date]) {
+        datesOutOfOffice[date] = holidayData;
+      }
+    }
 
     const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
       dateFrom,

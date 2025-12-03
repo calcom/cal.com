@@ -1966,8 +1966,6 @@ model UserHolidaySettings {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@index([userId])
 }
 
 // Holiday cache for Google Calendar public holidays

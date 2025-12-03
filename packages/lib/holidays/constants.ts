@@ -6,7 +6,8 @@ export const DEFAULT_HOLIDAY_CACHE_DAYS = 7;
 
 /**
  * Google Calendar IDs for public holiday calendars.
- * Source: https://gist.github.com/mattn/1438183
+ * Only includes countries with official Google public holiday calendars.
+ * Source: Google Calendar API
  */
 export const GOOGLE_HOLIDAY_CALENDARS: Record<string, { name: string; calendarId: string }> = {
   US: { name: "United States", calendarId: "en.usa#holiday@group.v.calendar.google.com" },
@@ -26,9 +27,7 @@ export const GOOGLE_HOLIDAY_CALENDARS: Record<string, { name: string; calendarId
   SE: { name: "Sweden", calendarId: "en.swedish#holiday@group.v.calendar.google.com" },
   NO: { name: "Norway", calendarId: "en.norwegian#holiday@group.v.calendar.google.com" },
   DK: { name: "Denmark", calendarId: "en.danish#holiday@group.v.calendar.google.com" },
-  BE: { name: "Belgium", calendarId: "en.dutch#holiday@group.v.calendar.google.com" },
   AT: { name: "Austria", calendarId: "en.austrian#holiday@group.v.calendar.google.com" },
-  CH: { name: "Switzerland", calendarId: "en.german#holiday@group.v.calendar.google.com" },
   JP: { name: "Japan", calendarId: "en.japanese#holiday@group.v.calendar.google.com" },
   CN: { name: "China", calendarId: "en.china#holiday@group.v.calendar.google.com" },
   KR: { name: "South Korea", calendarId: "en.south_korea#holiday@group.v.calendar.google.com" },

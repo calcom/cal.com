@@ -16,6 +16,10 @@ export async function getUserSettingsHandler({ ctx }: GetUserSettingsOptions) {
 
   const settings = await prisma.userHolidaySettings.findUnique({
     where: { userId },
+    select: {
+      countryCode: true,
+      disabledIds: true,
+    },
   });
 
   if (!settings || !settings.countryCode) {

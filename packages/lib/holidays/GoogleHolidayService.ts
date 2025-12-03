@@ -157,31 +157,34 @@ class GoogleHolidayServiceClass {
     try {
       const holidays = await this.fetchHolidaysFromGoogle(countryCode, year);
 
-      // Delete existing cache for this country/year
-      await prisma.holidayCache.deleteMany({
-        where: {
-          countryCode,
-          year,
-        },
-      });
-
-      // Insert new holidays
-      if (holidays.length > 0) {
-        await prisma.holidayCache.createMany({
-          data: holidays.map((h) => ({
-            countryCode: h.countryCode,
-            calendarId: calendarConfig.calendarId,
-            eventId: h.eventId,
-            name: h.name,
-            date: h.date,
-            year: h.year,
-          })),
-          skipDuplicates: true,
+      // Use transaction to ensure atomic delete + insert
+      await prisma.$transaction(async (tx) => {
+        // Delete existing cache for this country/year
+        await tx.holidayCache.deleteMany({
+          where: {
+            countryCode,
+            year,
+          },
         });
-      }
+
+        // Insert new holidays
+        if (holidays.length > 0) {
+          await tx.holidayCache.createMany({
+            data: holidays.map((h) => ({
+              countryCode: h.countryCode,
+              calendarId: calendarConfig.calendarId,
+              eventId: h.eventId,
+              name: h.name,
+              date: h.date,
+              year: h.year,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      });
     } catch (error) {
       console.error(`Failed to refresh holiday cache for ${countryCode}:`, error);
-      // Don't throw - we'll use stale cache if available
+      // Don't throw - if transaction fails, stale cache remains intact
     }
   }
 

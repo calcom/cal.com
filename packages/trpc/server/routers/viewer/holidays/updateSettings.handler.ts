@@ -1,8 +1,8 @@
-import { TRPCError } from "@trpc/server";
-
 import { HolidayService } from "@calcom/lib/holidays";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TUpdateSettingsSchema } from "./updateSettings.schema";
 
@@ -38,6 +38,10 @@ export async function updateSettingsHandler({ ctx, input }: UpdateSettingsOption
     update: {
       countryCode,
       ...(resetDisabledHolidays ? { disabledIds: [] } : {}),
+    },
+    select: {
+      countryCode: true,
+      disabledIds: true,
     },
   });
 

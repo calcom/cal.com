@@ -13,8 +13,5 @@ CREATE TABLE "public"."UserHolidaySettings" (
 -- CreateIndex
 CREATE UNIQUE INDEX "UserHolidaySettings_userId_key" ON "public"."UserHolidaySettings"("userId");
 
--- CreateIndex
-CREATE INDEX "UserHolidaySettings_userId_idx" ON "public"."UserHolidaySettings"("userId");
-
 -- AddForeignKey
 ALTER TABLE "public"."UserHolidaySettings" ADD CONSTRAINT "UserHolidaySettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

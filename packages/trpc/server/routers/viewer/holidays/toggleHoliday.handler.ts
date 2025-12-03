@@ -1,8 +1,8 @@
-import { TRPCError } from "@trpc/server";
-
 import { HolidayService } from "@calcom/lib/holidays";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TToggleHolidaySchema } from "./toggleHoliday.schema";
 
@@ -19,6 +19,10 @@ export async function toggleHolidayHandler({ ctx, input }: ToggleHolidayOptions)
 
   const settings = await prisma.userHolidaySettings.findUnique({
     where: { userId },
+    select: {
+      countryCode: true,
+      disabledIds: true,
+    },
   });
 
   if (!settings || !settings.countryCode) {
