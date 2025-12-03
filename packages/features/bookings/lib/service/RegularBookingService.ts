@@ -424,15 +424,6 @@ export interface IBookingServiceDependencies {
   bookingEventHandler: BookingEventHandlerService;
 }
 
-/**
- * TODO: Ideally we should send organizationId directly to handleNewBooking.
- * webapp can derive from domain and API V2 knows it already through its endpoint URL
- */
-/**
- * Validates if rescheduling is allowed based on minimum reschedule notice and user permissions
- * Throws HttpError if rescheduling is not allowed
- * This is called early in the booking flow to fail fast if rescheduling restrictions apply
- */
 async function validateRescheduleRestrictions({
   rescheduleUid,
   userId,
@@ -493,6 +484,10 @@ async function validateRescheduleRestrictions({
   }
 }
 
+/**
+ * TODO: Ideally we should send organizationId directly to handleNewBooking.
+ * webapp can derive from domain and API V2 knows it already through its endpoint URL
+ */
 async function getEventOrganizationId({
   eventType,
 }: {
