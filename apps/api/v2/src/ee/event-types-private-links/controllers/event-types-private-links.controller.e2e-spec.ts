@@ -10,8 +10,8 @@ import {
   CreateManagedUserData,
   CreateManagedUserOutput,
 } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
-import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { TokensModule } from "@/modules/tokens/tokens.module";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -28,18 +28,18 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreatePrivateLinkInput } from "@calcom/platform-types";
-import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import type { EventType, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 describe("Event Types Private Links Endpoints", () => {
   let app: INestApplication;
 
-  let organization: { id: number; name: string; slug: string };
+  let organization: Team;
   let userRepositoryFixture: UserRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
-  let user: { id: number; email: string; name: string; username: string };
-  let eventType: { id: number; title: string; slug: string; length: number };
+  let user: User;
+  let eventType: EventType;
 
   const userEmail = `private-links-user-${randomString()}@api.com`;
 
@@ -65,16 +65,16 @@ describe("Event Types Private Links Endpoints", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
-    organization = (await teamRepositoryFixture.create({
+    organization = await teamRepositoryFixture.create({
       name: `private-links-organization-${randomString()}`,
       slug: `private-links-org-slug-${randomString()}`,
-    })) as { id: number; name: string; slug: string };
+    });
     await createOAuthClient(organization.id);
-    user = (await userRepositoryFixture.create({
+    user = await userRepositoryFixture.create({
       email: userEmail,
       name: `private-links-user-${randomString()}`,
       username: `private-links-user-${randomString()}`,
-    })) as { id: number; email: string; name: string; username: string };
+    });
 
     // create an event type owned by user
     eventType = await eventTypesRepositoryFixture.create(
@@ -328,7 +328,7 @@ describe("Event Types Private Links - Managed User Restrictions", () => {
       .send(body)
       .expect(403);
 
-    expect(response.body.message).toContain("Managed users are not permitted to perform this action");
+    expect(response.body.error.message).toContain("Managed users are not permitted to perform this action");
   });
 
   it("GET /v2/event-types/:eventTypeId/private-links - managed user should be forbidden from listing private links", async () => {
@@ -337,7 +337,7 @@ describe("Event Types Private Links - Managed User Restrictions", () => {
       .set("Authorization", `Bearer ${managedUser.accessToken}`)
       .expect(403);
 
-    expect(response.body.message).toContain("Managed users are not permitted to perform this action");
+    expect(response.body.error.message).toContain("Managed users are not permitted to perform this action");
   });
 
   afterAll(async () => {
@@ -353,5 +353,3 @@ describe("Event Types Private Links - Managed User Restrictions", () => {
     }
   });
 });
-
-
