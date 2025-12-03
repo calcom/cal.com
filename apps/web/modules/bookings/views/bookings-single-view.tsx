@@ -39,6 +39,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { getTimeShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
@@ -462,7 +463,8 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-cal-muted border-booker border-booker-width",
+                  !isBackgroundTransparent &&
+                    " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -595,7 +597,11 @@ export default function Success(props: PageProps) {
                         )}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? (typeof bookingInfo.title === 'string' ? bookingInfo.title : eventName) : eventName}
+                          {isRoundRobin
+                            ? typeof bookingInfo.title === "string"
+                              ? bookingInfo.title
+                              : eventName
+                            : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
@@ -711,7 +717,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="whitespace-pre-line wrap-break-word">{bookingInfo.description}</p>
+                              <p className="wrap-break-word whitespace-pre-line">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -738,7 +744,7 @@ export default function Success(props: PageProps) {
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
                                   0 ? (
-                                    <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
+                                    <ul className="stack-y-1 list-disc p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
@@ -1053,7 +1059,7 @@ export default function Success(props: PageProps) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-4 stack-y-1 text-center">
+                      <div className="stack-y-1 my-4 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
@@ -1185,6 +1191,11 @@ function RecurringBookings({
   if (!duration) return null;
 
   if (recurringBookingsSorted && allRemainingBookings) {
+    const shiftFlags = getTimeShiftFlags({
+      dates: recurringBookingsSorted,
+      timezone: tz,
+    });
+
     return (
       <>
         {eventType.recurringEvent?.count && (
@@ -1219,6 +1230,12 @@ function RecurringBookings({
               <span className="text-bookinglight">
                 ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
               </span>
+              {shiftFlags[idx] && (
+                <>
+                  {" "}
+                  <Badge variant="orange">{t("time_shift")}</Badge>
+                </>
+              )}
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -1250,6 +1267,12 @@ function RecurringBookings({
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
                     </span>
+                    {shiftFlags[idx + 4] && (
+                      <>
+                        {" "}
+                        <Badge variant="orange">{t("time_shift")}</Badge>
+                      </>
+                    )}
                   </div>
                 ))}
             </CollapsibleContent>
