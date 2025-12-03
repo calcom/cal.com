@@ -175,7 +175,7 @@ describe("handleNewBooking", () => {
 
             await expectBookingToBeInDatabase({
               description: "",
-               
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -212,16 +212,16 @@ describe("handleNewBooking", () => {
           expectSuccessfulBookingCreationEmails({
             booker,
             booking: {
-               
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
               urlOrigin: WEBSITE_URL,
             },
             organizer,
             emails,
             bookingTimeRange: {
-               
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               start: createdBookings[0].startTime!,
-               
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               end: createdBookings[0].endTime!,
             },
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -526,7 +526,7 @@ describe("handleNewBooking", () => {
 
             await expectBookingToBeInDatabase({
               description: "",
-               
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -563,7 +563,7 @@ describe("handleNewBooking", () => {
           expectSuccessfulBookingCreationEmails({
             booker,
             booking: {
-               
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
               urlOrigin: WEBSITE_URL,
             },
@@ -744,7 +744,7 @@ describe("handleNewBooking", () => {
 
             await expectBookingToBeInDatabase({
               description: "",
-               
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -780,7 +780,7 @@ describe("handleNewBooking", () => {
 
           expectSuccessfulBookingCreationEmails({
             booking: {
-               
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBookings[0].uid!,
               urlOrigin: WEBSITE_URL,
             },

@@ -63,7 +63,7 @@ export const bookingsProcedure = authedProcedure
       include: bookingInclude,
     });
 
-    if (bookingByBeingAdmin) {
+    if (!!bookingByBeingAdmin) {
       return next({ ctx: { booking: bookingByBeingAdmin } });
     }
 

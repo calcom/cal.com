@@ -66,7 +66,7 @@ const renderComponent = ({
     );
   };
   const result = render(<BookingFields {...props} />, { wrapper: Wrapper });
-   
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return { result, formMethods: formMethods! };
 };
 

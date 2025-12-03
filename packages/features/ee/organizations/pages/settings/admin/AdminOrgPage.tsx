@@ -241,7 +241,7 @@ const DeleteOrgDialog = ({
     return null;
   }
   return (
-     
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
     <Dialog name="delete-user" open={!!org.id} onOpenChange={(open) => (open ? () => {} : onClose())}>
       <ConfirmationDialogContent
         title={t("admin_delete_organization_title", {

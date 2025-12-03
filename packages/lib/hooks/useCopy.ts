@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export function useCopy() {
   const [isCopied, setIsCopied] = useState(false);
 
-   
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   const noop = () => {};
 
   const copyToClipboard = (

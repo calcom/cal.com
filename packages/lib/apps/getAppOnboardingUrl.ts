@@ -12,7 +12,7 @@ export const getAppOnboardingUrl = ({
   teamId?: number;
 }) => {
   const params: { [key: string]: string | number | number[] } = { slug };
-  if (teamId) {
+  if (!!teamId) {
     params.teamId = teamId;
   }
   const query = stringify(params);

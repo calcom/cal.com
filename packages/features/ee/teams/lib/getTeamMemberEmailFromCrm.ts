@@ -1,6 +1,6 @@
 import type { ParsedUrlQuery } from "querystring";
 
- 
+/* eslint-disable */
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import {
   ROUTING_FORM_RESPONSE_ID_QUERY_STRING,

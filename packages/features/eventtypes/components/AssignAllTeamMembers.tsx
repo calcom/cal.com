@@ -37,7 +37,7 @@ const AssignAllTeamMembers = ({
             setAssignAllTeamMembers(active);
             if (active) {
               onActive();
-            } else if (onInactive) {
+            } else if (!!onInactive) {
               onInactive();
             }
           }}
