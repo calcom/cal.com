@@ -614,6 +614,42 @@ export class UserRepository {
     });
   }
 
+  async enrichUsersWithTheirProfileExcludingOrgMetadata<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    const enrichedUsers = await this.enrichUsersWithTheirProfiles(users);
+
+    return enrichedUsers.map((enrichedUser) => {
+      const { profile } = enrichedUser;
+
+      if (!profile || !profile.organization) {
+        return enrichedUser;
+      }
+
+      // Exclude organization metadata
+      const sanitizedProfile: UserProfile = {
+        ...profile,
+        organization: {
+          ...profile.organization,
+          metadata: {},
+          organizationSettings: profile.organization.organizationSettings,
+        },
+      };
+
+      return {
+        ...enrichedUser,
+        profile: sanitizedProfile,
+      };
+    });
+  }
+
   enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
     user,
   }: {
