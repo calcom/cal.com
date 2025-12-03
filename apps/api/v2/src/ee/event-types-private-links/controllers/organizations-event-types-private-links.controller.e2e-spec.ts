@@ -16,6 +16,7 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreatePrivateLinkInput } from "@calcom/platform-types";
 import type { PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
 
@@ -66,6 +67,9 @@ describe("Organizations Event Types Private Links - Platform Org Restrictions", 
           plan: "SCALE",
           subscriptionId: `sub_platform_org_${randomString()}`,
         },
+      },
+      organizationSettings: {
+        create: { isAdminAPIEnabled: true, orgAutoAcceptEmail: "example.com" },
       },
     });
 
@@ -136,7 +140,9 @@ describe("Organizations Event Types Private Links - Platform Org Restrictions", 
       .send(body)
       .expect(403);
 
-    expect(response.body.message).toContain("Platform organizations are not permitted to perform this action");
+    expect(response.body.error.message).toContain(
+      "Platform organizations are not permitted to perform this action"
+    );
   });
 
   it("GET /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links - platform org should be forbidden from listing private links", async () => {
@@ -148,7 +154,9 @@ describe("Organizations Event Types Private Links - Platform Org Restrictions", 
       .set("x-cal-secret-key", oAuthClient.secret)
       .expect(403);
 
-    expect(response.body.message).toContain("Platform organizations are not permitted to perform this action");
+    expect(response.body.error.message).toContain(
+      "Platform organizations are not permitted to perform this action"
+    );
   });
 
   afterAll(async () => {
@@ -164,8 +172,6 @@ describe("Organizations Event Types Private Links - Platform Org Restrictions", 
     }
   });
 });
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 describe("Organizations Event Types Private Links - Regular Org Can Create Private Links", () => {
   let app: INestApplication;
@@ -210,6 +216,9 @@ describe("Organizations Event Types Private Links - Regular Org Can Create Priva
       slug: `private-links-regular-org-test-${randomString()}`,
       isPlatform: false,
       isOrganization: true,
+      organizationSettings: {
+        create: { isAdminAPIEnabled: true, orgAutoAcceptEmail: "example.com" },
+      },
     });
 
     regularTeam = await teamRepositoryFixture.create({
