@@ -101,8 +101,8 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
           // if field was changed, as no error exist, show checked status and color
           const dirty = formState.dirtyFields[fieldName];
           return (
-            <li key={key} className={dirty ? "text-green-600" : ""}>
-              {dirty ? (
+            <li key={key} className={!!dirty ? "text-green-600" : ""}>
+              {!!dirty ? (
                 <Icon
                   name="check"
                   size="12"
