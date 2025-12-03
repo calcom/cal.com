@@ -11,7 +11,7 @@ export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
   return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== WEBSITE_URL);
 };
 
- 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Codes = {
   react: {
     inline: ({
@@ -331,7 +331,7 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
       indentedBlock.push(line);
     });
     // non-null assertion is okay because we know that we are referencing last element.
-     
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const indentationMatch = partWithoutBlock
       .split("\n")
       .at(-1)!

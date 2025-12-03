@@ -28,7 +28,7 @@ const renderComponent = ({
     return <FormProvider {...form}>{children}</FormProvider>;
   };
   render(<FormBuilderField {...props} />, { wrapper: Wrapper });
-   
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return { formMethods: formMethods! };
 };
 

@@ -58,7 +58,7 @@ export function EditMemberSheet({
   const bookerUrl = selectedUser.bookerUrl;
   const utils = trpc.useUtils();
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
-  const bookingLink = selectedUser.username ? `${bookerUrlWithoutProtocol}/${selectedUser.username}` : "";
+  const bookingLink = !!selectedUser.username ? `${bookerUrlWithoutProtocol}/${selectedUser.username}` : "";
 
   // Load custom roles for the team
   const { data: customRoles, isPending: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
@@ -216,8 +216,8 @@ export function EditMemberSheet({
                 </Skeleton>
               </div>
             </SheetHeader>
-            <SheetBody className="flex flex-col stack-y-4 p-4">
-              <div className="mb-4 flex flex-col stack-y-4">
+            <SheetBody className="stack-y-4 flex flex-col p-4">
+              <div className="stack-y-4 mb-4 flex flex-col">
                 <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
                 <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
                 <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
