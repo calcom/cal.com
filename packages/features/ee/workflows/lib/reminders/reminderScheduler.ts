@@ -63,6 +63,30 @@ export type ScheduleWorkflowRemindersArgs = ProcessWorkflowStepParams & {
   creditCheckFn: CreditCheckFn;
 };
 
+const getReminderPhoneNumber = async (
+  action: WorkflowActions,
+  seatReferenceUid: string | undefined,
+  smsReminderNumber: string | null,
+  stepSendTo: string | null
+) => {
+  const isAttendeeAction =
+    action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
+
+  if (!isAttendeeAction) {
+    return stepSendTo;
+  }
+
+  if (seatReferenceUid) {
+    const bookingSeatRepository = new BookingSeatRepository(prisma);
+    const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
+      seatReferenceUid
+    );
+    return seatAttendeeData?.attendee?.phoneNumber || smsReminderNumber;
+  }
+
+  return smsReminderNumber;
+};
+
 const processWorkflowStep = async (
   workflow: Workflow,
   step: WorkflowStep,
@@ -101,7 +125,12 @@ const processWorkflowStep = async (
 
   if (isSMSAction(step.action)) {
     const { scheduleSMSReminder } = await import("./smsReminderManager");
-    const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
+    const sendTo = await getReminderPhoneNumber(
+      step.action,
+      seatReferenceUid,
+      smsReminderNumber,
+      step.sendTo
+    );
 
     await scheduleSMSReminder({
       ...scheduleFunctionParams,
@@ -139,7 +168,12 @@ const processWorkflowStep = async (
     }
 
     const { scheduleWhatsappReminder } = await import("./whatsappReminderManager");
-    const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+    const sendTo = await getReminderPhoneNumber(
+      step.action,
+      seatReferenceUid,
+      smsReminderNumber,
+      step.sendTo
+    );
 
     await scheduleWhatsappReminder({
       ...scheduleFunctionParams,
