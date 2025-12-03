@@ -184,7 +184,8 @@ export class CalendarEventBuilder {
       })
       .withRecurring(recurring)
       .withUid(uid)
-      .withOneTimePassword(oneTimePassword);
+      .withOneTimePassword(oneTimePassword)
+      .withOrganization(organizationId);
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -495,6 +496,14 @@ export class CalendarEventBuilder {
     this.event = {
       ...this.event,
       oneTimePassword,
+    };
+    return this;
+  }
+
+  withOrganization(organizationId?: number | null) {
+    this.event = {
+      ...this.event,
+      organizationId,
     };
     return this;
   }
