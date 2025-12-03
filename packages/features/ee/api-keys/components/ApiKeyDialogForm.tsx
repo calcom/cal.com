@@ -107,7 +107,7 @@ export default function ApiKeyDialogForm({
           </div>
           <div>
             <div className="flex">
-              <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+              <code className="bg-subtle inline-flex items-center text-default w-full truncate rounded-md rounded-r-none pl-2 pr-2 font-mono">
                 {" "}
                 {apiKey}
               </code>
@@ -119,7 +119,7 @@ export default function ApiKeyDialogForm({
                   }}
                   type="button"
                   className="rounded-l-none text-base"
-                  StartIcon="clipboard">
+                  StartIcon="copy">
                   {t("copy")}
                 </Button>
               </Tooltip>
