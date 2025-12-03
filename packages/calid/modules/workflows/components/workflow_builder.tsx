@@ -55,6 +55,7 @@ import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
 // Add these imports to your WorkflowBuilder component
 import { type VariableMapping } from "./utils";
+import { VariableDocsDialog } from "./variable_docs_dialog";
 import { WorkflowBuilderSkeleton } from "./workflow_builder_skeleton";
 import { WorkflowDeleteDialog } from "./workflow_delete_dialog";
 
@@ -154,6 +155,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isVariableDocsOpen, setIsVariableDocsOpen] = useState(false);
 
   // Add ref to prevent infinite loops
   const dataLoadedRef = useRef(false);
@@ -1503,7 +1505,19 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                       {/* WhatsApp Phone Number Selector */}
                                       {isWhatsappAction(step.action) && (
                                         <div className="bg-default mt-4 rounded-md">
-                                          <Label>WhatsApp Business Phone Number</Label>
+                                          <div className="flex items-center justify-between">
+                                            <Label>WhatsApp Business Phone Number</Label>
+                                            {step.metaTemplatePhoneNumberId && (
+                                              <Button
+                                                color="minimal"
+                                                size="sm"
+                                                onClick={() => setIsVariableDocsOpen(true)}
+                                                className="flex items-center gap-1 text-xs">
+                                                <Icon name="info" className="h-4 w-4" />
+                                                View Available Variables
+                                              </Button>
+                                            )}
+                                          </div>
                                           <Select
                                             value={
                                               whatsAppPhones?.find(
@@ -1925,6 +1939,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           additionalFunction={handleDeleteSuccess}
         />
       )}
+
+      {/* Variable Documentation Dialog */}
+      <VariableDocsDialog isOpen={isVariableDocsOpen} setIsOpen={setIsVariableDocsOpen} />
     </Shell>
   );
 };
