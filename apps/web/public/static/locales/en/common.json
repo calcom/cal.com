@@ -4053,7 +4053,7 @@
   "list_view": "List view",
   "calendar_view": "Calendar view",
   "holidays": "Holidays",
-  "holidays_description": "Cal.com will automatically mark you as unavailable for the selected holidays",
+  "holidays_description": "We will automatically mark you as unavailable for the selected holidays",
   "country_for_holidays": "Country for holidays",
   "select_country": "Select country",
   "no_holidays": "No holidays",
