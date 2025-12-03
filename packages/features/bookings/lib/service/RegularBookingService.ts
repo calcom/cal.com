@@ -458,21 +458,12 @@ async function validateRescheduleRestrictions({
     const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
     if (
       !isUserOrganizer &&
-      minimumRescheduleNotice &&
-      minimumRescheduleNotice > 0 &&
-      originalRescheduledBooking.startTime
+      isWithinMinimumRescheduleNotice(originalRescheduledBooking.startTime, minimumRescheduleNotice ?? null)
     ) {
-      const now = new Date();
-      const bookingStartTime = new Date(originalRescheduledBooking.startTime);
-      const timeUntilBooking = bookingStartTime.getTime() - now.getTime();
-      const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
-
-      if (timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs) {
-        throw new HttpError({
-          statusCode: 403,
-          message: "Rescheduling is not allowed within the minimum notice period before the event",
-        });
-      }
+      throw new HttpError({
+        statusCode: 403,
+        message: "Rescheduling is not allowed within the minimum notice period before the event",
+      });
     }
   } catch (error) {
     // Re-throw HttpError (including our 403 validation error)

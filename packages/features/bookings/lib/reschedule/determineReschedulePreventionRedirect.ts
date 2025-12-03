@@ -6,6 +6,8 @@ import { getSafe } from "@calcom/lib/getSafe";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { JsonValue } from "@calcom/types/Json";
 
+import { isWithinMinimumRescheduleNotice } from "./isWithinMinimumRescheduleNotice";
+
 export type ReschedulePreventionRedirectInput = {
   booking: {
     uid: string;

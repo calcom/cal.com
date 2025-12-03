@@ -1,3 +1,4 @@
+import { isWithinMinimumRescheduleNotice } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
 
@@ -236,23 +237,6 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
   const { booking, isPending, isUpcoming, isCancelled, isRejected } = context;
   const hasDropdown = shouldShowEditActions(context);
   return !booking.report && !hasDropdown && (isCancelled || isRejected || (isPending && isUpcoming));
-}
-
-function isWithinMinimumRescheduleNotice(
-  bookingStartTime: Date | null,
-  minimumRescheduleNotice: number | null
-): boolean {
-  if (!minimumRescheduleNotice || minimumRescheduleNotice <= 0 || !bookingStartTime) {
-    return false;
-  }
-
-  const now = new Date();
-  const bookingStart = new Date(bookingStartTime);
-  const timeUntilBooking = bookingStart.getTime() - now.getTime();
-  const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
-
-  // Return true if we're within the minimum notice period (but booking hasn't started yet)
-  return timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs;
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {

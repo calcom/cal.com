@@ -24,6 +24,7 @@ import {
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
+import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
@@ -391,18 +392,12 @@ export default function Success(props: PageProps) {
     bookingInfo?.user?.id &&
     session.user.id === bookingInfo.user.id
   );
-  const isWithinMinimumRescheduleNotice = (() => {
-    if (isUserOrganizer) return false; // Organizers can always reschedule
-    if (!eventType?.minimumRescheduleNotice || eventType.minimumRescheduleNotice <= 0) return false;
-    if (!bookingInfo?.startTime) return false;
-
-    const now = new Date();
-    const bookingStart = new Date(bookingInfo.startTime);
-    const timeUntilBooking = bookingStart.getTime() - now.getTime();
-    const minimumRescheduleNoticeMs = eventType.minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
-
-    return timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs;
-  })();
+  const isWithinMinimumRescheduleNotice = isUserOrganizer
+    ? false // Organizers can always reschedule
+    : isWithinMinimumRescheduleNoticeUtil(
+        bookingInfo?.startTime ?? null,
+        eventType?.minimumRescheduleNotice ?? null
+      );
   const isRescheduleDisabled = !canReschedule || isWithinMinimumRescheduleNotice;
 
   const successPageHeadline = (() => {
