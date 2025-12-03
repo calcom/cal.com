@@ -108,11 +108,16 @@ const foldIcal = (ical: string): string => {
   return ical
     .split("\r\n")
     .map((line) => {
-      if (line.length <= 75) return line;
+      if (Buffer.byteLength(line, "utf8") <= 75) return line;
       let folded = "";
-      while (line.length > 75) {
-        folded += line.substring(0, 75) + "\r\n ";
-        line = line.substring(75);
+      while (Buffer.byteLength(line, "utf8") > 75) {
+        // Find the correct split point that doesn't exceed 75 bytes
+        let splitIndex = 75;
+        while (splitIndex > 0 && Buffer.byteLength(line.substring(0, splitIndex), "utf8") > 75) {
+          splitIndex--;
+        }
+        folded += line.substring(0, splitIndex) + "\r\n ";
+        line = line.substring(splitIndex);
       }
       folded += line;
       return folded;
@@ -194,7 +199,7 @@ export default abstract class BaseCalendarService implements Calendar {
       // This causes duplicate emails to be sent to the attendees
       if (this.url?.includes("fastmail.com")) {
         const unfolded = unfoldIcal(iCalString);
-        const modified = unfolded.replace(/^(ATTENDEE)([:;])/gm, "$1;SCHEDULE-AGENT=CLIENT$2");
+        const modified = unfolded.replace(/^(ATTENDEE)([:;])/gmi, "$1;SCHEDULE-AGENT=CLIENT$2");
         iCalString = foldIcal(modified);
       }
 
@@ -284,7 +289,7 @@ export default abstract class BaseCalendarService implements Calendar {
       // This causes duplicate emails to be sent to the attendees
       if (this.url?.includes("fastmail.com") && iCalString) {
         const unfolded = unfoldIcal(iCalString);
-        const modified = unfolded.replace(/^(ATTENDEE)([:;])/gm, "$1;SCHEDULE-AGENT=CLIENT$2");
+        const modified = unfolded.replace(/^(ATTENDEE)([:;])/gmi, "$1;SCHEDULE-AGENT=CLIENT$2");
         iCalString = foldIcal(modified);
       }
 
