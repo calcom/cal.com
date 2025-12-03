@@ -3,10 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "exports": {
-    "./styles.css": "./styles.css",
-    "./lib/*": "./lib/*.ts",
-    "./components/*": "./components/*.tsx",
-    "./hooks/*": "./hooks/*.ts"
+    "./styles.css": "./src/styles/globals.css",
+    "./lib/*": "./src/lib/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -17,10 +17,14 @@
     "registry:diff": "yarn dlx shadcn@latest diff"
   },
   "dependencies": {
-    "@base-ui-components/react": "^1.0.0-beta.7",
-    "class-variance-authority": "^0.4.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.555.0",
-    "tailwind-merge": "^3.4.0"
+    "@base-ui-components/react": "1.0.0-beta.7",
+    "class-variance-authority": "0.4.0",
+    "clsx": "2.1.1",
+    "lucide-react": "0.555.0",
+    "tailwind-merge": "3.4.0"
+  },
+  "devDependencies": {
+    "tsc-absolute": "1.0.0",
+    "typescript": "5.9.0-beta"
   }
 }

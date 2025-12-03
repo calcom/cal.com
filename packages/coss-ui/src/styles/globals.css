@@ -1,6 +1,3 @@
-@source "./components/**/*.tsx";
-@source "./lib/**/*.ts";
-
 @custom-variant dark (&:is(.dark *));
 
 @custom-variant fixed (&:is(.layout-fixed *));
@@ -69,19 +66,23 @@
 :root {
   --radius: 0.625rem;
   --background: var(--color-white);
-  --foreground: var(--color-zinc-900);
+  --foreground: var(--color-zinc-800);
   --card: var(--color-white);
-  --card-foreground: var(--color-zinc-900);
+  --card-foreground: var(--color-zinc-800);
   --popover: var(--color-white);
-  --popover-foreground: var(--color-zinc-900);
+  --popover-foreground: var(--color-zinc-800);
   --primary: var(--color-zinc-800);
   --primary-foreground: var(--color-zinc-50);
   --secondary: --alpha(var(--color-black) / 4%);
-  --secondary-foreground: var(--color-zinc-900);
+  --secondary-foreground: var(--color-zinc-800);
   --muted: --alpha(var(--color-black) / 4%);
-  --muted-foreground: var(--color-zinc-600);
+  --muted-foreground: color-mix(
+    in srgb,
+    var(--color-zinc-500) 90%,
+    var(--color-black)
+  );
   --accent: --alpha(var(--color-black) / 4%);
-  --accent-foreground: var(--color-zinc-900);
+  --accent-foreground: var(--color-zinc-800);
   --destructive: var(--color-red-500);
   --destructive-foreground: var(--color-red-700);
   --info: var(--color-blue-500);
@@ -99,11 +100,15 @@
   --chart-4: var(--color-amber-400);
   --chart-5: var(--color-amber-500);
   --sidebar: var(--color-zinc-50);
-  --sidebar-foreground: var(--color-zinc-900);
+  --sidebar-foreground: color-mix(
+    in srgb,
+    var(--color-zinc-800) 64%,
+    var(--sidebar)
+  );
   --sidebar-primary: var(--color-zinc-800);
   --sidebar-primary-foreground: var(--color-zinc-50);
   --sidebar-accent: --alpha(var(--color-black) / 4%);
-  --sidebar-accent-foreground: var(--color-zinc-900);
+  --sidebar-accent-foreground: var(--color-zinc-800);
   --sidebar-border: --alpha(var(--color-black) / 12%);
   --sidebar-ring: var(--color-zinc-400);
   --code: var(--color-white);
@@ -112,20 +117,28 @@
 }
 
 .dark {
-  --background: var(--color-zinc-950);
-  --foreground: var(--color-zinc-100);
-  --card: color-mix(in srgb, var(--background) 96%, var(--color-white));
-  --card-foreground: var(--color-zinc-100);
+  --background: color-mix(
+    in srgb,
+    var(--color-zinc-950) 98%,
+    var(--color-white)
+  );
+  --foreground: var(--color-zinc-200);
+  --card: color-mix(in srgb, var(--background) 98%, var(--color-white));
+  --card-foreground: var(--color-zinc-200);
   --popover: color-mix(in srgb, var(--background) 96%, var(--color-white));
-  --popover-foreground: var(--color-zinc-100);
-  --primary: var(--color-zinc-100);
-  --primary-foreground: var(--color-zinc-900);
+  --popover-foreground: var(--color-zinc-200);
+  --primary: var(--color-zinc-200);
+  --primary-foreground: var(--color-zinc-800);
   --secondary: --alpha(var(--color-white) / 6%);
-  --secondary-foreground: var(--color-zinc-100);
+  --secondary-foreground: var(--color-zinc-200);
   --muted: --alpha(var(--color-white) / 6%);
-  --muted-foreground: var(--color-zinc-400);
+  --muted-foreground: color-mix(
+    in srgb,
+    var(--color-zinc-500) 90%,
+    var(--color-white)
+  );
   --accent: --alpha(var(--color-white) / 6%);
-  --accent-foreground: var(--color-zinc-100);
+  --accent-foreground: var(--color-zinc-200);
   --destructive: var(--color-red-500);
   --destructive-foreground: var(--color-red-400);
   --info: var(--color-blue-500);
@@ -142,17 +155,21 @@
   --chart-3: var(--color-amber-500);
   --chart-4: var(--color-purple-500);
   --chart-5: var(--color-rose-500);
-  --sidebar: color-mix(in srgb, var(--color-zinc-950) 32%, var(--color-black));
-  --sidebar-foreground: var(--color-zinc-100);
-  --sidebar-primary: var(--color-zinc-100);
-  --sidebar-primary-foreground: var(--color-zinc-900);
-  --sidebar-accent: --alpha(var(--color-white) / 8%);
-  --sidebar-accent-foreground: var(--color-zinc-100);
+  --sidebar: var(--color-zinc-950);
+  --sidebar-foreground: color-mix(
+    in srgb,
+    var(--color-zinc-200) 64%,
+    var(--sidebar)
+  );
+  --sidebar-primary: var(--color-zinc-200);
+  --sidebar-primary-foreground: var(--color-zinc-800);
+  --sidebar-accent: --alpha(var(--color-white) / 6%);
+  --sidebar-accent-foreground: var(--color-zinc-200);
   --sidebar-border: --alpha(var(--color-white) / 12%);
   --sidebar-ring: var(--color-zinc-400);
   --code: color-mix(in srgb, var(--background) 96%, var(--color-white));
   --code-foreground: var(--foreground);
-  --code-highlight: --alpha(var(--color-white) / 8%);
+  --code-highlight: --alpha(var(--color-white) / 6%);
 }
 
 @layer base {

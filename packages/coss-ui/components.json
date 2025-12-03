@@ -4,16 +4,16 @@
   "rsc": true,
   "tsx": true,
   "tailwind": {
-    "css": "./styles.css",
+    "css": "./src/styles/globals.css",
     "baseColor": "zinc",
     "cssVariables": true
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@coss/ui/components",
-    "utils": "@coss/ui/lib/utils",
-    "hooks": "@coss/ui/hooks",
-    "lib": "@coss/ui/lib",
-    "ui": "@coss/ui/components"
+    "components": "@coss/ui/src/components",
+    "utils": "@coss/ui/src/lib/utils",
+    "hooks": "@coss/ui/src/hooks",
+    "lib": "@coss/ui/src/lib",
+    "ui": "@coss/ui/src/components"
   }
 }

@@ -5,7 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "../../packages/coss-ui/styles.css",
+    "css": "../../packages/coss-ui/src/styles/globals.css",
     "baseColor": "zinc",
     "cssVariables": true
   },

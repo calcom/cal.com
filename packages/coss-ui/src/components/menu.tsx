@@ -166,7 +166,7 @@ function MenuShortcut({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       className={cn(
-        "ms-auto text-muted-foreground/64 text-xs tracking-widest",
+        "ms-auto text-muted-foreground/72 text-xs tracking-widest",
         className,
       )}
       data-slot="menu-shortcut"
