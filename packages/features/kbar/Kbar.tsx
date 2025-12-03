@@ -70,9 +70,9 @@ const useAppStoreActions = () => {
 
   useEffect(() => {
     let isMounted = true;
-    import("@calcom/app-store/appStoreMetaData").then(({ appStoreMetadata }) => {
+    import("@calcom/app-store/apps.list.generated.json").then((appList) => {
       if (isMounted) {
-        const apps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
+        const apps = (appList.default as { name: string; slug: string }[]).map(({ name, slug }) => ({
           id: slug,
           name,
           section: "available_apps",
