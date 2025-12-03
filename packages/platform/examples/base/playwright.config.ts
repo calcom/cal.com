@@ -2,11 +2,19 @@ import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
 
-console.log("asap the value of process.env.CI", process.env.CI);
+console.log(
+  `1 asap NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
+  process.env.NEXT_PUBLIC_X_CAL_ID
+);
 
 if (!process.env.CI) {
   dotenv.config({ path: path.resolve(__dirname, ".env.e2e") });
 }
+
+console.log(
+  `2 asap NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
+  process.env.NEXT_PUBLIC_X_CAL_ID
+);
 
 const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
