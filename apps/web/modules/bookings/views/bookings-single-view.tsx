@@ -859,58 +859,6 @@ export default function Success(props: PageProps) {
                             (!isBookingInPast && canCancel)) && (
                             <>
                               <hr className="border-subtle mb-8" />
-                              <div
-                                style={{
-                                  position: "fixed",
-                                  bottom: "20px",
-                                  right: "20px",
-                                  zIndex: 1000,
-                                  background: "rgba(0,0,0,0.85)",
-                                  color: "#fff",
-                                  padding: "16px 22px",
-                                  borderRadius: "12px",
-                                  boxShadow: "0 2px 16px rgba(0,0,0,0.27)",
-                                  fontSize: "13px",
-                                  maxWidth: "330px",
-                                  wordBreak: "break-word",
-                                  pointerEvents: "auto",
-                                }}
-                                data-testid="booking-debug-floating-box">
-                                <strong style={{ display: "block", marginBottom: 6 }}>Booking Debug:</strong>
-                                <pre
-                                  style={{
-                                    margin: 0,
-                                    padding: 0,
-                                    background: "none",
-                                    color: "#fff",
-                                    whiteSpace: "pre-wrap",
-                                    fontFamily: "inherit",
-                                    fontSize: "13px",
-                                    lineHeight: "1.6",
-                                  }}>
-                                  {JSON.stringify(
-                                    {
-                                      isBookingInPast,
-                                      canReschedule,
-                                      isRescheduleDisabled,
-                                      isWithinMinimumRescheduleNotice,
-                                      isUserOrganizer,
-                                      userIsOwner,
-                                      isCancelled,
-                                      isRerouting,
-                                      canCancelOrReschedule,
-                                      isCancellationMode,
-                                      minimumRescheduleNotice: eventType?.minimumRescheduleNotice,
-                                      bookingStartTime: bookingInfo?.startTime,
-                                      timeUntilBookingMs: bookingInfo?.startTime
-                                        ? new Date(bookingInfo.startTime).getTime() - new Date().getTime()
-                                        : null,
-                                    },
-                                    null,
-                                    2
-                                  )}
-                                </pre>
-                              </div>
                               <div className="text-center last:pb-0">
                                 <span className="text-emphasis ltr:mr-2 rtl:ml-2">
                                   {t("need_to_make_a_change")}
