@@ -135,7 +135,7 @@ export type FormValues = {
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   autoTranslateDescriptionEnabled: boolean;
-  autoTranslateTitleEnabled: boolean;
+  autoTranslateInstantMeetingTitleEnabled: boolean;
   fieldTranslations: EventTypeTranslation[];
   scheduleName: string;
   minimumBookingNotice: number;

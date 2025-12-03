@@ -12,6 +12,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { IBookingCreateService } from "@calcom/features/bookings/lib/interfaces/IBookingCreateService";
 import { createInstantMeetingWithCalVideo } from "@calcom/features/conferencing/lib/videoClient";
 import { getFullName } from "@calcom/features/form-builder/utils";
@@ -201,20 +202,15 @@ export async function handler(
   const fullName = getFullName(bookerName);
 
   // Fetch instant meeting specific config (expiry offset and auto-translate setting)
-  // We do this early so we can use autoTranslateTitleEnabled for the booking title
-  const eventTypeConfig = await prisma.eventType.findUniqueOrThrow({
-    where: {
-      id: bookingData.eventTypeId,
-    },
-    select: {
-      instantMeetingExpiryTimeOffsetInSeconds: true,
-      autoTranslateTitleEnabled: true,
-    },
+  // We do this early so we can use autoTranslateInstantMeetingTitleEnabled for the booking title
+  const eventTypeRepository = new EventTypeRepository(prisma);
+  const eventTypeConfig = await eventTypeRepository.findInstantMeetingConfigById({
+    id: bookingData.eventTypeId,
   });
 
   // Determine whether to translate the booking title based on the event type setting
   // Default is true (opt-out), so we only skip translation when explicitly set to false
-  const shouldTranslateTitle = eventTypeConfig.autoTranslateTitleEnabled ?? true;
+  const shouldTranslateTitle = eventTypeConfig.autoTranslateInstantMeetingTitleEnabled ?? true;
 
   // Get the booking title - either translated to attendee's language or in English
   const bookingTitle = shouldTranslateTitle
