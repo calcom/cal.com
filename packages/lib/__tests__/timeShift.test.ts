@@ -14,7 +14,7 @@ describe("getTimeShiftFlags", () => {
 
     const first = dayjs.tz("2026-03-17T01:00:00", tz);
     const second = dayjs.tz("2026-03-24T01:00:00", tz);
-    const third = dayjs.tz("2026-03-31T00:00:00", tz);
+    const third = dayjs.tz("2026-03-31T02:00:00", tz);
 
     const dates = [first.toISOString(), second.toISOString(), third.toISOString()];
 
