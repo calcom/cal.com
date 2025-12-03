@@ -330,11 +330,7 @@ test.describe("Out of office", () => {
     //As member1, OOO is created on Next month 4th - 5th, forwarding to 'owner'
     await member1User?.apiLogin();
     await goToOOOPage(page);
-    const legacyListMembersRespPromise = page.waitForResponse(
-      (response) => response.url().includes("legacyListMembers") && response.status() === 200
-    );
     await openOOODialog(page);
-    await legacyListMembersRespPromise;
     await selectDateAndCreateOOO(page, "4", "5", owner.id);
     await expect(page.locator(`data-testid=table-redirect-${owner.username ?? "n-a"}`).nth(0)).toBeVisible();
   });
@@ -764,6 +760,9 @@ async function openOOODialog(page: Page) {
   const reasonListRespPromise = page.waitForResponse(
     (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
   );
+  const hasTeamPlanRespPromise = page.waitForResponse(
+    (response) => response.url().includes("hasTeamPlan?batch=1") && response.status() === 200
+  );
   await page.getByTestId("add_entry_ooo").click();
-  await reasonListRespPromise;
+  await Promise.all([reasonListRespPromise, hasTeamPlanRespPromise]);
 }
