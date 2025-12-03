@@ -72,6 +72,8 @@ import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmails
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
+import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
+import DisableReschedulingController from "./DisableReschedulingController";
 
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
@@ -85,6 +87,7 @@ export type EventAdvancedTabCustomClassNames = {
     };
   };
   requiresConfirmation?: RequiresConfirmationCustomClassNames;
+  disableRescheduling?: DisableReschedulingCustomClassNames;
   bookerEmailVerification?: SettingsToggleClassNames;
   canSendCalVideoTranscriptionEmails?: SettingsToggleClassNames;
   calendarNotes?: SettingsToggleClassNames;
@@ -715,30 +718,11 @@ export const EventAdvancedTab = ({
             )}
           />
 
-          <Controller
-            name="disableRescheduling"
-            render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_rescheduling")}
-                data-testid="disable-rescheduling-toggle"
-                {...disableReschedulingLocked}
-                description={
-                  <LearnMoreLink
-                    t={t}
-                    i18nKey="description_disable_rescheduling"
-                    href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-rescheduling"
-                  />
-                }
-                checked={disableRescheduling}
-                onCheckedChange={(val) => {
-                  setDisableRescheduling(val);
-                  onChange(val);
-                }}
-              />
-            )}
+          <DisableReschedulingController
+            eventType={eventType}
+            disableRescheduling={disableRescheduling}
+            onDisableRescheduling={setDisableRescheduling}
+            customClassNames={customClassNames?.disableRescheduling}
           />
         </>
       )}

@@ -34,7 +34,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
-import MinimumRescheduleNoticeController from "./MinimumRescheduleNoticeController";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -405,7 +404,6 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
   const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
-  const minimumRescheduleNoticeLocked = shouldLockDisableProps("minimumRescheduleNotice");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
   const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
@@ -710,7 +708,6 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           );
         }}
       />
-      <MinimumRescheduleNoticeController minimumRescheduleNoticeLocked={minimumRescheduleNoticeLocked} />
       <MaxActiveBookingsPerBookerController
         maxActiveBookingsPerBookerLocked={maxActiveBookingsPerBookerLocked}
       />

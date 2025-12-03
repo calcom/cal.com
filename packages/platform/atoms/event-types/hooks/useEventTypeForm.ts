@@ -375,7 +375,7 @@ export const useEventTypeForm = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, ...rest } = input;
+    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, ...rest } = input;
     const payload = {
       ...rest,
       length,
@@ -400,6 +400,8 @@ export const useEventTypeForm = ({
       children,
       assignAllTeamMembers,
       multiplePrivateLinks: values.multiplePrivateLinks,
+      disableCancelling: disabledCancelling,
+      disableRescheduling: disabledRescheduling,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
