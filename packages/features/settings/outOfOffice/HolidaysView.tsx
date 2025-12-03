@@ -24,12 +24,7 @@ function HolidaysCTA() {
     <div className="flex gap-2">
       <OutOfOfficeToggleGroup />
       {/* Invisible placeholder using actual Button to match exact dimensions */}
-      <Button
-        color="primary"
-        StartIcon="plus"
-        className="invisible"
-        aria-hidden="true"
-        tabIndex={-1}>
+      <Button color="primary" StartIcon="plus" className="invisible" aria-hidden="true" tabIndex={-1}>
         {t("add")}
       </Button>
     </div>
@@ -98,7 +93,7 @@ const HolidayListItem = memo(function HolidayListItem({
   return (
     <div className="border-subtle flex items-center justify-between border-b px-4 py-4 last:border-b-0">
       <div className="flex items-center gap-3">
-        <div className="text-2xl">🎄</div>
+        <div className="text-2xl">📆</div>
         <div>
           <p className="text-emphasis font-medium">{holiday.name}</p>
           {formattedDate && <p className="text-subtle text-sm">{formattedDate}</p>}
@@ -254,10 +249,7 @@ export function HolidaysView() {
 
   if (isLoading) {
     return (
-      <SettingsHeader
-        title={t("holidays")}
-        description={t("holidays_description")}
-        CTA={<HolidaysCTA />}>
+      <SettingsHeader title={t("holidays")} description={t("holidays_description")} CTA={<HolidaysCTA />}>
         <SkeletonContainer>
           <div className="space-y-4">
             <SkeletonText className="h-10 w-64" />
@@ -270,10 +262,7 @@ export function HolidaysView() {
 
   if (hasError) {
     return (
-      <SettingsHeader
-        title={t("holidays")}
-        description={t("holidays_description")}
-        CTA={<HolidaysCTA />}>
+      <SettingsHeader title={t("holidays")} description={t("holidays_description")} CTA={<HolidaysCTA />}>
         <Alert
           severity="error"
           title={t("something_went_wrong")}
@@ -284,10 +273,7 @@ export function HolidaysView() {
   }
 
   return (
-    <SettingsHeader
-      title={t("holidays")}
-      description={t("holidays_description")}
-      CTA={<HolidaysCTA />}>
+    <SettingsHeader title={t("holidays")} description={t("holidays_description")} CTA={<HolidaysCTA />}>
       <div className="space-y-6">
         {/* Country selector */}
         <div className="border-subtle bg-default rounded-md border p-6">
@@ -310,7 +296,8 @@ export function HolidaysView() {
           <div>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-emphasis font-medium">
-                {t("holidays_list")} ({settings.holidays?.filter((h) => h.enabled).length || 0} {t("enabled")})
+                {t("holidays_list")} ({settings.holidays?.filter((h) => h.enabled).length || 0} {t("enabled")}
+                )
               </h3>
             </div>
             <HolidaysList
@@ -332,4 +319,3 @@ export function HolidaysView() {
     </SettingsHeader>
   );
 }
-

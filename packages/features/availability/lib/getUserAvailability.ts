@@ -749,7 +749,8 @@ export class UserAvailabilityService {
         fromUser: null, // Holiday doesn't have a specific user
         toUser: null, // No redirect for holidays
         reason: holiday.name,
-        emoji: "🎄", // Holiday emoji
+        emoji: "📆", // Holiday emoji
+
       };
     }
 
