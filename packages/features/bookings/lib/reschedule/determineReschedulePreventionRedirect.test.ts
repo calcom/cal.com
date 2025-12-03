@@ -22,35 +22,43 @@ vi.mock("@calcom/lib/constants", async () => {
 const createTestBooking = (overrides?: {
   uid?: string;
   status?: BookingStatus;
+  startTime?: Date | null;
   endTime?: Date | null;
   responses?: JsonValue;
   eventType?: {
     disableRescheduling?: boolean | null;
     allowReschedulingPastBookings?: boolean | null;
     allowBookingFromCancelledBookingReschedule?: boolean | null;
+    minimumRescheduleNotice?: number | null;
     teamId?: number | null;
   } | null;
   dynamicEventSlugRef?: string | null;
-}) => ({
-  uid: overrides?.uid || "test-booking-uid",
-  status: overrides?.status || BookingStatus.ACCEPTED,
-  endTime: overrides?.endTime !== undefined ? overrides.endTime : futureDate(5),
-  responses: overrides?.responses || {
-    name: "John Doe",
-    email: "john.doe@example.com",
-  },
-  eventType:
-    overrides?.eventType !== undefined
-      ? overrides.eventType
-      : // Default values from DB
-        {
-          disableRescheduling: false,
-          allowReschedulingPastBookings: false,
-          allowBookingFromCancelledBookingReschedule: false,
-          teamId: null,
-        },
-  dynamicEventSlugRef: overrides?.dynamicEventSlugRef !== undefined ? overrides.dynamicEventSlugRef : null,
-});
+}) => {
+  const defaultEndTime = futureDate(5);
+  const defaultStartTime = new Date(defaultEndTime.getTime() - 30 * 60 * 1000); // 30 minutes before endTime
+  return {
+    uid: overrides?.uid || "test-booking-uid",
+    status: overrides?.status || BookingStatus.ACCEPTED,
+    startTime: overrides?.startTime !== undefined ? overrides.startTime : defaultStartTime,
+    endTime: overrides?.endTime !== undefined ? overrides.endTime : defaultEndTime,
+    responses: overrides?.responses || {
+      name: "John Doe",
+      email: "john.doe@example.com",
+    },
+    eventType:
+      overrides?.eventType !== undefined
+        ? overrides.eventType
+        : // Default values from DB
+          {
+            disableRescheduling: false,
+            allowReschedulingPastBookings: false,
+            allowBookingFromCancelledBookingReschedule: false,
+            minimumRescheduleNotice: null,
+            teamId: null,
+          },
+    dynamicEventSlugRef: overrides?.dynamicEventSlugRef !== undefined ? overrides.dynamicEventSlugRef : null,
+  };
+};
 
 const createReschedulePreventionRedirectInput = (overrides?: {
   booking?: ReturnType<typeof createTestBooking>;
@@ -406,6 +414,162 @@ describe("determineReschedulePreventionRedirect", () => {
       });
       const result = determineReschedulePreventionRedirect(input);
 
+      expectToNotPreventReschedule(result);
+    });
+  });
+
+  describe("when minimum reschedule notice is set", () => {
+    it("should not prevent reschedule when booking is outside the minimum notice period", () => {
+      const bookingStartTime = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours from now
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      expectToNotPreventReschedule(result);
+    });
+
+    it("should redirect to booking details page when booking is within the minimum notice period", () => {
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      expectRedirectToBookingDetailsPage(result, input.booking.uid);
+    });
+
+    it("should not prevent reschedule when minimum reschedule notice is 0", () => {
+      const bookingStartTime = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour from now
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 0,
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      expectToNotPreventReschedule(result);
+    });
+
+    it("should not prevent reschedule when minimum reschedule notice is null", () => {
+      const bookingStartTime = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour from now
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: null,
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      expectToNotPreventReschedule(result);
+    });
+
+    it("should not prevent reschedule when booking has already started (in the past)", () => {
+      const bookingStartTime = new Date(Date.now() - 1 * 60 * 60 * 1000); // 1 hour ago
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Should not prevent because booking has already started (timeUntilBooking would be negative)
+      // The past booking logic will handle this separately
+      expectToNotPreventReschedule(result);
+    });
+
+    it("should not prevent reschedule when startTime is null", () => {
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          startTime: null,
+          endTime: futureDate(5),
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      expectToNotPreventReschedule(result);
+    });
+
+    it("should prevent reschedule exactly at the minimum notice boundary", () => {
+      const minimumNoticeMinutes = 1440; // 24 hours
+      const bookingStartTime = new Date(Date.now() + minimumNoticeMinutes * 60 * 1000 - 1); // Just 1ms before the boundary
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: minimumNoticeMinutes,
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      expectRedirectToBookingDetailsPage(result, input.booking.uid);
+    });
+
+    it("should allow reschedule exactly at the minimum notice boundary (edge case)", () => {
+      const minimumNoticeMinutes = 1440; // 24 hours
+      const bookingStartTime = new Date(Date.now() + minimumNoticeMinutes * 60 * 1000); // Exactly at the boundary
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: minimumNoticeMinutes,
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // At exactly the boundary, timeUntilBooking equals minimumRescheduleNoticeMs, so it should not prevent
       expectToNotPreventReschedule(result);
     });
   });

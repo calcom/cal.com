@@ -1335,6 +1335,8 @@
   "confirm_delete_api_key": "Revoke this API key",
   "disable_rescheduling": "Disable Rescheduling",
   "description_disable_rescheduling": "Guests and Organizer can no longer reschedule the event with calendar invite or email. <0>Learn more</0>",
+  "minimum_reschedule_notice": "Minimum Reschedule Notice",
+  "minimum_reschedule_notice_description": "Prevent rescheduling within this many minutes before the event starts. Leave empty to allow rescheduling at any time.",
   "allow_rescheduling_cancelled_bookings": "Allow booking through reschedule link",
   "description_allow_rescheduling_cancelled_bookings": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking",
   "disable_cancelling": "Disable Cancelling",

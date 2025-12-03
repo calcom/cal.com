@@ -25,7 +25,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Reschedule Tests", async () => {
   test("Should do a booking request reschedule from /bookings", async ({ page, users, bookings }) => {
     const user = await users.create();
-     
+
     const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.ACCEPTED,
     });
@@ -57,7 +57,7 @@ test.describe("Reschedule Tests", async () => {
     bookings,
   }) => {
     const user = await users.create();
-     
+
     const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.ACCEPTED,
       startTime: dayjs().subtract(2, "day").toDate(),
@@ -103,9 +103,137 @@ test.describe("Reschedule Tests", async () => {
     await expect(page.locator('[data-testid="reschedule_request"]')).toBeDisabled();
   });
 
+  test("Should disable reschedule when within minimum reschedule notice period", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+
+    // Set minimum reschedule notice to 24 hours (1440 minutes)
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        minimumRescheduleNotice: 1440,
+      },
+    });
+
+    // Create a booking that starts in 12 hours (within the 24-hour notice period)
+    const booking = await bookings.create(user.id, user.username, eventType.id!, {
+      status: BookingStatus.ACCEPTED,
+      startTime: dayjs().add(12, "hours").toDate(),
+      endTime: dayjs().add(12, "hours").add(30, "minutes").toDate(),
+    });
+
+    await user.apiLogin();
+    await page.goto("/bookings/upcoming");
+
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+
+    // Check that reschedule options are visible but disabled
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeDisabled();
+
+    // Try to access reschedule page directly - should redirect
+    await page.goto(`/reschedule/${booking.uid}`);
+    await expect(page).toHaveURL(new RegExp(`/booking/${booking.uid}`));
+
+    await booking.delete();
+  });
+
+  test("Should allow reschedule when outside minimum reschedule notice period", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+
+    // Set minimum reschedule notice to 24 hours (1440 minutes)
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        minimumRescheduleNotice: 1440,
+      },
+    });
+
+    // Create a booking that starts in 48 hours (outside the 24-hour notice period)
+    const booking = await bookings.create(user.id, user.username, eventType.id!, {
+      status: BookingStatus.ACCEPTED,
+      startTime: dayjs().add(48, "hours").toDate(),
+      endTime: dayjs().add(48, "hours").add(30, "minutes").toDate(),
+    });
+
+    await user.apiLogin();
+    await page.goto("/bookings/upcoming");
+
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+
+    // Check that reschedule options are visible and enabled
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule"]')).not.toBeDisabled();
+    await expect(page.locator('[data-testid="reschedule_request"]')).not.toBeDisabled();
+
+    // Try to access reschedule page directly - should work
+    await page.goto(`/reschedule/${booking.uid}`);
+    await expect(page).toHaveURL(new RegExp(`/reschedule/${booking.uid}`));
+
+    await booking.delete();
+  });
+
+  test("Should allow reschedule when minimum reschedule notice is not set", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+
+    // Ensure minimum reschedule notice is null/not set
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        minimumRescheduleNotice: null,
+      },
+    });
+
+    // Create a booking that starts in 1 hour
+    const booking = await bookings.create(user.id, user.username, eventType.id!, {
+      status: BookingStatus.ACCEPTED,
+      startTime: dayjs().add(1, "hour").toDate(),
+      endTime: dayjs().add(1, "hour").add(30, "minutes").toDate(),
+    });
+
+    await user.apiLogin();
+    await page.goto("/bookings/upcoming");
+
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+
+    // Check that reschedule options are visible and enabled
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule"]')).not.toBeDisabled();
+    await expect(page.locator('[data-testid="reschedule_request"]')).not.toBeDisabled();
+
+    await booking.delete();
+  });
+
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {
     const user = await users.create();
-     
+
     const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.ACCEPTED,
       rescheduled: true,
@@ -173,7 +301,7 @@ test.describe("Reschedule Tests", async () => {
     const user = await users.create();
     await user.apiLogin();
     await user.installStripePersonal({ skip: true });
-     
+
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       rescheduled: true,
@@ -218,7 +346,7 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await user.installStripePersonal({ skip: true });
     await users.logout();
-     
+
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       rescheduled: true,
@@ -238,7 +366,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Opt in event should be PENDING when rescheduled by USER", async ({ page, users, bookings }) => {
     const user = await users.create();
-     
+
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,
@@ -259,7 +387,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Opt in event should be ACCEPTED when rescheduled by OWNER", async ({ page, users, bookings }) => {
     const user = await users.create();
-     
+
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,
@@ -336,7 +464,7 @@ test.describe("Reschedule Tests", async () => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!process.env.DAILY_API_KEY, "DAILY_API_KEY is needed for this test");
     const user = await users.create();
-     
+
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
 
     const confirmBooking = async (bookingId: number) => {
@@ -469,7 +597,7 @@ test.describe("Reschedule Tests", async () => {
       });
       const profileUsername = (await orgMember.getFirstProfile()).username;
       const eventType = orgMember.eventTypes[0];
-       
+
       const orgSlug = org.slug!;
       const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
 
@@ -510,7 +638,7 @@ test.describe("Reschedule Tests", async () => {
         roleInOrganization: MembershipRole.MEMBER,
       });
       const eventType = orgMember.eventTypes[0];
-       
+
       const orgSlug = org.slug!;
       const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
 
