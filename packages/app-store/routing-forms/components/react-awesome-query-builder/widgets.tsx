@@ -487,7 +487,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
     const selectValue = options.find((option) => option.value === value);
     const summary = !config.operators.__calReporting ? "If booker selects" : "Query where";
     return (
-      <div className="mb-[1px] flex items-center text-sm">
+      <div className="mb-px flex items-center text-sm">
         <span>{summary}</span>
         <Select
           className="flex px-2"

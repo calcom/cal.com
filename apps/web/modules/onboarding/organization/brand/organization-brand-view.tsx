@@ -109,7 +109,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               <div className="flex w-full flex-col gap-2">
                 <p className="text-emphasis text-sm font-medium leading-4">{t("onboarding_banner_label")}</p>
                 <div className="flex w-full flex-col gap-2">
-                  <div className="bg-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
+                  <div className="bg-cal-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
                     {bannerPreview && (
                       <img
                         src={bannerPreview}
@@ -143,7 +143,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               <div className="flex w-full flex-col gap-2">
                 <p className="text-emphasis text-sm font-medium leading-4">{t("logo")}</p>
                 <div className="flex items-center gap-2">
-                  <div className="bg-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
+                  <div className="bg-cal-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
                     {logoPreview && (
                       <img
                         src={logoPreview}
@@ -189,6 +189,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         bio={organizationDetails.bio}
         slug={organizationDetails.link}
         bannerUrl={bannerPreview}
+        brandColor={brandColor}
       />
     </OnboardingLayout>
   );
