@@ -534,6 +534,7 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
+    hostSubsetIds,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -784,6 +785,7 @@ async function handler(
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
     routingFormResponse,
+    hostSubsetIds: hostSubsetIds ?? undefined,
   });
 
   // We filter out users but ensure allHostUsers remain same.

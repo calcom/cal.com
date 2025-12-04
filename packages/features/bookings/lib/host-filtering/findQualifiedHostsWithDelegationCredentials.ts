@@ -70,6 +70,7 @@ export class QualifiedHostsService {
     routedTeamMemberIds,
     contactOwnerEmail,
     routingFormResponse,
+    hostSubsetIds,
   }: {
     eventType: {
       id: number;
@@ -85,7 +86,8 @@ export class QualifiedHostsService {
     routedTeamMemberIds: number[];
     contactOwnerEmail: string | null;
     routingFormResponse: RoutingFormResponse | null;
-  }): Promise<{
+    hostSubsetIds?: number[];
+  }):Promise<{
     qualifiedRRHosts: {
       isFixed: boolean;
       createdAt: Date | null;
@@ -161,14 +163,29 @@ export class QualifiedHostsService {
       ? hostsAfterSegmentMatching
       : hostsAfterRescheduleWithSameRoundRobinHost;
 
+    // Filter by hostSubsetIds if provided - this is a hard filter (no fallback)
+    // When hostSubsetIds is provided, we only consider hosts in that subset
+    const hostsAfterHostSubsetFiltering =
+      hostSubsetIds && hostSubsetIds.length > 0
+        ? officalRRHosts.filter((host) => hostSubsetIds.includes(host.user.id))
+        : officalRRHosts;
+
+    // If hostSubsetIds filtering results in no hosts, return empty to indicate no availability
+    if (hostSubsetIds && hostSubsetIds.length > 0 && hostsAfterHostSubsetFiltering.length === 0) {
+      return {
+        qualifiedRRHosts: [],
+        fixedHosts,
+      };
+    }
+
     const hostsAfterContactOwnerMatching = applyFilterWithFallback(
-      officalRRHosts,
-      officalRRHosts.filter((host) => host.user.email === contactOwnerEmail)
+      hostsAfterHostSubsetFiltering,
+      hostsAfterHostSubsetFiltering.filter((host) => host.user.email === contactOwnerEmail)
     );
 
     const hostsAfterRoutedTeamMemberIdsMatching = applyFilterWithFallback(
-      officalRRHosts,
-      officalRRHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
+      hostsAfterHostSubsetFiltering,
+      hostsAfterHostSubsetFiltering.filter((host) => routedTeamMemberIds.includes(host.user.id))
     );
 
     if (hostsAfterRoutedTeamMemberIdsMatching.length === 1) {

@@ -88,6 +88,26 @@ export class GetAvailableSlotsInput_2024_09_04 {
     example: "abc123def456",
   })
   bookingUidToReschedule?: string;
+
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((id: string) => parseInt(id.trim(), 10));
+    }
+    if (Array.isArray(value)) {
+      return value.map((id) => (typeof id === "string" ? parseInt(id, 10) : id));
+    }
+    return value;
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: [Number],
+    description:
+      "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
+    example: [1, 2, 3],
+  })
+  hostSubsetIds?: number[];
 }
 
 export const ById_2024_09_04_type = "byEventTypeId";

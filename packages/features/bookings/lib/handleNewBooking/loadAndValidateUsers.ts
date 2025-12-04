@@ -67,6 +67,7 @@ type InputProps = {
   isPlatform: boolean;
   hostname: string | undefined;
   forcedSlug: string | undefined;
+  hostSubsetIds?: number[];
 };
 
 const _loadAndValidateUsers = async ({
@@ -81,7 +82,8 @@ const _loadAndValidateUsers = async ({
   isPlatform,
   hostname,
   forcedSlug,
-}: InputProps): Promise<{
+  hostSubsetIds,
+}: InputProps):Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
   fixedUsers: UsersWithDelegationCredentials;
@@ -155,6 +157,7 @@ const _loadAndValidateUsers = async ({
       rescheduleUid,
       contactOwnerEmail,
       routingFormResponse,
+      hostSubsetIds,
     });
   const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
     (acc, host) => {
