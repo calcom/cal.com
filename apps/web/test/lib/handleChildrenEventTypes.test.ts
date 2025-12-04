@@ -529,13 +529,12 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: null,
           durationLimits: null,
           isInstantEvent: false,
-          instantMeetingExpiryTimeOffsetInSeconds: null,
+          instantMeetingExpiryTimeOffsetInSeconds: 90,
           instantMeetingScheduleId: null,
           assignAllTeamMembers: false,
           useEventTypeDestinationCalendarEmail: false,
           secondaryEmailId: null,
           eventTypeColor: null,
-          aiPhoneCallConfig: null,
           rescheduleWithSameRoundRobinHost: false,
           rrSegmentQueryValue: null,
           assignRRMembersUsingSegment: false,
@@ -548,6 +547,14 @@ describe("handleChildrenEventTypes", () => {
           customReplyToEmail: null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          instantMeetingParameters: [],
+          isRRWeightsEnabled: false,
+          maxLeadThreshold: null,
+          allowReschedulingPastBookings: false,
+          hideOrganizerEmail: false,
+          maxActiveBookingsPerBooker: null,
+          maxActiveBookingPerBookerOfferReschedule: false,
+          bookingRequiresAuthentication: false,
         },
       ]);
 
@@ -592,7 +599,8 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
 
-      const { createdAt, updatedAt, workflows: _workflows, ...expectedEvType } = evType;
+      const { createdAt, updatedAt, ...expectedEvType } = evType;
+      if ("workflows" in expectedEvType) delete expectedEvType.workflows;
       // Verify createMany was called for new users (user 5)
       // Note: createMany doesn't support nested relations like workflows, so they're handled separately
       expect(prismaMock.eventType.createMany).toHaveBeenCalledWith({
