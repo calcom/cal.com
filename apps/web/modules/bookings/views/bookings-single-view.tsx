@@ -1195,6 +1195,7 @@ function RecurringBookings({
       dates: recurringBookingsSorted,
       timezone: tz,
     });
+    const firstShiftIndex = shiftFlags.findIndex(Boolean);
 
     return (
       <>
@@ -1230,10 +1231,12 @@ function RecurringBookings({
               <span className="text-bookinglight">
                 ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
               </span>
-              {shiftFlags[idx] && (
+              {firstShiftIndex !== -1 && idx === firstShiftIndex && (
                 <>
                   {" "}
-                  <Badge variant="orange">{t("time_shift")}</Badge>
+                  <Badge variant="orange" size="sm">
+                    {t("time_shift")}
+                  </Badge>
                 </>
               )}
             </div>
@@ -1267,10 +1270,12 @@ function RecurringBookings({
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
                     </span>
-                    {shiftFlags[idx + 4] && (
+                    {firstShiftIndex !== -1 && idx + 4 === firstShiftIndex && (
                       <>
                         {" "}
-                        <Badge variant="orange">{t("time_shift")}</Badge>
+                        <Badge variant="orange" size="sm">
+                          {t("time_shift")}
+                        </Badge>
                       </>
                     )}
                   </div>

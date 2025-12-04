@@ -70,15 +70,18 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
       i18n.language
     );
     const shiftFlags = getTimeShiftFlags({ dates: recurringDates, timezone });
+    const firstShiftIndex = shiftFlags.findIndex(Boolean);
     return (
       <div data-testid="recurring-dates">
         {recurringStrings.slice(0, 5).map((timeFormatted, key) => (
           <p key={key}>
             {timeFormatted}
-            {shiftFlags[key] && (
+            {firstShiftIndex !== -1 && key === firstShiftIndex && (
               <>
                 {" "}
-                <Badge variant="orange">{t("time_shift")}</Badge>
+                <Badge variant="orange" size="sm">
+                  {t("time_shift")}
+                </Badge>
               </>
             )}
           </p>
@@ -88,10 +91,12 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
             content={recurringStrings.slice(5).map((timeFormatted, key) => (
               <p key={key}>
                 {timeFormatted}
-                {shiftFlags[key + 5] && (
+                {firstShiftIndex !== -1 && key + 5 === firstShiftIndex && (
                   <>
                     {" "}
-                    <Badge variant="orange">{t("time_shift")}</Badge>
+                    <Badge variant="orange" size="sm">
+                      {t("time_shift")}
+                    </Badge>
                   </>
                 )}
               </p>
