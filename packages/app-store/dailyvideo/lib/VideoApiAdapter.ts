@@ -261,6 +261,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       id: dailyEvent.name,
       password: meetingToken.token,
       url: getPublicVideoCallUrl(event),
+      providerUrl: dailyEvent.url,
     });
   }
 
@@ -385,6 +386,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       id: dailyEvent.name,
       password: meetingToken.token,
       url: getPublicVideoCallUrl({ uid: bookingUid }),
+      providerUrl: dailyEvent.url,
     });
   }
   // Region on which the DailyVideo room is created can be controlled by ENV var
@@ -413,7 +415,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },
-    createInstantCalVideoRoom: (endTime: string, bookingUid: string) => createInstantMeeting(endTime, bookingUid, region),
+    createInstantCalVideoRoom: (endTime: string, bookingUid: string) =>
+      createInstantMeeting(endTime, bookingUid, region),
     getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
       try {
         const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=43200`).then(

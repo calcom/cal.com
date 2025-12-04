@@ -394,7 +394,9 @@ export default class EventManager {
         thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
-        meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
+        meetingUrl: createdEventObj
+          ? createdEventObj.onlineMeetingUrl
+          : (result.createdEvent?.providerUrl ?? result.createdEvent?.url),
         externalCalendarId: isCalendarType ? result.externalId : undefined,
         ...getCredentialPayload(result),
       };
@@ -471,7 +473,7 @@ export default class EventManager {
         uid,
         meetingId,
         meetingPassword: event?.password,
-        meetingUrl: event?.url,
+        meetingUrl: event?.providerUrl ?? event?.url,
         externalCalendarId: result.externalId,
         ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
       };
