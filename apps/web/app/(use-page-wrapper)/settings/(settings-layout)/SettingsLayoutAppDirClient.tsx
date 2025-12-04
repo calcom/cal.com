@@ -37,41 +37,13 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       href: "/settings/my-account",
       icon: "user",
       children: [
-        {
-          name: "profile",
-          href: "/settings/my-account/profile",
-          trackingMetadata: { section: "my_account", page: "profile" },
-        },
-        {
-          name: "general",
-          href: "/settings/my-account/general",
-          trackingMetadata: { section: "my_account", page: "general" },
-        },
-        {
-          name: "calendars",
-          href: "/settings/my-account/calendars",
-          trackingMetadata: { section: "my_account", page: "calendars" },
-        },
-        {
-          name: "conferencing",
-          href: "/settings/my-account/conferencing",
-          trackingMetadata: { section: "my_account", page: "conferencing" },
-        },
-        {
-          name: "appearance",
-          href: "/settings/my-account/appearance",
-          trackingMetadata: { section: "my_account", page: "appearance" },
-        },
-        {
-          name: "out_of_office",
-          href: "/settings/my-account/out-of-office",
-          trackingMetadata: { section: "my_account", page: "out_of_office" },
-        },
-        {
-          name: "push_notifications",
-          href: "/settings/my-account/push-notifications",
-          trackingMetadata: { section: "my_account", page: "push_notifications" },
-        },
+        { name: "profile", href: "/settings/my-account/profile", trackingMetadata: { section: "my_account", page: "profile" } },
+        { name: "general", href: "/settings/my-account/general", trackingMetadata: { section: "my_account", page: "general" } },
+        { name: "calendars", href: "/settings/my-account/calendars", trackingMetadata: { section: "my_account", page: "calendars" } },
+        { name: "conferencing", href: "/settings/my-account/conferencing", trackingMetadata: { section: "my_account", page: "conferencing" } },
+        { name: "appearance", href: "/settings/my-account/appearance", trackingMetadata: { section: "my_account", page: "appearance" } },
+        { name: "out_of_office", href: "/settings/my-account/out-of-office", trackingMetadata: { section: "my_account", page: "out_of_office" } },
+        { name: "push_notifications", href: "/settings/my-account/push-notifications", trackingMetadata: { section: "my_account", page: "push_notifications" } },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],
@@ -81,34 +53,16 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       href: "/settings/security",
       icon: "key",
       children: [
-        {
-          name: "password",
-          href: "/settings/security/password",
-          trackingMetadata: { section: "security", page: "password" },
-        },
-        {
-          name: "impersonation",
-          href: "/settings/security/impersonation",
-          trackingMetadata: { section: "security", page: "impersonation" },
-        },
-        {
-          name: "2fa_auth",
-          href: "/settings/security/two-factor-auth",
-          trackingMetadata: { section: "security", page: "2fa_auth" },
-        },
+        { name: "password", href: "/settings/security/password", trackingMetadata: { section: "security", page: "password" } },
+        { name: "impersonation", href: "/settings/security/impersonation", trackingMetadata: { section: "security", page: "impersonation" } },
+        { name: "2fa_auth", href: "/settings/security/two-factor-auth", trackingMetadata: { section: "security", page: "2fa_auth" } },
       ],
     },
     {
       name: "billing",
       href: "/settings/billing",
       icon: "credit-card",
-      children: [
-        {
-          name: "manage_billing",
-          href: "/settings/billing",
-          trackingMetadata: { section: "billing", page: "manage_billing" },
-        },
-      ],
+      children: [{ name: "manage_billing", href: "/settings/billing", trackingMetadata: { section: "billing", page: "manage_billing" } }],
     },
     {
       name: "developer",
@@ -116,21 +70,9 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       icon: "terminal",
       children: [
         //
-        {
-          name: "webhooks",
-          href: "/settings/developer/webhooks",
-          trackingMetadata: { section: "developer", page: "webhooks" },
-        },
-        {
-          name: "api_keys",
-          href: "/settings/developer/api-keys",
-          trackingMetadata: { section: "developer", page: "api_keys" },
-        },
-        {
-          name: "admin_api",
-          href: "/settings/organizations/admin-api",
-          trackingMetadata: { section: "developer", page: "admin_api" },
-        },
+        { name: "webhooks", href: "/settings/developer/webhooks", trackingMetadata: { section: "developer", page: "webhooks" } },
+        { name: "api_keys", href: "/settings/developer/api-keys", trackingMetadata: { section: "developer", page: "api_keys" } },
+        { name: "admin_api", href: "/settings/organizations/admin-api", trackingMetadata: { section: "developer", page: "admin_api" } },
         // TODO: Add profile level for embeds
         // { name: "embeds", href: "/v2/settings/developer/embeds" },
       ],
@@ -151,13 +93,13 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         },
         ...(orgBranding
           ? [
-              {
-                name: "members",
-                href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
-                isExternalLink: true,
-                trackingMetadata: { section: "organization", page: "members" },
-              },
-            ]
+            {
+              name: "members",
+              href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
+              isExternalLink: true,
+              trackingMetadata: { section: "organization", page: "members" },
+            },
+          ]
           : []),
         {
           name: "privacy_and_security",
@@ -200,83 +142,31 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       icon: "lock",
       children: [
         //
-        {
-          name: "features",
-          href: "/settings/admin/flags",
-          trackingMetadata: { section: "admin", page: "features" },
-        },
-        {
-          name: "license",
-          href: "/auth/setup?step=1",
-          trackingMetadata: { section: "admin", page: "license" },
-        },
-        {
-          name: "impersonation",
-          href: "/settings/admin/impersonation",
-          trackingMetadata: { section: "admin", page: "impersonation" },
-        },
-        {
-          name: "apps",
-          href: "/settings/admin/apps/calendar",
-          trackingMetadata: { section: "admin", page: "apps" },
-        },
-        {
-          name: "users",
-          href: "/settings/admin/users",
-          trackingMetadata: { section: "admin", page: "users" },
-        },
-        {
-          name: "organizations",
-          href: "/settings/admin/organizations",
-          trackingMetadata: { section: "admin", page: "organizations" },
-        },
-        {
-          name: "lockedSMS",
-          href: "/settings/admin/lockedSMS",
-          trackingMetadata: { section: "admin", page: "locked_sms" },
-        },
-        {
-          name: "oAuth",
-          href: "/settings/admin/oAuth",
-          trackingMetadata: { section: "admin", page: "oauth" },
-        },
-        {
-          name: "Workspace Platforms",
-          href: "/settings/admin/workspace-platforms",
-          trackingMetadata: { section: "admin", page: "workspace_platforms" },
-        },
-        {
-          name: "Playground",
-          href: "/settings/admin/playground",
-          trackingMetadata: { section: "admin", page: "playground" },
-        },
+        { name: "features", href: "/settings/admin/flags", trackingMetadata: { section: "admin", page: "features" } },
+        { name: "license", href: "/auth/setup?step=1", trackingMetadata: { section: "admin", page: "license" } },
+        { name: "impersonation", href: "/settings/admin/impersonation", trackingMetadata: { section: "admin", page: "impersonation" } },
+        { name: "apps", href: "/settings/admin/apps/calendar", trackingMetadata: { section: "admin", page: "apps" } },
+        { name: "users", href: "/settings/admin/users", trackingMetadata: { section: "admin", page: "users" } },
+        { name: "organizations", href: "/settings/admin/organizations", trackingMetadata: { section: "admin", page: "organizations" } },
+        { name: "lockedSMS", href: "/settings/admin/lockedSMS", trackingMetadata: { section: "admin", page: "locked_sms" } },
+        { name: "oAuth", href: "/settings/admin/oAuth", trackingMetadata: { section: "admin", page: "oauth" } },
+        { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms", trackingMetadata: { section: "admin", page: "workspace_platforms" } },
+        { name: "Playground", href: "/settings/admin/playground", trackingMetadata: { section: "admin", page: "playground" } },
       ],
     },
   ];
 
   tabs.find((tab) => {
     if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
-      tab.children?.push({
-        name: "sso_configuration",
-        href: "/settings/security/sso",
-        trackingMetadata: { section: "security", page: "sso_configuration" },
-      });
+      tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso", trackingMetadata: { section: "security", page: "sso_configuration" } });
       // TODO: Enable dsync for self hosters
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({
-        name: "create_org",
-        href: "/settings/organizations/new",
-        trackingMetadata: { section: "admin", page: "create_org" },
-      });
+      tab.children?.push({ name: "create_org", href: "/settings/organizations/new", trackingMetadata: { section: "admin", page: "create_org" } });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({
-        name: "create_license_key",
-        href: "/settings/license-key/new",
-        trackingMetadata: { section: "admin", page: "create_license_key" },
-      });
+      tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new", trackingMetadata: { section: "admin", page: "create_license_key" } });
     }
   });
 
@@ -548,9 +438,8 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         setTeamMenuState(newTeamMenuState);
                       }
                     }}
-                    aria-label={`${team.name} ${
-                      teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
-                    }`}>
+                    aria-label={`${team.name} ${teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
+                      }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
                         <Icon name="chevron-down" className="h-4 w-4" />
@@ -558,7 +447,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         <Icon name="chevron-right" className="h-4 w-4" />
                       )}
                     </div>
-                    {}
+                    { }
                     {!team.parentId && (
                       <Image
                         src={getPlaceholderAvatar(team.logoUrl, team.name)}
@@ -601,9 +490,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore this exists wtf?
                     (team.isOrgAdmin && team.isOrgAdmin)) && (
-                    <>
-                      {/* TODO */}
-                      {/* <VerticalTabItem
+                      <>
+                        {/* TODO */}
+                        {/* <VerticalTabItem
                 name={t("general")}
                 href={`${WEBAPP_URL}/settings/my-account/appearance`}
                 textClassNames="px-3 text-emphasis font-medium text-sm"
@@ -735,7 +624,7 @@ const SettingsSidebarContainer = ({
                           className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                         />
                       )}
-                      {}
+                      { }
                       {!tab.icon && tab?.avatar && (
                         <Image
                           width={16}
@@ -879,11 +768,10 @@ const SettingsSidebarContainer = ({
                                       setOtherTeamMenuState(newOtherTeamMenuState);
                                     }
                                   }}
-                                  aria-label={`${otherTeam.name} ${
-                                    otherTeamMenuState[index].teamMenuOpen
-                                      ? t("collapse_menu")
-                                      : t("expand_menu")
-                                  }`}>
+                                  aria-label={`${otherTeam.name} ${otherTeamMenuState[index].teamMenuOpen
+                                    ? t("collapse_menu")
+                                    : t("expand_menu")
+                                    }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
                                       <Icon name="chevron-down" className="h-4 w-4" />
@@ -891,7 +779,7 @@ const SettingsSidebarContainer = ({
                                       <Icon name="chevron-right" className="h-4 w-4" />
                                     )}
                                   </div>
-                                  {}
+                                  { }
                                   {!otherTeam.parentId && (
                                     <Image
                                       src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
@@ -910,11 +798,7 @@ const SettingsSidebarContainer = ({
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
-                                  trackingMetadata={{
-                                    section: "other_team",
-                                    page: "profile",
-                                    teamId: otherTeam.id,
-                                  }}
+                                  trackingMetadata={{ section: "other_team", page: "profile", teamId: otherTeam.id }}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   className="px-2! me-5 h-7 w-auto"
                                   disableChevron
@@ -922,11 +806,7 @@ const SettingsSidebarContainer = ({
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
-                                  trackingMetadata={{
-                                    section: "other_team",
-                                    page: "members",
-                                    teamId: otherTeam.id,
-                                  }}
+                                  trackingMetadata={{ section: "other_team", page: "members", teamId: otherTeam.id }}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   className="px-2! me-5 h-7 w-auto"
                                   disableChevron
