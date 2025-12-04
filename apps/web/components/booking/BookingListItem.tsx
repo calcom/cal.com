@@ -417,7 +417,6 @@ export default function BookingListItem(booking: BookingItemProps) {
         ? () => setChargeCardDialogIsOpen(true)
         : action.id === "no_show"
         ? () => {
-            console.log("No showing");
             if (attendeeList.length === 1) {
               const attendee = attendeeList[0];
               noShowMutation.mutate({

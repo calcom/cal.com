@@ -424,7 +424,6 @@ export default function Success(props: PageProps) {
     booking_id: bookingInfo.uid,
   };
 
-  console.log("Sent gtm event: ", gtmEvent);
   window.dataLayer.push(gtmEvent);
 
   useEffect(() => {

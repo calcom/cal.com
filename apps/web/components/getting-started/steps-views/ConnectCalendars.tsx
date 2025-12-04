@@ -120,7 +120,6 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         )}
         loading={isPageLoading}
         onClick={() => {
-          console.log("connected video step");
           handleNextStep();
           nextStep();
         }}
