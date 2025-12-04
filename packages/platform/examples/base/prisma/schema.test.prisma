@@ -8,12 +8,12 @@ datasource testDb {
 }
 model User {
   id    Int     @id @default(autoincrement())
-  email String  @unique(map: "TestUser_email_key")
+  email String  @unique
   name  String?
-  calcomUserId Int? @unique(map: "TestUser_calcomUserId_key")
-  calcomUsername String? @unique(map: "TestUser_calcomUsername_key")
-  refreshToken String? @unique(map: "TestUser_refreshToken_key")
-  accessToken String? @unique(map: "TestUser_accessToken_key")
+  calcomUserId Int? @unique
+  calcomUsername String? @unique
+  refreshToken String? @unique
+  accessToken String? @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
