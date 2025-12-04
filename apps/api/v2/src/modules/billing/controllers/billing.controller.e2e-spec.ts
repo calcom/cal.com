@@ -17,7 +17,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withNextAuth } from "test/utils/withNextAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import type { Team, PlatformBilling } from "@calcom/prisma/client";
 
@@ -32,8 +32,10 @@ describe("Platform Billing Controller (e2e)", () => {
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let organization: Team;
+  let organization2: Team;
+
   beforeAll(async () => {
-    const moduleRef = await withNextAuth(
+    const moduleRef = await withApiAuth(
       userEmail,
       Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, TokensModule],
@@ -47,6 +49,10 @@ describe("Platform Billing Controller (e2e)", () => {
 
     organization = await organizationsRepositoryFixture.create({
       name: `billing-organization-${randomString()}`,
+      isPlatform: true,
+    });
+    organization2 = await organizationsRepositoryFixture.create({
+      name: `billing-organization-2-${randomString()}`,
       isPlatform: true,
     });
 
@@ -133,7 +139,7 @@ describe("Platform Billing Controller (e2e)", () => {
       });
   });
 
-  it("/billing/webhook (GET) should  get billing plan for org", () => {
+  it("/billing/:orgId/check (GET) should check billing plan for org", () => {
     return request(app.getHttpServer())
       .get(`/v2/billing/${organization.id}/check`)
       .expect(200)
@@ -141,6 +147,10 @@ describe("Platform Billing Controller (e2e)", () => {
         const data = res.body.data as CheckPlatformBillingResponseDto;
         expect(data?.plan).toEqual("FREE");
       });
+  });
+
+  it("/billing/:organizationId/check (GET) should not be able to check other org plan", () => {
+    return request(app.getHttpServer()).get(`/v2/billing/${organization2.id}/check`).expect(403);
   });
 
   it("/billing/webhook (POST) failed payment should set billing free plan to overdue", () => {

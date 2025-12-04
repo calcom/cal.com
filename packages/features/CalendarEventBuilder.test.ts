@@ -980,6 +980,9 @@ describe("CalendarEventBuilder", () => {
     });
 
     it("should create a calendar event from booking with team", async () => {
+      // Note: The CalendarEventBuilder filters team members to only include hosts
+      // whose emails appear in booking.attendees. This simulates a COLLECTIVE event
+      // where all hosts are assigned to the booking.
       const mockBooking = {
         uid: "booking-789",
         metadata: null,
@@ -998,6 +1001,14 @@ describe("CalendarEventBuilder", () => {
             name: "Client",
             email: "client@example.com",
             timeZone: "America/Chicago",
+            locale: "en",
+            phoneNumber: null,
+          },
+          {
+            // Team member host - included in attendees for COLLECTIVE events
+            name: "Team Member",
+            email: "member@example.com",
+            timeZone: "America/Los_Angeles",
             locale: "en",
             phoneNumber: null,
           },
@@ -1647,6 +1658,14 @@ describe("CalendarEventBuilder", () => {
             locale: "en",
             phoneNumber: null,
           },
+          {
+            // Team member host - included in attendees for COLLECTIVE events
+            name: "Team Member",
+            email: "member@example.com",
+            timeZone: "America/Los_Angeles",
+            locale: "en",
+            phoneNumber: null,
+          },
         ],
         user: {
           id: 100,
@@ -1836,12 +1855,14 @@ describe("CalendarEventBuilder", () => {
       expect(builtFromBooking.organizer.username).toBe("teamlead");
       expect(builtFromBooking.organizer.timeZone).toBe("America/New_York");
 
-      expect(builtFromBooking.attendees).toHaveLength(2);
+      expect(builtFromBooking.attendees).toHaveLength(3);
       expect(builtFromBooking.attendees[0].name).toBe("Complete User");
       expect(builtFromBooking.attendees[0].email).toBe("complete@example.com");
       expect(builtFromBooking.attendees[0].timeZone).toBe("America/New_York");
       expect(builtFromBooking.attendees[1].name).toBe("Guest User");
       expect(builtFromBooking.attendees[1].email).toBe("guest@example.com");
+      expect(builtFromBooking.attendees[2].name).toBe("Team Member");
+      expect(builtFromBooking.attendees[2].email).toBe("member@example.com");
 
       expect(builtFromBooking.team).toBeDefined();
       expect(builtFromBooking.team?.id).toBe(50);
