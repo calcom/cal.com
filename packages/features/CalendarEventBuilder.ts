@@ -234,15 +234,17 @@ export class CalendarEventBuilder {
         bookingAttendees.some((attendee) => attendee.email === host.user.email)
       );
 
+      const hostsWithoutOrganizerData = hostsToInclude.filter(
+        (host) => host.user.email !== user.email
+      );
+
       const hostsWithoutOrganizer = await Promise.all(
-        hostsToInclude
-          .filter((host) => host.user.email !== user.email)
-          .map((host) => _buildPersonFromUser(host.user))
+        hostsWithoutOrganizerData.map((host) => _buildPersonFromUser(host.user))
       );
 
       const hostCalendars = [
         user.destinationCalendar,
-        ...hostsWithoutOrganizer.map((h) => h.user.destinationCalendar).filter(Boolean),
+        ...hostsWithoutOrganizerData.map((h) => h.user.destinationCalendar).filter(Boolean),
         user.destinationCalendar,
       ].filter(Boolean) as NonNullable<DestinationCalendar>[];
 
