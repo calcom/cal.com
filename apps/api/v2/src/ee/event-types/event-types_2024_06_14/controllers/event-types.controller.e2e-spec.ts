@@ -2933,6 +2933,42 @@ describe("Event types Endpoints", () => {
       );
     });
 
+    it("should reject with 400 if patching event type with integration that user has not connected", async () => {
+      const createPayload = {
+        title: "Event for patch test",
+        slug: "event-patch-test-unconnected-integration",
+        lengthInMinutes: 30,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(createPayload)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      const patchPayload = {
+        locations: [
+          {
+            type: "integration",
+            integration: "jitsi",
+          },
+        ],
+      };
+
+      const patchResponse = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(patchPayload);
+
+      expect(patchResponse.status).toBe(400);
+      expect(patchResponse.body.error.message).toBe("jitsi not connected.");
+
+      // Cleanup
+      await eventTypesRepositoryFixture.delete(createdEventType.id);
+    });
+
     describe("EventType Hidden Property", () => {
       let createdEventTypeId: number;
 
