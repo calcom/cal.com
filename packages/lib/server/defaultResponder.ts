@@ -61,7 +61,7 @@ export function defaultResponder<T>(
         const statusCode = getHTTPStatusCodeFromError(err);
         error = new HttpError({ statusCode, message: err.message });
       } else {
-        error = getServerErrorFromUnknown(err);
+        error = getServerErrorFromUnknown(tracedError);
       }
       // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
