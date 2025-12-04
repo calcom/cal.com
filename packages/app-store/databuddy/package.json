@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/databuddy",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Privacy-first web analytics for devs (Google Analytics alternative) — 3 KB, GDPR-compliant",
+  "dependencies": {
+    "@calcom/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}

@@ -15,10 +15,10 @@ import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-pl
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import tasker from "@calcom/features/tasker";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -210,11 +210,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    res.status(err.statusCode ?? 500).send({
+    res.status(err.statusCode).send({
       message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
+      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
     });
     return;
   }

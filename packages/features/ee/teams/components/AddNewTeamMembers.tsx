@@ -4,6 +4,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
+import posthog from "posthog-js";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -160,6 +161,11 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
         className="w-full justify-center"
         disabled={publishTeamMutation.isPending}
         onClick={() => {
+          posthog.capture("onboard_members_continue_clicked", {
+            team_id: teamId,
+            is_org: isOrg,
+            members_count: totalFetched,
+          });
           let uri = `/settings/teams/${teamId}/event-type`;
           if (isOrg) {
             uri = `/settings/organizations/${teamId}/add-teams`;
