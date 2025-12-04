@@ -4,3 +4,5 @@ POST /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-
 PATCH /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId} added the new path request parameter 'orgId'
 GET /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links added the new path request parameter 'orgId'
 DELETE /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId} added the new path request parameter 'orgId'
+GET /v2/bookings/{bookingUid}/recordings added the new required 'header' request parameter 'Authorization'
+GET /v2/bookings/{bookingUid}/transcripts added the new required 'header' request parameter 'Authorization'

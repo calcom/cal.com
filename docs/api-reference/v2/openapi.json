@@ -9936,7 +9936,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingRecordings",
         "summary": "Get all the recordings for the booking",
-        "description": "Fetches all the recordings for the booking `:bookingUid`\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": "Fetches all the recordings for the booking `:bookingUid`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9952,6 +9952,15 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9992,6 +10001,15 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -10573,6 +10591,55 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/conferencing-sessions": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getVideoSessions",
+        "summary": "Get Video Meeting Sessions. Only supported for Cal Video",
+        "description": "Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingVideoSessionsOutput"
                 }
               }
             }
@@ -29731,6 +29798,86 @@
             "items": {
               "$ref": "#/components/schemas/BookingReference"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CalMeetingParticipant": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "nullable": true,
+            "example": "user123"
+          },
+          "userName": {
+            "type": "string",
+            "nullable": true,
+            "example": "John Doe"
+          },
+          "joinTime": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          }
+        },
+        "required": ["userId", "userName", "joinTime", "duration"]
+      },
+      "CalMeetingSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "session123"
+          },
+          "room": {
+            "type": "string",
+            "example": "daily-video-room-123"
+          },
+          "startTime": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          },
+          "ongoing": {
+            "type": "boolean",
+            "example": false
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 10
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalMeetingParticipant"
+            }
+          }
+        },
+        "required": ["id", "room", "startTime", "duration", "ongoing", "maxParticipants", "participants"]
+      },
+      "GetBookingVideoSessionsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalMeetingSession"
+            }
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]
