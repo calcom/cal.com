@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -65,7 +65,9 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
     setTeamLogo(newLogo);
   };
 
-  const handleContinue = async () => {
+  const handleContinue = async (e?: FormEvent) => {
+    e?.preventDefault();
+
     if (!isSlugValid) {
       return;
     }
@@ -81,7 +83,8 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
     });
 
     // Create the team (will handle payment redirect if needed)
-    await createTeam(store);
+    // Don't pass store - let createTeam read the latest state from the store
+    await createTeam();
   };
 
   return (
@@ -89,82 +92,87 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
       <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={3}>
         {/* Left column - Main content */}
         <div className="flex h-full w-full flex-col gap-4">
-          <OnboardingCard
-            title={t("create_your_team")}
-            subtitle={t("team_onboarding_details_subtitle")}
-            footer={
-              <div className="flex w-full items-center justify-end gap-4">
-                <Button
-                  color="minimal"
-                  className="rounded-[10px]"
-                  onClick={() => router.push("/onboarding/getting-started")}>
-                  {t("back")}
-                </Button>
-                <Button
-                  color="primary"
-                  className="rounded-[10px]"
-                  onClick={handleContinue}
-                  disabled={!isSlugValid || !teamName || !teamSlug || isSubmitting}>
-                  {t("continue")}
-                </Button>
-              </div>
-            }>
-            <div className="flex h-full w-full flex-col gap-4">
-              {/* Team Profile Picture */}
-              <div className="flex w-full flex-col gap-2">
-                <Label className="text-emphasis text-sm font-medium leading-4">{t("team_logo")}</Label>
-                <div className="flex flex-row items-center justify-start gap-2 rtl:justify-end">
-                  <div className="relative shrink-0">
-                    <Avatar
-                      size="lg"
-                      imageSrc={teamLogo || undefined}
-                      alt={teamName || "Team"}
-                      className="border-2 border-white"
+          <form onSubmit={handleContinue} className="flex h-full w-full flex-col gap-4">
+            <OnboardingCard
+              title={t("create_your_team")}
+              subtitle={t("team_onboarding_details_subtitle")}
+              footer={
+                <div className="flex w-full items-center justify-end gap-4">
+                  <Button
+                    type="button"
+                    color="minimal"
+                    className="rounded-[10px]"
+                    onClick={() => router.push("/onboarding/getting-started")}>
+                    {t("back")}
+                  </Button>
+                  <Button
+                    type="submit"
+                    color="primary"
+                    className="rounded-[10px]"
+                    disabled={!isSlugValid || !teamName || !teamSlug || isSubmitting}>
+                    {t("continue")}
+                  </Button>
+                </div>
+              }>
+              <div className="flex h-full w-full flex-col gap-4">
+                {/* Team Profile Picture */}
+                <div className="flex w-full flex-col gap-2">
+                  <Label className="text-emphasis text-sm font-medium leading-4">{t("team_logo")}</Label>
+                  <div className="flex flex-row items-center justify-start gap-2 rtl:justify-end">
+                    <div className="relative shrink-0">
+                      <Avatar
+                        size="lg"
+                        imageSrc={teamLogo || undefined}
+                        alt={teamName || "Team"}
+                        className="border-2 border-white"
+                      />
+                    </div>
+                    <input ref={logoRef} type="hidden" name="logo" id="logo" defaultValue={teamLogo} />
+                    <ImageUploader
+                      target="avatar"
+                      id="team-logo-upload"
+                      buttonMsg={t("upload")}
+                      handleAvatarChange={handleLogoChange}
+                      imageSrc={teamLogo}
                     />
                   </div>
-                  <input ref={logoRef} type="hidden" name="logo" id="logo" defaultValue={teamLogo} />
-                  <ImageUploader
-                    target="avatar"
-                    id="team-logo-upload"
-                    buttonMsg={t("upload")}
-                    handleAvatarChange={handleLogoChange}
-                    imageSrc={teamLogo}
+                  <p className="text-subtle text-xs font-normal leading-3">
+                    {t("onboarding_logo_size_hint")}
+                  </p>
+                </div>
+
+                {/* Team Name */}
+                <div className="flex w-full flex-col gap-1.5">
+                  <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_name")}</Label>
+                  <TextField
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="Acme Inc."
+                    className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
                   />
                 </div>
-                <p className="text-subtle text-xs font-normal leading-3">{t("onboarding_logo_size_hint")}</p>
-              </div>
 
-              {/* Team Name */}
-              <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">{t("team_name")}</Label>
-                <TextField
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  placeholder="Acme Inc."
-                  className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
+                {/* Team Slug */}
+                <ValidatedTeamSlug
+                  value={teamSlug}
+                  onChange={handleSlugChange}
+                  onValidationChange={setIsSlugValid}
                 />
-              </div>
 
-              {/* Team Slug */}
-              <ValidatedTeamSlug
-                value={teamSlug}
-                onChange={handleSlugChange}
-                onValidationChange={setIsSlugValid}
-              />
-
-              {/* Team Bio */}
-              <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">{t("team_bio")}</Label>
-                <TextArea
-                  value={teamBio}
-                  onChange={(e) => setTeamBio(e.target.value)}
-                  placeholder={t("team_bio_placeholder")}
-                  className="border-default max-h-[150px] min-h-[80px] rounded-[10px] border px-2 py-1.5 text-sm"
-                  rows={3}
-                />
+                {/* Team Bio */}
+                <div className="flex w-full flex-col gap-1.5">
+                  <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_bio")}</Label>
+                  <TextArea
+                    value={teamBio}
+                    onChange={(e) => setTeamBio(e.target.value)}
+                    placeholder={t("team_bio_placeholder")}
+                    className="border-default max-h-[150px] min-h-[80px] rounded-[10px] border px-2 py-1.5 text-sm"
+                    rows={3}
+                  />
+                </div>
               </div>
-            </div>
-          </OnboardingCard>
+            </OnboardingCard>
+          </form>
         </div>
 
         {/* Right column - Browser view */}

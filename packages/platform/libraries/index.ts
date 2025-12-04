@@ -49,7 +49,7 @@ export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarMan
 export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
 
-export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+export { MINUTES_TO_BOOK, ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 
 export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
@@ -128,3 +128,5 @@ export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEma
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
+
+export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";

@@ -59,7 +59,6 @@ export default defineConfig(({ mode }) => {
         entry: [resolve(__dirname, "index.ts")],
         name: "CalAtoms",
         fileName: "cal-atoms",
-        
       },
       rollupOptions: {
         external: [
@@ -72,7 +71,12 @@ export default defineConfig(({ mode }) => {
           "react-dom/client",
           "@prisma/client",
           "react/jsx-dev-runtime",
-        , "react-awesome-query-builder", "react-awesome-query-builder", "react-awesome-query-builder"],
+          ,
+          "react-awesome-query-builder",
+          "react-awesome-query-builder",
+          "react-awesome-query-builder",
+          "@trigger.dev/sdk",
+        ],
         output: {
           globals: {
             react: "React",
