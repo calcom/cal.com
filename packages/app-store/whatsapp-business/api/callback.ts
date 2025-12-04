@@ -100,7 +100,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/whatsapp-business/callback`;
 
   try {
-    console.log("Code: ", shortLivedToken);
+    console.log("Code: ", code);
     const tokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
     tokenUrl.searchParams.append("client_id", client_id);
     tokenUrl.searchParams.append("client_secret", client_secret);
