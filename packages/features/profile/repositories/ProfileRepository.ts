@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
+
+
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
@@ -13,6 +15,7 @@ import type { Team } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
+
 
 const userSelect = {
   name: true,
@@ -142,6 +145,12 @@ export class ProfileRepository {
   }
 
   static getLookupTarget(upId: UpId) {
+    if (upId.trim() === "") {
+      return {
+        type: LookupTarget.Profile,
+        id: -1,
+      } as const;
+    }
     if (upId.startsWith("usr-")) {
       return {
         type: LookupTarget.User,
