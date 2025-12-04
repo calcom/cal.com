@@ -596,7 +596,9 @@ export default function Success(props: PageProps) {
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
-                        <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
+                        <div
+                          className="wrap-break-word col-span-2 mb-6 last:mb-0"
+                          data-testid="booking-title">
                           {isRoundRobin
                             ? typeof bookingInfo.title === "string"
                               ? bookingInfo.title
@@ -1195,7 +1197,12 @@ function RecurringBookings({
       dates: recurringBookingsSorted,
       timezone: tz,
     });
-    const firstShiftIndex = shiftFlags.findIndex(Boolean);
+    let hasSeenShift = false;
+    const displayFlags = shiftFlags.map((flag) => {
+      if (!flag || hasSeenShift) return false;
+      hasSeenShift = true;
+      return true;
+    });
 
     return (
       <>
@@ -1231,7 +1238,7 @@ function RecurringBookings({
               <span className="text-bookinglight">
                 ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
               </span>
-              {firstShiftIndex !== -1 && idx === firstShiftIndex && (
+              {displayFlags[idx] && (
                 <>
                   {" "}
                   <Badge variant="orange" size="sm">
@@ -1270,7 +1277,7 @@ function RecurringBookings({
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
                     </span>
-                    {firstShiftIndex !== -1 && idx + 4 === firstShiftIndex && (
+                    {displayFlags[idx + 4] && (
                       <>
                         {" "}
                         <Badge variant="orange" size="sm">
