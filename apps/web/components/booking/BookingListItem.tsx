@@ -267,6 +267,7 @@ function BookingListItem(booking: BookingItemProps) {
     <div
       data-testid="booking-item"
       data-today={String(booking.isToday)}
+      data-booking-list-item="true"
       className="hover:bg-cal-muted group w-full">
       <div className="flex flex-col sm:flex-row">
         <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">

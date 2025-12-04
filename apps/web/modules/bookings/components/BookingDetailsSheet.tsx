@@ -182,8 +182,22 @@ function BookingDetailsSheetInner({
   const reasonTitle = reason && assignmentReasonBadgeTitleMap(reason.reasonEnum);
 
   return (
-    <Sheet open={true} onOpenChange={handleClose}>
-      <SheetContent className="overflow-y-auto">
+    <Sheet open={true} onOpenChange={handleClose} modal={false}>
+      <SheetContent
+        className="overflow-y-auto"
+        hideOverlay
+        onInteractOutside={(e) => {
+          // Check if the click is on a booking list item
+          const target = e.target as HTMLElement;
+          const isBookingListItem = target.closest("[data-booking-list-item]");
+
+          if (isBookingListItem) {
+            // Prevent closing when clicking a booking list item
+            // The item's onClick will handle opening the sheet with the new booking
+            e.preventDefault();
+          }
+          // If clicking elsewhere, allow the default behavior (close the sheet)
+        }}>
         <SheetHeader showCloseButton={false} className="-mt-1 w-full">
           <div className="flex items-center justify-between gap-x-4">
             <div className="flex min-w-0 flex-col gap-y-1">
