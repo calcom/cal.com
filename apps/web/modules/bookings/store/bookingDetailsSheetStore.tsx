@@ -57,6 +57,7 @@ interface BookingDetailsSheetStore {
   setCapabilities: (capabilities: NavigationCapabilities | null) => void;
   clearSelection: () => void;
   clearPendingSelection: () => void;
+  setIsTransitioning: (isTransitioning: boolean) => void;
 
   // Navigation methods (delegates to capabilities)
   navigateNext: () => Promise<void>;
@@ -83,11 +84,14 @@ const createBookingDetailsSheetStore = (initialBookings: BookingOutput[] = []) =
     capabilities: null,
 
     // Actions
-    setSelectedBookingUid: (uid) => set({ selectedBookingUid: uid }),
+    setSelectedBookingUid: (uid) => {
+      set({ selectedBookingUid: uid });
+    },
     setBookings: (bookings) => set({ bookings }),
     setCapabilities: (capabilities) => set({ capabilities }),
     clearSelection: () => set({ selectedBookingUid: null }),
     clearPendingSelection: () => set({ pendingSelection: null }),
+    setIsTransitioning: (isTransitioning) => set({ isTransitioning }),
 
     // Core getters
     getSelectedBooking: () => {
@@ -143,17 +147,24 @@ const createBookingDetailsSheetStore = (initialBookings: BookingOutput[] = []) =
     navigatePrevious: async () => {
       const state = get();
 
+      console.log("[Store] navigatePrevious called, current index:", state.getCurrentIndex());
+
       // Try navigating within current array first
       if (state.hasPreviousInArray()) {
         const prevIndex = state.getCurrentIndex() - 1;
+        console.log("[Store] Navigating to previous in array, index:", prevIndex);
         set({ selectedBookingUid: state.bookings[prevIndex].uid });
         return;
       }
 
       // Need to navigate to previous period
-      if (!state.capabilities?.canNavigateToPreviousPeriod()) return;
+      if (!state.capabilities?.canNavigateToPreviousPeriod()) {
+        console.log("[Store] Cannot navigate to previous period");
+        return;
+      }
 
       // Set pending selection to "last" and mark as transitioning
+      console.log("[Store] Setting pendingSelection to 'last' and requesting previous period");
       set({ isTransitioning: true, pendingSelection: "last" });
       // Trigger page/week change synchronously - the parent component will handle the data fetch
       state.capabilities.requestPreviousPeriod();
@@ -176,7 +187,7 @@ export function BookingDetailsSheetStoreProvider({
   const [selectedBookingUidFromUrl, setSelectedBookingUidToUrl] = useSelectedBookingUid();
   const previousBookingsRef = useRef<BookingOutput[]>(bookings);
 
-  // Update bookings and handle auto-selection
+  // Update bookings in store
   useEffect(() => {
     const previousBookings = previousBookingsRef.current;
     const hasBookingsChanged = bookings !== previousBookings;
@@ -185,20 +196,6 @@ export function BookingDetailsSheetStoreProvider({
 
     store.getState().setBookings(bookings);
     previousBookingsRef.current = bookings;
-
-    // Auto-select booking based on pendingSelection indicator from store
-    const state = store.getState();
-    if (state.pendingSelection) {
-      if (bookings.length > 0) {
-        const bookingToSelect =
-          state.pendingSelection === "first" ? bookings[0] : bookings[bookings.length - 1];
-        store.getState().setSelectedBookingUid(bookingToSelect.uid);
-      }
-
-      // Always clear the transition state and pending selection, even if no bookings
-      store.setState({ isTransitioning: false });
-      store.getState().clearPendingSelection();
-    }
   }, [bookings, store]);
 
   // Update capabilities when they change

@@ -25,6 +25,7 @@ import { useBookingListColumns } from "~/bookings/hooks/useBookingListColumns";
 import { useBookingListData } from "~/bookings/hooks/useBookingListData";
 import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
+import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
 import { useListNavigationCapabilities } from "~/bookings/hooks/useListNavigationCapabilities";
 
 import {
@@ -78,11 +79,13 @@ interface BookingListInnerProps extends BookingListContainerProps {
   hasError: boolean;
   errorMessage?: string;
   totalRowCount?: number;
+  bookings: BookingsGetOutput["bookings"];
 }
 
 function BookingListInner({
   status,
   permissions,
+  bookings,
   bookingsV3Enabled,
   data,
   isPending,
@@ -95,6 +98,9 @@ function BookingListInner({
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const router = useRouter();
   const [showFilters, setShowFilters] = useState(true);
+
+  // Handle auto-selection for list view
+  useListAutoSelector(bookings);
 
   const ErrorView = errorMessage ? (
     <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
@@ -285,6 +291,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
         hasError={!!query.error}
         errorMessage={query.error?.message}
         totalRowCount={query.data?.totalCount}
+        bookings={bookings}
       />
     </BookingDetailsSheetStoreProvider>
   );

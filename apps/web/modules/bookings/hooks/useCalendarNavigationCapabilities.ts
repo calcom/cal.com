@@ -27,9 +27,8 @@ export function useCalendarNavigationCapabilities({
 
   return useMemo(
     () => ({
-      // Disable cross-week navigation in calendar view - users should navigate weeks via the week picker
-      canNavigateToNextPeriod: () => false,
-      canNavigateToPreviousPeriod: () => false,
+      canNavigateToNextPeriod: () => true,
+      canNavigateToPreviousPeriod: () => true,
 
       requestNextPeriod: () => {
         setCurrentWeekStart(nextWeekStart);
