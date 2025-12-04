@@ -142,14 +142,12 @@ export const AppPage = ({
         returnTo: WEBAPP_URL + onBoardingUrl,
       });
     } else if (!availableForTeams) {
-      console.log("Not available for teams");
       mutation.mutate({ type });
     } else {
       const onBoardingUrl = await getAppOnboardingUrl({
         slug: slug,
         step: AppOnboardingSteps.ACCOUNTS_STEP,
       });
-      console.log("onBoardingUrl is: ", onBoardingUrl);
 
       router.push(onBoardingUrl);
     }
