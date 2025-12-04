@@ -161,6 +161,37 @@ describe("substituteVariables", () => {
     expect(result).toBe("/event/marketing-pr?type=meeting&priority=high");
   });
 
+  it("should preserve original formatting for variables in query parameters", () => {
+    const fields = [
+      createTextField("field1", "name", "Name"),
+      createTextField("field2", "org", "Organization"),
+    ];
+    const routeValue = "automation-training?name={name}&station={org}";
+    const response: FormResponse = {
+      ...createFormResponse("field1", "Sean Paul", "Name"),
+      ...createFormResponse("field2", "Introduction Meeting", "Organization"),
+    };
+
+    const result = substituteVariables(routeValue, response, fields);
+    // Query parameters should preserve original formatting (URL-encoded)
+    expect(result).toBe("automation-training?name=Sean%20Paul&station=Introduction%20Meeting");
+    // Should not contain slugified versions
+    expect(result).not.toContain("sean-paul");
+    expect(result).not.toContain("introduction-meeting");
+  });
+
+  it("should slugify path variables but preserve query parameter variables", () => {
+    const fields = [createTextField("field1", "name", "Name")];
+    const routeValue = "/user/{name}/profile?name={name}";
+    const response = createFormResponse("field1", "Sean Paul", "Name");
+
+    const result = substituteVariables(routeValue, response, fields);
+    // Path variable should be slugified
+    expect(result).toContain("/user/sean-paul/profile");
+    // Query parameter should preserve original formatting
+    expect(result).toContain("name=Sean%20Paul");
+  });
+
   it("should substitute text field values directly", () => {
     const fields = [createTextField("field1", "username", "Username")];
     const routeValue = "/user/{username}/profile";
