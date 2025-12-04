@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "classnames";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
 import { Icon } from "../icon";
@@ -19,6 +19,11 @@ export const EditableHeading = function EditableHeading({
   ControllerRenderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [previousValue, setPreviousValue] = useState(value);
+
+  useEffect(() => {
+    setPreviousValue(value);
+  }, [value]);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const enableEditing = () => setIsEditing(!disabled);
 
