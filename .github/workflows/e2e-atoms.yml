@@ -103,6 +103,11 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
+        with:
+          SEED_PLATFORM_OAUTH_CLIENT_ID: ${{ secrets.SEED_PLATFORM_OAUTH_CLIENT_ID }}
+          SEED_PLATFORM_OAUTH_CLIENT_SECRET: ${{ secrets.SEED_PLATFORM_OAUTH_CLIENT_SECRET }}
+          SEED_PLATFORM_OAUTH_CLIENT_ID_E2E: ${{ secrets.SEED_PLATFORM_OAUTH_CLIENT_ID_E2E }}
+          SEED_PLATFORM_OAUTH_CLIENT_SECRET_E2E: ${{ secrets.SEED_PLATFORM_OAUTH_CLIENT_SECRET_E2E }}
       - uses: ./.github/actions/yarn-playwright-install
       - name: Start API v2
         working-directory: apps/api/v2

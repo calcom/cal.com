@@ -7,6 +7,14 @@ inputs:
   path:
     required: false
     default: "backups/backup.sql"
+  SEED_PLATFORM_OAUTH_CLIENT_ID:
+    required: false
+  SEED_PLATFORM_OAUTH_CLIENT_SECRET:
+    required: false
+  SEED_PLATFORM_OAUTH_CLIENT_ID_E2E:
+    required: false
+  SEED_PLATFORM_OAUTH_CLIENT_SECRET_E2E:
+    required: false
 runs:
   using: "composite"
   steps:
@@ -29,6 +37,11 @@ runs:
     - run: yarn db-seed
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash
+      env:
+        SEED_PLATFORM_OAUTH_CLIENT_ID: ${{ inputs.SEED_PLATFORM_OAUTH_CLIENT_ID }}
+        SEED_PLATFORM_OAUTH_CLIENT_SECRET: ${{ inputs.SEED_PLATFORM_OAUTH_CLIENT_SECRET }}
+        SEED_PLATFORM_OAUTH_CLIENT_ID_E2E: ${{ inputs.SEED_PLATFORM_OAUTH_CLIENT_ID_E2E }}
+        SEED_PLATFORM_OAUTH_CLIENT_SECRET_E2E: ${{ inputs.SEED_PLATFORM_OAUTH_CLIENT_SECRET_E2E }}
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'
       uses: tj-actions/pg-dump@v2.3
