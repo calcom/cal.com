@@ -91,6 +91,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           href: "/settings/organizations/general",
           trackingMetadata: { section: "organization", page: "general" },
         },
+        {
+          name: "guest_notifications",
+          href: "/settings/organizations/guest-notifications",
+        },
         ...(orgBranding
           ? [
             {
