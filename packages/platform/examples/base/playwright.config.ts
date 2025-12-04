@@ -2,27 +2,9 @@ import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
 
-console.log(
-  `1 asap NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
-  process.env.NEXT_PUBLIC_X_CAL_ID
-);
-console.log(
-  `2 asap ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 ${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12}`,
-  process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12
-);
-
 if (!process.env.CI) {
   dotenv.config({ path: path.resolve(__dirname, ".env.e2e") });
 }
-
-console.log(
-  `2 asap NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
-  process.env.NEXT_PUBLIC_X_CAL_ID
-);
-console.log(
-  `2 asap ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 ${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12}`,
-  process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12
-);
 
 const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
@@ -63,7 +45,7 @@ export default defineConfig({
   ],
   webServer: {
     command: process.env.CI
-      ? `yarn workspace @calcom/atoms dev-on && yarn workspace @calcom/atoms build && yarn db:generate:test && yarn db:reset:test && yarn dev:e2e`
+      ? `yarn db:reset:remove &&yarn workspace @calcom/atoms dev-on && yarn workspace @calcom/atoms build && yarn db:generate:test && yarn db:reset:test && yarn dev:e2e`
       : `yarn db:generate:test && yarn db:reset:test && yarn dev:e2e`,
     url: "http://localhost:4322",
     timeout: 600_000,
