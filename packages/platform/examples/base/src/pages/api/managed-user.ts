@@ -19,17 +19,6 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
     },
   });
 
-  // throw new Error(
-  //   JSON.stringify(
-  //     {
-  //       NEXT_PUBLIC_CALCOM_API_URL: process.env.NEXT_PUBLIC_CALCOM_API_URL,
-  //       NEXT_PUBLIC_X_CAL_ID: process.env.NEXT_PUBLIC_X_CAL_ID,
-  //       NEXT_PUBLIC_X_CAL_ID_SHORT: process.env.NEXT_PUBLIC_X_CAL_ID?.substr(0, 5),
-  //     },
-  //     null,
-  //     2
-  //   )
-  // );
   const managedUserResponse = await fetch(
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
     {
@@ -56,42 +45,6 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
       }\n${JSON.stringify(managedUserResponseBody, null, 2)}`
     );
   }
-
-  if (!managedUserResponseBody.data?.accessToken) {
-    throw new Error(
-      `Managed user API returned success but no accessToken:\n${JSON.stringify(
-        managedUserResponseBody,
-        null,
-        2
-      )}`
-    );
-  }
-  // const shouldThrow = true;
-  // if (shouldThrow) {
-  //   throw new Error(
-  //     JSON.stringify({
-  //       email: email,
-  //       calcomUserId: managedUserResponseBody.data?.user.id || "not-defined",
-  //       calcomUsername: managedUserResponseBody.data?.user.username || "not-defined",
-  //       refreshToken: managedUserResponseBody.data?.refreshToken || "not-defined",
-  //       accessToken: managedUserResponseBody.data?.accessToken || "not-defined",
-  //       testkey: "asd",
-  //     })
-  //   );
-  // }
-
-  // const debugExistingUsers = await prisma.user.findMany({
-  //   where: { accessToken: managedUserResponseBody.data?.accessToken },
-  // });
-  // if (debugExistingUsers.length > 0) {
-  //   throw new Error(
-  //     `asap User with accessToken ${JSON.stringify(
-  //       debugExistingUsers,
-  //       null,
-  //       2
-  //     )} already exists so cant create new one: ${JSON.stringify(managedUserResponseBody.data, null, 2)}`
-  //   );
-  // }
 
   await prisma.user.update({
     data: {

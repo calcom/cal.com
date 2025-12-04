@@ -53,6 +53,12 @@ env:
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
   NODE_OPTIONS: --max-old-space-size=29000
 
+  ## seed script env variables
+  SEED_PLATFORM_OAUTH_CLIENT_ID: ${{ secrets.SEED_PLATFORM_OAUTH_CLIENT_ID }}
+  SEED_PLATFORM_OAUTH_CLIENT_SECRET: ${{ secrets.SEED_PLATFORM_OAUTH_CLIENT_SECRET }}
+  SEED_PLATFORM_OAUTH_CLIENT_ID_E2E: ${{ secrets.SEED_PLATFORM_OAUTH_CLIENT_ID_E2E }}
+  SEED_PLATFORM_OAUTH_CLIENT_SECRET_E2E: ${{ secrets.SEED_PLATFORM_OAUTH_CLIENT_SECRET_E2E }}
+
 jobs:
   e2e-atoms:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}

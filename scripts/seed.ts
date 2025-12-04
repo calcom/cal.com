@@ -198,6 +198,8 @@ async function createPlatformAndSetupUser({
           secret: exampleAppClientSecret,
         },
       });
+    } else {
+      console.log("⚠️ No example app client id and secret found, skipping example app client creation");
     }
 
     const exampleAppClientIdE2e = process.env.SEED_PLATFORM_OAUTH_CLIENT_ID_E2E;
@@ -214,6 +216,10 @@ async function createPlatformAndSetupUser({
           secret: exampleAppClientSecretE2e,
         },
       });
+    } else {
+      console.log(
+        "⚠️ No example app e2e client id and secret found, skipping example app e2e client creation"
+      );
     }
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
   }
