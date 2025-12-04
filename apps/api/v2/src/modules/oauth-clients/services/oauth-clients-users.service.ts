@@ -83,14 +83,6 @@ export class OAuthClientUsersService {
     const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
       await this.tokensRepository.createOAuthTokens(oAuthClientId, user.id);
 
-    console.log("asap first 15 characters of access token:");
-    accessToken
-      .slice(0, 15)
-      .split("")
-      .forEach((char, index) => {
-        console.log(`[${index}]: ${char}`);
-      });
-
     if (oAuthClient.areDefaultEventTypesEnabled) {
       await this.eventTypesService.createUserDefaultEventTypes(user.id);
     }
@@ -103,7 +95,7 @@ export class OAuthClientUsersService {
     try {
       this.logger.log(`Setting default calendars in db for user with id ${user.id}`);
       await this.calendarsService.getCalendars(user.id);
-    } catch {
+    } catch (err) {
       this.logger.error(`Could not get calendars of new managed user with id ${user.id}`);
     }
 
