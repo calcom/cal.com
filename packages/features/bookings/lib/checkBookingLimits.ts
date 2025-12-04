@@ -1,5 +1,4 @@
-import type { Prisma } from "@prisma/client";
-
+import type { Prisma } from "@calcom/prisma/client";
 import dayjs from "@calcom/dayjs";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getErrorFromUnknown } from "@calcom/lib/errors";

@@ -5,8 +5,6 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { TRPCError } from "@calcom/platform-libraries";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
