@@ -232,7 +232,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
-    autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
+    // Only set if explicitly provided to avoid overwriting existing value with false
+    ...(autoTranslateDescriptionEnabled !== undefined && {
+      autoTranslateDescriptionEnabled: Boolean(ctx.user.organizationId && autoTranslateDescriptionEnabled),
+    }),
     description: newDescription,
     title: newTitle,
     bookingFields,
@@ -242,7 +245,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       rest.rrSegmentQueryValue === null ? Prisma.DbNull : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
-    disableGuests: guestsField?.hidden ?? false,
+    // Only set disableGuests if bookingFields is explicitly provided to avoid overwriting existing value
+    ...(bookingFields !== undefined && {
+      disableGuests: guestsField?.hidden ?? false,
+    }),
     seatsPerTimeSlot,
     maxLeadThreshold: isLoadBalancingDisabled ? null : rest.maxLeadThreshold,
   };

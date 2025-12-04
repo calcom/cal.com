@@ -15,26 +15,24 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
     return this.prismaClient.selectedCalendar.findFirst({ where: { channelId } });
   }
 
-  async findNextSubscriptionBatch({ take, integrations }: { take: number; integrations: string[] }) {
+  async findNextSubscriptionBatch({
+    take,
+    teamIds,
+    integrations,
+  }: {
+    take: number;
+    teamIds: number[];
+    integrations: string[];
+  }) {
     return this.prismaClient.selectedCalendar.findMany({
       where: {
         integration: { in: integrations },
         OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: new Date() } }],
-        // initially we will run subscription only for teams that have
-        // the feature flags enabled and it should be removed later
         user: {
           teams: {
             some: {
-              team: {
-                features: {
-                  some: {
-                    OR: [
-                      { featureId: "calendar-subscription-cache" },
-                      { featureId: "calendar-subscription-sync" },
-                    ],
-                  },
-                },
-              },
+              teamId: { in: teamIds },
+              accepted: true,
             },
           },
         },
