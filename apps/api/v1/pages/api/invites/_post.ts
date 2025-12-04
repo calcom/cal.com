@@ -28,12 +28,12 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
           organizationId: null,
           organization: null,
           username: "",
-          upId: "",
+          upId: `usr-${req.userId}`,
         } satisfies UserProfile,
       },
       hasValidLicense: true,
       expires: "",
-      upId: "",
+      upId: `usr-${req.userId}`,
     };
   }
 

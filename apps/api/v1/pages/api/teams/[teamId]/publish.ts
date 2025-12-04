@@ -29,12 +29,12 @@ const patchHandler = async (req: NextApiRequest, res: NextApiResponse) => {
           organizationId: null,
           organization: null,
           username: "",
-          upId: "",
+          upId: `usr-${req.userId}`,
         } satisfies UserProfile,
       },
       hasValidLicense: true /* To comply with TS signature */,
       expires: "" /* Not used in this context */,
-      upId: "",
+      upId: `usr-${req.userId}`,
     };
   }
   /** @see https://trpc.io/docs/server-side-calls */
