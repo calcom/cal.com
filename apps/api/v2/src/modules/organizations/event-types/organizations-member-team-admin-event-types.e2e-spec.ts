@@ -1294,6 +1294,54 @@ describe("Organizations Event Types Endpoints", () => {
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
+    it("should preserve lengthInMinutesOptions when doing partial update", async () => {
+      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation with multiple durations",
+        slug: `organizations-event-types-durations-${randomString()}`,
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 30,
+        lengthInMinutesOptions: [15, 30, 60],
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+          },
+        ],
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(createBody)
+        .expect(201);
+
+      const createdEventType: TeamEventTypeOutput_2024_06_14 = createResponse.body.data;
+      expect(createdEventType.lengthInMinutesOptions).toBeDefined();
+      expect(createdEventType.lengthInMinutesOptions).toEqual([15, 30, 60]);
+
+      // Now do a partial update that only changes a different field (not lengthInMinutesOptions)
+      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
+        bookingRequiresAuthentication: false,
+      };
+
+      const updateResponse = await request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${createdEventType.id}`)
+        .send(updateBody)
+        .expect(200);
+
+      const updatedEventType: TeamEventTypeOutput_2024_06_14 = updateResponse.body.data;
+
+      // Verify that lengthInMinutesOptions is preserved and not reset to undefined
+      expect(updatedEventType.lengthInMinutesOptions).toBeDefined();
+      expect(updatedEventType.lengthInMinutesOptions).toEqual([15, 30, 60]);
+      expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
+    });
+
     function evaluateHost(expected: Host, received: Host | undefined) {
       expect(expected.userId).toEqual(received?.userId);
       expect(expected.mandatory).toEqual(received?.mandatory);
