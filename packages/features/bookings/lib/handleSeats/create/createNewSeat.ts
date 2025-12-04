@@ -1,16 +1,16 @@
- 
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails/email-manager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { getPublicVideoCallUrl } from "@calcom/lib/CalEventParser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -59,11 +59,12 @@ const createNewSeat = async (
   const videoCallReference = seatedBooking.references.find((reference) => reference.type.includes("_video"));
 
   if (videoCallReference) {
+    const isDailyVideo = videoCallReference.type === "daily_video";
     evt.videoCallData = {
       type: videoCallReference.type,
       id: videoCallReference.meetingId,
       password: videoCallReference?.meetingPassword,
-      url: videoCallReference.meetingUrl,
+      url: isDailyVideo && evt.uid ? getPublicVideoCallUrl(evt) : videoCallReference.meetingUrl,
     };
   }
 
