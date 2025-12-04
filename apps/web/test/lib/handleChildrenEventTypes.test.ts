@@ -451,6 +451,7 @@ describe("handleChildrenEventTypes", () => {
         timeZone: "UTC",
         teamId: 1,
         autoTranslateDescriptionEnabled: false,
+        autoTranslateInstantMeetingTitleEnabled: true,
         secondaryEmailId: null,
         schedulingType: SchedulingType.MANAGED,
         requiresBookerEmailVerification: false,
