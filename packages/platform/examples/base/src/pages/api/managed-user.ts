@@ -48,6 +48,24 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
   );
 
   const managedUserResponseBody = await managedUserResponse.json();
+
+  if (!managedUserResponse.ok) {
+    throw new Error(
+      `Failed to create managed user: ${managedUserResponse.status} ${
+        managedUserResponse.statusText
+      }\n${JSON.stringify(managedUserResponseBody, null, 2)}`
+    );
+  }
+
+  if (!managedUserResponseBody.data?.accessToken) {
+    throw new Error(
+      `Managed user API returned success but no accessToken:\n${JSON.stringify(
+        managedUserResponseBody,
+        null,
+        2
+      )}`
+    );
+  }
   // const shouldThrow = true;
   // if (shouldThrow) {
   //   throw new Error(
