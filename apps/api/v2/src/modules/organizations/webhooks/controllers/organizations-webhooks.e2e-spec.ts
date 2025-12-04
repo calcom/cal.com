@@ -125,7 +125,10 @@ describe("WebhooksController (e2e)", () => {
         active: true,
         payloadTemplate: "string",
       } satisfies CreateWebhookInputDto)
-      .expect(409);
+      .expect(409)
+      .then((res) => {
+        expect(res.body.error.details.existingWebhookId).toBe(webhook.id);
+      });
   });
 
   it("/organizations/:orgId/webhooks/:webhookId (PATCH)", () => {

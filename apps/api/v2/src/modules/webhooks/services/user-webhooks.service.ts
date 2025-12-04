@@ -17,7 +17,10 @@ export class UserWebhooksService {
 
     const existingWebhook = await this.webhooksRepository.getUserWebhookByUrl(userId, body.subscriberUrl);
     if (existingWebhook) {
-      throw new ConflictException("Webhook with this subscriber url already exists for this user");
+      throw new ConflictException({
+        message: "Webhook with this subscriber url already exists for this user",
+        existingWebhookId: existingWebhook.id,
+      });
     }
 
     return this.webhooksRepository.createUserWebhook(userId, {
