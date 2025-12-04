@@ -17,7 +17,7 @@ export const getLocationValue = (
     return responseLocation.value;
   }
 
-  logger.warn(
+  logger.info(
     `getLocationValue - location ${location} and response location ${JSON.stringify(
       responseLocation
     )} were passed but the type is not supported.`
