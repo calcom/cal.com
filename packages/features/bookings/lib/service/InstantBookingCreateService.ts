@@ -212,12 +212,12 @@ export async function handler(
     throw new Error("Event type not found");
   }
 
-  // Determine whether to translate the booking title based on the event type setting
+  // Determine whether to auto-translate the instant meeting title based on the event type setting
   // Default is true (opt-out), so we only skip translation when explicitly set to false
-  const shouldTranslateTitle = eventTypeConfig.autoTranslateInstantMeetingTitleEnabled ?? true;
+  const shouldAutoTranslateInstantMeetingTitle = eventTypeConfig.autoTranslateInstantMeetingTitleEnabled ?? true;
 
   // Get the booking title - either translated to attendee's language or in English
-  const bookingTitle = shouldTranslateTitle
+  const bookingTitle = shouldAutoTranslateInstantMeetingTitle
     ? tAttendees("instant_meeting_with_title", { name: fullName })
     : `Instant meeting with ${fullName}`;
 
