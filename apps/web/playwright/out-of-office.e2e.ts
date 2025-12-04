@@ -757,5 +757,12 @@ async function goToOOOPage(page: Page, type: "individual" | "team" = "individual
 }
 
 async function openOOODialog(page: Page) {
+  const reasonListRespPromise = page.waitForResponse(
+    (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+  );
+  const hasTeamPlanRespPromise = page.waitForResponse(
+    (response) => response.url().includes("hasTeamPlan?batch=1") && response.status() === 200
+  );
   await page.getByTestId("add_entry_ooo").click();
+  await Promise.all([reasonListRespPromise, hasTeamPlanRespPromise]);
 }
