@@ -32,7 +32,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   // Reset onboarding data when visiting this page, but preserve the selected plan
   useEffect(() => {
     resetOnboardingPreservingPlan();
-  }, [resetOnboardingPreservingPlan]);
+  }, []);
 
   // Plan order mapping for determining direction
   const planOrder: Record<PlanType, number> = {
