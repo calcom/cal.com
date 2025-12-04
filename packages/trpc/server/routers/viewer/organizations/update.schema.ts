@@ -35,7 +35,17 @@ export const ZUpdateInputSchema = z.object({
   allowSEOIndexing: z.boolean().optional(),
   orgProfileRedirectsToVerifiedDomain: z.boolean().optional(),
   disablePhoneOnlySMSNotifications: z.boolean().optional(),
+  disableAutofillOnBookingPage: z.boolean().optional(),
   orgAutoJoinOnSignup: z.boolean().optional(),
+  disableAttendeeConfirmationEmail: z.boolean().optional(),
+  disableAttendeeCancellationEmail: z.boolean().optional(),
+  disableAttendeeRescheduledEmail: z.boolean().optional(),
+  disableAttendeeRequestEmail: z.boolean().optional(),
+  disableAttendeeReassignedEmail: z.boolean().optional(),
+  disableAttendeeAwaitingPaymentEmail: z.boolean().optional(),
+  disableAttendeeRescheduleRequestEmail: z.boolean().optional(),
+  disableAttendeeLocationChangeEmail: z.boolean().optional(),
+  disableAttendeeNewEventEmail: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

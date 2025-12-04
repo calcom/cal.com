@@ -24,9 +24,11 @@ export interface ISelectedCalendarRepository {
    */
   findNextSubscriptionBatch({
     take,
+    teamIds,
     integrations,
   }: {
     take: number;
+    teamIds: number[];
     integrations?: string[];
   }): Promise<SelectedCalendar[]>;
 
