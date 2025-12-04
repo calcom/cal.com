@@ -121,13 +121,13 @@ export const embedStore = {
   eventsState: {
     /**
      * Counter for modal reopens. Set to 1 on first linkReady event (non-prerendering), then incremented.
-     * Used to track modal opens and distinguish between first open (bookerViewed) and reopens (bookerFocused).
+     * Used to track modal opens and distinguish between first open (bookerViewed) and reopens (bookerReopened).
      * null = not yet initialized, 1 = first open, 2 = second reopen, etc.
      */
     reopenCount: null as number | null,
     /**
      * Tracks the reopenCount value for which bookerViewed event has been fired.
-     * Prevents duplicate firing of bookerViewed/bookerFocused events for the same reopen.
+     * Prevents duplicate firing of bookerViewed/bookerReopened events for the same reopen.
      */
     lastFiredForReopenCount: null as number | null,
     /**
@@ -135,6 +135,12 @@ export const embedStore = {
      * Used to distinguish between availabilityLoaded (first load) and availabilityRefreshed (subsequent loads).
      */
     lastAvailabilityDataUpdatedAt: null as number | null,
+    /**
+     * Flag to indicate that a reload was initiated and bookerReloaded should fire on next linkReady.
+     * Set to true when __reloadInitiated is received.
+     * Reset after firing bookerReloaded on linkReady.
+     */
+    reloadInitiated: false,
   },
 };
 

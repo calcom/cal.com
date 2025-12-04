@@ -503,6 +503,10 @@ export const methods = {
       toRemoveParams,
     });
   },
+  __reloadInitiated: function reloadInitiated(_unused: unknown) {
+    log("Method: __reloadInitiated called");
+    embedStore.eventsState.reloadInitiated = true;
+  },
 };
 
 export type InterfaceWithParent = {
@@ -587,6 +591,7 @@ function main() {
       return;
     }
     embedStore.eventsState.reopenCount++;
+    // Reset reload flag after linkReady fires (will be checked in react-hooks before resetting)
   });
 
   sdkActionManager?.on("*", (e) => {

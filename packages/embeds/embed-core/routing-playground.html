@@ -169,12 +169,12 @@
               }
             };
 
-            const bookerFocusedCallback = (e) => {
+            const bookerReopenedCallback = (e) => {
               const data = e.detail.data;
               if (data.slotsLoaded === true) {
-                trackAvailabilityLoaded("bookerFocused (slotsLoaded: true)");
+                trackAvailabilityLoaded("bookerReopened (slotsLoaded: true)");
               } else {
-                trackLog("Booker was focused and waiting for slots to load");
+                trackLog("Booker was reopened and waiting for slots to load");
               }
             };
 
@@ -182,12 +182,20 @@
               trackAvailabilityLoaded("availabilityLoaded event");
             };
 
-          
+            const bookerReloadedCallback = (e) => {
+              const data = e.detail.data;
+              if (data.slotsLoaded === true) {
+                trackAvailabilityLoaded("bookerReloaded (slotsLoaded: true)");
+              } else {
+                trackLog("Booker was reloaded and waiting for slots to load");
+              }
+            };
 
             if (!listenersAdded) {
               api("on", { action: "bookerViewed", callback: bookerViewedCallback });
               api("on", { action: "availabilityLoaded", callback: availabilityLoadedCallback });
-              api("on", { action: "bookerFocused", callback: bookerFocusedCallback });
+              api("on", { action: "bookerReopened", callback: bookerReopenedCallback });
+              api("on", { action: "bookerReloaded", callback: bookerReloadedCallback });
               listenersAdded = true;
             }
           };
@@ -275,8 +283,8 @@
             type: "modal",
             pageType: "team.event.booking.slots",
             options: {
-              slotsStaleTimeMs: 10 * 1000,
-              iframeForceReloadThresholdMs: 60 * 1000,
+              slotsStaleTimeMs: 30 * 1000,
+              iframeForceReloadThresholdMs: 10 * 1000,
             },
           });
         }

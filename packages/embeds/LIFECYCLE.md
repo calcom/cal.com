@@ -107,29 +107,35 @@ The embed system carefully manages visibility to prevent visual glitches:
    - Triggers: After URL params are updated and slots are ready (if needed)
 
 10. **linkPrerendered Event**
-   - Fired by: Iframe
-   - Indicates: Prerendered embed is ready in the background
-   - Note: Embed stays hidden until user opens it via connect()
+    - Fired by: Iframe
+    - Indicates: Prerendered embed is ready in the background
+    - Note: Embed stays hidden until user opens it via connect()
 
 11. **bookerViewed Event**
     - Fired by: Iframe
     - Indicates: Booker has been viewed for the first time in current page view
-    - Triggers: On first linkReady event for a page view
+    - Triggers: On first linkReady event (reopenCount === 1)
     - Note: Not fired during prerendering. Includes event information and slots loading status.
 
-12. **bookerFocused Event**
+12. **bookerReopened Event**
     - Fired by: Iframe
-    - Indicates: Booker has been viewed again (user navigated and returned)
-    - Triggers: On subsequent linkReady events for the same embed instance
-    - Note: Distinguishes between first view and refocus events
+    - Indicates: Booker has been reopened after modal was closed
+    - Triggers: On subsequent linkReady events (reopenCount > 1) when modal is reopened without reload
+    - Note: Distinguishes between first view (bookerViewed) and reopen (bookerReopened). Uses reopenCount to determine if it's a reopen.
 
-13. **availabilityLoaded Event**
+13. **bookerReloaded Event**
+    - Fired by: Iframe
+    - Indicates: Booker has been reloaded (full page reload within modal)
+    - Triggers: On linkReady after fullReload action is taken (when reloadInitiated flag is set)
+    - Note: Distinguishes between first view (bookerViewed), reopen (bookerReopened), and reload (bookerReloaded). Fires only once per reload.
+
+14. **availabilityLoaded Event**
     - Fired by: Iframe
     - Indicates: Availability/slots data has been loaded for the first time
     - Triggers: On first successful slots load
     - Note: Only fires when slots are successfully loaded
 
-14. **availabilityRefreshed Event**
+15. **availabilityRefreshed Event**
     - Fired by: Iframe
     - Indicates: Availability/slots data has been refreshed/updated
     - Triggers: When slots data is updated after initial load
@@ -198,13 +204,15 @@ The embed system queues commands sent before the iframe is ready. Once the ifram
 Think of the embed like `window.open("url", "cal-booker")` with a hypothetical enhancement - when you close the popup, it stays in the background ready to spring back:
 
 - **`bookerViewed`** = Opening a new popup window (first time, or after previous was destroyed due to staleness)
-- **`bookerFocused`** = Clicking CTA that targets the same window name, bringing back the hidden popup
+- **`bookerReopened`** = Clicking CTA that targets the same window name, bringing back the hidden popup
+- **`bookerReloaded`** = Popup window navigating to a new URL (full page reload within the same popup)
 - **Staleness/full reload** = When the popup was actually destroyed (not just hidden), so CTA opens a fresh one
 
 This mental model helps understand the lifecycle:
 1. User clicks CTA → Embed modal opens → `bookerViewed` event (similar to opening a new popup)
-2. User closes modal and clicks CTA again (short time) → Existing embed springs back → `bookerFocused` event (similar to focusing a hidden popup)
+2. User closes modal and clicks CTA again (short time) → Existing embed springs back → `bookerReopened` event (similar to focusing a hidden popup)
 3. User clicks CTA after long time → Embed was destroyed due to staleness → Fresh load → `bookerViewed` event (similar to opening a new popup after the old one was closed)
+4. Modal stays open but iframe content reloads (fullReload) → `bookerReloaded` event (similar to popup navigating to new URL)
 
 ## Event Tracking System
 

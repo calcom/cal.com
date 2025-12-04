@@ -82,11 +82,19 @@ sequenceDiagram
         Note right of UI: Purpose: Tracks first view of booker<br/>on first modal open<br/>Includes: Event info, slots status<br/>Not fired during prerendering
         UI->>Parent: availabilityLoaded event
         Note right of UI: Purpose: Tracks first successful<br/>slots/availability load<br/>Includes: Event identification
-        alt User navigates and returns
-            UI->>Parent: bookerFocused event
-            Note right of UI: Purpose: Tracks when booker is<br/>viewed again (focused)<br/>Distinguishes from first view
+        alt User closes and reopens modal
+            UI->>Parent: bookerReopened event
+            Note right of UI: Purpose: Tracks when booker is<br/>reopened after being closed<br/>Distinguishes from first view
             UI->>Parent: availabilityRefreshed event
             Note right of UI: Purpose: Tracks when slots data<br/>is updated after initial load<br/>Detects refreshes via timestamps
+        end
+        alt Full reload scenario
+            Parent->>Embed: __reloadInitiated method
+            Note right of Parent: Purpose: Notify iframe that<br/>fullReload is happening<br/>Action: Set reloadInitiated flag
+            Note over Store: reloadInitiated: true
+            UI->>Parent: bookerReloaded event
+            Note right of UI: Purpose: Tracks when booker is<br/>reloaded (full page reload)<br/>Distinguishes from reopen
+            Note over Store: Reset reloadInitiated flag
         end
     end
     

@@ -11,7 +11,7 @@ const isPrerendering = () => {
 };
 
 /**
- * Fires bookerViewed or bookerFocused events
+ * Fires bookerViewed, bookerReopened, or bookerReloaded events
  */
 const fireBookerViewedEvent = ({
     eventId,
@@ -25,14 +25,22 @@ const fireBookerViewedEvent = ({
     reopenCount: number;
 }) => {
     if (embedStore.eventsState.lastFiredForReopenCount !== reopenCount) {
-        fireEvent(!embedStore.eventsState.lastFiredForReopenCount);
+        const isFirstTime = !embedStore.eventsState.lastFiredForReopenCount;
+        // Fire bookerReloaded if reload was initiated, otherwise use normal logic
+        const isReload = embedStore.eventsState.reloadInitiated;
+        fireEvent(isFirstTime, isReload);
         embedStore.eventsState.lastFiredForReopenCount = embedStore.eventsState.reopenCount;
+        // Reset reload flag after using it
+        if (isReload) {
+            embedStore.eventsState.reloadInitiated = false;
+        }
     }
 
-    function fireEvent(isFirstTime: boolean) {
+    function fireEvent(isFirstTime: boolean, isReload: boolean) {
+        const eventName = isReload ? "bookerReloaded" : isFirstTime ? "bookerViewed" : "bookerReopened";
         if (slotsLoaded) {
             if (eventId && eventSlug) {
-                sdkActionManager?.fire(isFirstTime ? "bookerViewed" : "bookerFocused", {
+                sdkActionManager?.fire(eventName, {
                     eventId,
                     eventSlug,
                     slotsLoaded: true,
@@ -42,7 +50,7 @@ const fireBookerViewedEvent = ({
                 console.error("BookerViewed event not fired because slotsLoaded is true but eventId or eventSlug are falsy");
             }
         } else {
-            sdkActionManager?.fire(isFirstTime ? "bookerViewed" : "bookerFocused", {
+            sdkActionManager?.fire(eventName, {
                 eventId: null,
                 eventSlug: null,
                 slotsLoaded: false,
@@ -81,8 +89,8 @@ const fireAvailabilityLoadedEvents = ({
 };
 
 /**
- * Hook that fires embed events (bookerViewed/bookerFocused and availabilityLoaded/availabilityRefreshed).
- * Manages event state using embedStore to prevent duplicate events and track modal reopens.
+ * Hook that fires embed events (bookerViewed/bookerReopened/bookerReloaded and availabilityLoaded/availabilityRefreshed).
+ * Manages event state using embedStore to prevent duplicate events and track modal reopens/reloads.
  */
 export const useBookerEmbedEvents = ({
     eventId,

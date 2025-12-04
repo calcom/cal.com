@@ -81,9 +81,9 @@ sequenceDiagram
     Note right of UI: Purpose: Tracks first view of booker<br/>Includes: Event info, slots status<br/>Now enabled (was suppressed)
     UI->>Parent: availabilityLoaded event
     Note right of UI: Purpose: Tracks first successful<br/>slots/availability load<br/>Includes: Event identification
-    alt User navigates and returns
-        UI->>Parent: bookerFocused event
-        Note right of UI: Purpose: Tracks when booker is<br/>viewed again (focused)
+    alt User closes and reopens modal
+        UI->>Parent: bookerReopened event
+        Note right of UI: Purpose: Tracks when booker is<br/>reopened after being closed
         UI->>Parent: availabilityRefreshed event
         Note right of UI: Purpose: Tracks when slots data<br/>is updated after initial load
     end

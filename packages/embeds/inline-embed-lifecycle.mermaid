@@ -74,8 +74,8 @@ sequenceDiagram
         UI->>Parent: availabilityLoaded event
         Note right of UI: Purpose: Tracks first successful<br/>slots/availability load<br/>Includes: Event identification
         alt User navigates and returns
-            UI->>Parent: bookerFocused event
-            Note right of UI: Purpose: Tracks when booker is<br/>viewed again (focused)<br/>Distinguishes from first view
+            UI->>Parent: bookerReopened event
+            Note right of UI: Purpose: Tracks when booker is<br/>reopened after being closed<br/>Distinguishes from first view
             UI->>Parent: availabilityRefreshed event
             Note right of UI: Purpose: Tracks when slots data<br/>is updated after initial load<br/>Detects refreshes via timestamps
         end

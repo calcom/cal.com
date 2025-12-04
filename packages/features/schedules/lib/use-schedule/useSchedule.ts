@@ -1,8 +1,7 @@
 import { useRef } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { updateEmbedBookerState, useIsEmbedPrerendering } from "@calcom/embed-core/src/embed-iframe";
-import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
+import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
