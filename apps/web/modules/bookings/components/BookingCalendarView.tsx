@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
+import { useBanners } from "@calcom/features/shell/banners/useBanners";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
@@ -25,6 +26,7 @@ export function BookingCalendarView({
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const { timezone } = useTimePreferences();
   const { resolvedTheme, forcedTheme } = useGetTheme();
+  const { bannersHeight } = useBanners();
 
   const startDate = useMemo(() => currentWeekStart.toDate(), [currentWeekStart]);
   const endDate = useMemo(() => currentWeekStart.add(6, "day").toDate(), [currentWeekStart]);
@@ -73,7 +75,9 @@ export function BookingCalendarView({
 
   return (
     <>
-      <div className="border-subtle flex h-[calc(100vh-6rem)] min-h-[600px] flex-1 flex-col overflow-y-auto overflow-x-hidden rounded-2xl border">
+      <div
+        className="border-subtle flex flex-1 flex-col overflow-y-auto overflow-x-hidden rounded-2xl border"
+        style={{ height: `calc(100vh - 6rem - ${bannersHeight}px)` }}>
         <Calendar
           timezone={timezone}
           sortEvents
