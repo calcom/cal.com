@@ -1,6 +1,7 @@
 import type { createStepTools } from "inngest/components/InngestStepTools";
 import type { Logger } from "inngest/middleware/logger";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { META_API_VERSION } from "@calcom/lib/constants";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
@@ -51,6 +52,12 @@ export const syncTemplatesHandler = async ({
   ctx,
   input,
 }: SyncTemplatesHandlerOptions): Promise<SyncTemplatesResponse> => {
+  const identifier = ctx.user.id;
+  await checkRateLimitAndThrowError({
+    identifier: `template.sync:${identifier}`,
+    rateLimitingType: "template.sync",
+  });
+
   const { phoneNumberId } = input;
   return await syncTemplateByPhoneNumberId(phoneNumberId);
 };
