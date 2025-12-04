@@ -52,9 +52,11 @@ export const DateRangeFilter = ({
   const { open, onOpenChange } = useFilterPopoverOpen(column.id);
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter, removeFilter, timeZone: givenTimeZone } = useDataTable();
-  const range = options?.range ?? "past";
-  const forceCustom = range === "custom";
-  const forcePast = range === "past";
+  const rawRange = options?.range ?? "past";
+  const isPast = rawRange === "past";
+  const isFuture = rawRange === "future";
+  const _isAll = rawRange === "all" || rawRange === "custom";
+  const showPresets = isPast;
 
   const { t } = useLocale();
   const currentDate = dayjs();
@@ -65,7 +67,7 @@ export const DateRangeFilter = ({
     filterValue?.data.endDate ? dayjs(filterValue.data.endDate) : undefined
   );
   const [selectedPreset, setSelectedPreset] = useState<PresetOption>(
-    forceCustom
+    !showPresets
       ? CUSTOM_PRESET
       : filterValue?.data.preset
       ? PRESET_OPTIONS.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
@@ -106,16 +108,14 @@ export const DateRangeFilter = ({
   );
 
   useEffect(() => {
-    // initially apply the default value
-    // if the query param is not set yet
-    if (!filterValue && !forceCustom) {
+    if (!filterValue && showPresets) {
       updateValues({
         preset: DEFAULT_PRESET,
         startDate: getDefaultStartDate(),
         endDate: getDefaultEndDate(),
       });
     }
-  }, [filterValue, forceCustom, updateValues]);
+  }, [filterValue, showPresets, updateValues]);
 
   const updateDateRangeFromPreset = (val: string | null) => {
     if (val === CUSTOM_PRESET_VALUE) {
@@ -195,13 +195,13 @@ export const DateRangeFilter = ({
                 endDate: endDate?.toDate(),
               }}
               data-testid="date-range-calendar"
-              minDate={forcePast ? currentDate.subtract(2, "year").toDate() : null}
-              maxDate={forcePast ? currentDate.toDate() : undefined}
+              minDate={isPast ? currentDate.subtract(2, "year").toDate() : isFuture ? currentDate.toDate() : null}
+              maxDate={isPast ? currentDate.toDate() : isFuture ? currentDate.add(2, "year").toDate() : undefined}
               disabled={false}
               onDatesChange={updateDateRangeFromPicker}
               withoutPopover={true}
             />
-            {forceCustom && (
+            {!showPresets && (
               <div className="border-subtle border-t px-2 py-3">
                 <Button
                   color="secondary"
@@ -213,7 +213,7 @@ export const DateRangeFilter = ({
             )}
           </div>
         )}
-        {!forceCustom && (
+        {showPresets && (
           <Command className={classNames("w-40", isCustomPreset && "rounded-b-none")}>
             <CommandList>
               {PRESET_OPTIONS.map((option) => (
