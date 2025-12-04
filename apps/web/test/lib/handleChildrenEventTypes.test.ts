@@ -143,11 +143,10 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
       const { createdAt, updatedAt, ...expectedEvType } = evType;
-      expect(prismaMock.eventType.create).toHaveBeenCalledWith({
+      expect(prismaMock.eventType.createMany).toHaveBeenCalledWith({
         data: {
           ...expectedEvType,
           parentId: 1,
-          users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           bookingLimits: undefined,
@@ -316,11 +315,10 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
       const { createdAt, updatedAt, ...expectedEvType } = evType;
-      expect(prismaMock.eventType.create).toHaveBeenCalledWith({
+      expect(prismaMock.eventType.createMany).toHaveBeenCalledWith({
         data: {
           ...expectedEvType,
           parentId: 1,
-          users: { connect: [{ id: 4 }] },
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
@@ -481,7 +479,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       const { createdAt, updatedAt, ...expectedEvType } = evType;
-      expect(prismaMock.eventType.create).toHaveBeenCalledWith({
+      expect(prismaMock.eventType.createMany).toHaveBeenCalledWith({
         data: {
           ...expectedEvType,
           bookingLimits: undefined,
@@ -496,12 +494,6 @@ describe("handleChildrenEventTypes", () => {
           restrictionScheduleId: null,
           parentId: 1,
           userId: 5,
-          users: {
-            connect: [{ id: 5 }],
-          },
-          workflows: {
-            create: [{ workflowId: 11 }],
-          },
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
           useEventLevelSelectedCalendars: false,

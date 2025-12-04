@@ -185,10 +185,6 @@ export default async function handleChildrenEventTypes({
         eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
         onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
         userId,
-        // if we know the users exists in db, userId is enough and connect is not needed
-        users: {
-          connect: [{ id: userId }],
-        },
         parentId,
         hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
         /**
@@ -224,6 +220,7 @@ export default async function handleChildrenEventTypes({
 
         await tx.workflowsOnEventTypes.createMany({
           data: workflowConnections,
+          skipDuplicates: true,
         });
       }
     });
