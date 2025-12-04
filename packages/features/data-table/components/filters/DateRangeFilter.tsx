@@ -33,10 +33,11 @@ import {
 import { preserveLocalTime } from "../../lib/preserveLocalTime";
 import type { FilterableColumn, DateRangeFilterOptions } from "../../lib/types";
 import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
+import type { FilterType } from "@calcom/types/data-table";
 import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 
 type DateRangeFilterProps = {
-  column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
+  column: Extract<FilterableColumn, { type: Extract<FilterType, "dr"> }>;
   options?: DateRangeFilterOptions;
   showColumnName?: boolean;
   showClearButton?: boolean;
@@ -220,7 +221,7 @@ export const DateRangeFilter = ({
                   key={option.value}
                   data-testid={`date-range-options-${option.value}`}
                   className={classNames(
-                    "cursor-pointer justify-between px-3 py-2",
+                    "cursor-pointer justify-between px-3 py-2 rounded-none",
                     selectedPreset.value === option.value && "bg-emphasis"
                   )}
                   onSelect={() => {
