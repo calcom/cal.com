@@ -42,10 +42,10 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
     throw new Error(
       JSON.stringify({
         email: email,
-        calcomUserId: managedUserResponseBody.data?.user.id,
-        calcomUsername: managedUserResponseBody.data?.user.username,
-        refreshToken: managedUserResponseBody.data?.refreshToken,
-        accessToken: managedUserResponseBody.data?.accessToken,
+        calcomUserId: managedUserResponseBody.data?.user.id || "not-defined",
+        calcomUsername: managedUserResponseBody.data?.user.username || "not-defined",
+        refreshToken: managedUserResponseBody.data?.refreshToken || "not-defined",
+        accessToken: managedUserResponseBody.data?.accessToken || "not-defined",
         testkey: "asd",
       })
     );
