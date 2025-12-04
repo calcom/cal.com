@@ -109,7 +109,7 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         filter: {
           type: ColumnFilterType.DATE_RANGE,
           dateRangeOptions: {
-            range: status === "past" || status === "cancelled" ? "past" : "custom",
+            range: status === "past" ? "past" : "custom",
           },
         },
       },
