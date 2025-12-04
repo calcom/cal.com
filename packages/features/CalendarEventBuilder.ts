@@ -235,7 +235,9 @@ export class CalendarEventBuilder {
       );
 
       const hostsWithoutOrganizer = await Promise.all(
-        hostsToInclude.map((h) => _buildPersonFromUser(h.user))
+        hostsToInclude
+          .filter((host) => host.user.email !== user.email)
+          .map((host) => _buildPersonFromUser(host.user))
       );
 
       const hostCalendars = [
