@@ -1,3 +1,5 @@
+import { createRateLimitMiddleware } from "@calcom/trpc/server/middlewares/unkeyRateLimitMiddleware";
+import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -7,7 +9,9 @@ import { ZSyncTemplatesInputSchema } from "./syncTemplates.schema";
 const UNSTABLE_HANDLER_CACHE: any = {};
 
 const appWhatsappBusiness = router({
-  syncTemplates: publicProcedure
+  syncTemplates: authedProcedure
+    .use(createRateLimitMiddleware("template.sync", 3, "30 m"))
+
     .input(ZSyncTemplatesInputSchema)
     .mutation(async ({ ctx, input }) => {
       if (!UNSTABLE_HANDLER_CACHE.syncTemplatesHandler) {
