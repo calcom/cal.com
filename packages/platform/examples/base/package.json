@@ -12,8 +12,7 @@
     "test:e2e:ui": "playwright test --ui",
     "db:push:test": "prisma db push --schema=prisma/schema.test.prisma",
     "db:generate:test": "prisma generate --schema=prisma/schema.test.prisma",
-    "db:reset:test": "rm -f prisma/test.db && yarn db:push:test",
-    "db:reset:remove": "echo 'Removing test database file...' && rm -f prisma/test.db"
+    "db:reset:test": "rm -f prisma/test.db && yarn db:push:test"
   },
   "dependencies": {
     "@calcom/atoms": "workspace:*",
