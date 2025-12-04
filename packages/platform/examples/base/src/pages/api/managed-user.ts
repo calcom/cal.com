@@ -19,6 +19,17 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
     },
   });
 
+  throw new Error(
+    JSON.stringify(
+      {
+        NEXT_PUBLIC_CALCOM_API_URL: process.env.NEXT_PUBLIC_CALCOM_API_URL,
+        NEXT_PUBLIC_X_CAL_ID: process.env.NEXT_PUBLIC_X_CAL_ID,
+        NEXT_PUBLIC_X_CAL_ID_SHORT: process.env.NEXT_PUBLIC_X_CAL_ID?.substr(0, 5),
+      },
+      null,
+      2
+    )
+  );
   const managedUserResponse = await fetch(
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
     {
