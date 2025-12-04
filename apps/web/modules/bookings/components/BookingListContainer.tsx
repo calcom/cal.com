@@ -25,6 +25,7 @@ import { useBookingListColumns } from "~/bookings/hooks/useBookingListColumns";
 import { useBookingListData } from "~/bookings/hooks/useBookingListData";
 import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
+import { useListNavigationCapabilities } from "~/bookings/hooks/useListNavigationCapabilities";
 
 import {
   BookingDetailsSheetStoreProvider,
@@ -221,12 +222,13 @@ function BookingListInner({
 }
 
 export function BookingListContainer(props: BookingListContainerProps) {
-  const { limit, offset } = useDataTable();
+  const { limit, offset, setPageIndex } = useDataTable();
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
     useBookingFilters();
 
-  const query = trpc.viewer.bookings.get.useQuery(
-    {
+  // Build query input once - shared between query and prefetching
+  const queryInput = useMemo(
+    () => ({
       limit,
       offset,
       filters: {
@@ -242,17 +244,40 @@ export function BookingListContainer(props: BookingListContainerProps) {
           : undefined,
         beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
       },
-    },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
-      gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
-    }
+    }),
+    [
+      limit,
+      offset,
+      props.status,
+      eventTypeIds,
+      teamIds,
+      userIds,
+      attendeeName,
+      attendeeEmail,
+      bookingUid,
+      dateRange,
+    ]
   );
+
+  const query = trpc.viewer.bookings.get.useQuery(queryInput, {
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
+    gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+  });
 
   const bookings = useMemo(() => query.data?.bookings ?? [], [query.data?.bookings]);
 
+  // Always call the hook and provide navigation capabilities
+  // The BookingDetailsSheet is only rendered when bookingsV3Enabled is true (see line 212)
+  const capabilities = useListNavigationCapabilities({
+    limit,
+    offset,
+    totalCount: query.data?.totalCount,
+    setPageIndex,
+    queryInput,
+  });
+
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings}>
+    <BookingDetailsSheetStoreProvider bookings={bookings} capabilities={capabilities}>
       <BookingListInner
         {...props}
         data={query.data}

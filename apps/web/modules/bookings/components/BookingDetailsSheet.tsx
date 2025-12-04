@@ -42,10 +42,7 @@ import { BookingActionsDropdown } from "../../../components/booking/actions/Book
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
-import {
-  useBookingDetailsSheetStore,
-  useBookingDetailsSheetStoreApi,
-} from "../store/bookingDetailsSheetStore";
+import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
 
@@ -108,29 +105,33 @@ function BookingDetailsSheetInner({
     }
   );
 
-  // Get navigation state directly from the store
-  const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
-  const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
-  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
+  // Get navigation state from the store in a single selector
+  const navigation = useBookingDetailsSheetStore((state) => {
+    const hasNextInArray = state.hasNextInArray();
+    const hasPreviousInArray = state.hasPreviousInArray();
+    const isLastInArray = state.isLastInArray();
+    const isFirstInArray = state.isFirstInArray();
+
+    return {
+      navigateNext: state.navigateNext,
+      navigatePrevious: state.navigatePrevious,
+      isTransitioning: state.isTransitioning,
+      setSelectedBookingUid: state.setSelectedBookingUid,
+      canGoNext: hasNextInArray || (isLastInArray && state.capabilities?.canNavigateToNextPeriod()),
+      canGoPrev: hasPreviousInArray || (isFirstInArray && state.capabilities?.canNavigateToPreviousPeriod()),
+    };
+  });
 
   const handleClose = () => {
-    setSelectedBookingUid(null);
+    navigation.setSelectedBookingUid(null);
   };
 
-  const storeApi = useBookingDetailsSheetStoreApi();
-
   const handleNext = () => {
-    const nextUid = storeApi.getState().getNextBookingUid();
-    if (nextUid !== null) {
-      setSelectedBookingUid(nextUid);
-    }
+    navigation.navigateNext();
   };
 
   const handlePrevious = () => {
-    const prevUid = storeApi.getState().getPreviousBookingUid();
-    if (prevUid !== null) {
-      setSelectedBookingUid(prevUid);
-    }
+    navigation.navigatePrevious();
   };
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
@@ -213,7 +214,7 @@ function BookingDetailsSheetInner({
                 size="sm"
                 color="secondary"
                 StartIcon="chevron-up"
-                disabled={!hasPrevious}
+                disabled={!navigation.canGoPrev || navigation.isTransitioning}
                 onClick={(e) => {
                   e.preventDefault();
                   handlePrevious();
@@ -224,7 +225,7 @@ function BookingDetailsSheetInner({
                 size="sm"
                 color="secondary"
                 StartIcon="chevron-down"
-                disabled={!hasNext}
+                disabled={!navigation.canGoNext || navigation.isTransitioning}
                 onClick={(e) => {
                   e.preventDefault();
                   handleNext();
