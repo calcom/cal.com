@@ -234,8 +234,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest,
     // autoTranslate feature is allowed for org users only
     autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
-    // autoTranslateInstantMeetingTitleEnabled defaults to true (opt-out), so we save the value as-is
-    autoTranslateInstantMeetingTitleEnabled: autoTranslateInstantMeetingTitleEnabled ?? true,
+    // Only update autoTranslateInstantMeetingTitleEnabled when explicitly provided to avoid overwriting saved opt-out
+    ...(autoTranslateInstantMeetingTitleEnabled !== undefined && { autoTranslateInstantMeetingTitleEnabled }),
     description: newDescription,
     title: newTitle,
     bookingFields,
