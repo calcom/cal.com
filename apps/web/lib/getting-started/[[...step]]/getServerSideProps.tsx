@@ -97,7 +97,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     user.identityProvider === "GOOGLE" &&
     (!user.metadata || (has_google_signup_tracked && hasNotStartedOnboarding) || google_signup_tracked)
   ) {
-    console.log("Signup tracked: ", google_signup_tracked);
     google_signup_to_be_tracked = true;
     await prisma.user.update({
       where: { id: session.user.id },
