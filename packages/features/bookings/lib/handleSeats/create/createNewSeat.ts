@@ -60,11 +60,12 @@ const createNewSeat = async (
 
   if (videoCallReference) {
     const isDailyVideo = videoCallReference.type === "daily_video";
+    const bookingUid = evt.uid ?? seatedBooking.uid;
     evt.videoCallData = {
       type: videoCallReference.type,
       id: videoCallReference.meetingId,
       password: videoCallReference?.meetingPassword,
-      url: isDailyVideo && evt.uid ? getPublicVideoCallUrl(evt) : videoCallReference.meetingUrl,
+      url: isDailyVideo && bookingUid ? getPublicVideoCallUrl({ uid: bookingUid }) : videoCallReference.meetingUrl,
     };
   }
 
