@@ -14,7 +14,7 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   timeout: DEFAULT_TEST_TIMEOUT,
   fullyParallel: false,
   globalTeardown: require.resolve("./global-teardown"),
