@@ -191,9 +191,6 @@ export default async function handleChildrenEventTypes({
         },
         parentId,
         hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-        workflows: currentWorkflowIds && {
-          create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
-        },
         /**
          * RR Segment isn't applicable for managed event types.
          */
