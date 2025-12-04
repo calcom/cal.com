@@ -387,12 +387,7 @@ export default function Success(props: PageProps) {
   const canReschedule = !eventType?.disableRescheduling;
 
   // Check if reschedule should be disabled due to minimum reschedule notice
-  const isUserOrganizer = !!(
-    session?.user?.id &&
-    bookingInfo?.user?.id &&
-    session.user.id === bookingInfo.user.id
-  );
-  const isWithinMinimumRescheduleNotice = isUserOrganizer
+  // Use server-side computed isHost prop instead of client-side computation
     ? false // Organizers can always reschedule
     : isWithinMinimumRescheduleNoticeUtil(
         bookingInfo?.startTime ?? null,
