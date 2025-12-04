@@ -87,6 +87,7 @@ export interface OnboardingState {
 
   // Reset
   resetOnboarding: () => void;
+  resetOnboardingPreservingPlan: () => void;
 }
 
 const initialState = {
@@ -167,6 +168,11 @@ export const useOnboardingStore = create<OnboardingState>()(
         })),
 
       resetOnboarding: () => set(initialState),
+      resetOnboardingPreservingPlan: () =>
+        set((state) => ({
+          ...initialState,
+          selectedPlan: state.selectedPlan,
+        })),
     }),
     {
       name: "cal-onboarding-storage", // Storage key
