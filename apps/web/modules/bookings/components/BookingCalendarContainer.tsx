@@ -1,12 +1,10 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import { useQueryState } from "nuqs";
 import React, { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { DataTableFilters } from "@calcom/features/data-table";
-import { activeFiltersParser } from "@calcom/features/data-table/lib/parsers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -161,12 +159,9 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
   const { canReadOthersBookings } = props.permissions;
   const { userIds } = useBookingFilters();
   const { currentWeekStart } = useCurrentWeekStart();
-  const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
 
   const allowedFilterIds = useCalendarAllowedFilters({
     canReadOthersBookings,
-    activeFilters,
-    setActiveFilters,
   });
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(

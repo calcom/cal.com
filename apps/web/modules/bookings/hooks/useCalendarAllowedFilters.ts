@@ -1,38 +1,35 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
+
+import { ColumnFilterType, useDataTable } from "@calcom/features/data-table";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 /**
  * Custom hook to manage allowed filters for calendar view
- * - Auto-selects first allowed filter when no filters are active
- * - Removes disallowed filters when transitioning from list view
+ * - Users without permission to read others' bookings: no filters
+ * - Users with permission to read others' bookings: userId filter with their own ID as default
  */
-export function useCalendarAllowedFilters({
-  canReadOthersBookings,
-  activeFilters,
-  setActiveFilters,
-}: {
-  canReadOthersBookings: boolean;
-  activeFilters: Array<{ f: string }>;
-  setActiveFilters: (filters: Array<{ f: string }>) => void;
-}) {
+export function useCalendarAllowedFilters({ canReadOthersBookings }: { canReadOthersBookings: boolean }) {
+  const { data: user } = useMeQuery();
+  const { updateFilter, clearAll } = useDataTable();
   const allowedFilterIds = useMemo(() => (canReadOthersBookings ? ["userId"] : []), [canReadOthersBookings]);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    // Auto-select first allowed filter when no filters are active and filters are available
-    // Actually this is to show "Member" filter automatically for owner / admin users,
-    // because we only support that filter on the calendar view.
-    if (activeFilters.length === 0 && allowedFilterIds.length > 0) {
-      setActiveFilters([{ f: allowedFilterIds[0] }]);
-      return;
-    }
+    if (!user || hasInitialized.current) return;
 
-    // Clear all the non-allowed filters (in case coming from list view)
-    const filteredActiveFilters = activeFilters.filter((filter) => allowedFilterIds.includes(filter.f));
-    const hasDisallowedFilters = filteredActiveFilters.length !== activeFilters.length;
+    hasInitialized.current = true;
 
-    if (hasDisallowedFilters) {
-      setActiveFilters(filteredActiveFilters);
+    // Clear all filters first (in case coming from list view with different filters)
+    clearAll();
+
+    // Then set the appropriate filter for users with permission
+    if (canReadOthersBookings) {
+      updateFilter("userId", {
+        type: ColumnFilterType.MULTI_SELECT,
+        data: [user.id],
+      });
     }
-  }, [allowedFilterIds, activeFilters, setActiveFilters]);
+  }, [user, canReadOthersBookings, updateFilter, clearAll]);
 
   return allowedFilterIds;
 }
