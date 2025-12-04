@@ -54,7 +54,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   const formSchema = z.object({
     invites: z.array(
       z.object({
-        email: z.string().email(t("invalid_email_address")),
+        email: z.union([z.literal(""), z.string().email(t("invalid_email_address"))]),
         role: z.enum(["MEMBER", "ADMIN"]),
       })
     ),
@@ -138,7 +138,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       {/* Left column - Main content */}
       <div className="flex h-full w-full flex-col gap-4">
         <OnboardingCard
-          title={t("invite_via_email")}
+          title={t("invite")}
           subtitle={t("team_invite_subtitle")}
           footer={
             <div className="flex w-full items-center justify-end gap-4">
@@ -151,7 +151,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                   {t("onboarding_skip_for_now")}
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   color="primary"
                   className="rounded-[10px]"
                   disabled={!hasValidInvites || isSubmitting}
