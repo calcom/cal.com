@@ -40,11 +40,14 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
   const shouldThrow = true;
   if (shouldThrow) {
     throw new Error(
-      `asap managedUserResponseBody and has access token: ${JSON.stringify(
-        managedUserResponseBody.data,
-        null,
-        2
-      )}`
+      JSON.stringify({
+        email: email,
+        calcomUserId: managedUserResponseBody.data?.user.id,
+        calcomUsername: managedUserResponseBody.data?.user.username,
+        refreshToken: managedUserResponseBody.data?.refreshToken,
+        accessToken: managedUserResponseBody.data?.accessToken,
+        testkey: "asd",
+      })
     );
   }
 
