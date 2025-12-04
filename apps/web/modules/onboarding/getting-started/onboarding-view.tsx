@@ -25,9 +25,14 @@ type OnboardingViewProps = {
 export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { selectedPlan, setSelectedPlan } = useOnboardingStore();
+  const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Reset onboarding data when visiting this page, but preserve the selected plan
+  useEffect(() => {
+    resetOnboardingPreservingPlan();
+  }, [resetOnboardingPreservingPlan]);
 
   // Plan order mapping for determining direction
   const planOrder: Record<PlanType, number> = {
