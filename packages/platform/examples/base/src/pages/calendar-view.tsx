@@ -10,7 +10,8 @@ export default function CalendarViewAtom(props: { calUsername: string; calEmail:
     <main className={`flex min-h-screen flex-col ${inter.className}`}>
       <Navbar username={props.calUsername} />
       <div data-testid="calendars-settings-atom">
-        <CalendarView username={props.calUsername} eventSlug="sixty-minutes" />
+        {/* <CalendarView isEventTypeView={true} username={props.calUsername} eventSlug="sixty-minutes" /> */}
+        <CalendarView />
       </div>
     </main>
   );

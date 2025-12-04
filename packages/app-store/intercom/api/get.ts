@@ -13,6 +13,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.setHeader("Content-Type", "text/html");
 
+    let origin = WEBAPP_URL;
+    let calLink = url;
+
+    if (/^https?:\/\//i.test(url)) {
+      try {
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname.toLowerCase();
+        
+        if (hostname === "cal.com" || hostname.endsWith(".cal.com")) {
+          origin = parsedUrl.origin;
+          calLink = parsedUrl.pathname + parsedUrl.search;
+          if (calLink.startsWith("/")) {
+            calLink = calLink.substring(1);
+          }
+        } else {
+          return res.status(400).json({ message: "URL must be for cal.com or a subdomain of cal.com" });
+        }
+      } catch {
+        return res.status(400).json({ message: "Invalid URL format" });
+      }
+    } else {
+      calLink = url.replace(`${WEBAPP_URL}/`, "");
+    }
+
     // Generate HTML with embedded Cal component
     const htmlResponse = `
       <!DOCTYPE html>
@@ -56,11 +80,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 };
             })(window, "https://app.cal.com/embed/embed.js", "init");
 
-            Cal("init", { origin: "${WEBAPP_URL}" });
+            Cal("init", { origin: "${origin}" });
 
             Cal("inline", {
               elementOrSelector: "#my-cal-inline",
-              calLink: "${url.replace(`${WEBAPP_URL}/`, "")}",
+              calLink: "${calLink}",
               config: {
                 theme: "light",
               },

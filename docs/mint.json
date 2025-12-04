@@ -217,6 +217,7 @@
             "platform/atoms/apple-calendar-connect",
             "platform/atoms/availability-settings",
             "platform/atoms/booker",
+            "platform/atoms/booker-embed",
             "platform/atoms/cal-provider",
             "platform/atoms/calendar-settings",
             "platform/atoms/calendar-view",

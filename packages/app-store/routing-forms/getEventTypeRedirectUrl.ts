@@ -86,7 +86,8 @@ export function getAbsoluteEventTypeRedirectUrl({
   if (teamSlugInRedirectUrl && form.nonOrgTeamslug) {
     const isEventTypeRedirectToOldTeamSlug = teamSlugInRedirectUrl === form.nonOrgTeamslug;
     if (isEventTypeRedirectToOldTeamSlug) {
-      return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      const joiner = eventTypeRedirectUrl.includes("?") ? "&" : "?";
+      return `${WEBAPP_URL}/${eventTypeRedirectUrl}${joiner}${allURLSearchParams}`;
     }
   }
 
@@ -95,7 +96,8 @@ export function getAbsoluteEventTypeRedirectUrl({
     const isEventTypeRedirectToOldUser =
       !hasSameProfileUsername && usernameInRedirectUrl === form.nonOrgUsername;
     if (isEventTypeRedirectToOldUser) {
-      return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      const joiner = eventTypeRedirectUrl.includes("?") ? "&" : "?";
+      return `${WEBAPP_URL}/${eventTypeRedirectUrl}${joiner}${allURLSearchParams}`;
     }
   }
 
@@ -106,7 +108,8 @@ export function getAbsoluteEventTypeRedirectUrl({
     ? form.teamOrigin
     : form.userOrigin;
 
-  return `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+  const joiner = eventTypeRedirectUrl.includes("?") ? "&" : "?";
+  return `${origin}/${eventTypeRedirectUrl}${joiner}${allURLSearchParams}`;
 }
 
 export function getAbsoluteEventTypeRedirectUrlWithEmbedSupport(

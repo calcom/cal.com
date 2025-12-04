@@ -406,19 +406,22 @@ export class EmailWorkflowService {
 
     const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
 
-    const attendeeT = await getTranslation(evt.attendees[0].language.locale || "en", "common");
-
-    const attendee = {
-      ...evt.attendees[0],
-      name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
-      language: { ...evt.attendees[0].language, translate: attendeeT },
-    };
+    const processedAttendees = await Promise.all(
+      evt.attendees.map(async (attendee) => {
+        const attendeeT = await getTranslation(attendee.language.locale || "en", "common");
+        return {
+          ...attendee,
+          name: preprocessNameFieldDataWithVariant("fullName", attendee.name) as string,
+          language: { ...attendee.language, translate: attendeeT },
+        };
+      })
+    );
 
     const emailEvent = {
       ...evt,
       type: evt.eventType?.slug || "",
       organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
-      attendees: [attendee],
+      attendees: processedAttendees,
       location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
