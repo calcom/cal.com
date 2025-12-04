@@ -31,6 +31,13 @@ export function rateLimiter() {
   };
 
   const limiter = {
+    "template.sync": new Ratelimit({
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "template.sync",
+      limit: 3,
+      duration: "30m",
+      timeout,
+    }),
     core: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
       namespace: "core",
