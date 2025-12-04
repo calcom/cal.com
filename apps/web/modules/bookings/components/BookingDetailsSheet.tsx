@@ -391,7 +391,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
-      <div className="flex flex-col gap-3">
+      <div className="mt-2 flex flex-col gap-2">
         {booking.user && (
           <div className="flex items-center gap-4">
             <Avatar
@@ -431,8 +431,8 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
                 alt={name}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-emphasis truncate text-sm">{name}</p>
-                <p className="text-default truncate text-sm">{attendee.email}</p>
+                <p className="text-emphasis truncate text-sm leading-[1.2]">{name}</p>
+                <p className="text-default truncate text-sm leading-[1.2]">{attendee.email}</p>
               </div>
             </div>
           );
