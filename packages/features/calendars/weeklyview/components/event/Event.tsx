@@ -17,15 +17,15 @@ type EventProps = {
 };
 
 const eventClasses = cva(
-  "group flex h-full w-full overflow-hidden rounded-[6px] px-[6px] text-xs leading-5 opacity-80 border-default font-medium",
+  "group flex h-full w-full overflow-hidden rounded-[6px] px-[6px] text-xs leading-5 border-default font-medium",
   {
     variants: {
       status: {
         ACCEPTED: "bg-subtle hover:bg-emphasis text-emphasis border-[1px] border-default",
-        PENDING: "bg-muted text-emphasis border-[1px] border-dashed border-default",
-        REJECTED: "bg-muted border-[1px] text-subtle line-through",
-        CANCELLED: "bg-muted border-[1px] text-subtle line-through",
-        AWAITING_HOST: "bg-muted text-emphasis border-[1px] border-dashed border-default",
+        PENDING: "bg-subtle text-subtle border-[1px] border-dashed border-default",
+        REJECTED: "bg-subtle border-[1px] border-dashed text-subtle line-through",
+        CANCELLED: "bg-subtle border-[1px] border-dashed text-subtle line-through",
+        AWAITING_HOST: "bg-subtle text-emphasis border-[1px] border-dashed border-default",
       },
       disabled: {
         true: "hover:cursor-default",
@@ -39,20 +39,20 @@ const eventClasses = cva(
   }
 );
 
+const STATUS_COLOR_MAP: Record<BookingStatus, string> = {
+  ACCEPTED: "bg-green-500",
+  PENDING: "bg-orange-500",
+  REJECTED: "bg-red-500",
+  CANCELLED: "bg-red-500",
+  AWAITING_HOST: "bg-blue-500",
+};
+
 // Maps booking status to color classes for the color bar
 // Follows the same pattern as BookingDetailsSheet badge variants
 const getStatusColorClass = (status?: BookingStatus): string | undefined => {
   if (!status) return undefined;
 
-  const statusColorMap: Record<BookingStatus, string> = {
-    ACCEPTED: "bg-green-500",
-    PENDING: "bg-orange-500",
-    REJECTED: "bg-red-500",
-    CANCELLED: "bg-red-500",
-    AWAITING_HOST: "bg-blue-500",
-  };
-
-  return statusColorMap[status];
+  return STATUS_COLOR_MAP[status];
 };
 
 export function Event({
