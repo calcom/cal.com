@@ -253,7 +253,7 @@ export class InputEventTypesService_2024_06_14 {
       requiresConfirmationWillBlockSlot:
         confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(color),
-      ...this.transformInputSeatOptions(seats),
+      ...(seats ? this.transformInputSeatOptions(seats) : { seatsPerTimeSlot: undefined }),
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,
