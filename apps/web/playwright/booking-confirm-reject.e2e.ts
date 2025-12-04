@@ -172,4 +172,3 @@ test.describe("Booking Confirmation and Rejection via API", () => {
     expect(updatedBooking?.oneTimePassword).toBeNull();
   });
 });
-
