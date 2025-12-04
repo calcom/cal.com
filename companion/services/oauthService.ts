@@ -1,10 +1,9 @@
 /// <reference types="chrome" />
-
-import * as AuthSession from "expo-auth-session";
-import * as WebBrowser from "expo-web-browser";
-import * as Crypto from "expo-crypto";
-import { Platform } from "react-native";
 import { fromByteArray } from "base64-js";
+import * as AuthSession from "expo-auth-session";
+import * as Crypto from "expo-crypto";
+import * as WebBrowser from "expo-web-browser";
+import { Platform } from "react-native";
 
 // Complete warm up for WebBrowser on mobile
 WebBrowser.maybeCompleteAuthSession();
@@ -292,9 +291,7 @@ export class CalComOAuthService {
 
   private async getDiscoveryEndpoints(): Promise<AuthSession.DiscoveryDocument> {
     try {
-      const discovery = await AuthSession.fetchDiscoveryAsync(
-        `${this.config.calcomBaseUrl}/.well-known/openid_configuration`
-      );
+      const discovery = await AuthSession.fetchDiscoveryAsync(this.config.calcomBaseUrl);
       return discovery;
     } catch {
       return {
