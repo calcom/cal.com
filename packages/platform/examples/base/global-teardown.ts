@@ -2,7 +2,9 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 
-dotenv.config({ path: path.resolve(__dirname, ".env.e2e") });
+if (!process.env.CI) {
+  dotenv.config({ path: path.resolve(__dirname, ".env.e2e") });
+}
 async function globalTeardown() {
   console.log("Cleaning up managed users...");
   try {
