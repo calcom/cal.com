@@ -10,6 +10,7 @@ import {
   NGROK_URL,
   WEBAPP_URL,
   INNGEST_ID,
+  META_API_VERSION,
   WHATSAPP_CANCELLED_SID,
   WHATSAPP_COMPLETED_SID,
   WHATSAPP_REMINDER_SID,
@@ -81,7 +82,6 @@ const messageLogger = logger.getSubLogger({ prefix: ["[metaProvider]"] });
 const isTestingMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
 // Meta API Configuration
-const META_API_VERSION = process.env.META_WHATSAPP_API_VERSION || "v21.0";
 const META_ACCESS_TOKEN = process.env.META_WHATSAPP_ACCESS_TOKEN;
 const META_PHONE_NUMBER_ID = process.env.META_WHATSAPP_PHONE_NUMBER_ID;
 const META_API_BASE_URL = `https://graph.facebook.com/${META_API_VERSION}`;

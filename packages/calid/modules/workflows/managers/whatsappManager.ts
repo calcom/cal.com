@@ -45,10 +45,9 @@ const calculateScheduledDateTime = (
     case WorkflowTriggerEvents.NEW_EVENT:
       return dayjs().add(time, normalizedUnit);
     case WorkflowTriggerEvents.EVENT_CANCELLED:
+      return dayjs().add(time, normalizedUnit);
     case WorkflowTriggerEvents.RESCHEDULE_EVENT:
-      // For traditionally immediate events, schedule relative to event start time
-      // You can modify this logic based on your specific requirements
-      return dayjs(eventStartTime).add(time, normalizedUnit);
+      return dayjs().add(time, normalizedUnit);
     default:
       return null;
   }

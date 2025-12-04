@@ -38,6 +38,8 @@ import { Editor } from "@calcom/ui/components/editor";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Select } from "@calcom/ui/components/form";
 
+import { TRPCError } from "@trpc/server";
+
 import { DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
 import {
@@ -327,6 +329,36 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       }
     },
   });
+
+  const [syncingTemplates, setSyncingTemplates] = useState(false);
+
+  const syncTemplatesMutation = trpc.viewer.appWhatsappBusiness.syncTemplates.useMutation({
+    onSuccess(data, variables) {
+      setSyncingTemplates(false);
+      triggerToast(t("successfully_synced"), "success");
+    },
+    onError: (e) => {
+      setSyncingTemplates(false);
+      console.log("error: ", e)
+      if (e instanceof Error) {
+        triggerToast(`${e.message}`, "error");
+      } else {
+        triggerToast(`${t("sync_failed")}`, "error");
+      }
+    },
+  });
+
+  const handleSyncTemplates = useCallback(() => {
+    setSyncingTemplates(true);
+    if (selectedPhoneNumberId) {
+      syncTemplatesMutation.mutate({
+        phoneNumberId: selectedPhoneNumberId,
+      });
+    } else {
+      setSyncingTemplates(false);
+      triggerToast("Select a phone number", "error");
+    }
+  }, [selectedPhoneNumberId, syncTemplatesMutation]);
 
   const sendEmailVerificationCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
     onSuccess(data, variables) {
@@ -1507,16 +1539,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                         <div className="bg-default mt-4 rounded-md">
                                           <div className="flex items-center justify-between">
                                             <Label>WhatsApp Business Phone Number</Label>
-                                            {step.metaTemplatePhoneNumberId && (
-                                              <Button
-                                                color="minimal"
-                                                size="sm"
-                                                onClick={() => setIsVariableDocsOpen(true)}
-                                                className="flex items-center gap-1 text-xs">
-                                                <Icon name="info" className="h-4 w-4" />
-                                                View Available Variables
-                                              </Button>
-                                            )}
                                           </div>
                                           <Select
                                             value={
@@ -1534,6 +1556,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                 : { value: "", label: "Default" }
                                             }
                                             onChange={(option) => {
+                                              // Handle redirect for setup option
+                                              if (option?.value === "setup") {
+                                                window.open("/apps/whatsapp-business", "_blank"); // To prevent user from accidently exiting the page without saving
+                                                return;
+                                              }
+
                                               updateAction(
                                                 step.id,
                                                 "metaTemplatePhoneNumberId",
@@ -1545,10 +1573,17 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             }}
                                             options={[
                                               { value: "", label: "Default" },
-                                              ...(whatsAppPhones?.map((phone) => ({
-                                                value: phone.id,
-                                                label: phone.phoneNumber,
-                                              })) || []),
+                                              ...(whatsAppPhones && whatsAppPhones.length > 0
+                                                ? whatsAppPhones.map((phone) => ({
+                                                    value: phone.id,
+                                                    label: phone.phoneNumber,
+                                                  }))
+                                                : [
+                                                    {
+                                                      value: "setup",
+                                                      label: "→ Set up WhatsApp Business Phone",
+                                                    },
+                                                  ]),
                                             ]}
                                             isDisabled={readOnly}
                                             className="mt-1"
@@ -1558,7 +1593,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
                                       {!step.metaTemplatePhoneNumberId && (
                                         <div className="mt-5">
-                                          <Label>Message template</Label>
+                                          <Label>Message Template</Label>
                                           <Select
                                             value={
                                               templateOptions.find(
@@ -1582,7 +1617,20 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                       {/* WhatsApp Template Selector */}
                                       {step.metaTemplatePhoneNumberId && whatsAppTemplates && (
                                         <div className="bg-default mt-4 rounded-md">
-                                          <Label>Message Template</Label>
+                                          <div className="flex items-center justify-between">
+                                            <Label>Message template</Label>
+                                            {step.metaTemplatePhoneNumberId && (
+                                              <Button
+                                                color="minimal"
+                                                size="sm"
+                                                loading={syncingTemplates}
+                                                onClick={() => handleSyncTemplates()}
+                                                className="flex items-center gap-1 text-xs">
+                                                <Icon name="info" className="h-4 w-4" />
+                                                Sync templates
+                                              </Button>
+                                            )}
+                                          </div>
                                           <Select
                                             value={
                                               whatsAppTemplates.find(
@@ -1818,12 +1866,21 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                         )}
 
                                         {/* Message Body */}
-                                        <div className="mb-2 flex items-center pb-1">
+                                        <div className="mb-2 flex items-center justify-between">
                                           <Label className="mb-0 flex-none">
                                             {isEmailAction(step.action) ? t("email_body") : t("text_message")}
                                           </Label>
+                                          {step.metaTemplatePhoneNumberId && (
+                                            <Button
+                                              color="minimal"
+                                              size="sm"
+                                              onClick={() => setIsVariableDocsOpen(true)}
+                                              className="flex items-center gap-1 text-xs">
+                                              <Icon name="info" className="h-4 w-4" />
+                                              View Available Variables
+                                            </Button>
+                                          )}
                                         </div>
-
                                         <div
                                           className={cn("rounded-md border", {
                                             "cursor-not-allowed":
