@@ -207,7 +207,7 @@ export class BookingAuditTaskConsumer {
             case "id":
                 return actor.id;
             case "user": {
-                const userActor = await this.auditActorRepository.upsertUserActor({ userUuid: actor.userUuid });
+                const userActor = await this.auditActorRepository.createIfNotExistsUserActor({ userUuid: actor.userUuid });
                 return userActor.id;
             }
             case "attendee": {
@@ -218,10 +218,10 @@ export class BookingAuditTaskConsumer {
                 return attendeeActor.id;
             }
             case "guest": {
-                const guestActor = await this.auditActorRepository.upsertGuestActor(
-                    actor.email ?? "",
-                    actor.name,
-                    actor.phone
+                const guestActor = await this.auditActorRepository.createIfNotExistsGuestActor(
+                    actor.email ?? null,
+                    actor.name ?? null,
+                    actor.phone ?? null
                 );
                 return guestActor.id;
             }

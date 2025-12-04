@@ -30,14 +30,18 @@ export class BookingEventHandlerService {
       // We might get more clarity as we implement more actions and test them
       return;
     }
-    await this.deps.bookingAuditProducerService.queueAudit(payload.booking.uid, actor, payload.organizationId, {
-      action: "CREATED",
-      data: {
-        startTime: payload.booking.startTime.getTime(),
-        endTime: payload.booking.endTime.getTime(),
-        status: payload.booking.status,
-      },
-    });
+    try {
+      await this.deps.bookingAuditProducerService.queueAudit(payload.booking.uid, actor, payload.organizationId, {
+        action: "CREATED",
+        data: {
+          startTime: payload.booking.startTime.getTime(),
+          endTime: payload.booking.endTime.getTime(),
+          status: payload.booking.status,
+        },
+      });
+    } catch (error) {
+      this.log.error("Error while queueing booking audit", safeStringify(error));
+    }
   }
 
   async onBookingRescheduled(payload: BookingRescheduledPayload) {

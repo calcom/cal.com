@@ -61,7 +61,7 @@ describe("Booking Audit Integration", () => {
     const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
     testBookingUid = `test-booking-${timestamp}-${randomSuffix}`;
 
-    await prisma.booking.create({
+    const testBooking = await prisma.booking.create({
       data: {
         uid: testBookingUid,
         title: "Test Booking",
@@ -90,7 +90,7 @@ describe("Booking Audit Integration", () => {
         email: testAttendeeEmail,
         name: "Test Attendee",
         timeZone: "UTC",
-        bookingId: (await prisma.booking.findUnique({ where: { uid: testBookingUid }, select: { id: true } }))!.id,
+        bookingId: testBooking.id,
       },
     });
   });
@@ -185,9 +185,9 @@ describe("Booking Audit Integration", () => {
       expect(auditLog.type).toBe("RECORD_CREATED");
 
       // Verify audit data matches (getDisplayJson returns fields only, not versioned wrapper)
-      const displayData = auditLog.data as { startTime: number; endTime: number; status: string };
-      expect(displayData.startTime).toBe(booking!.startTime.getTime());
-      expect(displayData.endTime).toBe(booking!.endTime.getTime());
+      const displayData = auditLog.data
+      expect(displayData.startTime).toBe(booking!.startTime.toISOString());
+      expect(displayData.endTime).toBe(booking!.endTime.toISOString());
       expect(displayData.status).toBe(booking!.status);
     });
 

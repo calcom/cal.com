@@ -61,7 +61,7 @@ export class CreatedAuditActionService implements IAuditActionService<
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }) {
+    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): CreatedAuditDisplayData {
         return {
             startTime: new Date(storedData.fields.startTime).toISOString(),
             endTime: new Date(storedData.fields.endTime).toISOString(),
@@ -71,4 +71,10 @@ export class CreatedAuditActionService implements IAuditActionService<
 }
 
 export type CreatedAuditData = z.infer<typeof fieldsSchemaV1>;
+
+export type CreatedAuditDisplayData = {
+    startTime: string;
+    endTime: string;
+    status: BookingStatus;
+};
 

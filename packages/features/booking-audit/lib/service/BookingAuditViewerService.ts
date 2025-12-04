@@ -1,8 +1,11 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
-import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
+import { CreatedAuditActionService, type CreatedAuditDisplayData } from "../actions/CreatedAuditActionService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
+
+type AuditDisplayData = CreatedAuditDisplayData;
+
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
     userRepository: UserRepository;
@@ -15,7 +18,7 @@ type EnrichedAuditLog = {
     action: BookingAuditAction;
     timestamp: string;
     createdAt: string;
-    data: unknown;
+    data: AuditDisplayData;
     actor: {
         id: string;
         type: string;
