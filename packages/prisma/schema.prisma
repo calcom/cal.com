@@ -1,4 +1,4 @@
-// This is your Prisma Schema file 
+// This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -689,6 +689,16 @@ model OrganizationSettings {
   disablePhoneOnlySMSNotifications    Boolean    @default(false)
   disableAutofillOnBookingPage        Boolean    @default(false)
   orgAutoJoinOnSignup                 Boolean    @default(true)
+
+  disableAttendeeConfirmationEmail      Boolean @default(false)
+  disableAttendeeCancellationEmail      Boolean @default(false)
+  disableAttendeeRescheduledEmail       Boolean @default(false)
+  disableAttendeeRequestEmail           Boolean @default(false)
+  disableAttendeeReassignedEmail        Boolean @default(false)
+  disableAttendeeAwaitingPaymentEmail   Boolean @default(false)
+  disableAttendeeRescheduleRequestEmail Boolean @default(false)
+  disableAttendeeLocationChangeEmail    Boolean @default(false)
+  disableAttendeeNewEventEmail          Boolean @default(false)
 }
 
 enum MembershipRole {
