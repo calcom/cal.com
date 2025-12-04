@@ -8,6 +8,8 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
 
+export const DAILY_VIDEO_TYPE = "daily_video" as const;
+
 const translator = short();
 
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
@@ -417,7 +419,7 @@ export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellatio
 };
 
 export const isDailyVideoCall = (calEvent: Pick<CalendarEvent, "videoCallData">): boolean => {
-  return calEvent?.videoCallData?.type === "daily_video";
+  return calEvent?.videoCallData?.type === DAILY_VIDEO_TYPE;
 };
 
 export const getPublicVideoCallUrl = (calEvent: Pick<CalendarEvent, "uid">): string => {

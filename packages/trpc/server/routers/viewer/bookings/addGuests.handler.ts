@@ -6,7 +6,6 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { getPublicVideoCallUrl } from "@calcom/lib/CalEventParser";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -296,12 +295,11 @@ async function buildCalendarEvent(
   };
 
   if (videoCallReference) {
-    const isDailyVideo = videoCallReference.type === "daily_video";
     evt.videoCallData = {
       type: videoCallReference.type,
       id: videoCallReference.meetingId,
       password: videoCallReference?.meetingPassword,
-      url: isDailyVideo && evt.uid ? getPublicVideoCallUrl(evt) : videoCallReference.meetingUrl,
+      url: videoCallReference.meetingUrl,
     };
   }
 

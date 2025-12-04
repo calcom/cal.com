@@ -13,7 +13,7 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import CrmManager from "@calcom/features/crmManager/crmManager";
 import CRMScheduler from "@calcom/features/crmManager/crmScheduler";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getPublicVideoCallUrl, getUid } from "@calcom/lib/CalEventParser";
+import { getUid } from "@calcom/lib/CalEventParser";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
@@ -337,9 +337,6 @@ export default class EventManager {
 
       if (result?.createdEvent) {
         evt.videoCallData = result.createdEvent;
-        if (evt.videoCallData?.type === "daily_video" && evt.uid) {
-          evt.videoCallData.url = getPublicVideoCallUrl(evt);
-        }
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
@@ -419,9 +416,6 @@ export default class EventManager {
       const result = await this.createVideoEvent(evt);
       if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
-        if (evt.videoCallData?.type === "daily_video" && evt.uid) {
-          evt.videoCallData.url = getPublicVideoCallUrl(evt);
-        }
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
@@ -721,10 +715,7 @@ export default class EventManager {
 
             if (updatedEvent) {
               evt.videoCallData = updatedEvent;
-              if (evt.videoCallData?.type === "daily_video" && evt.uid) {
-                evt.videoCallData.url = getPublicVideoCallUrl(evt);
-              }
-              evt.location = evt.videoCallData?.url || updatedEvent.url;
+              evt.location = updatedEvent.url;
             }
             results.push(result);
           }

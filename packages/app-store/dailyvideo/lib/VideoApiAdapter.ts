@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
+import { getPublicVideoCallUrl } from "@calcom/lib/CalEventParser";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import {
@@ -259,7 +260,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       type: "daily_video",
       id: dailyEvent.name,
       password: meetingToken.token,
-      url: dailyEvent.url,
+      url: getPublicVideoCallUrl(event),
     });
   }
 
@@ -322,7 +323,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     };
   };
 
-  async function createInstantMeeting(endTime: string, region?: RoomGeo) {
+  async function createInstantMeeting(endTime: string, bookingUid: string, region?: RoomGeo) {
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(endTime).getTime() / 1000) + 60 * 60;
     const { scale_plan: scalePlan } = await getDailyAppKeys();
@@ -383,7 +384,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       type: "daily_video",
       id: dailyEvent.name,
       password: meetingToken.token,
-      url: dailyEvent.url,
+      url: getPublicVideoCallUrl({ uid: bookingUid }),
     });
   }
   // Region on which the DailyVideo room is created can be controlled by ENV var
@@ -412,7 +413,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },
-    createInstantCalVideoRoom: (endTime: string) => createInstantMeeting(endTime, region),
+    createInstantCalVideoRoom: (endTime: string, bookingUid: string) => createInstantMeeting(endTime, bookingUid, region),
     getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
       try {
         const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=43200`).then(

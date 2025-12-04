@@ -1,7 +1,6 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
-import { getPublicVideoCallUrl } from "@calcom/lib/CalEventParser";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -155,15 +154,11 @@ export const Handler = async ({ ctx, input }: Options) => {
   }
 
   const videoCallReference = updatedBooking.references.find((reference) => reference.type.includes("_video"));
-  const isDailyVideo = videoCallReference?.type === "daily_video";
   const videoCallData = {
     type: videoCallReference?.type,
     id: videoCallReference?.meetingId,
     password: videoCallReference?.meetingPassword,
-    url:
-      isDailyVideo && updatedBooking.uid
-        ? getPublicVideoCallUrl({ uid: updatedBooking.uid })
-        : videoCallReference?.meetingUrl,
+    url: videoCallReference?.meetingUrl,
   };
 
   const { eventType } = updatedBooking;

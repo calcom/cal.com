@@ -6,7 +6,7 @@ import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getPublicVideoCallUrl, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -99,12 +99,11 @@ async function cancelAttendeeSeat(
           );
 
           if (videoCallReference) {
-            const isDailyVideo = videoCallReference.type === "daily_video";
             evt.videoCallData = {
               type: videoCallReference.type,
               id: videoCallReference.meetingId,
               password: videoCallReference?.meetingPassword,
-              url: isDailyVideo && evt.uid ? getPublicVideoCallUrl(evt) : videoCallReference.meetingUrl,
+              url: videoCallReference.meetingUrl,
             };
           }
           const updatedEvt = {
