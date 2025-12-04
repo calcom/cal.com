@@ -59,6 +59,7 @@ export const eventTypeSelect = {
   successRedirectUrl: true,
   isInstantEvent: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
+  autoTranslateInstantMeetingTitleEnabled: true,
   instantMeetingParameters: true,
   aiPhoneCallConfig: true,
   assignAllTeamMembers: true,

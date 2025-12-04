@@ -204,9 +204,13 @@ export async function handler(
   // Fetch instant meeting specific config (expiry offset and auto-translate setting)
   // We do this early so we can use autoTranslateInstantMeetingTitleEnabled for the booking title
   const eventTypeRepository = new EventTypeRepository(prisma);
-  const eventTypeConfig = await eventTypeRepository.findInstantMeetingConfigById({
+  const eventTypeConfig = await eventTypeRepository.findByIdMinimal({
     id: bookingData.eventTypeId,
   });
+
+  if (!eventTypeConfig) {
+    throw new Error("Event type not found");
+  }
 
   // Determine whether to translate the booking title based on the event type setting
   // Default is true (opt-out), so we only skip translation when explicitly set to false

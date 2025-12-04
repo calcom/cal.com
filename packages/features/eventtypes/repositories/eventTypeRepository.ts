@@ -509,18 +509,6 @@ export class EventTypeRepository {
     });
   }
 
-  async findInstantMeetingConfigById({ id }: { id: number }) {
-    return await this.prismaClient.eventType.findUniqueOrThrow({
-      where: {
-        id,
-      },
-      select: {
-        instantMeetingExpiryTimeOffsetInSeconds: true,
-        autoTranslateInstantMeetingTitleEnabled: true,
-      },
-    });
-  }
-
   async findByIdWithUserAccess({ id, userId }: { id: number; userId: number }) {
     return await this.prismaClient.eventType.findUnique({
       where: {
