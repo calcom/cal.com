@@ -38,6 +38,13 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
 
   const managedUserResponseBody = await managedUserResponse.json();
 
+  const debugExistingUsers = await prisma.user.findMany();
+  if (debugExistingUsers.length > 0) {
+    throw new Error(
+      `asap User with calcomUserId ${JSON.stringify(debugExistingUsers, null, 2)} already exists`
+    );
+  }
+
   await prisma.user.update({
     data: {
       refreshToken: (managedUserResponseBody.data?.refreshToken as string) ?? "",
@@ -71,15 +78,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       accessToken: existingUser.accessToken ?? "",
     });
   }
-
-  console.log(
-    `4 wiz NEXT_PUBLIC_X_CAL_ID ${process.env.NEXT_PUBLIC_X_CAL_ID}`,
-    process.env.NEXT_PUBLIC_X_CAL_ID
-  );
-  console.log(
-    `4 wiz ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 ${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12}`,
-    process.env.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12
-  );
 
   const managedUserResponseOne = await createUserWithDefaultSchedule(
     emailOne,
