@@ -142,6 +142,12 @@ export class ProfileRepository {
   }
 
   static getLookupTarget(upId: UpId) {
+    if (upId.trim() === "") {
+      return {
+        type: LookupTarget.Profile,
+        id: -1,
+      } as const;
+    }
     if (upId.startsWith("usr-")) {
       return {
         type: LookupTarget.User,

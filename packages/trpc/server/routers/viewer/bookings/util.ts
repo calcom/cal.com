@@ -40,6 +40,11 @@ export const bookingsProcedure = authedProcedure
         include: {
           destinationCalendar: true,
           credentials: true,
+          profiles: {
+            select: {
+              organizationId: true,
+            },
+          },
         },
       },
     };
@@ -110,6 +115,7 @@ export type BookingsProcedureContext = {
       | (User & {
           destinationCalendar: DestinationCalendar | null;
           credentials: Credential[];
+          profiles: { organizationId: number }[];
         })
       | null;
     references: BookingReference[];
