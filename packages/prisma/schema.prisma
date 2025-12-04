@@ -1972,16 +1972,17 @@ model PlatformOAuthClient {
   accessTokens        AccessToken[]
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
-  webhook             Webhook[]
+
+  webhook Webhook[]
 
   bookingRedirectUri String?
 
-  bookingCancelRedirectUri     String?
-  bookingRescheduleRedirectUri String?
+  bookingCancelRedirectUri String?
 
-  areEmailsEnabled            Boolean @default(false)
-  areDefaultEventTypesEnabled Boolean @default(true)
-  areCalendarEventsEnabled    Boolean @default(true)
+  bookingRescheduleRedirectUri String?
+  areEmailsEnabled             Boolean @default(false)
+  areDefaultEventTypesEnabled  Boolean @default(true)
+  areCalendarEventsEnabled     Boolean @default(true)
 
   createdAt DateTime @default(now())
 }
