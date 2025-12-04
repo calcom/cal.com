@@ -37,6 +37,16 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
   );
 
   const managedUserResponseBody = await managedUserResponse.json();
+  const shouldThrow = true;
+  if (shouldThrow) {
+    throw new Error(
+      `asap managedUserResponseBody and has access token: ${JSON.stringify(
+        managedUserResponseBody.data,
+        null,
+        2
+      )}`
+    );
+  }
 
   const debugExistingUsers = await prisma.user.findMany({
     where: { accessToken: managedUserResponseBody.data?.accessToken },
