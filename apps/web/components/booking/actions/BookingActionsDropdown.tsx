@@ -369,7 +369,7 @@ export function BookingActionsDropdown({
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent title={t("mark_as_no_show")} enableOverflow>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {attendees.map((attendee, index) => (
               <label key={attendee.email} className="flex items-center space-x-2">
                 <input
@@ -418,7 +418,7 @@ export function BookingActionsDropdown({
       <RescheduleDialog
         isOpenDialog={isOpenRescheduleDialog}
         setIsOpenDialog={setIsOpenRescheduleDialog}
-        bookingUId={booking.uid}
+        bookingUid={booking.uid}
       />
       {isOpenReassignDialog && (
         <ReassignDialog
@@ -427,6 +427,7 @@ export function BookingActionsDropdown({
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
           bookingFromRoutingForm={isBookingFromRoutingForm}
+          isManagedEvent={booking.eventType?.parentId != null}
         />
       )}
       <EditLocationDialog
@@ -597,7 +598,7 @@ export function BookingActionsDropdown({
                       type="button"
                       color={action.color}
                       StartIcon={action.icon}
-                      href={action.href}
+                      href={action.disabled ? undefined : action.href}
                       disabled={action.disabled}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -620,7 +621,7 @@ export function BookingActionsDropdown({
                   type="button"
                   color={action.color}
                   StartIcon={action.icon}
-                  href={action.href}
+                  href={action.disabled ? undefined : action.href}
                   disabled={action.disabled}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -641,7 +642,7 @@ export function BookingActionsDropdown({
                   type="button"
                   color={action.color}
                   StartIcon={action.icon}
-                  href={action.href}
+                  href={action.disabled ? undefined : action.href}
                   onClick={(e) => {
                     e.stopPropagation();
                     action.onClick?.(e);
