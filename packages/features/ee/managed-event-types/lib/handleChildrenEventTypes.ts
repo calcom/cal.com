@@ -1,4 +1,3 @@
- 
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
@@ -155,60 +154,82 @@ export default async function handleChildrenEventTypes({
       userIds: newUserIds,
       teamName: oldEventType.team?.name ?? null,
     });
-    // Create event types for new users added
-    await prisma.$transaction(
-      newUserIds.map((userId) => {
-        // Exclude profileId and instantMeetingScheduleId from managed values to avoid duplication
-        const {
-          profileId: _,
-          instantMeetingScheduleId: __,
-          ...managedValuesWithoutExplicit
-        } = managedEventTypeValues;
 
-        return prisma.eventType.create({
-          data: {
-            instantMeetingScheduleId: eventType.instantMeetingScheduleId ?? undefined,
-            profileId: profileId ?? null,
-            ...managedValuesWithoutExplicit,
-            ...{
-              ...unlockedEventTypeValues,
-              // pre-genned as allowed null
-              locations: Array.isArray(unlockedEventTypeValues.locations)
-                ? unlockedEventTypeValues.locations
-                : undefined,
-            },
-            bookingLimits:
-              (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
-            recurringEvent:
-              (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-            metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-            bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-            durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-            eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-            onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
-            userId,
-            users: {
-              connect: [{ id: userId }],
-            },
-            parentId,
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            workflows: currentWorkflowIds && {
-              create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
-            },
-            /**
-             * RR Segment isn't applicable for managed event types.
-             */
-            rrSegmentQueryValue: undefined,
-            assignRRMembersUsingSegment: false,
-            useEventLevelSelectedCalendars: false,
-            restrictionScheduleId: null,
-            useBookerTimezone: false,
-            allowReschedulingCancelledBookings:
-              managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
-          },
+    // Create event types for new users added
+    const eventTypesToCreateData = newUserIds.map((userId) => {
+      // Exclude profileId and instantMeetingScheduleId from managed values to avoid duplication
+      const {
+        profileId: _,
+        instantMeetingScheduleId: __,
+        ...managedValuesWithoutExplicit
+      } = managedEventTypeValues;
+
+      return {
+        instantMeetingScheduleId: eventType.instantMeetingScheduleId ?? undefined,
+        profileId: profileId ?? null,
+        ...managedValuesWithoutExplicit,
+        ...{
+          ...unlockedEventTypeValues,
+          // pre-genned as allowed null
+          locations: Array.isArray(unlockedEventTypeValues.locations)
+            ? unlockedEventTypeValues.locations
+            : undefined,
+        },
+        bookingLimits:
+          (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+        recurringEvent:
+          (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
+        metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
+        bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
+        durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+        eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
+        onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+        userId,
+        // if we know the users exists in db, userId is enough and connect is not needed
+        users: {
+          connect: [{ id: userId }],
+        },
+        parentId,
+        hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+        workflows: currentWorkflowIds && {
+          create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
+        },
+        /**
+         * RR Segment isn't applicable for managed event types.
+         */
+        rrSegmentQueryValue: undefined,
+        assignRRMembersUsingSegment: false,
+        useEventLevelSelectedCalendars: false,
+        restrictionScheduleId: null,
+        useBookerTimezone: false,
+        allowReschedulingCancelledBookings:
+          managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
+      };
+    });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.eventType.createMany({
+        data: eventTypesToCreateData,
+        skipDuplicates: true,
+      });
+
+      if (currentWorkflowIds && currentWorkflowIds.length > 0) {
+        const createdEvents = await tx.eventType.findMany({
+          where: { parentId: parentId, userId: { in: newUserIds } },
+          select: { id: true },
         });
-      })
-    );
+        const workflowConnections = createdEvents.flatMap((event) =>
+          currentWorkflowIds.map((wfId) => ({
+            eventTypeId: event.id,
+            workflowId: wfId,
+          }))
+        );
+
+        await tx.workflowsOnEventTypes.createMany({
+          data: workflowConnections,
+        });
+      }
+    });
   }
 
   // Old users updated
