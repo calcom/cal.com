@@ -242,7 +242,7 @@ export class CalendarEventBuilder {
 
       const hostCalendars = [
         user.destinationCalendar,
-        ...hostsWithoutOrganizer.hosts.map((h) => h.user.destinationCalendar).filter(Boolean),
+        ...hostsWithoutOrganizer.map((h) => h.user.destinationCalendar).filter(Boolean),
         user.destinationCalendar,
       ].filter(Boolean) as NonNullable<DestinationCalendar>[];
 
