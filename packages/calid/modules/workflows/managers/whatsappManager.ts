@@ -392,8 +392,6 @@ const resolveRecipientDetails = (
 };
 
 export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppReminderArgs) => {
-  console.log("whatsappReminder");
-  console.log(args)
   const {
     evt,
     workflow,
@@ -414,7 +412,6 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
-  console.log("Event was: ", JSON.stringify(evt));
 
   // Always calculate scheduled date, even for traditionally immediate events
   const scheduledDate = calculateScheduledDateTime(triggerEvent, startTime, endTime, {

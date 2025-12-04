@@ -40,7 +40,6 @@ export const createRateLimitMiddleware = (namespace: string, limit: number, dura
     const identifier = ctx.session?.user.id ? `user:${ctx.session.user.id}` : getClientIp(ctx);
     const data = await unkey.limit(identifier);
 
-    console.log("UNKEY IDENTIFIER:", identifier, "PATH:", path, "DATA:", data);
     if (!data.success) {
       throw new TRPCError({
         code: "TOO_MANY_REQUESTS",

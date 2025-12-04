@@ -100,6 +100,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/whatsapp-business/callback`;
 
   try {
+    console.log("Code: ", shortLivedToken);
     const tokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
     tokenUrl.searchParams.append("client_id", client_id);
     tokenUrl.searchParams.append("client_secret", client_secret);
@@ -120,10 +121,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const shortLivedToken = tokenData.access_token;
 
     const longLivedTokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
+
     longLivedTokenUrl.searchParams.append("grant_type", "fb_exchange_token");
     longLivedTokenUrl.searchParams.append("client_id", client_id);
     longLivedTokenUrl.searchParams.append("client_secret", client_secret);
     longLivedTokenUrl.searchParams.append("fb_exchange_token", shortLivedToken);
+
+    console.log("Short lived token: ", shortLivedToken);
 
     const longLivedTokenResponse = await fetch(longLivedTokenUrl.toString());
 
@@ -136,6 +140,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const longLivedTokenData = await longLivedTokenResponse.json();
+
+    console.log("Long lived token: ", longLivedTokenData.access_token);
 
     const permissionsResponse = await fetch(
       `https://graph.facebook.com/${META_API_VERSION}/me/permissions?access_token=${longLivedTokenData.access_token}`
