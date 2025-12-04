@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -12,10 +11,10 @@ test.describe("Booking Confirmation and Rejection via API", () => {
     await users.deleteAll();
   });
 
-  test("should successfully confirm a booking via GET /api/verify-booking-token", async ({ users }) => {
-    // Create a user with an event type that requires confirmation
+  test("should successfully confirm a booking via GET /api/verify-booking-token", async ({ page, users }) => {
     const organizer = await users.create({
       name: "Test Organizer",
+      overrideDefaultEventTypes: true,
       eventTypes: [
         {
           title: "30 Min Meeting",
@@ -26,15 +25,14 @@ test.describe("Booking Confirmation and Rejection via API", () => {
       ],
     });
 
-    const eventType = organizer.eventTypes.find((e) => e.slug === "30-min");
+    const eventType = organizer.eventTypes[0];
     if (!eventType) {
       throw new Error("Event type not found");
     }
 
-    // Create a pending booking with oneTimePassword
     const oneTimePassword = uuidv4();
-    const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000); // Tomorrow
-    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+    const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
 
     const booking = await prisma.booking.create({
       data: {
@@ -64,24 +62,16 @@ test.describe("Booking Confirmation and Rejection via API", () => {
       },
     });
 
-    // Call the API endpoint to confirm the booking
-    const url = new URL(`${WEBAPP_URL}/api/verify-booking-token`);
-    url.searchParams.set("action", "accept");
-    url.searchParams.set("token", oneTimePassword);
-    url.searchParams.set("bookingUid", booking.uid);
-    url.searchParams.set("userId", organizer.id.toString());
+    const url = `/api/verify-booking-token?action=accept&token=${oneTimePassword}&bookingUid=${booking.uid}&userId=${organizer.id}`;
 
-    const response = await fetch(url.toString(), {
-      method: "GET",
-      redirect: "manual", // Don't follow redirects
+    const response = await page.request.get(url, {
+      maxRedirects: 0,
     });
 
-    // Should redirect to booking page
-    expect(response.status).toBe(307);
-    const location = response.headers.get("location");
+    expect(response.status()).toBe(307);
+    const location = response.headers()["location"];
     expect(location).toContain(`/booking/${booking.uid}`);
 
-    // Verify booking is confirmed in database
     const updatedBooking = await prisma.booking.findUnique({
       where: { id: booking.id },
     });
@@ -90,9 +80,10 @@ test.describe("Booking Confirmation and Rejection via API", () => {
     expect(updatedBooking?.oneTimePassword).toBeNull();
   });
 
-  test("should successfully reject a booking via POST /api/verify-booking-token", async ({ users }) => {
+  test("should successfully reject a booking via POST /api/verify-booking-token", async ({ page, users }) => {
     const organizer = await users.create({
       name: "Test Organizer",
+      overrideDefaultEventTypes: true,
       eventTypes: [
         {
           title: "30 Min Meeting",
@@ -103,15 +94,14 @@ test.describe("Booking Confirmation and Rejection via API", () => {
       ],
     });
 
-    const eventType = organizer.eventTypes.find((e) => e.slug === "30-min");
+    const eventType = organizer.eventTypes[0];
     if (!eventType) {
       throw new Error("Event type not found");
     }
 
-    // Create a pending booking with oneTimePassword
     const oneTimePassword = uuidv4();
-    const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000); // Tomorrow
-    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+    const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
 
     const booking = await prisma.booking.create({
       data: {
@@ -141,28 +131,17 @@ test.describe("Booking Confirmation and Rejection via API", () => {
       },
     });
 
-    // Call the API endpoint to reject the booking
-    const url = new URL(`${WEBAPP_URL}/api/verify-booking-token`);
-    url.searchParams.set("action", "reject");
-    url.searchParams.set("token", oneTimePassword);
-    url.searchParams.set("bookingUid", booking.uid);
-    url.searchParams.set("userId", organizer.id.toString());
+    const url = `/api/verify-booking-token?action=reject&token=${oneTimePassword}&bookingUid=${booking.uid}&userId=${organizer.id}`;
 
-    const response = await fetch(url.toString(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ reason: "Not available at this time" }),
-      redirect: "manual", // Don't follow redirects
+    const response = await page.request.post(url, {
+      data: { reason: "Not available at this time" },
+      maxRedirects: 0,
     });
 
-    // Should redirect to booking page
-    expect(response.status).toBe(307);
-    const location = response.headers.get("location");
+    expect(response.status()).toBe(307);
+    const location = response.headers()["location"];
     expect(location).toContain(`/booking/${booking.uid}`);
 
-    // Verify booking is rejected in database
     const updatedBooking = await prisma.booking.findUnique({
       where: { id: booking.id },
     });
