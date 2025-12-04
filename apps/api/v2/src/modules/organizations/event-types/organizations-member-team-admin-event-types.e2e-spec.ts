@@ -1294,10 +1294,10 @@ describe("Organizations Event Types Endpoints", () => {
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
-    it("should preserve lengthInMinutesOptions when doing partial update", async () => {
+    it("should preserve metadata fields when doing partial update", async () => {
       const createBody: CreateTeamEventTypeInput_2024_06_14 = {
-        title: "Coding consultation with multiple durations",
-        slug: `organizations-event-types-durations-${randomString()}`,
+        title: "Coding consultation with metadata",
+        slug: `organizations-event-types-metadata-${randomString()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 30,
         lengthInMinutesOptions: [15, 30, 60],
@@ -1313,6 +1313,22 @@ describe("Organizations Event Types Endpoints", () => {
             userId: teammate1.id,
           },
         ],
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            count: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+          blockUnconfirmedBookingsInBooker: true,
+        },
       };
 
       const createResponse = await request(app.getHttpServer())
@@ -1321,10 +1337,16 @@ describe("Organizations Event Types Endpoints", () => {
         .expect(201);
 
       const createdEventType: TeamEventTypeOutput_2024_06_14 = createResponse.body.data;
+
+      // Verify all metadata fields are set correctly on creation
       expect(createdEventType.lengthInMinutesOptions).toBeDefined();
       expect(createdEventType.lengthInMinutesOptions).toEqual([15, 30, 60]);
+      expect(createdEventType.bookerLayouts).toBeDefined();
+      expect(createdEventType.bookerLayouts).toEqual(createBody.bookerLayouts);
+      expect(createdEventType.confirmationPolicy).toBeDefined();
+      expect(createdEventType.confirmationPolicy).toEqual(createBody.confirmationPolicy);
 
-      // Now do a partial update that only changes a different field (not lengthInMinutesOptions)
+      // Now do a partial update that only changes a different field (not metadata fields)
       const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
         bookingRequiresAuthentication: false,
       };
@@ -1336,9 +1358,13 @@ describe("Organizations Event Types Endpoints", () => {
 
       const updatedEventType: TeamEventTypeOutput_2024_06_14 = updateResponse.body.data;
 
-      // Verify that lengthInMinutesOptions is preserved and not reset to undefined
+      // Verify that all metadata fields are preserved and not reset to undefined
       expect(updatedEventType.lengthInMinutesOptions).toBeDefined();
       expect(updatedEventType.lengthInMinutesOptions).toEqual([15, 30, 60]);
+      expect(updatedEventType.bookerLayouts).toBeDefined();
+      expect(updatedEventType.bookerLayouts).toEqual(createBody.bookerLayouts);
+      expect(updatedEventType.confirmationPolicy).toBeDefined();
+      expect(updatedEventType.confirmationPolicy).toEqual(createBody.confirmationPolicy);
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
