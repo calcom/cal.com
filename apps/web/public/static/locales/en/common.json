@@ -32,6 +32,7 @@
   "verify_email_change_success_toast": "Updated your email to {{email}}",
   "verify_email_change_failure_toast": "Failed to update email.",
   "change_of_email": "Verify your new {{appName}} email address",
+  "trace_reference_id": "Trace reference ID",
   "change_of_email_toast": "We have sent a verification link to {{email}}. We will update your email address once you click this link.",
   "copy_somewhere_safe": "Save this API key somewhere safe. You will not be able to view it again.",
   "verify_email_email_body": "Please verify your email address by clicking the button below.",
