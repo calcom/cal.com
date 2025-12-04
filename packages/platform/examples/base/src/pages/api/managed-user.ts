@@ -38,10 +38,16 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
 
   const managedUserResponseBody = await managedUserResponse.json();
 
-  const debugExistingUsers = await prisma.user.findMany();
+  const debugExistingUsers = await prisma.user.findMany({
+    where: { accessToken: managedUserResponseBody.data?.accessToken },
+  });
   if (debugExistingUsers.length > 0) {
     throw new Error(
-      `asap User with calcomUserId ${JSON.stringify(debugExistingUsers, null, 2)} already exists`
+      `asap User with accessToken ${JSON.stringify(
+        debugExistingUsers,
+        null,
+        2
+      )} already exists so cant create new one: ${JSON.stringify(managedUserResponseBody.data, null, 2)}`
     );
   }
 
