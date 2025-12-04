@@ -23,7 +23,6 @@ export const constructVariablesForTemplate = (
       .format(formatString || "YYYY MMM D");
 
   try {
-    console.log("Got here");
     const data = {
       eventDate: formatTimestamp(eventData?.startTime, "YYYY MMM D"),
       eventTime: `${formatTimestamp(
