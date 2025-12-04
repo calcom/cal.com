@@ -13,6 +13,7 @@ export async function checkRateLimitAndThrowError({
   opts,
 }: RateLimitHelper) {
   const response = await rateLimiter()({ rateLimitingType, identifier, opts });
+
   const { success, reset } = response;
 
   if (onRateLimiterResponse) onRateLimiterResponse(response);

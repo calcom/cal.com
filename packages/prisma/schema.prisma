@@ -2780,8 +2780,8 @@ model WhatsAppBusinessPhone {
   templates Json?
 
   wabaId        String
-  phoneNumberId String
-  phoneNumber   String
+  phoneNumberId String @unique
+  phoneNumber   String @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
