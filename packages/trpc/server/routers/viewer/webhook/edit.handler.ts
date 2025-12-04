@@ -62,8 +62,9 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
     },
     data: {
       ...data,
-      time: data.time ?? null,
-      timeUnit: data.timeUnit ?? null,
+      // Only set time and timeUnit when explicitly provided to avoid overwriting existing values
+      ...(data.time !== undefined && { time: data.time }),
+      ...(data.timeUnit !== undefined && { timeUnit: data.timeUnit }),
     },
   });
 
