@@ -97,45 +97,6 @@
 
 <body>
   <div style="display: flex; flex-direction: column; gap: 10px;">
-    <div id="cal-booking-place-routingFormWithoutPrerender" style="padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 500px; margin-bottom: 20px;">
-      <a href="?only=ns:routingFormWithoutPrerender" style="display: block; margin-bottom: 16px; color: #007bff; text-decoration: none; font-weight: 500;">Routing Form Without Prerender Demo</a>
-      <form id="cal-booking-place-routingFormWithoutPrerender-form" style="display: flex; flex-direction: column; gap: 16px;">
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label for="cal-booking-place-routingFormWithoutPrerender-input-name" style="font-weight: 500; color: #333; font-size: 14px;">Name</label>
-          <input type="text" name="name" id="cal-booking-place-routingFormWithoutPrerender-input-name" placeholder="John Doe" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;" />
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label for="cal-booking-place-routingFormWithoutPrerender-input-email" style="font-weight: 500; color: #333; font-size: 14px;">Email</label>
-          <input type="email" name="email" id="cal-booking-place-routingFormWithoutPrerender-input-email" placeholder="john@example.com" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;" />
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label for="cal-booking-place-routingFormWithoutPrerender-select-skills" style="font-weight: 500; color: #333; font-size: 14px;">Skills</label>
-          <select name="skills" id="cal-booking-place-routingFormWithoutPrerender-select-skills" placeholder="JavaScript, Node.js" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: white;">
-            <option value="">Select a skill</option>
-            <option value="JavaScript">JavaScript</option>
-            <option value="Sales">Sales</option>
-          </select>
-        </div>
-        <button id="cal-booking-place-routingFormWithoutPrerender-submit" data-cal-namespace="routingFormWithoutPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots", "guests":["guest1@example.com", "guest2@example.com"]}' style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 8px; transition: background 0.2s;">Submit</button>
-      </form>
-    <script>
-      requestAnimationFrame(function updateSubmitButtonLink() {
-        const seededFormAcmeId = "948ae412-d995-4865-885a-48302588de03";
-        const nameInput = document.getElementById("cal-booking-place-routingFormWithoutPrerender-input-name");
-        const emailInput = document.getElementById("cal-booking-place-routingFormWithoutPrerender-input-email");
-        const skillsSelect = document.getElementById("cal-booking-place-routingFormWithoutPrerender-select-skills");
-        if (nameInput && emailInput && skillsSelect) {
-          const name = nameInput.value;
-          const email = emailInput.value;
-          const skills = skillsSelect.value;
-          if (name && email) {
-            document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Rating=5&skills=${skills}&Email=${email}`);
-          }
-        }
-        requestAnimationFrame(updateSubmitButtonLink);
-      });
-    </script>
-    </div>
     <div id="cal-booking-routingFormFullPrerender">
       <hr/>
       <a style="display: block;" href="?only=ns:routingFormFullPrerender&debug=1&param.email=test@example.com">Routing Form - Prerender Headless Router itself queuing the form response</a>
@@ -147,6 +108,7 @@
       <p>5. If the CTA click happens after iframeForceReloadThresholdMs has passed, then fresh headless router request is sent which could be really slow. It is important to do force reload after a certain time because the Routing Form itself could have changed in the meantime or Salesforce ownership might be available or some other change might have occured in Cal.com's side</p>
       <p>6. slotsStaleTimeMs is set to 10 seconds(default is 1 minute) and iframeForceReloadThresholdMs is set to 30 seconds(default is 15 minutes) and they are considered from the time when the prerender/modal call was made</p>
       <p>7. To avoid reaching the iframeForceReloadThresholdMs, user could prerender the router again and again judiciously</p>
+      <p>8. You can disable prerendering by passing the query param param.disablePrerender=true</p>
       </p>
       <div class="inline-embed-container">
         <script>
@@ -159,23 +121,40 @@
             calOrigin: window.calOrigin,
           });
 
+          function trackLog(message) {
+            console.log(`${performance.now().toFixed(2)}ms [Tracking] ${message}`);
+          }
+
+          let listenersAdded = false;
+          let isAvailabilityLoaded = false;
+          // Track API start
+          let apiStartTime = null;
+
+          const linkPrerenderedCallback = (e) => {
+              trackLog("Link Prerendered");
+          };
+          Cal.ns["routingFormFullPrerender"]("on", { action: "linkPrerendered", callback: linkPrerenderedCallback });
+          
           // Track latency b/w API execution and availability loading
           const trackLatencyInShowingSlots = (namespace) => {
-            let apiStartTime = null;
-            let isAvailabilityLoaded = false;
-
+            isAvailabilityLoaded = false;
+            apiStartTime = performance.now();
             const trackAvailabilityLoaded = (source) => {
-              if (isAvailabilityLoaded || !apiStartTime) return;
-              
+              if (!apiStartTime) {
+                trackLog(`API start time not set - ${source}`);
+                return;
+              }
+              if (isAvailabilityLoaded) {
+                trackLog(`Availability already loaded - triggering again by: ${source}`);
+                return;
+              }
+
               isAvailabilityLoaded = true;
               const endTime = performance.now();
               const timeDiff = endTime - apiStartTime;
-              console.log("[Performance] Embed Modal API to Availability Loaded:", timeDiff.toFixed(2), "ms", "- triggered by:", source);
+              trackLog(`Embed Modal API to Availability Loaded: ${timeDiff.toFixed(2)}ms - triggered by: ${source}`);
             };
-
-            // Track API start
-            apiStartTime = performance.now();
-            console.log("[Performance] Embed Modal API started at:", apiStartTime);
+            trackLog(`Embed Modal API started at: ${apiStartTime.toFixed(2)}ms`);
 
             // Setup availability tracking
             isAvailabilityLoaded = false;
@@ -186,7 +165,16 @@
               if (data.slotsLoaded === true) {
                 trackAvailabilityLoaded("bookerViewed (slotsLoaded: true)");
               } else {
-                console.log("[Performance] Booker is ready but waiting for slots to load");
+                trackLog("Booker is ready but waiting for slots to load");
+              }
+            };
+
+            const bookerFocusedCallback = (e) => {
+              const data = e.detail.data;
+              if (data.slotsLoaded === true) {
+                trackAvailabilityLoaded("bookerFocused (slotsLoaded: true)");
+              } else {
+                trackLog("Booker was focused and waiting for slots to load");
               }
             };
 
@@ -194,8 +182,14 @@
               trackAvailabilityLoaded("availabilityLoaded event");
             };
 
-            api("on", { action: "bookerViewed", callback: bookerViewedCallback });
-            api("on", { action: "availabilityLoaded", callback: availabilityLoadedCallback });
+          
+
+            if (!listenersAdded) {
+              api("on", { action: "bookerViewed", callback: bookerViewedCallback });
+              api("on", { action: "availabilityLoaded", callback: availabilityLoadedCallback });
+              api("on", { action: "bookerFocused", callback: bookerFocusedCallback });
+              listenersAdded = true;
+            }
           };
 
           window.routingFormFullPrerender = {
@@ -281,8 +275,8 @@
             type: "modal",
             pageType: "team.event.booking.slots",
             options: {
-              //  slotsStaleTimeMs: 20 * 1000,
-              //  iframeForceReloadThresholdMs: 30 * 1000,
+              slotsStaleTimeMs: 10 * 1000,
+              iframeForceReloadThresholdMs: 60 * 1000,
             },
           });
         }
@@ -296,6 +290,10 @@
           }
 
           if (!areFieldRequiredbyRoutingFormAvailable()) {
+            return;
+          }
+
+          if (window.params.disablePrerender) {
             return;
           }
 

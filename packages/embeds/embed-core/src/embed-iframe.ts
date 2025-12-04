@@ -34,9 +34,10 @@ const eventsAllowedInPrerendering = [
   "__iframeReady",
   // so that iframe height is adjusted according to the content, and iframe is ready to be shown when needed
   "__dimensionChanged",
-
   // When this event is fired, the iframe is still in prerender state but is going to be moved out of prerender state
   "__connectInitiated",
+
+  "linkPrerendered",
 
   // For other events, we should consider introducing prerender specific events and not reuse existing events
 ];
@@ -282,25 +283,7 @@ export const useEmbedType = () => {
   return state;
 };
 
-export const useIsEmbedPrerendering = () => {
-  return isPrerendering()
-};
-
-// Track linkReady counter to detect when embed reopens
-let linkReadyCounter = 0;
-
-export const useEmbedReopened = () => {
-  const [lastCounter, setLastCounter] = useState(linkReadyCounter);
-  const hasReopened = linkReadyCounter > lastCounter;
-
-  useEffect(() => {
-    if (hasReopened) {
-      setLastCounter(linkReadyCounter);
-    }
-  }, [hasReopened]);
-
-  return hasReopened;
-};
+export { useBookerEmbedEvents, useIsEmbedPrerendering } from "./embed-iframe/react-hooks";
 
 function makeBodyVisible() {
   if (document.body.style.visibility !== "visible") {
@@ -451,7 +434,11 @@ export const methods = {
       makeBodyVisible();
       log("renderState is 'completed'");
       embedStore.renderState = "completed";
-      sdkActionManager?.fire("linkReady", {});
+      if (isPrerendering()) {
+        sdkActionManager?.fire("linkPrerendered", {});
+      } else {
+        sdkActionManager?.fire("linkReady", {});
+      }
     });
   },
   /**
@@ -588,9 +575,18 @@ function main() {
     }
   });
 
-  // Increment linkReady counter whenever linkReady event is fired
+  // Increment reopen counter whenever linkReady event is fired
   sdkActionManager?.on("linkReady", () => {
-    linkReadyCounter++;
+    // TODO: Ideally we should not fire linkReady event in prerendering phase at all
+    if (isPrerendering()) {
+      return;
+    }
+    // This is real reopen counter, when user actually saw the embed content(loader doesn't count)
+    if (!embedStore.eventsState.reopenCount) {
+      embedStore.eventsState.reopenCount = 1;
+      return;
+    }
+    embedStore.eventsState.reopenCount++;
   });
 
   sdkActionManager?.on("*", (e) => {
@@ -610,6 +606,9 @@ function main() {
 }
 
 function initializeAndSetupEmbed() {
+  if (typeof window === "undefined") {
+    return;
+  }
   sdkActionManager?.fire("__iframeReady", {
     isPrerendering: isPrerendering(),
   });
@@ -702,6 +701,9 @@ async function connectPreloadedEmbed({
 }
 
 const isPrerendering = () => {
+  if (!document) {
+    return false;
+  }
   return new URL(document.URL).searchParams.get("prerender") === "true";
 };
 

@@ -32,52 +32,6 @@ export type UseScheduleWithCacheArgs = {
   enabled?: boolean;
 };
 
-/**
- * Hook that returns a function to fire availabilityLoaded or availabilityRefreshed events.
- * Manages the lastDataUpdatedAt timestamp internally to distinguish initial load from refreshes.
- * Prevents firing events during prerender mode.
- */
-const useAvailabilityEvents = () => {
-  const lastDataUpdatedAtRef = useRef<number | null>(null);
-  const isEmbedPrerendering = useIsEmbedPrerendering();
-
-  return function fireAvailabilityEvents({
-    eventId,
-    eventSlug,
-    availabilityDataUpdateTime,
-  }: {
-    eventId: number;
-    eventSlug: string;
-    availabilityDataUpdateTime: number;
-  }) {
-    if (isEmbedPrerendering) {
-      return;
-    }
-
-    const lastDataUpdatedAt = lastDataUpdatedAtRef.current;
-
-    // Send on next tick to ensure that bookerViewed which also uses useSchedule hook's return value is fired first always.
-    // Otherwise, in the case of clicking CTA when prerendered/prerendering, we are at a risk of firing availabilityLoaded event before bookerViewed.
-    // This is because prerender doesn't allow firing bookerViewed and the very first chance it gets after leaving prerender mode useSchedule hook ends up firing availabilityLoaded event.
-    function scheduleEventOnNextTick(callback: () => void) {
-      setTimeout(() => {
-        callback();
-      }, 0);
-    }
-    if (lastDataUpdatedAt === null) {
-      // First successful load - fire availabilityLoaded
-      scheduleEventOnNextTick(() => {
-        sdkActionManager?.fire("availabilityLoaded", { eventId, eventSlug });
-      });
-    } else if (availabilityDataUpdateTime > lastDataUpdatedAt) {
-      // Data was refreshed - fire availabilityRefreshed
-      scheduleEventOnNextTick(() => {
-        sdkActionManager?.fire("availabilityRefreshed", { eventId, eventSlug });
-      });
-    }
-    lastDataUpdatedAtRef.current = availabilityDataUpdateTime;
-  };
-};
 
 export const useSchedule = ({
   month,
@@ -98,7 +52,6 @@ export const useSchedule = ({
   enabled: enabledProp = true,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
-  const fireAvailabilityEvents = useAvailabilityEvents();
 
   const [startTime, endTime] = useTimesForSchedule({
     month,
@@ -195,13 +148,7 @@ export const useSchedule = ({
       slotsQuery: teamScheduleV2,
     });
 
-    if (teamScheduleV2.isSuccess && eventId && eventSlug) {
-      fireAvailabilityEvents({
-        eventId,
-        eventSlug,
-        availabilityDataUpdateTime: teamScheduleV2.dataUpdatedAt,
-      });
-    }
+
 
     return {
       ...teamScheduleV2,
@@ -218,14 +165,6 @@ export const useSchedule = ({
     bookerState,
     slotsQuery: schedule,
   });
-
-  if (schedule.isSuccess && eventId && eventSlug) {
-    fireAvailabilityEvents({
-      eventId,
-      eventSlug,
-      availabilityDataUpdateTime: schedule.dataUpdatedAt,
-    });
-  }
 
   return {
     ...schedule,

@@ -10,8 +10,7 @@ import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
   useIsEmbed,
-  useIsEmbedPrerendering,
-  useEmbedReopened,
+  useBookerEmbedEvents,
 } from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
@@ -40,52 +39,6 @@ export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
-const useFireBookerViewedEvent = ({
-  eventId,
-  eventSlug,
-  slotsLoaded,
-}: {
-  eventId: number | undefined;
-  eventSlug: string | undefined;
-  slotsLoaded: boolean;
-}) => {
-  const isEmbedPrerendering = useIsEmbedPrerendering();
-  const hasFiredbookerLoadedEventRef = useRef<boolean>(false);
-  const embedReopened = useEmbedReopened();
-
-  // Reset the fired flag when embed reopens
-  useEffect(() => {
-    if (embedReopened) {
-      hasFiredbookerLoadedEventRef.current = false;
-    }
-  }, [embedReopened]);
-
-  if (isEmbedPrerendering) {
-    return;
-  }
-
-  if (!hasFiredbookerLoadedEventRef.current) {
-    if (slotsLoaded) {
-      if (eventId && eventSlug) {
-        sdkActionManager?.fire("bookerViewed", {
-          eventId,
-          eventSlug,
-          slotsLoaded: true,
-        });
-      } else {
-        // This situation shouldn't arise but not throwing error because for a tracking event we don't want to crash booker
-        console.error("BookerViewed event not fired because slotsLoaded is true but eventId or eventSlug are falsy");
-      }
-    } else {
-      sdkActionManager?.fire("bookerViewed", {
-        eventId: null,
-        eventSlug: null,
-        slotsLoaded: false,
-      });
-    }
-    hasFiredbookerLoadedEventRef.current = true;
-  }
-};
 
 const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
@@ -222,10 +175,11 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     teamMemberEmail: props.teamMemberEmail,
   });
 
-  useFireBookerViewedEvent({
+  useBookerEmbedEvents({
     eventId: event.data?.id,
     eventSlug: event.data?.slug,
-    slotsLoaded: schedule.isSuccess,
+    availabilityDataUpdateTime: schedule.dataUpdatedAt,
+    schedule,
   });
 
   const verifyCode = useVerifyCode({

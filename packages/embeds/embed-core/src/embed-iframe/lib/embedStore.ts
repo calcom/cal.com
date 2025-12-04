@@ -115,6 +115,27 @@ export const embedStore = {
    * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
    */
   setUiConfig: [] as ((arg0: UiConfig) => void)[],
+  /**
+   * State for tracking embed events (bookerViewed, availabilityLoaded, etc.)
+   */
+  eventsState: {
+    /**
+     * Counter for modal reopens. Set to 1 on first linkReady event (non-prerendering), then incremented.
+     * Used to track modal opens and distinguish between first open (bookerViewed) and reopens (bookerFocused).
+     * null = not yet initialized, 1 = first open, 2 = second reopen, etc.
+     */
+    reopenCount: null as number | null,
+    /**
+     * Tracks the reopenCount value for which bookerViewed event has been fired.
+     * Prevents duplicate firing of bookerViewed/bookerFocused events for the same reopen.
+     */
+    lastFiredForReopenCount: null as number | null,
+    /**
+     * Timestamp of the last availability data update (dataUpdatedAt from schedule query).
+     * Used to distinguish between availabilityLoaded (first load) and availabilityRefreshed (subsequent loads).
+     */
+    lastAvailabilityDataUpdatedAt: null as number | null,
+  },
 };
 
 export type EmbedStore = typeof embedStore;

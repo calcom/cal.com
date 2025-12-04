@@ -369,8 +369,8 @@ export class Cal {
       urlInstance.searchParams.append(key, value);
     }
 
-    // Very Important:Reset iframe ready flag, as iframe might load a fresh URL and we need to check when it is ready.
-    this.iframeReady = false;
+    // Very Important:Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check when it is ready.
+    this.iframeReset();
 
     if (iframe.src === urlInstance.toString()) {
       // Ensure reload occurs even if the url is same - Though browser normally does it, but would be better to ensure it
@@ -407,6 +407,11 @@ export class Cal {
         "*"
       );
     }
+  }
+
+  iframeReset() {
+    this.iframeReady = false;
+    this.iframeDoQueue = [];
   }
 
   constructor(namespace: string, q: Queue) {
@@ -458,6 +463,7 @@ export class Cal {
       this.iframeDoQueue.forEach((doInIframeArg) => {
         this.doInIframe(doInIframeArg);
       });
+      this.iframeDoQueue = [];
     });
 
     this.actionManager.on("__routeChanged", () => {
@@ -478,6 +484,7 @@ export class Cal {
     this.actionManager.on("linkReady", () => {
       if (this.isPrerendering) {
         // Ensure that we don't mark embed as loaded if it's prerendering otherwise prerendered embed could show-up without any user action
+        // linkReady event isn't received anyway by parent as it isn't whitelisted to be sent to parent but it is a safe guard
         return;
       }
       this.iframe!.style.visibility = "";

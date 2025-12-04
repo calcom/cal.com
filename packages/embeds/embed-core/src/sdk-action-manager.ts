@@ -37,11 +37,23 @@ export type EventDataMap = {
     };
   };
   linkReady: Record<string, never>;
+  linkPrerendered: Record<string, never>;
   availabilityLoaded: {
     eventId: number;
     eventSlug: string;
   };
   bookerViewed:
+  | {
+    eventId: number;
+    eventSlug: string;
+    slotsLoaded: true;
+  }
+  | {
+    eventId: null;
+    eventSlug: null;
+    slotsLoaded: false;
+  };
+  bookerFocused:
   | {
     eventId: number;
     eventSlug: string;
