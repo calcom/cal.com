@@ -1,6 +1,7 @@
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { isDailyVideoCall, getPublicVideoCallUrl } from "@calcom/lib/CalEventParser";
 
 import type { EventTypeInfo, BookingWebhookEventDTO } from "../dto/types";
 import type { WebhookPayload } from "./types";
@@ -45,11 +46,21 @@ function createBookingWebhookPayload<T extends keyof BookingExtraDataMap>(
   const utcOffsetOrganizer = getUTCOffsetByTimezone(params.evt.organizer?.timeZone, params.evt.startTime);
   const organizer = { ...params.evt.organizer, utcOffset: utcOffsetOrganizer };
 
+  let videoCallData = params.evt.videoCallData;
+  if (videoCallData && isDailyVideoCall(params.evt)) {
+    videoCallData = {
+      ...videoCallData,
+      url: getPublicVideoCallUrl(params.evt),
+    };
+  }
+
+  const { videoCallData: _, ...evtWithoutVideoCallData } = params.evt;
+
   return {
     triggerEvent: params.triggerEvent,
     createdAt: params.createdAt,
     payload: {
-      ...params.evt,
+      ...evtWithoutVideoCallData,
       bookingId: params.booking.id,
       startTime: params.evt.startTime,
       endTime: params.evt.endTime,
@@ -75,6 +86,7 @@ function createBookingWebhookPayload<T extends keyof BookingExtraDataMap>(
       length: params.eventType?.length,
       smsReminderNumber: params.booking.smsReminderNumber || undefined,
       description: params.evt.description || params.evt.additionalNotes,
+      videoCallData,
       ...(params.extra || {}),
     },
   };
