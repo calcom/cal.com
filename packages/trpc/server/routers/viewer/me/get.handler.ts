@@ -147,5 +147,6 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     isTeamAdminOrOwner,
     bannerUrl: user.bannerUrl,
     faviconUrl: user.faviconUrl,
+    socialProfiles: user.socialProfiles,
   };
 };

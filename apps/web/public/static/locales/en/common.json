@@ -3657,5 +3657,13 @@
   "view_all_apps": "View all apps",
   "share_now": "Share now",
   "choose_platform": "Choose your preferred platform",
-  "share_on_social_platforms": "Share on social platforms"
+  "share_on_social_platforms": "Share on social platforms",
+  "social_profiles": "Social profiles",
+  "social_profiles_description": "Add your social profiles to show on your public page.",
+  "linkedin": "LinkedIn",
+  "facebook": "Facebook",
+  "twitter": "Twitter",
+  "instagram": "Instagram",
+  "youtube": "YouTube",
+  "github": "GitHub"
 }

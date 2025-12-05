@@ -279,8 +279,12 @@ export const lucideIconList = new Set([
   "square-arrow-out-up-right",
   "square-chart-gantt",
   "monitor-stop",
-  "monitor",
   "badge-percent",
   "house",
   "wallpaper",
+  "linkedin",
+  "facebook",
+  "twitter",
+  "instagram",
+  "youtube",
 ]);

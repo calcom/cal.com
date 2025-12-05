@@ -450,6 +450,7 @@ model User {
   calIdWorkflowReminders         CalIdWorkflowReminder[]       @relation("UserCalIdWorkflowReminders")
   bannerUrl                      String?
   faviconUrl                     String?
+  socialProfiles                 Json?
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
 
