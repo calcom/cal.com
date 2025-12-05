@@ -276,6 +276,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             },
           ],
         },
+        enableHostSubset: true,
       });
 
       roundRobinEventTypeWithoutFixedHostsId = roundRobinEventTypeWithoutFixedHosts.id;
@@ -311,6 +312,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
               },
             ],
           },
+          enableHostSubset: true,
         });
 
       roundRobinEventTypeWithFixedAndNonFixedHostsId = roundRobinEventTypeWithFixedAndNonFixedHosts.id;

@@ -352,6 +352,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         assignAllTeamMembers: true,
         bookingFields: [],
         locations: [],
+        enableHostSubset: true,
       });
 
       team2RREventTypeId = team2RREventType.id;

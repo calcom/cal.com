@@ -53,6 +53,7 @@ type EventType = Pick<
   | "rescheduleWithSameRoundRobinHost"
   | "teamId"
   | "includeNoShowInRRCalculation"
+  | "enableHostSubset"
 >;
 
 type InputProps = {
@@ -83,7 +84,7 @@ const _loadAndValidateUsers = async ({
   hostname,
   forcedSlug,
   hostSubsetIds,
-}: InputProps):Promise<{
+}: InputProps): Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
   fixedUsers: UsersWithDelegationCredentials;

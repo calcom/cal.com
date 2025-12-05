@@ -54,6 +54,17 @@ const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isF
   return host.isFixed;
 };
 
+const isWithinHostSubset = <T extends { isFixed: boolean; user: { id: number } }>(
+  host: T,
+  hostSubsetIds: number[],
+  enableHostSubset: boolean = false
+): host is T & { isFixed: false } => {
+  if (hostSubsetIds.length === 0 || !enableHostSubset) {
+    return true;
+  }
+  return hostSubsetIds.includes(host.user.id);
+};
+
 export class QualifiedHostsService {
   constructor(public readonly dependencies: IQualifiedHostsService) {}
 
@@ -81,6 +92,7 @@ export class QualifiedHostsService {
       isRRWeightsEnabled: boolean;
       rescheduleWithSameRoundRobinHost: boolean;
       includeNoShowInRRCalculation: boolean;
+      enableHostSubset?: boolean;
     } & EventType;
     rescheduleUid: string | null;
     routedTeamMemberIds: number[];
@@ -124,10 +136,10 @@ export class QualifiedHostsService {
 
     const fixedHosts = normalizedHosts
       .filter(isFixedHost)
-      .filter((host) => hostSubsetIds?.includes(host.user.id) ?? true);
+      .filter((host) => isWithinHostSubset(host, hostSubsetIds ?? [], eventType.enableHostSubset ?? false));
     const roundRobinHosts = normalizedHosts
       .filter(isRoundRobinHost)
-      .filter((host) => hostSubsetIds?.includes(host.user.id) ?? true);
+      .filter((host) => isWithinHostSubset(host, hostSubsetIds ?? [], eventType.enableHostSubset ?? false));
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
