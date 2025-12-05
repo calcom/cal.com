@@ -53,3 +53,5 @@ export { CreateSchedulePlatformWrapper as CreateSchedule } from "./create-schedu
 export { CreateScheduleForm } from "./create-schedule/CreateScheduleForm";
 
 export { ListSchedulesPlatformWrapper as ListSchedules } from "./list-schedules/index";
+
+export { useAvailableSlots } from "./hooks/useAvailableSlots";
