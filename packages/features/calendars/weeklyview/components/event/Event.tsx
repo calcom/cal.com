@@ -35,6 +35,10 @@ const eventClasses = cva(
         true: "bg-inverted text-inverted border border-transparent",
         false: "",
       },
+      borderOnly: {
+        true: "bg-transparent border-[1.5px] border-subtle border-dashed opacity-60",
+        false: "",
+      },
     },
   }
 );
@@ -113,6 +117,7 @@ export function Event({
             status: options?.status,
             disabled,
             selected,
+            borderOnly: options?.borderOnly ?? false,
           }),
           options?.className,
           isHovered && "ring-brand-default shadow-lg ring-2 ring-offset-0"

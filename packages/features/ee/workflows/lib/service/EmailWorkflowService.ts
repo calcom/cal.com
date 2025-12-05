@@ -35,6 +35,7 @@ import type {
   ScheduleEmailReminderAction,
 } from "../types";
 import { WorkflowService } from "./WorkflowService";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 
 export class EmailWorkflowService {
   constructor(
@@ -310,8 +311,7 @@ export class EmailWorkflowService {
         organizerEmail: evt.organizer.email,
         sendToEmail: sendTo[0],
       });
-      const meetingUrl =
-        evt.videoCallData?.url || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+      const meetingUrl = getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,

@@ -15,5 +15,6 @@ export interface CalendarEvent {
     className?: string;
     bookingUid?: string;
     "data-test-id"?: string;
+    borderOnly?: boolean;
   };
 }

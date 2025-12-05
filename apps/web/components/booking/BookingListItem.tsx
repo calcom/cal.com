@@ -358,6 +358,13 @@ function BookingListItem(booking: BookingItemProps) {
                   {t("pending_payment")}
                 </Badge>
               )}
+              {isRescheduled && (
+                <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
+                  <Badge variant="orange" className="ltr:mr-2 rtl:ml-2 sm:hidden">
+                    {t("rescheduled")}
+                  </Badge>
+                </Tooltip>
+              )}
               {recurringDates !== undefined && (
                 <div className="text-muted text-sm sm:hidden">
                   <RecurringBookingsTooltip
