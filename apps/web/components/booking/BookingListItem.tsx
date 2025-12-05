@@ -288,9 +288,10 @@ function BookingListItem(booking: BookingItemProps) {
       data-booking-list-item="true"
       data-booking-uid={booking.uid}
       className={classNames(
-        "group w-full transition-all duration-100 ease-out",
+        "group relative w-full transition-all duration-100 ease-out",
         "hover:bg-cal-muted",
-        isSelected && "bg-cal-muted border-l-4 border-l-brand-default rounded-r-md"
+        isSelected && "bg-cal-muted rounded-r-md",
+        isSelected && "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-brand-default"
       )}>
       <div className="flex flex-col sm:flex-row">
         <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
