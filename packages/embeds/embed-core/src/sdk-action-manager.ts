@@ -61,6 +61,18 @@ export type EventDataMap = {
    */
   linkPrerendered: Record<string, never>;
   /**
+   * Fired when booker view is loaded and slots are fully ready for user interaction.
+   * Purpose: Signal that booker is ready with slots loaded, allowing users to select a slot.
+   * Triggers: When booker view is loaded and slots are successfully loaded.
+   * Note: Only fires for booker pages (not booking success view or other non-booker pages).
+   * This is different from linkReady which fires for any embed page.
+   */
+  bookerReady: {
+    eventId: number;
+    eventSlug: string;
+  };
+  /**
+   * @deprecated Use `bookerReady` instead. This event is kept for backward compatibility.
    * Fired when availability/slots data has been loaded for the first time.
    * Purpose: Track first successful slots load.
    * Triggers: On first successful slots load.
@@ -120,16 +132,6 @@ export type EventDataMap = {
     eventId: null;
     eventSlug: null;
     slotsLoaded: false;
-  };
-  /**
-   * Fired when availability/slots data has been refreshed/updated.
-   * Purpose: Track when slots data is updated after initial load.
-   * Triggers: When slots data is updated after initial load.
-   * Note: Detects refreshes by comparing update timestamps.
-   */
-  availabilityRefreshed: {
-    eventId: number;
-    eventSlug: string;
   };
   /**
    * Fired when connect() method has been called to update prerendered embed.

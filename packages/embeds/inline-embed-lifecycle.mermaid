@@ -68,16 +68,14 @@ sequenceDiagram
     end
     
     alt Booker Events (Tracking)
-        UI->>Store: Update reopenCount on linkReady
+        UI->>Store: Update viewId on linkReady
         UI->>Parent: bookerViewed event
         Note right of UI: Purpose: Tracks first view of booker<br/>on first modal open<br/>Includes: Event info, slots status
-        UI->>Parent: availabilityLoaded event
-        Note right of UI: Purpose: Tracks first successful<br/>slots/availability load<br/>Includes: Event identification
+        UI->>Parent: bookerReady event
+        Note right of UI: Purpose: Signals booker view is loaded<br/>and slots are ready for interaction<br/>Includes: Event identification<br/>Only fires for booker pages
         alt User navigates and returns
             UI->>Parent: bookerReopened event
             Note right of UI: Purpose: Tracks when booker is<br/>reopened after being closed<br/>Distinguishes from first view
-            UI->>Parent: availabilityRefreshed event
-            Note right of UI: Purpose: Tracks when slots data<br/>is updated after initial load<br/>Detects refreshes via timestamps
         end
     end
     

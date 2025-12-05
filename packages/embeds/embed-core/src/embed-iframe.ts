@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { mapOldToNewCssVars } from "./ui/cssVarsMap";
 import type { Message } from "./embed";
-import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
+import { embedStore, EMBED_IFRAME_STATE, resetViewVariables } from "./embed-iframe/lib/embedStore";
 import {
   runAsap,
   isBookerReady,
@@ -579,18 +579,21 @@ function main() {
     }
   });
 
-  // Increment reopen counter whenever linkReady event is fired
+  // Increment viewId and reset event flags whenever linkReady event is fired
   sdkActionManager?.on("linkReady", () => {
     // TODO: Ideally we should not fire linkReady event in prerendering phase at all
     if (isPrerendering()) {
       return;
     }
-    // This is real reopen counter, when user actually saw the embed content(loader doesn't count)
-    if (!embedStore.eventsState.reopenCount) {
-      embedStore.eventsState.reopenCount = 1;
-      return;
+    // Reset hasFired flags for new link view
+    resetViewVariables();
+
+    // Increment viewId (1 = first view, 2+ = reopens)
+    if (!embedStore.eventsState.viewId) {
+      embedStore.eventsState.viewId = 1;
+    } else {
+      embedStore.eventsState.viewId++;
     }
-    embedStore.eventsState.reopenCount++;
     // Reset reload flag after linkReady fires (will be checked in react-hooks before resetting)
   });
 

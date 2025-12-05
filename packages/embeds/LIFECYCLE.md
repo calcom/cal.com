@@ -114,14 +114,14 @@ The embed system carefully manages visibility to prevent visual glitches:
 11. **bookerViewed Event**
     - Fired by: Iframe
     - Indicates: Booker has been viewed for the first time in current page view
-    - Triggers: On first linkReady event (reopenCount === 1)
+    - Triggers: On first linkReady event (viewId === 1)
     - Note: Not fired during prerendering. Includes event information and slots loading status.
 
 12. **bookerReopened Event**
     - Fired by: Iframe
     - Indicates: Booker has been reopened after modal was closed
-    - Triggers: On subsequent linkReady events (reopenCount > 1) when modal is reopened without reload
-    - Note: Distinguishes between first view (bookerViewed) and reopen (bookerReopened). Uses reopenCount to determine if it's a reopen.
+    - Triggers: On subsequent linkReady events (viewId > 1) when modal is reopened without reload
+    - Note: Distinguishes between first view (bookerViewed) and reopen (bookerReopened). Uses viewId to determine if it's a reopen.
 
 13. **bookerReloaded Event**
     - Fired by: Iframe
@@ -129,17 +129,11 @@ The embed system carefully manages visibility to prevent visual glitches:
     - Triggers: On linkReady after fullReload action is taken (when reloadInitiated flag is set)
     - Note: Distinguishes between first view (bookerViewed), reopen (bookerReopened), and reload (bookerReloaded). Fires only once per reload.
 
-14. **availabilityLoaded Event**
+14. **bookerReady Event**
     - Fired by: Iframe
-    - Indicates: Availability/slots data has been loaded for the first time
-    - Triggers: On first successful slots load
-    - Note: Only fires when slots are successfully loaded
-
-15. **availabilityRefreshed Event**
-    - Fired by: Iframe
-    - Indicates: Availability/slots data has been refreshed/updated
-    - Triggers: When slots data is updated after initial load
-    - Note: Detects refreshes by comparing update timestamps
+    - Indicates: Booker view is loaded and slots are fully ready for user interaction
+    - Triggers: When booker view is loaded and slots are successfully loaded
+    - Note: Only fires for booker pages (not booking success view or other non-booker pages). This is different from linkReady which fires for any embed page. The bookerReady event signals that users can now select a slot.
 
 ## Prerendering Flow
 

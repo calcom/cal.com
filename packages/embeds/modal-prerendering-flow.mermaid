@@ -74,18 +74,16 @@ sequenceDiagram
     Note over Parent: Remove loader
     Note over Parent: Set state="loaded"
     Note over Parent: Make modal visible
-    Note over Store: reopenCount set to 1
+    Note over Store: viewId set to 1
     
     Note over Store: Full event flow now enabled
     UI->>Parent: bookerViewed event
     Note right of UI: Purpose: Tracks first view of booker<br/>Includes: Event info, slots status<br/>Now enabled (was suppressed)
-    UI->>Parent: availabilityLoaded event
-    Note right of UI: Purpose: Tracks first successful<br/>slots/availability load<br/>Includes: Event identification
+    UI->>Parent: bookerReady event
+    Note right of UI: Purpose: Signals booker view is loaded<br/>and slots are ready for interaction<br/>Includes: Event identification<br/>Only fires for booker pages
     alt User closes and reopens modal
         UI->>Parent: bookerReopened event
         Note right of UI: Purpose: Tracks when booker is<br/>reopened after being closed
-        UI->>Parent: availabilityRefreshed event
-        Note right of UI: Purpose: Tracks when slots data<br/>is updated after initial load
     end
     
     loop Dimension Monitoring

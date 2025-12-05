@@ -178,8 +178,8 @@
               }
             };
 
-            const availabilityLoadedCallback = () => {
-              trackAvailabilityLoaded("availabilityLoaded event");
+            const bookerReadyCallback = () => {
+              trackAvailabilityLoaded("bookerReady event");
             };
 
             const bookerReloadedCallback = (e) => {
@@ -193,7 +193,7 @@
 
             if (!listenersAdded) {
               api("on", { action: "bookerViewed", callback: bookerViewedCallback });
-              api("on", { action: "availabilityLoaded", callback: availabilityLoadedCallback });
+              api("on", { action: "bookerReady", callback: bookerReadyCallback });
               api("on", { action: "bookerReopened", callback: bookerReopenedCallback });
               api("on", { action: "bookerReloaded", callback: bookerReloadedCallback });
               listenersAdded = true;
@@ -284,7 +284,7 @@
             pageType: "team.event.booking.slots",
             options: {
               slotsStaleTimeMs: 30 * 1000,
-              iframeForceReloadThresholdMs: 10 * 1000,
+              iframeForceReloadThresholdMs: 100 * 1000,
             },
           });
         }

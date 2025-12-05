@@ -178,7 +178,6 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   useBookerEmbedEvents({
     eventId: event.data?.id,
     eventSlug: event.data?.slug,
-    availabilityDataUpdateTime: schedule.dataUpdatedAt,
     schedule,
   });
 

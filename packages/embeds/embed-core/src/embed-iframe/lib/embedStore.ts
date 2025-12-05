@@ -116,25 +116,33 @@ export const embedStore = {
    */
   setUiConfig: [] as ((arg0: UiConfig) => void)[],
   /**
-   * State for tracking embed events (bookerViewed, availabilityLoaded, etc.)
+   * State for tracking embed events (bookerViewed, bookerReady, etc.)
    */
   eventsState: {
     /**
-     * Counter for modal reopens. Set to 1 on first linkReady event (non-prerendering), then incremented.
-     * Used to track modal opens and distinguish between first open (bookerViewed) and reopens (bookerReopened).
-     * null = not yet initialized, 1 = first open, 2 = second reopen, etc.
+     * Unique identifier for the current link view. Incremented on each `linkReady` event (non-prerendering).
+     * - null = not yet initialized (before first linkReady)
+     * - 1 = first view (triggers bookerViewed)
+     * - 2+ = subsequent views/reopens (triggers bookerReopened)
+     * 
+     * `linkReady` fires when iframe content is fully ready for user interaction
+     * (after content height is known and slots are loaded if skeleton loader is used).
      */
-    reopenCount: null as number | null,
+    viewId: null as number | null,
     /**
-     * Tracks the reopenCount value for which bookerViewed event has been fired.
-     * Prevents duplicate firing of bookerViewed/bookerReopened events for the same reopen.
+     * Tracks whether bookerViewed/bookerReopened/bookerReloaded events have been fired for the current view.
+     * Reset to false when linkReady fires (via resetViewVariables).
      */
-    lastFiredForReopenCount: null as number | null,
+    bookerViewedFamily: {
+      hasFired: false,
+    },
     /**
-     * Timestamp of the last availability data update (dataUpdatedAt from schedule query).
-     * Used to distinguish between availabilityLoaded (first load) and availabilityRefreshed (subsequent loads).
+     * Tracks whether bookerReady event has been fired for the current view.
+     * Reset to false when linkReady fires (via resetViewVariables).
      */
-    lastAvailabilityDataUpdatedAt: null as number | null,
+    bookerReady: {
+      hasFired: false,
+    },
     /**
      * Flag to indicate that a reload was initiated and bookerReloaded should fire on next linkReady.
      * Set to true when __reloadInitiated is received.
@@ -143,5 +151,14 @@ export const embedStore = {
     reloadInitiated: false,
   },
 };
+
+/**
+ * Resets the hasFired flags for all events when a new link view starts.
+ * Called when linkReady event fires to allow events to fire again for the new view.
+ */
+export function resetViewVariables() {
+  embedStore.eventsState.bookerViewedFamily.hasFired = false;
+  embedStore.eventsState.bookerReady.hasFired = false;
+}
 
 export type EmbedStore = typeof embedStore;

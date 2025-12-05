@@ -1,13 +1,17 @@
 "use client";
-
+/**
+ * All hooks defined in this file must be client side hooks and must not be executed in server side.
+ * So, they should start with isClientSide check.
+ */
 import { sdkActionManager } from "../sdk-event";
 import { embedStore } from "./lib/embedStore";
 
+function isClientSide() {
+    return typeof window !== "undefined";
+}
+
 const isPrerendering = () => {
-    if (typeof document === "undefined") {
-        return false;
-    }
-    return new URL(document.URL).searchParams.get("prerender") === "true";
+    return new URL(window.document.URL).searchParams.get("prerender") === "true";
 };
 
 /**
@@ -17,19 +21,17 @@ const fireBookerViewedEvent = ({
     eventId,
     eventSlug,
     slotsLoaded,
-    reopenCount,
 }: {
     eventId: number | undefined;
     eventSlug: string | undefined;
     slotsLoaded: boolean;
-    reopenCount: number;
 }) => {
-    if (embedStore.eventsState.lastFiredForReopenCount !== reopenCount) {
-        const isFirstTime = !embedStore.eventsState.lastFiredForReopenCount;
+    if (!embedStore.eventsState.bookerViewedFamily.hasFired) {
+        const isFirstTime = embedStore.eventsState.viewId === 1;
         // Fire bookerReloaded if reload was initiated, otherwise use normal logic
         const isReload = embedStore.eventsState.reloadInitiated;
         fireEvent(isFirstTime, isReload);
-        embedStore.eventsState.lastFiredForReopenCount = embedStore.eventsState.reopenCount;
+        embedStore.eventsState.bookerViewedFamily.hasFired = true;
         // Reset reload flag after using it
         if (isReload) {
             embedStore.eventsState.reloadInitiated = false;
@@ -60,82 +62,70 @@ const fireBookerViewedEvent = ({
 };
 
 /**
- * Fires availabilityLoaded or availabilityRefreshed events.
- * Manages the lastAvailabilityDataUpdatedAt timestamp internally to distinguish initial load from refreshes.
- * Prevents firing events during prerender mode.
+ * Fires bookerReady event when booker view is loaded and slots are ready.
+ * Only fires once per link view when slots are successfully loaded.
  */
-const fireAvailabilityLoadedEvents = ({
+const fireBookerReadyEvent = ({
     eventId,
     eventSlug,
-    availabilityDataUpdateTime,
     slotsLoaded,
 }: {
     eventId: number;
     eventSlug: string;
-    availabilityDataUpdateTime: number;
     slotsLoaded: boolean;
 }) => {
     if (!slotsLoaded) {
         return;
     }
-    if (!embedStore.eventsState.lastAvailabilityDataUpdatedAt) {
-        // First successful load - fire availabilityLoaded
-        sdkActionManager?.fire("availabilityLoaded", { eventId, eventSlug });
-    } else if (availabilityDataUpdateTime > embedStore.eventsState.lastAvailabilityDataUpdatedAt) {
-        // Data was refreshed - fire availabilityRefreshed
-        sdkActionManager?.fire("availabilityRefreshed", { eventId, eventSlug });
+    if (!embedStore.eventsState.bookerReady.hasFired) {
+        sdkActionManager?.fire("bookerReady", { eventId, eventSlug });
+        embedStore.eventsState.bookerReady.hasFired = true;
     }
-    embedStore.eventsState.lastAvailabilityDataUpdatedAt = availabilityDataUpdateTime;
 };
 
 /**
- * Hook that fires embed events (bookerViewed/bookerReopened/bookerReloaded and availabilityLoaded/availabilityRefreshed).
+ * Hook that fires embed events (bookerViewed/bookerReopened/bookerReloaded and bookerReady).
  * Manages event state using embedStore to prevent duplicate events and track modal reopens/reloads.
  */
 export const useBookerEmbedEvents = ({
     eventId,
     eventSlug,
-    availabilityDataUpdateTime,
     schedule,
 }: {
     eventId: number | undefined;
     eventSlug: string | undefined;
-    availabilityDataUpdateTime: number;
     schedule: {
         isSuccess: boolean;
         dataUpdatedAt: number;
     };
 }) => {
-    if (typeof window === "undefined") {
+    if (!isClientSide()) {
         return;
     }
-    const reopenCount = embedStore.eventsState.reopenCount;
+    const viewId = embedStore.eventsState.viewId;
 
-    if (isPrerendering() || !reopenCount) {
+    if (isPrerendering() || !viewId) {
         return;
     }
-    // first BookerViewed event happens, followed by availabilityLoaded/availabilityRefreshed if they are loaded
+    // first BookerViewed event happens, followed by bookerReady if slots are loaded
     // In case of prerender, they can fire one after another as prerender -> non-prerender mode transition happens when slots data is fully ready
     fireBookerViewedEvent({
         eventId,
         eventSlug,
         slotsLoaded: schedule.isSuccess,
-        reopenCount,
     });
 
     if (eventId && eventSlug) {
-        fireAvailabilityLoadedEvents({
+        fireBookerReadyEvent({
             eventId,
             eventSlug,
             slotsLoaded: schedule.isSuccess,
-            availabilityDataUpdateTime,
         });
     }
 };
 
 export const useIsEmbedPrerendering = () => {
-    // Hook must execute in browser environment
-    if (typeof window === "undefined") {
+    if (!isClientSide()) {
         return false;
     }
     return isPrerendering();

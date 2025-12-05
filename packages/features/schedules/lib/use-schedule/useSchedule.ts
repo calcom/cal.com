@@ -1,7 +1,7 @@
-import { useRef } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
@@ -31,6 +31,18 @@ export type UseScheduleWithCacheArgs = {
   enabled?: boolean;
 };
 
+const getAvailabilityLoadedEventPayload = ({
+  eventId,
+  eventSlug,
+}: {
+  eventId: number;
+  eventSlug: string;
+}) => {
+  return {
+    eventId,
+    eventSlug,
+  };
+};
 
 export const useSchedule = ({
   month,
@@ -147,7 +159,16 @@ export const useSchedule = ({
       slotsQuery: teamScheduleV2,
     });
 
-
+    if (teamScheduleV2.isSuccess && eventId && eventSlug) {
+      /**
+       * @deprecated Use `bookerReady` event instead. This event is kept for backward compatibility.
+       * The `bookerReady` event is fired from embed-core when the booker view is loaded and slots are ready.
+       */
+      sdkActionManager?.fire(
+        "availabilityLoaded",
+        getAvailabilityLoadedEventPayload({ eventId, eventSlug })
+      );
+    }
 
     return {
       ...teamScheduleV2,
@@ -164,6 +185,17 @@ export const useSchedule = ({
     bookerState,
     slotsQuery: schedule,
   });
+
+  if (schedule.isSuccess && eventId && eventSlug) {
+    /**
+     * @deprecated Use `bookerReady` event instead. This event is kept for backward compatibility.
+     * The `bookerReady` event is fired from embed-core when the booker view is loaded and slots are ready.
+     */
+    sdkActionManager?.fire(
+      "availabilityLoaded",
+      getAvailabilityLoadedEventPayload({ eventId, eventSlug })
+    );
+  }
 
   return {
     ...schedule,
