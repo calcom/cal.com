@@ -31,7 +31,7 @@ jobs:
         uses: ./.github/actions/docker-build-and-test
         with:
           platform: "linux/amd64"
-          platform-suffix: ""
+          platform-suffix: "-amd64"
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -105,6 +105,76 @@ jobs:
           payload: |
             {
               "text": ":red_circle: Workflow *${{ github.workflow }}* (ARM) failed in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
+
+  merge:
+    name: "Merge Multi-Arch Images"
+    runs-on: ubuntu-latest
+    needs: [release-amd64, release-arm]
+    steps:
+      - name: Log in to the Docker Hub registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to the Github Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Determine tag"
+        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+
+      - name: Create manifest list and push
+        run: |
+          PUSH_LATEST="true"
+          if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
+            PUSH_LATEST="false"
+          fi
+
+          IMAGES=(
+            "docker.io/calendso/calendso"
+            "docker.io/calcom/cal.com"
+            "ghcr.io/calcom/cal.com"
+          )
+
+          for IMAGE in "${IMAGES[@]}"; do
+            echo "Creating manifest list for $IMAGE:$RELEASE_TAG"
+            docker buildx imagetools create -t "$IMAGE:$RELEASE_TAG" \
+              "$IMAGE:$RELEASE_TAG-amd64" \
+              "$IMAGE:$RELEASE_TAG-arm"
+
+            if [[ "$PUSH_LATEST" == "true" ]]; then
+              echo "Creating manifest list for $IMAGE:latest"
+              docker buildx imagetools create -t "$IMAGE:latest" \
+                "$IMAGE:$RELEASE_TAG-amd64" \
+                "$IMAGE:$RELEASE_TAG-arm"
+            fi
+          done
+
+      - name: Notify Slack on Success
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":large_green_circle: Workflow *${{ github.workflow }}* (Merge) succeeded in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on Failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":red_circle: Workflow *${{ github.workflow }}* (Merge) failed in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
