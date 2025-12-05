@@ -192,7 +192,7 @@ export default function CancelBooking(props: Props) {
         </div>
       )}
       {!error && (
-        <div className={classNames(isRenderedAsCancelDialog ? "mb-8" : "mt-5 sm:mt-6")}>
+        <div className={classNames(isRenderedAsCancelDialog ? "-mt-2 mb-8" : "mt-5 sm:mt-6")}>
           {props.isHost && props.internalNotePresets.length > 0 && (
             <>
               <InternalNotePresetsSelect

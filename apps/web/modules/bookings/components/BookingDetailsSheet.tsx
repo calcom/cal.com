@@ -198,7 +198,7 @@ function BookingDetailsSheetInner({
           }
           // If clicking elsewhere, allow the default behavior (close the sheet)
         }}>
-        <SheetHeader showCloseButton={false} className="-mt-1 w-full">
+        <SheetHeader showCloseButton={false} className="mt-0 w-full">
           <div className="flex items-center justify-between gap-x-4">
             <div className="flex min-w-0 flex-col gap-y-1">
               <BookingHeaderBadges
@@ -405,7 +405,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
-      <div className="mt-2 flex flex-col gap-2">
+      <div className="mt-2 flex flex-col gap-3">
         {booking.user && (
           <div className="flex items-center gap-4">
             <Avatar
