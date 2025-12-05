@@ -322,7 +322,9 @@ function BookingListItem(booking: BookingItemProps) {
             </ConditionalLink>
           </div>
         </div>
-        <div data-testid="title-and-attendees" className={`flex-1 px-4${isRejected ? "line-through" : ""}`}>
+        <div
+          data-testid="title-and-attendees"
+          className={classNames("flex-1 px-4", isRejected && "line-through")}>
           <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="flex h-full flex-col">
             {/* Time and Badges for mobile */}
             <div className="w-full pb-2 pt-4 sm:hidden">
