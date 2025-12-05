@@ -28,7 +28,7 @@ export const CUSTOM_PRESET: PresetOption = {
 };
 
 export const PRESET_OPTIONS: PresetOption[] = [
-  { labelKey: "today", value: "tdy", direction: "any" },
+  { labelKey: "today", value: "tdy", direction: "past" },
   DEFAULT_PRESET,
   { labelKey: "last_number_of_days", i18nOptions: { count: 30 }, value: "t", direction: "past" },
   { labelKey: "month_to_date", value: "m", direction: "past" },
@@ -36,9 +36,7 @@ export const PRESET_OPTIONS: PresetOption[] = [
   CUSTOM_PRESET,
 ];
 
-export const getCompatiblePresets = (
-  range: "past" | "future" | "any" | "customOnly"
-): PresetOption[] => {
+export const getCompatiblePresets = (range: "past" | "future" | "any" | "customOnly"): PresetOption[] => {
   if (range === "customOnly") {
     return [];
   }

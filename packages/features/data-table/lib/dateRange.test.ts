@@ -114,7 +114,7 @@ describe("PRESET_OPTIONS", () => {
   });
 
   it("should have correct direction for each preset", () => {
-    expect(PRESET_OPTIONS[0].direction).toBe("any"); // Today
+    expect(PRESET_OPTIONS[0].direction).toBe("past"); // Today
     expect(PRESET_OPTIONS[1].direction).toBe("past"); // Last 7 days
     expect(PRESET_OPTIONS[2].direction).toBe("past"); // Last 30 days
     expect(PRESET_OPTIONS[3].direction).toBe("past"); // Month to date
@@ -137,17 +137,18 @@ describe("getCompatiblePresets", () => {
 
   it("should return all presets for past range (including direction:any)", () => {
     const result = getCompatiblePresets("past");
-    expect(result.length).toBe(6); // All 6 presets
+    expect(result.length).toBe(6); // All 6 presets (5 past + 1 any)
     // Should include both "past" direction and "any" direction presets
     const directions = result.map((p) => p.direction);
     expect(directions).toContain("past");
     expect(directions).toContain("any");
+    expect(result.map((p) => p.value)).toEqual(["tdy", "w", "t", "m", "y", "c"]);
   });
 
   it("should return only any-direction presets for future range", () => {
     const result = getCompatiblePresets("future");
-    expect(result.length).toBe(2); // Only Today and Custom
-    expect(result.map((p) => p.value)).toEqual(["tdy", "c"]);
+    expect(result.length).toBe(1); // Only Custom (Today is now past-direction)
+    expect(result.map((p) => p.value)).toEqual(["c"]);
     // All returned presets should have direction "any"
     expect(result.every((p) => p.direction === "any")).toBe(true);
   });
@@ -155,7 +156,8 @@ describe("getCompatiblePresets", () => {
   it("should not return past-only presets for future range", () => {
     const result = getCompatiblePresets("future");
     const values = result.map((p) => p.value);
-    // Should NOT include past-only presets
+    // Should NOT include past-only presets (including Today)
+    expect(values).not.toContain("tdy"); // Today (now past-direction)
     expect(values).not.toContain("w"); // Last 7 days
     expect(values).not.toContain("t"); // Last 30 days
     expect(values).not.toContain("m"); // Month to date

@@ -35,8 +35,7 @@ const scenarios: ScenarioProps[] = [
     id: "future",
     title: 'Range: "future"',
     description: "Restricts date selection to future dates only. Shows only future-compatible presets.",
-    expected:
-      "Presets visible: Today, Custom (only presets with direction 'any' or 'future'). Calendar minDate = today.",
+    expected: "Presets visible: Custom only (presets with direction 'any'). Calendar minDate = today.",
     range: "future",
   },
   {
@@ -96,6 +95,10 @@ function ScenarioCard({ scenario }: { scenario: ScenarioProps }) {
 
   // Get the column definition to pass to DateRangeFilter
   const dateRangeColumn = table.getAllColumns().find((col) => col.id === "dateRange");
+  const columnMeta = dateRangeColumn?.columnDef.meta as
+    | { filter?: { type: string; dateRangeOptions?: DateRangeFilterOptions } }
+    | undefined;
+  const dateRangeOptions = columnMeta?.filter?.dateRangeOptions;
 
   return (
     <div className="border-subtle mb-8 rounded-lg border p-6" data-testid={`drf-scenario-${scenario.id}`}>
@@ -114,7 +117,7 @@ function ScenarioCard({ scenario }: { scenario: ScenarioProps }) {
                 title: dateRangeColumn.columnDef.header as string,
                 type: "dr",
               }}
-              options={dateRangeColumn.columnDef.meta?.filter?.dateRangeOptions}
+              options={dateRangeOptions}
               showColumnName={false}
               showClearButton={false}
             />

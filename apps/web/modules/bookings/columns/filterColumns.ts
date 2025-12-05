@@ -109,12 +109,7 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         filter: {
           type: ColumnFilterType.DATE_RANGE,
           dateRangeOptions: {
-            range:
-              status === "past"
-                ? "past"
-                : status === "upcoming"
-                ? "future"
-                : "any",
+            range: status === "past" ? "past" : status === "cancelled" ? "any" : "future", // upcoming, unconfirmed, recurring are all future-only
           },
         },
       },
