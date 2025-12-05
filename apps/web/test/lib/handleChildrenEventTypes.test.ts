@@ -535,6 +535,7 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: null,
           isInstantEvent: false,
           instantMeetingExpiryTimeOffsetInSeconds: 90,
+          autoTranslateInstantMeetingTitleEnabled: true,
           instantMeetingScheduleId: null,
           assignAllTeamMembers: false,
           useEventTypeDestinationCalendarEmail: false,
