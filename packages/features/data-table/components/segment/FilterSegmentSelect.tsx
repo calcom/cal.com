@@ -243,7 +243,9 @@ function DropdownItemWithSubmenu({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <DropdownMenuItem className="cursor-pointer" onSelect={onSelect}>
+    <DropdownMenuItem
+      className="rounded-lg! first:rounded-t-lg! last:rounded-b-lg! cursor-pointer"
+      onSelect={onSelect}>
       <div className="flex items-center">
         {children}
         <div className="grow" />
