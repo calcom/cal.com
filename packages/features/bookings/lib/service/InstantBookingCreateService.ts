@@ -12,7 +12,6 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { IBookingCreateService } from "@calcom/features/bookings/lib/interfaces/IBookingCreateService";
 import { createInstantMeetingWithCalVideo } from "@calcom/features/conferencing/lib/videoClient";
 import { getFullName } from "@calcom/features/form-builder/utils";
@@ -198,28 +197,18 @@ export async function handler(
   const attendeeTimezone = reqBody.timeZone;
   const attendeeLanguage = reqBody.language;
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
+  const tEnglish = await getTranslation("en", "common");
 
   const fullName = getFullName(bookerName);
 
-  // Fetch instant meeting specific config (expiry offset and auto-translate setting)
-  // We do this early so we can use autoTranslateInstantMeetingTitleEnabled for the booking title
-  const eventTypeRepository = new EventTypeRepository(prisma);
-  const eventTypeConfig = await eventTypeRepository.findByIdMinimal({
-    id: bookingData.eventTypeId,
-  });
-
-  if (!eventTypeConfig) {
-    throw new Error("Event type not found");
-  }
-
   // Determine whether to auto-translate the instant meeting title based on the event type setting
   // Default is true (opt-out), so we only skip translation when explicitly set to false
-  const shouldAutoTranslateInstantMeetingTitle = eventTypeConfig.autoTranslateInstantMeetingTitleEnabled ?? true;
+  const shouldAutoTranslateInstantMeetingTitle = eventType.autoTranslateInstantMeetingTitleEnabled;
 
   // Get the booking title - either translated to attendee's language or in English
   const bookingTitle = shouldAutoTranslateInstantMeetingTitle
     ? tAttendees("instant_meeting_with_title", { name: fullName })
-    : `Instant meeting with ${fullName}`;
+    : tEnglish("instant_meeting_with_title", { name: fullName });
 
   const invitee = [
     {
@@ -300,8 +289,7 @@ export async function handler(
 
   const token = randomBytes(32).toString("hex");
 
-  const instantMeetingExpiryTimeOffsetInSeconds =
-    eventTypeConfig.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
+  const instantMeetingExpiryTimeOffsetInSeconds = eventType.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
 
   const instantMeetingToken = await prisma.instantMeetingToken.create({
     data: {
