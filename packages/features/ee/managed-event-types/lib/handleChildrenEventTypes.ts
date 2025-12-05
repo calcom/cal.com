@@ -261,19 +261,6 @@ export default async function handleChildrenEventTypes({
         }
       }
 
-      await Promise.all(
-        createdEvents.map((event) =>
-          tx.eventType.update({
-            where: { id: event.id },
-            data: {
-              users: {
-                connect: [{ id: event.userId! }],
-              },
-            },
-          })
-        )
-      );
-
       // Link workflows if any exist
       if (currentWorkflowIds && currentWorkflowIds.length > 0) {
         const workflowConnections = createdEvents.flatMap((event) =>
