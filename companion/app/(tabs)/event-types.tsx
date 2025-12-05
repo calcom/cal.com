@@ -27,6 +27,7 @@ import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { slugify } from "../../utils/slugify";
 import { showErrorAlert } from "../../utils/alerts";
+import { formatDuration } from "../event-type-detail/utils";
 import {
   useEventTypes,
   useCreateEventType,
@@ -125,18 +126,6 @@ export default function EventTypes() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-  };
-
-  const formatDuration = (minutes: number | undefined) => {
-    if (!minutes || minutes <= 0) {
-      return "0m";
-    }
-    if (minutes < 60) {
-      return `${minutes}m`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
   const getDuration = (eventType: EventType): number => {

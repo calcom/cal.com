@@ -1,117 +1,15 @@
-/// <reference types="chrome" />
-
 /**
- * Unified Storage Persister for React Query Cache
+ * React Query Cache Persister
  *
- * This module provides a cross-platform storage abstraction that works with:
- * - AsyncStorage for React Native (iOS/Android)
- * - chrome.storage for browser extensions
- * - localStorage as fallback for web
- *
- * The pattern is based on the existing AuthContext storage implementation
- * to maintain consistency across the codebase.
+ * Uses the shared storage adapter from lib/storage.ts for cross-platform support.
  */
 
-import { Platform } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Persister, PersistedClient } from "@tanstack/react-query-persist-client";
 import { CACHE_CONFIG } from "../config/cache.config";
+import { generalStorage } from "./storage";
 
-/**
- * Check if chrome.storage is available (browser extension context)
- */
-const isChromeStorageAvailable = (): boolean => {
-  return (
-    Platform.OS === "web" &&
-    typeof chrome !== "undefined" &&
-    chrome.storage !== undefined &&
-    chrome.storage.local !== undefined
-  );
-};
-
-/**
- * Unified storage interface matching the pattern from AuthContext
- */
-interface StorageAdapter {
-  getItem: (key: string) => Promise<string | null>;
-  setItem: (key: string, value: string) => Promise<void>;
-  removeItem: (key: string) => Promise<void>;
-}
-
-/**
- * Create a storage adapter based on the current platform
- */
-const createStorageAdapter = (): StorageAdapter => {
-  // Browser extension context - use chrome.storage.local
-  if (isChromeStorageAvailable()) {
-    return {
-      getItem: (key: string): Promise<string | null> => {
-        return new Promise((resolve) => {
-          chrome.storage.local.get([key], (result) => {
-            resolve((result[key] as string) || null);
-          });
-        });
-      },
-      setItem: (key: string, value: string): Promise<void> => {
-        return new Promise((resolve, reject) => {
-          chrome.storage.local.set({ [key]: value }, () => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-            } else {
-              resolve();
-            }
-          });
-        });
-      },
-      removeItem: (key: string): Promise<void> => {
-        return new Promise((resolve, reject) => {
-          chrome.storage.local.remove(key, () => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-            } else {
-              resolve();
-            }
-          });
-        });
-      },
-    };
-  }
-
-  // Regular web app - use localStorage
-  if (Platform.OS === "web") {
-    return {
-      getItem: (key: string): Promise<string | null> => {
-        return Promise.resolve(localStorage.getItem(key));
-      },
-      setItem: (key: string, value: string): Promise<void> => {
-        localStorage.setItem(key, value);
-        return Promise.resolve();
-      },
-      removeItem: (key: string): Promise<void> => {
-        localStorage.removeItem(key);
-        return Promise.resolve();
-      },
-    };
-  }
-
-  // React Native (iOS/Android) - use AsyncStorage
-  return {
-    getItem: (key: string): Promise<string | null> => {
-      return AsyncStorage.getItem(key);
-    },
-    setItem: (key: string, value: string): Promise<void> => {
-      return AsyncStorage.setItem(key, value);
-    },
-    removeItem: (key: string): Promise<void> => {
-      return AsyncStorage.removeItem(key);
-    },
-  };
-};
-
-/**
- * Storage adapter instance
- */
-const storage = createStorageAdapter();
+// Use the shared general storage adapter for cache persistence
+const storage = generalStorage;
 
 /**
  * Create a React Query persister that works across all platforms

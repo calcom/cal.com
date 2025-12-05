@@ -1,7 +1,13 @@
 // Utility functions for Event Type Detail
 
-export const formatDuration = (minutes: string) => {
-  const mins = parseInt(minutes) || 0;
+/**
+ * Format duration in minutes to a human-readable string
+ * @param minutes - Duration in minutes (number or string)
+ * @returns Formatted string like "30m", "1h", "1h 30m"
+ */
+export const formatDuration = (minutes: number | string | undefined): string => {
+  const mins = typeof minutes === "string" ? parseInt(minutes) || 0 : minutes || 0;
+  if (mins <= 0) return "0m";
   if (mins < 60) return `${mins}m`;
   const hours = Math.floor(mins / 60);
   const remainingMins = mins % 60;

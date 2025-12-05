@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Booking } from "../services/calcom";
+import { showErrorAlert } from "../utils/alerts";
 import { SvgImage } from "../components/SvgImage";
 import { FullScreenModal } from "../components/FullScreenModal";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
@@ -208,9 +209,13 @@ export default function BookingDetail() {
     } catch (err) {
       console.error("Error fetching booking:", err);
       setError("Failed to load booking. Please try again.");
-      Alert.alert("Error", "Failed to load booking. Please try again.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      if (__DEV__) {
+        Alert.alert("Error", "Failed to load booking. Please try again.", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else {
+        router.back();
+      }
     } finally {
       setLoading(false);
     }
@@ -245,7 +250,7 @@ export default function BookingDetail() {
       await fetchBooking();
     } catch (error) {
       console.error("Failed to reschedule booking:", error);
-      Alert.alert("Error", "Failed to send reschedule request. Please try again.");
+      showErrorAlert("Error", "Failed to send reschedule request. Please try again.");
     } finally {
       setRescheduling(false);
     }
