@@ -26,6 +26,7 @@ import { Header } from "../../components/Header";
 import { Tooltip } from "../../components/Tooltip";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { slugify } from "../../utils/slugify";
+import { GlassView } from "expo-glass-effect";
 
 export default function EventTypes() {
   console.log("EventTypes component rendering");
@@ -589,7 +590,7 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-2">
           <ActivityIndicator size="large" color="#000000" />
           <Text className="mt-4 text-base text-gray-500">Loading event types...</Text>
         </View>
@@ -601,7 +602,7 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-2">
           <Ionicons name="alert-circle" size={64} color="#FF3B30" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
             Unable to load event types
@@ -619,7 +620,10 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
+        <GlassView
+          className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4"
+          isInteractive
+        >
           <TextInput
             className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
             placeholder="Search event types"
@@ -630,8 +634,8 @@ export default function EventTypes() {
             autoCorrect={false}
             clearButtonMode="while-editing"
           />
-        </View>
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        </GlassView>
+        <View className="flex-1 items-center justify-center bg-gray-50 p-2">
           <Ionicons name="calendar-outline" size={64} color="#666" />
           <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No event types found</Text>
           <Text className="text-center text-base text-gray-500">
@@ -658,7 +662,7 @@ export default function EventTypes() {
             clearButtonMode="while-editing"
           />
         </View>
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-2">
           <Ionicons name="search-outline" size={64} color="#666" />
           <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No results found</Text>
           <Text className="text-center text-base text-gray-500">
@@ -672,7 +676,7 @@ export default function EventTypes() {
   return (
     <View className="flex-1 bg-gray-100">
       <Header />
-      <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+      <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-2 py-2">
         <TextInput
           className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
           placeholder="Search event types"

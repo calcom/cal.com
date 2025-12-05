@@ -18,7 +18,8 @@
       "deploymentTarget": "18.0",
       "bundleIdentifier": "com.calcom.companion",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIAppFonts": ["CalSans-Regular.ttf"]
       }
     },
     "android": {
@@ -33,6 +34,7 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+    "fonts": ["./assets/CalSans-Regular.ttf"],
     "extra": {
       "eas": {
         "projectId": "f5e97f6f-1e95-44ac-bfa4-f737ef90f198"

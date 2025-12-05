@@ -1326,7 +1326,7 @@ export default function EventTypeDetail() {
 
         {/* Tabs */}
         <View
-          className="absolute left-0 right-0 top-0 z-[999] border-b border-[#C6C6C8] bg-white pb-2"
+          className="absolute left-0 right-0 top-0 z-[999] bg-white pb-2"
           style={{ paddingTop: insets.top + 70 }}
         >
           <ScrollView
@@ -1363,10 +1363,10 @@ export default function EventTypeDetail() {
         <ScrollView
           style={{
             flex: 1,
-            paddingTop: Platform.OS === "web" ? 120 : 180,
+            paddingTop: Platform.OS === "web" ? 120 : 170,
             paddingBottom: 250,
           }}
-          contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
+          contentContainerStyle={{ padding: 12, paddingBottom: 200 }}
         >
           {activeTab === "basics" && (
             <BasicsTab
