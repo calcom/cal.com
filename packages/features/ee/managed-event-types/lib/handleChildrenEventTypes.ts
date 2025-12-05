@@ -206,11 +206,29 @@ export default async function handleChildrenEventTypes({
         skipDuplicates: true,
       });
 
+      // Fetch the newly created event types to connect users and workflows
+      const createdEvents = await tx.eventType.findMany({
+        where: { parentId: parentId, userId: { in: newUserIds } },
+        select: { id: true, userId: true },
+      });
+
+      // Connect users to their event types (many-to-many relation)
+      // This is needed because createMany doesn't support nested relations
+      await Promise.all(
+        createdEvents.map((event) =>
+          tx.eventType.update({
+            where: { id: event.id },
+            data: {
+              users: {
+                connect: [{ id: event.userId! }],
+              },
+            },
+          })
+        )
+      );
+
+      // Link workflows if any exist
       if (currentWorkflowIds && currentWorkflowIds.length > 0) {
-        const createdEvents = await tx.eventType.findMany({
-          where: { parentId: parentId, userId: { in: newUserIds } },
-          select: { id: true },
-        });
         const workflowConnections = createdEvents.flatMap((event) =>
           currentWorkflowIds.map((wfId) => ({
             eventTypeId: event.id,
