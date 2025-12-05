@@ -598,7 +598,7 @@ export function BookingActionsDropdown({
                       type="button"
                       color={action.color}
                       StartIcon={action.icon}
-                      href={action.href}
+                      href={action.disabled ? undefined : action.href}
                       disabled={action.disabled}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -621,7 +621,7 @@ export function BookingActionsDropdown({
                   type="button"
                   color={action.color}
                   StartIcon={action.icon}
-                  href={action.href}
+                  href={action.disabled ? undefined : action.href}
                   disabled={action.disabled}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -642,7 +642,7 @@ export function BookingActionsDropdown({
                   type="button"
                   color={action.color}
                   StartIcon={action.icon}
-                  href={action.href}
+                  href={action.disabled ? undefined : action.href}
                   onClick={(e) => {
                     e.stopPropagation();
                     action.onClick?.(e);

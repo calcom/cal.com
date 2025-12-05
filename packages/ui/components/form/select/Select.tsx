@@ -60,7 +60,7 @@ export const Select = <
         input: () => cx("text-emphasis", innerClassNames?.input),
         option: (state) =>
           cx(
-            "bg-default flex cursor-pointer justify-between py-1.5 px-2 rounded-md text-default items-center",
+            "bg-default flex cursor-pointer justify-between py-2 px-3 rounded-md text-default items-center",
             state.isFocused && "bg-subtle",
             state.isDisabled && "bg-cal-muted",
             state.isSelected && "bg-emphasis text-default",
@@ -101,7 +101,7 @@ export const Select = <
         groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",
         menuList: () =>
           cx(
-            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col stack-y-px",
+            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-1",
             innerClassNames?.menuList
           ),
         indicatorsContainer: (state) =>

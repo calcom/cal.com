@@ -8,6 +8,7 @@ import { shallow } from "zustand/shallow";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { SheetFooterControls } from "@calcom/features/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/features/users/components/UserTable/EditSheet/store";
+import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -34,11 +35,13 @@ export function EditMemberSheet({
   dispatch,
   currentMember,
   teamId,
+  permissions,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
   currentMember: MembershipRole;
   teamId: number;
+  permissions?: MemberPermissions;
 }) {
   const { t } = useLocale();
   const { user } = state.editSheet;
@@ -277,7 +280,10 @@ export function EditMemberSheet({
               </div>
             </SheetBody>
             <SheetFooter className="mt-auto">
-              <SheetFooterControls />
+              <SheetFooterControls
+                canChangeMemberRole={permissions?.canChangeMemberRole}
+                canEditAttributesForUser={permissions?.canEditAttributesForUser}
+              />
             </SheetFooter>
           </Form>
         ) : (

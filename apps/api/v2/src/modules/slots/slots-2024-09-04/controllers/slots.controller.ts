@@ -188,7 +188,8 @@ export class SlotsController_2024_09_04 {
   @DocsResponse({
     status: 200,
     description: `A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.
-      For seated slots each object will have attendeesCount and bookingUid properties.`,
+      For seated slots each object will have attendeesCount and bookingUid properties.
+      If no slots are available, the data field will be an empty object {}.`,
     schema: {
       oneOf: [
         {

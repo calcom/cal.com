@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -11,6 +12,7 @@ import type { OnboardingState } from "../store/onboarding-store";
 
 export const useSubmitOnboarding = () => {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const flags = useFlagMap();
@@ -78,6 +80,8 @@ export const useSubmitOnboarding = () => {
       // No checkout URL means billing is disabled (self-hosted flow)
       // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
+      // Refresh session to get updated organization data
+      await updateSession();
       // Set flag to show welcome modal after personal onboarding redirect
       setShowNewOrgModalFlag();
       skipToPersonal(resetOnboarding);

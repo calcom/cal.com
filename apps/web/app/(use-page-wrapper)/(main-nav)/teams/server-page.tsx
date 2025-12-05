@@ -6,10 +6,9 @@ import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing"
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import { TeamsCTA } from "./CTA";
 
@@ -52,7 +51,7 @@ export const ServerTeamsListing = async ({
       }
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
-      if (e instanceof TRPCError) errorMsgFromInvite = e.message;
+      if (e instanceof ErrorWithCode) errorMsgFromInvite = e.message;
     }
   }
 

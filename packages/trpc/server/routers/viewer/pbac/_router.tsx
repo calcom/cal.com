@@ -193,7 +193,7 @@ export const permissionsRouter = router({
       }
 
       if (!teamHasPBACFeature) {
-        throw new Error("PBAC is not enabled for this team");
+        return [];
       }
 
       // Check if user has permission to view roles

@@ -5,8 +5,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 import type { OnboardingUser } from "./service/onboarding/types";
 
@@ -102,25 +102,19 @@ export class OrganizationPermissionService {
     } & SeatsPrice
   ): Promise<boolean> {
     if (!(await this.hasPermissionToCreateForEmail(input.orgOwnerEmail))) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "you_do_not_have_permission_to_create_an_organization_for_this_email",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.Unauthorized,
+        "you_do_not_have_permission_to_create_an_organization_for_this_email"
+      );
     }
 
     if (await this.hasConflictingOrganization({ slug: input.slug })) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "organization_already_exists_with_this_slug",
-      });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "organization_already_exists_with_this_slug");
     }
 
     if (await this.hasCompletedOnboarding(input.orgOwnerEmail)) {
       // TODO: Consider redirecting to success page
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "organization_onboarding_already_completed",
-      });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "organization_onboarding_already_completed");
     }
 
     const teamsToMigrate = input.teams
@@ -128,10 +122,10 @@ export class OrganizationPermissionService {
       .map((team) => team.id);
 
     if (teamsToMigrate && !(await this.hasPermissionToMigrateTeams(teamsToMigrate))) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.Unauthorized,
+        "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams"
+      );
     }
 
     return true;

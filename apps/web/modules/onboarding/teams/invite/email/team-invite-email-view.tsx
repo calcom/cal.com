@@ -54,7 +54,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   const formSchema = z.object({
     invites: z.array(
       z.object({
-        email: z.string().email(t("invalid_email_address")),
+        email: z.union([z.literal(""), z.string().email(t("invalid_email_address"))]),
         role: z.enum(["MEMBER", "ADMIN"]),
       })
     ),
@@ -137,33 +137,33 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
       {/* Left column - Main content */}
       <div className="flex h-full w-full flex-col gap-4">
-        <OnboardingCard
-          title={t("invite")}
-          subtitle={t("team_invite_subtitle")}
-          footer={
-            <div className="flex w-full items-center justify-end gap-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  color="minimal"
-                  className="rounded-[10px]"
-                  onClick={handleSkip}
-                  disabled={isSubmitting}>
-                  {t("onboarding_skip_for_now")}
-                </Button>
-                <Button
-                  type="submit"
-                  color="primary"
-                  className="rounded-[10px]"
-                  disabled={!hasValidInvites || isSubmitting}
-                  loading={isSubmitting}
-                  onClick={form.handleSubmit(handleContinue)}>
-                  {t("continue")}
-                </Button>
+        <Form form={form} handleSubmit={handleContinue} className="flex h-full w-full flex-col gap-4">
+          <OnboardingCard
+            title={t("invite")}
+            subtitle={t("team_invite_subtitle")}
+            footer={
+              <div className="flex w-full items-center justify-end gap-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    color="minimal"
+                    className="rounded-[10px]"
+                    onClick={handleSkip}
+                    disabled={isSubmitting}>
+                    {t("onboarding_skip_for_now")}
+                  </Button>
+                  <Button
+                    type="submit"
+                    color="primary"
+                    className="rounded-[10px]"
+                    disabled={!hasValidInvites || isSubmitting}
+                    loading={isSubmitting}>
+                    {t("continue")}
+                  </Button>
+                </div>
               </div>
-            </div>
-          }>
-          <div className="flex w-full flex-col gap-4 px-1">
-            <Form form={form} handleSubmit={handleContinue} className="w-full">
+            }>
+            <div className="flex w-full flex-col gap-4 px-1">
               <div className="flex w-full flex-col gap-4">
                 <EmailInviteForm
                   fields={fields}
@@ -184,9 +184,9 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                   showInfoBadge
                 />
               </div>
-            </Form>
-          </div>
-        </OnboardingCard>
+            </div>
+          </OnboardingCard>
+        </Form>
       </div>
 
       {/* Right column - Browser view */}

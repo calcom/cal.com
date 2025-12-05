@@ -223,6 +223,7 @@ export interface CalendarEvent {
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
+  organizationId?: number | null;
   hasOrganizerChanged?: boolean;
 }
 
