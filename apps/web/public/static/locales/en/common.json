@@ -1960,6 +1960,8 @@
   "platform_members": "Platform members",
   "platform_members_description": "Manage the admins and members in your platform team",
   "platform_billing": "Platform billing",
+  "platform_webhooks": "Platform webhooks",
+  "platform_webhooks_description": "Receive meeting data in real-time when something happens in {{appName}}",
   "manage_billing": "Manage billing",
   "manage_billing_description": "Manage all things billing",
   "billing_freeplan_title": "You're currently on the FREE plan",
