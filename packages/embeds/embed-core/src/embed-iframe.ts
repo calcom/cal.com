@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { mapOldToNewCssVars } from "./ui/cssVarsMap";
 import type { Message } from "./embed";
-import { embedStore, EMBED_IFRAME_STATE, resetViewVariables } from "./embed-iframe/lib/embedStore";
+import { embedStore, EMBED_IFRAME_STATE, resetPageData, setReloadInitiated } from "./embed-iframe/lib/embedStore";
 import {
   runAsap,
   isBookerReady,
@@ -79,7 +79,7 @@ function log(...args: unknown[]) {
     });
     args.unshift("CAL:");
     logQueue.push(args);
-    if (searchParams.get("debug")) {
+    if (searchParams.get("debug") || process.env.INTEGRATION_TEST_MODE === "true") {
       console.log("Child:", ...args);
     }
   }
@@ -505,7 +505,7 @@ export const methods = {
   },
   __reloadInitiated: function reloadInitiated(_unused: unknown) {
     log("Method: __reloadInitiated called");
-    embedStore.eventsState.reloadInitiated = true;
+    setReloadInitiated(true);
   },
 };
 
@@ -585,14 +585,14 @@ function main() {
     if (isPrerendering()) {
       return;
     }
-    // Reset hasFired flags for new link view
-    resetViewVariables();
+    // Reset page-specific data for new link view
+    resetPageData();
 
     // Increment viewId (1 = first view, 2+ = reopens)
-    if (!embedStore.eventsState.viewId) {
-      embedStore.eventsState.viewId = 1;
+    if (!embedStore.viewId) {
+      embedStore.viewId = 1;
     } else {
-      embedStore.eventsState.viewId++;
+      embedStore.viewId++;
     }
     // Reset reload flag after linkReady fires (will be checked in react-hooks before resetting)
   });

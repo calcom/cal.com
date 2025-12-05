@@ -116,32 +116,52 @@ export const embedStore = {
    */
   setUiConfig: [] as ((arg0: UiConfig) => void)[],
   /**
-   * State for tracking embed events (bookerViewed, bookerReady, etc.)
+   * Unique identifier for the current link view. Incremented on each `linkReady` event (non-prerendering).
+   * - null = not yet initialized (before first linkReady)
+   * - 1 = first view (triggers bookerViewed)
+   * - 2+ = subsequent views/reopens (triggers bookerReopened)
+   * 
+   * `linkReady` fires when iframe content is fully ready for user interaction
+   * (after content height is known and slots are loaded if skeleton loader is used).
    */
-  eventsState: {
+  viewId: null as number | null,
+  /**
+   * Page-specific state that gets reset when a new page/view loads.
+   * All state that should be cleared between page views should be stored here.
+   */
+  pageData: {
     /**
-     * Unique identifier for the current link view. Incremented on each `linkReady` event (non-prerendering).
-     * - null = not yet initialized (before first linkReady)
-     * - 1 = first view (triggers bookerViewed)
-     * - 2+ = subsequent views/reopens (triggers bookerReopened)
-     * 
-     * `linkReady` fires when iframe content is fully ready for user interaction
-     * (after content height is known and slots are loaded if skeleton loader is used).
+     * State for tracking embed events (bookerViewed, bookerReady, etc.)
      */
-    viewId: null as number | null,
-    /**
-     * Tracks whether bookerViewed/bookerReopened/bookerReloaded events have been fired for the current view.
-     * Reset to false when linkReady fires (via resetViewVariables).
-     */
-    bookerViewedFamily: {
-      hasFired: false,
-    },
-    /**
-     * Tracks whether bookerReady event has been fired for the current view.
-     * Reset to false when linkReady fires (via resetViewVariables).
-     */
-    bookerReady: {
-      hasFired: false,
+    eventsState: {
+      /**
+       * Tracks whether bookerViewed event has been fired for the current view.
+       * Reset to false when linkReady fires (via resetPageData).
+       */
+      bookerViewed: {
+        hasFired: false,
+      },
+      /**
+       * Tracks whether bookerReopened event has been fired for the current view.
+       * Reset to false when linkReady fires (via resetPageData).
+       */
+      bookerReopened: {
+        hasFired: false,
+      },
+      /**
+       * Tracks whether bookerReloaded event has been fired for the current view.
+       * Reset to false when linkReady fires (via resetPageData).
+       */
+      bookerReloaded: {
+        hasFired: false,
+      },
+      /**
+       * Tracks whether bookerReady event has been fired for the current view.
+       * Reset to false when linkReady fires (via resetPageData).
+       */
+      bookerReady: {
+        hasFired: false,
+      },
     },
     /**
      * Flag to indicate that a reload was initiated and bookerReloaded should fire on next linkReady.
@@ -153,12 +173,84 @@ export const embedStore = {
 };
 
 /**
- * Resets the hasFired flags for all events when a new link view starts.
+ * Resets all page-specific data when a new link view starts.
  * Called when linkReady event fires to allow events to fire again for the new view.
  */
-export function resetViewVariables() {
-  embedStore.eventsState.bookerViewedFamily.hasFired = false;
-  embedStore.eventsState.bookerReady.hasFired = false;
+export function resetPageData() {
+  embedStore.pageData = {
+    eventsState: {
+      bookerViewed: {
+        hasFired: false,
+      },
+      bookerReopened: {
+        hasFired: false,
+      },
+      bookerReloaded: {
+        hasFired: false,
+      },
+      bookerReady: {
+        hasFired: false,
+      },
+    },
+    reloadInitiated: false,
+  };
+}
+
+/**
+ * Type for direct properties of pageData (excluding nested objects like eventsState)
+ */
+type PageDataDirectProps = Omit<typeof embedStore.pageData, "eventsState">;
+
+/**
+ * Gets a direct property from pageData in a type-safe way
+ */
+export function getPageDataProp<K extends keyof PageDataDirectProps>(
+  key: K
+): PageDataDirectProps[K] {
+  return embedStore.pageData[key] as PageDataDirectProps[K];
+}
+
+/**
+ * Sets a direct property on pageData in a type-safe way
+ */
+export function setPageDataProp<K extends keyof PageDataDirectProps>(
+  key: K,
+  value: PageDataDirectProps[K]
+): void {
+  embedStore.pageData[key] = value;
+}
+
+/**
+ * Event names that have a hasFired state
+ */
+type EventNameWithHasFiredState = "bookerViewed" | "bookerReopened" | "bookerReloaded" | "bookerReady";
+
+/**
+ * Gets whether a particular event has fired
+ */
+export function getEventHasFired(eventName: EventNameWithHasFiredState): boolean {
+  return embedStore.pageData.eventsState[eventName].hasFired;
+}
+
+/**
+ * Sets whether a particular event has fired
+ */
+export function setEventHasFired(eventName: EventNameWithHasFiredState, value: boolean): void {
+  embedStore.pageData.eventsState[eventName].hasFired = value;
+}
+
+/**
+ * Gets whether reload was initiated
+ */
+export function getReloadInitiated(): boolean {
+  return getPageDataProp("reloadInitiated");
+}
+
+/**
+ * Sets whether reload was initiated
+ */
+export function setReloadInitiated(value: boolean): void {
+  setPageDataProp("reloadInitiated", value);
 }
 
 export type EmbedStore = typeof embedStore;

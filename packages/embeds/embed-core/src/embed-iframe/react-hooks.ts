@@ -4,7 +4,7 @@
  * So, they should start with isClientSide check.
  */
 import { sdkActionManager } from "../sdk-event";
-import { embedStore } from "./lib/embedStore";
+import { embedStore, getEventHasFired, setEventHasFired, getReloadInitiated, setReloadInitiated } from "./lib/embedStore";
 
 function isClientSide() {
     return typeof window !== "undefined";
@@ -26,23 +26,28 @@ const fireBookerViewedEvent = ({
     eventSlug: string | undefined;
     slotsLoaded: boolean;
 }) => {
-    if (!embedStore.eventsState.bookerViewedFamily.hasFired) {
-        const isFirstTime = embedStore.eventsState.viewId === 1;
-        // Fire bookerReloaded if reload was initiated, otherwise use normal logic
-        const isReload = embedStore.eventsState.reloadInitiated;
-        fireEvent(isFirstTime, isReload);
-        embedStore.eventsState.bookerViewedFamily.hasFired = true;
-        // Reset reload flag after using it
-        if (isReload) {
-            embedStore.eventsState.reloadInitiated = false;
-        }
+    const isFirstTime = embedStore.viewId === 1;
+    const isReload = getReloadInitiated();
+    const eventName = isReload ? "bookerReloaded" : isFirstTime ? "bookerViewed" : "bookerReopened";
+
+    // Check if this specific event has already been fired
+    const eventStateKey = eventName as "bookerViewed" | "bookerReopened" | "bookerReloaded";
+    if (getEventHasFired(eventStateKey)) {
+        return;
     }
 
-    function fireEvent(isFirstTime: boolean, isReload: boolean) {
-        const eventName = isReload ? "bookerReloaded" : isFirstTime ? "bookerViewed" : "bookerReopened";
+    fireEvent(eventName);
+    setEventHasFired(eventStateKey, true);
+
+    // Reset reload flag after using it
+    if (isReload) {
+        setReloadInitiated(false);
+    }
+
+    function fireEvent(eventName: string) {
         if (slotsLoaded) {
             if (eventId && eventSlug) {
-                sdkActionManager?.fire(eventName, {
+                sdkActionManager?.fire(eventName as "bookerViewed" | "bookerReopened" | "bookerReloaded", {
                     eventId,
                     eventSlug,
                     slotsLoaded: true,
@@ -52,7 +57,7 @@ const fireBookerViewedEvent = ({
                 console.error("BookerViewed event not fired because slotsLoaded is true but eventId or eventSlug are falsy");
             }
         } else {
-            sdkActionManager?.fire(eventName, {
+            sdkActionManager?.fire(eventName as "bookerViewed" | "bookerReopened" | "bookerReloaded", {
                 eventId: null,
                 eventSlug: null,
                 slotsLoaded: false,
@@ -77,9 +82,9 @@ const fireBookerReadyEvent = ({
     if (!slotsLoaded) {
         return;
     }
-    if (!embedStore.eventsState.bookerReady.hasFired) {
+    if (!getEventHasFired("bookerReady")) {
         sdkActionManager?.fire("bookerReady", { eventId, eventSlug });
-        embedStore.eventsState.bookerReady.hasFired = true;
+        setEventHasFired("bookerReady", true);
     }
 };
 
@@ -102,7 +107,7 @@ export const useBookerEmbedEvents = ({
     if (!isClientSide()) {
         return;
     }
-    const viewId = embedStore.eventsState.viewId;
+    const viewId = embedStore.viewId;
 
     if (isPrerendering() || !viewId) {
         return;

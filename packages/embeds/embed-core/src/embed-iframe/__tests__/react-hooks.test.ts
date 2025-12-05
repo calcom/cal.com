@@ -2,33 +2,84 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 
 import { sdkActionManager } from "../../sdk-event";
-import { embedStore, resetViewVariables } from "../lib/embedStore";
+import { embedStore, resetPageData } from "../lib/embedStore";
 import { useBookerEmbedEvents } from "../react-hooks";
 import { fakeCurrentDocumentUrl } from "./test-utils";
+
+const createTestSchedule = (overrides?: {
+  isSuccess?: boolean;
+  dataUpdatedAt?: number;
+}) => ({
+  isSuccess: overrides?.isSuccess ?? true,
+  dataUpdatedAt: overrides?.dataUpdatedAt ?? Date.now(),
+});
+
+const createTestEventConfig = (overrides?: {
+  eventId?: number | undefined;
+  eventSlug?: string | undefined;
+}) => ({
+  eventId: overrides && "eventId" in overrides ? overrides.eventId : 123,
+  eventSlug: overrides && "eventSlug" in overrides ? overrides.eventSlug : "test-event",
+});
+
+const createTestEmbedState = (overrides?: {
+  viewId?: number | null;
+  bookerViewedHasFired?: boolean;
+  bookerReopenedHasFired?: boolean;
+  bookerReloadedHasFired?: boolean;
+  bookerReadyHasFired?: boolean;
+  reloadInitiated?: boolean;
+}) => {
+  embedStore.viewId = overrides?.viewId ?? null;
+  embedStore.pageData.eventsState.bookerViewed.hasFired =
+    overrides?.bookerViewedHasFired ?? false;
+  embedStore.pageData.eventsState.bookerReopened.hasFired =
+    overrides?.bookerReopenedHasFired ?? false;
+  embedStore.pageData.eventsState.bookerReloaded.hasFired =
+    overrides?.bookerReloadedHasFired ?? false;
+  embedStore.pageData.eventsState.bookerReady.hasFired = overrides?.bookerReadyHasFired ?? false;
+  embedStore.pageData.eventsState.reloadInitiated = overrides?.reloadInitiated ?? false;
+};
+
+const expectEventFired = (
+  firedEvents: Array<{ type: string; data: unknown }>,
+  eventType: string,
+  expectedData?: unknown
+) => {
+  const event = firedEvents.find((e) => e.type === eventType);
+  expect(event).toBeDefined();
+  if (expectedData) {
+    expect(event).toMatchObject({ type: eventType, data: expectedData });
+  }
+  return event;
+};
+
+const expectEventNotFired = (
+  firedEvents: Array<{ type: string; data: unknown }>,
+  eventType: string
+) => {
+  const event = firedEvents.find((e) => e.type === eventType);
+  expect(event).toBeUndefined();
+};
+
+const expectEventCount = (
+  firedEvents: Array<{ type: string; data: unknown }>,
+  eventType: string,
+  expectedCount: number
+) => {
+  const events = firedEvents.filter((e) => e.type === eventType);
+  expect(events).toHaveLength(expectedCount);
+};
 
 describe("useBookerEmbedEvents", () => {
   let firedEvents: Array<{ type: string; data: unknown }> = [];
 
   beforeEach(() => {
-    // Reset embedStore state
-    embedStore.eventsState.viewId = null;
-    embedStore.eventsState.bookerViewedFamily.hasFired = false;
-    embedStore.eventsState.bookerReady.hasFired = false;
-    embedStore.eventsState.reloadInitiated = false;
-
-    // Clear fired events
+    createTestEmbedState();
     firedEvents = [];
 
-    // Mock sdkActionManager.fire to capture events
     vi.spyOn(sdkActionManager || {}, "fire").mockImplementation((type, data) => {
       firedEvents.push({ type: type as string, data });
-    });
-
-    // Mock window
-    Object.defineProperty(window, "document", {
-      value: { URL: "https://example.com" },
-      writable: true,
-      configurable: true,
     });
   });
 
@@ -37,272 +88,203 @@ describe("useBookerEmbedEvents", () => {
   });
 
   describe("bookerViewed event", () => {
-    it("should fire bookerViewed on first view when slots are loaded", () => {
+    it("should fire bookerViewed when first view opens with slots loaded", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 1;
+      createTestEmbedState({ viewId: 1 });
 
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: true });
+
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
 
       expect(firedEvents).toHaveLength(2);
-      expect(firedEvents[0]).toMatchObject({
-        type: "bookerViewed",
-        data: {
-          eventId: 123,
-          eventSlug: "test-event",
-          slotsLoaded: true,
-        },
+      expectEventFired(firedEvents, "bookerViewed", {
+        eventId: eventConfig.eventId,
+        eventSlug: eventConfig.eventSlug,
+        slotsLoaded: true,
       });
     });
 
-    it("should fire bookerViewed on first view when slots are not loaded", () => {
+    it("should fire bookerViewed when first view opens without slots loaded", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 1;
+      createTestEmbedState({ viewId: 1 });
 
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: false,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: false });
+
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
 
       expect(firedEvents).toHaveLength(1);
-      expect(firedEvents[0]).toMatchObject({
-        type: "bookerViewed",
-        data: {
-          eventId: null,
-          eventSlug: null,
-          slotsLoaded: false,
-        },
+      expectEventFired(firedEvents, "bookerViewed", {
+        eventId: null,
+        eventSlug: null,
+        slotsLoaded: false,
       });
     });
 
-    it("should fire bookerReopened on subsequent views", () => {
+    it("should fire bookerReopened when embed is reopened after being closed", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 2; // Second view
+      createTestEmbedState({ viewId: 2 });
 
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: true });
+
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
 
       expect(firedEvents).toHaveLength(2);
-      expect(firedEvents[0]).toMatchObject({
-        type: "bookerReopened",
-        data: {
-          eventId: 123,
-          eventSlug: "test-event",
-          slotsLoaded: true,
-        },
+      expectEventFired(firedEvents, "bookerReopened", {
+        eventId: eventConfig.eventId,
+        eventSlug: eventConfig.eventSlug,
+        slotsLoaded: true,
       });
     });
 
-    it("should fire bookerReloaded when reloadInitiated flag is set", () => {
+    it("should fire bookerReloaded when reload is initiated", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 1;
-      embedStore.eventsState.reloadInitiated = true;
+      createTestEmbedState({ viewId: 1, reloadInitiated: true });
 
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: true });
+
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
 
       expect(firedEvents).toHaveLength(2);
-      expect(firedEvents[0]).toMatchObject({
-        type: "bookerReloaded",
-        data: {
-          eventId: 123,
-          eventSlug: "test-event",
-          slotsLoaded: true,
-        },
+      expectEventFired(firedEvents, "bookerReloaded", {
+        eventId: eventConfig.eventId,
+        eventSlug: eventConfig.eventSlug,
+        slotsLoaded: true,
       });
-      expect(embedStore.eventsState.reloadInitiated).toBe(false);
+      expect(embedStore.pageData.eventsState.reloadInitiated).toBe(false);
     });
 
-    it("should not fire events multiple times for the same view", () => {
+    it("should not fire events multiple times when component rerenders", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 1;
+      createTestEmbedState({ viewId: 1 });
+
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: true });
 
       const { rerender } = renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
+        useBookerEmbedEvents({ ...eventConfig, schedule })
       );
 
       expect(firedEvents).toHaveLength(2);
 
-      // Rerender should not fire events again
       rerender();
       expect(firedEvents).toHaveLength(2);
     });
   });
 
   describe("bookerReady event", () => {
-    it("should fire bookerReady only once per link view when slots are loaded", () => {
+    it("should fire bookerReady once per view when slots are loaded", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 1;
+      createTestEmbedState({ viewId: 1 });
+
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: true });
 
       const { rerender } = renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
+        useBookerEmbedEvents({ ...eventConfig, schedule })
       );
 
-      expect(firedEvents).toContainEqual({
-        type: "bookerReady",
-        data: {
-          eventId: 123,
-          eventSlug: "test-event",
-        },
+      expectEventFired(firedEvents, "bookerReady", {
+        eventId: eventConfig.eventId,
+        eventSlug: eventConfig.eventSlug,
       });
 
-      // Rerender should not fire bookerReady again
       rerender();
-      const bookerReadyEvents = firedEvents.filter((e) => e.type === "bookerReady");
-      expect(bookerReadyEvents).toHaveLength(1);
+      expectEventCount(firedEvents, "bookerReady", 1);
     });
 
     it("should not fire bookerReady when slots are not loaded", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 1;
+      createTestEmbedState({ viewId: 1 });
 
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: false,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: false });
 
-      const bookerReadyEvents = firedEvents.filter((e) => e.type === "bookerReady");
-      expect(bookerReadyEvents).toHaveLength(0);
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
+
+      expectEventNotFired(firedEvents, "bookerReady");
     });
 
-    it("should not fire bookerReady when eventId or eventSlug is missing", () => {
+    it("should not fire bookerReady when eventId is missing", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 1;
+      createTestEmbedState({ viewId: 1 });
 
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: undefined,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      const eventConfig = createTestEventConfig({ eventId: undefined });
+      const schedule = createTestSchedule({ isSuccess: true });
 
-      const bookerReadyEvents = firedEvents.filter((e) => e.type === "bookerReady");
-      expect(bookerReadyEvents).toHaveLength(0);
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
+
+      expectEventNotFired(firedEvents, "bookerReady");
+    });
+
+    it("should not fire bookerReady when eventSlug is missing", () => {
+      fakeCurrentDocumentUrl();
+      createTestEmbedState({ viewId: 1 });
+
+      const eventConfig = createTestEventConfig({ eventSlug: undefined });
+      const schedule = createTestSchedule({ isSuccess: true });
+
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
+
+      expectEventNotFired(firedEvents, "bookerReady");
     });
   });
 
   describe("prerendering", () => {
-    it("should not fire events during prerendering", () => {
+    it("should not fire events when embed is in prerendering mode", () => {
       fakeCurrentDocumentUrl({ params: { prerender: "true" } });
-      embedStore.eventsState.viewId = 1;
+      createTestEmbedState({ viewId: 1 });
 
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: true });
+
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
 
       expect(firedEvents).toHaveLength(0);
     });
   });
 
-  describe("resetViewVariables", () => {
-    it("should reset hasFired flags correctly", () => {
-      embedStore.eventsState.bookerViewedFamily.hasFired = true;
-      embedStore.eventsState.bookerReady.hasFired = true;
+  describe("resetPageData", () => {
+    it("should reset all page-specific data including hasFired flags", () => {
+      createTestEmbedState({
+        bookerViewedHasFired: true,
+        bookerReopenedHasFired: true,
+        bookerReloadedHasFired: true,
+        bookerReadyHasFired: true,
+        reloadInitiated: true,
+      });
 
-      resetViewVariables();
+      resetPageData();
 
-      expect(embedStore.eventsState.bookerViewedFamily.hasFired).toBe(false);
-      expect(embedStore.eventsState.bookerReady.hasFired).toBe(false);
+      expect(embedStore.pageData.eventsState.bookerViewed.hasFired).toBe(false);
+      expect(embedStore.pageData.eventsState.bookerReopened.hasFired).toBe(false);
+      expect(embedStore.pageData.eventsState.bookerReloaded.hasFired).toBe(false);
+      expect(embedStore.pageData.eventsState.bookerReady.hasFired).toBe(false);
+      expect(embedStore.pageData.eventsState.reloadInitiated).toBe(false);
     });
 
-    it("should allow events to fire again after resetViewVariables", () => {
+    it("should allow events to fire again after reset when new view starts", () => {
       fakeCurrentDocumentUrl();
-      embedStore.eventsState.viewId = 1;
+      createTestEmbedState({ viewId: 1 });
 
-      // First render - events fire
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      const eventConfig = createTestEventConfig();
+      const schedule = createTestSchedule({ isSuccess: true });
+
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
 
       expect(firedEvents.length).toBeGreaterThan(0);
       firedEvents = [];
 
-      // Reset and increment viewId (simulating new linkReady)
-      resetViewVariables();
-      embedStore.eventsState.viewId = 2;
+      resetPageData();
+      createTestEmbedState({ viewId: 2 });
 
-      // Second render - events should fire again
-      renderHook(() =>
-        useBookerEmbedEvents({
-          eventId: 123,
-          eventSlug: "test-event",
-          schedule: {
-            isSuccess: true,
-            dataUpdatedAt: Date.now(),
-          },
-        })
-      );
+      renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
 
       expect(firedEvents.length).toBeGreaterThan(0);
-      expect(firedEvents[0].type).toBe("bookerReopened");
+      expectEventFired(firedEvents, "bookerReopened");
     });
   });
 });
