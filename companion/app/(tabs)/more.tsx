@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
 import { useAuth } from "../../contexts/AuthContext";
+import { showErrorAlert } from "../../utils/alerts";
 
 interface MoreMenuItem {
   name: string;
@@ -28,7 +29,7 @@ export default function More() {
             await logout();
           } catch (error) {
             console.error("Logout error:", error);
-            Alert.alert("Error", "Failed to sign out. Please try again.");
+            showErrorAlert("Error", "Failed to sign out. Please try again.");
           }
         },
       },
@@ -41,11 +42,11 @@ export default function More() {
       if (supported) {
         await Linking.openURL(url);
       } else {
-        Alert.alert("Error", `Cannot open ${fallbackMessage} on your device.`);
+        showErrorAlert("Error", `Cannot open ${fallbackMessage} on your device.`);
       }
     } catch (error) {
       console.error(`Failed to open ${url}:`, error);
-      Alert.alert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
+      showErrorAlert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
     }
   };
 

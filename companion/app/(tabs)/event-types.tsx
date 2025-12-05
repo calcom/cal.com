@@ -26,6 +26,7 @@ import { Tooltip } from "../../components/Tooltip";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { slugify } from "../../utils/slugify";
+import { showErrorAlert } from "../../utils/alerts";
 import {
   useEventTypes,
   useCreateEventType,
@@ -245,7 +246,7 @@ export default function EventTypes() {
       if (Platform.OS === "web") {
         showToastMessage("Failed to copy link");
       } else {
-        Alert.alert("Error", "Failed to copy link. Please try again.");
+        showErrorAlert("Error", "Failed to copy link. Please try again.");
       }
     }
   };
@@ -258,7 +259,7 @@ export default function EventTypes() {
         url: link,
       });
     } catch (error) {
-      Alert.alert("Error", "Failed to share link. Please try again.");
+      showErrorAlert("Error", "Failed to share link. Please try again.");
     }
   };
 
@@ -303,7 +304,7 @@ export default function EventTypes() {
         if (Platform.OS === "web") {
           showToastMessage("Failed to delete event type");
         } else {
-          Alert.alert("Error", "Failed to delete event type. Please try again.");
+          showErrorAlert("Error", "Failed to delete event type. Please try again.");
         }
       },
     });
@@ -343,7 +344,7 @@ export default function EventTypes() {
           if (Platform.OS === "web") {
             showToastMessage("Failed to duplicate event type");
           } else {
-            Alert.alert("Error", "Failed to duplicate event type. Please try again.");
+            showErrorAlert("Error", "Failed to duplicate event type. Please try again.");
           }
         },
       }
@@ -365,7 +366,7 @@ export default function EventTypes() {
       if (Platform.OS === "web") {
         showToastMessage("Failed to open preview");
       } else {
-        Alert.alert("Error", "Failed to open preview. Please try again.");
+        showErrorAlert("Error", "Failed to open preview. Please try again.");
       }
     }
   };
@@ -430,7 +431,7 @@ export default function EventTypes() {
         },
         onError: (error) => {
           console.error("Failed to create event type:", error);
-          Alert.alert("Error", "Failed to create event type. Please try again.");
+          showErrorAlert("Error", "Failed to create event type. Please try again.");
         },
       }
     );

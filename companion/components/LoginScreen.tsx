@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Linking } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, TouchableOpacity } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../contexts/AuthContext";
 import { CalComLogo } from "./CalComLogo";
+import { showErrorAlert } from "../utils/alerts";
 
 export function LoginScreen() {
   const { loginWithOAuth, loading } = useAuth();
@@ -14,50 +15,58 @@ export function LoginScreen() {
       await loginWithOAuth();
     } catch (error) {
       console.error("OAuth login error:", error);
-      Alert.alert(
+      showErrorAlert(
         "Login Failed",
         error instanceof Error
           ? error.message
-          : "Failed to login with OAuth. Please check your configuration and try again.",
-        [{ text: "OK" }]
+          : "Failed to login with OAuth. Please check your configuration and try again."
       );
     }
   };
 
-  const handleSignUp = () => {
-    Linking.openURL("https://app.cal.com/signup");
+  const handleSignUp = async () => {
+    await WebBrowser.openBrowserAsync("https://app.cal.com/signup");
   };
 
   return (
     <View className="flex-1 bg-white">
       {/* Logo centered in the middle */}
       <View className="flex-1 items-center justify-center">
-        <CalComLogo width={180} height={40} color="#111827" />
+        <CalComLogo width={240} height={54} color="#111827" />
       </View>
 
-      {/* Button at the bottom */}
-      <View className="px-6" style={{ paddingBottom: insets.bottom + 40 }}>
+      {/* Bottom section with button */}
+      <View className="px-6" style={{ paddingBottom: insets.bottom + 28 }}>
+        {/* Primary CTA button */}
         <TouchableOpacity
           onPress={handleOAuthLogin}
           disabled={loading}
-          className="flex-row items-center justify-center rounded-lg bg-gray-900 px-6 py-4"
-          style={{ opacity: loading ? 0.7 : 1 }}
+          className="flex-row items-center justify-center rounded-2xl py-[18px]"
+          style={{
+            backgroundColor: loading ? "#9CA3AF" : "#111827",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: loading ? 0 : 0.2,
+            shadowRadius: 12,
+            elevation: loading ? 0 : 6,
+          }}
+          activeOpacity={0.9}
         >
-          {loading ? <ActivityIndicator size="small" color="white" className="mr-2" /> : null}
-          <Text className="text-lg font-semibold text-white">
-            {loading ? "Signing in..." : "Continue with Cal.com"}
-          </Text>
+          <Text className="ml-3 text-[17px] font-semibold text-white">Continue with Cal.com</Text>
         </TouchableOpacity>
 
         {/* Sign up link */}
         <TouchableOpacity
           onPress={handleSignUp}
-          className="mt-2 flex-row items-center justify-center"
+          className="mt-3 items-center justify-center py-1"
           style={{ cursor: "pointer" } as any}
+          activeOpacity={0.7}
         >
           <View>
-            <Text className="text-center text-base text-gray-500">Don't have an account?</Text>
-            <View className="mt-1/2 h-px bg-gray-400" />
+            <Text className="text-[15px] text-gray-500">
+              Don't have an account? <Text className="font-semibold text-gray-900">Sign up</Text>
+            </Text>
+            <View className="h-px bg-gray-400" style={{ marginTop: 2 }} />
           </View>
         </TouchableOpacity>
       </View>

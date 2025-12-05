@@ -24,6 +24,7 @@ import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { useBookings, useCancelBooking } from "../../hooks";
+import { showErrorAlert } from "../../utils/alerts";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
@@ -459,7 +460,7 @@ export default function Bookings() {
         if (supported) {
           await Linking.openURL(booking.location);
         } else {
-          Alert.alert("Error", "Cannot open this URL on your device.");
+          showErrorAlert("Error", "Cannot open this URL on your device.");
         }
       } else {
         // If it's not a URL, try to open it as a location in maps
@@ -480,7 +481,7 @@ export default function Bookings() {
         }
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to open location. Please try again.");
+      showErrorAlert("Error", "Failed to open location. Please try again.");
     }
   };
 
@@ -522,7 +523,7 @@ export default function Bookings() {
                       },
                       onError: (error) => {
                         console.error("Failed to cancel booking:", error);
-                        Alert.alert("Error", "Failed to cancel event. Please try again.");
+                        showErrorAlert("Error", "Failed to cancel event. Please try again.");
                       },
                     }
                   );

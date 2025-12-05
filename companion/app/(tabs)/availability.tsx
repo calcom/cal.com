@@ -19,6 +19,7 @@ import { CalComAPIService, Schedule } from "../../services/calcom";
 import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { showErrorAlert } from "../../utils/alerts";
 import {
   useSchedules,
   useCreateSchedule,
@@ -146,7 +147,7 @@ export default function Availability() {
   const handleSetAsDefault = (schedule: Schedule) => {
     setAsDefaultMutation(schedule.id, {
       onError: () => {
-        Alert.alert("Error", "Failed to set schedule as default. Please try again.");
+        showErrorAlert("Error", "Failed to set schedule as default. Please try again.");
       },
     });
   };
@@ -154,7 +155,7 @@ export default function Availability() {
   const handleDuplicate = (schedule: Schedule) => {
     duplicateScheduleMutation(schedule.id, {
       onError: () => {
-        Alert.alert("Error", "Failed to duplicate schedule. Please try again.");
+        showErrorAlert("Error", "Failed to duplicate schedule. Please try again.");
       },
     });
   };
@@ -173,7 +174,7 @@ export default function Availability() {
           onPress: () => {
             deleteScheduleMutation(schedule.id, {
               onError: () => {
-                Alert.alert("Error", "Failed to delete schedule. Please try again.");
+                showErrorAlert("Error", "Failed to delete schedule. Please try again.");
               },
             });
           },
@@ -191,7 +192,7 @@ export default function Availability() {
         setSelectedSchedule(null);
       },
       onError: () => {
-        Alert.alert("Error", "Failed to delete schedule. Please try again.");
+        showErrorAlert("Error", "Failed to delete schedule. Please try again.");
       },
     });
   };
@@ -254,7 +255,7 @@ export default function Availability() {
         },
         onError: (error) => {
           console.error("Failed to create schedule:", error);
-          Alert.alert("Error", "Failed to create schedule. Please try again.");
+          showErrorAlert("Error", "Failed to create schedule. Please try again.");
         },
       }
     );

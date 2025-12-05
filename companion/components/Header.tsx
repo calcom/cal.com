@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, UserProfile } from "../services/calcom";
 import { CalComLogo } from "./CalComLogo";
 import { FullScreenModal } from "./FullScreenModal";
+import { showErrorAlert } from "../utils/alerts";
 
 export function Header() {
   const router = useRouter();
@@ -82,11 +83,11 @@ export function Header() {
       if (supported) {
         await Linking.openURL(url);
       } else {
-        Alert.alert("Error", `Cannot open ${fallbackMessage} on your device.`);
+        showErrorAlert("Error", `Cannot open ${fallbackMessage} on your device.`);
       }
     } catch (error) {
       console.error(`Failed to open ${url}:`, error);
-      Alert.alert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
+      showErrorAlert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
     }
   };
 
