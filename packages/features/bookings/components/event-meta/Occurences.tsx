@@ -5,7 +5,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
-import { getTimeShiftFlags } from "@calcom/lib/timeShift";
+import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Input } from "@calcom/ui/components/form";
@@ -70,12 +70,7 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
       i18n.language
     );
     const shiftFlags = getTimeShiftFlags({ dates: recurringDates, timezone });
-    let hasSeenShift = false;
-    const displayFlags = shiftFlags.map((flag) => {
-      if (!flag || hasSeenShift) return false;
-      hasSeenShift = true;
-      return true;
-    });
+    const displayFlags = getFirstShiftFlags(shiftFlags);
     return (
       <div data-testid="recurring-dates">
         {recurringStrings.slice(0, 5).map((timeFormatted, key) => (

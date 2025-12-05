@@ -23,6 +23,20 @@ describe("getTimeShiftFlags", () => {
     expect(flags).toEqual([false, false, true]);
   });
 
+  it("marks only shifting occurrences as true for a DST backward change", () => {
+    const tz = "Europe/Berlin";
+
+    const first = dayjs.tz("2026-10-18T02:00:00", tz);
+    const second = dayjs.tz("2026-10-25T02:00:00", tz);
+    const third = dayjs.tz("2026-11-01T01:00:00", tz);
+
+    const dates = [first.toISOString(), second.toISOString(), third.toISOString()];
+
+    const flags = getTimeShiftFlags({ dates, timezone: tz });
+
+    expect(flags).toEqual([false, false, true]);
+  });
+
   it("handles non shifting occurrences", () => {
     const tz = "America/New_York";
 

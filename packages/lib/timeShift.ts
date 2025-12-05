@@ -25,4 +25,13 @@ export const getTimeShiftFlags = (options: { dates: (string | Date)[]; timezone:
   });
 };
 
+export const getFirstShiftFlags = (shiftFlags: boolean[]): boolean[] => {
+  let hasSeenShift = false;
+  return shiftFlags.map((flag) => {
+    if (!flag || hasSeenShift) return false;
+    hasSeenShift = true;
+    return true;
+  });
+};
+
 export default getTimeShiftFlags;

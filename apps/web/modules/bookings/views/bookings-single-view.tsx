@@ -39,7 +39,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
-import { getTimeShiftFlags } from "@calcom/lib/timeShift";
+import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
@@ -1197,12 +1197,7 @@ function RecurringBookings({
       dates: recurringBookingsSorted,
       timezone: tz,
     });
-    let hasSeenShift = false;
-    const displayFlags = shiftFlags.map((flag) => {
-      if (!flag || hasSeenShift) return false;
-      hasSeenShift = true;
-      return true;
-    });
+    const displayFlags = getFirstShiftFlags(shiftFlags);
 
     return (
       <>
