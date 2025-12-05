@@ -72,9 +72,11 @@ function ScenarioCard({ scenario }: { scenario: ScenarioProps }) {
         header: "Date",
         cell: (info) => info.getValue(),
         meta: {
-          type: ColumnFilterType.DATE_RANGE,
-          dateRangeOptions: {
-            range: scenario.range,
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              range: scenario.range,
+            },
           },
         },
       }),
