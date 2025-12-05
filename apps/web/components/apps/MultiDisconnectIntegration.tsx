@@ -21,11 +21,12 @@ type RouterOutput = inferRouterOutputs<AppRouter>;
 type Credentials = RouterOutput["viewer"]["apps"]["calid_appCredentialsByType"]["credentials"];
 
 interface Props {
+  categories: string[];
   credentials: Credentials;
   onSuccess?: () => void;
 }
 
-export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
+export function MultiDisconnectIntegration({ categories, credentials, onSuccess }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [credentialToDelete, setCredentialToDelete] = useState<{
@@ -52,9 +53,11 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
   });
 
   const { data: connectedCalendarData, isPending: isConnectedCalendarQueryPending } =
-    trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
-      enabled: true,
-    });
+    categories.indexOf("calendar") !== -1
+      ? trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
+          enabled: true,
+        })
+      : {};
 
   const getUserDisplayName = (user: (typeof credentials)[number]["user"]) => {
     if (!user) return null;
@@ -92,7 +95,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                 }}>
                 <div className="flex flex-col text-left">
                   <span>{cred.calIdTeam?.name || cred.user.name || t("unnamed")}</span>
-                  {!isConnectedCalendarQueryPending && (
+                  {categories.indexOf("calendar") !== -1 && !isConnectedCalendarQueryPending && (
                     <span>
                       {connectedCalendarData?.connectedCalendars?.find((e) => e.credentialId === cred.id)
                         ?.primary.email || t("unnamed")}
