@@ -117,7 +117,7 @@
     "next-seo": "^6.0.0",
     "next-themes": "^0.2.0",
     "nodemailer": "^6.7.8",
-    "nuqs": "^2.7.2",
+    "nuqs": "^2.8.2",
     "openid-client": "6.5.0",
     "otplib": "^12.0.1",
     "posthog-js": "^1.274.1",
