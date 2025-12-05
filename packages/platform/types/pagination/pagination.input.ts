@@ -2,6 +2,13 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsNumber, Min, Max, IsOptional } from "class-validator";
 
+export enum SortOrder {
+  ASC = "asc",
+  DESC = "desc",
+}
+
+export type SortOrderType = `${SortOrder}`;
+
 export class Pagination {
   @ApiPropertyOptional({ description: "The number of items to return", example: 10 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
