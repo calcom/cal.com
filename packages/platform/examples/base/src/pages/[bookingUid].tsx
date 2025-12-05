@@ -62,7 +62,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   <h4>What</h4>
                 </div>
                 <div>
-                  <p>{booking.title}</p>
+                  <p>{typeof booking.title === 'string' ? booking.title : 'Untitled Event'}</p>
                 </div>
               </div>
               <div className="flex gap-[70px]">

@@ -28,7 +28,7 @@ const Steps = (props: StepsProps) => {
     stepLabel = (currentStep, totalSteps) => `Step ${currentStep} of ${totalSteps}`,
   } = props;
   return (
-    <div className="mt-6 space-y-2">
+    <div className="mt-6 stack-y-2">
       <p className="text-subtle text-xs font-medium">{stepLabel(currentStep, maxSteps)}</p>
       <div data-testid="step-indicator-container" className="flex w-full space-x-2 rtl:space-x-reverse">
         {new Array(maxSteps).fill(0).map((_s, index) => {

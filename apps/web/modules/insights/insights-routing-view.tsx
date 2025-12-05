@@ -22,7 +22,7 @@ export default function InsightsRoutingFormResponsesPage({ timeZone }: { timeZon
   return (
     <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
-        <div className="mb-4 space-y-4">
+        <div className="mb-4 stack-y-4">
           <RoutingFormResponsesTable />
 
           <RoutingFunnel />

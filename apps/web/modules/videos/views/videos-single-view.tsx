@@ -445,9 +445,10 @@ export function LogInOverlay(props: LogInOverlayProps) {
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_appear_on_the_call")}
-        className="bg-black/80 p-6 sm:max-w-lg">
+        className="p-6 sm:max-w-lg"
+        onInteractOutside={(e) => e.preventDefault()}>
         <div className="mt-2 pb-4">
-          <div className="space-y-4">
+          <div className="stack-y-4">
             <div>
               <div className="font-semibold">{t("join_as_guest")}</div>
               <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
@@ -516,7 +517,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
           {/* Divider */}
           <hr className="my-6 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
 
-          <div className="mt-5 space-y-4">
+          <div className="stack-y-4 mt-5">
             <div>
               <h4 className="text-base font-semibold text-black dark:text-white">
                 {t("sign_in_to_cal_com")}
@@ -568,7 +569,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           "no-scrollbar fixed left-0 top-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll transition-all duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-[232px]"
         )}>
-        <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 w-full overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
+        <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 overflow-x-hidden! bg-default w-full overflow-scroll border-r border-gray-300/20 p-4 text-white shadow-sm backdrop-blur-lg">
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
           <h3>{t("invitee_timezone")}:</h3>
