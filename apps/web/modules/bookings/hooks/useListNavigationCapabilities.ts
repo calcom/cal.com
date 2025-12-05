@@ -29,7 +29,7 @@ export function useListNavigationCapabilities({
   queryInput,
 }: UseListNavigationCapabilitiesProps): NavigationCapabilities {
   const trpcUtils = trpc.useUtils();
-  const currentPageIndex = offset / limit;
+  const currentPageIndex = limit > 0 ? offset / limit : 0;
 
   // Calculate if there are more pages
   const hasNextPage = useMemo(() => {
