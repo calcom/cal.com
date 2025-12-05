@@ -222,14 +222,17 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (bookingLimits) {
-    const isValid = validateIntervalLimitOrder(bookingLimits);
-    if (!isValid) {
-      const t = await getTranslation(locale, "common");
-      throw new TRPCError({ code: "BAD_REQUEST", message: t("event_setup_booking_limits_error") });
+  if (bookingLimits !== undefined) {
+    if (bookingLimits === null) {
+      data.bookingLimits = Prisma.DbNull;
+    } else {
+      const isValid = validateIntervalLimitOrder(bookingLimits);
+      if (!isValid) {
+        const t = await getTranslation(locale, "common");
+        throw new TRPCError({ code: "BAD_REQUEST", message: t("event_setup_booking_limits_error") });
+      }
+      data.bookingLimits = bookingLimits;
     }
-
-    data.bookingLimits = bookingLimits;
   }
 
   const updatedUserSelect = {
