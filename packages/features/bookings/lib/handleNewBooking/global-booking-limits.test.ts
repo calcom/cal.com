@@ -10,6 +10,7 @@ import {
 // TODO: we should rename this - it doesnt get a mockRequestDataForBooking - it just gets mock booking data.
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
 import { describe, expect, vi, beforeAll } from "vitest";
 
