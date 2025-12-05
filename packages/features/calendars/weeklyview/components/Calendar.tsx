@@ -80,9 +80,9 @@ function CalendarInner(props: CalendarComponentProps) {
                 className={classNames(
                   "bg-default dark:bg-cal-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
                   showBorder &&
-                    (borderColor === "subtle"
-                      ? "border-subtle border-l border-r"
-                      : "border-default border-l border-r")
+                  (borderColor === "subtle"
+                    ? "border-subtle border-l border-r"
+                    : "border-default border-l border-r")
                 )}
               />
               <div
@@ -91,10 +91,10 @@ function CalendarInner(props: CalendarComponentProps) {
                   showBackgroundPattern === false
                     ? undefined
                     : {
-                        backgroundColor: "var(--disabled-gradient-background)",
-                        background:
-                          "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
-                      }
+                      backgroundColor: "var(--disabled-gradient-background)",
+                      background:
+                        "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
+                    }
                 }>
                 <HorizontalLines
                   hours={hours}
@@ -129,6 +129,7 @@ function CalendarInner(props: CalendarComponentProps) {
                         className="relative"
                         key={i}
                         style={{
+                          gridColumnStart: i + 1,
                           gridRow: `1 / span ${numberOfGridStopsPerDay}`,
                         }}>
                         {/* While startDate < endDate:  */}

@@ -431,7 +431,8 @@ const BookerComponent = ({
                     isPrivateLink={!!hashedLink}
                     locale={userLocale}
                     timeZones={timeZones}
-                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
+                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                    hideEventTypeDetails={hideEventTypeDetails}>
                     {eventMetaChildren}
                   </EventMeta>
                 )}

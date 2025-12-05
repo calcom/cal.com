@@ -356,7 +356,7 @@ function BookingListItem(booking: BookingItemProps) {
         data-today={String(booking.isToday)}
         className="hover:bg-cal-muted group w-full">
         <div className="flex flex-col sm:flex-row">
-          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-48">
+          <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
             <div className="flex h-full items-center">
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
@@ -445,6 +445,13 @@ function BookingListItem(booking: BookingItemProps) {
                     {t("pending_payment")}
                   </Badge>
                 )}
+                {isRescheduled && (
+                  <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
+                    <Badge variant="orange" className="ltr:mr-2 rtl:ml-2 sm:hidden">
+                      {t("rescheduled")}
+                    </Badge>
+                  </Tooltip>
+                )}
                 {recurringDates !== undefined && (
                   <div className="text-muted text-sm sm:hidden">
                     <RecurringBookingsTooltip
@@ -497,7 +504,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             </ConditionalLink>
           </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 stack-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:stack-y-0 sm:pl-0">
+          <div className="stack-y-2 sm:stack-y-0 flex w-full flex-col flex-wrap items-end justify-end space-x-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
             <BookingActionsDropdown booking={booking} context="list" />
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
