@@ -32,7 +32,7 @@ const eventClasses = cva(
         false: "hover:cursor-pointer",
       },
       selected: {
-        true: "bg-inverted text-inverted border border-transparent",
+        true: "",
         false: "",
       },
       borderOnly: {
@@ -120,7 +120,7 @@ export function Event({
             borderOnly: options?.borderOnly ?? false,
           }),
           options?.className,
-          isHovered && "ring-brand-default shadow-lg ring-2 ring-offset-0"
+          (isHovered || selected) && "ring-brand-default shadow-lg ring-2 ring-offset-0"
         )}
         style={{
           transition: "all 100ms ease-out",
