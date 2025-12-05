@@ -39,7 +39,6 @@ export type BookerStoreValues = Omit<
   | "setOrg"
 >;
 
-// Internal entity configuration type - resolved automatically from event data
 type BookerEntityConfig = {
   fromRedirectOfNonOrgLink?: boolean;
   considerUnpublished: boolean;
@@ -58,7 +57,6 @@ export type BookerPlatformWrapperAtomProps = Omit<
   rescheduleUid?: string;
   rescheduledBy?: string;
   bookingUid?: string;
-  /** @internal - Entity configuration is resolved automatically from event data */
   entity?: BookerEntityConfig;
   // values for the booking form and booking fields
   defaultFormValues?: {
@@ -104,41 +102,13 @@ export type BookerPlatformWrapperAtomProps = Omit<
   defaultPhoneCountry?: CountryCode;
 };
 
-/**
- * Props for individual (non-team) event bookings.
- *
- * @example
- * // Single user booking
- * <Booker username="john" eventSlug="30min" />
- *
- * @example
- * // Dynamic booking with multiple users (collective availability)
- * <Booker username={["alice", "bob"]} eventSlug="30min" />
- *
- * Note: For dynamic bookings (multiple usernames), all users must have
- * `allowDynamicBooking` enabled (true by default). The Booker will show
- * combined availability across all specified users.
- */
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
-  /**
-   * Username(s) for the booking.
-   * - Pass a single string for standard individual bookings.
-   * - Pass an array of strings for dynamic bookings (combined availability).
-   */
   username: string | string[];
   isTeamEvent?: false;
   routingFormSearchParams?: RoutingFormSearchParams;
 };
 
-/**
- * Props for team event bookings.
- *
- * @example
- * // Team event booking
- * <Booker teamId={123} eventSlug="team-meeting" isTeamEvent={true} />
- */
 export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
-  /** Optional username(s) for team events */
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
