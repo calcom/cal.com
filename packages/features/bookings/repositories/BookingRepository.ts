@@ -109,6 +109,20 @@ type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
 
 type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
 
+type UserBookingsParamsBase = {
+  userId: number;
+  startDate: Date;
+  endDate: Date;
+  excludedUid?: string | null;
+  shouldReturnCount?: boolean;
+};
+
+type UserBookingsParamsWithCount = UserBookingsParamsBase & {
+  shouldReturnCount: true;
+};
+
+type UserBookingsParamsWithoutCount = UserBookingsParamsBase;
+
 const buildWhereClauseForActiveBookings = ({
   eventTypeId,
   startDate,
@@ -1111,6 +1125,43 @@ export class BookingRepository {
       ...collectiveRoundRobinBookingsAttendee,
       ...managedBookings,
     ];
+  }
+
+  async getAllAcceptedUserBookings(params: UserBookingsParamsWithCount): Promise<number>;
+
+  async getAllAcceptedUserBookings(params: UserBookingsParamsWithoutCount): Promise<Array<Booking>>;
+
+  async getAllAcceptedUserBookings(params: UserBookingsParamsBase) {
+    const { userId, startDate, endDate, excludedUid, shouldReturnCount } = params;
+
+    const wherePersonalBookings: Prisma.BookingWhereInput = {
+      status: BookingStatus.ACCEPTED,
+      userId,
+      eventType: {
+        schedulingType: null,
+      },
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+      ...(excludedUid && {
+        uid: {
+          not: excludedUid,
+        },
+      }),
+    };
+
+    if (shouldReturnCount) {
+      return await this.prismaClient.booking.count({
+        where: wherePersonalBookings,
+      });
+    }
+
+    return await this.prismaClient.booking.findMany({
+      where: wherePersonalBookings,
+    });
   }
 
   async findOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {

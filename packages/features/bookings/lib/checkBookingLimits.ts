@@ -85,17 +85,6 @@ export class CheckBookingLimitsService {
     const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
 
     let bookingsInPeriod;
-    let whereInput: Prisma.BookingWhereInput = {
-      eventTypeId: eventId,
-    };
-    if (user?.id && isGlobalBookingLimits) {
-      whereInput = {
-        userId: user.id,
-        eventType: {
-          schedulingType: null,
-        },
-      };
-    }
 
     if (teamId && user) {
       bookingsInPeriod = await this.dependencies.bookingRepo.getAllAcceptedTeamBookingsOfUser({
@@ -106,6 +95,14 @@ export class CheckBookingLimitsService {
         shouldReturnCount: true,
         excludedUid: rescheduleUid,
         includeManagedEvents,
+      });
+    } else if (user) {
+      bookingsInPeriod = await this.dependencies.bookingRepo.getAllAcceptedUserBookings({
+        userId: user.id,
+        startDate: startDate,
+        endDate: endDate,
+        shouldReturnCount: true,
+        excludedUid: rescheduleUid,
       });
     } else {
       bookingsInPeriod = await this.dependencies.bookingRepo.countBookingsByEventTypeAndDateRange({
