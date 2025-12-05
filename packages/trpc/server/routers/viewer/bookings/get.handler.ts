@@ -43,7 +43,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   // If cursor is provided, parse it to get the offset
   if (input.cursor) {
     const parsedCursor = parseInt(input.cursor, 10);
-    if (!isNaN(parsedCursor)) {
+    if (!isNaN(parsedCursor) && parsedCursor >= 0) {
       skip = parsedCursor;
     }
   }
@@ -823,16 +823,16 @@ async function enrichAttendeesWithUserData<
 > {
   // Extract all unique attendee emails from bookings
   const allAttendees = bookings.flatMap((booking) => booking.attendees);
-  const uniqueAttendeeEmails = Array.from(new Set(allAttendees.map((attendee) => attendee.email)));
+  const uniqueAttendeeIds = Array.from(new Set(allAttendees.map((attendee) => attendee.id)));
 
   // Query attendees with left join to users table
   const enrichedAttendees =
-    uniqueAttendeeEmails.length > 0
+    uniqueAttendeeIds.length > 0
       ? await kysely
           .selectFrom("Attendee")
           .leftJoin("users", "users.email", "Attendee.email")
           .select(["Attendee.id", "users.name", "Attendee.email", "users.avatarUrl", "users.username"])
-          .where("Attendee.email", "in", uniqueAttendeeEmails)
+          .where("Attendee.id", "in", uniqueAttendeeIds)
           .execute()
       : [];
 
