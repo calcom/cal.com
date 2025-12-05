@@ -114,16 +114,14 @@ function connectUsersToEventTypesQueryWithParams(
     }
   }
 
-  // --- The Raw SQL Query ---
   const sqlQuery = `
         INSERT INTO "_user_eventtype" ("A", "B") 
         VALUES 
         ${valuePlaceholders.join(",\n")}
-        -- ON CONFLICT prevents inserting duplicate relationships and throwing an error
         ON CONFLICT DO NOTHING;
     `;
 
-  // Execute the raw SQL command, spreading the parameters array
+  // sqlQuery and its parameters for execution
   return { sqlQuery, parameters };
 }
 
