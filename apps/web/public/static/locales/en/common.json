@@ -3124,7 +3124,7 @@
   "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
   "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
   "disable_input_if_prefilled": "Disable input if the URL identifier is prefilled",
-  "booking_limits": "Booking Limits",
+  "booking_limits": "Booking limits",
   "booking_limits_team_description": "Booking limits for team members across all team event types",
   "limit_team_booking_frequency_description": "Limit how many times members can be booked across all team event types",
   "booking_limits_updated_successfully": "Booking limits updated successfully",
@@ -4178,5 +4178,6 @@
   "audit_logs_owner_not_in_organization": "The booking owner is not a member of your organization.",
   "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
+  "booking_limits_global_description": "Set global limits for when and how often you can be booked.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
