@@ -128,7 +128,12 @@ function BookingsListInner({
           filter: {
             type: ColumnFilterType.DATE_RANGE,
             dateRangeOptions: {
-              range: status === "past" ? "past" : "custom",
+              range:
+                status === "past"
+                  ? "past"
+                  : status === "upcoming"
+                  ? "future"
+                  : "any",
             },
           },
         },
