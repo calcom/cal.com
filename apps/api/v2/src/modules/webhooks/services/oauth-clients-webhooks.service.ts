@@ -12,10 +12,9 @@ export class OAuthClientWebhooksService {
       body.subscriberUrl
     );
     if (existingWebhook) {
-      throw new ConflictException({
-        message: "Webhook with this subscriber url already exists for this oAuth client",
-        existingWebhookId: existingWebhook.id,
-      });
+      throw new ConflictException(
+        `Webhook with subscriber url ${body.subscriberUrl} already exists for this oAuth client. Existing webhook ID: ${existingWebhook.id}`
+      );
     }
 
     return this.webhooksRepository.createOAuthClientWebhook(platformOAuthClientId, {

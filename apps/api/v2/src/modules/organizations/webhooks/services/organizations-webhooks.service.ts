@@ -17,10 +17,9 @@ export class OrganizationsWebhooksService {
       body.subscriberUrl
     );
     if (existingWebhook) {
-      throw new ConflictException({
-        message: "Webhook with this subscriber url already exists for this organization",
-        existingWebhookId: existingWebhook.id,
-      });
+      throw new ConflictException(
+        `Webhook with subscriber url ${body.subscriberUrl} already exists for this organization. Existing webhook ID: ${existingWebhook.id}`
+      );
     }
 
     return this.organizationsWebhooksRepository.createWebhook(orgId, {
