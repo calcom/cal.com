@@ -3,11 +3,7 @@
 import { useReactTable, getCoreRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useMemo } from "react";
 
-import {
-  DataTableProvider,
-  DataTableWrapper,
-  ColumnFilterType,
-} from "@calcom/features/data-table";
+import { ColumnFilterType, DateRangeFilter, DataTableProvider } from "@calcom/features/data-table";
 import type { DateRangeFilterOptions } from "@calcom/features/data-table/lib/types";
 
 type DemoRow = {
@@ -38,8 +34,7 @@ const scenarios: ScenarioProps[] = [
   {
     id: "future",
     title: 'Range: "future"',
-    description:
-      "Restricts date selection to future dates only. Auto-hides presets since all current presets are past-oriented (except Today and Custom).",
+    description: "Restricts date selection to future dates only. Shows only future-compatible presets.",
     expected:
       "Presets visible: Today, Custom (only presets with direction 'any' or 'future'). Calendar minDate = today.",
     range: "future",
@@ -69,8 +64,9 @@ function ScenarioCard({ scenario }: { scenario: ScenarioProps }) {
       }),
       columnHelper.accessor("date", {
         id: "dateRange",
-        header: "Date",
+        header: "Date Range",
         cell: (info) => info.getValue(),
+        enableColumnFilter: true,
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
@@ -98,18 +94,33 @@ function ScenarioCard({ scenario }: { scenario: ScenarioProps }) {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  // Get the column definition to pass to DateRangeFilter
+  const dateRangeColumn = table.getAllColumns().find((col) => col.id === "dateRange");
+
   return (
-    <div
-      className="border-subtle mb-8 rounded-lg border p-4"
-      data-testid={`drf-scenario-${scenario.id}`}>
+    <div className="border-subtle mb-8 rounded-lg border p-6" data-testid={`drf-scenario-${scenario.id}`}>
       <h3 className="text-emphasis mb-2 text-lg font-semibold">{scenario.title}</h3>
       <p className="text-default mb-2 text-sm">{scenario.description}</p>
       <p className="text-subtle mb-4 text-xs">
         <strong>Expected:</strong> {scenario.expected}
       </p>
-      <DataTableProvider tableIdentifier={`playground-date-range-${scenario.id}`}>
-        <DataTableWrapper table={table} paginationMode="standard" isPending={false} />
-      </DataTableProvider>
+
+      <div className="mt-4">
+        <DataTableProvider tableIdentifier={`playground-date-range-${scenario.id}`}>
+          {dateRangeColumn && (
+            <DateRangeFilter
+              column={{
+                id: dateRangeColumn.id,
+                title: dateRangeColumn.columnDef.header as string,
+                type: "dr",
+              }}
+              options={dateRangeColumn.columnDef.meta?.filter?.dateRangeOptions}
+              showColumnName={false}
+              showClearButton={false}
+            />
+          )}
+        </DataTableProvider>
+      </div>
     </div>
   );
 }
@@ -120,8 +131,7 @@ export default function DateRangeFilterPlayground() {
       <div>
         <h1 className="text-emphasis text-2xl font-bold">DateRangeFilter Playground</h1>
         <p className="text-default mt-2">
-          This page demonstrates the different <code>range</code> options for the DateRangeFilter
-          component.
+          This page demonstrates the different <code>range</code> options for the DateRangeFilter component.
         </p>
         <p className="text-subtle mt-1 text-sm">
           The <code>range</code> option controls both date restrictions and presets visibility. Presets
