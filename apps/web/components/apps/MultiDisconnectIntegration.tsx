@@ -51,6 +51,11 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
     },
   });
 
+  const { data: connectedCalendarData, isPending: isConnectedCalendarQueryPending } =
+    trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
+      enabled: true,
+    });
+
   const getUserDisplayName = (user: (typeof credentials)[number]["user"]) => {
     if (!user) return null;
     // Check if 'name' property exists on user
@@ -76,17 +81,23 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
                 type="button"
                 color="destructive"
                 className="hover:bg-subtle hover:text-emphasis w-full border-0"
-                StartIcon={cred.teamId ? "users" : "user"}
+                StartIcon={cred.calIdTeamId ? "users" : "user"}
                 onClick={() => {
                   setCredentialToDelete({
                     id: cred.id,
-                    teamId: cred.teamId,
-                    name: cred.team?.name || getUserDisplayName(cred.user) || null,
+                    teamId: cred.calIdTeamId,
+                    name: cred.calIdTeamId?.name || getUserDisplayName(cred.user) || null,
                   });
                   setConfirmationDialogOpen(true);
                 }}>
                 <div className="flex flex-col text-left">
-                  <span>{cred.team?.name || getUserDisplayName(cred.user) || t("unnamed")}</span>
+                  <span>{cred.calIdTeam?.name || cred.user.name || t("unnamed")}</span>
+                  {!isConnectedCalendarQueryPending && (
+                    <span>
+                      {connectedCalendarData?.connectedCalendars?.find((e) => e.credentialId === cred.id)
+                        ?.primary.email || t("unnamed")}
+                    </span>
+                  )}
                 </div>
               </DropdownMenuItem>
             </DropdownMenuItem>
