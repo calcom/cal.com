@@ -38,7 +38,7 @@ const createTestEmbedState = (overrides?: {
   embedStore.pageData.eventsState.bookerReloaded.hasFired =
     overrides?.bookerReloadedHasFired ?? false;
   embedStore.pageData.eventsState.bookerReady.hasFired = overrides?.bookerReadyHasFired ?? false;
-  embedStore.pageData.eventsState.reloadInitiated = overrides?.reloadInitiated ?? false;
+  embedStore.pageData.reloadInitiated = overrides?.reloadInitiated ?? false;
 };
 
 const expectEventFired = (
@@ -78,8 +78,11 @@ describe("useBookerEmbedEvents", () => {
     createTestEmbedState();
     firedEvents = [];
 
-    vi.spyOn(sdkActionManager || {}, "fire").mockImplementation((type, data) => {
-      firedEvents.push({ type: type as string, data });
+    if (!sdkActionManager) {
+      throw new Error("sdkActionManager is not defined");
+    }
+    vi.spyOn(sdkActionManager, "fire").mockImplementation((type, data) => {
+      firedEvents.push({ type, data });
     });
   });
 
@@ -154,7 +157,7 @@ describe("useBookerEmbedEvents", () => {
         eventSlug: eventConfig.eventSlug,
         slotsLoaded: true,
       });
-      expect(embedStore.pageData.eventsState.reloadInitiated).toBe(false);
+      expect(embedStore.pageData.reloadInitiated).toBe(false);
     });
 
     it("should not fire events multiple times when component rerenders", () => {
@@ -263,7 +266,7 @@ describe("useBookerEmbedEvents", () => {
       expect(embedStore.pageData.eventsState.bookerReopened.hasFired).toBe(false);
       expect(embedStore.pageData.eventsState.bookerReloaded.hasFired).toBe(false);
       expect(embedStore.pageData.eventsState.bookerReady.hasFired).toBe(false);
-      expect(embedStore.pageData.eventsState.reloadInitiated).toBe(false);
+      expect(embedStore.pageData.reloadInitiated).toBe(false);
     });
 
     it("should allow events to fire again after reset when new view starts", () => {

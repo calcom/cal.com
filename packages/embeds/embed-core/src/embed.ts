@@ -1433,16 +1433,33 @@ class CalApi {
     calOrigin?: string;
     options?: {
       /**
-       * Time in milliseconds after which the prerendered slots/availability should be considered stale and would be requested again when the modal is opened. This could slow down the booking page load by the time taken by slots loading request which shouldn't be too high
+       * Time in milliseconds after which the prerendered slots/availability should be considered stale and would be requested again when the modal is opened.
        *
-       * Default value is 1 min
+       * The threshold is measured from the time of the last prerender or modal API call (not from when the embed was first opened).
+       * **Important**: Each time the modal is opened, the timer resets. This means if you frequently close and reopen the modal
+       * (before the threshold is crossed), the slots will never be considered stale.
+       *
+       * When slots are considered stale, only the availability/slots are refetched (not a full iframe reload), which could
+       * slow down the booking page load by the time taken by the slots loading request.
+       *
+       * Default value is 1 min (60000 ms)
        */
       slotsStaleTimeMs?: number;
       /**
-       * Time in milliseconds after which the iframe would be forcefully reloaded when the modal is opened and thus booking page load could slow down drastically showing the skeleton loader in the meantime
-       * To avoid reaching this threshold, the user could prerender before this time is reached in usecases where prerender has been done long time ago.
+       * Time in milliseconds after which the iframe would be forcefully reloaded when the modal is opened.
        *
-       * Default value is 15 mins
+       * The threshold is measured from the time of the last prerender or modal API call (not from when the embed was first opened).
+       * **Important**: Each time the modal is opened, the timer resets. This means if you frequently close and reopen the modal
+       * (before the threshold is crossed), the iframe will never be forcefully reloaded.
+       *
+       * When this threshold is crossed, a full iframe reload occurs (not just a slots refetch), which causes the booking page
+       * load to slow down drastically, showing the skeleton loader in the meantime. This full reload also means that any form
+       * response data would be resubmitted.
+       *
+       * To avoid reaching this threshold, you could prerender again before this time is reached in usecases where prerender
+       * has been done a long time ago.
+       *
+       * Default value is 15 mins (900000 ms)
        */
       iframeForceReloadThresholdMs?: number;
     };

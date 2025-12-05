@@ -1,18 +1,11 @@
 "use client";
 /**
  * All hooks defined in this file must be client side hooks and must not be executed in server side.
- * So, they should start with isClientSide check.
+ * So, they should start with isBrowser check.
  */
 import { sdkActionManager } from "../sdk-event";
 import { embedStore, getEventHasFired, setEventHasFired, getReloadInitiated, setReloadInitiated } from "./lib/embedStore";
-
-function isClientSide() {
-    return typeof window !== "undefined";
-}
-
-const isPrerendering = () => {
-    return new URL(window.document.URL).searchParams.get("prerender") === "true";
-};
+import { isBrowser, isPrerendering } from "./lib/utils";
 
 /**
  * Fires bookerViewed, bookerReopened, or bookerReloaded events
@@ -104,7 +97,7 @@ export const useBookerEmbedEvents = ({
         dataUpdatedAt: number;
     };
 }) => {
-    if (!isClientSide()) {
+    if (!isBrowser) {
         return;
     }
     const viewId = embedStore.viewId;
@@ -127,12 +120,5 @@ export const useBookerEmbedEvents = ({
             slotsLoaded: schedule.isSuccess,
         });
     }
-};
-
-export const useIsEmbedPrerendering = () => {
-    if (!isClientSide()) {
-        return false;
-    }
-    return isPrerendering();
 };
 

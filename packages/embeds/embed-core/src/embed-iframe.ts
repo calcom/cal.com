@@ -10,6 +10,8 @@ import {
   isLinkReady,
   recordResponseIfQueued,
   keepParentInformedAboutDimensionChanges,
+  isPrerendering,
+  isBrowser,
 } from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
@@ -24,6 +26,7 @@ import type {
   setNonStylesConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
+export { useBookerEmbedEvents } from "./embed-iframe/react-hooks";
 
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
@@ -55,7 +58,6 @@ declare global {
 }
 
 let isSafariBrowser = false;
-const isBrowser = typeof window !== "undefined";
 
 if (isBrowser) {
   window.CalEmbed = window?.CalEmbed || {};
@@ -282,8 +284,6 @@ export const useEmbedType = () => {
   }, []);
   return state;
 };
-
-export { useBookerEmbedEvents, useIsEmbedPrerendering } from "./embed-iframe/react-hooks";
 
 function makeBodyVisible() {
   if (document.body.style.visibility !== "visible") {
@@ -707,13 +707,6 @@ async function connectPreloadedEmbed({
     stopEnsuringQueryParamsInUrl,
   };
 }
-
-const isPrerendering = () => {
-  if (!document) {
-    return false;
-  }
-  return new URL(document.URL).searchParams.get("prerender") === "true";
-};
 
 export function getEmbedBookerState({
   bookerState,

@@ -1,6 +1,8 @@
 import { sdkActionManager } from "../../sdk-event";
 import { type EmbedStore } from "../lib/embedStore";
 
+export const isBrowser = typeof window !== "undefined";
+
 export function runAsap(fn: (...arg: unknown[]) => void) {
   // We don't use rAF because it runs slower in Safari plus doesn't run if the iframe is hidden sometimes
   return setTimeout(fn, 50);
@@ -13,6 +15,10 @@ export function isBookerPage() {
 export function isBookerReady() {
   return window._embedBookerState === "slotsDone";
 }
+
+export const isPrerendering = () => {
+  return new URL(document.URL).searchParams.get("prerender") === "true";
+};
 
 function isSkeletonSupportedPageType() {
   const url = new URL(document.URL);
@@ -98,13 +104,13 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
     // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
     const contentHeight = Math.ceil(
       parseFloat(mainElementStyles.height) +
-        parseFloat(mainElementStyles.marginTop) +
-        parseFloat(mainElementStyles.marginBottom)
+      parseFloat(mainElementStyles.marginTop) +
+      parseFloat(mainElementStyles.marginBottom)
     );
     const contentWidth = Math.ceil(
       parseFloat(mainElementStyles.width) +
-        parseFloat(mainElementStyles.marginLeft) +
-        parseFloat(mainElementStyles.marginRight)
+      parseFloat(mainElementStyles.marginLeft) +
+      parseFloat(mainElementStyles.marginRight)
     );
 
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.

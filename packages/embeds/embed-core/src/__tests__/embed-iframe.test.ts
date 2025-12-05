@@ -32,7 +32,6 @@ describe("embed-iframe", async () => {
     beforeEach(async () => {
       vi.useFakeTimers();
       window.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
-        console.log("mockRequestAnimationFrame called");
         const timeoutId = setTimeout(() => {
           callback(performance.now());
         }, 100) as unknown as number;
@@ -228,8 +227,6 @@ describe("embed-iframe", async () => {
     });
   });
 
-
-
   describe("linkReady event handler", async () => {
     const createTestEmbedState = (overrides?: {
       viewId?: number | null;
@@ -275,10 +272,8 @@ describe("embed-iframe", async () => {
       resetPageData();
       const initialViewId = embedStore.viewId;
 
-      console.log('Before firing linkReady');
       sdkActionManager?.fire("linkReady", {});
 
-      console.log('After firing linkReady');
       expect(initialViewId).toBeNull();
       expect(embedStore.viewId).toBe(1);
     });
@@ -306,12 +301,9 @@ describe("embed-iframe", async () => {
 
       const initialViewId = embedStore.viewId;
 
-      console.log('Before firing linkReady-1');
       sdkActionManager?.fire("linkReady", {});
 
-      console.log('After firing linkReady-1');
       expect(embedStore.viewId).toBe(initialViewId + 1);
-      console.log('embedStore.pageData now', embedStore.pageData);
       // Verify resetPageData was called (pageData should be a new object reference)
       expect(embedStore.pageData).not.toEqual(oldPageDataReference);
       // Verify flags were reset
