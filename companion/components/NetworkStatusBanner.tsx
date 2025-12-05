@@ -2,49 +2,67 @@
  * NetworkStatusBanner Component
  *
  * Shows a minimal, classy popup when the device is offline.
+ * - Shows popup when going offline
+ * - Auto-dismisses when internet comes back
+ * - Shows again on next disconnect
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { View, Text, TouchableOpacity, Modal, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 
 export function NetworkStatusBanner() {
-  const [isOffline, setIsOffline] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [hasBeenDismissed, setHasBeenDismissed] = useState(false);
-  const fadeAnim = useState(new Animated.Value(0))[0];
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Simple refs to track state
+  const previousOfflineRef = useRef<boolean | null>(null);
+  const userDismissedRef = useRef(false);
+
+  const checkIfOffline = (state: NetInfoState): boolean => {
+    if (state.isConnected === false) return true;
+    if (state.isInternetReachable === false) return true;
+    return false;
+  };
 
   useEffect(() => {
-    // Check initial network state
-    NetInfo.fetch().then((state: NetInfoState) => {
-      const offline = !state.isConnected || !state.isInternetReachable;
-      setIsOffline(offline);
-      if (offline && !hasBeenDismissed) {
+    const handleNetworkChange = (state: NetInfoState) => {
+      const currentlyOffline = checkIfOffline(state);
+      const wasOffline = previousOfflineRef.current;
+
+      // Transition: Online → Offline
+      if (currentlyOffline && wasOffline === false) {
+        userDismissedRef.current = false; // Reset dismiss state
+        setShowModal(true);
+      }
+
+      // Transition: Offline → Online
+      if (!currentlyOffline && wasOffline === true) {
+        setShowModal(false); // Auto-dismiss
+        userDismissedRef.current = false; // Reset for next time
+      }
+
+      previousOfflineRef.current = currentlyOffline;
+    };
+
+    // Get initial state
+    NetInfo.fetch().then((state) => {
+      const offline = checkIfOffline(state);
+      previousOfflineRef.current = offline;
+      if (offline) {
         setShowModal(true);
       }
     });
 
-    // Subscribe to network state changes
-    const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-      const offline = !state.isConnected || !state.isInternetReachable;
-
-      if (offline && !isOffline && !hasBeenDismissed) {
-        setShowModal(true);
-      }
-
-      if (!offline && isOffline) {
-        setHasBeenDismissed(false);
-      }
-
-      setIsOffline(offline);
-    });
-
+    // Listen for changes
+    const unsubscribe = NetInfo.addEventListener(handleNetworkChange);
     return () => unsubscribe();
-  }, [isOffline, hasBeenDismissed]);
+  }, []);
 
   useEffect(() => {
     if (showModal) {
+      fadeAnim.setValue(0);
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 250,
@@ -54,13 +72,13 @@ export function NetworkStatusBanner() {
   }, [showModal, fadeAnim]);
 
   const handleDismiss = () => {
+    userDismissedRef.current = true;
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 150,
       useNativeDriver: true,
     }).start(() => {
       setShowModal(false);
-      setHasBeenDismissed(true);
     });
   };
 
