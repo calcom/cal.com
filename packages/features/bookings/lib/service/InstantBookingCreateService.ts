@@ -234,7 +234,7 @@ export async function handler(
       uid: calVideoMeeting.id,
       meetingId: calVideoMeeting.id,
       meetingPassword: calVideoMeeting.password,
-      meetingUrl: calVideoMeeting.providerUrl ?? calVideoMeeting.url,
+      meetingUrl: calVideoMeeting.internalProviderUrl ?? calVideoMeeting.url,
     },
   ];
 

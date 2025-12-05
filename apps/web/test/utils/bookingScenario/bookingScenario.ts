@@ -2123,6 +2123,7 @@ export function mockSuccessfulVideoMeetingCreation({
     password: string;
     id: string;
     url: string;
+    internalProviderUrl?: string;
   };
 }) {
   return mockVideoApp({

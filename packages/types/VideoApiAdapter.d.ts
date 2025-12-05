@@ -14,7 +14,7 @@ export interface VideoCallData {
   id: string;
   password: string;
   url: string;
-  providerUrl?: string; // Raw provider URL (e.g., Daily.co URL) for BookingReference storage
+  internalProviderUrl?: string; // Internal provider URL (e.g., Daily.co URL) for BookingReference storage
 }
 
 // VideoApiAdapter is defined by the Video App. The App currently can choose to not define it. So, consider in type that VideoApiAdapter can be undefined.

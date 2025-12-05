@@ -261,7 +261,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       id: dailyEvent.name,
       password: meetingToken.token,
       url: getPublicVideoCallUrl(event),
-      providerUrl: dailyEvent.url,
+      internalProviderUrl: dailyEvent.url,
     });
   }
 
@@ -324,7 +324,15 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     };
   };
 
-  async function createInstantMeeting(endTime: string, bookingUid: string, region?: RoomGeo) {
+  async function createInstantMeeting({
+    endTime,
+    bookingUid,
+    region,
+  }: {
+    endTime: string;
+    bookingUid: string;
+    region?: RoomGeo;
+  }) {
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(endTime).getTime() / 1000) + 60 * 60;
     const { scale_plan: scalePlan } = await getDailyAppKeys();
@@ -386,7 +394,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       id: dailyEvent.name,
       password: meetingToken.token,
       url: getPublicVideoCallUrl({ uid: bookingUid }),
-      providerUrl: dailyEvent.url,
+      internalProviderUrl: dailyEvent.url,
     });
   }
   // Region on which the DailyVideo room is created can be controlled by ENV var
@@ -416,7 +424,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       }
     },
     createInstantCalVideoRoom: (endTime: string, bookingUid: string) =>
-      createInstantMeeting(endTime, bookingUid, region),
+      createInstantMeeting({ endTime, bookingUid, region }),
     getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
       try {
         const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=43200`).then(
