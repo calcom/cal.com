@@ -83,7 +83,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
   eventTypeId?: number;
   teamId?: number;
   user?: { id: number; email: string };
-  isGlobalBookingLimits?: boolean;
   includeManagedEvents?: boolean;
   timeZone?: string | null;
 }) => {
@@ -97,7 +96,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
     teamId,
     user,
     rescheduleUid,
-    isGlobalBookingLimits,
     includeManagedEvents = false,
     timeZone,
   } = params;
@@ -124,7 +122,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
             teamId,
             user,
             rescheduleUid,
-            isGlobalBookingLimits,
             includeManagedEvents,
             timeZone,
           });
@@ -348,7 +345,6 @@ const _getBusyTimesFromGlobalBookingLimits = async (
     limitManager,
     rescheduleUid,
     user: { id: userId, email: userEmail },
-    isGlobalBookingLimits: true,
     timeZone,
   });
 

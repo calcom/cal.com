@@ -54,7 +54,7 @@ export class CheckBookingAndDurationLimitsService {
         );
       }
 
-      // We are only interested in global booking limits for individual and managed events for which schedulingType is null
+      // We are only interested in global booking limits for individual user events
       if (eventType.userId && !eventType.schedulingType) {
         const eventTypeUser = await prisma.user.findUnique({
           where: {
@@ -67,14 +67,13 @@ export class CheckBookingAndDurationLimitsService {
           },
         });
         if (eventTypeUser?.bookingLimits && Object.keys(eventTypeUser.bookingLimits).length > 0) {
-          await await this.dependencies.checkBookingLimitsService.checkBookingLimits(
+          await this.dependencies.checkBookingLimitsService.checkBookingLimits(
             eventTypeUser.bookingLimits as IntervalLimit,
             startAsDate,
             eventType.id,
             reqBodyRescheduleUid,
             eventType.schedule?.timeZone,
-            { id: eventTypeUser.id, email: eventTypeUser.email },
-            /* isGlobalBookingLimits */ true
+            { id: eventTypeUser.id, email: eventTypeUser.email }
           );
         }
       }

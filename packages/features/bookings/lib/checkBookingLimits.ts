@@ -1,4 +1,3 @@
-import type { Prisma } from "@calcom/prisma/client";
 import dayjs from "@calcom/dayjs";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -22,7 +21,6 @@ export class CheckBookingLimitsService {
     rescheduleUid?: string | undefined,
     timeZone?: string | null,
     user?: { id: number; email: string },
-    isGlobalBookingLimits?: boolean,
     includeManagedEvents?: boolean
   ) {
     const parsedBookingLimits = parseBookingLimit(bookingLimits);
@@ -37,7 +35,6 @@ export class CheckBookingLimitsService {
         eventId,
         timeZone,
         user,
-        isGlobalBookingLimits,
         rescheduleUid,
         includeManagedEvents,
       })
@@ -61,7 +58,6 @@ export class CheckBookingLimitsService {
     timeZone,
     teamId,
     user,
-    isGlobalBookingLimits = false,
     includeManagedEvents = false,
   }: {
     eventStartDate: Date;
@@ -72,7 +68,6 @@ export class CheckBookingLimitsService {
     timeZone?: string | null;
     teamId?: number;
     user?: { id: number; email: string };
-    isGlobalBookingLimits?: boolean;
     includeManagedEvents?: boolean;
   }) {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
