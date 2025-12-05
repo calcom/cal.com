@@ -29,7 +29,7 @@ const Page = async () => {
   }
 
   const meCaller = await createRouterCaller(meRouter);
-  const user = meCaller.get();
+  const user = await meCaller.get();
 
   if (!user) {
     redirect(redirectUrl);
