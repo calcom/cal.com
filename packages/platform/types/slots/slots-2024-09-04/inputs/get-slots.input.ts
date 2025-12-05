@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
   IsDateString,
@@ -107,6 +107,7 @@ export class GetAvailableSlotsInput_2024_09_04 {
       "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
     example: [1, 2, 3],
   })
+  @ApiHideProperty()
   hostSubsetIds?: number[];
 }
 

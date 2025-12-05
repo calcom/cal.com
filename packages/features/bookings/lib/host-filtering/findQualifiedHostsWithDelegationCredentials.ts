@@ -87,7 +87,7 @@ export class QualifiedHostsService {
     contactOwnerEmail: string | null;
     routingFormResponse: RoutingFormResponse | null;
     hostSubsetIds?: number[];
-  }):Promise<{
+  }): Promise<{
     qualifiedRRHosts: {
       isFixed: boolean;
       createdAt: Date | null;
@@ -122,8 +122,12 @@ export class QualifiedHostsService {
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
 
-    const fixedHosts = normalizedHosts.filter(isFixedHost);
-    const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
+    const fixedHosts = normalizedHosts
+      .filter(isFixedHost)
+      .filter((host) => hostSubsetIds?.includes(host.user.id) ?? true);
+    const roundRobinHosts = normalizedHosts
+      .filter(isRoundRobinHost)
+      .filter((host) => hostSubsetIds?.includes(host.user.id) ?? true);
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
@@ -163,29 +167,14 @@ export class QualifiedHostsService {
       ? hostsAfterSegmentMatching
       : hostsAfterRescheduleWithSameRoundRobinHost;
 
-    // Filter by hostSubsetIds if provided - this is a hard filter (no fallback)
-    // When hostSubsetIds is provided, we only consider hosts in that subset
-    const hostsAfterHostSubsetFiltering =
-      hostSubsetIds && hostSubsetIds.length > 0
-        ? officalRRHosts.filter((host) => hostSubsetIds.includes(host.user.id))
-        : officalRRHosts;
-
-    // If hostSubsetIds filtering results in no hosts, return empty to indicate no availability
-    if (hostSubsetIds && hostSubsetIds.length > 0 && hostsAfterHostSubsetFiltering.length === 0) {
-      return {
-        qualifiedRRHosts: [],
-        fixedHosts,
-      };
-    }
-
     const hostsAfterContactOwnerMatching = applyFilterWithFallback(
-      hostsAfterHostSubsetFiltering,
-      hostsAfterHostSubsetFiltering.filter((host) => host.user.email === contactOwnerEmail)
+      officalRRHosts,
+      officalRRHosts.filter((host) => host.user.email === contactOwnerEmail)
     );
 
     const hostsAfterRoutedTeamMemberIdsMatching = applyFilterWithFallback(
-      hostsAfterHostSubsetFiltering,
-      hostsAfterHostSubsetFiltering.filter((host) => routedTeamMemberIds.includes(host.user.id))
+      officalRRHosts,
+      officalRRHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
     );
 
     if (hostsAfterRoutedTeamMemberIdsMatching.length === 1) {
