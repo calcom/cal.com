@@ -336,7 +336,8 @@ export default class EventManager {
       const result = await this.createVideoEvent(evt);
 
       if (result?.createdEvent) {
-        evt.videoCallData = result.createdEvent;
+        const { providerUrl: _providerUrl, ...videoCallData } = result.createdEvent;
+        evt.videoCallData = videoCallData;
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
@@ -388,6 +389,7 @@ export default class EventManager {
         thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
       }
 
+      const createdEvent = result.createdEvent as { providerUrl?: string; url?: string } | undefined;
       return {
         type: result.type,
         uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
@@ -396,7 +398,7 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj
           ? createdEventObj.onlineMeetingUrl
-          : (result.createdEvent?.providerUrl ?? result.createdEvent?.url),
+          : createdEvent?.providerUrl ?? createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
         ...getCredentialPayload(result),
       };
@@ -417,7 +419,8 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
       if (result.createdEvent) {
-        evt.videoCallData = result.createdEvent;
+        const { providerUrl: _providerUrl, ...videoCallData } = result.createdEvent;
+        evt.videoCallData = videoCallData;
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
         //responses data is later sent to webhook
@@ -449,13 +452,14 @@ export default class EventManager {
       // For update operations, check updatedEvent first, then fall back to createdEvent
       const updatedEvent = Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
       const createdEvent = result.createdEvent;
-      let event = updatedEvent;
-      if (!event) {
+      let event = (updatedEvent ?? createdEvent) as
+        | { providerUrl?: string; url?: string; id?: string | number; password?: string }
+        | undefined;
+      if (!updatedEvent) {
         log.warn(
           "updateLocation: No updatedEvent when doing updateLocation. Falling back to createdEvent but this is probably not what we want",
           safeStringify({ bookingId: booking.id })
         );
-        event = createdEvent;
       }
 
       const uid = event?.id?.toString() ?? "";
@@ -716,7 +720,8 @@ export default class EventManager {
               : [result.updatedEvent];
 
             if (updatedEvent) {
-              evt.videoCallData = updatedEvent;
+              const { providerUrl: _providerUrl, ...videoCallData } = updatedEvent;
+              evt.videoCallData = videoCallData;
               evt.location = updatedEvent.url;
             }
             results.push(result);
