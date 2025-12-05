@@ -2819,6 +2819,7 @@
                   "organization.attributes.update",
                   "organization.attributes.delete",
                   "organization.attributes.create",
+                  "organization.attributes.editUsers",
                   "routingForm.create",
                   "routingForm.read",
                   "routingForm.update",
@@ -16824,7 +16825,37 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video", "google-meet", "office365-video", "zoom"]
+            "enum": [
+              "cal-video",
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campfire-video"
+            ]
           }
         },
         "required": ["type", "integration"]
@@ -18032,7 +18063,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -19963,7 +19994,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -21604,7 +21635,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -22067,7 +22098,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -26337,6 +26368,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26440,6 +26472,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26571,6 +26604,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26673,6 +26707,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
