@@ -26,7 +26,12 @@ type Props = {
 
 export default function Webhooks({ data }: Props) {
   const { t } = useLocale();
-  const { isPlatformUser, isPaidUser, userOrgId } = useGetUserAttributes();
+  const { isPlatformUser, isPaidUser, userOrgId, isUserLoading, isUserBillingDataLoading, userBillingData } =
+    useGetUserAttributes();
+
+  if (isUserLoading || (isUserBillingDataLoading && !userBillingData)) {
+    return <div className="m-5">{t("loading")}</div>;
+  }
 
   if (isPlatformUser && !isPaidUser)
     return (
