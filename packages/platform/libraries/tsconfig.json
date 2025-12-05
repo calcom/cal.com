@@ -11,7 +11,8 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
-      "@calcom/lib/server/i18n": ["./i18n.ts"]
+      "@calcom/lib/server/i18n": ["./i18n.ts"],
+      "@calcom/web/public": ["../../../apps/web/public/*"]
     }
   },
   "include": [".", "../../types/*.d.ts"],
