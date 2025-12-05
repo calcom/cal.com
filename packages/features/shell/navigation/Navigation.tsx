@@ -220,6 +220,12 @@ const platformNavigationItems: NavigationItemType[] = [
     icon: "users",
     moreOnMobile: true,
   },
+  {
+    name: "Webhooks",
+    href: "/settings/platform/webhooks",
+    icon: "webhook",
+    moreOnMobile: true,
+  },
 ];
 
 const useNavigationItems = (isPlatformNavigation = false) => {
