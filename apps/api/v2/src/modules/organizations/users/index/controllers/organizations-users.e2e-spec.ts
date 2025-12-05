@@ -167,7 +167,7 @@ describe("Organizations Users Endpoints", () => {
 
       await userRepositoryFixture.create({
         email: nonMemberEmail,
-        username: "non-member",
+        username: `non-member-${randomString()}`,
       });
 
       const orgMembers = await Promise.all(

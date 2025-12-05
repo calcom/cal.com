@@ -7,7 +7,8 @@ const BASE64_IMAGE_REGEX =
 @ValidatorConstraint({ name: "avatarValidator", async: false })
 export class AvatarValidator implements ValidatorConstraintInterface {
   validate(avatarString: string): boolean {
-    if (!avatarString) return true;
+    if (avatarString === null || avatarString === undefined) return true;
+    if (!avatarString?.trim()) return false;
 
     return this.isValidUrl(avatarString) || this.isValidBase64Image(avatarString);
   }
@@ -15,7 +16,7 @@ export class AvatarValidator implements ValidatorConstraintInterface {
   private isValidUrl(value: string): boolean {
     try {
       const url = new URL(value);
-      return url.protocol === "http:" || url.protocol === "https:";
+      return url.protocol === "https:";
     } catch {
       return false;
     }
@@ -26,6 +27,6 @@ export class AvatarValidator implements ValidatorConstraintInterface {
   }
 
   defaultMessage(): string {
-    return "avatarUrl must be a valid URL or base64 encoded image";
+    return "avatarUrl must be a valid HTTPS URL (HTTP not allowed) or base64 encoded image";
   }
 }

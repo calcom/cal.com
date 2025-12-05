@@ -25,10 +25,11 @@ describe("AvatarValidator", () => {
   });
 
   describe("when value is a URL", () => {
-    it("accepts valid HTTP URLs", () => {
+    it("rejects HTTP URLs (HTTPS only for security)", () => {
       const dto = createAvatarDto("http://example.com/avatar.jpg");
       const errors = validateSync(dto);
-      expect(errors).toHaveLength(0);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].constraints).toHaveProperty("avatarValidator");
     });
 
     it("accepts valid HTTPS URLs", () => {
@@ -139,10 +140,18 @@ describe("AvatarValidator", () => {
       expect(errors[0].constraints).toHaveProperty("avatarValidator");
     });
 
-    it("accepts empty strings as valid", () => {
+    it("rejects empty strings (use null to reset avatar)", () => {
       const dto = createAvatarDto("");
       const errors = validateSync(dto);
-      expect(errors).toHaveLength(0); // Empty string is treated as undefined/null and accepted
+      expect(errors).toHaveLength(1);
+      expect(errors[0].constraints).toHaveProperty("avatarValidator");
+    });
+
+    it("rejects whitespace-only strings", () => {
+      const dto = createAvatarDto("   ");
+      const errors = validateSync(dto);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].constraints).toHaveProperty("avatarValidator");
     });
   });
 });
