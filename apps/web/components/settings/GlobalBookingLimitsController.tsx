@@ -72,7 +72,7 @@ const GlobalBookingLimitsController = ({
                 handleSubmit(bookingsLimitFormMethods.getValues());
               }}
               switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0">

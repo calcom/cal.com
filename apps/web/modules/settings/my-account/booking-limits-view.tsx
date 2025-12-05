@@ -3,6 +3,7 @@
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
+
 import GlobalBookingLimitsController from "@components/settings/GlobalBookingLimitsController";
 
 interface BookingLimitsViewProps {
@@ -13,10 +14,7 @@ const BookingLimitsView = ({ user }: BookingLimitsViewProps) => {
   const { t } = useLocale();
 
   return (
-    <SettingsHeader
-      title={t("booking_limits")}
-      description={t("booking_limits_global_description")}
-      borderInShellHeader={true}>
+    <SettingsHeader title={t("booking_limits")} description={t("booking_limits_global_description")}>
       <GlobalBookingLimitsController bookingLimits={user.bookingLimits} />
     </SettingsHeader>
   );
