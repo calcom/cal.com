@@ -291,10 +291,11 @@ function BookingListItem(booking: BookingItemProps) {
         "group relative w-full transition-all duration-100 ease-out",
         "hover:bg-cal-muted",
         isSelected && "bg-cal-muted rounded-r-md",
-        isSelected && "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-brand-default"
+        isSelected &&
+          "before:bg-brand-default before:absolute before:left-0 before:top-0 before:h-full before:w-1"
       )}>
       <div className="flex flex-col sm:flex-row">
-        <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
+        <div className="hidden align-top sm:table-cell sm:min-w-48 ltr:pl-3 rtl:pr-6">
           <div className="flex h-full items-center">
             {eventTypeColor && <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />}
             <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="ml-3">
@@ -368,23 +369,23 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
 
               {isPending && (
-                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("unconfirmed")}
                 </Badge>
               )}
               {booking.eventType?.team && (
-                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="gray">
                   {booking.eventType.team.name}
                 </Badge>
               )}
               {showPendingPayment && (
-                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("pending_payment")}
                 </Badge>
               )}
               {isRescheduled && (
                 <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
-                  <Badge variant="orange" className="ltr:mr-2 rtl:ml-2 sm:hidden">
+                  <Badge variant="orange" className="sm:hidden ltr:mr-2 rtl:ml-2">
                     {t("rescheduled")}
                   </Badge>
                 </Tooltip>
@@ -405,7 +406,7 @@ function BookingListItem(booking: BookingItemProps) {
               <div
                 title={title}
                 className={classNames(
-                  "max-w-10/12 sm:max-w-56 text-emphasis break-words text-sm font-medium leading-6 md:max-w-full",
+                  "max-w-10/12 text-emphasis break-words text-sm font-medium leading-6 sm:max-w-56 md:max-w-full",
                   isCancelled ? "line-through" : ""
                 )}>
                 {title}
@@ -419,7 +420,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
               {booking.description && (
                 <div
-                  className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
+                  className="max-w-10/12 text-default truncate text-sm sm:max-w-32 md:max-w-52 xl:max-w-80"
                   title={booking.description}>
                   &quot;{booking.description}&quot;
                 </div>
@@ -441,7 +442,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </ConditionalLink>
         </div>
-        <div className="flex flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-shrink-0 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
+        <div className="flex flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium sm:flex-shrink-0 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0 ltr:pr-4 rtl:pl-4">
           {shouldShowPendingActions(actionContext) && (
             <div className="flex space-x-2 rtl:space-x-reverse">
               <RejectBookingButton
