@@ -230,6 +230,29 @@ export default defineContentScript({
     toggleButton.style.justifyContent = "center";
     toggleButton.title = "Toggle sidebar";
 
+    // Create reload button
+    const reloadButton = document.createElement("button");
+    reloadButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 4V10H7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M23 20V14H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+    reloadButton.style.width = "40px";
+    reloadButton.style.height = "40px";
+    reloadButton.style.borderRadius = "50%";
+    reloadButton.style.border = "1px solid rgba(255, 255, 255, 0.5)";
+    reloadButton.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+    reloadButton.style.backdropFilter = "blur(10px)";
+    reloadButton.style.color = "white";
+    reloadButton.style.cursor = "pointer";
+    reloadButton.style.fontSize = "16px";
+    reloadButton.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+    reloadButton.style.transition = "all 0.2s ease";
+    reloadButton.style.display = "flex";
+    reloadButton.style.alignItems = "center";
+    reloadButton.style.justifyContent = "center";
+    reloadButton.title = "Reload data";
+
     // Create close button
     const closeButton = document.createElement("button");
     closeButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -268,6 +291,37 @@ export default defineContentScript({
       closeButton.style.transform = "scale(1)";
     });
 
+    reloadButton.addEventListener("mouseenter", () => {
+      reloadButton.style.transform = "scale(1.1)";
+    });
+    reloadButton.addEventListener("mouseleave", () => {
+      reloadButton.style.transform = "scale(1)";
+    });
+
+    // Reload functionality - sends message to iframe to invalidate cache
+    reloadButton.addEventListener("click", () => {
+      // Add spinning animation
+      reloadButton.style.animation = "spin 0.5s ease-in-out";
+      setTimeout(() => {
+        reloadButton.style.animation = "";
+      }, 500);
+
+      // Send message to iframe to reload cache
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: "cal-companion-reload-cache" }, "*");
+      }
+    });
+
+    // Add spin animation style
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+
     // Toggle functionality
     toggleButton.addEventListener("click", () => {
       if (isClosed) return;
@@ -300,6 +354,7 @@ export default defineContentScript({
 
     // Add buttons to container
     buttonsContainer.appendChild(toggleButton);
+    buttonsContainer.appendChild(reloadButton);
     buttonsContainer.appendChild(closeButton);
 
     // Add everything to DOM

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from "react-
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
-import { LogoutButton } from "../../components/LogoutButton";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface MoreMenuItem {
   name: string;
@@ -15,6 +15,25 @@ interface MoreMenuItem {
 
 export default function More() {
   const router = useRouter();
+  const { logout, userInfo } = useAuth();
+
+  const handleSignOut = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            console.error("Logout error:", error);
+            Alert.alert("Error", "Failed to sign out. Please try again.");
+          }
+        },
+      },
+    ]);
+  };
 
   const openExternalLink = async (url: string, fallbackMessage: string) => {
     try {
@@ -99,14 +118,48 @@ export default function More() {
           ))}
         </View>
 
-        {/* Authentication Info and Logout */}
-        <View className="py-4">
-          <LogoutButton className="w-full bg-transparent text-gray-900" />
+        {/* Account Section */}
+        <View className="mt-6">
+          <Text className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Account
+          </Text>
+          <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+            {/* User Info */}
+            {userInfo && (
+              <View className="flex-row items-center border-b border-[#E5E5EA] px-5 py-4">
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-900">
+                  <Text className="text-base font-semibold text-white">
+                    {userInfo.name?.charAt(0)?.toUpperCase() ||
+                      userInfo.email?.charAt(0)?.toUpperCase() ||
+                      "?"}
+                  </Text>
+                </View>
+                <View className="ml-3 flex-1">
+                  <Text className="text-base font-semibold text-[#333]" numberOfLines={1}>
+                    {userInfo.name || "Cal.com User"}
+                  </Text>
+                  <Text className="text-sm text-gray-500" numberOfLines={1}>
+                    {userInfo.email}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Sign Out Button */}
+            <TouchableOpacity
+              onPress={handleSignOut}
+              className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
+            >
+              <Ionicons name="log-out-outline" size={20} color="#DC2626" />
+              <Text className="ml-2 text-base font-medium text-red-600">Sign Out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <Text className="mt-4 text-sm text-gray-500">
-          We view the companion as an extension of the web application. If you are performing any
-          complicated actions, please refer back to the web application.
+        {/* Footer Note */}
+        <Text className="mt-6 px-1 text-center text-xs text-gray-400">
+          The companion app is an extension of the web application.{"\n"}
+          For advanced features, visit app.cal.com
         </Text>
       </ScrollView>
     </View>

@@ -50,6 +50,25 @@ export default defineConfig({
       "import.meta.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI": JSON.stringify(
         process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI
       ),
+      // Cache configuration environment variables
+      "import.meta.env.EXPO_PUBLIC_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_CACHE_STALE_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_CACHE_GC_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_CACHE_GC_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_BOOKINGS_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_BOOKINGS_CACHE_STALE_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_EVENT_TYPES_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_EVENT_TYPES_CACHE_STALE_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_SCHEDULES_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_SCHEDULES_CACHE_STALE_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_USER_PROFILE_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_USER_PROFILE_CACHE_STALE_TIME_MINUTES
+      ),
     },
     optimizeDeps: {
       include: ["react-native-web"],

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -22,17 +22,14 @@ import type { NativeSyntheticEvent } from "react-native";
 import { CalComAPIService, Booking, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { useBookings, useCancelBooking } from "../../hooks";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
 export default function Bookings() {
   const router = useRouter();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
@@ -52,176 +49,128 @@ export default function Bookings() {
   const filterLabels = filterOptions.map((option) => option.label);
   const activeIndex = filterOptions.findIndex((option) => option.key === activeFilter);
 
+  // Get filters for the active tab
   const getFiltersForActiveTab = () => {
     switch (activeFilter) {
       case "upcoming":
-        return {
-          status: ["upcoming"],
-          limit: 50,
-        };
+        return { status: ["upcoming"], limit: 50 };
       case "unconfirmed":
-        return {
-          status: ["unconfirmed"],
-          limit: 50,
-        };
+        return { status: ["unconfirmed"], limit: 50 };
       case "past":
-        return {
-          status: ["past"],
-          limit: 100,
-        };
+        return { status: ["past"], limit: 100 };
       case "cancelled":
-        return {
-          status: ["cancelled"],
-          limit: 100,
-        };
+        return { status: ["cancelled"], limit: 100 };
       default:
-        return {
-          status: ["upcoming"],
-          limit: 50,
-        };
+        return { status: ["upcoming"], limit: 50 };
     }
   };
 
-  const fetchBookings = async () => {
-    try {
-      setError(null);
+  // Use React Query hook for fetching bookings
+  const {
+    data: rawBookings = [],
+    isLoading: loading,
+    isFetching,
+    error: queryError,
+    refetch,
+  } = useBookings(getFiltersForActiveTab());
 
-      // First, test the raw bookings API call (only on first load)
-      if (loading) {
-        await CalComAPIService.testRawBookingsAPI();
-      }
+  // Show refresh indicator when fetching
+  const refreshing = isFetching && !loading;
 
-      const filters = getFiltersForActiveTab();
+  // Cancel booking mutation
+  const { mutate: cancelBookingMutation } = useCancelBooking();
 
-      const data = await CalComAPIService.getBookings(filters);
+  // Sort bookings based on active filter
+  const bookings = useMemo(() => {
+    if (!rawBookings || !Array.isArray(rawBookings)) return [];
 
-      // Log individual bookings to see what we're getting
-      if (Array.isArray(data) && data.length > 0) {
-      } else {
-      }
-
-      if (Array.isArray(data)) {
-        let filteredBookings = data;
-        const now = new Date();
-
-        // Log all bookings before filtering
-
-        // Server already filters by status correctly, so we only need to sort
-        // The server's logic:
-        // - "upcoming": endTime >= now AND status not in ["cancelled", "rejected"]
-        // - "unconfirmed": endTime >= now AND status = "pending"
-        // - "past": endTime <= now AND status not in ["cancelled", "rejected"]
-        // - "cancelled": status in ["cancelled", "rejected"]
-        switch (activeFilter) {
-          case "upcoming":
-            // Server already filtered, just sort by start time
-            filteredBookings = data.sort(
-              (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-            );
-            break;
-          case "unconfirmed":
-            // Server already filtered, just sort by start time
-            filteredBookings = data.sort(
-              (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-            );
-            break;
-          case "past":
-            // Server already filtered, sort by start time descending (latest first)
-            filteredBookings = data.sort(
-              (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-            );
-            break;
-          case "cancelled":
-            // Server already filtered, sort by start time descending (latest first)
-            filteredBookings = data.sort(
-              (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-            );
-            break;
-        }
-
-        setBookings(filteredBookings);
-        applyFilters(filteredBookings, searchQuery, selectedEventTypeId);
-      } else {
-        setBookings([]);
-        setFilteredBookings([]);
-      }
-    } catch (err) {
-      console.error("🎯 BookingsScreen: Error fetching bookings:", err);
-      setError("Failed to load bookings. Please check your API key and try again.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    const sorted = [...rawBookings];
+    switch (activeFilter) {
+      case "upcoming":
+      case "unconfirmed":
+        // Sort by start time ascending
+        return sorted.sort(
+          (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        );
+      case "past":
+      case "cancelled":
+        // Sort by start time descending (latest first)
+        return sorted.sort(
+          (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+        );
+      default:
+        return sorted;
     }
-  };
+  }, [rawBookings, activeFilter]);
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  // Convert query error to string
+  // Don't show error UI for authentication errors (user will be redirected to login)
+  // Only show error UI in development mode for other errors
+  const isAuthError =
+    queryError?.message?.includes("Authentication") ||
+    queryError?.message?.includes("sign in") ||
+    queryError?.message?.includes("401");
+  const error =
+    queryError && !isAuthError && __DEV__
+      ? "Failed to load bookings. Please check your API key and try again."
+      : null;
 
+  // Clear search and event type filter when status filter changes
   useEffect(() => {
-    setSearchQuery(""); // Clear search when filter changes
-    setSelectedEventTypeId(null); // Clear event type filter when status filter changes
+    setSearchQuery("");
+    setSelectedEventTypeId(null);
     setSelectedEventTypeLabel(null);
-    if (!loading) {
-      setLoading(true);
-      fetchBookings();
-    }
   }, [activeFilter]);
 
-  useEffect(() => {}, [loading, error, bookings]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchBookings();
+  // Handle pull-to-refresh
+  const onRefresh = async () => {
+    await refetch();
   };
 
-  const applyFilters = (
-    bookingsToFilter: Booking[],
-    searchText: string,
-    eventTypeId: number | null
-  ) => {
-    let filtered = bookingsToFilter;
+  // Apply local filters (search and event type) using useMemo
+  const filteredBookings = useMemo(() => {
+    let filtered = bookings;
 
     // Apply event type filter
-    if (eventTypeId !== null) {
-      filtered = filtered.filter((booking) => booking.eventTypeId === eventTypeId);
+    if (selectedEventTypeId !== null) {
+      filtered = filtered.filter((booking) => booking.eventTypeId === selectedEventTypeId);
     }
 
     // Apply search filter
-    if (searchText.trim() !== "") {
+    if (searchQuery.trim() !== "") {
+      const searchLower = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (booking) =>
           // Search in booking title
-          booking.title?.toLowerCase().includes(searchText.toLowerCase()) ||
+          booking.title?.toLowerCase().includes(searchLower) ||
           // Search in booking description
-          booking.description?.toLowerCase().includes(searchText.toLowerCase()) ||
+          booking.description?.toLowerCase().includes(searchLower) ||
           // Search in event type title
-          booking.eventType?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
+          booking.eventType?.title?.toLowerCase().includes(searchLower) ||
           // Search in attendee names
           (booking.attendees &&
             booking.attendees.some((attendee) =>
-              attendee.name?.toLowerCase().includes(searchText.toLowerCase())
+              attendee.name?.toLowerCase().includes(searchLower)
             )) ||
           // Search in attendee emails
           (booking.attendees &&
             booking.attendees.some((attendee) =>
-              attendee.email?.toLowerCase().includes(searchText.toLowerCase())
+              attendee.email?.toLowerCase().includes(searchLower)
             )) ||
           // Search in location
-          booking.location?.toLowerCase().includes(searchText.toLowerCase()) ||
+          booking.location?.toLowerCase().includes(searchLower) ||
           // Search in user name
-          booking.user?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+          booking.user?.name?.toLowerCase().includes(searchLower) ||
           // Search in user email
-          booking.user?.email?.toLowerCase().includes(searchText.toLowerCase())
+          booking.user?.email?.toLowerCase().includes(searchLower)
       );
     }
 
-    setFilteredBookings(filtered);
-  };
+    return filtered;
+  }, [bookings, searchQuery, selectedEventTypeId]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    applyFilters(bookings, query, selectedEventTypeId);
   };
 
   const fetchEventTypes = async () => {
@@ -231,7 +180,7 @@ export default function Bookings() {
       setEventTypes(types);
     } catch (err) {
       console.error("Error fetching event types:", err);
-      setError("Failed to load event types");
+      // Error is logged but not displayed to user for event type filter
     } finally {
       setEventTypesLoading(false);
     }
@@ -247,7 +196,6 @@ export default function Bookings() {
   const clearEventTypeFilter = () => {
     setSelectedEventTypeId(null);
     setSelectedEventTypeLabel(null);
-    applyFilters(bookings, searchQuery, null);
   };
 
   const handleEventTypeSelect = (eventTypeId: number | null, label?: string | null) => {
@@ -256,7 +204,6 @@ export default function Bookings() {
     } else {
       setSelectedEventTypeId(eventTypeId);
       setSelectedEventTypeLabel(label || null);
-      applyFilters(bookings, searchQuery, eventTypeId);
     }
     setShowFilterModal(false);
   };
@@ -565,27 +512,20 @@ export default function Bookings() {
               {
                 text: "Cancel Event",
                 style: "destructive",
-                onPress: async (reason) => {
-                  try {
-                    const cancellationReason = reason?.trim() || "Event cancelled by host";
-                    await CalComAPIService.cancelBooking(booking.uid, cancellationReason);
-
-                    // Remove the cancelled booking from local state or refresh the list
-                    if (activeFilter === "upcoming") {
-                      // For upcoming bookings, remove from list since it's now cancelled
-                      const updatedBookings = bookings.filter((b) => b.uid !== booking.uid);
-                      setBookings(updatedBookings);
-                      setFilteredBookings(updatedBookings);
-                    } else {
-                      // For other filters, refresh to get updated data
-                      await fetchBookings();
+                onPress: (reason) => {
+                  const cancellationReason = reason?.trim() || "Event cancelled by host";
+                  cancelBookingMutation(
+                    { uid: booking.uid, reason: cancellationReason },
+                    {
+                      onSuccess: () => {
+                        Alert.alert("Success", "Event cancelled successfully");
+                      },
+                      onError: (error) => {
+                        console.error("Failed to cancel booking:", error);
+                        Alert.alert("Error", "Failed to cancel event. Please try again.");
+                      },
                     }
-
-                    Alert.alert("Success", "Event cancelled successfully");
-                  } catch (error) {
-                    console.error("Failed to cancel booking:", error);
-                    Alert.alert("Error", "Failed to cancel event. Please try again.");
-                  }
+                  );
                 },
               },
             ],
@@ -900,8 +840,7 @@ export default function Bookings() {
         <Header />
         {renderSegmentedControl()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <ActivityIndicator size="large" color="#000000" />
-          <Text className="mt-4 text-base text-gray-500">Loading {activeFilter} bookings...</Text>
+          <LoadingSpinner size="large" />
         </View>
       </View>
     );
@@ -918,7 +857,7 @@ export default function Bookings() {
             Unable to load bookings
           </Text>
           <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
-          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={fetchBookings}>
+          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
             <Text className="text-base font-semibold text-white">Retry</Text>
           </TouchableOpacity>
         </View>
