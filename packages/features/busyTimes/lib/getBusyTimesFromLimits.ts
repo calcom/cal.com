@@ -289,48 +289,19 @@ const _getBusyTimesFromGlobalBookingLimits = async (
     bookingLimits
   );
 
-  // TODO imported from old PR, needs to be refactored
-  const where: Prisma.BookingWhereInput = {
-    userId,
-    status: BookingStatus.ACCEPTED,
-    startTime: {
-      gte: limitDateFrom.toDate(),
-    },
-    endTime: {
-      lte: limitDateTo.toDate(),
-    },
-    eventType: {
-      schedulingType: null,
-    },
-  };
-
-  if (rescheduleUid) {
-    where.NOT = {
-      uid: rescheduleUid,
-    };
-  }
-
-  const bookings = await prisma.booking.findMany({
-    where,
-    select: {
-      id: true,
-      startTime: true,
-      endTime: true,
-      eventType: {
-        select: {
-          id: true,
-        },
-      },
-      title: true,
-      userId: true,
-    },
+  const bookingRepo = new BookingRepository(prisma);
+  const bookings = await bookingRepo.getAllAcceptedUserBookings({
+    userId: userId,
+    startDate: limitDateFrom.toDate(),
+    endDate: limitDateTo.toDate(),
+    excludedUid: rescheduleUid,
   });
 
-  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
     start: dayjs(startTime).toDate(),
     end: dayjs(endTime).toDate(),
     title,
-    source: `eventType-${eventType?.id}-booking-${id}`,
+    source: `eventType-${eventTypeId}-booking-${id}`,
     userId,
   }));
 
