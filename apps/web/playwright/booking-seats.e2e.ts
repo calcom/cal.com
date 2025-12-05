@@ -555,17 +555,23 @@ test.describe("Reschedule for booking with seats", () => {
     await page.waitForSelector('[data-testid="bookings"]');
 
     await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-    await page.waitForTimeout(2000);
-    const href = await page.locator('[data-testid="reschedule"]').getAttribute("href");
+
+    // Wait for the reschedule link to be visible and have an href attribute
+    const rescheduleLink = page.locator('[data-testid="reschedule"]');
+    await expect(rescheduleLink).toBeVisible();
+    await expect(rescheduleLink).toHaveAttribute("href", /.+/);
+
+    const href = await rescheduleLink.getAttribute("href");
     const url = new URL(href!, page.url());
-    const seatReferenceUid = url.searchParams.get('seatReferenceUid');
-    if(!seatReferenceUid) {
+    const seatReferenceUid = url.searchParams.get("seatReferenceUid");
+    if (!seatReferenceUid) {
       await page.reload();
       await page.waitForSelector('[data-testid="bookings"]');
       await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-      await page.waitForTimeout(2000);
+      await expect(rescheduleLink).toBeVisible();
+      await expect(rescheduleLink).toHaveAttribute("href", /.+/);
     }
-    await page.locator('[data-testid="reschedule"]').click();
+    await rescheduleLink.click();
     await expect(page.getByText("Seats available").first()).toBeVisible();
 
     await page.waitForURL((url) => {
