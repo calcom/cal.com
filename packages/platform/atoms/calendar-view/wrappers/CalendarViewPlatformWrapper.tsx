@@ -21,7 +21,6 @@ import { formatUsername } from "../../booker/BookerPlatformWrapper";
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
-  BookerEntityConfig,
 } from "../../booker/types";
 import { useAtomGetPublicEvent } from "../../hooks/event-types/public/useAtomGetPublicEvent";
 import { useEventType } from "../../hooks/event-types/public/useEventType";
@@ -29,18 +28,12 @@ import { useTeamEventType } from "../../hooks/event-types/public/useTeamEventTyp
 import { useAvailableSlots } from "../../hooks/useAvailableSlots";
 
 /**
- * Resolves the orgSlug from multiple sources with the following priority:
- * 1. Explicitly provided entity.orgSlug
- * 2. Event data's entity.orgSlug (from API response)
- * 3. Falls back to undefined (lets the backend handle resolution)
+ * Resolves the orgSlug from event data.
+ * Falls back to undefined to let the backend handle resolution.
  */
 function resolveOrgSlug(
-  entityFromProps: BookerEntityConfig | undefined,
   eventData: { entity?: { orgSlug?: string | null } } | null | undefined
 ): string | undefined {
-  if (entityFromProps?.orgSlug) {
-    return entityFromProps.orgSlug;
-  }
   if (eventData?.entity?.orgSlug) {
     return eventData.entity.orgSlug;
   }
@@ -50,13 +43,11 @@ function resolveOrgSlug(
 type CalendarViewPlatformWrapperAtomPropsForIndividual = {
   username: string | string[];
   eventSlug: string;
-  entity?: BookerEntityConfig;
 };
 
 type CalendarViewPlatformWrapperAtomPropsForTeam = {
   teamId: number;
   eventSlug: string;
-  entity?: BookerEntityConfig;
 };
 
 const CalendarViewPlatformWrapperComponent = (
@@ -88,10 +79,10 @@ const CalendarViewPlatformWrapperComponent = (
     selectedDuration,
   });
 
-  // Resolve orgSlug transparently from props or event data
+  // Resolve orgSlug from event data
   const resolvedOrgSlug = useMemo(() => {
-    return resolveOrgSlug(props.entity, event.data);
-  }, [props.entity, event.data]);
+    return resolveOrgSlug(event.data);
+  }, [event.data]);
 
   // Update org in store when resolved orgSlug changes
   useEffect(() => {

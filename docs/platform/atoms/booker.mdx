@@ -27,13 +27,14 @@ export default function Booker( props : BookerProps ) {
 ## Dynamic Bookings
 
 Dynamic bookings allow you to show combined availability across multiple users. This is useful for scenarios like:
+
 - Group meetings where all participants must be available
 - Sales calls that require multiple team members
 - Consultations with multiple experts
 
 ### Using Dynamic Bookings
 
-Pass an array of usernames to create a dynamic booking:
+Simply pass an array of usernames to create a dynamic booking:
 
 ```js
 import { Booker } from "@calcom/atoms";
@@ -48,41 +49,14 @@ export default function DynamicBooker() {
         console.log("Dynamic booking created!");
       }}
     />
-  )
+  );
 }
 ```
 
 <Note>
-**Requirements for Dynamic Bookings:**
-- All specified users must have `allowDynamicBooking` enabled in their settings
-- The event type slug should be a valid dynamic event type (or use "dynamic" as the slug)
-- For organization-scoped dynamic bookings, provide the `entity.orgSlug` prop
+  **Requirements for Dynamic Bookings:** - All specified users must have `allowDynamicBooking` enabled in
+  their settings (this is enabled by default, so only check this setting if dynamic bookings aren't working)
 </Note>
-
-### Dynamic Booking with Organization Context
-
-When booking within an organization, provide the `entity` prop to ensure correct availability resolution:
-
-```js
-import { Booker } from "@calcom/atoms";
-
-export default function OrgDynamicBooker() {
-  return (
-    <Booker
-      username={["sales-lead", "account-manager"]}
-      eventSlug="consultation"
-      entity={{
-        considerUnpublished: false,
-        orgSlug: "acme-corp",  // Required for org-scoped availability
-        name: "ACME Corporation"
-      }}
-      onCreateBookingSuccess={() => {
-        console.log("Org dynamic booking created!");
-      }}
-    />
-  )
-}
-```
 
 For a demonstration of the booker atom, please refer to the video below.
 
@@ -143,55 +117,54 @@ Below is a list of props that can be passed to the booker atom.
 
 <p></p>
 
-| Name                            | Required | Description                                                                                                                                                                                                    |
-| :------------------------------ | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| username                        | Yes      | Username(s) of the person(s) whose schedule is to be displayed. Pass a string for single user, or an array of strings for dynamic bookings (e.g., `["alice", "bob"]`)                                         |
-| eventSlug                       | Yes      | Unique slug created for a particular event                                                                                                                                                                     |
-| entity                          | No       | Configuration object for organizational context. See [Entity Configuration](#entity-configuration) below for details                                                                                          |
-| orgBannerUrl                    | No       | URL of the user's current organization                                                                                                                                                                         |
-| customClassNames                | No       | To pass in custom classnames from outside for styling the atom                                                                                                                                                 |
-| month                           | No       | The exact month for displaying a user's availability; defaults to the current month                                                                                                                            |
-| selectedDate                    | No       | Default selected date for which the slot picker opens                                                                                                                                                          |
-| startTime                       | No       | Custom start time for the Booker that allows users to decide the first available date. Accepts JavaScript Date object or date string in format `YYYY-MM-DD` (e.g., `"2025-08-20"` or `new Date("2025-08-20")`) |
-| hideBranding                    | No       | For hiding any branding on the booker                                                                                                                                                                          |
-| isAway                          | No       | Sets the booker component to the away state                                                                                                                                                                    |
-| allowsDynamicBooking            | No       | Boolean indicating if the booking is a dynamic booking                                                                                                                                                         |
-| bookingData                     | No       | Data for rescheduling a booking passed in via this prop                                                                                                                                                        |
-| defaultFormValues               | No       | Prefilled values for booking form fields like name, email, guests, notes, reschedule reason, etc.                                                                                                              |
-| isTeamEvent                     | No       | Boolean indicating if it is a team event                                                                                                                                                                       |
-| duration                        | No       | Refers to a multiple-duration event type; selects default if not passed                                                                                                                                        |
-| durationConfig                  | No       | Configures selectable options for a multi-duration event type                                                                                                                                                  |
-| hashedLink                      | No       | Refers to the private link from event types page                                                                                                                                                               |
-| isInstantMeeting                | No       | Boolean indicating if the booking is an instant meeting                                                                                                                                                        |
-| bookingUid                      | No       | Unique ID generated during booking creation                                                                                                                                                                    |
-| rescheduleUid                   | No       | Unique ID generated during booking creation, same as bookingUid                                                                                                                                                |
-| locationUrl                     | No       | Custom meeting link URL instead of a Cal.com link                                                                                                                                                              |
-| firstName                       | No       | First name of the attendee                                                                                                                                                                                     |
-| lastName                        | No       | Last name of the attendee                                                                                                                                                                                      |
-| guests                          | No       | Invite a guest to join a meeting                                                                                                                                                                               |
-| name                            | No       | Host name                                                                                                                                                                                                      |
-| onCreateBookingSuccess          | No       | Callback function for successful booking creation                                                                                                                                                              |
-| onCreateBookingError            | No       | Callback function triggered on booking creation failure                                                                                                                                                        |
-| onCreateRecurringBookingSuccess | No       | Callback function for successful recurring booking creation                                                                                                                                                    |
-| onCreateRecurringBookingError   | No       | Callback function triggered on recurring booking creation failure                                                                                                                                              |
-| onCreateInstantBookingSuccess   | No       | Callback function for successful instant booking creation                                                                                                                                                      |
-| onCreateInstantBookingError     | No       | Callback function triggered on instant booking creation failure                                                                                                                                                |
-| onReserveSlotSuccess            | No       | Callback function for successful slot reservation                                                                                                                                                              |
-| onReserveSlotError              | No       | Callback function triggered on slot reservation failure                                                                                                                                                        |
-| onDeleteSlotSuccess             | No       | Callback function for successful slot deletion                                                                                                                                                                 |
-| onDeleteSlotError               | No       | Callback function triggered on slot deletion failure                                                                                                                                                           |
-| view                            | No       | Specifies the layout of the booker atom into column, week, or month view                                                                                                                                       |
-| metadata                        | No       | Used to pass custom metadata values into the booker. Metadata should be an object eg: `{ bookingSource: "website", userRole: "admin" }`                                                                        |
-| bannerUrl                       | No       | Adds custom banner to the booker atom                                                                                                                                                                          |
-| onBookerStateChange             | No       | Callback function that is triggered when the state of the booker atom changes.                                                                                                                                 |
-| allowUpdatingUrlParams          | No       | Boolean indicating if the URL parameters should be updated, defaults to false.                                                                                                                                 |
-| confirmButtonDisabled           | No       | Boolean indicating if the submit button should be disabled, defaults to false.                                                                                                                                 |
-| timeZones                       | No       | Array of valid IANA timezones to be used in the booker. Eg. ["Asia/Kolkata", "Europe/London"]                                                                                                                  |
-| onTimeslotsLoaded               | No       | Callback function triggered once the available timeslots have been fetched.                                                                                                                                    |
-| roundRobinHideOrgAndTeam        | No       | Boolean indicating if the organization and team should be hidden in the booker atom sidebar for round robin scheduling type, defaults to false.                                                                |
-| showNoAvailabilityDialog        | No       | Boolean indicating if the no availability dialog should be shown, defaults to true.                                                                                                                            |
-| silentlyHandleCalendarFailures  | No       | Boolean when true the booker still displays slots when the third party calendars credentials are invalid or expired, Booker may show stale availability when enabled                                           |
-| hideEventMetadata               | No       | Boolean that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information. Defaults to `false`. |
+| Name                            | Required | Description                                                                                                                                                                                                                              |
+| :------------------------------ | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| username                        | Yes      | Username(s) of the person(s) whose schedule is to be displayed. Pass a string for single user, or an array of strings for dynamic bookings (e.g., `["alice", "bob"]`)                                                                    |
+| eventSlug                       | Yes      | Unique slug created for a particular event                                                                                                                                                                                               |
+| orgBannerUrl                    | No       | URL of the user's current organization                                                                                                                                                                                                   |
+| customClassNames                | No       | To pass in custom classnames from outside for styling the atom                                                                                                                                                                           |
+| month                           | No       | The exact month for displaying a user's availability; defaults to the current month                                                                                                                                                      |
+| selectedDate                    | No       | Default selected date for which the slot picker opens                                                                                                                                                                                    |
+| startTime                       | No       | Custom start time for the Booker that allows users to decide the first available date. Accepts JavaScript Date object or date string in format `YYYY-MM-DD` (e.g., `"2025-08-20"` or `new Date("2025-08-20")`)                           |
+| hideBranding                    | No       | For hiding any branding on the booker                                                                                                                                                                                                    |
+| isAway                          | No       | Sets the booker component to the away state                                                                                                                                                                                              |
+| allowsDynamicBooking            | No       | Boolean indicating if the booking is a dynamic booking                                                                                                                                                                                   |
+| bookingData                     | No       | Data for rescheduling a booking passed in via this prop                                                                                                                                                                                  |
+| defaultFormValues               | No       | Prefilled values for booking form fields like name, email, guests, notes, reschedule reason, etc.                                                                                                                                        |
+| isTeamEvent                     | No       | Boolean indicating if it is a team event                                                                                                                                                                                                 |
+| duration                        | No       | Refers to a multiple-duration event type; selects default if not passed                                                                                                                                                                  |
+| durationConfig                  | No       | Configures selectable options for a multi-duration event type                                                                                                                                                                            |
+| hashedLink                      | No       | Refers to the private link from event types page                                                                                                                                                                                         |
+| isInstantMeeting                | No       | Boolean indicating if the booking is an instant meeting                                                                                                                                                                                  |
+| bookingUid                      | No       | Unique ID generated during booking creation                                                                                                                                                                                              |
+| rescheduleUid                   | No       | Unique ID generated during booking creation, same as bookingUid                                                                                                                                                                          |
+| locationUrl                     | No       | Custom meeting link URL instead of a Cal.com link                                                                                                                                                                                        |
+| firstName                       | No       | First name of the attendee                                                                                                                                                                                                               |
+| lastName                        | No       | Last name of the attendee                                                                                                                                                                                                                |
+| guests                          | No       | Invite a guest to join a meeting                                                                                                                                                                                                         |
+| name                            | No       | Host name                                                                                                                                                                                                                                |
+| onCreateBookingSuccess          | No       | Callback function for successful booking creation                                                                                                                                                                                        |
+| onCreateBookingError            | No       | Callback function triggered on booking creation failure                                                                                                                                                                                  |
+| onCreateRecurringBookingSuccess | No       | Callback function for successful recurring booking creation                                                                                                                                                                              |
+| onCreateRecurringBookingError   | No       | Callback function triggered on recurring booking creation failure                                                                                                                                                                        |
+| onCreateInstantBookingSuccess   | No       | Callback function for successful instant booking creation                                                                                                                                                                                |
+| onCreateInstantBookingError     | No       | Callback function triggered on instant booking creation failure                                                                                                                                                                          |
+| onReserveSlotSuccess            | No       | Callback function for successful slot reservation                                                                                                                                                                                        |
+| onReserveSlotError              | No       | Callback function triggered on slot reservation failure                                                                                                                                                                                  |
+| onDeleteSlotSuccess             | No       | Callback function for successful slot deletion                                                                                                                                                                                           |
+| onDeleteSlotError               | No       | Callback function triggered on slot deletion failure                                                                                                                                                                                     |
+| view                            | No       | Specifies the layout of the booker atom into column, week, or month view                                                                                                                                                                 |
+| metadata                        | No       | Used to pass custom metadata values into the booker. Metadata should be an object eg: `{ bookingSource: "website", userRole: "admin" }`                                                                                                  |
+| bannerUrl                       | No       | Adds custom banner to the booker atom                                                                                                                                                                                                    |
+| onBookerStateChange             | No       | Callback function that is triggered when the state of the booker atom changes.                                                                                                                                                           |
+| allowUpdatingUrlParams          | No       | Boolean indicating if the URL parameters should be updated, defaults to false.                                                                                                                                                           |
+| confirmButtonDisabled           | No       | Boolean indicating if the submit button should be disabled, defaults to false.                                                                                                                                                           |
+| timeZones                       | No       | Array of valid IANA timezones to be used in the booker. Eg. ["Asia/Kolkata", "Europe/London"]                                                                                                                                            |
+| onTimeslotsLoaded               | No       | Callback function triggered once the available timeslots have been fetched.                                                                                                                                                              |
+| roundRobinHideOrgAndTeam        | No       | Boolean indicating if the organization and team should be hidden in the booker atom sidebar for round robin scheduling type, defaults to false.                                                                                          |
+| showNoAvailabilityDialog        | No       | Boolean indicating if the no availability dialog should be shown, defaults to true.                                                                                                                                                      |
+| silentlyHandleCalendarFailures  | No       | Boolean when true the booker still displays slots when the third party calendars credentials are invalid or expired, Booker may show stale availability when enabled                                                                     |
+| hideEventMetadata               | No       | Boolean that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information. Defaults to `false`.                           |
 | defaultPhoneCountry             | No       | Sets the default country code for phone number inputs in the booking form. Accepts ISO 3166-1 alpha-2 country codes (e.g., `"us"`, `"gb"`, `"in"`, `"ee"`). When set, phone inputs will default to the specified country's dialing code. |
 
 ## Styling
@@ -349,56 +322,3 @@ export default function Booker( props : BookerProps ) {
   )
 }
 ```
-
-## Entity Configuration
-
-The `entity` prop provides organizational context for the booking flow. It's essential for proper availability resolution, especially for organization-scoped events and dynamic bookings.
-
-### Entity Properties
-
-| Property              | Required | Description                                                                                                              |
-| :-------------------- | :------- | :----------------------------------------------------------------------------------------------------------------------- |
-| considerUnpublished   | Yes      | If true, shows "unpublished" state for orgs that aren't live yet. Set to false for reschedule links                     |
-| orgSlug               | No       | Organization's slug. Required for org-scoped availability lookups. Auto-resolved from event data if not provided        |
-| teamSlug              | No       | Team's slug within the organization                                                                                      |
-| name                  | No       | Display name of the organization or team                                                                                 |
-| logoUrl               | No       | URL to the organization or team logo                                                                                     |
-| eventTypeId           | No       | Specific event type ID for routing purposes                                                                              |
-| fromRedirectOfNonOrgLink | No    | Indicates if user was redirected from a non-org link                                                                     |
-| isUnpublished         | No       | Whether the org/team is currently unpublished                                                                            |
-
-### When to Use Entity
-
-**Dynamic Bookings**: When passing multiple usernames, the `entity.orgSlug` ensures users are resolved within the correct organizational scope:
-
-```js
-<Booker
-  username={["alice", "bob"]}
-  eventSlug="pair-programming"
-  entity={{
-    considerUnpublished: false,
-    orgSlug: "tech-startup"
-  }}
-/>
-```
-
-**Organization Events**: For events within an organization, provide the org context:
-
-```js
-<Booker
-  username="sales-rep"
-  eventSlug="demo-call"
-  entity={{
-    considerUnpublished: false,
-    orgSlug: "enterprise-co",
-    name: "Enterprise Co",
-    logoUrl: "https://example.com/logo.png"
-  }}
-/>
-```
-
-**Automatic Resolution**: If you don't provide `entity.orgSlug`, the Booker platform wrapper will attempt to resolve it from the event data returned by the API. This works for most cases but may cause issues with dynamic bookings where the org context isn't clear from the event alone.
-
-<Tip>
-For dynamic bookings or multi-user scenarios, always explicitly provide `entity.orgSlug` to ensure correct availability resolution.
-</Tip>

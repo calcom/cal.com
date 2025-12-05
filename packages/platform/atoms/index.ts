@@ -7,7 +7,6 @@ export { BookerPlatformWrapper as Booker } from "./booker/BookerPlatformWrapper"
 export type {
   BookerPlatformWrapperAtomPropsForIndividual as BookerPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam as BookerPropsForTeam,
-  BookerEntityConfig,
 } from "./booker/types";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useAtomsContext } from "./hooks/useAtomsContext";

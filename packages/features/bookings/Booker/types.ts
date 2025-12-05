@@ -16,115 +16,26 @@ import type { GetBookingType } from "../lib/get-booking";
 export type Timezone = (typeof IntlSupportedTimeZones)[number];
 
 /**
- * Entity configuration for the Booker component.
- *
- * This object provides organizational context for the booking flow and is
- * essential for proper availability resolution, especially in these scenarios:
- *
- * 1. **Organization-scoped events**: When booking events within an organization,
- *    the `orgSlug` helps resolve the correct user/team availability.
- *
- * 2. **Dynamic bookings**: When multiple usernames are provided (e.g., "alice+bob"),
- *    the entity context ensures availability is fetched from the correct org scope.
- *
- * 3. **Team events**: The `teamSlug` identifies which team's event is being booked.
- *
- * @example
- * // Minimal entity for a public event
- * entity={{ considerUnpublished: false }}
- *
- * @example
- * // Organization-scoped event
- * entity={{
- *   considerUnpublished: false,
- *   orgSlug: "acme-corp",
- *   name: "ACME Corporation"
- * }}
- *
- * @example
- * // Team event within an organization
- * entity={{
- *   considerUnpublished: false,
- *   orgSlug: "acme-corp",
- *   teamSlug: "sales-team",
- *   name: "Sales Team"
- * }}
+ * Entity configuration for organizational context.
+ * The orgSlug is automatically resolved from event data in the Platform Booker.
  */
 export interface BookerEntityConfig {
-  /**
-   * Indicates if the user was redirected from a non-organization link.
-   * Used for analytics and redirect handling.
-   */
   fromRedirectOfNonOrgLink?: boolean;
-
-  /**
-   * If true and the organization is unpublished, shows an "unpublished" state.
-   * Set to false to bypass this check (e.g., for reschedule links where the
-   * booking should proceed regardless of org publish status).
-   */
   considerUnpublished: boolean;
-
-  /**
-   * Whether the organization/team is currently unpublished.
-   * When true and `considerUnpublished` is also true, the Booker shows
-   * an unpublished state instead of the booking flow.
-   */
   isUnpublished?: boolean;
-
-  /**
-   * The organization's slug (URL-friendly identifier).
-   *
-   * **Important for availability resolution:**
-   * - Required for org-scoped events to fetch correct availability
-   * - For dynamic bookings, ensures users are resolved within the correct org
-   * - If not provided, the platform wrapper attempts to resolve it from event data
-   *
-   * @example "acme-corp"
-   */
   orgSlug?: string | null;
-
-  /**
-   * The team's slug within the organization.
-   * Used to identify team-specific events.
-   *
-   * @example "engineering"
-   */
   teamSlug?: string | null;
-
-  /**
-   * Display name of the organization or team.
-   * Shown in the Booker UI for branding purposes.
-   */
   name?: string | null;
-
-  /**
-   * URL to the organization or team logo.
-   * Displayed in the Booker header/meta section.
-   */
   logoUrl?: string | null;
-
-  /**
-   * The specific event type ID.
-   * Used for routing and validation purposes.
-   */
   eventTypeId?: number | null;
 }
 
 export interface BookerProps {
   eventSlug: string;
   /**
-   * Username(s) for the booking.
-   *
-   * **Single username**: Standard individual booking
-   * @example username="john"
-   *
-   * **Multiple usernames (dynamic booking)**: Combined availability from all users.
-   * Users are joined with "+" internally (e.g., "alice+bob").
-   * All specified users must have `allowDynamicBooking` enabled.
-   * @example username="alice+bob"
-   *
-   * Note: For the Platform Booker Atom, you can pass an array directly:
-   * @example username={["alice", "bob"]}
+   * Username for the booking. For dynamic bookings with multiple users,
+   * pass usernames joined with "+" (e.g., "alice+bob").
+   * In Platform Booker Atom, you can pass an array directly.
    */
   username: string;
   orgBannerUrl?: string | null;
@@ -139,18 +50,7 @@ export interface BookerProps {
    */
   eventMetaChildren?: React.ReactNode;
 
-  /**
-   * Entity configuration providing organizational context for the booking.
-   * See {@link BookerEntityConfig} for detailed documentation.
-   *
-   * **Why entity matters:**
-   * - Determines which organization scope to use for availability lookups
-   * - Controls unpublished state display
-   * - Provides branding information (logo, name)
-   *
-   * For dynamic bookings or org-scoped events, ensure `orgSlug` is set
-   * either here or let the platform wrapper resolve it automatically.
-   */
+  /** Entity configuration - orgSlug is auto-resolved from event data in Platform Booker */
   entity: BookerEntityConfig;
 
   /**

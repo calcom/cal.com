@@ -46,33 +46,21 @@ import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
   BookerStoreValues,
-  BookerEntityConfig,
 } from "./types";
 
 /**
- * Resolves the orgSlug from multiple sources with the following priority:
- * 1. Explicitly provided entity.orgSlug
- * 2. Event data's entity.orgSlug (from API response)
- * 3. Falls back to undefined (lets the backend handle resolution)
+ * Resolves the orgSlug from event data.
+ * Falls back to undefined to let the backend handle resolution.
  *
  * This allows the Booker to work transparently with dynamic bookings
- * without requiring the caller to always provide orgSlug.
+ * by automatically resolving the org context from the event.
  */
 function resolveOrgSlug(
-  entityFromProps: BookerEntityConfig | undefined,
   eventData: { entity?: { orgSlug?: string | null } } | null | undefined
 ): string | undefined {
-  // Priority 1: Explicit prop
-  if (entityFromProps?.orgSlug) {
-    return entityFromProps.orgSlug;
-  }
-
-  // Priority 2: From event data (API response)
   if (eventData?.entity?.orgSlug) {
     return eventData.entity.orgSlug;
   }
-
-  // Priority 3: Let backend resolve
   return undefined;
 }
 
@@ -98,7 +86,6 @@ const BookerPlatformWrapperComponent = (
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
     defaultPhoneCountry,
-    entity: entityFromProps,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -192,10 +179,10 @@ const BookerPlatformWrapperComponent = (
     selectedDuration,
   });
 
-  // Resolve orgSlug transparently from props or event data
+  // Resolve orgSlug from event data
   const resolvedOrgSlug = useMemo(() => {
-    return resolveOrgSlug(entityFromProps, event.data);
-  }, [entityFromProps, event.data]);
+    return resolveOrgSlug(event.data);
+  }, [event.data]);
 
   // Update org in store when resolved orgSlug changes
   useEffect(() => {
