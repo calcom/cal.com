@@ -13,11 +13,12 @@ type Props = {
 };
 
 export function EventList({ day }: Props) {
-  const { startHour, events, eventOnClick } = useCalendarStore(
+  const { startHour, events, eventOnClick, selectedBookingUid } = useCalendarStore(
     (state) => ({
       startHour: state.startHour,
       events: state.events,
       eventOnClick: state.onEventClick,
+      selectedBookingUid: state.selectedBookingUid,
     }),
     shallow
   );
@@ -60,6 +61,15 @@ export function EventList({ day }: Props) {
   const hoveredEventLayout = hoveredEventId ? layoutMap.get(hoveredEventId) : null;
   const hoveredGroupIndex = hoveredEventLayout?.groupIndex ?? null;
 
+  // Find the event ID that matches the selected booking UID (only for events on this day)
+  const selectedEventId = useMemo(() => {
+    if (!selectedBookingUid) return undefined;
+    const matchingEvent = dayEvents.find(
+      (event) => event.options?.bookingUid === selectedBookingUid
+    );
+    return matchingEvent?.id;
+  }, [dayEvents, selectedBookingUid]);
+
   return (
     <>
       {dayEvents.map((event) => {
@@ -72,8 +82,9 @@ export function EventList({ day }: Props) {
         const { eventStart, eventDuration, eventStartDiff } = calc;
 
         const isHovered = hoveredEventId === event.id;
+        const isSelected = selectedEventId === event.id;
         const isInHoveredGroup = hoveredGroupIndex !== null && layout.groupIndex === hoveredGroupIndex;
-        const zIndex = isHovered ? 100 : layout.baseZIndex;
+        const zIndex = isHovered || isSelected ? 100 : layout.baseZIndex;
 
         return (
           <div
@@ -91,7 +102,7 @@ export function EventList({ day }: Props) {
               zIndex,
               top: `calc(${eventStartDiff}*var(--one-minute-height))`,
               height: `max(15px, calc(${eventDuration}*var(--one-minute-height)))`,
-              transform: isHovered ? "scale(1.02)" : "scale(1)",
+              transform: isHovered || isSelected ? "scale(1.02)" : "scale(1)",
               opacity: hoveredGroupIndex !== null && !isHovered && isInHoveredGroup ? 0.6 : 1,
             }}>
             <Event
@@ -99,6 +110,7 @@ export function EventList({ day }: Props) {
               eventDuration={eventDuration}
               onEventClick={eventOnClick}
               isHovered={isHovered}
+              currentlySelectedEventId={selectedEventId}
             />
           </div>
         );

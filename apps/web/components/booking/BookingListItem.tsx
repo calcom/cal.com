@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
@@ -41,6 +41,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
+import { useBookingDetailsSheetStore } from "../../modules/bookings/store/bookingDetailsSheetStore";
 import type { BookingAttendee } from "../../modules/bookings/types";
 import { AcceptBookingButton } from "./AcceptBookingButton";
 import { RejectBookingButton } from "./RejectBookingButton";
@@ -136,6 +137,7 @@ const ConditionalLink = ({
 
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
+  const itemRef = useRef<HTMLDivElement>(null);
 
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
   const { onClick } = booking;
@@ -143,6 +145,21 @@ function BookingListItem(booking: BookingItemProps) {
     t,
     i18n: { language },
   } = useLocale();
+
+  // Get selected booking UID from store
+  // The provider should always be available when BookingListItem is rendered (bookingsV3Enabled is true)
+  const selectedBookingUid = useBookingDetailsSheetStore((state) => state.selectedBookingUid);
+  const isSelected = !!selectedBookingUid && selectedBookingUid === booking.uid;
+
+  // Scroll into view when this booking becomes selected
+  useEffect(() => {
+    if (isSelected && itemRef.current) {
+      itemRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [isSelected]);
 
   const attendeeList = booking.attendees.map((attendee) => ({
     ...attendee,
@@ -265,10 +282,16 @@ function BookingListItem(booking: BookingItemProps) {
 
   return (
     <div
+      ref={itemRef}
       data-testid="booking-item"
       data-today={String(booking.isToday)}
       data-booking-list-item="true"
-      className="hover:bg-cal-muted group w-full">
+      data-booking-uid={booking.uid}
+      className={classNames(
+        "group w-full transition-all duration-100 ease-out",
+        "hover:bg-cal-muted",
+        isSelected && "bg-cal-muted border-l-4 border-l-brand-default rounded-r-md"
+      )}>
       <div className="flex flex-col sm:flex-row">
         <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
           <div className="flex h-full items-center">
