@@ -271,58 +271,56 @@ export default async function handleChildrenEventTypes({
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
-
     // Update event types for old users
-    const oldEventTypes = await prisma.eventType.findMany({
-      where: {
-        parentId: parentId,
-        userId: { in: oldUserIds },
-      },
-      select: {
-        id: true,
-        metadata: true,
-        userId: true,
-        parentId: true,
-      },
-    });
+    const oldEventTypes = await Promise.all(
+      oldUserIds.map(async (userId) => {
+        const existingEventType = await prisma.eventType.findUnique({
+          where: {
+            userId_parentId: {
+              userId,
+              parentId,
+            },
+          },
+          select: {
+            metadata: true,
+          },
+        });
 
-    const updatedOldEventTypesData = oldEventTypes.map((et) => {
-      const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(et?.metadata || {});
+        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(existingEventType?.metadata || {});
 
-      return {
-        ...updatePayloadFiltered,
-        hidden: children?.find((ch) => ch.owner.id === et.userId)?.hidden ?? false,
-        ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
-        restrictionScheduleId: null,
-        useBookerTimezone: false,
-        hashedLink:
-          "multiplePrivateLinks" in unlockedFieldProps
-            ? undefined
-            : {
-                deleteMany: {},
-              },
-        allowReschedulingCancelledBookings:
-          managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
-        metadata: {
-          ...(eventType.metadata as Prisma.JsonObject),
-          ...(metadata?.multipleDuration && "length" in unlockedFieldProps
-            ? { multipleDuration: metadata.multipleDuration }
-            : {}),
-          ...(metadata?.apps && "apps" in unlockedFieldProps ? { apps: metadata.apps } : {}),
-        },
-      };
-    });
+        return await prisma.eventType.update({
+          where: {
+            userId_parentId: {
+              userId,
+              parentId,
+            },
+          },
+          data: {
+            ...updatePayloadFiltered,
+            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
+            restrictionScheduleId: null,
+            useBookerTimezone: false,
+            hashedLink:
+              "multiplePrivateLinks" in unlockedFieldProps
+                ? undefined
+                : {
+                    deleteMany: {},
+                  },
+            allowReschedulingCancelledBookings:
+              managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
+            metadata: {
+              ...(eventType.metadata as Prisma.JsonObject),
+              ...(metadata?.multipleDuration && "length" in unlockedFieldProps
+                ? { multipleDuration: metadata.multipleDuration }
+                : {}),
+              ...(metadata?.apps && "apps" in unlockedFieldProps ? { apps: metadata.apps } : {}),
+            },
+          },
+        });
+      })
+    );
 
-    // Update old event types data
-    await prisma.eventType.updateMany({
-      where: {
-        userId: { in: oldUserIds },
-        parentId: parentId,
-      },
-      data: updatedOldEventTypesData,
-    });
-
-    // create workflows for old users if new workflows were added
     if (currentWorkflowIds?.length) {
       await prisma.$transaction(
         currentWorkflowIds.flatMap((wfId) => {
