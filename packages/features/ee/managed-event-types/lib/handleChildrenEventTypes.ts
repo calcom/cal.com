@@ -201,14 +201,9 @@ export default async function handleChildrenEventTypes({
     });
 
     await prisma.$transaction(async (tx) => {
-      await tx.eventType.createMany({
+      const createdEvents = await tx.eventType.createManyAndReturn({
         data: eventTypesToCreateData,
         skipDuplicates: true,
-      });
-
-      // Fetch the newly created event types to connect users and workflows
-      const createdEvents = await tx.eventType.findMany({
-        where: { parentId: parentId, userId: { in: newUserIds } },
         select: { id: true, userId: true },
       });
 
