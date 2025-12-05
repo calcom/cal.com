@@ -160,10 +160,6 @@ export const useSchedule = ({
     });
 
     if (teamScheduleV2.isSuccess && eventId && eventSlug) {
-      /**
-       * @deprecated Use `bookerReady` event instead. This event is kept for backward compatibility.
-       * The `bookerReady` event is fired from embed-core when the booker view is loaded and slots are ready.
-       */
       sdkActionManager?.fire(
         "availabilityLoaded",
         getAvailabilityLoadedEventPayload({ eventId, eventSlug })
@@ -187,10 +183,6 @@ export const useSchedule = ({
   });
 
   if (schedule.isSuccess && eventId && eventSlug) {
-    /**
-     * @deprecated Use `bookerReady` event instead. This event is kept for backward compatibility.
-     * The `bookerReady` event is fired from embed-core when the booker view is loaded and slots are ready.
-     */
     sdkActionManager?.fire(
       "availabilityLoaded",
       getAvailabilityLoadedEventPayload({ eventId, eventSlug })

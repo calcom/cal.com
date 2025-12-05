@@ -152,7 +152,7 @@
               isAvailabilityLoaded = true;
               const endTime = performance.now();
               const timeDiff = endTime - apiStartTime;
-              trackLog(`Embed Modal API to Availability Loaded: ${timeDiff.toFixed(2)}ms - triggered by: ${source}`);
+              trackLog(`Embed Modal API to Booker Ready: ${timeDiff.toFixed(2)}ms - triggered by: ${source}`);
             };
             trackLog(`Embed Modal API started at: ${apiStartTime.toFixed(2)}ms`);
 
@@ -165,7 +165,7 @@
               if (data.slotsLoaded === true) {
                 trackAvailabilityLoaded("bookerViewed (slotsLoaded: true)");
               } else {
-                trackLog("Booker is ready but waiting for slots to load");
+                trackLog("bookerViewed(slotsLoaded: false). Booker is ready but waiting for slots to load");
               }
             };
 
@@ -226,6 +226,9 @@
               Cal.ns[namespace]("modal", {
                 calLink: routerUrl,
                 calOrigin: window.calOrigin,
+                config: {
+                  "cal.embed.pageType": "team.event.booking.slots",
+                },
               });
             }
           }
@@ -284,7 +287,7 @@
             pageType: "team.event.booking.slots",
             options: {
               slotsStaleTimeMs: 10 * 1000,
-              iframeForceReloadThresholdMs: 30 * 1000,
+              iframeForceReloadThresholdMs: 100 * 1000,
             },
           });
         }

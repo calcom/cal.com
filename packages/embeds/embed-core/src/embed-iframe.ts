@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { mapOldToNewCssVars } from "./ui/cssVarsMap";
 import type { Message } from "./embed";
-import { embedStore, EMBED_IFRAME_STATE, resetPageData, setReloadInitiated } from "./embed-iframe/lib/embedStore";
+import { embedStore, EMBED_IFRAME_STATE, resetPageData, setReloadInitiated, incrementView } from "./embed-iframe/lib/embedStore";
 import {
   runAsap,
   isBookerReady,
@@ -12,6 +12,7 @@ import {
   keepParentInformedAboutDimensionChanges,
   isPrerendering,
   isBrowser,
+  log,
 } from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
@@ -66,24 +67,6 @@ if (isBrowser) {
   isSafariBrowser = ua.includes("safari") && !ua.includes("chrome");
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
-  }
-}
-
-function log(...args: unknown[]) {
-  if (isBrowser) {
-    const namespace = getNamespace();
-
-    const searchParams = new URL(document.URL).searchParams;
-    const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
-    args.push({
-      ns: namespace,
-      url: document.URL,
-    });
-    args.unshift("CAL:");
-    logQueue.push(args);
-    if (searchParams.get("debug") || process.env.INTEGRATION_TEST_MODE === "true") {
-      console.log("Child:", ...args);
-    }
   }
 }
 
@@ -503,7 +486,7 @@ export const methods = {
       toRemoveParams,
     });
   },
-  __reloadInitiated: function reloadInitiated(_unused: unknown) {
+  __reloadInitiated: function __reloadInitiated(_unused: unknown) {
     log("Method: __reloadInitiated called");
     setReloadInitiated(true);
   },
@@ -579,22 +562,13 @@ function main() {
     }
   });
 
-  // Increment viewId and reset event flags whenever linkReady event is fired
   sdkActionManager?.on("linkReady", () => {
-    // TODO: Ideally we should not fire linkReady event in prerendering phase at all
+    // Even though linkReady isn't fired in prerendering phase, this is a safe guard for future
     if (isPrerendering()) {
       return;
     }
-    // Reset page-specific data for new link view
     resetPageData();
-
-    // Increment viewId (1 = first view, 2+ = reopens)
-    if (!embedStore.viewId) {
-      embedStore.viewId = 1;
-    } else {
-      embedStore.viewId++;
-    }
-    // Reset reload flag after linkReady fires (will be checked in react-hooks before resetting)
+    incrementView();
   });
 
   sdkActionManager?.on("*", (e) => {
@@ -614,9 +588,6 @@ function main() {
 }
 
 function initializeAndSetupEmbed() {
-  if (typeof window === "undefined") {
-    return;
-  }
   sdkActionManager?.fire("__iframeReady", {
     isPrerendering: isPrerendering(),
   });

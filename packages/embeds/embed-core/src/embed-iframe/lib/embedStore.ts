@@ -7,7 +7,7 @@ import type {
   SetStyles,
   setNonStylesConfig,
 } from "../../types";
-import { runAsap } from "./utils";
+import { runAsap, log } from "./utils";
 
 export const enum EMBED_IFRAME_STATE {
   NOT_INITIALIZED,
@@ -173,10 +173,10 @@ export const embedStore = {
 };
 
 /**
- * Resets all page-specific data when a new link view starts.
- * Called when linkReady event fires to allow events to fire again for the new view.
+ * Resets all page-specific data
  */
 export function resetPageData() {
+  log('Resetting page data');
   embedStore.pageData = {
     eventsState: {
       bookerViewed: {
@@ -251,6 +251,17 @@ export function getReloadInitiated(): boolean {
  */
 export function setReloadInitiated(value: boolean): void {
   setPageDataProp("reloadInitiated", value);
+}
+
+/**
+ * Increments the viewId counter (1 = first view, 2+ = reopens).
+ */
+export function incrementView(): void {
+  if (!embedStore.viewId) {
+    embedStore.viewId = 1;
+  } else {
+    embedStore.viewId++;
+  }
 }
 
 export type EmbedStore = typeof embedStore;

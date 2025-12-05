@@ -15,6 +15,8 @@ describe("embed-iframe", async () => {
     vi.useFakeTimers();
     // It is provided by App before embed-iframe loads. So, meet this requirement here.
     window.getEmbedNamespace = vi.fn(() => "default");
+    // Ensure document.URL is always defined for tests
+    fakeCurrentDocumentUrl();
   });
 
   afterEach(() => {
@@ -23,6 +25,8 @@ describe("embed-iframe", async () => {
     vi.useRealTimers();
     vi.clearAllTimers();
     embedStore.viewId = null;
+    // Ensure document.URL is defined before calling resetPageData which uses log()
+    fakeCurrentDocumentUrl();
     resetPageData();
   });
 

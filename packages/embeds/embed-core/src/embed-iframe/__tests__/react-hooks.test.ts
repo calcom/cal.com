@@ -157,7 +157,6 @@ describe("useBookerEmbedEvents", () => {
         eventSlug: eventConfig.eventSlug,
         slotsLoaded: true,
       });
-      expect(embedStore.pageData.reloadInitiated).toBe(false);
     });
 
     it("should not fire events multiple times when component rerenders", () => {

@@ -21,26 +21,19 @@ const fireBookerViewedEvent = ({
 }) => {
     const isFirstTime = embedStore.viewId === 1;
     const isReload = getReloadInitiated();
-    const eventName = isReload ? "bookerReloaded" : isFirstTime ? "bookerViewed" : "bookerReopened";
+    const eventName: "bookerViewed" | "bookerReopened" | "bookerReloaded" = isReload ? "bookerReloaded" : isFirstTime ? "bookerViewed" : "bookerReopened";
 
-    // Check if this specific event has already been fired
-    const eventStateKey = eventName as "bookerViewed" | "bookerReopened" | "bookerReloaded";
-    if (getEventHasFired(eventStateKey)) {
+    if (getEventHasFired(eventName)) {
         return;
     }
 
     fireEvent(eventName);
-    setEventHasFired(eventStateKey, true);
 
-    // Reset reload flag after using it
-    if (isReload) {
-        setReloadInitiated(false);
-    }
-
-    function fireEvent(eventName: string) {
+    function fireEvent(eventName: "bookerViewed" | "bookerReopened" | "bookerReloaded") {
+        setEventHasFired(eventName, true);
         if (slotsLoaded) {
             if (eventId && eventSlug) {
-                sdkActionManager?.fire(eventName as "bookerViewed" | "bookerReopened" | "bookerReloaded", {
+                sdkActionManager?.fire(eventName, {
                     eventId,
                     eventSlug,
                     slotsLoaded: true,
@@ -50,7 +43,7 @@ const fireBookerViewedEvent = ({
                 console.error("BookerViewed event not fired because slotsLoaded is true but eventId or eventSlug are falsy");
             }
         } else {
-            sdkActionManager?.fire(eventName as "bookerViewed" | "bookerReopened" | "bookerReloaded", {
+            sdkActionManager?.fire(eventName, {
                 eventId: null,
                 eventSlug: null,
                 slotsLoaded: false,
@@ -106,7 +99,6 @@ export const useBookerEmbedEvents = ({
         return;
     }
     // first BookerViewed event happens, followed by bookerReady if slots are loaded
-    // In case of prerender, they can fire one after another as prerender -> non-prerender mode transition happens when slots data is fully ready
     fireBookerViewedEvent({
         eventId,
         eventSlug,

@@ -182,3 +182,31 @@ export const recordResponseIfQueued = async (params: Record<string, string | str
   }
   return routingFormResponseId;
 };
+
+/**
+ * embedStore dependency free version of getNamespace
+ * For internal use only
+ */
+function getNamespace() {
+  if (isBrowser) {
+    return window?.getEmbedNamespace?.() ?? null;
+  }
+  return null;
+}
+
+export function log(...args: unknown[]) {
+  if (isBrowser) {
+    const namespace = getNamespace();
+    const searchParams = new URL(document.URL).searchParams;
+    const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
+    args.push({
+      ns: namespace,
+      url: document.URL,
+    });
+    args.unshift("CAL:");
+    logQueue.push(args);
+    if (searchParams.get("debug") || process.env.INTEGRATION_TEST_MODE === "true") {
+      console.log("Child:", ...args);
+    }
+  }
+}
