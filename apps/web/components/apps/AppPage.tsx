@@ -328,6 +328,7 @@ export const AppPage = ({
           <>
             {existingCredentials.length > 1 ? (
               <MultiDisconnectIntegration
+                categories={categories}
                 credentials={existingCredentials}
                 onSuccess={() => appDbQuery.refetch()}
               />
