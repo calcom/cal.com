@@ -7,12 +7,6 @@ import { ZRemoveSelectedSlotInputSchema } from "./removeSelectedSlot.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
 import { ZGetScheduleInputSchema } from "./types";
 
-type SlotsRouterHandlerCache = {
-  getSchedule?: typeof import("./getSchedule.handler").getScheduleHandler;
-  reserveSlot?: typeof import("./reserveSlot.handler").reserveSlotHandler;
-  isAvailable?: typeof import("./isAvailable.handler").isAvailableHandler;
-};
-
 /** This should be called getAvailableSlots */
 export const slotsRouter = router({
   getSchedule: publicProcedure.input(ZGetScheduleInputSchema).query(async ({ input, ctx }) => {
