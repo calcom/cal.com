@@ -45,6 +45,7 @@ type UserPageProps = {
   > & {
     profile: UserProfile;
     metadata: z.infer<typeof userMetadataSchema> | null;
+    socialProfiles: User["socialProfiles"];
   })[];
   themeBasis: string | null;
   markdownStrippedBio: string;
@@ -196,6 +197,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         faviconUrl: user.faviconUrl,
         hideBranding: user.hideBranding,
         metadata: (user.metadata as z.infer<typeof userMetadataSchema>) ?? null,
+        socialProfiles: user.socialProfiles,
       })),
       entity: {
         ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),
