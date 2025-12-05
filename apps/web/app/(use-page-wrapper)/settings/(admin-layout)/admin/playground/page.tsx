@@ -16,6 +16,10 @@ const LINKS = [
     title: "Weekly Calendar",
     href: "/settings/admin/playground/weekly-calendar",
   },
+  {
+    title: "Date Range Filter",
+    href: "/settings/admin/playground/date-range-filter",
+  },
 ];
 
 export const generateMetadata = async () =>
