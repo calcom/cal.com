@@ -1,21 +1,10 @@
 import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 
-import dayjs from "@calcom/dayjs";
-import {
-  BookerStoreProvider,
-  useBookerStoreContext,
-  useInitializeBookerStoreContext,
-} from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { Header } from "@calcom/features/bookings/Booker/components/Header";
-import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
-import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
-import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { CalendarViewComponent } from "../CalendarViewComponent";
+import { EventTypeCalendarViewComponent } from "../EventTypeCalendarViewComponent";
 
 import { formatUsername } from "../../booker/BookerPlatformWrapper";
 import type {
@@ -45,7 +34,7 @@ type CalendarViewPlatformWrapperAtomPropsForIndividual = {
   eventSlug: string;
 };
 
-type CalendarViewPlatformWrapperAtomPropsForTeam = {
+export type CalendarViewPlatformWrapperAtomPropsForTeam = {
   teamId: number;
   eventSlug: string;
 };
@@ -120,7 +109,9 @@ const CalendarViewPlatformWrapperComponent = (
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
-  const bookingData = useBookerStoreContext((state) => state.bookingData);
+type CalendarViewComponentProps = {
+  isEventTypeView?: false;
+};
 
   useInitializeBookerStoreContext({
     ...props,
@@ -158,35 +149,10 @@ const CalendarViewPlatformWrapperComponent = (
     eventTypeSlug: isDynamic ? "dynamic" : props.eventSlug || "",
   });
 
-  return (
-    <AtomsWrapper>
-      <BookerSection area="header" className="bg-default dark:bg-cal-muted sticky top-0 z-10">
-        <Header
-          isCalendarView={true}
-          isMyLink={true}
-          eventSlug={props.eventSlug}
-          enabledLayouts={bookerLayout.bookerLayouts.enabledLayouts}
-          extraDays={7}
-          isMobile={false}
-          nextSlots={6}
-        />
-      </BookerSection>
-      <BookerSection
-        key="large-calendar"
-        area="main"
-        visible={true}
-        className="border-subtle sticky top-0 -ml-px h-full md:border-l">
-        <LargeCalendar extraDays={7} schedule={schedule.data} isLoading={schedule.isPending} event={event} />
-      </BookerSection>
-    </AtomsWrapper>
-  );
+  return <EventTypeCalendarViewComponent {...props} />;
 };
 
-export const CalendarViewPlatformWrapper = (
-  props:
-    | (BookerPlatformWrapperAtomPropsForIndividual & { teamId?: number })
-    | Omit<BookerPlatformWrapperAtomPropsForTeam, "isTeamEvent">
-) => {
+export const CalendarViewPlatformWrapper = (props: CalendarViewProps) => {
   return (
     <BookerStoreProvider>
       <CalendarViewPlatformWrapperComponent {...props} />
