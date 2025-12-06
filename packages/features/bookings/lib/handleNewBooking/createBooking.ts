@@ -148,6 +148,7 @@ async function saveBooking(
       attendees: true,
       payment: true,
       references: true,
+      tracking: true,
     },
     data: newBookingData,
   };

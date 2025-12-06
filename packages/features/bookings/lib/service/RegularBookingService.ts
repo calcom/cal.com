@@ -237,6 +237,7 @@ export const buildDryRunBooking = ({
     creationSource: CreationSource.WEBAPP,
     references: [],
     payment: [],
+    tracking: null,
   } satisfies ReturnTypeCreateBooking;
 
   /**
@@ -2271,7 +2272,7 @@ async function handler(
     await bookingEventHandler.onBookingCreated(bookingCreatedPayload);
   }
 
-  const webhookData: EventPayloadType = {
+  const webhookData: EventPayloadType & { tracking?: typeof booking.tracking } = {
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,
@@ -2289,6 +2290,7 @@ async function handler(
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
+    ...(booking?.tracking && { tracking: booking.tracking }),
   };
 
   if (bookingRequiresPayment) {

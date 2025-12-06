@@ -91,6 +91,7 @@ describe("buildDryRunBooking", () => {
       creationSource: CreationSource.WEBAPP,
       references: [],
       payment: [],
+      tracking: null,
     });
 
     expect(troubleshooterData).toEqual({
