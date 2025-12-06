@@ -166,8 +166,50 @@ describe("Me Endpoints", () => {
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
 
+    it("should not update primary email without verification when email-verification is enabled", async () => {
+      const newEmail = `new-email-${randomString()}@api.com`;
+      const body: UpdateManagedUserInput = { email: newEmail };
+
+      return request(app.getHttpServer())
+        .patch("/v2/me")
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          expect(responseBody.data.email).toEqual(user.email);
+
+          const updatedUser = await userRepositoryFixture.get(user.id);
+          expect(updatedUser?.email).toEqual(user.email);
+          expect(updatedUser?.metadata).toHaveProperty("emailChangeWaitingForVerification", newEmail);
+        });
+    });
+
+    it("should update primary email immediately when changing to a verified secondary email", async () => {
+      const verifiedSecondaryEmail = `verified-secondary-${randomString()}@api.com`;
+
+      await userRepositoryFixture.createSecondaryEmail(user.id, verifiedSecondaryEmail, new Date());
+
+      const body: UpdateManagedUserInput = { email: verifiedSecondaryEmail };
+
+      return request(app.getHttpServer())
+        .patch("/v2/me")
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          expect(responseBody.data.email).toEqual(verifiedSecondaryEmail);
+
+          const updatedUser = await userRepositoryFixture.get(user.id);
+          expect(updatedUser?.email).toEqual(verifiedSecondaryEmail);
+        });
+    });
+
     afterAll(async () => {
-      await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.delete(user.id);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });
