@@ -10,6 +10,9 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -165,6 +168,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           ...branding,
         },
         title: eventData.title,
+        descriptionAsSafeHTML: markdownToSafeHTML(eventData.description),
         users: eventHostsUserData,
         hidden: eventData.hidden,
         interfaceLanguage: eventData.interfaceLanguage,
@@ -237,6 +241,7 @@ const getTeamWithEventsData = async (
         select: {
           id: true,
           title: true,
+          description: true,
           isInstantEvent: true,
           schedulingType: true,
           metadata: true,
