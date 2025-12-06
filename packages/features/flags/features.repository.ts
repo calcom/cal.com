@@ -90,6 +90,57 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Gets all team features for an organization, including which teams have which features enabled.
+   * @param orgId - The ID of the organization
+   * @returns Promise with all features and their team assignments
+   */
+  public async getOrganizationTeamFeatures(orgId: number) {
+    const allFeatures = await this.getAllFeatures();
+    
+    const teamFeatures = await this.prismaClient.teamFeatures.findMany({
+      where: {
+        team: {
+          parentId: orgId,
+        },
+      },
+      include: {
+        feature: {
+          select: {
+            slug: true,
+            type: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const featureMap = new Map<string, { teams: Array<{ id: number; name: string }> }>();
+    
+    teamFeatures.forEach((tf) => {
+      if (!featureMap.has(tf.feature.slug)) {
+        featureMap.set(tf.feature.slug, { teams: [] });
+      }
+      featureMap.get(tf.feature.slug)?.teams.push({
+        id: tf.team.id,
+        name: tf.team.name,
+      });
+    });
+
+    return allFeatures.map((feature) => ({
+      slug: feature.slug,
+      description: feature.description,
+      type: feature.type,
+      enabled: feature.enabled,
+      teams: featureMap.get(feature.slug)?.teams || [],
+    }));
+  }
+
+  /**
    * Checks if a feature is enabled globally in the application.
    * @param slug - The feature flag identifier to check
    * @returns Promise<boolean> - True if the feature is enabled globally, false otherwise
@@ -287,6 +338,53 @@ export class FeaturesRepository implements IFeaturesRepository {
     } catch (err) {
       captureException(err);
       throw err;
+    }
+  }
+
+  /**
+   * Disables a feature for a specific team.
+   * @param teamId - The ID of the team to disable the feature for
+   * @param featureId - The feature identifier to disable
+   * @returns Promise<void>
+   * @throws Error if the feature disabling fails
+   */
+  async disableFeatureForTeam(teamId: number, featureId: string): Promise<void> {
+    try {
+      await this.prismaClient.teamFeatures.delete({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+      });
+      // Clear cache when features are modified
+      this.clearCache();
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Toggles a feature for a specific team (enable if disabled, disable if enabled).
+   * @param teamId - The ID of the team to toggle the feature for
+   * @param featureId - The feature identifier to toggle
+   * @param enabled - Whether to enable or disable the feature
+   * @param assignedBy - The user or what assigned the feature (required when enabling)
+   * @returns Promise<void>
+   * @throws Error if the feature toggling fails
+   */
+  async toggleFeatureForTeam(
+    teamId: number,
+    featureId: string,
+    enabled: boolean,
+    assignedBy: string
+  ): Promise<void> {
+    if (enabled) {
+      await this.enableFeatureForTeam(teamId, featureId as keyof AppFlags, assignedBy);
+    } else {
+      await this.disableFeatureForTeam(teamId, featureId);
     }
   }
 
