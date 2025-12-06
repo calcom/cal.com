@@ -326,26 +326,49 @@ export default async function handleChildrenEventTypes({
       })
     );
 
-    if (currentWorkflowIds?.length) {
-      await prisma.$transaction(
-        currentWorkflowIds.flatMap((wfId) => {
-          return oldEventTypes.map((oEvTy) => {
-            return prisma.workflowsOnEventTypes.upsert({
-              create: {
-                eventTypeId: oEvTy.id,
-                workflowId: wfId,
-              },
-              update: {},
-              where: {
-                workflowId_eventTypeId: {
-                  eventTypeId: oEvTy.id,
-                  workflowId: wfId,
-                },
-              },
-            });
+    // Link workflows with old users' event types if new workflows were added
+    if (currentWorkflowIds?.length && oldEventTypes.length) {
+      await prisma.$transaction(async (tx) => {
+        const eventTypeIds = oldEventTypes.map((e) => e.id);
+
+        const allDesiredPairs = currentWorkflowIds.flatMap((wfId: number) =>
+          oldEventTypes.map((oEvTy: { id: number }) => ({
+            eventTypeId: oEvTy.id,
+            workflowId: wfId,
+          }))
+        );
+
+        const existingRelationships = await tx.workflowsOnEventTypes.findMany({
+          where: {
+            workflowId: { in: currentWorkflowIds },
+            eventTypeId: { in: eventTypeIds },
+          },
+          select: {
+            workflowId: true,
+            eventTypeId: true,
+          },
+        });
+
+        const existingSet = new Set(
+          existingRelationships.map(
+            (rel: { eventTypeId: number; workflowId: number }) => `${rel.eventTypeId}_${rel.workflowId}`
+          )
+        );
+
+        const newRelationshipsToCreate = allDesiredPairs.filter(
+          (pair: { eventTypeId: number; workflowId: number }) => {
+            const key = `${pair.eventTypeId}_${pair.workflowId}`;
+            return !existingSet.has(key);
+          }
+        );
+
+        if (newRelationshipsToCreate.length > 0) {
+          await tx.workflowsOnEventTypes.createMany({
+            data: newRelationshipsToCreate,
+            skipDuplicates: false,
           });
-        })
-      );
+        }
+      });
     }
   }
 
