@@ -647,7 +647,7 @@ const SettingsSidebarContainer = ({
                       </Skeleton>
                     </div>
                   </div>
-                  <div className="stack-y-px">
+                  <div className="flex flex-col space-y-1">
                     {tab.children?.map((child, index) => (
                       <div key={child.href} className="flex items-start gap-2">
                         <VerticalTabItem
