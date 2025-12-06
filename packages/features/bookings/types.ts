@@ -64,6 +64,8 @@ export type BookerEvent = Pick<
   | "disableCancelling"
   | "disableRescheduling"
   | "interfaceLanguage"
+  | "restrictionScheduleId"
+  | "useBookerTimezone"
   | "team"
   | "owner"
 > & {
