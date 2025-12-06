@@ -1,8 +1,9 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { SvgImage } from "../../../components/SvgImage";
-import { defaultLocations, DefaultLocationType } from "../../../utils/defaultLocations";
+
+import { LocationsList } from "../../../components/LocationsList";
+import { LocationItem, LocationOptionGroup } from "../../../types/locations";
 import { slugify } from "../../../utils/slugify";
 
 interface BasicsTabProps {
@@ -25,17 +26,13 @@ interface BasicsTabProps {
   defaultDuration: string;
   setShowDefaultDurationDropdown: (show: boolean) => void;
 
-  // Location
-  selectedLocation: string;
-  setShowLocationDropdown: (show: boolean) => void;
+  // Multiple locations support
+  locations: LocationItem[];
+  onAddLocation: (location: LocationItem) => void;
+  onRemoveLocation: (locationId: string) => void;
+  onUpdateLocation: (locationId: string, updates: Partial<LocationItem>) => void;
+  locationOptions: LocationOptionGroup[];
   conferencingLoading: boolean;
-  getSelectedLocationIconUrl: () => string | null;
-  locationAddress: string;
-  setLocationAddress: (value: string) => void;
-  locationLink: string;
-  setLocationLink: (value: string) => void;
-  locationPhone: string;
-  setLocationPhone: (value: string) => void;
 }
 
 export function BasicsTab(props: BasicsTabProps) {
@@ -155,102 +152,15 @@ export function BasicsTab(props: BasicsTabProps) {
 
       {/* Location Card */}
       <View className="rounded-2xl bg-white p-5">
-        <View className="mb-3">
-          <Text className="mb-1.5 text-base font-semibold text-[#333]">Location</Text>
-          <TouchableOpacity
-            className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
-            onPress={() => props.setShowLocationDropdown(true)}
-            disabled={props.conferencingLoading}
-          >
-            <View className="flex-1 flex-row items-center">
-              {!props.conferencingLoading &&
-                props.selectedLocation &&
-                props.getSelectedLocationIconUrl() && (
-                  <SvgImage
-                    uri={props.getSelectedLocationIconUrl()!}
-                    width={20}
-                    height={20}
-                    style={{ marginRight: 8 }}
-                  />
-                )}
-              <Text className="text-base text-black">
-                {props.conferencingLoading
-                  ? "Loading locations..."
-                  : props.selectedLocation || "Select location"}
-              </Text>
-            </View>
-            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-          </TouchableOpacity>
-
-          {/* Location Input Fields - shown conditionally based on selected location type */}
-          {(() => {
-            const currentLocation = defaultLocations.find(
-              (loc) => loc.label === props.selectedLocation
-            );
-            if (!currentLocation || !currentLocation.organizerInputType) {
-              return null;
-            }
-
-            if (currentLocation.organizerInputType === "text") {
-              // Text input for address or link
-              const isAddress = currentLocation.type === "inPerson";
-              const isLink = currentLocation.type === "link";
-
-              return (
-                <View className="mt-3">
-                  <Text className="mb-1.5 text-sm font-medium text-[#333]">
-                    {currentLocation.organizerInputLabel ||
-                      (isAddress ? "Address" : "Meeting Link")}
-                  </Text>
-                  <TextInput
-                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-3 text-base text-[#333] md:px-4"
-                    placeholder={currentLocation.organizerInputPlaceholder || ""}
-                    value={isAddress ? props.locationAddress : props.locationLink}
-                    onChangeText={(text) => {
-                      if (isAddress) {
-                        props.setLocationAddress(text);
-                      } else {
-                        props.setLocationLink(text);
-                      }
-                    }}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType={isLink ? "url" : "default"}
-                  />
-                  {currentLocation.messageForOrganizer && (
-                    <Text className="mt-2 text-xs text-[#666]">
-                      {currentLocation.messageForOrganizer}
-                    </Text>
-                  )}
-                </View>
-              );
-            } else if (currentLocation.organizerInputType === "phone") {
-              // Phone input
-              return (
-                <View className="mt-3">
-                  <Text className="mb-1.5 text-sm font-medium text-[#333]">
-                    {currentLocation.organizerInputLabel || "Phone Number"}
-                  </Text>
-                  <TextInput
-                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-3 text-base text-[#333] md:px-4"
-                    placeholder={currentLocation.organizerInputPlaceholder || "Enter phone number"}
-                    value={props.locationPhone}
-                    onChangeText={props.setLocationPhone}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType="phone-pad"
-                  />
-                  {currentLocation.messageForOrganizer && (
-                    <Text className="mt-2 text-xs text-[#666]">
-                      {currentLocation.messageForOrganizer}
-                    </Text>
-                  )}
-                </View>
-              );
-            }
-            return null;
-          })()}
-        </View>
+        <Text className="mb-3 text-base font-semibold text-[#333]">Locations</Text>
+        <LocationsList
+          locations={props.locations}
+          onAdd={props.onAddLocation}
+          onRemove={props.onRemoveLocation}
+          onUpdate={props.onUpdateLocation}
+          locationOptions={props.locationOptions}
+          loading={props.conferencingLoading}
+        />
       </View>
     </View>
   );

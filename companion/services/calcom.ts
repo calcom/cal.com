@@ -358,17 +358,25 @@ export class CalComAPIService {
   }
 
   // Cancel a booking
-  static async cancelBooking(bookingUid: string, reason?: string): Promise<void> {
+  static async cancelBooking(bookingUid: string, cancellationReason?: string): Promise<void> {
     try {
-      const body: { reason?: string } = {};
-      if (reason) {
-        body.reason = reason;
+      const body: { cancellationReason?: string } = {};
+      if (cancellationReason) {
+        body.cancellationReason = cancellationReason;
       }
 
-      await this.makeRequest(`/bookings/${bookingUid}/cancel`, {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
+      await this.makeRequest(
+        `/bookings/${bookingUid}/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+          body: JSON.stringify(body),
+        },
+        "2024-08-13"
+      );
     } catch (error) {
       throw error;
     }
@@ -486,11 +494,15 @@ export class CalComAPIService {
         }
       } catch (error) {}
 
-      // Build query string with username if available
+      // Build query string with username and sorting
       const params = new URLSearchParams();
       if (username) {
         params.append("username", username);
       }
+      // Sort by creation date descending (newer first) to match main codebase behavior
+      // Main codebase uses position: "desc", id: "desc" - since API doesn't expose position,
+      // we use sortCreatedAt: "desc" for similar behavior (newer event types first)
+      params.append("sortCreatedAt", "desc");
 
       const queryString = params.toString();
       const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;

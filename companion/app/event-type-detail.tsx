@@ -21,14 +21,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
 import { showErrorAlert } from "../utils/alerts";
 import { openInAppBrowser } from "../utils/browser";
-import { getAppIconUrl } from "../utils/getAppIconUrl";
+import { LocationItem, LocationOptionGroup } from "../types/locations";
 import {
-  defaultLocations,
-  getDefaultLocationIconUrl,
-  isDefaultLocation,
-  DefaultLocationType,
-} from "../utils/defaultLocations";
-import { SvgImage } from "../components/SvgImage";
+  mapApiLocationToItem,
+  mapItemToApiLocation,
+  buildLocationOptions,
+  validateLocationItem,
+} from "../utils/locationHelpers";
 import {
   parseBufferTime,
   parseMinimumNotice,
@@ -74,8 +73,9 @@ export default function EventTypeDetail() {
   const [eventDuration, setEventDuration] = useState(duration || "30");
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  // Multiple locations support
+  const [locations, setLocations] = useState<LocationItem[]>([]);
+  // Legacy single location input fields (kept for backward compatibility during transition)
   const [locationAddress, setLocationAddress] = useState("");
   const [locationLink, setLocationLink] = useState("");
   const [locationPhone, setLocationPhone] = useState("");
@@ -116,6 +116,7 @@ export default function EventTypeDetail() {
   const [onlyShowFirstAvailableSlot, setOnlyShowFirstAvailableSlot] = useState(false);
   const [maxActiveBookingsPerBooker, setMaxActiveBookingsPerBooker] = useState(false);
   const [maxActiveBookingsValue, setMaxActiveBookingsValue] = useState("1");
+  const [offerReschedule, setOfferReschedule] = useState(false);
   const [limitFutureBookings, setLimitFutureBookings] = useState(false);
   const [futureBookingType, setFutureBookingType] = useState<"rolling" | "range">("rolling");
   const [rollingDays, setRollingDays] = useState("30");
@@ -144,17 +145,25 @@ export default function EventTypeDetail() {
   const [lockTimezone, setLockTimezone] = useState(false);
   const [allowReschedulingPastEvents, setAllowReschedulingPastEvents] = useState(false);
   const [allowBookingThroughRescheduleLink, setAllowBookingThroughRescheduleLink] = useState(false);
+  const [disableGuests, setDisableGuests] = useState(false);
   const [customReplyToEmail, setCustomReplyToEmail] = useState("");
   const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
   const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
 
+  // Seats state
+  const [seatsEnabled, setSeatsEnabled] = useState(false);
+  const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState("2");
+  const [showAttendeeInfo, setShowAttendeeInfo] = useState(false);
+  const [showAvailabilityCount, setShowAvailabilityCount] = useState(true);
+
   // Recurring tab state
   const [recurringEnabled, setRecurringEnabled] = useState(false);
   const [recurringInterval, setRecurringInterval] = useState("1");
-  const [recurringFrequency, setRecurringFrequency] = useState<
-    "daily" | "weekly" | "monthly" | "yearly"
-  >("weekly");
+  const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "monthly" | "yearly">(
+    "weekly"
+  );
   const [recurringOccurrences, setRecurringOccurrences] = useState("12");
+  const [showRecurringFrequencyDropdown, setShowRecurringFrequencyDropdown] = useState(false);
 
   const bufferTimeOptions = [
     "No buffer time",
@@ -208,165 +217,32 @@ export default function EventTypeDetail() {
     "480 mins",
   ];
 
-  const displayNameToLocationValue = (
-    displayName: string
-  ): {
-    type: string;
-    integration?: string;
-    address?: string;
-    link?: string;
-    phone?: string;
-    public?: boolean;
-  } | null => {
-    // First check if it's a default location
-    const defaultLocation = defaultLocations.find((loc) => loc.label === displayName);
-    if (defaultLocation) {
-      // Map internal location types to API location types
-      switch (defaultLocation.type) {
-        case "attendeeInPerson":
-          return { type: "attendeeAddress" };
-        case "inPerson":
-          // For organizer address, we need to preserve existing address if available
-          // or use empty string (will be filled by organizer later)
-          return { type: "address", address: "", public: true };
-        case "link":
-          // For link meeting, we need to preserve existing link if available
-          // or use empty string (will be filled by organizer later)
-          return { type: "link", link: "", public: true };
-        case "phone":
-          return { type: "attendeePhone" };
-        case "userPhone":
-          // For organizer phone, we need to preserve existing phone if available
-          // or use empty string (will be filled by organizer later)
-          return { type: "phone", phone: "", public: true };
-        case "somewhereElse":
-          return { type: "attendeeDefined" };
-        default:
-          return { type: defaultLocation.type };
-      }
-    }
-
-    // Otherwise, find matching conferencing option
-    const option = conferencingOptions.find(
-      (opt) => formatAppIdToDisplayName(opt.appId) === displayName
-    );
-    if (option) {
-      return { type: "integration", integration: option.appId, public: true };
-    }
-
-    return null;
+  // Get location options for dropdown using helper
+  const getLocationOptionsForDropdown = (): LocationOptionGroup[] => {
+    return buildLocationOptions(conferencingOptions);
   };
 
-  const displayNameToAppId = (displayName: string): string | null => {
-    // Legacy function for backward compatibility - only for conferencing apps
-    const option = conferencingOptions.find(
-      (opt) => formatAppIdToDisplayName(opt.appId) === displayName
-    );
-    return option ? option.appId : null;
+  // Location management handlers
+  const handleAddLocation = (location: LocationItem) => {
+    setLocations((prev) => [...prev, location]);
   };
 
-  type LocationOption = { label: string; iconUrl: string | null; value: string };
-  type LocationGroup = { category: string; options: LocationOption[] };
-
-  const getLocationOptions = (): LocationGroup[] => {
-    // Group conferencing apps under "conferencing" category
-    const conferencingAppOptions: LocationOption[] = conferencingOptions.map((option) => {
-      const iconUrl = getAppIconUrl(option.type, option.appId);
-      return {
-        label: formatAppIdToDisplayName(option.appId),
-        iconUrl: iconUrl,
-        value: `integrations:${option.appId}`,
-      };
-    });
-
-    // Group default locations by their category
-    const defaultLocationOptions: LocationOption[] = defaultLocations.map((location) => ({
-      label: location.label,
-      iconUrl: location.iconUrl,
-      value: location.type,
-    }));
-
-    // Group options by category
-    const grouped: Record<string, LocationOption[]> = {};
-
-    // Add conferencing apps
-    if (conferencingAppOptions.length > 0) {
-      grouped["conferencing"] = conferencingAppOptions;
-    }
-
-    // Add default locations by category
-    defaultLocations.forEach((location) => {
-      const category = location.category;
-      if (!grouped[category]) {
-        grouped[category] = [];
-      }
-      const option = defaultLocationOptions.find((opt) => opt.value === location.type);
-      if (option) {
-        grouped[category].push(option);
-      }
-    });
-
-    // Convert to array format with category labels
-    const categoryLabels: Record<string, string> = {
-      conferencing: "Conferencing",
-      "in person": "In Person",
-      phone: "Phone",
-      other: "Other",
-    };
-
-    const result: LocationGroup[] = [];
-    for (const category in grouped) {
-      if (grouped[category].length > 0) {
-        result.push({
-          category: categoryLabels[category] || category,
-          options: grouped[category],
-        });
-      }
-    }
-
-    console.log(
-      "Total location groups:",
-      result.length,
-      result.map((g) => `${g.category}: ${g.options.length}`)
-    );
-    return result;
+  const handleRemoveLocation = (locationId: string) => {
+    setLocations((prev) => prev.filter((loc) => loc.id !== locationId));
   };
 
+  const handleUpdateLocation = (locationId: string, updates: Partial<LocationItem>) => {
+    setLocations((prev) =>
+      prev.map((loc) => (loc.id === locationId ? { ...loc, ...updates } : loc))
+    );
+  };
+
+  // Legacy function for backward compatibility (used by BasicsTab if needed)
   const getSelectedLocationIconUrl = (): string | null => {
-    if (!selectedLocation) return null;
-
-    // First, check if it's a default location
-    const defaultLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
-    if (defaultLocation) {
-      return defaultLocation.iconUrl;
+    // Return icon of first location if exists
+    if (locations.length > 0) {
+      return locations[0].iconUrl;
     }
-
-    // Try to find in conferencing options
-    const option = conferencingOptions.find(
-      (opt) => formatAppIdToDisplayName(opt.appId) === selectedLocation
-    );
-    if (option) {
-      return getAppIconUrl(option.type, option.appId);
-    }
-
-    // Fallback: Handle Cal Video directly (it might not be in conferencing options as it's a global app)
-    // Check if selectedLocation matches Cal Video display names
-    const calVideoNames = ["Cal Video", "Cal-Video", "cal-video"];
-    if (
-      calVideoNames.includes(selectedLocation) ||
-      selectedLocation.toLowerCase().includes("cal video")
-    ) {
-      return getAppIconUrl("daily_video", "cal-video");
-    }
-
-    // Fallback: Try to reverse the formatAppIdToDisplayName to get appId
-    // Convert "Cal Video" back to "cal-video" and try to get icon
-    const reverseAppId = selectedLocation.toLowerCase().replace(/\s+/g, "-");
-    const fallbackIconUrl = getAppIconUrl("", reverseAppId);
-    if (fallbackIconUrl) {
-      return fallbackIconUrl;
-    }
-
     return null;
   };
 
@@ -611,15 +487,23 @@ export default function EventTypeDetail() {
         }
 
         // Load max active bookings
-        if (
-          eventType.bookerActiveBookingsLimit &&
-          !("disabled" in eventType.bookerActiveBookingsLimit)
-        ) {
-          setMaxActiveBookingsPerBooker(true);
-          setMaxActiveBookingsValue(eventType.bookerActiveBookingsLimit.count.toString());
+        // API returns: { maximumActiveBookings: number, offerReschedule: boolean }
+        if (eventType.bookerActiveBookingsLimit) {
+          const bookingLimit = eventType.bookerActiveBookingsLimit as any;
+          if (!("disabled" in bookingLimit)) {
+            const maxBookings = bookingLimit.maximumActiveBookings ?? bookingLimit.count;
+            if (maxBookings !== undefined) {
+              setMaxActiveBookingsPerBooker(true);
+              setMaxActiveBookingsValue(maxBookings.toString());
+            }
+            if (bookingLimit.offerReschedule !== undefined) {
+              setOfferReschedule(bookingLimit.offerReschedule);
+            }
+          }
         }
 
         // Load booking window (future bookings limit)
+        // API returns: { type: "range" | "calendarDays" | "businessDays", value: number | [string, string], rolling?: boolean }
         if (eventType.bookingWindow && !("disabled" in eventType.bookingWindow)) {
           setLimitFutureBookings(true);
           if (eventType.bookingWindow.type === "range") {
@@ -632,15 +516,49 @@ export default function EventTypeDetail() {
               setRangeEndDate(eventType.bookingWindow.value[1]);
             }
           } else {
+            // Both "calendarDays" and "businessDays" are rolling types
             setFutureBookingType("rolling");
             if (typeof eventType.bookingWindow.value === "number") {
               setRollingDays(eventType.bookingWindow.value.toString());
             }
+            // calendarDays = true means calendar days, businessDays = false means business days
             setRollingCalendarDays(eventType.bookingWindow.type === "calendarDays");
           }
         }
 
-        // Load Advanced tab fields
+        // Load Advanced tab fields - check both root level and metadata
+        // Some fields are at root level in the database but may be in metadata in API
+        const eventTypeAnyForAdvanced = eventType as any;
+
+        // disableCancelling - check root level first, then metadata
+        if (eventTypeAnyForAdvanced.disableCancelling !== undefined) {
+          setDisableCancelling(eventTypeAnyForAdvanced.disableCancelling);
+        } else if (eventType.metadata?.disableCancelling) {
+          setDisableCancelling(true);
+        }
+
+        // disableRescheduling - check root level first, then metadata
+        if (eventTypeAnyForAdvanced.disableRescheduling !== undefined) {
+          setDisableRescheduling(eventTypeAnyForAdvanced.disableRescheduling);
+        } else if (eventType.metadata?.disableRescheduling) {
+          setDisableRescheduling(true);
+        }
+
+        // sendCalVideoTranscription - check root level first, then metadata
+        if (eventTypeAnyForAdvanced.sendCalVideoTranscription !== undefined) {
+          setSendCalVideoTranscription(eventTypeAnyForAdvanced.sendCalVideoTranscription);
+        } else if (eventType.metadata?.sendCalVideoTranscription) {
+          setSendCalVideoTranscription(true);
+        }
+
+        // autoTranslate - check root level first, then metadata
+        if (eventTypeAnyForAdvanced.autoTranslate !== undefined) {
+          setAutoTranslate(eventTypeAnyForAdvanced.autoTranslate);
+        } else if (eventType.metadata?.autoTranslate) {
+          setAutoTranslate(true);
+        }
+
+        // Other metadata fields
         if (eventType.metadata) {
           if (eventType.metadata.calendarEventName) {
             setCalendarEventName(eventType.metadata.calendarEventName);
@@ -650,24 +568,6 @@ export default function EventTypeDetail() {
           }
           if (eventType.metadata.customReplyToEmail) {
             setCustomReplyToEmail(eventType.metadata.customReplyToEmail);
-          }
-          if (eventType.metadata.disableCancelling) {
-            setDisableCancelling(true);
-          }
-          if (eventType.metadata.disableRescheduling) {
-            setDisableRescheduling(true);
-          }
-          if (eventType.metadata.sendCalVideoTranscription) {
-            setSendCalVideoTranscription(true);
-          }
-          if (eventType.metadata.autoTranslate) {
-            setAutoTranslate(true);
-          }
-          if (eventType.metadata.hideCalendarEventDetails) {
-            setHideCalendarEventDetails(true);
-          }
-          if (eventType.metadata.hideOrganizerEmail) {
-            setHideOrganizerEmail(true);
           }
           if (eventType.metadata.allowReschedulingPastEvents) {
             setAllowReschedulingPastEvents(true);
@@ -691,11 +591,21 @@ export default function EventTypeDetail() {
         }
 
         // Load confirmation settings
+        // API returns: { disabled: boolean } or { type: "always" | "time", ... }
+        if (eventType.confirmationPolicy) {
+          const policy = eventType.confirmationPolicy as any;
+          if (!("disabled" in policy) || policy.disabled === false) {
+            setRequiresConfirmation(true);
+          }
+        }
+        // Also check legacy field
         if (eventType.requiresConfirmation !== undefined) {
           setRequiresConfirmation(eventType.requiresConfirmation);
         }
 
-        // Load other boolean fields
+        // Load boolean fields from root level (API v2 returns these at root, not in metadata)
+        // Cast to any to handle fields that may not be in the type definition
+        const eventTypeAny = eventType as any;
         if (eventType.requiresBookerEmailVerification !== undefined) {
           setRequiresBookerEmailVerification(eventType.requiresBookerEmailVerification);
         }
@@ -705,16 +615,32 @@ export default function EventTypeDetail() {
         if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
           setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
         }
+        if (eventTypeAny.hideCalendarEventDetails !== undefined) {
+          setHideCalendarEventDetails(eventTypeAny.hideCalendarEventDetails);
+        }
+        if (eventTypeAny.hideOrganizerEmail !== undefined) {
+          setHideOrganizerEmail(eventTypeAny.hideOrganizerEmail);
+        }
 
         // Load redirect URL
         if (eventType.successRedirectUrl) {
           setSuccessRedirectUrl(eventType.successRedirectUrl);
-          if (eventType.forwardParamsSuccessRedirect !== undefined) {
-            setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
-          }
+        }
+        if (eventType.forwardParamsSuccessRedirect !== undefined) {
+          setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
         }
 
         // Load event type colors
+        // API returns: { darkThemeHex: string, lightThemeHex: string }
+        if (eventTypeAny.color) {
+          if (eventTypeAny.color.lightThemeHex) {
+            setEventTypeColorLight(eventTypeAny.color.lightThemeHex);
+          }
+          if (eventTypeAny.color.darkThemeHex) {
+            setEventTypeColorDark(eventTypeAny.color.darkThemeHex);
+          }
+        }
+        // Also check legacy format
         if (eventType.eventTypeColor) {
           if (eventType.eventTypeColor.lightEventTypeColor) {
             setEventTypeColorLight(eventType.eventTypeColor.lightEventTypeColor);
@@ -725,72 +651,63 @@ export default function EventTypeDetail() {
         }
 
         // Load recurring event settings
-        if (eventType.recurrence && !("disabled" in eventType.recurrence)) {
-          setRecurringEnabled(true);
-          setRecurringInterval(eventType.recurrence.interval.toString());
-          setRecurringFrequency(eventType.recurrence.frequency);
-          setRecurringOccurrences(eventType.recurrence.occurrences.toString());
+        // API returns { disabled: false, interval, occurrences, frequency } when enabled
+        // or { disabled: true } when disabled
+        if (eventType.recurrence) {
+          const recurrence = eventType.recurrence as any;
+          // Check if disabled is explicitly true (not just present)
+          if (recurrence.disabled !== true && recurrence.interval && recurrence.frequency) {
+            setRecurringEnabled(true);
+            setRecurringInterval(recurrence.interval.toString());
+            const freq = recurrence.frequency as "weekly" | "monthly" | "yearly";
+            if (freq === "weekly" || freq === "monthly" || freq === "yearly") {
+              setRecurringFrequency(freq);
+            }
+            setRecurringOccurrences(recurrence.occurrences?.toString() || "12");
+          }
         }
 
-        // Extract location from event type
+        // Extract all locations from event type using helper
         if (eventType.locations && eventType.locations.length > 0) {
+          const mappedLocations = eventType.locations.map((loc: any) => mapApiLocationToItem(loc));
+          setLocations(mappedLocations);
+
+          // Also set legacy input fields for backward compatibility (from first location)
           const firstLocation = eventType.locations[0];
-
-          // Handle conferencing apps (with integration field)
-          if (firstLocation.integration) {
-            // Format the integration name (e.g., "google-meet" -> "Google Meet")
-            const formattedLocation = formatAppIdToDisplayName(firstLocation.integration);
-            setSelectedLocation(formattedLocation);
+          if (firstLocation.address) {
+            setLocationAddress(firstLocation.address);
           }
-          // Handle default locations (with type field)
-          else if (firstLocation.type) {
-            // Map API location types to internal location types
-            // Need to distinguish between organizer and attendee types based on presence of fields
-            let internalType = firstLocation.type;
+          if (firstLocation.link) {
+            setLocationLink(firstLocation.link);
+          }
+          if (firstLocation.phone) {
+            setLocationPhone(firstLocation.phone);
+          }
+        }
 
-            // Check if it's an organizer type (has address, link, or phone field)
-            if (
-              firstLocation.type === "address" ||
-              (firstLocation.type === "phone" && firstLocation.phone)
-            ) {
-              // Organizer types
-              if (firstLocation.type === "address") {
-                internalType = "inPerson"; // Organizer address
-              } else if (firstLocation.type === "phone" && firstLocation.phone) {
-                internalType = "userPhone"; // Organizer phone
-              }
-            } else if (firstLocation.type === "link") {
-              internalType = "link"; // Link meeting
-            } else {
-              // Attendee types - map API types to internal types
-              const apiToInternalTypeMap: Record<string, string> = {
-                attendeeAddress: "attendeeInPerson",
-                attendeePhone: "phone",
-                attendeeDefined: "somewhereElse",
-              };
+        // Load disableGuests setting
+        if (eventType.disableGuests !== undefined) {
+          setDisableGuests(eventType.disableGuests);
+        }
 
-              if (apiToInternalTypeMap[firstLocation.type]) {
-                internalType = apiToInternalTypeMap[firstLocation.type];
-              }
+        // Load seats settings
+        // API returns: { disabled: boolean, seatsPerTimeSlot: number, showAttendeeInfo: boolean, showAvailabilityCount: boolean }
+        if (eventType.seats) {
+          const seats = eventType.seats as any;
+          // Check if seats are enabled (disabled: false or disabled not present with seatsPerTimeSlot)
+          const seatsAreEnabled =
+            seats.disabled === false || (!("disabled" in seats) && seats.seatsPerTimeSlot);
+
+          if (seatsAreEnabled) {
+            setSeatsEnabled(true);
+            if (seats.seatsPerTimeSlot) {
+              setSeatsPerTimeSlot(seats.seatsPerTimeSlot.toString());
             }
-
-            const defaultLocation = defaultLocations.find((loc) => loc.type === internalType);
-            if (defaultLocation) {
-              setSelectedLocation(defaultLocation.label);
-
-              // Populate location input values if they exist
-              if (firstLocation.address) {
-                setLocationAddress(firstLocation.address);
-              }
-              if (firstLocation.link) {
-                setLocationLink(firstLocation.link);
-              }
-              if (firstLocation.phone) {
-                setLocationPhone(firstLocation.phone);
-              }
-            } else {
-              // Fallback: try to format the type as display name
-              setSelectedLocation(firstLocation.type);
+            if (seats.showAttendeeInfo !== undefined) {
+              setShowAttendeeInfo(seats.showAttendeeInfo);
+            }
+            if (seats.showAvailabilityCount !== undefined) {
+              setShowAvailabilityCount(seats.showAvailabilityCount);
             }
           }
         }
@@ -987,7 +904,7 @@ export default function EventTypeDetail() {
     try {
       setSaving(true);
 
-      // Build location payload if a location is selected
+      // Build location payload from locations array
       let locationsPayload:
         | Array<{
             type: string;
@@ -999,45 +916,19 @@ export default function EventTypeDetail() {
           }>
         | undefined;
 
-      if (selectedLocation) {
-        const locationValue = displayNameToLocationValue(selectedLocation);
-        if (!locationValue) {
-          Alert.alert("Error", "Invalid location selected");
-          setSaving(false);
-          return;
+      if (locations.length > 0) {
+        // Validate all locations before saving
+        for (const loc of locations) {
+          const validation = validateLocationItem(loc);
+          if (!validation.valid) {
+            Alert.alert("Error", validation.error || "Invalid location");
+            setSaving(false);
+            return;
+          }
         }
 
-        // Get existing location data to preserve values (address, link, phone)
-        const existingLocation = eventTypeData?.locations?.[0];
-
-        // Build location payload based on type
-        const locationPayload: {
-          type: string;
-          integration?: string;
-          address?: string;
-          link?: string;
-          phone?: string;
-          public?: boolean;
-        } = {
-          type: locationValue.type,
-        };
-
-        // Add type-specific fields based on location type
-        if (locationValue.type === "integration") {
-          locationPayload.integration = locationValue.integration;
-          locationPayload.public = locationValue.public ?? true;
-        } else if (locationValue.type === "address") {
-          locationPayload.address = locationAddress || existingLocation?.address || "";
-          locationPayload.public = true;
-        } else if (locationValue.type === "link") {
-          locationPayload.link = locationLink || existingLocation?.link || "";
-          locationPayload.public = true;
-        } else if (locationValue.type === "phone") {
-          locationPayload.phone = locationPhone || existingLocation?.phone || "";
-          locationPayload.public = true;
-        }
-
-        locationsPayload = [locationPayload];
+        // Convert all locations to API format
+        locationsPayload = locations.map((loc) => mapItemToApiLocation(loc));
       }
 
       // Build the payload with all fields
@@ -1130,7 +1021,10 @@ export default function EventTypeDetail() {
       if (maxActiveBookingsPerBooker && maxActiveBookingsValue) {
         const count = parseInt(maxActiveBookingsValue);
         if (count > 0) {
-          payload.bookerActiveBookingsLimit = { count };
+          payload.bookerActiveBookingsLimit = {
+            count,
+            offerReschedule,
+          };
         }
       }
 
@@ -1189,6 +1083,7 @@ export default function EventTypeDetail() {
       payload.requiresBookerEmailVerification = requiresBookerEmailVerification;
       payload.hideCalendarNotes = hideCalendarNotes;
       payload.lockTimeZoneToggleOnBookingPage = lockTimezone;
+      payload.disableGuests = disableGuests;
 
       // Redirect URL
       if (successRedirectUrl) {
@@ -1221,6 +1116,17 @@ export default function EventTypeDetail() {
         };
       } else {
         payload.recurrence = { disabled: true };
+      }
+
+      // Seats
+      if (seatsEnabled) {
+        payload.seats = {
+          seatsPerTimeSlot: parseInt(seatsPerTimeSlot) || 2,
+          showAttendeeInfo,
+          showAvailabilityCount,
+        };
+      } else {
+        payload.seats = { disabled: true };
       }
 
       // Detect create vs update mode
@@ -1413,16 +1319,13 @@ export default function EventTypeDetail() {
               setShowDurationDropdown={setShowDurationDropdown}
               defaultDuration={defaultDuration}
               setShowDefaultDurationDropdown={setShowDefaultDurationDropdown}
-              selectedLocation={selectedLocation}
-              setShowLocationDropdown={setShowLocationDropdown}
+              // Multiple locations support
+              locations={locations}
+              onAddLocation={handleAddLocation}
+              onRemoveLocation={handleRemoveLocation}
+              onUpdateLocation={handleUpdateLocation}
+              locationOptions={getLocationOptionsForDropdown()}
               conferencingLoading={conferencingLoading}
-              getSelectedLocationIconUrl={getSelectedLocationIconUrl}
-              locationAddress={locationAddress}
-              setLocationAddress={setLocationAddress}
-              locationLink={locationLink}
-              setLocationLink={setLocationLink}
-              locationPhone={locationPhone}
-              setLocationPhone={setLocationPhone}
             />
           )}
 
@@ -1617,131 +1520,6 @@ export default function EventTypeDetail() {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-              </View>
-            </TouchableOpacity>
-          </Modal>
-
-          {/* Location Dropdown Modal */}
-          <Modal
-            visible={showLocationDropdown}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setShowLocationDropdown(false)}
-          >
-            <TouchableOpacity
-              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
-              onPress={() => setShowLocationDropdown(false)}
-            >
-              <View
-                className="w-[80%] max-w-[350px] rounded-2xl bg-white p-5"
-                style={{ maxHeight: "70%" }}
-              >
-                {conferencingLoading ? (
-                  <Text className="py-4 text-center text-base text-[#666]">
-                    Loading locations...
-                  </Text>
-                ) : (
-                  (() => {
-                    const groups = getLocationOptions();
-                    if (groups.length === 0) {
-                      return (
-                        <Text className="py-4 text-center text-base text-[#8E8E93]">
-                          No locations available
-                        </Text>
-                      );
-                    }
-                    return (
-                      <ScrollView
-                        showsVerticalScrollIndicator={true}
-                        style={{ maxHeight: 400 }}
-                        nestedScrollEnabled={true}
-                        contentContainerStyle={{ paddingBottom: 10 }}
-                      >
-                        {groups.map((group) => (
-                          <View key={group.category}>
-                            {/* Section Header */}
-                            <View className="px-2 py-2 md:px-4">
-                              <Text className="text-xs font-normal uppercase tracking-wide text-[#666]">
-                                {group.category}
-                              </Text>
-                            </View>
-                            {/* Section Options */}
-                            {group.options.map((option) => (
-                              <TouchableOpacity
-                                key={option.value}
-                                activeOpacity={0.7}
-                                className={`flex-row items-center justify-between rounded-lg px-2 py-2.5 md:px-4 ${
-                                  selectedLocation === option.label
-                                    ? "bg-[#F0F0F0]"
-                                    : "active:bg-[#F0F0F0]"
-                                }`}
-                                style={{ marginBottom: 2 }}
-                                onPress={() => {
-                                  const newLocation = defaultLocations.find(
-                                    (loc) => loc.label === option.label
-                                  );
-                                  setSelectedLocation(option.label);
-                                  setShowLocationDropdown(false);
-                                  // Clear input values that are not needed for the new location
-                                  if (!newLocation || newLocation.type !== "inPerson") {
-                                    setLocationAddress("");
-                                  }
-                                  if (!newLocation || newLocation.type !== "link") {
-                                    setLocationLink("");
-                                  }
-                                  if (!newLocation || newLocation.type !== "userPhone") {
-                                    setLocationPhone("");
-                                  }
-                                }}
-                              >
-                                <View className="flex-1 flex-row items-center">
-                                  {option.iconUrl ? (
-                                    <SvgImage
-                                      uri={option.iconUrl}
-                                      width={18}
-                                      height={18}
-                                      style={{ marginRight: 12 }}
-                                    />
-                                  ) : (
-                                    <View
-                                      style={{
-                                        width: 18,
-                                        height: 18,
-                                        backgroundColor: "#FF6B6B",
-                                        borderRadius: 4,
-                                        marginRight: 12,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                      }}
-                                    >
-                                      <Text
-                                        style={{
-                                          color: "white",
-                                          fontSize: 8,
-                                          fontWeight: "bold",
-                                        }}
-                                      >
-                                        ?
-                                      </Text>
-                                    </View>
-                                  )}
-                                  <Text
-                                    className={`text-base text-[#333] ${selectedLocation === option.label ? "font-semibold" : ""}`}
-                                  >
-                                    {option.label}
-                                  </Text>
-                                </View>
-                                {selectedLocation === option.label && (
-                                  <Ionicons name="checkmark" size={20} color="#000" />
-                                )}
-                              </TouchableOpacity>
-                            ))}
-                          </View>
-                        ))}
-                      </ScrollView>
-                    );
-                  })()
-                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1998,6 +1776,46 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
           </Modal>
 
+          {/* Recurring Frequency Dropdown Modal */}
+          <Modal
+            visible={showRecurringFrequencyDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowRecurringFrequencyDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowRecurringFrequencyDropdown(false)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Repeats every
+                </Text>
+                {(["weekly", "monthly", "yearly"] as const).map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
+                      recurringFrequency === option ? "bg-[#F0F0F0]" : ""
+                    }`}
+                    onPress={() => {
+                      setRecurringFrequency(option);
+                      setShowRecurringFrequencyDropdown(false);
+                    }}
+                  >
+                    <Text
+                      className={`text-base capitalize text-[#333] ${recurringFrequency === option ? "font-semibold" : ""}`}
+                    >
+                      {option === "weekly" ? "week" : option === "monthly" ? "month" : "year"}
+                    </Text>
+                    {recurringFrequency === option && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
           {activeTab === "availability" && (
             <AvailabilityTab
               selectedSchedule={selectedSchedule}
@@ -2031,6 +1849,8 @@ export default function EventTypeDetail() {
               setShowFrequencyUnitDropdown={setShowFrequencyUnitDropdown}
               removeFrequencyLimit={removeFrequencyLimit}
               addFrequencyLimit={addFrequencyLimit}
+              onlyShowFirstAvailableSlot={onlyShowFirstAvailableSlot}
+              setOnlyShowFirstAvailableSlot={setOnlyShowFirstAvailableSlot}
               limitTotalDuration={limitTotalDuration}
               toggleTotalDuration={toggleTotalDuration}
               durationAnimationValue={durationAnimationValue}
@@ -2039,12 +1859,12 @@ export default function EventTypeDetail() {
               setShowDurationUnitDropdown={setShowDurationUnitDropdown}
               removeDurationLimit={removeDurationLimit}
               addDurationLimit={addDurationLimit}
-              onlyShowFirstAvailableSlot={onlyShowFirstAvailableSlot}
-              setOnlyShowFirstAvailableSlot={setOnlyShowFirstAvailableSlot}
               maxActiveBookingsPerBooker={maxActiveBookingsPerBooker}
               setMaxActiveBookingsPerBooker={setMaxActiveBookingsPerBooker}
               maxActiveBookingsValue={maxActiveBookingsValue}
               setMaxActiveBookingsValue={setMaxActiveBookingsValue}
+              offerReschedule={offerReschedule}
+              setOfferReschedule={setOfferReschedule}
               limitFutureBookings={limitFutureBookings}
               setLimitFutureBookings={setLimitFutureBookings}
               futureBookingType={futureBookingType}
@@ -2062,22 +1882,8 @@ export default function EventTypeDetail() {
 
           {activeTab === "advanced" && (
             <AdvancedTab
-              calendarEventName={calendarEventName}
-              setCalendarEventName={setCalendarEventName}
-              addToCalendarEmail={addToCalendarEmail}
-              setAddToCalendarEmail={setAddToCalendarEmail}
-              selectedLayouts={selectedLayouts}
-              setSelectedLayouts={setSelectedLayouts}
-              defaultLayout={defaultLayout}
-              setDefaultLayout={setDefaultLayout}
               requiresConfirmation={requiresConfirmation}
               setRequiresConfirmation={setRequiresConfirmation}
-              disableCancelling={disableCancelling}
-              setDisableCancelling={setDisableCancelling}
-              disableRescheduling={disableRescheduling}
-              setDisableRescheduling={setDisableRescheduling}
-              sendCalVideoTranscription={sendCalVideoTranscription}
-              setSendCalVideoTranscription={setSendCalVideoTranscription}
               autoTranslate={autoTranslate}
               setAutoTranslate={setAutoTranslate}
               requiresBookerEmailVerification={requiresBookerEmailVerification}
@@ -2104,6 +1910,17 @@ export default function EventTypeDetail() {
               setEventTypeColorLight={setEventTypeColorLight}
               eventTypeColorDark={eventTypeColorDark}
               setEventTypeColorDark={setEventTypeColorDark}
+              // Seats
+              seatsEnabled={seatsEnabled}
+              setSeatsEnabled={setSeatsEnabled}
+              seatsPerTimeSlot={seatsPerTimeSlot}
+              setSeatsPerTimeSlot={setSeatsPerTimeSlot}
+              showAttendeeInfo={showAttendeeInfo}
+              setShowAttendeeInfo={setShowAttendeeInfo}
+              showAvailabilityCount={showAvailabilityCount}
+              setShowAvailabilityCount={setShowAvailabilityCount}
+              // Event type ID for private links
+              eventTypeId={id}
             />
           )}
 
@@ -2117,6 +1934,7 @@ export default function EventTypeDetail() {
               setRecurringFrequency={setRecurringFrequency}
               recurringOccurrences={recurringOccurrences}
               setRecurringOccurrences={setRecurringOccurrences}
+              setShowFrequencyDropdown={setShowRecurringFrequencyDropdown}
             />
           )}
 

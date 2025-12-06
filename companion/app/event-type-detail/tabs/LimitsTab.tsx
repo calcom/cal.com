@@ -1,13 +1,6 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, Switch, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  bufferTimeOptions,
-  timeUnitOptions,
-  frequencyUnitOptions,
-  durationUnitOptions,
-  slotIntervalOptions,
-} from "../constants";
 
 interface FrequencyLimit {
   id: number;
@@ -48,6 +41,10 @@ interface LimitsTabProps {
   removeFrequencyLimit: (id: number) => void;
   addFrequencyLimit: () => void;
 
+  // Only show first slot
+  onlyShowFirstAvailableSlot: boolean;
+  setOnlyShowFirstAvailableSlot: (value: boolean) => void;
+
   // Total duration
   limitTotalDuration: boolean;
   toggleTotalDuration: (value: boolean) => void;
@@ -58,15 +55,13 @@ interface LimitsTabProps {
   removeDurationLimit: (id: number) => void;
   addDurationLimit: () => void;
 
-  // Only show first slot
-  onlyShowFirstAvailableSlot: boolean;
-  setOnlyShowFirstAvailableSlot: (value: boolean) => void;
-
   // Max active bookings
   maxActiveBookingsPerBooker: boolean;
   setMaxActiveBookingsPerBooker: (value: boolean) => void;
   maxActiveBookingsValue: string;
   setMaxActiveBookingsValue: (value: string) => void;
+  offerReschedule: boolean;
+  setOfferReschedule: (value: boolean) => void;
 
   // Future bookings
   limitFutureBookings: boolean;
@@ -159,7 +154,7 @@ export function LimitsTab(props: LimitsTabProps) {
         </View>
       </View>
 
-      {/* Booking Frequency Limit Card */}
+      {/* 1. Booking Frequency Limit Card */}
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
         <View className="flex-row items-start justify-between">
           <View className="mr-4 flex-1">
@@ -190,7 +185,7 @@ export function LimitsTab(props: LimitsTabProps) {
         >
           {props.limitBookingFrequency && (
             <>
-              {props.frequencyLimits.map((limit, index) => (
+              {props.frequencyLimits.map((limit) => (
                 <View key={limit.id} className="mt-4 flex-row items-center gap-3">
                   <TextInput
                     className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
@@ -218,7 +213,7 @@ export function LimitsTab(props: LimitsTabProps) {
                       className="h-10 w-10 items-center justify-center rounded-lg border border-[#FFCCC7] bg-[#FFF1F0]"
                       onPress={() => props.removeFrequencyLimit(limit.id)}
                     >
-                      <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                      <Ionicons name="trash-outline" size={20} color="#800000" />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -235,7 +230,28 @@ export function LimitsTab(props: LimitsTabProps) {
         </Animated.View>
       </View>
 
-      {/* Total Booking Duration Limit Card */}
+      {/* 2. Only Show First Available Slot Card */}
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-4 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
+              Only show the first slot of each day as available
+            </Text>
+            <Text className="text-sm leading-5 text-[#666]">
+              This will limit your availability for this event type to one slot per day, scheduled
+              at the earliest available time.
+            </Text>
+          </View>
+          <Switch
+            value={props.onlyShowFirstAvailableSlot}
+            onValueChange={props.setOnlyShowFirstAvailableSlot}
+            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+      </View>
+
+      {/* 3. Total Booking Duration Limit Card */}
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
         <View className="flex-row items-start justify-between">
           <View className="mr-4 flex-1">
@@ -268,7 +284,7 @@ export function LimitsTab(props: LimitsTabProps) {
         >
           {props.limitTotalDuration && (
             <>
-              {props.durationLimits.map((limit, index) => (
+              {props.durationLimits.map((limit) => (
                 <View key={limit.id} className="mt-4 flex-row items-center gap-3">
                   <View className="flex-row items-center gap-3">
                     <TextInput
@@ -299,7 +315,7 @@ export function LimitsTab(props: LimitsTabProps) {
                       className="h-10 w-10 items-center justify-center rounded-lg border border-[#FFCCC7] bg-[#FFF1F0]"
                       onPress={() => props.removeDurationLimit(limit.id)}
                     >
-                      <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                      <Ionicons name="trash-outline" size={20} color="#800000" />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -316,30 +332,9 @@ export function LimitsTab(props: LimitsTabProps) {
         </Animated.View>
       </View>
 
-      {/* Only Show First Available Slot Card */}
+      {/* 4. Max Active Bookings Per Booker Card */}
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
         <View className="flex-row items-start justify-between">
-          <View className="mr-4 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Only show the first slot of each day as available
-            </Text>
-            <Text className="text-sm leading-5 text-[#666]">
-              This will limit your availability for this event type to one slot per day, scheduled
-              at the earliest available time.
-            </Text>
-          </View>
-          <Switch
-            value={props.onlyShowFirstAvailableSlot}
-            onValueChange={props.setOnlyShowFirstAvailableSlot}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-
-      {/* Max Active Bookings Per Booker Card */}
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="mb-3 flex-row items-start justify-between">
           <View className="mr-4 flex-1">
             <Text className="mb-1 text-base font-medium text-[#333]">
               Limit number of upcoming bookings per booker
@@ -356,28 +351,46 @@ export function LimitsTab(props: LimitsTabProps) {
           />
         </View>
         {props.maxActiveBookingsPerBooker && (
-          <View className="mt-3">
-            <TextInput
-              className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
-              value={props.maxActiveBookingsValue}
-              onChangeText={(text) => {
-                const numericValue = text.replace(/[^0-9]/g, "");
-                const num = parseInt(numericValue) || 0;
-                if (num >= 0) {
-                  props.setMaxActiveBookingsValue(numericValue || "1");
-                }
-              }}
-              placeholder="1"
-              placeholderTextColor="#8E8E93"
-              keyboardType="numeric"
-            />
+          <View className="mt-4 gap-3">
+            <View className="flex-row items-center gap-3">
+              <TextInput
+                className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
+                value={props.maxActiveBookingsValue}
+                onChangeText={(text) => {
+                  const numericValue = text.replace(/[^0-9]/g, "");
+                  const num = parseInt(numericValue) || 0;
+                  if (num >= 0) {
+                    props.setMaxActiveBookingsValue(numericValue || "1");
+                  }
+                }}
+                placeholder="1"
+                placeholderTextColor="#8E8E93"
+                keyboardType="numeric"
+              />
+              <Text className="text-base text-[#666]">bookings</Text>
+            </View>
+            <TouchableOpacity
+              className="flex-row items-center"
+              onPress={() => props.setOfferReschedule(!props.offerReschedule)}
+            >
+              <View
+                className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
+                  props.offerReschedule ? "border-[#007AFF] bg-[#007AFF]" : "border-[#C7C7CC]"
+                }`}
+              >
+                {props.offerReschedule && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
+              </View>
+              <Text className="flex-1 text-sm text-[#333]">
+                Offer to reschedule the last booking to the new time slot
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
 
-      {/* Limit Future Bookings Card */}
+      {/* 5. Limit Future Bookings Card */}
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="mb-3 flex-row items-start justify-between">
+        <View className="flex-row items-start justify-between">
           <View className="mr-4 flex-1">
             <Text className="mb-1 text-base font-medium text-[#333]">Limit future bookings</Text>
             <Text className="text-sm leading-5 text-[#666]">
@@ -392,106 +405,87 @@ export function LimitsTab(props: LimitsTabProps) {
           />
         </View>
         {props.limitFutureBookings && (
-          <View className="mt-3 gap-3">
-            <View className="flex-row items-center gap-3">
-              <TouchableOpacity
-                className={`flex-1 flex-row items-center justify-center rounded-lg border px-3 py-3 ${
-                  props.futureBookingType === "rolling"
-                    ? "border-[#333] bg-[#F0F0F0]"
-                    : "border-[#E5E5EA] bg-[#F8F9FA]"
+          <View className="mt-4 gap-3">
+            {/* Rolling option */}
+            <TouchableOpacity
+              className="flex-row items-start"
+              onPress={() => props.setFutureBookingType("rolling")}
+            >
+              <View
+                className={`mr-3 mt-0.5 h-5 w-5 items-center justify-center rounded-full border-2 ${
+                  props.futureBookingType === "rolling" ? "border-[#007AFF]" : "border-[#C7C7CC]"
                 }`}
-                onPress={() => props.setFutureBookingType("rolling")}
               >
-                <Text
-                  className={`text-base ${
-                    props.futureBookingType === "rolling"
-                      ? "font-semibold text-[#333]"
-                      : "text-[#666]"
-                  }`}
-                >
-                  Rolling
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className={`flex-1 flex-row items-center justify-center rounded-lg border px-3 py-3 ${
-                  props.futureBookingType === "range"
-                    ? "border-[#333] bg-[#F0F0F0]"
-                    : "border-[#E5E5EA] bg-[#F8F9FA]"
-                }`}
-                onPress={() => props.setFutureBookingType("range")}
-              >
-                <Text
-                  className={`text-base ${
-                    props.futureBookingType === "range"
-                      ? "font-semibold text-[#333]"
-                      : "text-[#666]"
-                  }`}
-                >
-                  Date Range
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {props.futureBookingType === "rolling" && (
-              <View className="gap-3">
-                <View className="flex-row items-center gap-3">
+                {props.futureBookingType === "rolling" && (
+                  <View className="h-2.5 w-2.5 rounded-full bg-[#007AFF]" />
+                )}
+              </View>
+              <View className="flex-1">
+                <View className="flex-row flex-wrap items-center gap-2">
                   <TextInput
-                    className="flex-1 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
+                    className="w-16 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-2 text-center text-base text-black"
                     value={props.rollingDays}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue) || 0;
-                      if (num >= 0) {
-                        props.setRollingDays(numericValue || "30");
-                      }
+                      props.setRollingDays(numericValue || "30");
+                      props.setFutureBookingType("rolling");
                     }}
                     placeholder="30"
                     placeholderTextColor="#8E8E93"
                     keyboardType="numeric"
                   />
                   <TouchableOpacity
-                    className={`flex-1 flex-row items-center justify-center rounded-lg border px-3 py-3 ${
-                      props.rollingCalendarDays
-                        ? "border-[#333] bg-[#F0F0F0]"
-                        : "border-[#E5E5EA] bg-[#F8F9FA]"
-                    }`}
-                    onPress={() => props.setRollingCalendarDays(!props.rollingCalendarDays)}
+                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-2"
+                    onPress={() => {
+                      props.setRollingCalendarDays(!props.rollingCalendarDays);
+                      props.setFutureBookingType("rolling");
+                    }}
                   >
-                    <Text
-                      className={`text-base ${
-                        props.rollingCalendarDays ? "font-semibold text-[#333]" : "text-[#666]"
-                      }`}
-                    >
-                      {props.rollingCalendarDays ? "Calendar days" : "Business days"}
+                    <Text className="text-base text-black">
+                      {props.rollingCalendarDays ? "calendar days" : "business days"}
                     </Text>
                   </TouchableOpacity>
-                </View>
-                <Text className="text-sm text-[#666]">days into the future</Text>
-              </View>
-            )}
-            {props.futureBookingType === "range" && (
-              <View className="gap-3">
-                <View>
-                  <Text className="mb-1.5 text-sm text-[#666]">Start date</Text>
-                  <TextInput
-                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
-                    value={props.rangeStartDate}
-                    onChangeText={props.setRangeStartDate}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#8E8E93"
-                  />
-                </View>
-                <View>
-                  <Text className="mb-1.5 text-sm text-[#666]">End date</Text>
-                  <TextInput
-                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
-                    value={props.rangeEndDate}
-                    onChangeText={props.setRangeEndDate}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#8E8E93"
-                  />
+                  <Text className="text-base text-[#666]">into the future</Text>
                 </View>
               </View>
-            )}
+            </TouchableOpacity>
+
+            {/* Date Range option */}
+            <TouchableOpacity
+              className="flex-row items-start"
+              onPress={() => props.setFutureBookingType("range")}
+            >
+              <View
+                className={`mr-3 mt-0.5 h-5 w-5 items-center justify-center rounded-full border-2 ${
+                  props.futureBookingType === "range" ? "border-[#007AFF]" : "border-[#C7C7CC]"
+                }`}
+              >
+                {props.futureBookingType === "range" && (
+                  <View className="h-2.5 w-2.5 rounded-full bg-[#007AFF]" />
+                )}
+              </View>
+              <View className="flex-1">
+                <Text className="mb-2 text-base text-[#333]">Within a date range</Text>
+                {props.futureBookingType === "range" && (
+                  <View className="gap-2">
+                    <TextInput
+                      className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-2 text-base text-black"
+                      value={props.rangeStartDate}
+                      onChangeText={props.setRangeStartDate}
+                      placeholder="Start date (YYYY-MM-DD)"
+                      placeholderTextColor="#8E8E93"
+                    />
+                    <TextInput
+                      className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-2 text-base text-black"
+                      value={props.rangeEndDate}
+                      onChangeText={props.setRangeEndDate}
+                      placeholder="End date (YYYY-MM-DD)"
+                      placeholderTextColor="#8E8E93"
+                    />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
         )}
       </View>

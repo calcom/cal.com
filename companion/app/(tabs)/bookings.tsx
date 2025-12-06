@@ -25,6 +25,8 @@ import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { BookingActionsModal } from "../../components/BookingActionsModal";
+import { SvgImage } from "../../components/SvgImage";
+import { getAppIconUrl } from "../../utils/getAppIconUrl";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   useBookings,
@@ -38,6 +40,98 @@ import { offlineAwareRefresh } from "../../utils/network";
 import { openInAppBrowser } from "../../utils/browser";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
+
+// Helper to extract clean meeting URL from potentially wrapped URLs
+const extractMeetingUrl = (location: string): string => {
+  // Check if it's a goo.gl redirect URL with embedded meet.google.com link
+  if (location.includes("goo.gl") && location.includes("meet.google.com")) {
+    // Extract the actual meet.google.com URL from the redirect
+    const meetMatch = location.match(/meet\.google\.com\/[a-z]+-[a-z]+-[a-z]+/i);
+    if (meetMatch) {
+      return `https://${meetMatch[0]}`;
+    }
+  }
+  return location;
+};
+
+// Helper to detect meeting type from location URL and get icon/label
+const getMeetingInfo = (
+  location?: string
+): { appId: string; label: string; iconUrl: string | null; cleanUrl: string } | null => {
+  if (!location) return null;
+
+  // Check if it's a URL
+  if (!location.match(/^https?:\/\//)) return null;
+
+  const lowerLocation = location.toLowerCase();
+  const cleanUrl = extractMeetingUrl(location);
+
+  // Cal Video
+  if (lowerLocation.includes("cal.com/video") || lowerLocation.includes("cal.video")) {
+    return {
+      appId: "cal-video",
+      label: "Join Cal Video",
+      iconUrl: getAppIconUrl("daily_video", "cal-video"),
+      cleanUrl,
+    };
+  }
+
+  // Google Meet (including goo.gl redirect URLs)
+  if (
+    lowerLocation.includes("meet.google.com") ||
+    (lowerLocation.includes("goo.gl") && lowerLocation.includes("meet"))
+  ) {
+    return {
+      appId: "google-meet",
+      label: "Join Google Meet",
+      iconUrl: getAppIconUrl("google_video", "google-meet"),
+      cleanUrl,
+    };
+  }
+
+  // Zoom
+  if (lowerLocation.includes("zoom.us") || lowerLocation.includes("zoom.com")) {
+    return {
+      appId: "zoom",
+      label: "Join Zoom",
+      iconUrl: getAppIconUrl("zoom_video", "zoom"),
+      cleanUrl,
+    };
+  }
+
+  // Microsoft Teams
+  if (lowerLocation.includes("teams.microsoft.com") || lowerLocation.includes("teams.live.com")) {
+    return {
+      appId: "msteams",
+      label: "Join Microsoft Teams",
+      iconUrl: getAppIconUrl("office365_video", "msteams"),
+      cleanUrl,
+    };
+  }
+
+  // Webex
+  if (lowerLocation.includes("webex.com")) {
+    return {
+      appId: "webex",
+      label: "Join Webex",
+      iconUrl: getAppIconUrl("webex_video", "webex"),
+      cleanUrl,
+    };
+  }
+
+  // Jitsi
+  if (lowerLocation.includes("meet.jit.si") || lowerLocation.includes("jitsi")) {
+    return {
+      appId: "jitsi",
+      label: "Join Jitsi",
+      iconUrl: getAppIconUrl("jitsi_video", "jitsi"),
+      cleanUrl,
+    };
+  }
+
+  // Not a recognized conferencing app
+  return null;
+};
 
 export default function Bookings() {
   const router = useRouter();
@@ -56,6 +150,9 @@ export default function Bookings() {
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [rescheduleReason, setRescheduleReason] = useState("");
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectBooking, setRejectBooking] = useState<Booking | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const filterOptions: { key: BookingFilter; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
@@ -925,10 +1022,98 @@ export default function Bookings() {
               })()}
             </Text>
           )}
+
+          {/* Meeting Link - only for video conferencing apps */}
+          {(() => {
+            const meetingInfo = getMeetingInfo(item.location);
+            if (!meetingInfo) return null;
+
+            return (
+              <View className="mb-1 flex-row">
+                <TouchableOpacity
+                  className="flex-row items-center"
+                  style={{ alignSelf: "flex-start" }}
+                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                  onPress={async (e) => {
+                    e.stopPropagation();
+                    // Open conferencing app links in external browser for better compatibility
+                    // Use clean URL for Google Meet redirect links
+                    await Linking.openURL(meetingInfo.cleanUrl);
+                  }}
+                >
+                  {meetingInfo.iconUrl ? (
+                    <SvgImage
+                      uri={meetingInfo.iconUrl}
+                      width={16}
+                      height={16}
+                      style={{ marginRight: 6 }}
+                    />
+                  ) : (
+                    <Ionicons name="videocam" size={16} color="#007AFF" style={{ marginRight: 6 }} />
+                  )}
+                  <Text className="text-sm font-medium text-[#007AFF]">{meetingInfo.label}</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })()}
         </TouchableOpacity>
 
-        {/* Three dots button - below content, aligned to the right */}
-        <View className="flex-row justify-end" style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+        {/* Action buttons row */}
+        <View
+          className="flex-row items-center justify-end"
+          style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
+        >
+          {/* Confirm and Reject buttons for unconfirmed bookings */}
+          {isPending && (
+            <>
+              <TouchableOpacity
+                className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-white"
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  opacity: isConfirming || isDeclining ? 0.5 : 1,
+                }}
+                disabled={isConfirming || isDeclining}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  confirmBookingMutation(
+                    { uid: item.uid },
+                    {
+                      onSuccess: () => {
+                        Alert.alert("Success", "Booking confirmed successfully");
+                      },
+                      onError: (error) => {
+                        showErrorAlert("Error", "Failed to confirm booking. Please try again.");
+                      },
+                    }
+                  );
+                }}
+              >
+                <Ionicons name="checkmark" size={16} color="#3C3F44" />
+                <Text className="ml-1 text-sm font-medium text-[#3C3F44]">Confirm</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-white"
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  opacity: isConfirming || isDeclining ? 0.5 : 1,
+                }}
+                disabled={isConfirming || isDeclining}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setRejectBooking(item);
+                  setRejectReason("");
+                  setShowRejectModal(true);
+                }}
+              >
+                <Ionicons name="close" size={16} color="#3C3F44" />
+                <Text className="ml-1 text-sm font-medium text-[#3C3F44]">Reject</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {/* Three dots button */}
           <TouchableOpacity
             className="items-center justify-center rounded-lg border border-[#E5E5EA]"
             style={{ width: 32, height: 32 }}
@@ -993,7 +1178,11 @@ export default function Bookings() {
       <View className="flex-1 bg-gray-50">
         <Header />
         {renderSegmentedControl()}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <ScrollView
+          className="flex-1 bg-gray-50"
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
           <Ionicons
             name={emptyState.icon as keyof typeof Ionicons.glyphMap}
             size={64}
@@ -1003,7 +1192,7 @@ export default function Bookings() {
             {emptyState.title}
           </Text>
           <Text className="text-center text-base text-gray-500">{emptyState.text}</Text>
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -1013,13 +1202,17 @@ export default function Bookings() {
       <View className="flex-1 bg-gray-50">
         <Header />
         {renderSegmentedControl()}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <ScrollView
+          className="flex-1 bg-gray-50"
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
           <Ionicons name="search-outline" size={64} color="#666" />
           <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No results found</Text>
           <Text className="text-center text-base text-gray-500">
             Try searching with different keywords
           </Text>
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -1104,13 +1297,19 @@ export default function Bookings() {
         onClose={() => setShowBookingActionsModal(false)}
         booking={selectedBooking}
         hasLocationUrl={!!selectedBooking?.location}
-        isUpcoming={activeFilter === "upcoming" || activeFilter === "unconfirmed"}
-        isPast={activeFilter === "past"}
-        isCancelled={activeFilter === "cancelled"}
-        isUnconfirmed={activeFilter === "unconfirmed"}
-        onViewBooking={() => {
-          if (selectedBooking) handleBookingPress(selectedBooking);
-        }}
+        isUpcoming={
+          selectedBooking
+            ? new Date(selectedBooking.endTime || selectedBooking.end || "") >= new Date() &&
+              selectedBooking.status?.toUpperCase() !== "PENDING"
+            : false
+        }
+        isPast={
+          selectedBooking
+            ? new Date(selectedBooking.endTime || selectedBooking.end || "") < new Date()
+            : false
+        }
+        isCancelled={selectedBooking?.status?.toUpperCase() === "CANCELLED"}
+        isUnconfirmed={selectedBooking?.status?.toUpperCase() === "PENDING"}
         onReschedule={() => {
           if (selectedBooking) handleRescheduleBooking(selectedBooking);
         }}
@@ -1230,6 +1429,110 @@ export default function Bookings() {
             </>
           )}
         </ScrollView>
+      </FullScreenModal>
+
+      {/* Reject Booking Modal */}
+      <FullScreenModal
+        visible={showRejectModal}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowRejectModal(false);
+          setRejectBooking(null);
+          setRejectReason("");
+        }}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-4"
+          activeOpacity={1}
+          onPress={() => {
+            setShowRejectModal(false);
+            setRejectBooking(null);
+            setRejectReason("");
+          }}
+        >
+          <TouchableOpacity
+            className="w-full max-w-sm rounded-2xl bg-white"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View className="p-5">
+              {/* Title */}
+              <Text className="mb-1 text-lg font-semibold text-gray-900">
+                Reject the booking request?
+              </Text>
+
+              {/* Description */}
+              <Text className="mb-4 text-sm text-gray-500">
+                Are you sure you want to reject the booking? We'll let the person who tried to book
+                know. You can provide a reason below.
+              </Text>
+
+              {/* Reason Input */}
+              <View className="mb-5">
+                <Text className="mb-1.5 text-sm text-gray-700">
+                  Reason for rejecting{" "}
+                  <Text className="font-normal text-gray-400">(Optional)</Text>
+                </Text>
+                <TextInput
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm"
+                  value={rejectReason}
+                  onChangeText={setRejectReason}
+                  placeholder="Enter reason..."
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  style={{ minHeight: 70 }}
+                />
+              </View>
+
+              {/* Separator */}
+              <View className="mb-4 h-px bg-gray-200" />
+
+              {/* Buttons Row */}
+              <View className="flex-row justify-end" style={{ gap: 8 }}>
+                {/* Close Button */}
+                <TouchableOpacity
+                  className="rounded-md border border-gray-300 bg-white px-4 py-2"
+                  onPress={() => {
+                    setShowRejectModal(false);
+                    setRejectBooking(null);
+                    setRejectReason("");
+                  }}
+                >
+                  <Text className="text-sm font-medium text-gray-700">Close</Text>
+                </TouchableOpacity>
+
+                {/* Reject Button */}
+                <TouchableOpacity
+                  className="rounded-md bg-gray-900 px-4 py-2"
+                  onPress={() => {
+                    if (rejectBooking) {
+                      declineBookingMutation(
+                        { uid: rejectBooking.uid, reason: rejectReason || undefined },
+                        {
+                          onSuccess: () => {
+                            setShowRejectModal(false);
+                            setRejectBooking(null);
+                            setRejectReason("");
+                            Alert.alert("Success", "Booking rejected successfully");
+                          },
+                          onError: (error) => {
+                            showErrorAlert("Error", "Failed to reject booking. Please try again.");
+                          },
+                        }
+                      );
+                    }
+                  }}
+                  disabled={isDeclining}
+                  style={{ opacity: isDeclining ? 0.5 : 1 }}
+                >
+                  <Text className="text-sm font-medium text-white">Reject the booking</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </FullScreenModal>
     </View>
   );

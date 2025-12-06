@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Platform,
   ActionSheetIOS,
+  Alert,
+  Clipboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, UserProfile } from "../services/calcom";
@@ -38,9 +40,33 @@ export function Header() {
     }
   };
 
+  // Build public page URL
+  const publicPageUrl = userProfile?.username ? `https://cal.com/${userProfile.username}` : null;
+
+  const handleViewPublicPage = () => {
+    if (publicPageUrl) {
+      openInAppBrowser(publicPageUrl, "Public page");
+    }
+  };
+
+  const handleCopyPublicPageLink = () => {
+    if (publicPageUrl) {
+      Clipboard.setString(publicPageUrl);
+      Alert.alert("Link Copied!", "Your public page link has been copied to clipboard.");
+    }
+  };
+
   const handleProfile = () => {
     if (Platform.OS === "ios") {
-      const options = ["Cancel", "My Profile", "My Settings", "Out of Office", "Help"];
+      const options = [
+        "Cancel",
+        "My Profile",
+        "My Settings",
+        "Out of Office",
+        "View public page",
+        "Copy public page link",
+        "Help",
+      ];
 
       ActionSheetIOS.showActionSheetWithOptions(
         {
@@ -59,7 +85,13 @@ export function Header() {
             case 3: // Out of Office
               handleMenuOption("outOfOffice");
               break;
-            case 4: // Help
+            case 4: // View public page
+              handleViewPublicPage();
+              break;
+            case 5: // Copy public page link
+              handleCopyPublicPageLink();
+              break;
+            case 6: // Help
               handleMenuOption("help");
               break;
           }
@@ -213,6 +245,37 @@ export function Header() {
                   <Text className="ml-3 text-base text-gray-900">Out of Office</Text>
                 </View>
                 <Ionicons name="open-outline" size={16} color="#6B7280" />
+              </TouchableOpacity>
+
+              <View className="mx-4 my-2 h-px bg-gray-200" />
+
+              {/* View public page */}
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-2 hover:bg-gray-50 md:p-4"
+                onPress={() => {
+                  setShowProfileModal(false);
+                  handleViewPublicPage();
+                }}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="globe-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">View public page</Text>
+                </View>
+                <Ionicons name="open-outline" size={16} color="#6B7280" />
+              </TouchableOpacity>
+
+              {/* Copy public page link */}
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-2 hover:bg-gray-50 md:p-4"
+                onPress={() => {
+                  setShowProfileModal(false);
+                  handleCopyPublicPageLink();
+                }}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="copy-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">Copy public page link</Text>
+                </View>
               </TouchableOpacity>
 
               <View className="mx-4 my-2 h-px bg-gray-200" />

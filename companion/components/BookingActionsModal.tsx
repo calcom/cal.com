@@ -21,7 +21,6 @@ export interface BookingActionsModalProps {
   isPast?: boolean; // When true, disables "edit event" actions (Reschedule, Edit Location, Add Guests) and Cancel Booking
   isCancelled?: boolean; // When true, only Report Booking and Mark as No-Show are enabled
   isUnconfirmed?: boolean; // When true, disables Reschedule, Edit Location, Add Guests
-  onViewBooking?: () => void;
   onReschedule: () => void;
   onEditLocation: () => void;
   onAddGuests: () => void;
@@ -51,7 +50,6 @@ export function BookingActionsModal({
   isPast = false,
   isCancelled = false,
   isUnconfirmed = false,
-  onViewBooking,
   onReschedule,
   onEditLocation,
   onAddGuests,
@@ -64,8 +62,8 @@ export function BookingActionsModal({
   if (!booking) return null;
 
   // For cancelled bookings, only Report Booking and Mark as No-Show are enabled
-  // "After event" actions (except Mark as No-Show) are disabled for upcoming bookings
-  const afterEventActionsDisabled = isUpcoming || isCancelled;
+  // "After event" actions (except Mark as No-Show) are disabled for upcoming, cancelled, or unconfirmed bookings
+  const afterEventActionsDisabled = isUpcoming || isCancelled || isUnconfirmed;
   // "Edit event" actions (Reschedule, Edit Location, Add Guests) are disabled for past, cancelled, or unconfirmed bookings
   const editEventActionsDisabled = isPast || isCancelled || isUnconfirmed;
   // Cancel booking is disabled for past or cancelled bookings (but NOT for unconfirmed - user can still cancel/decline)
@@ -85,25 +83,6 @@ export function BookingActionsModal({
         >
           {/* Actions List */}
           <View className="p-2">
-            {/* View Booking - only show if handler is provided */}
-            {onViewBooking && (
-              <>
-                <TouchableOpacity
-                  onPress={() => {
-                    onClose();
-                    onViewBooking();
-                  }}
-                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                >
-                  <Ionicons name="eye-outline" size={ICON_SIZE} color={ICON_COLOR} />
-                  <Text className={`ml-3 ${TEXT_CLASS} ${TEXT_COLOR_CLASS}`}>View Booking</Text>
-                </TouchableOpacity>
-
-                {/* Separator */}
-                <View className="mx-4 my-2 h-px bg-gray-200" />
-              </>
-            )}
-
             {/* Edit event label */}
             <View className="px-4 py-1">
               <Text className="text-xs font-medium text-gray-500">Edit event</Text>
@@ -231,23 +210,23 @@ export function BookingActionsModal({
               </TouchableOpacity>
             )}
 
-            {/* Mark as No-Show - enabled for cancelled bookings */}
+            {/* Mark as No-Show - disabled for upcoming and unconfirmed bookings */}
             <TouchableOpacity
               onPress={() => {
-                if (isUpcoming) return;
+                if (isUpcoming || isUnconfirmed) return;
                 onClose();
                 onMarkNoShow();
               }}
-              disabled={isUpcoming}
+              disabled={isUpcoming || isUnconfirmed}
               className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
             >
               <Ionicons
                 name="eye-off-outline"
                 size={ICON_SIZE}
-                color={isUpcoming ? DISABLED_ICON_COLOR : ICON_COLOR}
+                color={isUpcoming || isUnconfirmed ? DISABLED_ICON_COLOR : ICON_COLOR}
               />
               <Text
-                className={`ml-3 ${TEXT_CLASS} ${isUpcoming ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
+                className={`ml-3 ${TEXT_CLASS} ${isUpcoming || isUnconfirmed ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
               >
                 Mark as No-Show
               </Text>
@@ -291,7 +270,7 @@ export function BookingActionsModal({
               <Text
                 className={`ml-3 ${TEXT_CLASS} ${cancelBookingDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_DANGER_CLASS}`}
               >
-                Cancel Booking
+                Cancel Event
               </Text>
             </TouchableOpacity>
           </View>

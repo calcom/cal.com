@@ -17,7 +17,7 @@ interface MoreMenuItem {
 
 export default function More() {
   const router = useRouter();
-  const { logout, userInfo } = useAuth();
+  const { logout } = useAuth();
 
   const handleSignOut = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -106,42 +106,15 @@ export default function More() {
           ))}
         </View>
 
-        {/* Account Section */}
-        <View className="mt-6">
-          <Text className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Account
-          </Text>
-          <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-            {/* User Info */}
-            {userInfo && (
-              <View className="flex-row items-center border-b border-[#E5E5EA] px-5 py-4">
-                <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-900">
-                  <Text className="text-base font-semibold text-white">
-                    {userInfo.name?.charAt(0)?.toUpperCase() ||
-                      userInfo.email?.charAt(0)?.toUpperCase() ||
-                      "?"}
-                  </Text>
-                </View>
-                <View className="ml-3 flex-1">
-                  <Text className="text-base font-semibold text-[#333]" numberOfLines={1}>
-                    {userInfo.name || "Cal.com User"}
-                  </Text>
-                  <Text className="text-sm text-gray-500" numberOfLines={1}>
-                    {userInfo.email}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Sign Out Button */}
-            <TouchableOpacity
-              onPress={handleSignOut}
-              className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
-            >
-              <Ionicons name="log-out-outline" size={20} color="#800000" />
-              <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
-            </TouchableOpacity>
-          </View>
+        {/* Sign Out Button */}
+        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+          <TouchableOpacity
+            onPress={handleSignOut}
+            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
+          >
+            <Ionicons name="log-out-outline" size={20} color="#800000" />
+            <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Footer Note */}
