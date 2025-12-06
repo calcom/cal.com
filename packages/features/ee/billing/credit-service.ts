@@ -778,6 +778,59 @@ export class CreditService {
     };
   }
 
+  async moveCreditsFromUserToTeam({ userId, teamId }: { userId: number; teamId: number }) {
+    return await prisma.$transaction(async (tx) => {
+      const userCreditBalance = await CreditsRepository.findCreditBalance({ userId }, tx);
+
+      if (!userCreditBalance || userCreditBalance.additionalCredits <= 0) {
+        log.info("No user credits to transfer from user to team", { userId, teamId });
+        return;
+      }
+
+      let teamCreditBalance = await CreditsRepository.findCreditBalance({ teamId }, tx);
+
+      if (!teamCreditBalance) {
+        teamCreditBalance = await CreditsRepository.createCreditBalance({ teamId }, tx);
+      }
+
+      const creditsToTransfer = userCreditBalance.additionalCredits;
+
+      await CreditsRepository.updateCreditBalance(
+        {
+          userId,
+          data: {
+            additionalCredits: 0,
+          },
+        },
+        tx
+      );
+
+      await CreditsRepository.updateCreditBalance(
+        {
+          teamId,
+          data: {
+            additionalCredits: {
+              increment: creditsToTransfer,
+            },
+          },
+        },
+        tx
+      );
+
+      log.info("Successfully transferred credits from user to team", {
+        userId,
+        teamId,
+        creditsTransferred: creditsToTransfer,
+      });
+
+      return {
+        creditsTransferred: creditsToTransfer,
+        userId,
+        teamId,
+      };
+    });
+  }
+
   async moveCreditsFromTeamToOrg({ teamId, orgId }: { teamId: number; orgId: number }) {
     return await prisma.$transaction(async (tx) => {
       // Get team's credit balance

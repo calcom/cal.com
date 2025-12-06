@@ -13,6 +13,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipSchema } from "@calcom/prisma/zod/modelSchema/MembershipSchema";
 import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -74,6 +75,11 @@ async function handler(request: NextRequest) {
         subscriptionStart,
       });
     }
+    const creditService = new CreditService();
+    await creditService.moveCreditsFromUserToTeam({
+      userId: checkoutSessionMetadata.ownerId,
+      teamId: finalizedTeam.id,
+    });
 
     const response = {
       message: `Team created successfully. We also made user with ID=${checkoutSessionMetadata.ownerId} the owner of this team.`,
