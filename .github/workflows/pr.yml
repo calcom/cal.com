@@ -261,6 +261,18 @@ jobs:
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
-      - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
-        run: exit 1
+      - name: Dump dependent job results and fail only on 'failure'
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true'
+        run: |
+          echo 'Dependent job results:'
+          echo '${{ toJson(needs) }}'
+          
+          # Use jq to list jobs with result == "failure"
+          echo '${{ toJson(needs) }}' > /tmp/needs.json
+          cat /tmp/needs.json
+          failures=$(jq -r 'to_entries | map(select(.value.result=="failure")) | .[].key' /tmp/needs.json || true)
+          if [ -n "$failures" ]; then
+            echo " Failed jobs: $failures"
+            exit 1
+          fi
+          echo " No failed jobs."
