@@ -35,6 +35,9 @@ describe("BookingsController_2024_04_15 Unit Test", () => {
   };
 
   beforeEach(async () => {
+    // Clear call history for the repository mock between tests
+    mockOAuthClientRepository.getOAuthClient.mockClear();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BookingsController_2024_04_15],
       providers: [
@@ -100,6 +103,7 @@ describe("BookingsController_2024_04_15 Unit Test", () => {
       const params = await (controller as any).getOAuthClientsParams(managedEmbedClientId, true);
 
       // Should NOT call repository because it shortcuts to defaults
+      expect(mockOAuthClientRepository.getOAuthClient).not.toHaveBeenCalled();
       expect(params.arePlatformEmailsEnabled).toBe(true);
       expect(params.areCalendarEventsEnabled).toBe(true);
       // Defaults have empty platformClientId usually, or whatever DEFAULT_PLATFORM_PARAMS has
@@ -118,6 +122,67 @@ describe("BookingsController_2024_04_15 Unit Test", () => {
       // It tried to fetch from DB (mock returns null), so it returns defaults
       expect(mockOAuthClientRepository.getOAuthClient).toHaveBeenCalledWith(managedEmbedClientId);
       expect(params.arePlatformEmailsEnabled).toBe(false);
+    });
+
+    it("should NOT force embed defaults when managedEmbedClientId is empty (security: fail closed)", async () => {
+      // This tests the critical security scenario where PLATFORM_EMBED_CLIENT_ID is not configured.
+      // The implementation should "fail closed" - not allowing any client to bypass OAuth settings.
+      const emptyConfigService = {
+        get: jest.fn((key: string) => {
+          if (key === "platform.embedOAuthClientId") return ""; // Empty/not configured
+          return null;
+        }),
+      };
+
+      // Re-create controller with empty config to test this edge case
+      const module: TestingModule = await Test.createTestingModule({
+        controllers: [BookingsController_2024_04_15],
+        providers: [
+          { provide: ConfigService, useValue: emptyConfigService },
+          { provide: OAuthClientRepository, useValue: mockOAuthClientRepository },
+          { provide: OAuthFlowService, useValue: {} },
+          { provide: PrismaReadService, useValue: {} },
+          { provide: KyselyReadService, useValue: {} },
+          { provide: BillingService, useValue: {} },
+          { provide: ApiKeysRepository, useValue: {} },
+          { provide: PlatformBookingsService, useValue: {} },
+          { provide: UsersRepository, useValue: {} },
+          { provide: UsersService, useValue: {} },
+          { provide: RegularBookingService, useValue: {} },
+          { provide: RecurringBookingService, useValue: {} },
+          { provide: InstantBookingCreateService, useValue: {} },
+          { provide: PrismaEventTypeRepository, useValue: {} },
+          { provide: PrismaTeamRepository, useValue: {} },
+        ],
+      })
+        .overrideGuard(PermissionsGuard)
+        .useValue({ canActivate: () => true })
+        .compile();
+
+      const controllerWithEmptyConfig = module.get<BookingsController_2024_04_15>(
+        BookingsController_2024_04_15
+      );
+
+      const clientMetadata = {
+        bookingRedirectUri: "https://customer/redirect",
+        bookingCancelRedirectUri: "https://customer/cancel",
+        bookingRescheduleRedirectUri: "https://customer/reschedule",
+        areEmailsEnabled: false,
+        areCalendarEventsEnabled: false,
+      };
+      mockOAuthClientRepository.getOAuthClient.mockResolvedValue(clientMetadata);
+
+      // Even with isEmbed=true, when managedEmbedClientId is not configured,
+      // the code should NOT bypass OAuth settings (fail closed for security)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const params = await (controllerWithEmptyConfig as any).getOAuthClientsParams(customerClientId, true);
+
+      // Should fetch from repository (not shortcut to embed defaults)
+      expect(mockOAuthClientRepository.getOAuthClient).toHaveBeenCalledWith(customerClientId);
+      // Should use the client's actual settings, not forced embed defaults
+      expect(params.arePlatformEmailsEnabled).toBe(false);
+      expect(params.areCalendarEventsEnabled).toBe(false);
+      expect(params.platformClientId).toBe(customerClientId);
     });
   });
 });

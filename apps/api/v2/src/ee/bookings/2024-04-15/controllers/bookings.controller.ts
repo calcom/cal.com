@@ -565,7 +565,8 @@ export class BookingsController_2024_04_15 {
     }
 
     if (!this.managedEmbedClientId) {
-      return true;
+      this.logger.warn("PLATFORM_EMBED_CLIENT_ID not configured; embed defaults disabled");
+      return false;
     }
 
     return clientId === this.managedEmbedClientId;
