@@ -22,10 +22,6 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
-type PasswordFieldTranslations = {
-  showPasswordText?: string;
-  hidePasswordText?: string;
-};
 
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
@@ -194,7 +190,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
       ref={ref}
       addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
-      containerClassName="mx-3 mt-2"
+      containerClassName="mt-1"
       {...props}
     />
   );
