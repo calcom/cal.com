@@ -333,7 +333,9 @@ export class OrganizationRepository {
         accepted: membership?.accepted,
       },
       ...membership?.team,
-      metadata,
+      metadata: {
+        requestedSlug: metadata?.requestedSlug ?? null,
+      },
     };
   }
 

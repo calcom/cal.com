@@ -529,6 +529,45 @@ export class UserRepository {
     };
   }
 
+  async enrichUserWithItsProfileExcludingOrgMetadata<
+    T extends {
+      id: number;
+      username: string | null;
+    }
+  >({
+    user,
+  }: {
+    user: T;
+  }): Promise<
+    T & {
+      nonProfileUsername: string | null;
+      profile: UserProfile;
+    }
+  > {
+    const enrichedUser = await this.enrichUserWithItsProfile({ user });
+
+    const { profile } = enrichedUser;
+
+    if (!profile || !profile.organization) {
+      return enrichedUser;
+    }
+
+    // Exclude organization metadata
+    const sanitizedProfile: UserProfile = {
+      ...profile,
+      organization: {
+        ...profile.organization,
+        metadata: {},
+        organizationSettings: profile.organization.organizationSettings,
+      },
+    };
+
+    return {
+      ...enrichedUser,
+      profile: sanitizedProfile,
+    };
+  }
+
   async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
     users: T[]
   ): Promise<
@@ -584,6 +623,42 @@ export class UserRepository {
         ...user,
         nonProfileUsername: user.username,
         profile: personalProfileMap.get(user.id)!,
+      };
+    });
+  }
+
+  async enrichUsersWithTheirProfileExcludingOrgMetadata<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    const enrichedUsers = await this.enrichUsersWithTheirProfiles(users);
+
+    return enrichedUsers.map((enrichedUser) => {
+      const { profile } = enrichedUser;
+
+      if (!profile || !profile.organization) {
+        return enrichedUser;
+      }
+
+      // Exclude organization metadata
+      const sanitizedProfile: UserProfile = {
+        ...profile,
+        organization: {
+          ...profile.organization,
+          metadata: {},
+          organizationSettings: profile.organization.organizationSettings,
+        },
+      };
+
+      return {
+        ...enrichedUser,
+        profile: sanitizedProfile,
       };
     });
   }
