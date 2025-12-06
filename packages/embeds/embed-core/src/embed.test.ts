@@ -26,7 +26,7 @@ type ExpectedIframeUrlObject = {
   origin: string | null;
 };
 
-function log(...args: any[]) {
+function log(...args: unknown[]) {
   console.log("Test:", ...args);
 }
 
@@ -43,7 +43,7 @@ function buildModalArg(arg: { calLink: string; config: Record<string, string> })
 function expectCalModalBoxToBeInDocument(expectedAttrs: ExpectedModalBoxAttrs) {
   const calModalBox = document.querySelector("cal-modal-box") as HTMLElement;
   expect(calModalBox).toBeTruthy();
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   const modalBox = calModalBox!;
 
   // Verify required attributes are present
