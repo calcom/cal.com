@@ -503,11 +503,11 @@ model NotificationsSubscriptions {
 model Profile {
   id             Int         @id @default(autoincrement())
   // uid allows us to set an identifier chosen by us which is helpful in migration when we create the Profile from User directly.
-  uid            String
+  uid            String      @unique @default(uuid())
   userId         Int
   user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organizationId Int
-  organization   Team        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId Int?
+  organization   Team?       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   username       String
   eventTypes     EventType[]
   movedFromUser  User?       @relation("moved_to_profile")

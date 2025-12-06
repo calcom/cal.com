@@ -8,7 +8,6 @@ import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/que
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
@@ -360,7 +359,6 @@ export async function createNewUsersConnectToOrgIfExists({
                     createMany: {
                       data: [
                         {
-                          uid: ProfileRepository.generateProfileUid(),
                           username: orgMemberUsername,
                           organizationId: orgId,
                         },

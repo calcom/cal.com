@@ -188,7 +188,6 @@ export class ProfileRepository {
     log.debug("_create", safeStringify({ userId, organizationId, username, email }));
     return prisma.profile.create({
       data: {
-        uid: ProfileRepository.generateProfileUid(),
         user: {
           connect: {
             id: userId,
@@ -254,7 +253,6 @@ export class ProfileRepository {
   }) {
     return prisma.profile.upsert({
       create: {
-        uid: ProfileRepository.generateProfileUid(),
         user: {
           connect: {
             id: create.userId,
@@ -312,7 +310,6 @@ export class ProfileRepository {
   }) {
     await prisma.profile.createMany({
       data: users.map((user) => ({
-        uid: ProfileRepository.generateProfileUid(),
         userId: user.id,
         organizationId,
         username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
@@ -360,7 +357,6 @@ export class ProfileRepository {
   }) {
     return await prisma.profile.createMany({
       data: users.map((user) => ({
-        uid: ProfileRepository.generateProfileUid(),
         userId: user.id,
         organizationId,
         username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
@@ -380,7 +376,6 @@ export class ProfileRepository {
   }) {
     return prisma.profile.createMany({
       data: users.map((user) => ({
-        uid: ProfileRepository.generateProfileUid(),
         userId: user.id,
         organizationId,
         username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
