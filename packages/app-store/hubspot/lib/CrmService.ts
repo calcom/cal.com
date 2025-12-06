@@ -306,4 +306,15 @@ export default class HubspotCalendarService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+
+  async addContacts(uid: string, contacts: Contact[]) {
+    const auth = await this.auth;
+    await auth.getToken();
+
+    const contactIds: { id: string }[] = contacts.map((contact) => ({ id: contact.id }));
+    const meeting = { id: uid } as SimplePublicObject;
+
+    await this.hubspotAssociate(meeting, contactIds);
+    this.log.debug("association:addContacts:ok", { meetingId: uid, contacts });
+  }
 }

@@ -53,4 +53,5 @@ export interface CRM {
     bookingUid: string,
     attendees: { email: string; noShow: boolean }[]
   ) => Promise<void>;
+  addContacts?: (uid: string, contacts: Contact[]) => Promise<void>;
 }
