@@ -8,6 +8,7 @@ import type { BookingRepository } from "@calcom/features/bookings/repositories/B
 import {
   getBusyTimesFromLimits,
   getBusyTimesFromTeamLimits,
+  getBusyTimesFromGlobalBookingLimits,
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
@@ -441,6 +442,28 @@ export class UserAvailabilityService {
       );
     }
 
+    // Check for global user-level booking limits
+    const userBookingLimits =
+      user.bookingLimits &&
+      typeof user.bookingLimits === "object" &&
+      Object.keys(user.bookingLimits).length > 0
+        ? parseBookingLimit(user.bookingLimits)
+        : null;
+
+    let busyTimesFromGlobalUserLimits: EventBusyDetails[] = [];
+
+    if (userBookingLimits) {
+      busyTimesFromGlobalUserLimits = await getBusyTimesFromGlobalBookingLimits(
+        user.id,
+        user.email,
+        userBookingLimits,
+        dateFrom.tz(finalTimezone),
+        dateTo.tz(finalTimezone),
+        finalTimezone,
+        initialData?.rescheduleUid ?? undefined
+      );
+    }
+
     let busyTimes = [];
     try {
       const busyTimesService = getBusyTimesService();
@@ -487,6 +510,7 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      ...busyTimesFromGlobalUserLimits,
     ];
 
     const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
