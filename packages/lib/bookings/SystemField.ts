@@ -18,6 +18,16 @@ export const CAL_AI_AGENT_PHONE_NUMBER_FIELD = "aiAgentCallPhoneNumber";
 export const TITLE_FIELD = "title";
 
 /**
+ * Default workflow phone field to be used as the primary visible phone
+ * when location is not using Attendee Phone and multiple workflow phone
+ * fields exist. Change this single line to switch the default.
+ *
+ * To switch to SMS reminder phone by default, change to:
+ *   export const DEFAULT_WORKFLOW_PHONE_FIELD = SMS_REMINDER_NUMBER_FIELD;
+ */
+export const DEFAULT_WORKFLOW_PHONE_FIELD = CAL_AI_AGENT_PHONE_NUMBER_FIELD;
+
+/**
  * Check if a field should be displayed in custom responses section.
  * System fields are filtered out except for SMS_REMINDER_NUMBER_FIELD and TITLE_FIELD
  * which don't have dedicated sections in the UI.

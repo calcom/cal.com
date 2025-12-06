@@ -1,6 +1,5 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
-import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
@@ -11,20 +10,25 @@ import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocati
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
-import { SystemField } from "@calcom/lib/bookings/SystemField";
+import {
+  SystemField,
+  DEFAULT_WORKFLOW_PHONE_FIELD,
+  CAL_AI_AGENT_PHONE_NUMBER_FIELD,
+  SMS_REMINDER_NUMBER_FIELD,
+} from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
-type TouchedFields = {
-  responses?: Record<string, boolean>;
+type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
+
+const MASTER_SOURCE_TYPE_LOCATION = "location" as const;
+const MASTER_SOURCE_TYPE_FIELD = "field" as const;
+const FORM_RESPONSES_FIELD = "responses";
+const getFormFieldPath = <T extends string>(fieldName: T): `${typeof FORM_RESPONSES_FIELD}.${T}` => {
+  return `${FORM_RESPONSES_FIELD}.${fieldName}` as const;
 };
 
-type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
-const PhoneLocationSchema = z.object({
-  value: z.literal(DefaultEventLocationTypeEnum.Phone),
-  optionValue: z.string().optional(),
-});
 export const BookingFields = ({
   fields,
   locations,
@@ -43,44 +47,191 @@ export const BookingFields = ({
   paymentCurrency?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const { watch, setValue, formState } = useFormContext();
-  const locationResponse = watch("responses.location");
+  const { watch, setValue } = useFormContext();
+  const locationResponse = watch(getFormFieldPath(SystemField.Enum.location));
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
-  // Identify all phone fields (except location field)
-  const otherPhoneFieldNames = useMemo(
-    () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
-    [fields]
+  // Identify all phone fields
+  const allPhoneFields = useMemo(() => {
+    const phoneFields = fields.filter((f) => f.type === "phone");
+    return phoneFields;
+  }, [fields]);
+
+  // Determine if event has Location: Phone option configured
+  const hasLocationPhoneOption = useMemo(
+    () => locations?.some((l) => l?.type === DefaultEventLocationTypeEnum.Phone) ?? false,
+    [locations]
   );
 
-  // Track last synced value to avoid redundant updates
-  const lastSyncedPhoneRef = useRef<string | null>(null);
+  // Decide the primary phone source shown by default:
+  // 1) Location phone when configured
+  // 2) Workflow default phone (configurable one-liner) IF NOT EXPLICITLY HIDDEN by host
+  // 3) attendeePhoneNumber IF NOT EXPLICITLY HIDDEN by host
+  // 4) first custom phone IF NOT EXPLICITLY HIDDEN by host
+  // 5) fallback to first phone field even if hidden
+  const primaryPhoneSource = useMemo<{ kind: "location" } | { kind: "field"; name: string } | null>(() => {
+    if (hasLocationPhoneOption) {
+      return { kind: "location" } as const;
+    }
 
-  // Event-driven sync function
-  const syncPhoneFields = (locationValue: unknown) => {
-    const parsed = PhoneLocationSchema.safeParse(locationValue);
-    if (!parsed.success) return;
-    const { optionValue } = parsed.data;
-    const phone = (optionValue ?? "").trim();
+    // Filter out fields that are explicitly hidden by host
+    const visiblePhoneFields = allPhoneFields.filter((f) => f.hidden !== true);
 
-    // Skip if empty or same as last sync (avoid redundant updates during typing)
-    if (!phone || phone === lastSyncedPhoneRef.current) return;
+    const hasDefaultWorkflow = visiblePhoneFields.find((f) => f.name === DEFAULT_WORKFLOW_PHONE_FIELD);
+    if (hasDefaultWorkflow) {
+      return { kind: "field", name: hasDefaultWorkflow.name } as const;
+    }
+    const attendeePhone = visiblePhoneFields.find((f) => f.name === SystemField.Enum.attendeePhoneNumber);
+    if (attendeePhone) {
+      return { kind: "field", name: attendeePhone.name } as const;
+    }
+    if (visiblePhoneFields.length > 0) {
+      return { kind: "field", name: visiblePhoneFields[0].name } as const;
+    }
 
-    // Copy phone to other phone fields (only if user hasn't manually touched them)
-    otherPhoneFieldNames.forEach((name) => {
-      const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+    // Fallback: if all fields are hidden, use the first one anyway
+    if (allPhoneFields.length > 0) {
+      return { kind: "field", name: allPhoneFields[0].name } as const;
+    }
+    return null;
+  }, [hasLocationPhoneOption, allPhoneFields]);
 
-      if (!targetTouched) {
-        setValue(`responses.${name}`, phone, {
-          shouldDirty: false,
-          shouldValidate: false,
-        });
+  // Hosts can explicitly unhide phone fields; respect that intent
+  const hostUnhiddenPhoneNames = useMemo(
+    () => new Set(allPhoneFields.filter((f) => f.hidden === false).map((f) => f.name)),
+    [allPhoneFields]
+  );
+
+  const isPhoneHiddenByDefault = (fieldName: string) => {
+    if (hostUnhiddenPhoneNames.has(fieldName)) return false;
+    if (!primaryPhoneSource) return true;
+
+    // When location is master: only hide system workflow fields (AI Agent, SMS),
+    // but keep custom phone fields visible (they were explicitly added by host)
+    if (primaryPhoneSource.kind === "location") {
+      const isSystemWorkflowField =
+        fieldName === CAL_AI_AGENT_PHONE_NUMBER_FIELD || fieldName === SMS_REMINDER_NUMBER_FIELD;
+      return isSystemWorkflowField;
+    }
+
+    // When a phone field is master: hide all other phone fields except the master
+    return primaryPhoneSource.name !== fieldName;
+  };
+
+  // === NEW MASTER-SLAVE PHONE AUTOFILL LOGIC ===
+  const allPhoneFieldNames = useMemo(() => allPhoneFields.map((f) => f.name), [allPhoneFields]);
+
+  // Define master priority order: Location > AI Agent > SMS Reminder > Custom fields
+  // ONLY consider fields that are NOT explicitly hidden by host
+  const masterPriorityOrder = useMemo(() => {
+    const order: Array<{
+      type: typeof MASTER_SOURCE_TYPE_LOCATION | typeof MASTER_SOURCE_TYPE_FIELD;
+      name: string;
+    }> = [];
+
+    // 1. Location phone (only if Phone location is configured)
+    if (hasLocationPhoneOption) {
+      order.push({ type: MASTER_SOURCE_TYPE_LOCATION, name: SystemField.Enum.location });
+    }
+
+    // Filter to only visible phone fields (not explicitly hidden by host)
+    const visiblePhoneFields = allPhoneFields.filter((f) => f.hidden !== true);
+
+    // 2. AI Agent phone (if visible)
+    const aiAgentField = visiblePhoneFields.find((f) => f.name === CAL_AI_AGENT_PHONE_NUMBER_FIELD);
+    if (aiAgentField) {
+      order.push({ type: MASTER_SOURCE_TYPE_FIELD, name: CAL_AI_AGENT_PHONE_NUMBER_FIELD });
+    }
+
+    // 3. SMS reminder (if visible)
+    const smsField = visiblePhoneFields.find((f) => f.name === SMS_REMINDER_NUMBER_FIELD);
+    if (smsField) {
+      order.push({ type: MASTER_SOURCE_TYPE_FIELD, name: SMS_REMINDER_NUMBER_FIELD });
+    }
+
+    // 4. Custom phone fields (in order they appear, only if visible)
+    visiblePhoneFields.forEach((f) => {
+      if (f.name !== CAL_AI_AGENT_PHONE_NUMBER_FIELD && f.name !== SMS_REMINDER_NUMBER_FIELD) {
+        order.push({ type: MASTER_SOURCE_TYPE_FIELD, name: f.name });
       }
     });
 
-    lastSyncedPhoneRef.current = phone;
-  };
+    return order;
+  }, [hasLocationPhoneOption, allPhoneFields]);
+
+  const aiAgentPhoneValue = watch(getFormFieldPath(CAL_AI_AGENT_PHONE_NUMBER_FIELD));
+  const smsReminderValue = watch(getFormFieldPath(SMS_REMINDER_NUMBER_FIELD));
+
+  // Watch ALL phone field values to ensure currentMaster updates when ANY field changes
+  const allPhoneFieldValues = watch(allPhoneFieldNames.map((name) => getFormFieldPath(name)));
+
+  const currentMaster = useMemo(() => {
+    for (const candidate of masterPriorityOrder) {
+      if (candidate.type === MASTER_SOURCE_TYPE_LOCATION) {
+        if (locationResponse?.value === DefaultEventLocationTypeEnum.Phone) {
+          const phoneValue = String((locationResponse as any)?.optionValue ?? "").trim();
+          if (phoneValue) {
+            return { source: candidate, value: phoneValue };
+          }
+        }
+      } else {
+        let fieldValue = "";
+        if (candidate.name === CAL_AI_AGENT_PHONE_NUMBER_FIELD) {
+          fieldValue = String(aiAgentPhoneValue ?? "").trim();
+        } else if (candidate.name === SMS_REMINDER_NUMBER_FIELD) {
+          fieldValue = String(smsReminderValue ?? "").trim();
+        } else {
+          // Find value from allPhoneFieldValues array
+          const fieldIndex = allPhoneFieldNames.indexOf(candidate.name);
+          if (fieldIndex !== -1 && allPhoneFieldValues) {
+            fieldValue = String(allPhoneFieldValues[fieldIndex] ?? "").trim();
+          }
+        }
+
+        if (fieldValue) {
+          return { source: candidate, value: fieldValue };
+        }
+      }
+    }
+    return null;
+  }, [
+    masterPriorityOrder,
+    locationResponse,
+    aiAgentPhoneValue,
+    smsReminderValue,
+    allPhoneFieldValues,
+    allPhoneFieldNames,
+  ]);
+
+  const lastMasterValueRef = useRef<string | null>(null);
+
+  // Single sync effect: Master-to-slaves propagation
+  useEffect(() => {
+    // Only sync when master value actually changes, not when slave fields change
+    const masterValue = currentMaster?.value ?? null;
+    if (lastMasterValueRef.current === masterValue) {
+      return;
+    }
+    lastMasterValueRef.current = masterValue;
+
+    // Get all target fields (exclude master from targets)
+    const allTargets = allPhoneFieldNames.filter((name) => {
+      if (currentMaster?.source.type === MASTER_SOURCE_TYPE_FIELD && currentMaster.source.name === name) {
+        return false;
+      }
+      return true;
+    });
+
+    if (currentMaster) {
+      allTargets.forEach((targetName) => {
+        setValue(getFormFieldPath(targetName), currentMaster.value, {
+          shouldDirty: false,
+          shouldValidate: false,
+        });
+      });
+    }
+  }, [currentMaster, allPhoneFieldNames, setValue]);
 
   const getPriceFormattedLabel = (label: string, price: number) =>
     `${label} (${Intl.NumberFormat(i18n.language, {
@@ -160,15 +311,20 @@ export const BookingFields = ({
         }
 
         if (field.name === SystemField.Enum.smsReminderNumber) {
-          // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
-          // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
-          if (locationResponse?.value === "phone") {
-            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
-            // Just don't render the field now, as the value is already connected to attendee phone location
-            return null;
-          }
           // `smsReminderNumber` can be edited during reschedule even though it's a system field
+          // Value syncing from location phone is handled by effects above, but visibility now fully respects host toggle.
           readOnly = false;
+        }
+
+        // Enforce single visible phone field by default; respect host explicit hide/unhide
+        if (field.type === "phone") {
+          if (field.hidden === true) {
+            hidden = true;
+          } else if (field.hidden === false) {
+            hidden = false;
+          } else {
+            hidden = isPhoneHiddenByDefault(field.name);
+          }
         }
 
         if (field.name === SystemField.Enum.guests) {
@@ -250,11 +406,6 @@ export const BookingFields = ({
             field={{ ...fieldWithPrice, hidden }}
             readOnly={readOnly}
             key={index}
-            {...(field.name === SystemField.Enum.location && {
-              onValueChange: ({ value }) => {
-                syncPhoneFields(value);
-              },
-            })}
           />
         );
       })}

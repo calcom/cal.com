@@ -3910,6 +3910,7 @@
   "booking_fields_email_or_phone_required": "At least Email or Attendee Phone Number must be a required field",
   "booking_fields_phone_required_when_email_hidden": "Attendee Phone Number must be required when Email is hidden",
   "booking_fields_email_required_when_phone_hidden": "Email must be required when Attendee Phone Number is hidden",
+  "at_least_one_phone_required": "At least one phone field must remain visible",
   "inbound_agent_setup_success": "Inbound agent setup successful",
   "inbound_agent_configured": "Inbound agent configured",
   "setup_inbound_agent": "Set up Inbound Agent",
