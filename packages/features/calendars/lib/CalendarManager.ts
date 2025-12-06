@@ -8,6 +8,7 @@ import dayjs from "@calcom/dayjs";
 import getCalendarsEvents, {
   getCalendarsEventsWithTimezones,
 } from "@calcom/features/calendars/lib/getCalendarsEvents";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
@@ -506,11 +507,31 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calEvent.additionalNotes = null;
     calEvent.customInputs = null;
   }
+
   // Generate the calendar event description
   // Use custom calendar description if set, otherwise use the rich description
+  let calendarDescription = getRichDescription(calEvent);
+
+  // If custom calendar description is set, apply variable substitution
+  if (calEvent.calendarEventDescription) {
+    const t = calEvent.organizer.language.translate;
+    const attendeeName = calEvent.attendees[0]?.name || t("scheduler");
+    const eventNameObject = {
+      attendeeName,
+      eventType: calEvent.title,
+      eventName: calEvent.calendarEventDescription,
+      host: calEvent.team?.name || calEvent.organizer.name,
+      location: calEvent.location,
+      bookingFields: calEvent.responses as Record<string, unknown> | null,
+      eventDuration: calEvent.length || 0,
+      t,
+    };
+    calendarDescription = getEventName(eventNameObject, true);
+  }
+
   const calendarEvent: CalendarServiceEvent = {
     ...calEvent,
-    calendarDescription: calEvent.calendarEventDescription || getRichDescription(calEvent),
+    calendarDescription,
   };
 
   const isMeetLocationType = calEvent.location === MeetLocationType;

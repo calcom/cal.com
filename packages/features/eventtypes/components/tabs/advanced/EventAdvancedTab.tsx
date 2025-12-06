@@ -56,7 +56,6 @@ import {
   SelectField,
   ColorPicker,
   TextField,
-  TextAreaField,
   Label,
   CheckboxField,
   Switch,
@@ -66,6 +65,7 @@ import {
 import { Icon } from "@calcom/ui/components/icon";
 
 import AddVerifiedEmail from "../../AddVerifiedEmail";
+import CustomCalendarDescriptionModal from "./CustomCalendarDescriptionModal";
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
@@ -145,8 +145,13 @@ type CalendarSettingsProps = {
     disabled: boolean;
     LockedIcon: false | JSX.Element;
   };
+  calendarDescriptionLocked: {
+    disabled: boolean;
+    LockedIcon: false | JSX.Element;
+  };
   eventNamePlaceholder: string;
   setShowEventNameTip: Dispatch<SetStateAction<boolean>>;
+  setShowCalendarDescriptionTip: Dispatch<SetStateAction<boolean>>;
   showToast: EventAdvancedTabProps["showToast"];
   verifiedSecondaryEmails: { label: string; value: number }[];
   userEmail: string;
@@ -160,8 +165,10 @@ const destinationCalendarComponents = {
     customClassNames,
     calendarsQuery,
     eventNameLocked,
+    calendarDescriptionLocked,
     eventNamePlaceholder,
     setShowEventNameTip,
+    setShowCalendarDescriptionTip,
     verifiedSecondaryEmails,
     userEmail,
     isTeamEventType,
@@ -229,6 +236,26 @@ const destinationCalendarComponents = {
               }
             />
           </div>
+        </div>
+        <div className="w-full">
+          <TextField
+            label={t("calendar_event_description")}
+            type="text"
+            {...calendarDescriptionLocked}
+            placeholder={t("custom_calendar_description_placeholder")}
+            {...formMethods.register("calendarEventDescription")}
+            addOnSuffix={
+              <Button
+                color="minimal"
+                size="sm"
+                aria-label="edit custom description"
+                className="hover:stroke-3 hover:text-emphasis min-w-fit py-0! px-0 hover:bg-transparent"
+                onClick={() => setShowCalendarDescriptionTip((old) => !old)}>
+                <Icon name="pencil" className="h-4 w-4" />
+              </Button>
+            }
+          />
+          <p className="text-subtle mt-1 text-sm">{t("custom_calendar_description_helper")}</p>
         </div>
         <div className="stack-y-2">
           {showConnectedCalendarSettings && (
@@ -341,8 +368,10 @@ const calendarComponents = {
     isChildrenManagedEventType,
     customClassNames,
     eventNameLocked,
+    calendarDescriptionLocked,
     eventNamePlaceholder,
     setShowEventNameTip,
+    setShowCalendarDescriptionTip,
     showToast,
   }: CalendarSettingsProps) {
     const formMethods = useFormContext<FormValues>();
@@ -374,8 +403,10 @@ const calendarComponents = {
           isTeamEventType={isTeamEventType}
           calendarsQuery={calendarsQuery}
           eventNameLocked={eventNameLocked}
+          calendarDescriptionLocked={calendarDescriptionLocked}
           eventNamePlaceholder={eventNamePlaceholder}
           setShowEventNameTip={setShowEventNameTip}
+          setShowCalendarDescriptionTip={setShowCalendarDescriptionTip}
           showToast={showToast}
           showConnectedCalendarSettings={showConnectedCalendarSettings}
           customClassNames={customClassNames}
@@ -443,9 +474,7 @@ export const EventAdvancedTab = ({
     setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
   }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
-  const [calendarEventDescriptionVisible, setCalendarEventDescriptionVisible] = useState(
-    !!formMethods.getValues("calendarEventDescription")
-  );
+  const [showCalendarDescriptionTip, setShowCalendarDescriptionTip] = useState(false);
 
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -555,6 +584,7 @@ export const EventAdvancedTab = ({
   const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
+  const closeCalendarDescriptionTip = () => setShowCalendarDescriptionTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
 
@@ -627,8 +657,10 @@ export const EventAdvancedTab = ({
         isChildrenManagedEventType={isChildrenManagedEventType}
         customClassNames={customClassNames}
         eventNameLocked={eventNameLocked}
+        calendarDescriptionLocked={calendarEventDescriptionLocked}
         eventNamePlaceholder={eventNamePlaceholder}
         setShowEventNameTip={setShowEventNameTip}
+        setShowCalendarDescriptionTip={setShowCalendarDescriptionTip}
         showToast={showToast}
         eventType={eventType}
       />
@@ -896,45 +928,6 @@ export const EventAdvancedTab = ({
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
-        )}
-      />
-      <Controller
-        name="calendarEventDescription"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              calendarEventDescriptionVisible && "rounded-b-none"
-            )}
-            childrenClassName="lg:ml-0"
-            title={t("custom_calendar_description")}
-            {...calendarEventDescriptionLocked}
-            description={t("custom_calendar_description_helper")}
-            checked={calendarEventDescriptionVisible}
-            onCheckedChange={(e) => {
-              setCalendarEventDescriptionVisible(e);
-              if (!e) {
-                onChange(null);
-              } else {
-                onChange(value || formMethods.getValues("description") || "");
-              }
-            }}>
-            <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-              <TextAreaField
-                name="calendarEventDescription"
-                label={t("calendar_event_description")}
-                labelProps={{ className: "sr-only" }}
-                placeholder={t("custom_calendar_description_placeholder")}
-                value={value || ""}
-                onChange={(e) => onChange(e.target.value)}
-                rows={4}
-                disabled={calendarEventDescriptionLocked.disabled}
-              />
-              <p className="text-subtle mt-2 text-sm">{t("custom_calendar_description_info")}</p>
-            </div>
-          </SettingsToggle>
         )}
       />
       <Controller
@@ -1607,6 +1600,18 @@ export const EventAdvancedTab = ({
           isNameFieldSplit={isSplit}
           event={eventNameObject}
           customClassNames={customClassNames?.customEventTypeModal}
+        />
+      )}
+      {showCalendarDescriptionTip && (
+        <CustomCalendarDescriptionModal
+          close={closeCalendarDescriptionTip}
+          setValue={(val: string) =>
+            formMethods.setValue("calendarEventDescription", val, { shouldDirty: true })
+          }
+          defaultValue={formMethods.getValues("calendarEventDescription") || ""}
+          placeHolder={formMethods.getValues("description") || t("custom_calendar_description_placeholder")}
+          isNameFieldSplit={isSplit}
+          event={eventNameObject}
         />
       )}
     </div>

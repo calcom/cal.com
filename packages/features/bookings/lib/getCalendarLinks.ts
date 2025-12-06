@@ -185,7 +185,14 @@ export const getCalendarLinks = ({
   // Create event name and description
   const eventName = getEventName(eventNameObject, true);
   // Use custom calendar description if set, otherwise fall back to regular description
-  const eventDescription = eventType.calendarEventDescription || eventType.description || "";
+  // Apply variable substitution to custom calendar description using getEventName
+  let eventDescription = eventType.description || "";
+  if (eventType.calendarEventDescription) {
+    eventDescription = getEventName(
+      { ...eventNameObject, eventName: eventType.calendarEventDescription },
+      true
+    );
+  }
 
   // Calculate start and end times
   const startTime = dayjs(booking.startTime);

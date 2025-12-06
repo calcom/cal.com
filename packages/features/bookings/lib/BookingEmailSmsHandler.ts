@@ -19,6 +19,7 @@ import {
 } from "@calcom/emails/email-manager";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -282,6 +283,16 @@ export class BookingEmailSmsHandler {
       metadata?.disableStandardEmails?.confirmation?.attendee || false;
     if (isAttendeeConfirmationEmailDisabled) {
       isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+    }
+
+    if (evt.calendarEventDescription) {
+      evt.calendarEventDescription = getEventName(
+        {
+          ...eventNameObject,
+          eventName: evt.calendarEventDescription,
+        },
+        true
+      );
     }
 
     try {

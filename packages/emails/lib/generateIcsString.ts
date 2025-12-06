@@ -32,6 +32,7 @@ export type ICSCalendarEvent = Pick<
   | "type"
   | "hideCalendarEventDetails"
   | "hideOrganizerEmail"
+  | "calendarEventDescription"
 >;
 
 const toICalDateArray = (date: string): DateArray => {
@@ -78,7 +79,7 @@ const generateIcsString = ({
     startInputType: "utc",
     productId: "calcom/ics",
     title: event.title,
-    description: getRichDescription(event, t),
+    description: event.calendarEventDescription || getRichDescription(event, t),
     organizer: {
       name: event.organizer.name,
       ...(event.hideOrganizerEmail && !isOrganizerExempt
@@ -95,7 +96,7 @@ const generateIcsString = ({
         rsvp: true,
       })),
       ...(event.team?.members
-        ? event.team?.members.map((member: Person) => ({
+        ? event.team.members.map((member: Person) => ({
             name: member.name,
             email: member.email,
             partstat,
