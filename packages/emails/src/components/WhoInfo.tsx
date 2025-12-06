@@ -25,6 +25,12 @@ export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" 
 
 export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
+
+  const teamMemberEmails = new Set(props.calEvent.team?.members.map((m) => m.email));
+  const shouldHideTeamEmails =
+    props.calEvent.hideOrganizerEmail &&
+    (props.calEvent.schedulingType === "COLLECTIVE" || props.calEvent.schedulingType === "ROUND_ROBIN");
+
   return (
     <Info
       label={t("who")}
@@ -36,17 +42,24 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             email={props.calEvent.hideOrganizerEmail ? "" : props.calEvent.organizer.email}
           />
           {props.calEvent.team?.members.map((member) => (
-            <PersonInfo key={member.name} name={member.name} role={t("team_member")} email={member?.email} />
-          ))}
-          {props.calEvent.attendees.map((attendee) => (
             <PersonInfo
-              key={attendee.id || attendee.name}
-              name={attendee.name}
-              role={t("guest")}
-              email={attendee.email}
-              phoneNumber={attendee.phoneNumber ?? undefined}
+              key={member.name}
+              name={member.name}
+              role={t("team_member")}
+              email={shouldHideTeamEmails ? "" : member?.email}
             />
           ))}
+          {props.calEvent.attendees
+            .filter((attendee) => !shouldHideTeamEmails || !teamMemberEmails.has(attendee.email))
+            .map((attendee) => (
+              <PersonInfo
+                key={attendee.id || attendee.name}
+                name={attendee.name}
+                role={t("guest")}
+                email={attendee.email}
+                phoneNumber={attendee.phoneNumber ?? undefined}
+              />
+            ))}
         </>
       }
       withSpacer
