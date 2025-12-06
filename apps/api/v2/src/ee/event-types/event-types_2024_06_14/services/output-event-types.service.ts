@@ -247,7 +247,31 @@ export class OutputEventTypesService_2024_06_14 {
       if (result.success) {
         knownLocations.push(result.data);
       } else {
-        unknownLocations.push({ type: "unknown", location: JSON.stringify(location) });
+        let locationString: string;
+
+        // If location is already a string, try to parse it first to avoid double-encoding
+        if (typeof location === "string") {
+          try {
+            const parsed = JSON.parse(location);
+            // Try to validate the parsed object
+            const retryResult = InternalLocationSchema.safeParse(parsed);
+            if (retryResult.success) {
+              // It was a stringified valid location! Add to known locations and skip unknown
+              knownLocations.push(retryResult.data);
+              continue;
+            }
+            // Parsing succeeded but still doesn't match schema, use the original string
+            locationString = location;
+          } catch {
+            // Not valid JSON, use the string as-is
+            locationString = location;
+          }
+        } else {
+          // It's an object, stringify it
+          locationString = JSON.stringify(location);
+        }
+
+        unknownLocations.push({ type: "unknown", location: locationString });
       }
     }
 
@@ -274,10 +298,34 @@ export class OutputEventTypesService_2024_06_14 {
       if (result.success) {
         knownBookingFields.push(result.data);
       } else {
+        let bookingFieldString: string;
+
+        // If bookingField is already a string, try to parse it first to avoid double-encoding
+        if (typeof bookingField === "string") {
+          try {
+            const parsed = JSON.parse(bookingField);
+            // Try to validate the parsed object
+            const retryResult = BookingFieldSchema.safeParse(parsed);
+            if (retryResult.success) {
+              // It was a stringified valid field! Add to known fields and skip unknown
+              knownBookingFields.push(retryResult.data);
+              continue;
+            }
+            // Parsing succeeded but still doesn't match schema, use the original string
+            bookingFieldString = bookingField;
+          } catch {
+            // Not valid JSON, use the string as-is
+            bookingFieldString = bookingField;
+          }
+        } else {
+          // It's an object, stringify it
+          bookingFieldString = JSON.stringify(bookingField);
+        }
+
         unknownBookingFields.push({
           type: "unknown",
           slug: "unknown",
-          bookingField: JSON.stringify(bookingField),
+          bookingField: bookingFieldString,
         } satisfies OutputUnknownBookingField_2024_06_14);
       }
     }
