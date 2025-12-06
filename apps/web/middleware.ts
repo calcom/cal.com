@@ -45,7 +45,6 @@ export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/cron/workflows/scheduleEmailReminders",
   "/api/cron/workflows/scheduleSMSReminders",
   "/api/cron/workflows/scheduleWhatsappReminders",
-  "/api/get-inbound-dynamic-variables",
   "/api/integrations/", // for /api/integrations/[...args] and webhooks
   "/api/recorded-daily-video",
   "/api/router",
