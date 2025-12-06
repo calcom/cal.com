@@ -86,7 +86,7 @@ import {
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/workflowUtils";
 import type {
   AdditionalInformation,
   AppsStatus,

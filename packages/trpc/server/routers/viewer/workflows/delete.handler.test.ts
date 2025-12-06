@@ -8,12 +8,10 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/workflowUtils";
+
 import { deleteHandler } from "./delete.handler";
-import {
-  isAuthorized,
-  removeSmsReminderFieldForEventTypes,
-  removeAIAgentCallPhoneNumberFieldForEventTypes,
-} from "./util";
+import { removeSmsReminderFieldForEventTypes, removeAIAgentCallPhoneNumberFieldForEventTypes } from "./util";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
@@ -29,8 +27,11 @@ vi.mock("@calcom/features/ee/workflows/repositories/WorkflowRepository", () => (
   },
 }));
 
-vi.mock("./util", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/workflowUtils", () => ({
   isAuthorized: vi.fn(),
+}));
+
+vi.mock("./util", () => ({
   removeSmsReminderFieldForEventTypes: vi.fn(),
   removeAIAgentCallPhoneNumberFieldForEventTypes: vi.fn(),
 }));

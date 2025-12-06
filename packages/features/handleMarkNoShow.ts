@@ -16,7 +16,7 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/workflowUtils";
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
@@ -45,7 +45,7 @@ const buildResultPayload = async (
   };
 };
 
-const logFailedResults = (results: PromiseSettledResult<any>[]) => {
+const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
   if (failed.length < 1) return;
   const failedMessage = failed.map((r) => r.reason);

@@ -7,12 +7,10 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/workflowUtils";
+
 import type { TDeleteInputSchema } from "./delete.schema";
-import {
-  isAuthorized,
-  removeSmsReminderFieldForEventTypes,
-  removeAIAgentCallPhoneNumberFieldForEventTypes,
-} from "./util";
+import { removeSmsReminderFieldForEventTypes, removeAIAgentCallPhoneNumberFieldForEventTypes } from "./util";
 
 type DeleteOptions = {
   ctx: {
