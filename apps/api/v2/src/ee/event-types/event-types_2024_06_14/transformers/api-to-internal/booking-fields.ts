@@ -1,5 +1,6 @@
 import type {
   InputBookingField_2024_06_14,
+  PhoneDefaultFieldInput_2024_06_14,
   PhoneDefaultFieldOutput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
@@ -28,7 +29,7 @@ import {
   systemBeforeFieldNameSplit,
 } from "../internal-to-api";
 
-type InputBookingField = InputBookingField_2024_06_14 | PhoneDefaultFieldOutput_2024_06_14;
+type InputBookingField = InputBookingField_2024_06_14 | PhoneDefaultFieldInput_2024_06_14 | PhoneDefaultFieldOutput_2024_06_14;
 
 export function transformBookingFieldsApiToInternal(bookingFields: InputBookingField[]) {
   const customBookingFields = bookingFields.map((field) => {
@@ -79,14 +80,23 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
   }
 
   if (fieldIsDefaultAttendeePhone(field)) {
-    return {
+    const phoneField: any = {
       ...systemBeforeFieldPhone,
       required: field.required,
       hidden: field.hidden,
-      label: field.label,
-      placeholder: field.placeholder,
       disableOnPrefill: !!field.disableOnPrefill,
     };
+
+    // Only override label if explicitly provided, otherwise use defaultLabel from systemBeforeFieldPhone
+    if (field.label !== undefined) {
+      phoneField.label = field.label;
+    }
+
+    if (field.placeholder !== undefined) {
+      phoneField.placeholder = field.placeholder;
+    }
+
+    return phoneField;
   }
 
   if (fieldIsCustomSystemName(field)) {
@@ -286,7 +296,9 @@ function fieldIsCustomSystemRescheduleReason(
   return "slug" in field && field.slug === "rescheduleReason";
 }
 
-function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDefaultFieldOutput_2024_06_14 {
+function fieldIsDefaultAttendeePhone(
+  field: InputBookingField
+): field is PhoneDefaultFieldInput_2024_06_14 | PhoneDefaultFieldOutput_2024_06_14 {
   const isPhone = "type" in field && field.type === "phone";
   const isAttendeePhoneNumber = "slug" in field && field.slug === "attendeePhoneNumber";
   return isPhone && isAttendeePhoneNumber;
