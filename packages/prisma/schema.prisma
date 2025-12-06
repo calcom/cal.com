@@ -298,6 +298,7 @@ model Credential {
   references             BookingReference[]
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  externalReference      String?
 
   @@index([appId])
   @@index([subscriptionId])
