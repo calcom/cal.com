@@ -13,18 +13,6 @@ import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { bookingsProcedure } from "./util";
 
-type BookingsRouterHandlerCache = {
-  get?: typeof import("./get.handler").getHandler;
-  requestReschedule?: typeof import("./requestReschedule.handler").requestRescheduleHandler;
-  editLocation?: typeof import("./editLocation.handler").editLocationHandler;
-  addGuests?: typeof import("./addGuests.handler").addGuestsHandler;
-  confirm?: typeof import("./confirm.handler").confirmHandler;
-  getBookingAttendees?: typeof import("./getBookingAttendees.handler").getBookingAttendeesHandler;
-  find?: typeof import("./find.handler").getHandler;
-  getInstantBookingLocation?: typeof import("./getInstantBookingLocation.handler").getHandler;
-  reportBooking?: typeof import("./reportBooking.handler").reportBookingHandler;
-};
-
 export const bookingsRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
     const { getHandler } = await import("./get.handler");

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { TFunction } from "next-i18next";
 
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
@@ -8,53 +7,50 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Location Changed Audit Action Service
  * Handles LOCATION_CHANGED action with per-action versioning
- * 
+ *
  * Version History:
  * - v1: Initial schema with location
  */
 
-export const locationChangedFieldsSchemaV1 = z.object({
-  location: StringChangeSchema,
+// Module-level because it is passed to IAuditActionService type outside the class scope
+const fieldsSchemaV1 = z.object({
+    location: StringChangeSchema,
 });
 
-// V1 with version wrapper (data schema stored in DB)
-export const locationChangedDataSchemaV1 = z.object({
-    version: z.literal(1),
-    fields: locationChangedFieldsSchemaV1,
-});
+export class LocationChangedAuditActionService
+    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+    readonly VERSION = 1;
+    public static readonly TYPE = "LOCATION_CHANGED";
+    private static dataSchemaV1 = z.object({
+        version: z.literal(1),
+        fields: fieldsSchemaV1,
+    });
+    private static fieldsSchemaV1 = fieldsSchemaV1;
+    public static readonly latestFieldsSchema = fieldsSchemaV1;
+    // Union of all versions
+    public static readonly storedDataSchema = LocationChangedAuditActionService.dataSchemaV1;
+    // Union of all versions
+    public static readonly storedFieldsSchema = LocationChangedAuditActionService.fieldsSchemaV1;
+    private helper: AuditActionServiceHelper<
+        typeof LocationChangedAuditActionService.latestFieldsSchema,
+        typeof LocationChangedAuditActionService.storedDataSchema
+    >;
 
-// Union of all versions (currently just v1)
-export const locationChangedDataSchemaAllVersions = locationChangedDataSchemaV1;
-
-// Always points to the latest fields schema
-
-export const locationChangedFieldsSchema = locationChangedFieldsSchemaV1;
-
-export class LocationChangedAuditActionService implements IAuditActionService<typeof locationChangedFieldsSchemaV1> {
-  private helper: AuditActionServiceHelper<typeof locationChangedFieldsSchema, typeof locationChangedDataSchemaAllVersions>;
-
-  readonly VERSION = 1;
-  readonly fieldsSchemaV1 = locationChangedFieldsSchemaV1;
-  readonly dataSchema = z.object({
-    version: z.literal(this.VERSION),
-    fields: this.fieldsSchemaV1,
-  });
-
-  constructor() {
-    this.helper = new AuditActionServiceHelper({
+    constructor() {
+        this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
-            latestFieldsSchema: locationChangedFieldsSchema,
-            allVersionsDataSchema: locationChangedDataSchemaAllVersions,
+            latestFieldsSchema: LocationChangedAuditActionService.latestFieldsSchema,
+            storedDataSchema: LocationChangedAuditActionService.storedDataSchema,
         });
-  }
+    }
 
-  parseFieldsWithLatest(input: unknown) {
-    return this.helper.parseFieldsWithLatest(input);
-  }
+    getVersionedData(fields: unknown) {
+        return this.helper.getVersionedData(fields);
+    }
 
-  parseStored(data: unknown) {
-    return this.helper.parseStored(data);
-  }
+    parseStored(data: unknown) {
+        return this.helper.parseStored(data);
+    }
 
     getVersion(data: unknown): number {
         return this.helper.getVersion(data);
@@ -62,21 +58,21 @@ export class LocationChangedAuditActionService implements IAuditActionService<ty
 
     migrateToLatest(data: unknown) {
         // V1-only: validate and return as-is (no migration needed)
-        const validated = this.fieldsSchemaV1.parse(data);
+        const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof locationChangedFieldsSchemaV1> }, t: TFunction): string {
-    return t('audit.location_changed');
-  }
-
-    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof locationChangedFieldsSchemaV1> }, _t: TFunction): Record<string, string> {
-    const { fields } = storedData;
-    return {
-      'Previous Location': fields.location.old ?? '-',
-      'New Location': fields.location.new ?? '-',
-    };
-  }
+    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): LocationChangedAuditDisplayData {
+        return {
+            previousLocation: storedData.fields.location.old ?? null,
+            newLocation: storedData.fields.location.new ?? null,
+        };
+    }
 }
 
-export type LocationChangedAuditData = z.infer<typeof locationChangedFieldsSchemaV1>;
+export type LocationChangedAuditData = z.infer<typeof fieldsSchemaV1>;
+
+export type LocationChangedAuditDisplayData = {
+    previousLocation: string | null;
+    newLocation: string | null;
+};

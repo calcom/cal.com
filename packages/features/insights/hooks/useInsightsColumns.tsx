@@ -1,5 +1,4 @@
 import { createColumnHelper } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 import { useMemo } from "react";
 import { z } from "zod";
@@ -11,7 +10,7 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
+import { Button } from "@calcom/ui/components/button";
 
 import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
@@ -349,24 +348,16 @@ function CopyButton({ label, value }: { label: string; value: string }) {
   const { copyToClipboard, isCopied } = useCopy();
   const { t } = useLocale();
   return (
-    <button
-      className="flex w-full items-center gap-1 overflow-hidden"
-      title={value}
+    <Button
+      color="minimal"
+      size="sm"
+      className="overflow-hidden"
+      tooltip={value}
+      EndIcon={isCopied ? "check" : "clipboard"}
       onClick={() => {
         copyToClipboard(value);
       }}>
-      {!isCopied && (
-        <>
-          <span className="truncate">{label}</span>
-          <Icon name="clipboard" className="shrink-0" size={14} />
-        </>
-      )}
-      {isCopied && (
-        <>
-          <span className="grow truncate text-left">{t("copied")}</span>
-          <Icon name="check" className="shrink-0" size={14} />
-        </>
-      )}
-    </button>
+      <span className="truncate">{isCopied ? t("copied") : label}</span>
+    </Button>
   );
 }

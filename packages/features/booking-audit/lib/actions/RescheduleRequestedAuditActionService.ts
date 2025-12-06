@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { TFunction } from "next-i18next";
 
 import { StringChangeSchema, BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
@@ -8,49 +7,48 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Reschedule Requested Audit Action Service
  * Handles RESCHEDULE_REQUESTED action with per-action versioning
- * 
+ *
  * Version History:
  * - v1: Initial schema with cancellationReason, cancelledBy, rescheduled
  */
 
-export const rescheduleRequestedFieldsSchemaV1 = z.object({
+// Module-level because it is passed to IAuditActionService type outside the class scope
+const fieldsSchemaV1 = z.object({
     cancellationReason: StringChangeSchema,
     cancelledBy: StringChangeSchema,
     rescheduled: BooleanChangeSchema.optional(),
 });
 
-// V1 with version wrapper (data schema stored in DB)
-export const rescheduleRequestedDataSchemaV1 = z.object({
-    version: z.literal(1),
-    fields: rescheduleRequestedFieldsSchemaV1,
-});
-
-// Union of all versions (currently just v1)
-export const rescheduleRequestedDataSchemaAllVersions = rescheduleRequestedDataSchemaV1;
-
-// Always points to the latest fields schema
-export const rescheduleRequestedFieldsSchema = rescheduleRequestedFieldsSchemaV1;
-
-export class RescheduleRequestedAuditActionService implements IAuditActionService<typeof rescheduleRequestedFieldsSchemaV1> {
-    private helper: AuditActionServiceHelper<typeof rescheduleRequestedFieldsSchema, typeof rescheduleRequestedDataSchemaAllVersions>;
-
+export class RescheduleRequestedAuditActionService
+    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1>
+{
     readonly VERSION = 1;
-    readonly fieldsSchemaV1 = rescheduleRequestedFieldsSchemaV1;
-    readonly dataSchema = z.object({
-        version: z.literal(this.VERSION),
-        fields: this.fieldsSchemaV1,
+    public static readonly TYPE = "RESCHEDULE_REQUESTED";
+    private static dataSchemaV1 = z.object({
+        version: z.literal(1),
+        fields: fieldsSchemaV1,
     });
+    private static fieldsSchemaV1 = fieldsSchemaV1;
+    public static readonly latestFieldsSchema = fieldsSchemaV1;
+    // Union of all versions
+    public static readonly storedDataSchema = RescheduleRequestedAuditActionService.dataSchemaV1;
+    // Union of all versions
+    public static readonly storedFieldsSchema = RescheduleRequestedAuditActionService.fieldsSchemaV1;
+    private helper: AuditActionServiceHelper<
+        typeof RescheduleRequestedAuditActionService.latestFieldsSchema,
+        typeof RescheduleRequestedAuditActionService.storedDataSchema
+    >;
 
     constructor() {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
-            latestFieldsSchema: rescheduleRequestedFieldsSchema,
-            allVersionsDataSchema: rescheduleRequestedDataSchemaAllVersions,
+            latestFieldsSchema: RescheduleRequestedAuditActionService.latestFieldsSchema,
+            storedDataSchema: RescheduleRequestedAuditActionService.storedDataSchema,
         });
     }
 
-    parseFieldsWithLatest(input: unknown) {
-        return this.helper.parseFieldsWithLatest(input);
+    getVersionedData(fields: unknown) {
+        return this.helper.getVersionedData(fields);
     }
 
     parseStored(data: unknown) {
@@ -63,28 +61,30 @@ export class RescheduleRequestedAuditActionService implements IAuditActionServic
 
     migrateToLatest(data: unknown) {
         // V1-only: validate and return as-is (no migration needed)
-        const validated = this.fieldsSchemaV1.parse(data);
+        const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof rescheduleRequestedFieldsSchemaV1> }, t: TFunction): string {
-        return t('audit.reschedule_requested');
-    }
-
-    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof rescheduleRequestedFieldsSchemaV1> }, _t: TFunction): Record<string, string> {
+    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): RescheduleRequestedAuditDisplayData {
         const { fields } = storedData;
-        const details: Record<string, string> = {};
-        if (fields.cancellationReason) {
-            details['Reason'] = fields.cancellationReason.new ?? '-';
-        }
-        if (fields.cancelledBy) {
-            details['Cancelled By'] = `${fields.cancelledBy.old ?? '-'} → ${fields.cancelledBy.new ?? '-'}`;
-        }
-        if (fields.rescheduled) {
-            details['Rescheduled'] = `${fields.rescheduled.old ?? false} → ${fields.rescheduled.new}`;
-        }
-        return details;
+        return {
+            reason: fields.cancellationReason.new ?? null,
+            previousReason: fields.cancellationReason.old ?? null,
+            cancelledBy: fields.cancelledBy.new ?? null,
+            previousCancelledBy: fields.cancelledBy.old ?? null,
+            rescheduled: fields.rescheduled?.new ?? null,
+            previousRescheduled: fields.rescheduled?.old ?? null,
+        };
     }
 }
 
-export type RescheduleRequestedAuditData = z.infer<typeof rescheduleRequestedFieldsSchemaV1>;
+export type RescheduleRequestedAuditData = z.infer<typeof fieldsSchemaV1>;
+
+export type RescheduleRequestedAuditDisplayData = {
+    reason: string | null;
+    previousReason: string | null;
+    cancelledBy: string | null;
+    previousCancelledBy: string | null;
+    rescheduled: boolean | null;
+    previousRescheduled: boolean | null;
+};

@@ -48,8 +48,6 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
             return;
         }
 
-        console.log('this.tasker', this.tasker)
-
         await this.tasker.create("bookingAudit", {
             bookingUid,
             actor,

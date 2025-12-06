@@ -675,7 +675,7 @@ if (booking.status === 'ACCEPTED' || booking.status === 'PENDING' || booking.sta
 }
 
 // ✅ GOOD: Recording actual state
-await auditTaskConsumer.onBookingAction({
+await bookingAuditProducerService.queueAudit({
   bookingUid,
   actor,
   action: "CREATED",

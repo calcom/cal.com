@@ -19,9 +19,11 @@ export const BookingAuditTaskConsumerPayloadSchema = z.discriminatedUnion("actio
         // Payload in Task record could have any version of the data schema
         data: CreatedAuditActionService.storedFieldsSchema,
     })),
+    // ... more actions here
 ]);
 
 export type BookingAuditTaskProducerActionData =
     | { action: typeof CreatedAuditActionService.TYPE; data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema> }
+// ... more actions here
 
 export type BookingAuditTaskConsumerPayload = z.infer<typeof BookingAuditTaskConsumerPayloadSchema>;

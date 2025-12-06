@@ -1,22 +1,10 @@
-import type { TFunction } from "next-i18next";
-
-import { getTranslation } from "@calcom/lib/server/i18n";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
-import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
-import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
-import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
-import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
-import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
-import { HostNoShowUpdatedAuditActionService } from "../actions/HostNoShowUpdatedAuditActionService";
-import type { IAuditActionService } from "../actions/IAuditActionService";
-import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
-import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
-import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
-import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
-import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
-import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
+import { CreatedAuditActionService, type CreatedAuditDisplayData } from "../actions/CreatedAuditActionService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
+
+type AuditDisplayData = CreatedAuditDisplayData;
 
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
@@ -30,20 +18,17 @@ type EnrichedAuditLog = {
     action: BookingAuditAction;
     timestamp: string;
     createdAt: string;
-    data: unknown;
-    displaySummary: string;
-    displayDetails: Record<string, string>;
+    data: AuditDisplayData;
     actor: {
         id: string;
         type: string;
         userUuid: string | null;
         attendeeId: number | null;
-        email: string | null;
-        phone: string | null;
         name: string | null;
         createdAt: Date;
         displayName: string;
         displayEmail: string | null;
+        displayAvatar: string | null;
     };
 };
 
@@ -52,17 +37,6 @@ type EnrichedAuditLog = {
  */
 export class BookingAuditViewerService {
     private readonly createdActionService: CreatedAuditActionService;
-    private readonly acceptedActionService: AcceptedAuditActionService;
-    private readonly cancelledActionService: CancelledAuditActionService;
-    private readonly rejectedActionService: RejectedAuditActionService;
-    private readonly rescheduledActionService: RescheduledAuditActionService;
-    private readonly rescheduleRequestedActionService: RescheduleRequestedAuditActionService;
-    private readonly attendeeAddedActionService: AttendeeAddedAuditActionService;
-    private readonly attendeeRemovedActionService: AttendeeRemovedAuditActionService;
-    private readonly reassignmentActionService: ReassignmentAuditActionService;
-    private readonly locationChangedActionService: LocationChangedAuditActionService;
-    private readonly hostNoShowUpdatedActionService: HostNoShowUpdatedAuditActionService;
-    private readonly attendeeNoShowUpdatedActionService: AttendeeNoShowUpdatedAuditActionService;
     private readonly bookingAuditRepository: IBookingAuditRepository;
     private readonly userRepository: UserRepository;
 
@@ -71,17 +45,6 @@ export class BookingAuditViewerService {
         this.userRepository = deps.userRepository;
 
         this.createdActionService = new CreatedAuditActionService();
-        this.acceptedActionService = new AcceptedAuditActionService();
-        this.cancelledActionService = new CancelledAuditActionService();
-        this.rejectedActionService = new RejectedAuditActionService();
-        this.rescheduledActionService = new RescheduledAuditActionService();
-        this.rescheduleRequestedActionService = new RescheduleRequestedAuditActionService();
-        this.attendeeAddedActionService = new AttendeeAddedAuditActionService();
-        this.attendeeRemovedActionService = new AttendeeRemovedAuditActionService();
-        this.reassignmentActionService = new ReassignmentAuditActionService();
-        this.locationChangedActionService = new LocationChangedAuditActionService();
-        this.hostNoShowUpdatedActionService = new HostNoShowUpdatedAuditActionService();
-        this.attendeeNoShowUpdatedActionService = new AttendeeNoShowUpdatedAuditActionService();
     }
 
     /**
@@ -90,9 +53,8 @@ export class BookingAuditViewerService {
      */
     async getAuditLogsForBooking(
         bookingUid: string,
-        userId: number,
-        userEmail: string,
-        locale: string
+        _userId: number,
+        _userEmail: string
     ): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
         // Check permissions
         await this.checkPermissions();
@@ -100,14 +62,13 @@ export class BookingAuditViewerService {
         // Fetch audit logs
         const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
-        // Get translation function
-        const t = await getTranslation(locale, "common");
-
         // Enrich and format audit logs
         const enrichedAuditLogs = await Promise.all(
             auditLogs.map(async (log) => {
                 const enrichedActor = await this.enrichActorInformation(log.actor);
-                const formattedLog = this.formatAuditLog(log, t);
+
+                const actionService = this.getActionService(log.action);
+                const parsedData = actionService.parseStored(log.data);
 
                 return {
                     id: log.id,
@@ -116,13 +77,12 @@ export class BookingAuditViewerService {
                     action: log.action,
                     timestamp: log.timestamp.toISOString(),
                     createdAt: log.createdAt.toISOString(),
-                    data: log.data,
-                    displaySummary: formattedLog.displaySummary,
-                    displayDetails: formattedLog.displayDetails,
+                    data: actionService.getDisplayJson(parsedData),
                     actor: {
                         ...log.actor,
                         displayName: enrichedActor.displayName,
                         displayEmail: enrichedActor.displayEmail,
+                        displayAvatar: enrichedActor.displayAvatar,
                     },
                 };
             })
@@ -139,6 +99,22 @@ export class BookingAuditViewerService {
      */
     private async checkPermissions(): Promise<void> {
         // TODO: Implement permission check
+        if (IS_PRODUCTION) {
+            throw new Error("Permission check is not implemented for production environments");
+        }
+    }
+
+    /**
+     * Get Action Service - Returns the appropriate action service for the given action type
+     * 
+     * @param action - The booking audit action type
+     * @returns The corresponding action service instance
+     */
+    private getActionService(action: BookingAuditAction) {
+        if (action !== "CREATED") {
+            throw new Error(`Unsupported audit action: ${action}`);
+        }
+        return this.createdActionService;
     }
 
     /**
@@ -147,63 +123,56 @@ export class BookingAuditViewerService {
     private async enrichActorInformation(actor: BookingAuditWithActor["actor"]): Promise<{
         displayName: string;
         displayEmail: string | null;
+        displayAvatar: string | null;
     }> {
-        let actorDisplayName = actor.name || "System";
-        let actorEmail = actor.email;
+        // SYSTEM actor
+        if (actor.type === "SYSTEM") {
+            return {
+                displayName: "Cal.com",
+                displayEmail: null,
+                displayAvatar: null,
+            };
+        }
 
-        if (actor.userUuid) {
+        // GUEST actor - use name or default
+        if (actor.type === "GUEST") {
+            return {
+                displayName: actor.name || "Guest",
+                displayEmail: null,
+                displayAvatar: null,
+            };
+        }
+
+        // ATTENDEE actor - use name or default
+        if (actor.type === "ATTENDEE") {
+            return {
+                displayName: actor.name || "Attendee",
+                displayEmail: null,
+                displayAvatar: null,
+            };
+        }
+
+        // USER actor - lookup from User table and include avatar
+        if (actor.type === "USER") {
+            if (!actor.userUuid) {
+                throw new Error("User UUID is required for USER actor");
+            }
             const actorUser = await this.userRepository.findByUuid({ uuid: actor.userUuid });
-
             if (actorUser) {
-                actorDisplayName = actorUser.name || actorUser.email;
-                actorEmail = actorUser.email;
+                return {
+                    displayName: actorUser.name || actorUser.email,
+                    displayEmail: actorUser.email,
+                    displayAvatar: actorUser.avatarUrl || null,
+                };
+            }
+            return {
+                displayName: "Deleted User",
+                displayEmail: null,
+                displayAvatar: null,
             }
         }
 
-        return {
-            displayName: actorDisplayName,
-            displayEmail: actorEmail,
-        };
-    }
-
-    /**
-     * Format audit log with display summary and details using action services
-     */
-    private formatAuditLog(
-        audit: BookingAuditWithActor,
-        t: TFunction
-    ): { displaySummary: string; displayDetails: Record<string, string> } {
-        // Map action to corresponding service
-        const actionServiceMap: Record<BookingAuditAction, IAuditActionService<z.ZodTypeAny> | null> = {
-            CREATED: this.createdActionService,
-            ACCEPTED: this.acceptedActionService,
-            CANCELLED: this.cancelledActionService,
-            REJECTED: this.rejectedActionService,
-            RESCHEDULED: this.rescheduledActionService,
-            RESCHEDULE_REQUESTED: this.rescheduleRequestedActionService,
-            ATTENDEE_ADDED: this.attendeeAddedActionService,
-            ATTENDEE_REMOVED: this.attendeeRemovedActionService,
-            REASSIGNMENT: this.reassignmentActionService,
-            LOCATION_CHANGED: this.locationChangedActionService,
-            HOST_NO_SHOW_UPDATED: this.hostNoShowUpdatedActionService,
-            ATTENDEE_NO_SHOW_UPDATED: this.attendeeNoShowUpdatedActionService,
-            PENDING: null,
-            AWAITING_HOST: null,
-        };
-
-        const actionService = actionServiceMap[audit.action];
-
-        if (!actionService) {
-            throw new Error(
-                `No action service found for audit action: ${audit.action}. This indicates a missing implementation or invalid audit data.`
-            );
-        }
-
-        const data = actionService.parseStored(audit.data);
-        return {
-            displaySummary: actionService.getDisplaySummary(data, t),
-            displayDetails: actionService.getDisplayDetails(data, t),
-        };
+        // Satisfying Typescript
+        throw new Error(`Unknown actor type: ${actor.type}`);
     }
 }
-

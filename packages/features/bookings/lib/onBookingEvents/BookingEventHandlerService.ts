@@ -3,7 +3,7 @@ import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Actor } from "../types/actor";
-
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
@@ -25,14 +25,23 @@ export class BookingEventHandlerService {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
-    await this.deps.bookingAuditProducerService.queueAudit(payload.booking.uid, actor, payload.organizationId, {
-      action: "CREATED",
-      data: {
-        startTime: payload.booking.startTime.toISOString(),
-        endTime: payload.booking.endTime.toISOString(),
-        status: payload.booking.status,
-      },
-    });
+    if (IS_PRODUCTION) {
+      // Skip queueing audit for production environments till we are absolutely sure that the payload schema is correct for CREATED action
+      // We might get more clarity as we implement more actions and test them
+      return;
+    }
+    try {
+      await this.deps.bookingAuditProducerService.queueAudit(payload.booking.uid, actor, payload.organizationId, {
+        action: "CREATED",
+        data: {
+          startTime: payload.booking.startTime.getTime(),
+          endTime: payload.booking.endTime.getTime(),
+          status: payload.booking.status,
+        },
+      });
+    } catch (error) {
+      this.log.error("Error while queueing booking audit", safeStringify(error));
+    }
   }
 
   async onBookingRescheduled(payload: BookingRescheduledPayload) {

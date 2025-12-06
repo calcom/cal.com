@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { TFunction } from "next-i18next";
 
 import { BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
@@ -8,48 +7,46 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Host No-Show Updated Audit Action Service
  * Handles HOST_NO_SHOW_UPDATED action with per-action versioning
- * 
+ *
  * Version History:
  * - v1: Initial schema with noShowHost
  */
 
-export const hostNoShowUpdatedFieldsSchemaV1 = z.object({
+// Module-level because it is passed to IAuditActionService type outside the class scope
+const fieldsSchemaV1 = z.object({
     noShowHost: BooleanChangeSchema,
 });
 
-// V1 with version wrapper (data schema stored in DB)
-export const hostNoShowUpdatedDataSchemaV1 = z.object({
-    version: z.literal(1),
-    fields: hostNoShowUpdatedFieldsSchemaV1,
-});
-
-// Union of all versions (currently just v1)
-export const hostNoShowUpdatedDataSchemaAllVersions = hostNoShowUpdatedDataSchemaV1;
-
-// Always points to the latest fields schema
-
-export const hostNoShowUpdatedFieldsSchema = hostNoShowUpdatedFieldsSchemaV1;
-
-export class HostNoShowUpdatedAuditActionService implements IAuditActionService<typeof hostNoShowUpdatedFieldsSchemaV1> {
-    private helper: AuditActionServiceHelper<typeof hostNoShowUpdatedFieldsSchema, typeof hostNoShowUpdatedDataSchemaAllVersions>;
-
+export class HostNoShowUpdatedAuditActionService
+    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1>
+{
     readonly VERSION = 1;
-    readonly fieldsSchemaV1 = hostNoShowUpdatedFieldsSchemaV1;
-    readonly dataSchema = z.object({
-        version: z.literal(this.VERSION),
-        fields: this.fieldsSchemaV1,
+    public static readonly TYPE = "HOST_NO_SHOW_UPDATED";
+    private static dataSchemaV1 = z.object({
+        version: z.literal(1),
+        fields: fieldsSchemaV1,
     });
+    private static fieldsSchemaV1 = fieldsSchemaV1;
+    public static readonly latestFieldsSchema = fieldsSchemaV1;
+    // Union of all versions
+    public static readonly storedDataSchema = HostNoShowUpdatedAuditActionService.dataSchemaV1;
+    // Union of all versions
+    public static readonly storedFieldsSchema = HostNoShowUpdatedAuditActionService.fieldsSchemaV1;
+    private helper: AuditActionServiceHelper<
+        typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema,
+        typeof HostNoShowUpdatedAuditActionService.storedDataSchema
+    >;
 
     constructor() {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
-            latestFieldsSchema: hostNoShowUpdatedFieldsSchema,
-            allVersionsDataSchema: hostNoShowUpdatedDataSchemaAllVersions,
+            latestFieldsSchema: HostNoShowUpdatedAuditActionService.latestFieldsSchema,
+            storedDataSchema: HostNoShowUpdatedAuditActionService.storedDataSchema,
         });
     }
 
-    parseFieldsWithLatest(input: unknown) {
-        return this.helper.parseFieldsWithLatest(input);
+    getVersionedData(fields: unknown) {
+        return this.helper.getVersionedData(fields);
     }
 
     parseStored(data: unknown) {
@@ -62,20 +59,21 @@ export class HostNoShowUpdatedAuditActionService implements IAuditActionService<
 
     migrateToLatest(data: unknown) {
         // V1-only: validate and return as-is (no migration needed)
-        const validated = this.fieldsSchemaV1.parse(data);
+        const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof hostNoShowUpdatedFieldsSchemaV1> }, t: TFunction): string {
-        return t('audit.host_no_show_updated');
-    }
-
-    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof hostNoShowUpdatedFieldsSchemaV1> }, _t: TFunction): Record<string, string> {
-        const { fields } = storedData;
+    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): HostNoShowUpdatedAuditDisplayData {
         return {
-            'Host No-Show': `${fields.noShowHost.old ?? false} → ${fields.noShowHost.new}`,
+            noShowHost: storedData.fields.noShowHost.new,
+            previousNoShowHost: storedData.fields.noShowHost.old ?? null,
         };
     }
 }
 
-export type HostNoShowUpdatedAuditData = z.infer<typeof hostNoShowUpdatedFieldsSchemaV1>;
+export type HostNoShowUpdatedAuditData = z.infer<typeof fieldsSchemaV1>;
+
+export type HostNoShowUpdatedAuditDisplayData = {
+    noShowHost: boolean;
+    previousNoShowHost: boolean | null;
+};

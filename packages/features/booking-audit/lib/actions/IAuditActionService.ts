@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { TFunction } from "next-i18next";
 
 /**
  * Interface for Audit Action Services
@@ -8,21 +7,24 @@ import type { TFunction } from "next-i18next";
  * Uses composition with AuditActionServiceHelper to provide common functionality
  * while maintaining type safety and flexibility for versioned schemas.
  * 
- * @template TFieldsSchema - The Zod schema type for the service's audit fields
+ * @template TLatestFieldsSchema - The Zod schema type for the latest version's audit fields (write operations)
+ * @template TStoredFieldsSchema - The Zod schema type for all supported versions' audit fields (read operations, union type)
  */
-export interface IAuditActionService<TFieldsSchema extends z.ZodTypeAny> {
+export interface IAuditActionService<
+    TLatestFieldsSchema extends z.ZodTypeAny,
+    TStoredFieldsSchema extends z.ZodTypeAny
+> {
     /**
      * Current version number for this action type
      */
     readonly VERSION: number;
 
     /**
-     * Parse input fields and wrap with version for writing to database
-     * Always uses the latest version when creating new records
-     * @param input - Raw input fields (just the audit fields)
+     * Parse given fields against latest schema and wrap with version
+     * @param fields - Raw input fields (just the audit fields)
      * @returns Parsed data with version wrapper { version, fields }
      */
-    getVersionedData(input: unknown): { version: number; fields: z.infer<TFieldsSchema> };
+    getVersionedData(fields: unknown): { version: number; fields: z.infer<TLatestFieldsSchema> };
 
     /**
      * Parse stored audit record (includes version wrapper)
@@ -30,7 +32,7 @@ export interface IAuditActionService<TFieldsSchema extends z.ZodTypeAny> {
      * @param data - Stored data from database (can be any version)
      * @returns Parsed stored data { version, fields } - version may differ from current VERSION
      */
-    parseStored(data: unknown): { version: number; fields: z.infer<TFieldsSchema> };
+    parseStored(data: unknown): { version: number; fields: z.infer<TStoredFieldsSchema> };
 
     /**
      * Extract version number from stored data
@@ -40,23 +42,11 @@ export interface IAuditActionService<TFieldsSchema extends z.ZodTypeAny> {
     getVersion(data: unknown): number;
 
     /**
-     * Get human-readable summary for display
+     * Get flattened JSON data for display (fields only, no version wrapper)
      * @param storedData - Parsed stored data { version, fields }
-     * @param t - Translation function from next-i18next
-     * @returns Translated summary string
+     * @returns The fields object without version wrapper and we decide what fields to show to the client
      */
-    getDisplaySummary(storedData: { version: number; fields: z.infer<TFieldsSchema> }, t: TFunction): string;
-
-    /**
-     * Get detailed key-value pairs for display
-     * @param storedData - Parsed stored data { version, fields }
-     * @param t - Translation function from next-i18next
-     * @returns Object with display labels as keys and formatted values
-     */
-    getDisplayDetails(
-        storedData: { version: number; fields: z.infer<TFieldsSchema> },
-        t: TFunction
-    ): Record<string, string>;
+    getDisplayJson(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): unknown;
 
     /**
      * Migrate old version data to latest version
@@ -76,6 +66,6 @@ export interface IAuditActionService<TFieldsSchema extends z.ZodTypeAny> {
         /**
          * Always set, either migrated or original
          */
-        latestData: z.infer<TFieldsSchema>;
+        latestData: z.infer<TLatestFieldsSchema>;
     };
 }

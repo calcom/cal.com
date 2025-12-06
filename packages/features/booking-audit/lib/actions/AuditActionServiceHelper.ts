@@ -5,10 +5,7 @@ import { z } from "zod";
  * 
  * Provides reusable utility methods for audit action services via composition.
  * 
- * We use composition instead of inheritance because:
- * - Services can evolve to v2, v3 independently without polluting a shared base class
- * - Easier to test (inject mock helper)
- * - Looser coupling - services explicitly choose what to delegate
+ * We use composition instead of inheritance for Action services so that services can evolve to v2, v3 independently without polluting a shared base class
  */
 export class AuditActionServiceHelper<
   TLatestFieldsSchema extends z.ZodTypeAny,
@@ -19,8 +16,14 @@ export class AuditActionServiceHelper<
   private readonly storedDataSchema: TStoredDataSchema;
 
   constructor({
+    /**
+     * The schema to validate against latest version
+     */
     latestFieldsSchema,
     latestVersion,
+    /**
+     * The schema to validate the stored data that could be of any version
+     */
     storedDataSchema,
   }: {
     latestFieldsSchema: TLatestFieldsSchema;
@@ -35,8 +38,8 @@ export class AuditActionServiceHelper<
   /**
    * Parse input fields with the latest fields schema and wrap with version
    */
-  getVersionedData(input: unknown): { version: number; fields: z.infer<TLatestFieldsSchema> } {
-    const parsed = this.latestFieldsSchema.parse(input);
+  getVersionedData(fields: unknown): { version: number; fields: z.infer<TLatestFieldsSchema> } {
+    const parsed = this.latestFieldsSchema.parse(fields);
     return {
       version: this.latestVersion,
       fields: parsed,

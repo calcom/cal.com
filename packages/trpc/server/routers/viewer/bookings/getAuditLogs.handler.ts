@@ -22,8 +22,7 @@ export const getAuditLogsHandler = async ({ ctx, input }: GetAuditLogsOptions) =
     const result = await bookingAuditViewerService.getAuditLogsForBooking(
         bookingUid,
         user.id,
-        user.email,
-        user.locale ?? "en"
+        user.email
     );
 
     return result;

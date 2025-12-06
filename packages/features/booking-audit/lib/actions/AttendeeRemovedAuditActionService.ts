@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { TFunction } from "next-i18next";
 
 import { StringArrayChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
@@ -8,47 +7,45 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Attendee Removed Audit Action Service
  * Handles ATTENDEE_REMOVED action with per-action versioning
- * 
+ *
  * Version History:
  * - v1: Initial schema with removedAttendees
  */
 
-export const attendeeRemovedFieldsSchemaV1 = z.object({
+// Module-level because it is passed to IAuditActionService type outside the class scope
+const fieldsSchemaV1 = z.object({
     removedAttendees: StringArrayChangeSchema,
 });
 
-// V1 with version wrapper (data schema stored in DB)
-export const attendeeRemovedDataSchemaV1 = z.object({
-    version: z.literal(1),
-    fields: attendeeRemovedFieldsSchemaV1,
-});
-
-// Union of all versions (currently just v1)
-export const attendeeRemovedDataSchemaAllVersions = attendeeRemovedDataSchemaV1;
-
-// Always points to the latest fields schema
-export const attendeeRemovedFieldsSchema = attendeeRemovedFieldsSchemaV1;
-
-export class AttendeeRemovedAuditActionService implements IAuditActionService<typeof attendeeRemovedFieldsSchemaV1> {
-    private helper: AuditActionServiceHelper<typeof attendeeRemovedFieldsSchema, typeof attendeeRemovedDataSchemaAllVersions>;
-
+export class AttendeeRemovedAuditActionService
+    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
     readonly VERSION = 1;
-    readonly fieldsSchemaV1 = attendeeRemovedFieldsSchemaV1;
-    readonly dataSchema = z.object({
-        version: z.literal(this.VERSION),
-        fields: this.fieldsSchemaV1,
+    public static readonly TYPE = "ATTENDEE_REMOVED";
+    private static dataSchemaV1 = z.object({
+        version: z.literal(1),
+        fields: fieldsSchemaV1,
     });
+    private static fieldsSchemaV1 = fieldsSchemaV1;
+    public static readonly latestFieldsSchema = fieldsSchemaV1;
+    // Union of all versions
+    public static readonly storedDataSchema = AttendeeRemovedAuditActionService.dataSchemaV1;
+    // Union of all versions
+    public static readonly storedFieldsSchema = AttendeeRemovedAuditActionService.fieldsSchemaV1;
+    private helper: AuditActionServiceHelper<
+        typeof AttendeeRemovedAuditActionService.latestFieldsSchema,
+        typeof AttendeeRemovedAuditActionService.storedDataSchema
+    >;
 
     constructor() {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
-            latestFieldsSchema: attendeeRemovedFieldsSchema,
-            allVersionsDataSchema: attendeeRemovedDataSchemaAllVersions,
+            latestFieldsSchema: AttendeeRemovedAuditActionService.latestFieldsSchema,
+            storedDataSchema: AttendeeRemovedAuditActionService.storedDataSchema,
         });
     }
 
-    parseFieldsWithLatest(input: unknown) {
-        return this.helper.parseFieldsWithLatest(input);
+    getVersionedData(fields: unknown) {
+        return this.helper.getVersionedData(fields);
     }
 
     parseStored(data: unknown) {
@@ -61,22 +58,24 @@ export class AttendeeRemovedAuditActionService implements IAuditActionService<ty
 
     migrateToLatest(data: unknown) {
         // V1-only: validate and return as-is (no migration needed)
-        const validated = this.fieldsSchemaV1.parse(data);
+        const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof attendeeRemovedFieldsSchemaV1> }, t: TFunction): string {
-        const { fields } = storedData;
-        return t('audit.removed_guests', { count: fields.removedAttendees.new.length });
-    }
-
-    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof attendeeRemovedFieldsSchemaV1> }, _t: TFunction): Record<string, string> {
+    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeRemovedAuditDisplayData {
         const { fields } = storedData;
         return {
-            'Removed Guests': fields.removedAttendees.new.join(', '),
-            'Count': fields.removedAttendees.new.length.toString(),
+            removedAttendees: fields.removedAttendees.new,
+            previousAttendees: fields.removedAttendees.old ?? [],
+            count: fields.removedAttendees.new.length,
         };
     }
 }
 
-export type AttendeeRemovedAuditData = z.infer<typeof attendeeRemovedFieldsSchemaV1>;
+export type AttendeeRemovedAuditData = z.infer<typeof fieldsSchemaV1>;
+
+export type AttendeeRemovedAuditDisplayData = {
+    removedAttendees: string[];
+    previousAttendees: string[];
+    count: number;
+};

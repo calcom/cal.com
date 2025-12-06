@@ -625,7 +625,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "email_verification_required",
-        data: { traceId: traceContext.traceId },
       });
     }
 
@@ -635,7 +634,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "invalid_verification_code",
-        data: { traceId: traceContext.traceId },
       });
     }
   }
@@ -653,14 +651,12 @@ async function handler(
     throw new HttpError({
       statusCode: 404,
       message: "event_type_not_found",
-      data: { traceId: traceContext.traceId },
     });
 
   if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
     throw new HttpError({
       statusCode: 400,
       message: "recurring_event_seats_error",
-      data: { traceId: traceContext.traceId },
     });
   }
 
@@ -802,7 +798,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "Missing routingFormResponseId",
-        data: { traceId: traceContext.traceId },
       });
     }
     routingFormResponse = await deps.prismaClient.app_RoutingForms_FormResponse.findUnique({
@@ -1439,6 +1434,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withOrganization(organizerOrganizationId)
     .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
     .build();
 
@@ -1902,7 +1898,6 @@ async function handler(
       throw new HttpError({
         statusCode: 409,
         message: ErrorCode.BookingConflict,
-        data: { traceId: traceContext.traceId },
       });
     }
     throw err;
@@ -2149,7 +2144,6 @@ async function handler(
       const error = {
         errorCode: "BookingCreatingMeetingFailed",
         message: "Booking failed",
-        data: { traceId: traceContext.traceId },
       };
 
       tracingLogger.error(
@@ -2298,10 +2292,6 @@ async function handler(
     }
     : undefined;
 
-  const bookingFlowConfig = {
-    isDryRun,
-  };
-
   const bookingCreatedPayload = buildBookingCreatedPayload({
     booking,
     organizerUserId: organizerUser.id,
@@ -2325,7 +2315,9 @@ async function handler(
   if (originalRescheduledBooking) {
     await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
   } else {
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, makeGuestActor({ email: bookerEmail }));
+    // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
+    const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
   }
 
   const webhookData: EventPayloadType = {
@@ -2379,7 +2371,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "Missing payment credentials",
-        data: { traceId: traceContext.traceId },
       });
     }
 

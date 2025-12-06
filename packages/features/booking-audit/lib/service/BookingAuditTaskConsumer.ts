@@ -158,7 +158,7 @@ export class BookingAuditTaskConsumer {
      * @param action - The booking audit action type
      * @returns The corresponding action service instance
      */
-    private getActionService(action: BookingAuditTaskConsumerPayload["action"]) {
+    private getActionService(action: BookingAuditAction) {
         if (action !== "CREATED") {
             throw new Error(`Unsupported audit action: ${action}`);
         }
@@ -207,7 +207,7 @@ export class BookingAuditTaskConsumer {
             case "id":
                 return actor.id;
             case "user": {
-                const userActor = await this.auditActorRepository.upsertUserActor({ userUuid: actor.userUuid });
+                const userActor = await this.auditActorRepository.createIfNotExistsUserActor({ userUuid: actor.userUuid });
                 return userActor.id;
             }
             case "attendee": {
@@ -218,10 +218,10 @@ export class BookingAuditTaskConsumer {
                 return attendeeActor.id;
             }
             case "guest": {
-                const guestActor = await this.auditActorRepository.upsertGuestActor(
-                    actor.email ?? "",
-                    actor.name,
-                    actor.phone
+                const guestActor = await this.auditActorRepository.createIfNotExistsGuestActor(
+                    actor.email ?? null,
+                    actor.name ?? null,
+                    actor.phone ?? null
                 );
                 return guestActor.id;
             }
@@ -282,7 +282,8 @@ export class BookingAuditTaskConsumer {
         timestamp: number;
     }): Promise<BookingAudit> {
         const { bookingUid, actor, action, data, timestamp } = params;
-        const versionedData = this.createdActionService.getVersionedData(data);
+        const actionService = this.getActionService(action);
+        const versionedData = actionService.getVersionedData(data);
         const actorId = await this.resolveActorId(actor);
         const recordType = this.getRecordType({ action });
 

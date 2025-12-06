@@ -1,6 +1,4 @@
 import { z } from "zod";
-import type { TFunction } from "next-i18next";
-import dayjs from "@calcom/dayjs";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
@@ -8,19 +6,21 @@ import type { IAuditActionService } from "./IAuditActionService";
 
 /**
  * Created Audit Action Service
- * Handles RECORD_CREATED action with per-action versioning
  * 
  * Note: CREATED action captures initial state, so it doesn't use { old, new } pattern
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-    startTime: z.string(),
-    endTime: z.string(),
+    startTime: z.number(),
+    endTime: z.number(),
     status: z.nativeEnum(BookingStatus),
 });
 
-export class CreatedAuditActionService implements IAuditActionService<typeof fieldsSchemaV1> {
+export class CreatedAuditActionService implements IAuditActionService<
+    typeof fieldsSchemaV1,
+    typeof fieldsSchemaV1
+> {
     readonly VERSION = 1;
     public static readonly TYPE = "CREATED";
     private static dataSchemaV1 = z.object({
@@ -43,8 +43,8 @@ export class CreatedAuditActionService implements IAuditActionService<typeof fie
         });
     }
 
-    getVersionedData(input: unknown) {
-        return this.helper.getVersionedData(input);
+    getVersionedData(fields: unknown) {
+        return this.helper.getVersionedData(fields);
     }
 
     parseStored(data: unknown) {
@@ -61,19 +61,20 @@ export class CreatedAuditActionService implements IAuditActionService<typeof fie
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }, t: TFunction): string {
-        return t('audit.booking_created');
-    }
-
-    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }, t: TFunction): Record<string, string> {
-        const { fields } = storedData;
+    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): CreatedAuditDisplayData {
         return {
-            [t('audit.start_time')]: dayjs(fields.startTime).format('MMM D, YYYY h:mm A'),
-            [t('audit.end_time')]: dayjs(fields.endTime).format('MMM D, YYYY h:mm A'),
-            [t('audit.initial_status')]: fields.status,
+            startTime: new Date(storedData.fields.startTime).toISOString(),
+            endTime: new Date(storedData.fields.endTime).toISOString(),
+            status: storedData.fields.status,
         };
     }
 }
 
 export type CreatedAuditData = z.infer<typeof fieldsSchemaV1>;
+
+export type CreatedAuditDisplayData = {
+    startTime: string;
+    endTime: string;
+    status: BookingStatus;
+};
 
