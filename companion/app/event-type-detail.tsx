@@ -10,7 +10,6 @@ import {
   TextInput,
   Switch,
   Modal,
-  Linking,
   Alert,
   Clipboard,
   Animated,
@@ -21,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
 import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
 import {
   defaultLocations,
@@ -911,13 +911,7 @@ export default function EventTypeDetail() {
     try {
       const eventTypeSlug = eventSlug || "preview";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-
-      const supported = await Linking.canOpenURL(link);
-      if (supported) {
-        await Linking.openURL(link);
-      } else {
-        showErrorAlert("Error", "Cannot open this URL on your device.");
-      }
+      await openInAppBrowser(link, "event type preview");
     } catch (error) {
       console.error("Failed to generate preview link:", error);
       showErrorAlert("Error", "Failed to generate preview link. Please try again.");

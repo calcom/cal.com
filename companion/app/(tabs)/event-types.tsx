@@ -16,7 +16,6 @@ import {
   Platform,
   Modal,
   KeyboardAvoidingView,
-  Linking,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
@@ -27,6 +26,8 @@ import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { slugify } from "../../utils/slugify";
 import { showErrorAlert } from "../../utils/alerts";
+import { offlineAwareRefresh } from "../../utils/network";
+import { openInAppBrowser } from "../../utils/browser";
 import { formatDuration } from "../event-type-detail/utils";
 import {
   useEventTypes,
@@ -72,10 +73,7 @@ export default function EventTypes() {
     queryError?.message?.includes("Authentication") ||
     queryError?.message?.includes("sign in") ||
     queryError?.message?.includes("401");
-  const error =
-    queryError && !isAuthError && __DEV__
-      ? "Failed to load event types. Please check your API key and try again."
-      : null;
+  const error = queryError && !isAuthError && __DEV__ ? "Failed to load event types." : null;
 
   // Modal state for web platform action sheet
   const [showActionModal, setShowActionModal] = useState(false);
@@ -107,9 +105,8 @@ export default function EventTypes() {
   };
 
   // Handle pull-to-refresh
-  const onRefresh = async () => {
-    await refetch();
-  };
+  // Handle pull-to-refresh (offline-aware)
+  const onRefresh = () => offlineAwareRefresh(refetch);
 
   // Filter event types based on search query
   const filteredEventTypes = useMemo(() => {
@@ -347,8 +344,8 @@ export default function EventTypes() {
       if (Platform.OS === "web") {
         window.open(link, "_blank");
       } else {
-        // For mobile, use Linking
-        await Linking.openURL(link);
+        // For mobile, use in-app browser
+        await openInAppBrowser(link, "event type preview");
       }
     } catch (error) {
       console.error("Failed to open preview:", error);

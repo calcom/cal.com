@@ -79,6 +79,14 @@ export function useSchedules() {
     staleTime: CACHE_CONFIG.schedules.staleTime,
     // Keep previous data while fetching new data (smoother UX)
     placeholderData: (previousData) => previousData,
+    // Don't retry on network errors (keeps cache intact)
+    retry: (failureCount, error) => {
+      if (error?.message?.includes("Network") || error?.message?.includes("fetch")) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    refetchOnReconnect: true,
   });
 }
 

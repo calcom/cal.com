@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../contexts/AuthContext";
 import { CalComLogo } from "./CalComLogo";
 import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
 
 export function LoginScreen() {
   const { loginWithOAuth, loading } = useAuth();
@@ -25,7 +25,7 @@ export function LoginScreen() {
   };
 
   const handleSignUp = async () => {
-    await WebBrowser.openBrowserAsync("https://app.cal.com/signup");
+    await openInAppBrowser("https://app.cal.com/signup", "Sign up page");
   };
 
   return (

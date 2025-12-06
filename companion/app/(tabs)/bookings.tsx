@@ -25,6 +25,8 @@ import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { useBookings, useCancelBooking } from "../../hooks";
 import { showErrorAlert } from "../../utils/alerts";
+import { offlineAwareRefresh } from "../../utils/network";
+import { openInAppBrowser } from "../../utils/browser";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
@@ -111,10 +113,7 @@ export default function Bookings() {
     queryError?.message?.includes("Authentication") ||
     queryError?.message?.includes("sign in") ||
     queryError?.message?.includes("401");
-  const error =
-    queryError && !isAuthError && __DEV__
-      ? "Failed to load bookings. Please check your API key and try again."
-      : null;
+  const error = queryError && !isAuthError && __DEV__ ? "Failed to load bookings." : null;
 
   // Clear search and event type filter when status filter changes
   useEffect(() => {
@@ -123,10 +122,8 @@ export default function Bookings() {
     setSelectedEventTypeLabel(null);
   }, [activeFilter]);
 
-  // Handle pull-to-refresh
-  const onRefresh = async () => {
-    await refetch();
-  };
+  // Handle pull-to-refresh (offline-aware)
+  const onRefresh = () => offlineAwareRefresh(refetch);
 
   // Apply local filters (search and event type) using useMemo
   const filteredBookings = useMemo(() => {
@@ -456,12 +453,8 @@ export default function Bookings() {
     try {
       // Check if location is a URL (starts with http:// or https://)
       if (booking.location.match(/^https?:\/\//)) {
-        const supported = await Linking.canOpenURL(booking.location);
-        if (supported) {
-          await Linking.openURL(booking.location);
-        } else {
-          showErrorAlert("Error", "Cannot open this URL on your device.");
-        }
+        // Open web URLs in in-app browser
+        await openInAppBrowser(booking.location, "meeting link");
       } else {
         // If it's not a URL, try to open it as a location in maps
         const mapsUrl =
@@ -473,11 +466,11 @@ export default function Bookings() {
         if (supported) {
           await Linking.openURL(mapsUrl);
         } else {
-          // Fallback to Google Maps web
+          // Fallback to Google Maps in in-app browser
           const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
             booking.location
           )}`;
-          await Linking.openURL(googleMapsUrl);
+          await openInAppBrowser(googleMapsUrl, "Google Maps");
         }
       }
     } catch (error) {

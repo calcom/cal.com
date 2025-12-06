@@ -20,6 +20,7 @@ import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { showErrorAlert } from "../../utils/alerts";
+import { offlineAwareRefresh } from "../../utils/network";
 import {
   useSchedules,
   useCreateSchedule,
@@ -61,10 +62,7 @@ export default function Availability() {
     queryError?.message?.includes("Authentication") ||
     queryError?.message?.includes("sign in") ||
     queryError?.message?.includes("401");
-  const error =
-    queryError && !isAuthError && __DEV__
-      ? "Failed to load availability. Please check your API key and try again."
-      : null;
+  const error = queryError && !isAuthError && __DEV__ ? "Failed to load availability." : null;
 
   // Filter schedules based on search query
   const filteredSchedules = useMemo(() => {
@@ -78,9 +76,8 @@ export default function Availability() {
   // Note: We don't use useFocusEffect here because schedules have Infinity stale time.
   // Data only refreshes on mutations (create/update/delete) or manual pull-to-refresh.
 
-  const onRefresh = async () => {
-    await refetch();
-  };
+  // Handle pull-to-refresh (offline-aware)
+  const onRefresh = () => offlineAwareRefresh(refetch);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

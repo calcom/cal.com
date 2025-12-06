@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
-  Linking,
   Platform,
   ActionSheetIOS,
 } from "react-native";
@@ -17,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, UserProfile } from "../services/calcom";
 import { CalComLogo } from "./CalComLogo";
 import { FullScreenModal } from "./FullScreenModal";
-import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
 
 export function Header() {
   const router = useRouter();
@@ -77,42 +76,28 @@ export function Header() {
     }
   };
 
-  const openExternalLink = async (url: string, fallbackMessage: string) => {
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        showErrorAlert("Error", `Cannot open ${fallbackMessage} on your device.`);
-      }
-    } catch (error) {
-      console.error(`Failed to open ${url}:`, error);
-      showErrorAlert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
-    }
-  };
-
   const handleMenuOption = (option: string) => {
     if (Platform.OS !== "ios") {
       setShowProfileModal(false);
     }
     switch (option) {
       case "profile":
-        openExternalLink("https://app.cal.com/settings/my-account/profile", "Profile page");
+        openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Profile page");
         break;
       case "settings":
-        openExternalLink("https://app.cal.com/settings/my-account", "Settings page");
+        openInAppBrowser("https://app.cal.com/settings/my-account", "Settings page");
         break;
       case "outOfOffice":
-        openExternalLink(
+        openInAppBrowser(
           "https://app.cal.com/settings/my-account/out-of-office",
           "Out of Office page"
         );
         break;
       case "roadmap":
-        openExternalLink("https://cal.com/roadmap", "Roadmap");
+        openInAppBrowser("https://cal.com/roadmap", "Roadmap");
         break;
       case "help":
-        openExternalLink("https://cal.com/help", "Help page");
+        openInAppBrowser("https://cal.com/help", "Help page");
         break;
       case "signOut":
         Alert.alert("Sign Out", "Are you sure you want to sign out?", [

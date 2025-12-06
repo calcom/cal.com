@@ -69,6 +69,12 @@ export default defineConfig({
       "import.meta.env.EXPO_PUBLIC_USER_PROFILE_CACHE_STALE_TIME_MINUTES": JSON.stringify(
         process.env.EXPO_PUBLIC_USER_PROFILE_CACHE_STALE_TIME_MINUTES
       ),
+      // ============================================
+      // DEV ONLY: API Key for testing (REMOVE BEFORE PRODUCTION)
+      // ============================================
+      "import.meta.env.EXPO_PUBLIC_CAL_API_KEY": JSON.stringify(
+        process.env.EXPO_PUBLIC_CAL_API_KEY
+      ),
     },
     optimizeDeps: {
       include: ["react-native-web"],

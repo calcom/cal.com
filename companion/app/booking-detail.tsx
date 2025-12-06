@@ -8,13 +8,13 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Linking,
   TextInput,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Booking } from "../services/calcom";
 import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
 import { SvgImage } from "../components/SvgImage";
 import { FullScreenModal } from "../components/FullScreenModal";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
@@ -226,7 +226,7 @@ export default function BookingDetail() {
 
     const provider = getLocationProvider(booking.location);
     if (provider?.url) {
-      Linking.openURL(provider.url);
+      openInAppBrowser(provider.url, "meeting link");
     }
   };
 

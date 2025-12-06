@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
 import { useAuth } from "../../contexts/AuthContext";
 import { showErrorAlert } from "../../utils/alerts";
+import { openInAppBrowser } from "../../utils/browser";
 
 interface MoreMenuItem {
   name: string;
@@ -36,57 +37,43 @@ export default function More() {
     ]);
   };
 
-  const openExternalLink = async (url: string, fallbackMessage: string) => {
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        showErrorAlert("Error", `Cannot open ${fallbackMessage} on your device.`);
-      }
-    } catch (error) {
-      console.error(`Failed to open ${url}:`, error);
-      showErrorAlert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
-    }
-  };
-
   const menuItems: MoreMenuItem[] = [
     {
       name: "Profile",
       icon: "person-outline",
       isExternal: true,
       onPress: () =>
-        openExternalLink("https://app.cal.com/settings/my-account/profile", "Profile page"),
+        openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Profile page"),
     },
     {
       name: "Apps",
       icon: "grid-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/apps", "Apps page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/apps", "Apps page"),
     },
     {
       name: "Routing",
       icon: "git-branch-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/routing", "Routing page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/routing", "Routing page"),
     },
     {
       name: "Workflows",
       icon: "flash-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/workflows", "Workflows page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/workflows", "Workflows page"),
     },
     {
       name: "Insights",
       icon: "bar-chart-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/insights", "Insights page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/insights", "Insights page"),
     },
     {
       name: "Support",
       icon: "help-circle-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://go.cal.com/support", "Support"),
+      onPress: () => openInAppBrowser("https://go.cal.com/support", "Support"),
     },
   ];
 
@@ -160,7 +147,13 @@ export default function More() {
         {/* Footer Note */}
         <Text className="mt-6 px-1 text-center text-xs text-gray-400">
           The companion app is an extension of the web application.{"\n"}
-          For advanced features, visit app.cal.com
+          For advanced features, visit{" "}
+          <Text
+            className="text-gray-800"
+            onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}
+          >
+            app.cal.com
+          </Text>
         </Text>
       </ScrollView>
     </View>
