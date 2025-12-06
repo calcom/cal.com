@@ -23,7 +23,14 @@ const inputBookingFieldTypes = [
   "url",
 ] as const;
 
-const inputBookingFieldSlugs = ["title", "location", "notes", "guests", "rescheduleReason"] as const;
+const inputBookingFieldSlugs = [
+  "title",
+  "location",
+  "notes",
+  "guests",
+  "rescheduleReason",
+  "attendeePhoneNumber",
+] as const;
 
 export class NameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
@@ -146,6 +153,53 @@ export class EmailDefaultFieldInput_2024_06_14 {
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&email=bob@gmail.com`,\
       the email field will be prefilled with this value and disabled. In case of Booker atom need to pass 'email' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{email: 'bob@gmail.com'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class PhoneDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({
+    example: "attendeePhoneNumber",
+    description: "only allowed value for slug is `attendeePhoneNumber`",
+  })
+  slug!: "attendeePhoneNumber";
+
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({
+    example: "phone",
+    description: "only allowed value for type is `phone`",
+  })
+  type!: "phone";
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\      For example, if URL contains query parameter `&attendeePhoneNumber=+37122222222`,\      the phone field will be prefilled with this value and disabled. In case of Booker atom need to pass 'attendeePhoneNumber' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{attendeePhoneNumber: '+37122222222'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 }
@@ -887,6 +941,7 @@ type InputDefaultField_2024_06_14 =
   | NameDefaultFieldInput_2024_06_14
   | SplitNameDefaultFieldInput_2024_06_14
   | EmailDefaultFieldInput_2024_06_14
+  | PhoneDefaultFieldInput_2024_06_14
   | TitleDefaultFieldInput_2024_06_14
   | LocationDefaultFieldInput_2024_06_14
   | NotesDefaultFieldInput_2024_06_14
@@ -914,6 +969,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     name: NameDefaultFieldInput_2024_06_14,
     splitName: SplitNameDefaultFieldInput_2024_06_14,
     email: EmailDefaultFieldInput_2024_06_14,
+    attendeePhoneNumber: PhoneDefaultFieldInput_2024_06_14,
     title: TitleDefaultFieldInput_2024_06_14,
     location: LocationDefaultFieldInput_2024_06_14,
     notes: NotesDefaultFieldInput_2024_06_14,
@@ -950,15 +1006,16 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
         slug !== "notes" &&
         slug !== "guests" &&
         slug !== "rescheduleReason" &&
-        slug !== "location";
+        slug !== "location" &&
+        slug !== "attendeePhoneNumber";
 
       if (fieldNeedsType && !type) {
         throw new BadRequestException(
-          `All booking fields except ones with slug equal to title, notes, guests, rescheduleReason and location must have a 'type' property.`
+          `All booking fields except ones with slug equal to title, notes, guests, rescheduleReason, location and attendeePhoneNumber must have a 'type' property.`
         );
       }
 
-      const fieldNeedsSlug = type !== "name" && type !== "splitName" && type !== "email";
+      const fieldNeedsSlug = type !== "name" && type !== "splitName" && type !== "email" && slug !== "attendeePhoneNumber";
       if (fieldNeedsSlug && !slug) {
         throw new BadRequestException(
           `Each booking field except ones with type equal to name, splitName, email must have a 'slug' property.`
