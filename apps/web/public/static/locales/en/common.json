@@ -4096,7 +4096,18 @@
   "booking_history": "Booking History",
   "booking_history_description": "View the history of actions performed on this booking",
   "audit_action": {
-    "created": "Created"
+    "created": "Created",
+    "cancelled": "Cancelled",
+    "rescheduled": "Rescheduled",
+    "accepted": "Accepted",
+    "reschedule_requested": "Reschedule Requested",
+    "attendee_added": "Attendee Added",
+    "host_no_show_updated": "Host No-Show Updated",
+    "rejected": "Rejected",
+    "attendee_removed": "Attendee Removed",
+    "reassignment": "Reassignment",
+    "location_changed": "Location Changed",
+    "attendee_no_show_updated": "Attendee No-Show Updated"
   },
   "error_loading_booking_logs": "Error loading booking logs",
   "no_audit_logs_found": "No audit logs found",

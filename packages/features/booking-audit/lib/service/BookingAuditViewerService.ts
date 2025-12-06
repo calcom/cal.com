@@ -1,10 +1,8 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
-import { CreatedAuditActionService, type CreatedAuditDisplayData } from "../actions/CreatedAuditActionService";
+import { BookingAuditActionServiceRegistry, type AuditDisplayData } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-
-type AuditDisplayData = CreatedAuditDisplayData;
 
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
@@ -36,7 +34,7 @@ type EnrichedAuditLog = {
  * BookingAuditViewerService - Service for viewing and formatting booking audit logs
  */
 export class BookingAuditViewerService {
-    private readonly createdActionService: CreatedAuditActionService;
+    private readonly actionServiceRegistry: BookingAuditActionServiceRegistry;
     private readonly bookingAuditRepository: IBookingAuditRepository;
     private readonly userRepository: UserRepository;
 
@@ -44,7 +42,7 @@ export class BookingAuditViewerService {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.userRepository = deps.userRepository;
 
-        this.createdActionService = new CreatedAuditActionService();
+        this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
     }
 
     /**
@@ -56,18 +54,15 @@ export class BookingAuditViewerService {
         _userId: number,
         _userEmail: string
     ): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
-        // Check permissions
         await this.checkPermissions();
 
-        // Fetch audit logs
         const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
-        // Enrich and format audit logs
         const enrichedAuditLogs = await Promise.all(
             auditLogs.map(async (log) => {
                 const enrichedActor = await this.enrichActorInformation(log.actor);
 
-                const actionService = this.getActionService(log.action);
+                const actionService = this.actionServiceRegistry.getActionService(log.action);
                 const parsedData = actionService.parseStored(log.data);
 
                 return {
@@ -77,7 +72,7 @@ export class BookingAuditViewerService {
                     action: log.action,
                     timestamp: log.timestamp.toISOString(),
                     createdAt: log.createdAt.toISOString(),
-                    data: actionService.getDisplayJson(parsedData),
+                    data: actionService.getDisplayJson(parsedData) as AuditDisplayData,
                     actor: {
                         ...log.actor,
                         displayName: enrichedActor.displayName,
@@ -102,19 +97,6 @@ export class BookingAuditViewerService {
         if (IS_PRODUCTION) {
             throw new Error("Permission check is not implemented for production environments");
         }
-    }
-
-    /**
-     * Get Action Service - Returns the appropriate action service for the given action type
-     * 
-     * @param action - The booking audit action type
-     * @returns The corresponding action service instance
-     */
-    private getActionService(action: BookingAuditAction) {
-        if (action !== "CREATED") {
-            throw new Error(`Unsupported audit action: ${action}`);
-        }
-        return this.createdActionService;
     }
 
     /**
@@ -176,4 +158,3 @@ export class BookingAuditViewerService {
         throw new Error(`Unknown actor type: ${actor.type}`);
     }
 }
-

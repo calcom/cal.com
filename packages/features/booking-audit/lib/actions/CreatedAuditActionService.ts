@@ -22,7 +22,7 @@ export class CreatedAuditActionService implements IAuditActionService<
     typeof fieldsSchemaV1
 > {
     readonly VERSION = 1;
-    public static readonly TYPE = "CREATED";
+    public static readonly TYPE = "CREATED" as const;
     private static dataSchemaV1 = z.object({
         version: z.literal(1),
         fields: fieldsSchemaV1,
@@ -62,10 +62,11 @@ export class CreatedAuditActionService implements IAuditActionService<
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): CreatedAuditDisplayData {
+        const { fields } = storedData;
         return {
-            startTime: new Date(storedData.fields.startTime).toISOString(),
-            endTime: new Date(storedData.fields.endTime).toISOString(),
-            status: storedData.fields.status,
+            startTime: new Date(fields.startTime).toISOString(),
+            endTime: new Date(fields.endTime).toISOString(),
+            status: fields.status,
         };
     }
 }

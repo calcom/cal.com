@@ -1023,6 +1023,7 @@ export class UserRepository {
       },
       select: {
         id: true,
+        uuid: true,
         username: true,
         name: true,
         email: true,

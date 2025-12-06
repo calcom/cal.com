@@ -89,6 +89,7 @@ model BookingAudit {
 
   @@index([actorId])
   @@index([bookingUid])
+  @@index([timestamp])
 }
 ```
 
@@ -505,13 +506,15 @@ AuditActor (1) ──────< (many) BookingAudit
 ### BookingAudit Table Indexes
 
 ```prisma
-@@index([bookingId])  // Primary query pattern
-@@index([actorId])    // Secondary query pattern
+@@index([bookingUid])      // Primary query pattern
+@@index([actorId])         // Secondary query pattern
+@@index([timestamp])       // Time-based sorting and filtering
 ```
 
 **Query Patterns:**
-- **bookingId**: "Show me all audits for this booking" (most common)
+- **bookingUid**: "Show me all audits for this booking" (most common)
 - **actorId**: "Show me all actions by this actor"
+- **timestamp**: Time-based sorting and filtering of audit records
 
 ---
 

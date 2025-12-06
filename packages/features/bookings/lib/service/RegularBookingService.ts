@@ -2301,18 +2301,18 @@ async function handler(
     organizationId: eventOrganizationId,
   });
 
-  const bookingRescheduledPayload: BookingRescheduledPayload = {
-    ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking ? {
-      startTime: originalRescheduledBooking.startTime,
-      endTime: originalRescheduledBooking.endTime,
-    } : undefined,
-  };
-
   const bookingEventHandler = deps.bookingEventHandler;
 
   // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   if (originalRescheduledBooking) {
+    const bookingRescheduledPayload: BookingRescheduledPayload = {
+      ...bookingCreatedPayload,
+      oldBooking: {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      },
+    };
     await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
   } else {
     // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
