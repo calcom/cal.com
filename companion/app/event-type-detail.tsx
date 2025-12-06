@@ -10,7 +10,6 @@ import {
   TextInput,
   Switch,
   Modal,
-  Linking,
   Alert,
   Clipboard,
   Animated,
@@ -20,6 +19,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
+import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
 import {
   defaultLocations,
@@ -40,6 +41,7 @@ import { AvailabilityTab } from "./event-type-detail/tabs/AvailabilityTab";
 import { LimitsTab } from "./event-type-detail/tabs/LimitsTab";
 import { AdvancedTab } from "./event-type-detail/tabs/AdvancedTab";
 import { RecurringTab } from "./event-type-detail/tabs/RecurringTab";
+import { formatDuration, truncateTitle, formatAppIdToDisplayName } from "./event-type-detail/utils";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -207,26 +209,6 @@ export default function EventTypeDetail() {
     "420 mins",
     "480 mins",
   ];
-
-  const formatDuration = (minutes: string) => {
-    const mins = parseInt(minutes) || 0;
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    const remainingMins = mins % 60;
-    return remainingMins > 0 ? `${hours}h ${remainingMins}m` : `${hours}h`;
-  };
-
-  const truncateTitle = (text: string, maxLength: number = 20) => {
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
-  };
-
-  const formatAppIdToDisplayName = (appId: string): string => {
-    // Convert appId like "google-meet" to "Google Meet"
-    return appId
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
 
   const displayNameToLocationValue = (
     displayName: string
@@ -929,16 +911,10 @@ export default function EventTypeDetail() {
     try {
       const eventTypeSlug = eventSlug || "preview";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-
-      const supported = await Linking.canOpenURL(link);
-      if (supported) {
-        await Linking.openURL(link);
-      } else {
-        Alert.alert("Error", "Cannot open this URL on your device.");
-      }
+      await openInAppBrowser(link, "event type preview");
     } catch (error) {
       console.error("Failed to generate preview link:", error);
-      Alert.alert("Error", "Failed to generate preview link. Please try again.");
+      showErrorAlert("Error", "Failed to generate preview link. Please try again.");
     }
   };
 
@@ -951,7 +927,7 @@ export default function EventTypeDetail() {
       Alert.alert("Success", "Link copied!");
     } catch (error) {
       console.error("Failed to copy link:", error);
-      Alert.alert("Error", "Failed to copy link. Please try again.");
+      showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
   };
 
@@ -985,7 +961,7 @@ export default function EventTypeDetail() {
           } catch (error) {
             console.error("Failed to delete event type:", error);
             const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-            Alert.alert("Error", `Failed to delete event type: ${errorMessage}`);
+            showErrorAlert("Error", `Failed to delete event type: ${errorMessage}`);
           }
         },
       },
@@ -1271,7 +1247,7 @@ export default function EventTypeDetail() {
     } catch (error) {
       console.error("Failed to save event type:", error);
       const action = id === "new" ? "create" : "update";
-      Alert.alert("Error", `Failed to ${action} event type. Please try again.`);
+      showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
     } finally {
       setSaving(false);
     }

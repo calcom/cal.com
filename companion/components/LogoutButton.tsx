@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TouchableOpacity, Text, Alert, Platform } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
+import { showErrorAlert } from "../utils/alerts";
 
 interface LogoutButtonProps {
   className?: string;
@@ -37,9 +38,12 @@ export function LogoutButton({ className = "" }: LogoutButtonProps) {
     } catch (error) {
       console.error("Logout error:", error);
       if (Platform.OS === "web") {
-        window.alert("Failed to sign out. Please try again.");
+        // On web, only show error in development
+        if (__DEV__) {
+          window.alert("Failed to sign out. Please try again.");
+        }
       } else {
-        Alert.alert("Error", "Failed to sign out. Please try again.");
+        showErrorAlert("Error", "Failed to sign out. Please try again.");
       }
     }
   };
