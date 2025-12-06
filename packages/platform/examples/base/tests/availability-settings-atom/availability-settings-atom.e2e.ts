@@ -11,6 +11,8 @@ async function selectOption(page: Page, optionNumber: number) {
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip("availability page loads with all components", async ({ page }) => {
   await page.goto("/availability");
+  await page.reload();
+
   await expect(page).toHaveURL("/availability");
 
   await expect(page.locator('[data-testid="list-schedules-atom"]')).toBeVisible();
