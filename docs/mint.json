@@ -250,7 +250,8 @@
             "platform/guides/booking-redirects",
             "platform/guides/teams-setup",
             "platform/guides/global-event-types",
-            "platform/guides/custom-booking-flow"
+            "platform/guides/custom-booking-flow",
+            "platform/guides/notifications"
           ]
         },
         "platform/faq"

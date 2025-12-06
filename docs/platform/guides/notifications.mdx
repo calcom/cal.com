@@ -1,0 +1,139 @@
+---
+title: Set up notifications
+description: Configure cusom notifications for your application.
+---
+
+Cal.com allows you to subscribe to notifications using webhooks. You can use notifications both to run core functionality in your project and to monitor for undesirable events (like errors) so your application can handle them gracefully
+
+Using webhooks, you can subscribe to notifications to specific events you are interested in. For example, you can subscribe to events when a user creates a booking, or when a booking is cancelled.
+
+### Creating a webhook subscription
+
+To create a new webhook subscription, visit `https://app.cal.com/settings/platform/webhooks` and proceed to enter the following details:
+
+<Steps>
+  <Step title="Subscriber URL">
+    This is the listener URL where the payload will be sent when an event trigger is activated.
+  </Step>
+  <Step title="Event triggers">
+    You can choose which specific triggers to listen to. Currently available triggers include: - `Booking
+    Cancelled` - `Booking Created` - `Booking Rescheduled` - `Booking Rejected` - `Booking Requested` -
+    `Booking Payment Initiated` - `Booking Paid` - `Meeting Started` - `Recording Ready` - `Form Submitted` -
+    `Meeting Ended` - `Instant Meeting Created` - `Booking No-show Updated` - `After Hosts Didn't Join Cal
+    Video` - `After Guests Didn't Join Cal Video`
+  </Step>
+  <Step title="Secret">
+    You can provide a secret key with this webhook to [verify
+    it](/docs/core-features/webhooks#verifying-the-authenticity-of-the-received-payload) on the subscriber URL
+    when receiving a payload. This helps confirm whether the payload is authentic or has been tampered with.
+    You can leave it blank if you don't wish to secure the webhook with a secret key.
+  </Step>
+  <Step title="Custom Payload">
+    You have the option to [customize the
+    payload](/docs/core-features/webhooks#adding-a-custom-payload-template) that you receive when a subscribed
+    event is triggered.
+  </Step>
+</Steps>
+
+### An example webhook payload
+
+```json
+{
+  "triggerEvent": "BOOKING_CREATED",
+  "createdAt": "2023-05-24T09:30:00.538Z",
+  "payload": {
+    "type": "60min",
+    "title": "60min between Pro Example and John Doe",
+    "description": "",
+    "additionalNotes": "",
+    "customInputs": {},
+    "startTime": "2023-05-25T09:30:00Z",
+    "endTime": "2023-05-25T10:30:00Z",
+    "organizer": {
+      "id": 5,
+      "name": "Pro Example",
+      "email": "pro@example.com",
+      "username": "pro",
+      "timeZone": "Asia/Kolkata",
+      "language": {
+        "locale": "en"
+      },
+      "timeFormat": "h:mma"
+    },
+    "responses": {
+      "name": {
+        "label": "your_name",
+        "value": "John Doe"
+      },
+      "email": {
+        "label": "email_address",
+        "value": "john.doe@example.com"
+      },
+      "location": {
+        "label": "location",
+        "value": {
+          "optionValue": "",
+          "value": "inPerson"
+        }
+      },
+      "notes": {
+        "label": "additional_notes"
+      },
+      "guests": {
+        "label": "additional_guests"
+      },
+      "rescheduleReason": {
+        "label": "reschedule_reason"
+      }
+    },
+    "userFieldsResponses": {},
+    "attendees": [
+      {
+        "email": "john.doe@example.com",
+        "name": "John Doe",
+        "timeZone": "Asia/Kolkata",
+        "language": {
+          "locale": "en"
+        }
+      }
+    ],
+    "location": "Calcom HQ",
+    "destinationCalendar": {
+      "id": 10,
+      "integration": "apple_calendar",
+      "externalId": "https://caldav.icloud.com/1234567/calendars/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/",
+      "userId": 5,
+      "eventTypeId": null,
+      "credentialId": 1
+    },
+    "hideCalendarNotes": false,
+    "requiresConfirmation": null,
+    "eventTypeId": 7,
+    "seatsShowAttendees": true,
+    "seatsPerTimeSlot": null,
+    "uid": "bFJeNb2uX8ANpT3JL5EfXw",
+    "appsStatus": [
+      {
+        "appName": "Apple Calendar",
+        "type": "apple_calendar",
+        "success": 1,
+        "failures": 0,
+        "errors": [],
+        "warnings": []
+      }
+    ],
+    "eventTitle": "60min",
+    "eventDescription": "",
+    "price": 0,
+    "currency": "usd",
+    "length": 60,
+    "bookingId": 91,
+    "metadata": {},
+    "status": "ACCEPTED"
+  }
+}
+```
+
+### API v2 reference
+
+For reference on the webhooks API, please refer to the [API v2 reference](/api-reference/v2/platform-webhooks/create-a-webhook).
