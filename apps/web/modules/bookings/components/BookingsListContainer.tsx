@@ -128,7 +128,7 @@ function BookingsListInner({
           filter: {
             type: ColumnFilterType.DATE_RANGE,
             dateRangeOptions: {
-              range: status === "past" ? "past" : "custom",
+              range: status === "past" ? "past" : status === "cancelled" ? "any" : "future", // upcoming, unconfirmed, recurring are all future-only
             },
           },
         },
