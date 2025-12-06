@@ -37,7 +37,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
-  APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -57,6 +56,7 @@ import {
   SelectField,
   ColorPicker,
   TextField,
+  TextAreaField,
   Label,
   CheckboxField,
   Switch,
@@ -443,6 +443,9 @@ export const EventAdvancedTab = ({
     setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
   }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
+  const [calendarEventDescriptionVisible, setCalendarEventDescriptionVisible] = useState(
+    !!formMethods.getValues("calendarEventDescription")
+  );
 
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -521,6 +524,7 @@ export const EventAdvancedTab = ({
   const sendCalVideoTranscriptionEmailsProps = shouldLockDisableProps("canSendCalVideoTranscriptionEmails");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
   const hideCalendarEventDetailsLocked = shouldLockDisableProps("hideCalendarEventDetails");
+  const calendarEventDescriptionLocked = shouldLockDisableProps("calendarEventDescription");
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
@@ -892,6 +896,45 @@ export const EventAdvancedTab = ({
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
+        )}
+      />
+      <Controller
+        name="calendarEventDescription"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              calendarEventDescriptionVisible && "rounded-b-none"
+            )}
+            childrenClassName="lg:ml-0"
+            title={t("custom_calendar_description")}
+            {...calendarEventDescriptionLocked}
+            description={t("custom_calendar_description_helper")}
+            checked={calendarEventDescriptionVisible}
+            onCheckedChange={(e) => {
+              setCalendarEventDescriptionVisible(e);
+              if (!e) {
+                onChange(null);
+              } else {
+                onChange(value || formMethods.getValues("description") || "");
+              }
+            }}>
+            <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <TextAreaField
+                name="calendarEventDescription"
+                label={t("calendar_event_description")}
+                labelProps={{ className: "sr-only" }}
+                placeholder={t("custom_calendar_description_placeholder")}
+                value={value || ""}
+                onChange={(e) => onChange(e.target.value)}
+                rows={4}
+                disabled={calendarEventDescriptionLocked.disabled}
+              />
+              <p className="text-subtle mt-2 text-sm">{t("custom_calendar_description_info")}</p>
+            </div>
+          </SettingsToggle>
         )}
       />
       <Controller

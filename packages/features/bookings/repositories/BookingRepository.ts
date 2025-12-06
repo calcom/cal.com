@@ -1224,6 +1224,7 @@ export class BookingRepository {
             id: true,
             slug: true,
             description: true,
+            calendarEventDescription: true,
             hideCalendarNotes: true,
             hideCalendarEventDetails: true,
             hideOrganizerEmail: true,

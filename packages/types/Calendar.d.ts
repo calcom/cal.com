@@ -194,6 +194,7 @@ export interface CalendarEvent {
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
   hideCalendarEventDetails?: boolean;
+  calendarEventDescription?: string | null;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;

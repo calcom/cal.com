@@ -151,6 +151,7 @@ export const getCalendarLinks = ({
   eventType: {
     recurringEvent: RecurringEventOrPrismaJsonObject;
     description?: string | null;
+    calendarEventDescription?: string | null;
     eventName?: string | null;
     isDynamic: boolean;
     length: number;
@@ -183,7 +184,8 @@ export const getCalendarLinks = ({
 
   // Create event name and description
   const eventName = getEventName(eventNameObject, true);
-  const eventDescription = eventType.description || "";
+  // Use custom calendar description if set, otherwise fall back to regular description
+  const eventDescription = eventType.calendarEventDescription || eventType.description || "";
 
   // Calculate start and end times
   const startTime = dayjs(booking.startTime);

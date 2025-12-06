@@ -141,6 +141,7 @@ export class CalendarEventBuilder {
         id: eventType.id,
         slug: eventType.slug,
         description: eventType.description,
+        calendarEventDescription: eventType.calendarEventDescription,
         hideCalendarNotes: eventType.hideCalendarNotes,
         hideCalendarEventDetails: eventType.hideCalendarEventDetails,
         hideOrganizerEmail: eventType.hideOrganizerEmail,
@@ -255,6 +256,7 @@ export class CalendarEventBuilder {
   withEventType(eventType: {
     slug: string;
     description?: string | null;
+    calendarEventDescription?: string | null;
     id: number;
     hideCalendarNotes?: boolean;
     hideCalendarEventDetails?: boolean;
@@ -271,6 +273,7 @@ export class CalendarEventBuilder {
       ...this.event,
       type: eventType.slug,
       description: eventType.description,
+      calendarEventDescription: eventType.calendarEventDescription,
       eventTypeId: eventType.id,
       hideCalendarNotes: eventType.hideCalendarNotes,
       hideCalendarEventDetails: eventType.hideCalendarEventDetails,

@@ -27,6 +27,7 @@ export const getEventTypesFromDB = async (id: number) => {
       id: true,
       title: true,
       description: true,
+      calendarEventDescription: true,
       interfaceLanguage: true,
       length: true,
       eventName: true,

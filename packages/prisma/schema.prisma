@@ -187,6 +187,7 @@ model EventType {
   disableGuests                            Boolean                   @default(false)
   hideCalendarNotes                        Boolean                   @default(false)
   hideCalendarEventDetails                 Boolean                   @default(false)
+  calendarEventDescription                 String?
   /// @zod.number.min(0)
   minimumBookingNotice                     Int                       @default(120)
   beforeEventBuffer                        Int                       @default(0)

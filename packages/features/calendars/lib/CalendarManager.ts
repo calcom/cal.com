@@ -507,9 +507,10 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calEvent.customInputs = null;
   }
   // Generate the calendar event description
+  // Use custom calendar description if set, otherwise use the rich description
   const calendarEvent: CalendarServiceEvent = {
     ...calEvent,
-    calendarDescription: getRichDescription(calEvent),
+    calendarDescription: calEvent.calendarEventDescription || getRichDescription(calEvent),
   };
 
   const isMeetLocationType = calEvent.location === MeetLocationType;

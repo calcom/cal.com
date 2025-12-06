@@ -73,6 +73,7 @@ export const eventTypeSelect = {
   durationLimits: true,
   eventTypeColor: true,
   hideCalendarEventDetails: true,
+  calendarEventDescription: true,
   rrSegmentQueryValue: true,
   assignRRMembersUsingSegment: true,
   maxLeadThreshold: true,
