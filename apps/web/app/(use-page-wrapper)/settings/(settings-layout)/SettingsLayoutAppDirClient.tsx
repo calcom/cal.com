@@ -381,22 +381,26 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
   const searchParams = useCompatSearchParams();
+  const pathname = usePathname();
   const searchParamsId = searchParams?.get("id");
+  const pathTeamId = pathname?.match(/\/settings\/teams\/(\d+)/)?.[1];
+  const activeTeamId = pathTeamId || searchParamsId;
+
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === searchParamsId,
+        teamMenuOpen: String(team.id) === activeTeamId,
       }));
       setTeamMenuState(teamStates);
-      setTimeout(() => {
-        const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
-          (bottom) => bottom.dataset.testid === "vertical-tab-Members"
-        )[1];
-        tabMembers?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      if (activeTeamId) {
+        setTimeout(() => {
+          const teamTrigger = document.querySelector(`[aria-controls="team-content-${activeTeamId}"]`);
+          teamTrigger?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+      }
     }
-  }, [searchParamsId, teams]);
+  }, [activeTeamId, teams]);
 
   return (
     <>
