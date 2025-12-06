@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { z } from "zod";
 
 import type {
@@ -13,6 +13,7 @@ import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
+import { EmailTypoSuggestion, useEmailTypoDetection } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -84,6 +85,81 @@ type Component =
         props: TProps
       ) => JSX.Element;
     };
+
+function EmailWithTypoCheck({
+  index,
+  email,
+  name,
+  placeholder,
+  readOnly,
+  value,
+  setValue,
+}: {
+  index: number;
+  email: string;
+  name?: string;
+  placeholder?: string;
+  readOnly?: boolean;
+  value: string[];
+  setValue: (value: string[]) => void;
+}) {
+  const [localEmail, setLocalEmail] = useState(email);
+  const suggestion = useEmailTypoDetection(localEmail);
+  const { t } = useLocale();
+
+  // Sync with prop changes
+  useEffect(() => {
+    setLocalEmail(email);
+  }, [email]);
+
+  return (
+    <div>
+      <EmailField
+        disabled={readOnly}
+        value={localEmail}
+        onChange={(e) => {
+          const newValue = e.target.value;
+          setLocalEmail(newValue);
+          const newArray = [...value];
+          newArray[index] = newValue;
+          setValue(newArray);
+        }}
+        placeholder={placeholder}
+        label={<></>}
+        required
+        id={`${name || "email"}.${index}`}
+        addOnSuffix={
+          !readOnly ? (
+            <Tooltip content={t("form_builder_remove_email")}>
+              <button
+                className="m-1"
+                type="button"
+                aria-label="Remove guest"
+                onClick={() => {
+                  const newArray = [...value];
+                  newArray.splice(index, 1);
+                  setValue(newArray);
+                }}>
+                <Icon name="x" width={12} className="text-default" />
+              </button>
+            </Tooltip>
+          ) : null
+        }
+      />
+      {suggestion && !readOnly && (
+        <EmailTypoSuggestion
+          suggestion={suggestion}
+          onAccept={(correctedEmail) => {
+            setLocalEmail(correctedEmail);
+            const newArray = [...value];
+            newArray[index] = correctedEmail;
+            setValue(newArray);
+          }}
+        />
+      )}
+    </div>
+  );
+}
 
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
 // There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
@@ -210,19 +286,39 @@ export const Components: Record<FieldType, Component> = {
   email: {
     propsType: propsTypes.email,
     factory: (props) => {
+      const [email, setEmail] = useState((props.value as string) || "");
+      const suggestion = useEmailTypoDetection(email);
+      useEffect(() => {
+        setEmail((props.value as string) || "");
+      }, [props.value]);
       if (!props) {
         return <div />;
       }
-
       return (
-        <InputField
-          type="email"
-          id={props.name}
-          noLabel={true}
-          autoComplete="email"
-          {...props}
-          onChange={(e) => props.setValue(e.target.value)}
-        />
+        <>
+          <InputField
+            type="email"
+            id={props.name}
+            noLabel={true}
+            autoComplete="email"
+            {...props}
+            value={email}
+            onChange={(e) => {
+              const newEmail = e.target.value;
+              setEmail(newEmail);
+              props.setValue(newEmail);
+            }}
+          />
+          {suggestion && (
+            <EmailTypoSuggestion
+              suggestion={suggestion}
+              onAccept={(correctedEmail) => {
+                setEmail(correctedEmail);
+                props.setValue(correctedEmail);
+              }}
+            />
+          )}
+        </>
       );
     },
   },
@@ -243,45 +339,27 @@ export const Components: Record<FieldType, Component> = {
   },
   multiemail: {
     propsType: propsTypes.multiemail,
-    //TODO: Make it a ui component
     factory: function MultiEmail({ value, readOnly, label, setValue, ...props }) {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
+
       return (
         <>
           {value.length ? (
             <div>
-              <label htmlFor="guests" className="text-default  mb-1 block text-sm font-medium">
-                {label}
-              </label>
+              <div className="text-default mb-1 block text-sm font-medium">{label}</div>
               <ul>
-                {value.map((field, index) => (
+                {value.map((email, index) => (
                   <li key={index}>
-                    <EmailField
-                      id={`${props.name}.${index}`}
-                      disabled={readOnly}
-                      value={value[index]}
-                      onChange={(e) => {
-                        value[index] = e.target.value.toLowerCase();
-                        setValue(value);
-                      }}
+                    <EmailWithTypoCheck
+                      index={index}
+                      email={email}
+                      name={props.name}
                       placeholder={placeholder}
-                      label={<></>}
-                      required
-                      onClickAddon={() => {
-                        value.splice(index, 1);
-                        setValue(value);
-                      }}
-                      addOnSuffix={
-                        !readOnly ? (
-                          <Tooltip content="Remove email">
-                            <button className="m-1" type="button">
-                              <Icon name="x" width={12} className="text-default" />
-                            </button>
-                          </Tooltip>
-                        ) : null
-                      }
+                      readOnly={readOnly}
+                      value={value}
+                      setValue={setValue}
                     />
                   </li>
                 ))}
@@ -294,8 +372,8 @@ export const Components: Record<FieldType, Component> = {
                   StartIcon="user-plus"
                   className="my-2.5"
                   onClick={() => {
-                    value.push("");
-                    setValue(value);
+                    const newArray = [...value, ""];
+                    setValue(newArray);
                   }}>
                   {t("add_another")}
                 </Button>
@@ -312,8 +390,7 @@ export const Components: Record<FieldType, Component> = {
               variant="button"
               StartIcon="user-plus"
               onClick={() => {
-                value.push("");
-                setValue(value);
+                setValue([""]);
               }}
               className="mr-auto h-fit whitespace-normal text-left">
               <span className="flex-1">{label}</span>

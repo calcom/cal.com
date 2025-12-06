@@ -4324,6 +4324,7 @@ __metadata:
     "@types/react-dom": ^18.0.9
     "@types/uuid": ^10.0.0
     "@wojtekmaj/react-daterange-picker": ^3.3.1
+    "@zootools/email-spell-checker": ^1.12.0
     class-variance-authority: ^0.4.0
     cmdk: ^0.2.0
     cmk: ^0.1.1
@@ -20705,6 +20706,13 @@ __metadata:
   version: 4.2.2
   resolution: "@xtuc/long@npm:4.2.2"
   checksum: 8ed0d477ce3bc9c6fe2bf6a6a2cc316bb9c4127c5a7827bae947fa8ec34c7092395c5a283cc300c05b5fa01cbbfa1f938f410a7bf75db7c7846fea41949989ec
+  languageName: node
+  linkType: hard
+
+"@zootools/email-spell-checker@npm:^1.12.0":
+  version: 1.12.0
+  resolution: "@zootools/email-spell-checker@npm:1.12.0"
+  checksum: 44bceedf2f8d8e4eedd23905af9a6e89af11adbf30a88793383e3671ab0313ee5dd4f4cdef27c87225c897dc3072fc6923d0d7cb344050010400fff594b1a661
   languageName: node
   linkType: hard
 
