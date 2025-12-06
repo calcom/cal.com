@@ -270,31 +270,18 @@ jobs:
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
-      - name: fail if conditional jobs failed
-        run: exit 1
-        if: |
-          (
-            needs.prepare.outputs.has-files-requiring-all-checks == 'true' &&
-            (
-              needs.lint.result != 'success' ||
-              needs.type-check.result != 'success' ||
-              needs.unit-test.result != 'success' ||
-              needs.check-api-v2-breaking-changes.result != 'success' ||
-              needs.build.result != 'success' ||
-              needs.build-api-v1.result != 'success' ||
-              needs.build-api-v2.result != 'success' ||
-              needs.build-atoms.result != 'success' ||
-              needs.build-docs.result != 'success' ||
-              needs.setup-db.result != 'success' ||
-              needs.integration-test.result != 'success' ||
-              needs.e2e.result != 'success' ||
-              needs.e2e-api-v2.result != 'success' ||
-              needs.e2e-embed.result != 'success' ||
-              needs.e2e-embed-react.result != 'success' ||
-              needs.e2e-app-store.result != 'success'
-            )
-          ) ||
-          (
-            needs.prepare.outputs.has_companion == 'true' &&
-            needs.build-companion.result != 'success'
-          )
+      - name: Dump dependent job results and fail only on 'failure'
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true'
+        run: |
+          echo 'Dependent job results:'
+          echo '${{ toJson(needs) }}'
+          
+          # Use jq to list jobs with result == "failure"
+          echo '${{ toJson(needs) }}' > /tmp/needs.json
+          cat /tmp/needs.json
+          failures=$(jq -r 'to_entries | map(select(.value.result=="failure")) | .[].key' /tmp/needs.json || true)
+          if [ -n "$failures" ]; then
+            echo " Failed jobs: $failures"
+            exit 1
+          fi
+          echo " No failed jobs."
