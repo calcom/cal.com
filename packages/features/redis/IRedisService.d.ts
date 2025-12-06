@@ -10,4 +10,8 @@ export interface IRedisService {
   lpush: <TData>(key: string, ...elements: TData[]) => Promise<number>;
 
   del: (key: string) => Promise<number>;
+
+  scan: (cursor: string, opts?: { match?: string; count?: number }) => Promise<[string, string[]]>;
+
+  deleteMany: (keys: string[]) => Promise<number>;
 }
