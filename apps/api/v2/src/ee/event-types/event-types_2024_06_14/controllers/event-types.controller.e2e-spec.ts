@@ -34,6 +34,7 @@ import { SchedulingType } from "@calcom/platform-libraries";
 import {
   BaseConfirmationPolicy_2024_06_14,
   TeamEventTypeOutput_2024_06_14,
+  supportedIntegrations,
   type ApiSuccessResponse,
   type CreateEventTypeInput_2024_06_14,
   type EventTypeOutput_2024_06_14,
@@ -640,9 +641,9 @@ describe("Event types Endpoints", () => {
       hiddenEventType = responseBody.data;
     });
 
-    it(`/GET/event-types by username`, async () => {
+    it(`/GET/event-types by username with sortCreatedAt=desc`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types?username=${user.username}`)
+        .get(`/api/v2/event-types?username=${user.username}&sortCreatedAt=desc`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200);
@@ -652,6 +653,12 @@ describe("Event types Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data?.length).toEqual(2);
+
+      // Verify ordering: event types are returned newest to oldest when sortCreatedAt=desc
+      // hiddenEventType was created after eventType, so it should have a higher ID and appear first
+      expect(responseBody.data[0].id).toBeGreaterThan(responseBody.data[1].id);
+      expect(responseBody.data[0].id).toEqual(hiddenEventType.id);
+      expect(responseBody.data[1].id).toEqual(eventType.id);
 
       const fetchedEventType = responseBody.data?.find((et) => et.id === eventType.id);
       const fetchedHiddenEventType = responseBody.data?.find((et) => et.id === hiddenEventType.id);
@@ -709,6 +716,46 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.id).toEqual(eventType.id);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
       expect(fetchedEventType?.hidden).toEqual(false);
+    });
+
+    it(`/GET/event-types by username with sortCreatedAt=asc`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}&sortCreatedAt=asc`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+
+      // Verify ordering: event types are returned oldest to newest when sortCreatedAt=asc
+      // eventType was created before hiddenEventType, so it should have a lower ID and appear first
+      expect(responseBody.data[0].id).toBeLessThan(responseBody.data[1].id);
+      expect(responseBody.data[0].id).toEqual(eventType.id);
+      expect(responseBody.data[1].id).toEqual(hiddenEventType.id);
+    });
+
+    it(`/GET/event-types by username without sortCreatedAt parameter`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+
+      // Without sortCreatedAt, no specific order is guaranteed
+      // Just verify both event types are present
+      const ids = responseBody.data.map((et) => et.id);
+      expect(ids).toContain(eventType.id);
+      expect(ids).toContain(hiddenEventType.id);
     });
 
     it(`/GET/event-types by username should not return hidden event type if no auth provided`, async () => {
@@ -2853,6 +2900,119 @@ describe("Event types Endpoints", () => {
             { type: "unknown", location: JSON.stringify(eventTypeInput.locations[0]) },
           ]);
         });
+    });
+
+    it("should accept newly supported integration locations in input validation", async () => {
+      // Test that the API accepts various newly supported integrations by creating event types
+      // with these location types directly in the database and then retrieving them
+      // Note: Database uses underscores in integration types, API returns hyphens
+      const integrationTests = [
+        { internal: "integrations:jitsi", api: "jitsi" },
+        { internal: "integrations:whereby_video", api: "whereby-video" },
+        { internal: "integrations:huddle01", api: "huddle" },
+        { internal: "integrations:tandem", api: "tandem" },
+        { internal: "integrations:element-call_video", api: "element-call-video" },
+      ];
+
+      for (const { internal, api } of integrationTests) {
+        const eventTypeInput = {
+          title: `event type ${api}`,
+          description: "event type description",
+          length: 30,
+          hidden: false,
+          slug: `event-type-${api}`,
+          locations: [
+            {
+              type: internal,
+              link: `https://example.com/${api}/meeting`,
+            },
+          ],
+          schedulingType: SchedulingType.ROUND_ROBIN,
+          bookingFields: [],
+        };
+
+        const legacyEventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+
+        const response = await request(app.getHttpServer())
+          .get(`/api/v2/event-types/${legacyEventType.id}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const fetchedEventType = responseBody.data;
+
+        // Verify the integration location is returned correctly
+        expect(fetchedEventType.locations).toHaveLength(1);
+        expect(fetchedEventType.locations[0]).toMatchObject({
+          type: "integration",
+          integration: api,
+        });
+
+        // Clean up
+        await eventTypesRepositoryFixture.delete(legacyEventType.id);
+      }
+    });
+
+    it("should reject with 400 if creating event type with unsupported integration location", async () => {
+      const createPayload = {
+        title: "Event with unsupported integration",
+        slug: "event-with-unsupported-integration",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "unsupported-integration",
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(createPayload);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error.message).toBe(
+        `Validation failed for integration location: integration must be one of the following values: ${supportedIntegrations.join(
+          ", "
+        )}`
+      );
+    });
+
+    it("should reject with 400 if patching event type with integration that user has not connected", async () => {
+      const createPayload = {
+        title: "Event for patch test",
+        slug: "event-patch-test-unconnected-integration",
+        lengthInMinutes: 30,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(createPayload)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      const patchPayload = {
+        locations: [
+          {
+            type: "integration",
+            integration: "jitsi",
+          },
+        ],
+      };
+
+      const patchResponse = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(patchPayload);
+
+      expect(patchResponse.status).toBe(400);
+      expect(patchResponse.body.error.message).toBe("jitsi not connected.");
+
+      // Cleanup
+      await eventTypesRepositoryFixture.delete(createdEventType.id);
     });
 
     describe("EventType Hidden Property", () => {

@@ -136,12 +136,16 @@ export class TeamsEventTypesController {
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get a team event type" })
+  @ApiOperation({
+    summary: "Get team event types",
+    description:
+      'Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied.',
+  })
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
   ): Promise<GetTeamEventTypesOutput> {
-    const { eventSlug, hostsLimit } = queryParams;
+    const { eventSlug, hostsLimit, sortCreatedAt } = queryParams;
 
     if (eventSlug) {
       const eventType = await this.teamsEventTypesService.getTeamEventTypeBySlug(
@@ -156,7 +160,7 @@ export class TeamsEventTypesController {
       };
     }
 
-    const eventTypes = await this.teamsEventTypesService.getTeamEventTypes(teamId);
+    const eventTypes = await this.teamsEventTypesService.getTeamEventTypes(teamId, sortCreatedAt);
 
     return {
       status: SUCCESS_STATUS,
