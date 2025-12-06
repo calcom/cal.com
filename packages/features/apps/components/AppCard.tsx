@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import posthog from "posthog-js";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
@@ -13,7 +13,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
@@ -41,6 +41,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   });
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
+
+  const cleanDescription = useMemo(() => stripMarkdown(app.description || ""), [app.description]);
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
@@ -109,7 +111,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         />
       </div>
       <div className="flex items-center">
-        <h3 className="text-emphasis font-medium">
+        <h3 className="text-emphasis truncate font-medium" title={app.name}>
           {searchTextIndex != undefined && searchText ? (
             <>
               {app.name.substring(0, searchTextIndex)}
@@ -127,16 +129,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p
-        className="text-default mt-2 grow text-sm"
-        dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
-        style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
-        }}
-      />
+      <p className="text-default mt-2 line-clamp-3 text-sm">{cleanDescription}</p>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
