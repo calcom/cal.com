@@ -72,6 +72,8 @@ import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmails
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
+import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
+import DisableReschedulingController from "./DisableReschedulingController";
 
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
@@ -85,6 +87,7 @@ export type EventAdvancedTabCustomClassNames = {
     };
   };
   requiresConfirmation?: RequiresConfirmationCustomClassNames;
+  disableRescheduling?: DisableReschedulingCustomClassNames;
   bookerEmailVerification?: SettingsToggleClassNames;
   canSendCalVideoTranscriptionEmails?: SettingsToggleClassNames;
   calendarNotes?: SettingsToggleClassNames;
@@ -177,7 +180,7 @@ const destinationCalendarComponents = {
     const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
     return (
       <div className="border-subtle stack-y-6 rounded-lg border p-6">
-        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:stack-y-0">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           {showConnectedCalendarSettings && (
             <div
               className={classNames(
@@ -222,7 +225,7 @@ const destinationCalendarComponents = {
                   color="minimal"
                   size="sm"
                   aria-label="edit custom name"
-                  className="hover:stroke-3 hover:text-emphasis min-w-fit py-0! px-0 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis py-0! min-w-fit px-0 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
                   <Icon name="pencil" className="h-4 w-4" />
                 </Button>
@@ -301,7 +304,7 @@ const destinationCalendarComponents = {
   DestinationCalendarSettingsSkeleton() {
     return (
       <div className="border-subtle stack-y-6 rounded-lg border p-6">
-        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:stack-y-0">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           <div className="flex w-full flex-col">
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
@@ -614,7 +617,7 @@ export const EventAdvancedTab = ({
   }, [isPlatform]);
 
   return (
-    <div className="flex flex-col stack-y-4">
+    <div className="stack-y-4 flex flex-col">
       <calendarComponents.CalendarSettings
         verifiedSecondaryEmails={verifiedSecondaryEmails}
         userEmail={userEmail}
@@ -643,7 +646,7 @@ export const EventAdvancedTab = ({
           <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
             {t("booking_questions_title")}
           </div>
-          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
+          <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
             <LearnMoreLink
               t={t}
               i18nKey="booking_questions_description"
@@ -715,30 +718,11 @@ export const EventAdvancedTab = ({
             )}
           />
 
-          <Controller
-            name="disableRescheduling"
-            render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_rescheduling")}
-                data-testid="disable-rescheduling-toggle"
-                {...disableReschedulingLocked}
-                description={
-                  <LearnMoreLink
-                    t={t}
-                    i18nKey="description_disable_rescheduling"
-                    href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-rescheduling"
-                  />
-                }
-                checked={disableRescheduling}
-                onCheckedChange={(val) => {
-                  setDisableRescheduling(val);
-                  onChange(val);
-                }}
-              />
-            )}
+          <DisableReschedulingController
+            eventType={eventType}
+            disableRescheduling={disableRescheduling}
+            onDisableRescheduling={setDisableRescheduling}
+            customClassNames={customClassNames?.disableRescheduling}
           />
         </>
       )}

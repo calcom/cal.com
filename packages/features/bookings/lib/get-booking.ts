@@ -60,9 +60,11 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
       location: true,
       eventTypeId: true,
       status: true,
+      userId: true,
       eventType: {
         select: {
           disableRescheduling: true,
+          minimumRescheduleNotice: true,
         },
       },
       attendees: {
