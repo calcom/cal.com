@@ -17,6 +17,7 @@ import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-r
 import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { HolidayService } from "@calcom/lib/holidays";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -25,6 +26,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import prisma from "@calcom/prisma";
 import type {
   Booking,
   Prisma,
@@ -556,6 +558,19 @@ export class UserAvailabilityService {
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
+    const holidayBlockedDates = await this.calculateHolidayBlockedDates(
+      user.id,
+      dateFrom.toDate(),
+      dateTo.toDate(),
+      availability
+    );
+
+    for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
+      if (!datesOutOfOffice[date]) {
+        datesOutOfOffice[date] = holidayData;
+      }
+    }
+
     const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
       dateFrom,
       dateTo,
@@ -680,4 +695,54 @@ export class UserAvailabilityService {
   }
 
   getUsersAvailability = withReporting(this._getUsersAvailability.bind(this), "getUsersAvailability");
+
+  async calculateHolidayBlockedDates(
+    userId: number,
+    startDate: Date,
+    endDate: Date,
+    availability: GetUserAvailabilityParamsDTO["availability"]
+  ): Promise<IOutOfOfficeData> {
+    const holidaySettings = await prisma.userHolidaySettings.findUnique({
+      where: { userId },
+    });
+
+    if (!holidaySettings || !holidaySettings.countryCode) {
+      return {};
+    }
+
+    const holidayDates = await HolidayService.getHolidayDatesInRange(
+      holidaySettings.countryCode,
+      holidaySettings.disabledIds,
+      startDate,
+      endDate
+    );
+
+    if (holidayDates.length === 0) {
+      return {};
+    }
+
+    const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
+      (a, b) => a - b
+    );
+
+    const result: IOutOfOfficeData = {};
+
+    for (const { date, holiday } of holidayDates) {
+      const holidayDate = dayjs(date);
+      const dayOfWeek = holidayDate.day();
+
+      if (!flattenDays.includes(dayOfWeek)) {
+        continue;
+      }
+
+      result[date] = {
+        fromUser: null,
+        toUser: null,
+        reason: holiday.name,
+        emoji: "📆",
+      };
+    }
+
+    return result;
+  }
 }
