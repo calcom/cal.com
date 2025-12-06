@@ -56,6 +56,8 @@ export class PrismaOOORepository {
         id: true,
         start: true,
         end: true,
+        notes: true,
+        showNotePublicly: true,
         user: {
           select: {
             id: true,
@@ -123,6 +125,8 @@ export class PrismaOOORepository {
         id: true,
         start: true,
         end: true,
+        notes: true,
+        showNotePublicly: true,
         user: {
           select: {
             id: true,

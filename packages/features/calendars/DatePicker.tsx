@@ -271,7 +271,8 @@ const Days = ({
     const isOOOAllDay = daySlots.length > 0 && daySlots.every((slot) => slot.away);
     const away = isOOOAllDay;
 
-    const disabled = away ? !oooInfo?.toUser : isNextMonth ? !hasAvailableSlots : !included || excluded;
+    // Allow selecting OOO dates even without redirect - they'll see the OOO message
+    const disabled = away ? false : isNextMonth ? !hasAvailableSlots : !included || excluded;
 
     return {
       day,
