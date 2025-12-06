@@ -82,7 +82,7 @@ export class QualifiedHostsService {
       includeNoShowInRRCalculation: boolean;
     } & EventType;
     rescheduleUid: string | null;
-    routedTeamMemberIds: number[];
+    routedTeamMemberIds: number[] | null;
     contactOwnerEmail: string | null;
     routingFormResponse: RoutingFormResponse | null;
   }): Promise<{
@@ -122,6 +122,18 @@ export class QualifiedHostsService {
 
     const fixedHosts = normalizedHosts.filter(isFixedHost);
     const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
+
+    if (routingFormResponse && routedTeamMemberIds?.length === 0) {
+      // If there's a contact owner, return only the contact owner
+      if (contactOwnerEmail) {
+        const contactOwnerHost = roundRobinHosts.find((host) => host.user.email === contactOwnerEmail);
+        if (contactOwnerHost) {
+          return { qualifiedRRHosts: [contactOwnerHost], fixedHosts };
+        }
+      }
+      // No contact owner or contact owner not found - return empty
+      return { qualifiedRRHosts: [], fixedHosts: [] };
+    }
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
@@ -168,7 +180,7 @@ export class QualifiedHostsService {
 
     const hostsAfterRoutedTeamMemberIdsMatching = applyFilterWithFallback(
       officalRRHosts,
-      officalRRHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
+      officalRRHosts.filter((host) => routedTeamMemberIds?.includes(host.user.id))
     );
 
     if (hostsAfterRoutedTeamMemberIdsMatching.length === 1) {

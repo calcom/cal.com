@@ -1012,7 +1012,7 @@ export class AvailableSlotsService {
       input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
     // when an empty array is given we should prefer to have it handled as if this wasn't given at all
     // we don't want to return no availability in this case.
-    const routedTeamMemberIds = input.routedTeamMemberIds ?? [];
+    const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
     const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
 
     const skipContactOwner = shouldIgnoreContactOwner({
