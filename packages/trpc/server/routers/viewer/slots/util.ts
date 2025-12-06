@@ -1042,6 +1042,7 @@ export class AvailableSlotsService {
         routedTeamMemberIds,
         contactOwnerEmail,
         routingFormResponse,
+        hostSubsetIds: input.hostSubsetIds ?? undefined,
       });
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];
