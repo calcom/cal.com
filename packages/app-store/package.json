@@ -10,9 +10,9 @@
   "scripts": {
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint .",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "lint:report": "biome lint --reporter json --reporter-path ../../lint-results/app-store.json ."
   },
   "dependencies": {
     "@calcom/dailyvideo": "workspace:*",
@@ -28,7 +28,6 @@
     "stripe": "^9.16.0"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
     "@calcom/types": "workspace:*"
   }
 }
