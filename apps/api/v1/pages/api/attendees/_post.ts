@@ -1,4 +1,5 @@
 import type { NextApiRequest } from "next";
+import { ZodError } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -53,7 +54,15 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/
  */
 async function postHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
-  const body = schemaAttendeeCreateBodyParams.parse(req.body);
+  let body;
+  try {
+    body = schemaAttendeeCreateBodyParams.parse(req.body);
+  } catch (err) {
+    if (err instanceof ZodError) {
+      throw new HttpError({ statusCode: 400, message: "Bad request. Attendee body is invalid." });
+    }
+    throw err;
+  }
 
   if (!isSystemWideAdmin) {
     const userBooking = await prisma.booking.findFirst({
