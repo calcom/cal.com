@@ -4515,7 +4515,7 @@ __metadata:
     node-html-parser: ^6.1.10
     node-mocks-http: ^1.11.0
     nodemailer: ^6.7.8
-    nuqs: ^2.7.2
+    nuqs: ^2.8.2
     openid-client: 6.5.0
     otplib: ^12.0.1
     postcss: ^8.4.18
@@ -38515,9 +38515,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nuqs@npm:^2.7.2":
-  version: 2.7.2
-  resolution: "nuqs@npm:2.7.2"
+"nuqs@npm:^2.8.2":
+  version: 2.8.2
+  resolution: "nuqs@npm:2.8.2"
   dependencies:
     "@standard-schema/spec": 1.0.0
   peerDependencies:
@@ -38525,8 +38525,8 @@ __metadata:
     "@tanstack/react-router": ^1
     next: ">=14.2.0"
     react: ">=18.2.0 || ^19.0.0-0"
-    react-router: ^6 || ^7
-    react-router-dom: ^6 || ^7
+    react-router: ^5 || ^6 || ^7
+    react-router-dom: ^5 || ^6 || ^7
   peerDependenciesMeta:
     "@remix-run/react":
       optional: true
@@ -38538,7 +38538,7 @@ __metadata:
       optional: true
     react-router-dom:
       optional: true
-  checksum: b6735af6841da60029bd882787536db8db3855a9fd25b1d55e37faf033da45fae8b256ba03d6b972f44dbfb9dc205e2b93ef2f339bc9ac842e6508de6e29d016
+  checksum: 22fc5c7e7145742ce328856dfd7da4f0a03f001890311de491f568b1e402fa8d84ea0875df21f98102090be18882d91a5ab3953a5864c27d07e9097f0a4dafa9
   languageName: node
   linkType: hard
 

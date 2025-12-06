@@ -6,44 +6,27 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useBanners } from "@calcom/features/shell/banners/useBanners";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
-import { Button } from "@calcom/ui/components/button";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 
-type BookingsCalendarViewProps = {
+type BookingCalendarViewProps = {
   bookings: BookingOutput[];
   currentWeekStart: dayjs.Dayjs;
   onWeekStartChange: (weekStart: dayjs.Dayjs) => void;
-  isPending?: boolean;
 };
 
-export function BookingsCalendarView({
+export function BookingCalendarView({
   bookings,
   currentWeekStart,
   onWeekStartChange,
-  isPending = false,
-}: BookingsCalendarViewProps) {
-  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
-  const { t } = useLocale();
+}: BookingCalendarViewProps) {
+  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const { timezone } = useTimePreferences();
   const { resolvedTheme, forcedTheme } = useGetTheme();
-
-  const goToPreviousWeek = () => {
-    onWeekStartChange(currentWeekStart.subtract(1, "week"));
-  };
-
-  const goToNextWeek = () => {
-    onWeekStartChange(currentWeekStart.add(1, "week"));
-  };
-
-  const goToToday = () => {
-    onWeekStartChange(dayjs().startOf("week"));
-  };
+  const { bannersHeight } = useBanners();
 
   const startDate = useMemo(() => currentWeekStart.toDate(), [currentWeekStart]);
   const endDate = useMemo(() => currentWeekStart.add(6, "day").toDate(), [currentWeekStart]);
@@ -84,58 +67,17 @@ export function BookingsCalendarView({
           options: {
             status: booking.status,
             ...(eventTypeColor && { color: eventTypeColor }),
-            bookingId: booking.id,
+            bookingUid: booking.uid,
           },
         };
       });
   }, [bookings, currentWeekStart, resolvedTheme, forcedTheme]);
 
-  const weekStart = currentWeekStart;
-  const weekEnd = currentWeekStart.add(6, "day");
-  const startMonth = weekStart.format("MMM");
-  const endMonth = weekEnd.format("MMM");
-  const year = weekEnd.format("YYYY");
-
-  const weekRange =
-    startMonth === endMonth ? (
-      <>
-        <span className="text-emphasis">{`${startMonth} ${weekStart.format("D")} - ${weekEnd.format(
-          "D"
-        )}`}</span>
-        <span className="text-muted">, {year}</span>
-      </>
-    ) : (
-      <>
-        <span className="text-emphasis">{`${weekStart.format("MMM D")} - ${weekEnd.format("MMM D")}`}</span>
-        <span className="text-muted">, {year}</span>
-      </>
-    );
-
   return (
-    <div className="border-subtle flex h-[calc(100vh-260px)] min-h-[600px] flex-col rounded-2xl border">
-      <div className="mx-4 mt-4 flex items-center justify-between py-1.5">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">{weekRange}</h2>
-          {isPending && <Icon name="refresh-cw" className="text-muted h-4 w-4 animate-spin" />}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button color="secondary" onClick={goToToday} className="capitalize leading-4">
-            {t("today")}
-          </Button>
-          <ButtonGroup combined>
-            <Button color="secondary" onClick={goToPreviousWeek}>
-              <span className="sr-only">{t("view_previous_week")}</span>
-              <Icon name="chevron-left" className="h-4 w-4" />
-            </Button>
-            <Button color="secondary" onClick={goToNextWeek}>
-              <span className="sr-only">{t("view_next_week")}</span>
-              <Icon name="chevron-right" className="h-4 w-4" />
-            </Button>
-          </ButtonGroup>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto overflow-x-hidden rounded-2xl">
+    <>
+      <div
+        className="border-subtle flex flex-1 flex-col overflow-y-auto overflow-x-hidden rounded-2xl border"
+        style={{ height: `calc(100vh - 6rem - ${bannersHeight}px)` }}>
         <Calendar
           timezone={timezone}
           sortEvents
@@ -150,14 +92,15 @@ export function BookingsCalendarView({
           showBorder={false}
           borderColor="subtle"
           onEventClick={(event) => {
-            const bookingId = event.options?.bookingId;
-            if (bookingId) {
-              setSelectedBookingId(bookingId);
+            const bookingUid = event.options?.bookingUid;
+            if (bookingUid) {
+              setSelectedBookingUid(bookingUid);
             }
           }}
+          showTimezone
           hideHeader
         />
       </div>
-    </div>
+    </>
   );
 }
