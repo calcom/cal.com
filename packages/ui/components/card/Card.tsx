@@ -133,8 +133,9 @@ export interface BaseCardProps extends CVACardType {
     "data-testid"?: string;
   };
   learnMore?: {
-    href: string;
+    href?: string;
     text: string;
+    onClick?: (event: React.MouseEvent<HTMLElement>) => void;
     onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };
   mediaLink?: string;
@@ -161,7 +162,7 @@ export function Card({
   buttonClassName,
   mediaLinkOnClick,
 }: BaseCardProps) {
-  const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
+  const LinkComponent = learnMore?.href?.startsWith("https") ? "a" : Link;
   return (
     <div
       className={classNames(
@@ -252,14 +253,26 @@ export function Card({
       {(variant === "SidebarCard" || variant === "NewLaunchSidebarCard") && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
-            <LinkComponent
-              href={learnMore.href}
-              target="_blank"
-              rel="noreferrer"
-              onClick={learnMore.onClick}
-              className={classNames("text-default text-xs font-medium", buttonClassName)}>
-              {learnMore.text}
-            </LinkComponent>
+            <>
+              {learnMore.href ? (
+                <LinkComponent
+                  href={learnMore.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={learnMore.onClick}
+                  onClick={learnMore.onClick}
+                  className={classNames("text-default text-xs font-medium", buttonClassName)}>
+                  {learnMore.text}
+                </LinkComponent>
+              ) : learnMore.onClick ? (
+                <button type="button"
+                  color="minimal"
+                  onClick={learnMore.onClick}
+                  className={classNames("text-default text-xs font-medium", buttonClassName)}>
+                  {learnMore.text}
+                </button>
+              ) : undefined}
+            </>
           )}
           {actionButton?.child && (
             <button
