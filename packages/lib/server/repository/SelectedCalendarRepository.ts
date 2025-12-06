@@ -71,4 +71,10 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
       data,
     });
   }
+
+  async findByUserId(userId: number) {
+    return this.prismaClient.selectedCalendar.findMany({
+      where: { userId },
+    });
+  }
 }
