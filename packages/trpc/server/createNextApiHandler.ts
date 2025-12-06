@@ -48,7 +48,6 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
       defaultHeaders.headers["cache-control"] = `no-cache`;
 
       if (isPublic && paths) {
-        const FIVE_MINUTES_IN_SECONDS = 5 * 60;
         const ONE_YEAR_IN_SECONDS = 31536000;
         const SETTING_FOR_CACHED_BY_VERSION =
           process.env.NODE_ENV === "development" ? "no-cache" : `max-age=${ONE_YEAR_IN_SECONDS}`;
@@ -65,9 +64,10 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
           "slots.getSchedule": `no-cache`, // INFO: This needs the slots prefix because it lives us the public router
           getTeamSchedule: `no-cache`,
 
-          // Feature Flags change but it might be okay to have a 5 minute cache to avoid burdening the servers with requests for this.
-          // Note that feature flags can be used to quickly kill a feature if it's not working as expected. So, we have to keep fresh time lesser than the deployment time atleast
-          "features.map": `max-age=${FIVE_MINUTES_IN_SECONDS}, stale-while-revalidate=60`, // "map" - Feature Flag Map
+          // Feature Flags - no HTTP cache to ensure changes are immediately visible
+          // Server-side in-memory cache (5 min) still provides performance, avoiding DB hits
+          "features.map": "no-cache",
+          "features.list": "no-cache",
         } as const;
 
         const prependNamespace = (key: string) =>

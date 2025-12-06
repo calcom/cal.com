@@ -1,4 +1,6 @@
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaClient } from "@calcom/prisma";
+
 import type { TAdminToggleFeatureFlagSchema } from "./toggleFeatureFlag.schema";
 
 type GetOptions = {
@@ -13,10 +15,13 @@ export const toggleFeatureFlagHandler = async (opts: GetOptions) => {
   const { ctx, input } = opts;
   const { prisma, user } = ctx;
   const { slug, enabled } = input;
-  return prisma.feature.update({
+  const result = await prisma.feature.update({
     where: { slug },
     data: { enabled, updatedBy: user.id },
   });
+  // Clear server-side in-memory cache so next request gets fresh data
+  FeaturesRepository.clearCache();
+  return result;
 };
 
 export default toggleFeatureFlagHandler;
