@@ -22,6 +22,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
@@ -630,12 +631,11 @@ const SettingsSidebarContainer = ({
                       )}
                       { }
                       {!tab.icon && tab?.avatar && (
-                        <Image
-                          width={16}
-                          height={16}
-                          className="rounded-full ltr:mr-3 rtl:ml-3"
-                          src={tab?.avatar}
+                        <Avatar
+                          size="xs"
+                          imageSrc={tab.avatar}
                           alt="Organization Logo"
+                          className="ltr:mr-3 rtl:ml-3"
                         />
                       )}
                       <Skeleton
