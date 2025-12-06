@@ -17,7 +17,7 @@ const fieldsSchemaV1 = z.object({
 export class HostNoShowUpdatedAuditActionService
     implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
     readonly VERSION = 1;
-    public static readonly TYPE = "HOST_NO_SHOW_UPDATED";
+    public static readonly TYPE = "HOST_NO_SHOW_UPDATED" as const;
     private static dataSchemaV1 = z.object({
         version: z.literal(1),
         fields: fieldsSchemaV1,

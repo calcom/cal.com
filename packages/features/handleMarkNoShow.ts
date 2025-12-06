@@ -330,13 +330,25 @@ const handleMarkNoShow = async ({
       // Create audit log for attendee no-show updates
       if (userId && payload.attendees.length > 0) {
         try {
-          const booking = await prisma.booking.findUnique({
+          const bookingForAudit = await prisma.booking.findUnique({
             where: { uid: bookingUid },
-            select: { id: true },
+            select: {
+              id: true,
+              eventType: {
+                select: {
+                  userId: true,
+                  teamId: true,
+                },
+              },
+            },
           });
 
-          if (booking) {
+          if (bookingForAudit) {
             const bookingEventHandlerService = getBookingEventHandlerService();
+            const orgId = await getOrgIdFromMemberOrTeamId({
+              memberId: bookingForAudit.eventType?.userId ?? null,
+              teamId: bookingForAudit.eventType?.teamId ?? null,
+            });
 
             // Track if any attendee was marked as no-show
             const anyOldNoShow = oldAttendeeValues.some((a) => a.noShow);
@@ -346,6 +358,7 @@ const handleMarkNoShow = async ({
             await bookingEventHandlerService.onAttendeeNoShowUpdated(
               bookingUid,
               makeSystemActor(),
+              orgId ?? null,
               {
                 noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
               }
@@ -376,18 +389,38 @@ const handleMarkNoShow = async ({
 
       if (userId && bookingToUpdate) {
         try {
-          const bookingEventHandlerService = getBookingEventHandlerService();
-          // TODO: Pass proper actor with user UUID once available
-          await bookingEventHandlerService.onHostNoShowUpdated(
-            bookingUid,
-            makeSystemActor(),
-            {
-              noShowHost: {
-                old: bookingToUpdate.noShowHost,
-                new: true,
+          const bookingForAudit = await prisma.booking.findUnique({
+            where: { uid: bookingUid },
+            select: {
+              id: true,
+              eventType: {
+                select: {
+                  userId: true,
+                  teamId: true,
+                },
               },
-            }
-          );
+            },
+          });
+
+          if (bookingForAudit) {
+            const bookingEventHandlerService = getBookingEventHandlerService();
+            const orgId = await getOrgIdFromMemberOrTeamId({
+              memberId: bookingForAudit.eventType?.userId ?? null,
+              teamId: bookingForAudit.eventType?.teamId ?? null,
+            });
+            // TODO: Pass proper actor with user UUID once available
+            await bookingEventHandlerService.onHostNoShowUpdated(
+              bookingUid,
+              makeSystemActor(),
+              orgId ?? null,
+              {
+                noShowHost: {
+                  old: bookingToUpdate.noShowHost,
+                  new: true,
+                },
+              }
+            );
+          }
         } catch (error) {
           logger.error("Failed to create booking audit log for host no-show", error);
         }

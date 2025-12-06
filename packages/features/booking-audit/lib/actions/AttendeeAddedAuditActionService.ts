@@ -17,7 +17,7 @@ const fieldsSchemaV1 = z.object({
 export class AttendeeAddedAuditActionService
     implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
     readonly VERSION = 1;
-    public static readonly TYPE = "ATTENDEE_ADDED";
+    public static readonly TYPE = "ATTENDEE_ADDED" as const;
     private static dataSchemaV1 = z.object({
         version: z.literal(1),
         fields: fieldsSchemaV1,

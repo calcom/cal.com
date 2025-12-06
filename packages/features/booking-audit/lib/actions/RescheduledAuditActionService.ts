@@ -19,7 +19,7 @@ const fieldsSchemaV1 = z.object({
 export class RescheduledAuditActionService
     implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
     readonly VERSION = 1;
-    public static readonly TYPE = "RESCHEDULED";
+    public static readonly TYPE = "RESCHEDULED" as const;
     private static dataSchemaV1 = z.object({
         version: z.literal(1),
         fields: fieldsSchemaV1,

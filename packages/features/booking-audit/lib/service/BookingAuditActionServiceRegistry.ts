@@ -1,0 +1,96 @@
+import type { IAuditActionService } from "../actions/IAuditActionService";
+import type { BookingAuditAction } from "../repository/IBookingAuditRepository";
+
+// Import all action services
+import { CreatedAuditActionService, type CreatedAuditData, type CreatedAuditDisplayData } from "../actions/CreatedAuditActionService";
+import { CancelledAuditActionService, type CancelledAuditData, type CancelledAuditDisplayData } from "../actions/CancelledAuditActionService";
+import { RescheduledAuditActionService, type RescheduledAuditData, type RescheduledAuditDisplayData } from "../actions/RescheduledAuditActionService";
+import { AcceptedAuditActionService, type AcceptedAuditData, type AcceptedAuditDisplayData } from "../actions/AcceptedAuditActionService";
+import { RescheduleRequestedAuditActionService, type RescheduleRequestedAuditData, type RescheduleRequestedAuditDisplayData } from "../actions/RescheduleRequestedAuditActionService";
+import { AttendeeAddedAuditActionService, type AttendeeAddedAuditData, type AttendeeAddedAuditDisplayData } from "../actions/AttendeeAddedAuditActionService";
+import { HostNoShowUpdatedAuditActionService, type HostNoShowUpdatedAuditData, type HostNoShowUpdatedAuditDisplayData } from "../actions/HostNoShowUpdatedAuditActionService";
+import { RejectedAuditActionService, type RejectedAuditData, type RejectedAuditDisplayData } from "../actions/RejectedAuditActionService";
+import { AttendeeRemovedAuditActionService, type AttendeeRemovedAuditData, type AttendeeRemovedAuditDisplayData } from "../actions/AttendeeRemovedAuditActionService";
+import { ReassignmentAuditActionService, type ReassignmentAuditData, type ReassignmentAuditDisplayData } from "../actions/ReassignmentAuditActionService";
+import { LocationChangedAuditActionService, type LocationChangedAuditData, type LocationChangedAuditDisplayData } from "../actions/LocationChangedAuditActionService";
+import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAuditData, type AttendeeNoShowUpdatedAuditDisplayData } from "../actions/AttendeeNoShowUpdatedAuditActionService";
+
+/**
+ * Union type for all audit action data types
+ * Used for type-safe handling of action-specific data
+ */
+export type AuditActionData =
+    | CreatedAuditData
+    | CancelledAuditData
+    | RescheduledAuditData
+    | AcceptedAuditData
+    | RescheduleRequestedAuditData
+    | AttendeeAddedAuditData
+    | HostNoShowUpdatedAuditData
+    | RejectedAuditData
+    | AttendeeRemovedAuditData
+    | ReassignmentAuditData
+    | LocationChangedAuditData
+    | AttendeeNoShowUpdatedAuditData;
+
+/**
+ * Union type for all audit display data types
+ * Used for formatting audit logs for display
+ */
+export type AuditDisplayData =
+    | CreatedAuditDisplayData
+    | CancelledAuditDisplayData
+    | RescheduledAuditDisplayData
+    | AcceptedAuditDisplayData
+    | RescheduleRequestedAuditDisplayData
+    | AttendeeAddedAuditDisplayData
+    | HostNoShowUpdatedAuditDisplayData
+    | RejectedAuditDisplayData
+    | AttendeeRemovedAuditDisplayData
+    | ReassignmentAuditDisplayData
+    | LocationChangedAuditDisplayData
+    | AttendeeNoShowUpdatedAuditDisplayData;
+
+/**
+ * BookingAuditActionServiceRegistry
+ * 
+ * Centralized registry for all booking audit action services.
+ * Provides a single source of truth for action service mapping and eliminates
+ * code duplication between consumer and viewer services.
+ */
+export class BookingAuditActionServiceRegistry {
+    private readonly actionServices: Map<BookingAuditAction, IAuditActionService<any, any>>;
+
+    constructor() {
+        const services: Array<[BookingAuditAction, IAuditActionService<any, any>]> = [
+            ["CREATED", new CreatedAuditActionService()],
+            ["CANCELLED", new CancelledAuditActionService()],
+            ["RESCHEDULED", new RescheduledAuditActionService()],
+            ["ACCEPTED", new AcceptedAuditActionService()],
+            ["RESCHEDULE_REQUESTED", new RescheduleRequestedAuditActionService()],
+            ["ATTENDEE_ADDED", new AttendeeAddedAuditActionService()],
+            ["HOST_NO_SHOW_UPDATED", new HostNoShowUpdatedAuditActionService()],
+            ["REJECTED", new RejectedAuditActionService()],
+            ["ATTENDEE_REMOVED", new AttendeeRemovedAuditActionService()],
+            ["REASSIGNMENT", new ReassignmentAuditActionService()],
+            ["LOCATION_CHANGED", new LocationChangedAuditActionService()],
+            ["ATTENDEE_NO_SHOW_UPDATED", new AttendeeNoShowUpdatedAuditActionService()],
+        ];
+        this.actionServices = new Map(services);
+    }
+
+    /**
+     * Get Action Service - Returns the appropriate action service for the given action type
+     * 
+     * @param action - The booking audit action type
+     * @returns The corresponding action service instance
+     * @throws Error if no service is found for the action
+     */
+    getActionService(action: BookingAuditAction): IAuditActionService<any, any> {
+        const service = this.actionServices.get(action);
+        if (!service) {
+            throw new Error(`No action service found for: ${action}`);
+        }
+        return service;
+    }
+}

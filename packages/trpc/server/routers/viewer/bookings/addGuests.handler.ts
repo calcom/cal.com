@@ -79,9 +79,11 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
 
   // Create audit log for attendee addition
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const organizationId = booking.user?.profiles?.[0]?.organizationId ?? user.organizationId ?? null;
   await bookingEventHandlerService.onAttendeeAdded(
     booking.uid,
     makeUserActor(user.uuid),
+    organizationId,
     {
       addedAttendees: {
         old: booking.attendees.map((a) => a.email),

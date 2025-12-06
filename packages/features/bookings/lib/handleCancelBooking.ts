@@ -493,6 +493,7 @@ async function handler(input: CancelBookingInput) {
       await bookingEventHandlerService.onBookingCancelled(
         updatedBooking.uid,
         actorToUse,
+        orgId ?? null,
         {
           cancellationReason: {
             old: bookingToDelete.cancellationReason,

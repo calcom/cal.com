@@ -41,6 +41,9 @@
 
 ---
 
+### 3. Add audit log for editLocation.handler.ts
+**Location**: `packages/trpc/server/routers/viewer/bookings/editLocation.handler.ts`
+
 ## Completed Tasks
 
 ### ✅ 1. Add audit log for PENDING bookings early return

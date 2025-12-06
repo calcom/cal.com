@@ -320,6 +320,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   await bookingEventHandlerService.onLocationChanged(
     booking.uid,
     makeUserActor(ctx.user.uuid),
+    organizationId,
     {
       location: {
         old: oldLocation,

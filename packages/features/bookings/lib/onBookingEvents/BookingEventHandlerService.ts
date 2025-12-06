@@ -45,14 +45,16 @@ export class BookingEventHandlerService {
       return;
     }
 
-    await this.bookingAuditProducerService.queueAudit(payload.booking.uid, actor, payload.organizationId, {
-      action: "CREATED",
-      data: {
-        startTime: payload.booking.startTime.toISOString(),
-        endTime: payload.booking.endTime.toISOString(),
+    await this.bookingAuditProducerService.queueCreatedAudit(
+      payload.booking.uid,
+      actor,
+      payload.organizationId,
+      {
+        startTime: payload.booking.startTime.getTime(),
+        endTime: payload.booking.endTime.getTime(),
         status: payload.booking.status,
-      },
-    });
+      }
+    );
   }
 
   // TODO: actor to be made required in followup PR
@@ -64,9 +66,11 @@ export class BookingEventHandlerService {
       return;
     }
 
-    await this.bookingAuditProducerService.queueAudit(payload.booking.uid, actor, payload.organizationId, {
-      action: "RESCHEDULED",
-      data: {
+    await this.bookingAuditProducerService.queueRescheduledAudit(
+      payload.booking.uid,
+      actor,
+      payload.organizationId,
+      {
         startTime: {
           old: payload.oldBooking?.startTime.toISOString() ?? null,
           new: payload.booking.startTime.toISOString(),
@@ -79,8 +83,8 @@ export class BookingEventHandlerService {
           old: null,
           new: payload.booking.uid,
         },
-      },
-    });
+      }
+    );
   }
 
   /**
@@ -113,42 +117,44 @@ export class BookingEventHandlerService {
   }
 
   async onBookingAccepted(bookingUid: string, actor: Actor, organizationId: number | null, data?: AcceptedAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "ACCEPTED", data });
+    if (data) {
+      await this.bookingAuditProducerService.queueAcceptedAudit(bookingUid, actor, organizationId, data);
+    }
   }
 
   async onBookingCancelled(bookingUid: string, actor: Actor, organizationId: number | null, data: CancelledAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "CANCELLED", data });
+    await this.bookingAuditProducerService.queueCancelledAudit(bookingUid, actor, organizationId, data);
   }
 
   async onRescheduleRequested(bookingUid: string, actor: Actor, organizationId: number | null, data: RescheduleRequestedAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "RESCHEDULE_REQUESTED", data });
+    await this.bookingAuditProducerService.queueRescheduleRequestedAudit(bookingUid, actor, organizationId, data);
   }
 
   async onAttendeeAdded(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeAddedAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "ATTENDEE_ADDED", data });
+    await this.bookingAuditProducerService.queueAttendeeAddedAudit(bookingUid, actor, organizationId, data);
   }
 
   async onHostNoShowUpdated(bookingUid: string, actor: Actor, organizationId: number | null, data: HostNoShowUpdatedAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "HOST_NO_SHOW_UPDATED", data });
+    await this.bookingAuditProducerService.queueHostNoShowUpdatedAudit(bookingUid, actor, organizationId, data);
   }
 
   async onBookingRejected(bookingUid: string, actor: Actor, organizationId: number | null, data: RejectedAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "REJECTED", data });
+    await this.bookingAuditProducerService.queueRejectedAudit(bookingUid, actor, organizationId, data);
   }
 
   async onAttendeeRemoved(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeRemovedAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "ATTENDEE_REMOVED", data });
+    await this.bookingAuditProducerService.queueAttendeeRemovedAudit(bookingUid, actor, organizationId, data);
   }
 
   async onReassignment(bookingUid: string, actor: Actor, organizationId: number | null, data: ReassignmentAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "REASSIGNMENT", data });
+    await this.bookingAuditProducerService.queueReassignmentAudit(bookingUid, actor, organizationId, data);
   }
 
   async onLocationChanged(bookingUid: string, actor: Actor, organizationId: number | null, data: LocationChangedAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "LOCATION_CHANGED", data });
+    await this.bookingAuditProducerService.queueLocationChangedAudit(bookingUid, actor, organizationId, data);
   }
 
   async onAttendeeNoShowUpdated(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeNoShowUpdatedAuditData) {
-    await this.bookingAuditProducerService.queueAudit(bookingUid, actor, organizationId, { action: "ATTENDEE_NO_SHOW_UPDATED", data });
+    await this.bookingAuditProducerService.queueAttendeeNoShowUpdatedAudit(bookingUid, actor, organizationId, data);
   }
 }

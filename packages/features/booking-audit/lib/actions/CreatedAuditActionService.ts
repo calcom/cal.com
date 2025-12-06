@@ -22,7 +22,7 @@ export class CreatedAuditActionService implements IAuditActionService<
     typeof fieldsSchemaV1
 > {
     readonly VERSION = 1;
-    public static readonly TYPE = "CREATED";
+    public static readonly TYPE = "CREATED" as const;
     private static dataSchemaV1 = z.object({
         version: z.literal(1),
         fields: fieldsSchemaV1,

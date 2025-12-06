@@ -277,6 +277,7 @@ export const roundRobinReassignment = async ({
       await bookingEventHandlerService.onReassignment(
         booking.uid,
         makeSystemActor(),
+        orgId,
         {
           assignedToId: { old: oldUserId, new: reassignedRRHost.id },
           assignedById: { old: null, new: reassignedById },

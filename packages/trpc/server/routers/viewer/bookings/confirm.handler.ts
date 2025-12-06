@@ -126,6 +126,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          uuid: true,
         },
       },
       id: true,

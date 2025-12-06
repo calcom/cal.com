@@ -239,6 +239,7 @@ export const roundRobinManualReassignment = async ({
       await bookingEventHandlerService.onReassignment(
         booking.uid,
         makeSystemActor(),
+        orgId,
         auditData
       );
     } catch (error) {

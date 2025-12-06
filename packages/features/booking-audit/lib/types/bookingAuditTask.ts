@@ -1,29 +1,42 @@
 import { z } from "zod";
 
 import { ActorSchema } from "@calcom/features/bookings/lib/types/actor";
-import {
-    CreatedAuditActionService,
-} from "../actions/CreatedAuditActionService";
 
+/**
+ * Supported booking audit actions
+ * Used for runtime validation of action field
+ */
+export const BookingAuditActionSchema = z.enum([
+    "CREATED",
+    "RESCHEDULED",
+    "ACCEPTED",
+    "CANCELLED",
+    "RESCHEDULE_REQUESTED",
+    "ATTENDEE_ADDED",
+    "HOST_NO_SHOW_UPDATED",
+    "REJECTED",
+    "ATTENDEE_REMOVED",
+    "REASSIGNMENT",
+    "LOCATION_CHANGED",
+    "ATTENDEE_NO_SHOW_UPDATED",
+]);
 
-const baseSchema = z.object({
+export type BookingAuditAction = z.infer<typeof BookingAuditActionSchema>;
+
+/**
+ * Lean base schema for booking audit task payload
+ * 
+ * Uses `data: z.unknown()` to avoid large discriminated union.
+ * The consumer parses with this first, then validates `data` 
+ * with the action-specific schema based on the `action` field.
+ */
+export const BookingAuditTaskBaseSchema = z.object({
     bookingUid: z.string(),
     actor: ActorSchema,
     organizationId: z.number().nullable(),
     timestamp: z.number(),
+    action: BookingAuditActionSchema,
+    data: z.unknown(),
 });
 
-export const BookingAuditTaskConsumerPayloadSchema = z.discriminatedUnion("action", [
-    baseSchema.merge(z.object({
-        action: z.literal(CreatedAuditActionService.TYPE),
-        // Payload in Task record could have any version of the data schema
-        data: CreatedAuditActionService.storedFieldsSchema,
-    })),
-    // ... more actions here
-]);
-
-export type BookingAuditTaskProducerActionData =
-    | { action: typeof CreatedAuditActionService.TYPE; data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema> }
-// ... more actions here
-
-export type BookingAuditTaskConsumerPayload = z.infer<typeof BookingAuditTaskConsumerPayloadSchema>;
+export type BookingAuditTaskBasePayload = z.infer<typeof BookingAuditTaskBaseSchema>;

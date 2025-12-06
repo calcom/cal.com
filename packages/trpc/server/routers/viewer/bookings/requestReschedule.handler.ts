@@ -116,23 +116,33 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditTeamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: bookingToReschedule.eventType?.teamId ?? null },
+        parentId: bookingToReschedule.eventType?.parentId ?? null,
+      },
+    });
+    const auditTriggerForUser = !auditTeamId || (auditTeamId && bookingToReschedule.eventType?.parentId);
+    const auditUserId = auditTriggerForUser ? bookingToReschedule.userId : null;
+    const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
     const auditData: RescheduleRequestedAuditData = {
       cancellationReason: {
-        old: bookingToReschedule.cancellationReason,
+        old: null, // Original value not available in booking query
         new: cancellationReason ?? null,
       },
       cancelledBy: {
-        old: bookingToReschedule.cancelledBy,
+        old: null, // Original value not available in booking query
         new: user.email,
       },
       rescheduled: {
-        old: bookingToReschedule.rescheduled ?? false,
+        old: false, // We're rescheduling, so original was false
         new: true,
       },
     };
     await bookingEventHandlerService.onRescheduleRequested(
       bookingToReschedule.uid,
       makeUserActor(user.uuid),
+      auditOrgId ?? null,
       auditData
     );
   } catch (error) {
