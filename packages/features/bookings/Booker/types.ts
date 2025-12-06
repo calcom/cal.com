@@ -15,8 +15,28 @@ import type { GetBookingType } from "../lib/get-booking";
 
 export type Timezone = (typeof IntlSupportedTimeZones)[number];
 
+/**
+ * Entity configuration for organizational context.
+ * The orgSlug is automatically resolved from event data in the Platform Booker.
+ */
+export interface BookerEntityConfig {
+  fromRedirectOfNonOrgLink?: boolean;
+  considerUnpublished: boolean;
+  isUnpublished?: boolean;
+  orgSlug?: string | null;
+  teamSlug?: string | null;
+  name?: string | null;
+  logoUrl?: string | null;
+  eventTypeId?: number | null;
+}
+
 export interface BookerProps {
   eventSlug: string;
+  /**
+   * Username for the booking. For dynamic bookings with multiple users,
+   * pass usernames joined with "+" (e.g., "alice+bob").
+   * In Platform Booker Atom, you can pass an array directly.
+   */
   username: string;
   orgBannerUrl?: string | null;
 
@@ -30,19 +50,8 @@ export interface BookerProps {
    */
   eventMetaChildren?: React.ReactNode;
 
-  /**
-   * Whether is a team or org, we gather basic info from both
-   */
-  entity: {
-    fromRedirectOfNonOrgLink?: boolean;
-    considerUnpublished: boolean;
-    isUnpublished?: boolean;
-    orgSlug?: string | null;
-    teamSlug?: string | null;
-    name?: string | null;
-    logoUrl?: string | null;
-    eventTypeId?: number | null;
-  };
+  /** Entity configuration - orgSlug is auto-resolved from event data in Platform Booker */
+  entity: BookerEntityConfig;
 
   /**
    * If month is NOT set as a prop on the component, we expect a query parameter

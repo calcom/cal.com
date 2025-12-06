@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useQueryClient } from "@tanstack/react-query";
 import debounce from "lodash/debounce";
 import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
@@ -48,6 +47,27 @@ import type {
   BookerPlatformWrapperAtomPropsForTeam,
   BookerStoreValues,
 } from "./types";
+
+/**
+ * Resolves the orgSlug with the following priority:
+ * 1. Explicitly provided entity.orgSlug (backwards compatibility)
+ * 2. Event data's entity.orgSlug (from API response)
+ * 3. Falls back to undefined (lets the backend handle resolution)
+ */
+function resolveOrgSlug(
+  entityFromProps: { orgSlug?: string | null } | undefined,
+  eventData: { entity?: { orgSlug?: string | null } } | null | undefined
+): string | undefined {
+  // Priority 1: Explicit prop (backwards compatibility for existing users)
+  if (entityFromProps?.orgSlug) {
+    return entityFromProps.orgSlug;
+  }
+  // Priority 2: From event data (auto-resolved for new users)
+  if (eventData?.entity?.orgSlug) {
+    return eventData.entity.orgSlug;
+  }
+  return undefined;
+}
 
 const BookerPlatformWrapperComponent = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
@@ -150,13 +170,7 @@ const BookerPlatformWrapperComponent = (
 
   useEffect(() => {
     setSelectedDuration(props.duration ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.duration]);
-
-  useEffect(() => {
-    setOrg(props.entity?.orgSlug ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.entity?.orgSlug]);
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
@@ -170,6 +184,16 @@ const BookerPlatformWrapperComponent = (
     selectedDuration,
   });
 
+  // Resolve orgSlug (props.entity for backwards compatibility, then event data)
+  const resolvedOrgSlug = useMemo(() => {
+    return resolveOrgSlug(props.entity, event.data);
+  }, [props.entity, event.data]);
+
+  // Update org in store when resolved orgSlug changes
+  useEffect(() => {
+    setOrg(resolvedOrgSlug ?? null);
+  }, [resolvedOrgSlug]);
+
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   useInitializeBookerStore({
     ...props,
@@ -181,7 +205,7 @@ const BookerPlatformWrapperComponent = (
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: layout,
-    org: props.entity?.orgSlug,
+    org: resolvedOrgSlug,
     username,
     bookingData,
     isPlatform: true,
@@ -198,7 +222,7 @@ const BookerPlatformWrapperComponent = (
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: layout,
-    org: props.entity?.orgSlug,
+    org: resolvedOrgSlug,
     username,
     bookingData,
     isPlatform: true,
@@ -230,7 +254,6 @@ const BookerPlatformWrapperComponent = (
       name: prefillFormParamName,
       guests: defaultGuests ?? [],
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultName, defaultGuests]);
 
   const extraOptions = useMemo(() => {
@@ -304,7 +327,8 @@ const BookerPlatformWrapperComponent = (
       Boolean(timezone) &&
       !event?.isPending &&
       event?.data?.id != null,
-    orgSlug: props.entity?.orgSlug ?? undefined,
+    // Use resolved orgSlug for availability - falls back gracefully if not available
+    orgSlug: resolvedOrgSlug,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
     ...routingParams,
@@ -463,7 +487,6 @@ const BookerPlatformWrapperComponent = (
   );
   useEffect(() => {
     setSelectedDate({ date: selectedDateProp, omitUpdatingParams: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDateProp]);
 
   useEffect(() => {
@@ -485,7 +508,6 @@ const BookerPlatformWrapperComponent = (
         setBookingData(null);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
