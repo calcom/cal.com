@@ -139,6 +139,12 @@ function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
   }
 }
 
+function hasCalVideoSettings(
+  eventType: Awaited<ReturnType<typeof getEventType>>
+): eventType is getEventTypeResponse {
+  return eventType && typeof eventType === "object" && "calVideoSettings" in eventType;
+}
+
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If new booking set the sequence to 0
   if (!originalRescheduledBooking) {
@@ -503,14 +509,18 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  const eventTypeForProcessing = hasCalVideoSettings(eventType)
+    ? eventType
+    : ({ ...(eventType as unknown as getEventTypeResponse), calVideoSettings: null } as getEventTypeResponse);
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
-    bookingFields: eventType.bookingFields,
+    bookingFields: eventTypeForProcessing.bookingFields,
   });
 
   const bookingData = await getBookingData({
     reqBody: rawBookingData,
-    eventType,
+    eventType: eventTypeForProcessing,
     schema: bookingDataSchema,
   });
 
@@ -849,6 +859,7 @@ async function handler(
       users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
+      calVideoSettings: eventTypeForProcessing.calVideoSettings,
       users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
@@ -1656,6 +1667,15 @@ async function handler(
     evt.recurringEvent = eventType.recurringEvent;
   }
 
+  // Sync calVideoSettings from eventTypeForProcessing to eventType
+  // This ensures eventType has both the runtime updates (like recurringEvent.count) and calVideoSettings
+  if (hasCalVideoSettings(eventType)) {
+    // eventType already has calVideoSettings, no action needed
+  } else {
+    // eventType is missing calVideoSettings, copy from eventTypeForProcessing
+    (eventType as unknown as getEventTypeResponse).calVideoSettings = eventTypeForProcessing.calVideoSettings;
+  }
+
   const changedOrganizer =
     !!originalRescheduledBooking &&
     (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
@@ -1713,7 +1733,7 @@ async function handler(
           recurringEventId: reqBody.recurringEventId,
         },
         eventType: {
-          eventTypeData: eventType,
+          eventTypeData: eventType as getEventTypeResponse,
           id: eventTypeId,
           slug: eventTypeSlug,
           organizerUser,
@@ -2591,6 +2611,13 @@ async function handler(
         teamId,
         orgId,
         isDryRun,
+        calVideoSettings: (eventType as getEventTypeResponse).calVideoSettings
+          ? {
+              ...(eventType as getEventTypeResponse).calVideoSettings,
+              redirectUrlOnExit:
+                (eventType as getEventTypeResponse).calVideoSettings?.redirectUrlOnExit ?? undefined,
+            }
+          : null,
       });
     }
   } catch (error) {

@@ -45,6 +45,8 @@ const calVideoSettingsSchema = z
     disableTranscriptionForOrganizer: z.boolean().nullish(),
     redirectUrlOnExit: z.string().url().nullish(),
     requireEmailForGuests: z.boolean().nullish(),
+    enableAutomaticNoShowTrackingForHosts: z.boolean().nullish(),
+    enableAutomaticNoShowTrackingForGuests: z.boolean().nullish(),
   })
   .optional()
   .nullable();
