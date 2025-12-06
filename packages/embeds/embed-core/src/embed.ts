@@ -1188,7 +1188,7 @@ class CalApi {
             config: enrichedConfig,
           });
           // Send reloadInitiated message to iframe so it can track it
-          // We send it before loadInIframe so iframe can set the flag before it reloads
+          // Send it after loadInIframe so that new iframe can process it. 
           this.cal.doInIframe({ method: "__reloadInitiated", arg: {} });
         } else if (actionToTake === "connect" || actionToTake === "connect-no-slots-fetch") {
           const paramsToAdd = fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries());
