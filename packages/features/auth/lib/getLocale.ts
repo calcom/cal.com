@@ -31,7 +31,16 @@ export const getLocale = async (
   // IMPORTANT: For booking pages, the page OWNER's locale takes precedence over the visitor's locale
   // If username is provided (from pathname), fetch the page owner's locale first
   if (username) {
-    if (typeof window === "undefined") {
+    // Validate username format before database query
+    // Valid usernames follow slugify rules: lowercase alphanumeric + periods + hyphens
+    // Cannot start with dash/period or end with dash/period, max 255 chars (DB limit)
+    const isValidUsername =
+      /^[a-z0-9][a-z0-9.-]{0,253}[a-z0-9]$/.test(username) || /^[a-z0-9]$/.test(username);
+
+    if (!isValidUsername) {
+      // Invalid username format - skip DB lookup and fall back to token/browser locale
+      console.warn(`[getLocale] Invalid username format, length: ${username.length}`);
+    } else if (typeof window === "undefined") {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mod = (await import("@calcom/prisma")) as any;
@@ -49,7 +58,10 @@ export const getLocale = async (
       } catch (error) {
         // Silently fail and fallback to token/browser locale
         // Log only the error message to avoid exposing PII from the query context
-        console.error("[getLocale] Failed to fetch user locale:", error instanceof Error ? error.message : "Unknown error");
+        console.error(
+          "[getLocale] Failed to fetch user locale:",
+          error instanceof Error ? error.message : "Unknown error"
+        );
       }
     }
   }

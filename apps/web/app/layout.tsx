@@ -90,7 +90,7 @@ const getInitialProps = async () => {
   const pathname = h.get("x-pathname") || "";
   const username = extractUsernameFromPathname(pathname);
 
-  const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()), username)) ?? "en";
+  const newLocale = (await getLocale(buildLegacyRequest(h, await cookies()), username)) ?? "en";
   const direction = dir(newLocale) ?? "ltr";
 
   return {

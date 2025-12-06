@@ -47,10 +47,14 @@ export function getReservedRoutes(): readonly string[] {
   ];
 }
 
+// Cache reserved routes in a Set for O(1) lookup performance
+// RESERVED_SUBDOMAINS is loaded from env at module load time and doesn't change
+const RESERVED_ROUTES_CACHE = new Set(getReservedRoutes());
+
 /**
  * Check if a route segment is a reserved route that should not be treated as a username.
+ * Uses cached Set for O(1) lookup performance.
  */
 export function isReservedRoute(segment: string): boolean {
-  const reservedRoutes = getReservedRoutes();
-  return reservedRoutes.includes(segment);
+  return RESERVED_ROUTES_CACHE.has(segment);
 }

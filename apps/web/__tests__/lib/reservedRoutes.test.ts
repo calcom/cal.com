@@ -20,14 +20,15 @@ describe("reservedRoutes", () => {
       });
     });
 
-    it("should not have duplicates", () => {
+    it("should contain important booking routes", () => {
       const reservedRoutes = getReservedRoutes();
-      const uniqueRoutes = new Set(reservedRoutes);
-      // Note: RESERVED_SUBDOMAINS from env may contain overlaps with static routes
-      // This test verifies logical correctness, not environment-specific behavior
-      expect(uniqueRoutes.size).toBeLessThanOrEqual(reservedRoutes.length);
-      // But we should have at least some routes
-      expect(reservedRoutes.length).toBeGreaterThan(0);
+      // Verify critical routes that must be reserved
+      expect(reservedRoutes).toContain("d");
+      expect(reservedRoutes).toContain("booking");
+      expect(reservedRoutes).toContain("org");
+      expect(reservedRoutes).toContain("team");
+      expect(reservedRoutes).toContain("forms");
+      expect(reservedRoutes).toContain("success");
     });
   });
 

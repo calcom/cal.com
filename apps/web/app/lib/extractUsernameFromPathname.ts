@@ -2,7 +2,11 @@ import { isReservedRoute } from "@lib/reservedRoutes";
 
 /**
  * Extracts the username from a pathname for booking page locale detection.
- * Handles various URL patterns including org-based and team-based routes.
+ * Handles various URL patterns including org-based routes.
+ *
+ * Note: Team routes (/team/[slug]/[type]) don't have individual usernames,
+ * so they are not extracted here. Only org routes (/org/[orgSlug]/[username])
+ * and direct user routes (/[username]) are handled.
  */
 export function extractUsernameFromPathname(pathname: string): string | undefined {
   if (!pathname) return undefined;
@@ -28,14 +32,10 @@ export function extractUsernameFromPathname(pathname: string): string | undefine
     }
   }
 
-  // For /team/[teamSlug]/[username] - team is reserved, so we need special handling
-  // to extract the username at position [2]
-  if (firstSegment === "team" && pathSegments.length > 2) {
-    const potentialUsername = pathSegments[2];
-    if (!isReservedRoute(potentialUsername)) {
-      return potentialUsername;
-    }
-  }
+  // Note: /team/[slug]/[type] routes don't have usernames - [type] is an event type
+  // Team locale should be handled differently (e.g., by team settings)
+  // TODO: Implement separate team locale detection that extracts team slug
+  // and looks up team locale settings instead of user locale
 
   return undefined;
 }
