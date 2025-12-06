@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
 import React, { useState, useEffect, useMemo } from "react";
@@ -23,7 +24,15 @@ import { CalComAPIService, Booking, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { useBookings, useCancelBooking } from "../../hooks";
+import { BookingActionsModal } from "../../components/BookingActionsModal";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  useBookings,
+  useCancelBooking,
+  useConfirmBooking,
+  useDeclineBooking,
+  useRescheduleBooking,
+} from "../../hooks";
 import { showErrorAlert } from "../../utils/alerts";
 import { offlineAwareRefresh } from "../../utils/network";
 import { openInAppBrowser } from "../../utils/browser";
@@ -32,6 +41,7 @@ type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
 export default function Bookings() {
   const router = useRouter();
+  const { userInfo } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -41,6 +51,11 @@ export default function Bookings() {
   const [eventTypesLoading, setEventTypesLoading] = useState(false);
   const [showBookingActionsModal, setShowBookingActionsModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
+  const [rescheduleReason, setRescheduleReason] = useState("");
 
   const filterOptions: { key: BookingFilter; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
@@ -82,6 +97,15 @@ export default function Bookings() {
 
   // Cancel booking mutation
   const { mutate: cancelBookingMutation } = useCancelBooking();
+
+  // Confirm booking mutation
+  const { mutate: confirmBookingMutation, isPending: isConfirming } = useConfirmBooking();
+
+  // Decline booking mutation
+  const { mutate: declineBookingMutation, isPending: isDeclining } = useDeclineBooking();
+
+  // Reschedule booking mutation
+  const { mutate: rescheduleBookingMutation, isPending: isRescheduling } = useRescheduleBooking();
 
   // Sort bookings based on active filter
   const bookings = useMemo(() => {
@@ -253,18 +277,35 @@ export default function Bookings() {
     }
   };
 
+  const supportsLiquidGlass = isLiquidGlassAvailable();
+
   const renderSegmentedControl = () => {
+    const segmentedControlContent = (
+      <SegmentedControl
+        values={filterLabels}
+        selectedIndex={activeIndex}
+        onChange={handleSegmentChange}
+        style={{ height: 40 }}
+        appearance="light"
+        activeFontStyle={{ color: "#007AFF", fontWeight: "600", fontSize: 14 }}
+        fontStyle={{ color: "#8E8E93", fontSize: 14 }}
+      />
+    );
+
     return (
       <>
-        <View className="border-b border-gray-200 bg-white px-2 py-3 md:px-4">
-          <SegmentedControl
-            values={filterLabels}
-            selectedIndex={activeIndex}
-            onChange={handleSegmentChange}
-            style={{ height: 40 }}
-            appearance="light"
-          />
-        </View>
+        {supportsLiquidGlass ? (
+          <GlassView
+            glassEffectStyle="regular"
+            style={{ paddingHorizontal: 8, paddingVertical: 12 }}
+          >
+            {segmentedControlContent}
+          </GlassView>
+        ) : (
+          <View className="border-b border-gray-200 bg-white px-2 py-3 md:px-4">
+            {segmentedControlContent}
+          </View>
+        )}
         <View className="border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
           <View className="flex-row items-center gap-3">
             <TouchableOpacity
@@ -397,11 +438,6 @@ export default function Bookings() {
               destructive: false,
             },
             {
-              title: "Report booking",
-              onPress: () => handleReportBooking(booking),
-              destructive: false,
-            },
-            {
               title: "Cancel event",
               onPress: () => handleCancelEvent(booking),
               destructive: true,
@@ -415,27 +451,15 @@ export default function Bookings() {
               destructive: false,
             },
             {
-              title: "Reject booking",
+              title: "Decline booking",
               onPress: () => handleRejectBooking(booking),
               destructive: true,
             },
           ];
         case "past":
-          return [
-            {
-              title: "Report booking",
-              onPress: () => handleReportBooking(booking),
-              destructive: false,
-            },
-          ];
+          return [];
         case "cancelled":
-          return [
-            {
-              title: "Report booking",
-              onPress: () => handleReportBooking(booking),
-              destructive: false,
-            },
-          ];
+          return [];
         default:
           return [];
       }
@@ -479,15 +503,63 @@ export default function Bookings() {
   };
 
   const handleRescheduleBooking = (booking: Booking) => {
-    Alert.alert("Reschedule Booking", "Reschedule functionality coming soon");
+    // Pre-fill with the current booking date/time
+    const currentDate = new Date(booking.startTime);
+    const dateStr = currentDate.toISOString().split("T")[0]; // YYYY-MM-DD
+    const timeStr = currentDate.toTimeString().slice(0, 5); // HH:MM
+
+    setRescheduleBooking(booking);
+    setRescheduleDate(dateStr);
+    setRescheduleTime(timeStr);
+    setRescheduleReason("");
+    setShowRescheduleModal(true);
   };
 
-  const handleRequestReschedule = (booking: Booking) => {
-    Alert.alert("Request Reschedule", "Request reschedule functionality coming soon");
-  };
+  const handleSubmitReschedule = () => {
+    if (!rescheduleBooking || !rescheduleDate || !rescheduleTime) {
+      showErrorAlert("Error", "Please enter both date and time");
+      return;
+    }
 
-  const handleReportBooking = (booking: Booking) => {
-    Alert.alert("Report Booking", "Report functionality coming soon");
+    // Parse the date and time
+    const dateTimeStr = `${rescheduleDate}T${rescheduleTime}:00`;
+    const newDateTime = new Date(dateTimeStr);
+
+    // Validate the date
+    if (isNaN(newDateTime.getTime())) {
+      showErrorAlert(
+        "Error",
+        "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
+      );
+      return;
+    }
+
+    // Check if the new time is in the future
+    if (newDateTime <= new Date()) {
+      showErrorAlert("Error", "Please select a future date and time");
+      return;
+    }
+
+    // Convert to UTC ISO string
+    const startUtc = newDateTime.toISOString();
+
+    rescheduleBookingMutation(
+      {
+        uid: rescheduleBooking.uid,
+        start: startUtc,
+        reschedulingReason: rescheduleReason || undefined,
+      },
+      {
+        onSuccess: () => {
+          setShowRescheduleModal(false);
+          setRescheduleBooking(null);
+          Alert.alert("Success", "Booking rescheduled successfully");
+        },
+        onError: (error) => {
+          showErrorAlert("Error", error.message || "Failed to reschedule booking");
+        },
+      }
+    );
   };
 
   const handleCancelEvent = (booking: Booking) => {
@@ -533,17 +605,61 @@ export default function Bookings() {
   };
 
   const handleConfirmBooking = (booking: Booking) => {
-    Alert.alert("Confirm Booking", "Confirm functionality coming soon");
+    Alert.alert("Confirm Booking", `Are you sure you want to confirm "${booking.title}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Confirm",
+        onPress: () => {
+          confirmBookingMutation(
+            { uid: booking.uid },
+            {
+              onSuccess: () => {
+                Alert.alert("Success", "Booking confirmed successfully");
+              },
+              onError: (error) => {
+                showErrorAlert("Error", error.message || "Failed to confirm booking");
+              },
+            }
+          );
+        },
+      },
+    ]);
   };
 
   const handleRejectBooking = (booking: Booking) => {
-    Alert.alert("Reject Booking", `Are you sure you want to reject "${booking.title}"?`, [
+    Alert.alert("Decline Booking", `Are you sure you want to decline "${booking.title}"?`, [
       { text: "Cancel", style: "cancel" },
       {
-        text: "Reject",
+        text: "Decline",
         style: "destructive",
         onPress: () => {
-          Alert.alert("Reject Booking", "Reject functionality coming soon");
+          // Show optional reason input
+          Alert.prompt(
+            "Decline Reason",
+            "Optionally provide a reason for declining (press OK to skip)",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "OK",
+                onPress: (reason?: string) => {
+                  declineBookingMutation(
+                    { uid: booking.uid, reason: reason || undefined },
+                    {
+                      onSuccess: () => {
+                        Alert.alert("Success", "Booking declined successfully");
+                      },
+                      onError: (error) => {
+                        showErrorAlert("Error", error.message || "Failed to decline booking");
+                      },
+                    }
+                  );
+                },
+              },
+            ],
+            "plain-text",
+            "",
+            "default"
+          );
         },
       },
     ]);
@@ -769,32 +885,44 @@ export default function Bookings() {
             item.user ||
             (item.attendees && item.attendees.length > 0)) && (
             <Text className="mb-2 text-sm text-[#333]">
-              {/* Host */}
-              {(item.hosts && item.hosts.length > 0) || item.user ? (
-                <>
-                  {item.hosts && item.hosts.length > 0
-                    ? item.hosts[0].name || item.hosts[0].email
-                    : item.user?.name || item.user?.email}
-                </>
-              ) : null}
+              {(() => {
+                // Check if current user is the host
+                const currentUserEmail = userInfo?.email?.toLowerCase();
+                const hostEmail =
+                  item.hosts?.[0]?.email?.toLowerCase() || item.user?.email?.toLowerCase();
+                const isCurrentUserHost =
+                  currentUserEmail && hostEmail && currentUserEmail === hostEmail;
 
-              {/* Separator */}
-              {((item.hosts && item.hosts.length > 0) || item.user) &&
-                item.attendees &&
-                item.attendees.length > 0 && <Text> and </Text>}
+                // Get host display name
+                const hostName = isCurrentUserHost
+                  ? "You"
+                  : item.hosts?.[0]?.name ||
+                    item.hosts?.[0]?.email ||
+                    item.user?.name ||
+                    item.user?.email;
 
-              {/* Attendees */}
-              {item.attendees && item.attendees.length > 0 && (
-                <>
-                  {item.attendees.length === 1
-                    ? item.attendees[0].name || item.attendees[0].email
-                    : item.attendees
-                        .slice(0, 2)
-                        .map((att) => att.name || att.email)
-                        .join(", ") +
-                      (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")}
-                </>
-              )}
+                // Get attendees display
+                const attendeesDisplay =
+                  item.attendees && item.attendees.length > 0
+                    ? item.attendees.length === 1
+                      ? item.attendees[0].name || item.attendees[0].email
+                      : item.attendees
+                          .slice(0, 2)
+                          .map((att) => att.name || att.email)
+                          .join(", ") +
+                        (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")
+                    : null;
+
+                // Combine host and attendees
+                if (hostName && attendeesDisplay) {
+                  return `${hostName} and ${attendeesDisplay}`;
+                } else if (hostName) {
+                  return hostName;
+                } else if (attendeesDisplay) {
+                  return attendeesDisplay;
+                }
+                return null;
+              })()}
             </Text>
           )}
         </TouchableOpacity>
@@ -971,216 +1099,137 @@ export default function Bookings() {
       </FullScreenModal>
 
       {/* Booking Actions Modal */}
-      <FullScreenModal
+      <BookingActionsModal
         visible={showBookingActionsModal}
-        animationType="fade"
-        onRequestClose={() => setShowBookingActionsModal(false)}
+        onClose={() => setShowBookingActionsModal(false)}
+        booking={selectedBooking}
+        hasLocationUrl={!!selectedBooking?.location}
+        isUpcoming={activeFilter === "upcoming" || activeFilter === "unconfirmed"}
+        isPast={activeFilter === "past"}
+        isCancelled={activeFilter === "cancelled"}
+        isUnconfirmed={activeFilter === "unconfirmed"}
+        onViewBooking={() => {
+          if (selectedBooking) handleBookingPress(selectedBooking);
+        }}
+        onReschedule={() => {
+          if (selectedBooking) handleRescheduleBooking(selectedBooking);
+        }}
+        onEditLocation={() => {
+          Alert.alert("Edit Location", "Edit location functionality coming soon");
+        }}
+        onAddGuests={() => {
+          Alert.alert("Add Guests", "Add guests functionality coming soon");
+        }}
+        onViewRecordings={() => {
+          Alert.alert("View Recordings", "View recordings functionality coming soon");
+        }}
+        onMeetingSessionDetails={() => {
+          Alert.alert(
+            "Meeting Session Details",
+            "Meeting session details functionality coming soon"
+          );
+        }}
+        onMarkNoShow={() => {
+          Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
+        }}
+        onReportBooking={() => {
+          Alert.alert("Report Booking", "Report booking functionality coming soon");
+        }}
+        onCancelBooking={() => {
+          if (selectedBooking) handleCancelEvent(selectedBooking);
+        }}
+      />
+
+      {/* Reschedule Modal */}
+      <FullScreenModal
+        visible={showRescheduleModal}
+        onClose={() => {
+          setShowRescheduleModal(false);
+          setRescheduleBooking(null);
+        }}
+        title="Reschedule Booking"
       >
-        <TouchableOpacity
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={() => setShowBookingActionsModal(false)}
-        >
-          <TouchableOpacity
-            className="mx-4 w-full max-w-sm rounded-2xl bg-white"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <View className="border-b border-gray-200 p-6">
-              <Text className="text-center text-xl font-semibold text-gray-900">
-                Booking Actions
+        <ScrollView className="flex-1 p-4">
+          {rescheduleBooking && (
+            <>
+              <Text className="mb-4 text-base text-gray-600">
+                Reschedule "{rescheduleBooking.title}"
               </Text>
-            </View>
 
-            {/* Actions List */}
-            <View className="p-2">
-              {/* View Booking */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowBookingActionsModal(false);
-                  if (selectedBooking) {
-                    handleBookingPress(selectedBooking);
-                  }
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons name="eye-outline" size={20} color="#6B7280" />
-                <Text className="ml-3 text-base text-gray-900">View Booking</Text>
-              </TouchableOpacity>
-
-              {/* Separator */}
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              {/* Edit event label */}
-              <View className="px-4 py-1">
-                <Text className="text-xs font-medium text-gray-500">Edit event</Text>
+              {/* Date Input */}
+              <View className="mb-4">
+                <Text className="mb-2 text-sm font-medium text-gray-700">
+                  New Date (YYYY-MM-DD)
+                </Text>
+                <TextInput
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-base"
+                  value={rescheduleDate}
+                  onChangeText={setRescheduleDate}
+                  placeholder="2024-12-25"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="default"
+                />
               </View>
 
-              {/* Request Reschedule */}
-              {activeFilter === "upcoming" && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowBookingActionsModal(false);
-                    if (selectedBooking) {
-                      handleRescheduleBooking(selectedBooking);
-                    }
-                  }}
-                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                >
-                  <Ionicons name="send-outline" size={20} color="#6B7280" />
-                  <Text className="ml-3 text-base text-gray-900">Send Reschedule Request</Text>
-                </TouchableOpacity>
-              )}
+              {/* Time Input */}
+              <View className="mb-4">
+                <Text className="mb-2 text-sm font-medium text-gray-700">
+                  New Time (HH:MM, 24-hour format)
+                </Text>
+                <TextInput
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-base"
+                  value={rescheduleTime}
+                  onChangeText={setRescheduleTime}
+                  placeholder="14:30"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="default"
+                />
+              </View>
 
-              {/* Edit Location */}
-              {activeFilter === "upcoming" && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowBookingActionsModal(false);
-                    Alert.alert("Edit Location", "Edit location functionality coming soon");
-                  }}
-                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                >
-                  <Ionicons name="location-outline" size={20} color="#6B7280" />
-                  <Text className="ml-3 text-base text-gray-900">Edit Location</Text>
-                </TouchableOpacity>
-              )}
+              {/* Reason Input */}
+              <View className="mb-6">
+                <Text className="mb-2 text-sm font-medium text-gray-700">Reason (optional)</Text>
+                <TextInput
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-base"
+                  value={rescheduleReason}
+                  onChangeText={setRescheduleReason}
+                  placeholder="Enter reason for rescheduling..."
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  style={{ minHeight: 80 }}
+                />
+              </View>
 
-              {/* Add Guests */}
-              {activeFilter === "upcoming" && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowBookingActionsModal(false);
-                    Alert.alert("Add Guests", "Add guests functionality coming soon");
-                  }}
-                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                >
-                  <Ionicons name="person-add-outline" size={20} color="#6B7280" />
-                  <Text className="ml-3 text-base text-gray-900">Add Guests</Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Open Location */}
-              {selectedBooking?.location && (
-                <>
-                  <View className="mx-4 my-2 h-px bg-gray-200" />
-                  <TouchableOpacity
-                    onPress={() => {
-                      setShowBookingActionsModal(false);
-                      if (selectedBooking) {
-                        handleOpenLocation(selectedBooking);
-                      }
-                    }}
-                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                  >
-                    <Ionicons name="location-outline" size={20} color="#6B7280" />
-                    <Text className="ml-3 text-base text-gray-900">Open Location</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {/* Separator */}
-              {(activeFilter === "past" || activeFilter === "upcoming") && (
-                <>
-                  <View className="mx-4 my-2 h-px bg-gray-200" />
-
-                  {/* After event label */}
-                  {activeFilter === "past" && (
-                    <View className="px-4 py-1">
-                      <Text className="text-xs font-medium text-gray-500">After event</Text>
-                    </View>
-                  )}
-
-                  {/* Mark as No-Show */}
-                  {activeFilter === "past" && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        setShowBookingActionsModal(false);
-                        Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
-                      }}
-                      className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                    >
-                      <Ionicons name="eye-off-outline" size={20} color="#6B7280" />
-                      <Text className="ml-3 text-base text-gray-900">Mark as No-Show</Text>
-                    </TouchableOpacity>
-                  )}
-                </>
-              )}
-
-              {/* Confirm booking (for unconfirmed) */}
-              {activeFilter === "unconfirmed" && (
-                <>
-                  <View className="mx-4 my-2 h-px bg-gray-200" />
-                  <TouchableOpacity
-                    onPress={() => {
-                      setShowBookingActionsModal(false);
-                      if (selectedBooking) {
-                        handleConfirmBooking(selectedBooking);
-                      }
-                    }}
-                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                  >
-                    <Ionicons name="checkmark-circle-outline" size={20} color="#10B981" />
-                    <Text className="ml-3 text-base text-green-600">Confirm booking</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {/* Separator */}
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              {/* Report Booking */}
+              {/* Submit Button */}
               <TouchableOpacity
-                onPress={() => {
-                  setShowBookingActionsModal(false);
-                  if (selectedBooking) {
-                    handleReportBooking(selectedBooking);
-                  }
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                className={`rounded-lg p-4 ${isRescheduling ? "bg-gray-400" : "bg-black"}`}
+                onPress={handleSubmitReschedule}
+                disabled={isRescheduling}
               >
-                <Ionicons name="flag-outline" size={20} color="#EF4444" />
-                <Text className="ml-3 text-base text-red-500">Report Booking</Text>
+                {isRescheduling ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-center text-base font-semibold text-white">
+                    Reschedule Booking
+                  </Text>
+                )}
               </TouchableOpacity>
 
-              {/* Separator */}
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              {/* Cancel/Reject Booking */}
-              {(activeFilter === "upcoming" || activeFilter === "unconfirmed") && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowBookingActionsModal(false);
-                    if (selectedBooking) {
-                      if (activeFilter === "unconfirmed") {
-                        handleRejectBooking(selectedBooking);
-                      } else {
-                        handleCancelEvent(selectedBooking);
-                      }
-                    }
-                  }}
-                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                >
-                  <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
-                  <Text className="ml-3 text-base text-red-500">
-                    {activeFilter === "unconfirmed" ? "Reject booking" : "Cancel event"}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Cancel button */}
-            <View className="border-t border-gray-200 p-2 md:p-4">
+              {/* Cancel Button */}
               <TouchableOpacity
-                className="w-full rounded-lg bg-gray-100 p-3"
-                onPress={() => setShowBookingActionsModal(false)}
+                className="mt-3 rounded-lg bg-gray-100 p-4"
+                onPress={() => {
+                  setShowRescheduleModal(false);
+                  setRescheduleBooking(null);
+                }}
               >
                 <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
               </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+            </>
+          )}
+        </ScrollView>
       </FullScreenModal>
     </View>
   );

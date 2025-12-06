@@ -410,6 +410,70 @@ export class CalComAPIService {
     }
   }
 
+  // Confirm a pending booking
+  static async confirmBooking(bookingUid: string): Promise<Booking> {
+    try {
+      console.log(`Confirming booking ${bookingUid}`);
+
+      const response = await this.makeRequest<{ status: string; data: Booking }>(
+        `/bookings/${bookingUid}/confirm`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        console.log("Booking confirmed successfully:", response.data);
+        return response.data;
+      }
+
+      throw new Error("Invalid response from confirm booking API");
+    } catch (error) {
+      console.error("confirmBooking error:", error);
+      throw error;
+    }
+  }
+
+  // Decline a pending booking
+  static async declineBooking(bookingUid: string, reason?: string): Promise<Booking> {
+    try {
+      console.log(`Declining booking ${bookingUid}`);
+
+      const body: { reason?: string } = {};
+      if (reason) {
+        body.reason = reason;
+      }
+
+      const response = await this.makeRequest<{ status: string; data: Booking }>(
+        `/bookings/${bookingUid}/decline`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+          body: JSON.stringify(body),
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        console.log("Booking declined successfully:", response.data);
+        return response.data;
+      }
+
+      throw new Error("Invalid response from decline booking API");
+    } catch (error) {
+      console.error("declineBooking error:", error);
+      throw error;
+    }
+  }
+
   static async getEventTypes(): Promise<EventType[]> {
     try {
       // Get current user to extract username

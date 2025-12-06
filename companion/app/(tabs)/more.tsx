@@ -138,8 +138,8 @@ export default function More() {
               onPress={handleSignOut}
               className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
             >
-              <Ionicons name="log-out-outline" size={20} color="#DC2626" />
-              <Text className="ml-2 text-base font-medium text-red-600">Sign Out</Text>
+              <Ionicons name="log-out-outline" size={20} color="#800000" />
+              <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -16,6 +16,8 @@ export {
   useBookingByUid,
   useCancelBooking,
   useRescheduleBooking,
+  useConfirmBooking,
+  useDeclineBooking,
   usePrefetchBookings,
   useInvalidateBookings,
   type BookingFilters,

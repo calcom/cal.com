@@ -844,8 +844,8 @@ export default function EventTypes() {
                       if (eventType) handleDelete(eventType);
                     }}
                   >
-                    <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                    <Text className="ml-3 text-base text-red-500">Delete</Text>
+                    <Ionicons name="trash-outline" size={20} color="#800000" />
+                    <Text className="ml-3 text-base text-[#800000]">Delete</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -937,7 +937,7 @@ export default function EventTypes() {
               <View className="flex-row">
                 {/* Danger icon */}
                 <View className="mr-3 self-start rounded-full bg-red-50 p-2">
-                  <Ionicons name="alert-circle" size={20} color="#DC2626" />
+                  <Ionicons name="alert-circle" size={20} color="#800000" />
                 </View>
 
                 {/* Title and description */}

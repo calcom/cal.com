@@ -68,7 +68,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     CalComAPIService.setAccessToken(token, refreshToken);
 
     try {
-      await CalComAPIService.getUserProfile();
+      const profile = await CalComAPIService.getUserProfile();
+      // Store user info for use in the app (e.g., to display "You" in bookings)
+      if (profile) {
+        setUserInfo({
+          email: profile.email,
+          name: profile.name,
+          id: profile.id,
+          username: profile.username,
+        });
+      }
     } catch (profileError) {
       console.error("Failed to fetch user profile:", profileError);
       // Don't fail login if profile fetch fails

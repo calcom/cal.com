@@ -598,8 +598,8 @@ export default function Availability() {
                 }}
                 className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
               >
-                <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                <Text className="ml-3 text-base text-red-500">Delete</Text>
+                <Ionicons name="trash-outline" size={20} color="#800000" />
+                <Text className="ml-3 text-base text-[#800000]">Delete</Text>
               </TouchableOpacity>
             </View>
 
@@ -627,7 +627,7 @@ export default function Availability() {
             {/* Icon */}
             <View className="mb-4 items-center">
               <View className="h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <Ionicons name="trash-outline" size={24} color="#EF4444" />
+                <Ionicons name="trash-outline" size={24} color="#800000" />
               </View>
             </View>
 

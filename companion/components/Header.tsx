@@ -7,8 +7,6 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  Modal,
-  Alert,
   Platform,
   ActionSheetIOS,
 } from "react-native";
@@ -42,12 +40,11 @@ export function Header() {
 
   const handleProfile = () => {
     if (Platform.OS === "ios") {
-      const options = ["Cancel", "My Profile", "My Settings", "Out of Office", "Help", "Sign Out"];
+      const options = ["Cancel", "My Profile", "My Settings", "Out of Office", "Help"];
 
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options,
-          destructiveButtonIndex: 6, // Sign Out
           cancelButtonIndex: 0,
           title: userProfile?.name || "Profile Menu",
         },
@@ -62,11 +59,8 @@ export function Header() {
             case 3: // Out of Office
               handleMenuOption("outOfOffice");
               break;
-            case 4: // Support
+            case 4: // Help
               handleMenuOption("help");
-              break;
-            case 5: // Sign Out
-              handleMenuOption("signOut");
               break;
           }
         }
@@ -98,19 +92,6 @@ export function Header() {
         break;
       case "help":
         openInAppBrowser("https://cal.com/help", "Help page");
-        break;
-      case "signOut":
-        Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Sign Out",
-            style: "destructive",
-            onPress: () => {
-              // TODO: Implement sign out
-              console.log("Sign Out pressed");
-            },
-          },
-        ]);
         break;
     }
   };
@@ -256,16 +237,6 @@ export function Header() {
                   <Text className="ml-3 text-base text-gray-900">Help</Text>
                 </View>
                 <Ionicons name="open-outline" size={16} color="#6B7280" />
-              </TouchableOpacity>
-
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              <TouchableOpacity
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                onPress={() => handleMenuOption("signOut")}
-              >
-                <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-                <Text className="ml-3 text-base text-red-500">Sign Out</Text>
               </TouchableOpacity>
             </View>
 

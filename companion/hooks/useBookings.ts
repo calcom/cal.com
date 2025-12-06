@@ -158,6 +158,71 @@ export function useRescheduleBooking() {
 }
 
 /**
+ * Hook to confirm a pending booking
+ *
+ * @returns Mutation function and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate: confirmBooking, isPending } = useConfirmBooking();
+ *
+ * confirmBooking({ uid: 'abc-123' });
+ * ```
+ */
+export function useConfirmBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid }: { uid: string }) => CalComAPIService.confirmBooking(uid),
+    onSuccess: (_, variables) => {
+      // Invalidate all booking queries to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+
+      // Also invalidate the specific booking detail
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.detail(variables.uid),
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to confirm booking:", error);
+    },
+  });
+}
+
+/**
+ * Hook to decline a pending booking
+ *
+ * @returns Mutation function and state
+ *
+ * @example
+ * ```tsx
+ * const { mutate: declineBooking, isPending } = useDeclineBooking();
+ *
+ * declineBooking({ uid: 'abc-123', reason: 'Schedule conflict' });
+ * ```
+ */
+export function useDeclineBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid, reason }: { uid: string; reason?: string }) =>
+      CalComAPIService.declineBooking(uid, reason),
+    onSuccess: (_, variables) => {
+      // Invalidate all booking queries to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+
+      // Also invalidate the specific booking detail
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bookings.detail(variables.uid),
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to decline booking:", error);
+    },
+  });
+}
+
+/**
  * Hook to prefetch bookings (useful for navigation)
  *
  * @returns Function to prefetch bookings

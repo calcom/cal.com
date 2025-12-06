@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView } from "expo-glass-effect";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
@@ -49,9 +49,7 @@ const tabs = [
   { id: "limits", label: "Limits", icon: "time" },
   { id: "advanced", label: "Advanced", icon: "settings" },
   { id: "recurring", label: "Recurring", icon: "refresh" },
-  { id: "apps", label: "Apps", icon: "grid" },
-  { id: "workflows", label: "Workflows", icon: "flash" },
-  { id: "webhooks", label: "Webhooks", icon: "code" },
+  { id: "other", label: "Other", icon: "ellipsis-horizontal" },
 ];
 
 export default function EventTypeDetail() {
@@ -1301,39 +1299,93 @@ export default function EventTypeDetail() {
         </GlassView>
 
         {/* Tabs */}
-        <View
-          className="absolute left-0 right-0 top-0 z-[999] border-b border-[#C6C6C8] bg-white pb-2"
-          style={{ paddingTop: insets.top + 70 }}
-        >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 12, gap: 2 }}
+        {isLiquidGlassAvailable() ? (
+          <GlassView
+            glassEffectStyle="regular"
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: 0,
+              zIndex: 999,
+              paddingTop: insets.top + 70,
+              paddingBottom: 12,
+            }}
           >
-            {tabs.map((tab) => (
-              <TouchableOpacity
-                key={tab.id}
-                className={`min-w-[80px] items-center rounded-[20px] px-2 py-2 md:px-4 ${
-                  activeTab === tab.id ? "bg-[#EEEFF2]" : ""
-                }`}
-                onPress={() => setActiveTab(tab.id)}
-              >
-                <View className="flex-row items-center gap-1.5">
-                  <Ionicons
-                    name={tab.icon as any}
-                    size={16}
-                    color={activeTab === tab.id ? "#000" : "#666"}
-                  />
-                  <Text
-                    className={`text-sm font-medium ${activeTab === tab.id ? "font-semibold text-black" : "text-[#666]"}`}
-                  >
-                    {tab.label}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
+            >
+              {tabs.map((tab) => (
+                <TouchableOpacity
+                  key={tab.id}
+                  className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
+                    activeTab === tab.id ? "bg-[rgba(0,0,0,0.08)]" : ""
+                  }`}
+                  onPress={() => setActiveTab(tab.id)}
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name={tab.icon as any}
+                      size={18}
+                      color={activeTab === tab.id ? "#007AFF" : "#666"}
+                    />
+                    <Text
+                      className={`text-base font-medium ${activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"}`}
+                    >
+                      {tab.label}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </GlassView>
+        ) : (
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: 0,
+              zIndex: 999,
+              paddingTop: insets.top + 70,
+              paddingBottom: 12,
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              borderBottomWidth: 0.5,
+              borderBottomColor: "#C6C6C8",
+            }}
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
+            >
+              {tabs.map((tab) => (
+                <TouchableOpacity
+                  key={tab.id}
+                  className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
+                    activeTab === tab.id ? "bg-[#EEEFF2]" : ""
+                  }`}
+                  onPress={() => setActiveTab(tab.id)}
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name={tab.icon as any}
+                      size={18}
+                      color={activeTab === tab.id ? "#007AFF" : "#666"}
+                    />
+                    <Text
+                      className={`text-base font-medium ${activeTab === tab.id ? "font-semibold text-[#007AFF]" : "text-[#666]"}`}
+                    >
+                      {tab.label}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Content */}
         <ScrollView
@@ -1663,7 +1715,11 @@ export default function EventTypeDetail() {
                                       }}
                                     >
                                       <Text
-                                        style={{ color: "white", fontSize: 8, fontWeight: "bold" }}
+                                        style={{
+                                          color: "white",
+                                          fontSize: 8,
+                                          fontWeight: "bold",
+                                        }}
                                       >
                                         ?
                                       </Text>
@@ -2064,30 +2120,82 @@ export default function EventTypeDetail() {
             />
           )}
 
-          {activeTab === "apps" && (
+          {activeTab === "other" && (
             <View className="rounded-2xl bg-white p-5 shadow-md">
-              <Text className="mb-4 text-lg font-semibold text-[#333]">Connected Apps</Text>
-              <Text className="mb-6 text-base leading-6 text-[#666]">
-                Manage app integrations for this event type.
+              <Text className="mb-2 text-lg font-semibold text-[#333]">Additional Settings</Text>
+              <Text className="mb-5 text-sm leading-5 text-[#666]">
+                Manage these settings on the web for full functionality.
               </Text>
-            </View>
-          )}
 
-          {activeTab === "workflows" && (
-            <View className="rounded-2xl bg-white p-5 shadow-md">
-              <Text className="mb-4 text-lg font-semibold text-[#333]">Workflows</Text>
-              <Text className="mb-6 text-base leading-6 text-[#666]">
-                Configure automated workflows and actions.
-              </Text>
-            </View>
-          )}
+              <View className="overflow-hidden rounded-lg border border-[#E5E5EA]">
+                {/* Apps */}
+                <TouchableOpacity
+                  onPress={() =>
+                    openInAppBrowser(
+                      `https://app.cal.com/event-types/${id}?tabName=apps`,
+                      "Apps settings"
+                    )
+                  }
+                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
+                  style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
+                >
+                  <View className="flex-1 flex-row items-center">
+                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
+                      <Ionicons name="grid" size={18} color="#333" />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-base font-semibold text-[#333]">Apps</Text>
+                      <Text className="text-sm text-[#666]">Manage app integrations</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
 
-          {activeTab === "webhooks" && (
-            <View className="rounded-2xl bg-white p-5 shadow-md">
-              <Text className="mb-4 text-lg font-semibold text-[#333]">Webhooks</Text>
-              <Text className="mb-6 text-base leading-6 text-[#666]">
-                Set up webhook endpoints for event notifications.
-              </Text>
+                {/* Workflows */}
+                <TouchableOpacity
+                  onPress={() =>
+                    openInAppBrowser(
+                      `https://app.cal.com/event-types/${id}?tabName=workflows`,
+                      "Workflows settings"
+                    )
+                  }
+                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
+                  style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
+                >
+                  <View className="flex-1 flex-row items-center">
+                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
+                      <Ionicons name="flash" size={18} color="#333" />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-base font-semibold text-[#333]">Workflows</Text>
+                      <Text className="text-sm text-[#666]">Configure automated actions</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
+
+                {/* Webhooks */}
+                <TouchableOpacity
+                  onPress={() =>
+                    openInAppBrowser(
+                      `https://app.cal.com/event-types/${id}?tabName=webhooks`,
+                      "Webhooks settings"
+                    )
+                  }
+                  className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
+                >
+                  <View className="flex-1 flex-row items-center">
+                    <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F3F4F6]">
+                      <Ionicons name="code" size={18} color="#333" />
+                    </View>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-base font-semibold text-[#333]">Webhooks</Text>
+                      <Text className="text-sm text-[#666]">Set up event notifications</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </ScrollView>
