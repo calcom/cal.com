@@ -5,7 +5,6 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
-import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -287,14 +286,37 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
-  const bookingYear = dayjs(booking.startTime).year();
-  const currentYear = dayjs().year();
-  const isDifferentYear = bookingYear !== currentYear;
+const bookingYear = Number(
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: userTimeZone,
+    year: "numeric",
+  }).format(new Date(booking.startTime))
+);
 
-  const startTime = dayjs(booking.startTime)
-    .tz(userTimeZone)
-    .locale(language)
-    .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
+const currentYear = Number(
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: userTimeZone,
+    year: "numeric",
+  }).format(new Date())
+);
+
+const isDifferentYear = bookingYear !== currentYear;
+
+const startTime = isUpcoming
+  ? new Intl.DateTimeFormat(language, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      ...(isDifferentYear ? { year: "numeric" } : {}),
+      timeZone: userTimeZone,
+    }).format(new Date(booking.startTime))
+  : new Intl.DateTimeFormat(language, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: userTimeZone,
+    }).format(new Date(booking.startTime));
+
 
   // Getting accepted recurring dates to show
   const recurringDates = booking.recurringInfo?.bookings[BookingStatus.ACCEPTED]
@@ -670,7 +692,12 @@ const RecurringBookingsTooltip = ({
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
                     {formatTime(aDate, userTimeFormat, userTimeZone)}
                     {" - "}
-                    {dayjs(aDate).locale(language).format("D MMMM YYYY")}
+                    {new Intl.DateTimeFormat(language, {
+                      timeZone: userTimeZone,
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }).format(aDate)}
                   </p>
                 );
               })}>
