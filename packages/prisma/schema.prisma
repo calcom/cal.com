@@ -367,6 +367,8 @@ model User {
   uuid                String               @unique @default(uuid()) @db.Uuid
   username            String?
   name                String?
+  givenName           String               @default("")
+  lastName            String?
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   email               String
   emailVerified       DateTime?

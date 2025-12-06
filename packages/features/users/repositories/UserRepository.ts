@@ -28,6 +28,8 @@ export type SessionUser = {
   id: number;
   username: string | null;
   name: string | null;
+  givenName: string;
+  lastName: string | null;
   email: string;
   emailVerified: Date | null;
   bio: string | null;
@@ -84,6 +86,8 @@ const userSelect = {
   id: true,
   username: true,
   name: true,
+  givenName: true,
+  lastName: true,
   email: true,
   emailVerified: true,
   bio: true,
@@ -341,6 +345,8 @@ export class UserRepository {
         id: true,
         username: true,
         name: true,
+        givenName: true,
+        lastName: true,
         email: true,
         metadata: true,
         identityProvider: true,

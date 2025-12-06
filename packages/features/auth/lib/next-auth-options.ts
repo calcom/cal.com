@@ -500,12 +500,18 @@ export const getOptions = ({
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
+        const updatedGivenName = session?.givenName ?? token.givenName;
+        const updatedLastName = session?.lastName ?? token.lastName;
+        const updatedName = session?.name ?? token.name;
+
         return {
           ...token,
           profileId: session?.profileId ?? token.profileId ?? null,
           upId: session?.upId ?? token.upId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
-          name: session?.name ?? token.name,
+          name: updatedName,
+          givenName: updatedGivenName,
+          lastName: updatedLastName,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
         } as JWT;
@@ -518,6 +524,8 @@ export const getOptions = ({
             username: true,
             avatarUrl: true,
             name: true,
+            givenName: true,
+            lastName: true,
             email: true,
             role: true,
             locale: true,
@@ -574,6 +582,8 @@ export const getOptions = ({
         return {
           ...existingUserWithoutTeamsField,
           ...token,
+          givenName: existingUserWithoutTeamsField.givenName,
+          lastName: existingUserWithoutTeamsField.lastName,
           profileId: profile.id,
           upId,
           belongsToActiveTeam,
@@ -612,6 +622,8 @@ export const getOptions = ({
           ...token,
           id: user.id,
           name: user.name,
+          givenName: (user as { givenName?: string | null })?.givenName ?? "",
+          lastName: (user as { lastName?: string | null })?.lastName ?? null,
           username: user.username,
           orgAwareUsername: user?.org ? user.profile?.username : user.username,
           email: user.email,
@@ -716,6 +728,8 @@ export const getOptions = ({
           upId,
           id: existingUser.id,
           name: existingUser.name,
+          givenName: existingUser.givenName ?? "",
+          lastName: existingUser.lastName ?? null,
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
@@ -743,6 +757,7 @@ export const getOptions = ({
       const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
       const profileId = token.profileId;
+
       const calendsoSession: Session = {
         ...session,
         profileId,
@@ -752,6 +767,8 @@ export const getOptions = ({
           ...session.user,
           id: token.id as number,
           name: token.name,
+          givenName: (token as { givenName?: string | null })?.givenName ?? "",
+          lastName: (token as { lastName?: string | null })?.lastName ?? null,
           username: token.username as string,
           orgAwareUsername: token.orgAwareUsername,
           role: token.role as UserPermissionRole,
@@ -1020,6 +1037,19 @@ export const getOptions = ({
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
+          // For OAuth, try to get givenName/lastName from provider, fall back to splitting name
+          const userGivenName = (user as { givenName?: string | null })?.givenName;
+          const userLastName = (user as { lastName?: string | null })?.lastName;
+          let givenName = userGivenName?.trim() || "";
+          let lastName = userLastName?.trim() || null;
+
+          // If not provided by OAuth, split the full name as fallback
+          if (!givenName && user.name) {
+            const nameParts = user.name.trim().split(" ");
+            givenName = nameParts[0] || "";
+            lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ").trim() || null : null;
+          }
+
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
@@ -1027,6 +1057,8 @@ export const getOptions = ({
               username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
               emailVerified: new Date(Date.now()),
               name: user.name,
+              givenName,
+              lastName,
               ...(user.image && { avatarUrl: user.image }),
               email: user.email,
               identityProvider: idP,
