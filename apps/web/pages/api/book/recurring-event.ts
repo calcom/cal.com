@@ -8,6 +8,7 @@ import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { getReservedSlotUidFromRequest } from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
@@ -44,6 +45,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
   /* To mimic API behavior and comply with types */
 
   const recurringBookingService = getRecurringBookingService();
+  const reservedSlotUid = getReservedSlotUidFromRequest(req);
   const createdBookings: BookingResponse[] = await recurringBookingService.createBooking({
     bookingData: req.body,
     bookingMeta: {
@@ -54,6 +56,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
       platformRescheduleUrl: req.platformRescheduleUrl,
       platformBookingLocation: req.platformBookingLocation,
       noEmail: req.noEmail,
+      reservedSlotUid,
     },
   });
 

@@ -73,6 +73,8 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
+import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -106,7 +108,9 @@ import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToE
 import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "../handleNewBooking/createBooking";
+import type { CreateBookingParams } from "../handleNewBooking/createBooking";
 import type { Booking } from "../handleNewBooking/createBooking";
+import { createBookingWithReservedSlot } from "../handleNewBooking/createBookingWithReservedSlot";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "../handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
@@ -416,9 +420,11 @@ export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
   bookingRepository: BookingRepository;
+  selectedSlotsRepository: PrismaSelectedSlotRepository;
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
+  routingFormResponseRepository: RoutingFormResponseRepository;
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
@@ -542,6 +548,8 @@ async function handler(
     eventType,
   });
 
+  const bookingStartUtc = dayjs(reqBody.start).utc().toDate();
+  const bookingEndUtc = dayjs(reqBody.end).utc().toDate();
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: tracingLogger });
 
   try {
@@ -650,7 +658,7 @@ async function handler(
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
-      startTime: new Date(dayjs(reqBody.start).utc().format()),
+      startTime: bookingStartUtc,
       filterForUnconfirmed: !isConfirmedByDefault,
     });
 
@@ -813,7 +821,7 @@ async function handler(
     const booking = await deps.prismaClient.booking.findFirst({
       where: {
         eventTypeId: eventType.id,
-        startTime: new Date(dayjs(reqBody.start).utc().format()),
+        startTime: bookingStartUtc,
         status: BookingStatus.ACCEPTED,
       },
       select: {
@@ -1702,7 +1710,7 @@ async function handler(
 
   try {
     if (!isDryRun) {
-      booking = await createBooking({
+      const createArgs: CreateBookingParams = {
         uid,
         rescheduledBy: reqBody.rescheduledBy,
         routingFormResponseId: routingFormResponseId,
@@ -1730,7 +1738,32 @@ async function handler(
         originalRescheduledBooking,
         creationSource: input.bookingData.creationSource,
         tracking: reqBody.tracking,
-      });
+      };
+
+      const isTeamEvent = eventType.schedulingType;
+      if (input.reservedSlotUid && !eventType.seatsPerTimeSlot && !isTeamEvent) {
+        booking = await createBookingWithReservedSlot(
+          {
+            prismaClient: deps.prismaClient,
+            routingFormResponseRepository: deps.routingFormResponseRepository,
+            selectedSlotsRepository: deps.selectedSlotsRepository,
+            bookingRepository: deps.bookingRepository,
+          },
+          createArgs,
+          {
+            eventTypeId,
+            slotUtcStart: bookingStartUtc,
+            slotUtcEnd: bookingEndUtc,
+            reservedSlotUid: input.reservedSlotUid,
+          }
+        );
+      } else {
+        booking = await createBooking(createArgs, {
+          tx: deps.prismaClient,
+          routingFormResponseRepository: deps.routingFormResponseRepository,
+          bookingRepository: deps.bookingRepository,
+        });
+      }
 
       if (booking?.userId) {
         const usersRepository = new UsersRepository();
