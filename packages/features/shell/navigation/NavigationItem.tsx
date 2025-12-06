@@ -220,7 +220,7 @@ export const NavigationItem: React.FC<{
                 ? `aria-[aria-current='page']:bg-transparent!`
                 : `[&[aria-current='page']]:bg-emphasis`,
               isChild
-                ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${props.index === 0 ? "mt-0" : "mt-1"} hover:mt-1 [&[aria-current='page']]:mt-1`
+                ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${props.index === 0 ? "mt-0" : "mt-1  hover:mt-1 [&[aria-current='page']]:mt-1"}`
                 : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
               isLocaleReady
                 ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
