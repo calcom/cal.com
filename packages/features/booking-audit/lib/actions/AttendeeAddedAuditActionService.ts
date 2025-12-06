@@ -61,10 +61,13 @@ export class AttendeeAddedAuditActionService
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeAddedAuditDisplayData {
         const { fields } = storedData;
+        const previousAttendeesSet = new Set(fields.addedAttendees.old ?? []);
+        // Only include attendees that are in the new list but not in the old list
+        const addedAttendees = fields.addedAttendees.new.filter(
+            (email) => !previousAttendeesSet.has(email)
+        );
         return {
-            addedAttendees: fields.addedAttendees.new,
-            previousAttendees: fields.addedAttendees.old ?? [],
-            count: fields.addedAttendees.new.length,
+            addedAttendees,
         };
     }
 }
@@ -73,6 +76,4 @@ export type AttendeeAddedAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type AttendeeAddedAuditDisplayData = {
     addedAttendees: string[];
-    previousAttendees: string[];
-    count: number;
 };

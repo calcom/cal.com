@@ -42,7 +42,6 @@ export class BookingAuditViewerService {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.userRepository = deps.userRepository;
 
-        // Centralized registry for all action services
         this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
     }
 
@@ -55,13 +54,10 @@ export class BookingAuditViewerService {
         _userId: number,
         _userEmail: string
     ): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
-        // Check permissions
         await this.checkPermissions();
 
-        // Fetch audit logs
         const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
-        // Enrich and format audit logs
         const enrichedAuditLogs = await Promise.all(
             auditLogs.map(async (log) => {
                 const enrichedActor = await this.enrichActorInformation(log.actor);

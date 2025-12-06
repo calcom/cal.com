@@ -1,5 +1,8 @@
 import { z } from "zod";
 import type { Tasker } from "@calcom/features/tasker/tasker";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
 import type { BookingAuditAction } from "../types/bookingAuditTask";
@@ -19,6 +22,7 @@ import type { BookingAuditProducerService } from "./BookingAuditProducerService.
 
 interface BookingAuditTaskerProducerServiceDeps {
     tasker: Tasker;
+    log: ISimpleLogger;
 }
 
 /**
@@ -32,9 +36,11 @@ interface BookingAuditTaskerProducerServiceDeps {
  */
 export class BookingAuditTaskerProducerService implements BookingAuditProducerService {
     private readonly tasker: Tasker;
+    private readonly log: BookingAuditTaskerProducerServiceDeps["log"];
 
     constructor(private readonly deps: BookingAuditTaskerProducerServiceDeps) {
         this.tasker = deps.tasker;
+        this.log = deps.log;
     }
 
     /**
@@ -52,16 +58,22 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         if (organizationId === null) {
             return;
         }
-
-        // Cast action to BookingAuditAction since action service TYPE constants are typed as string
-        await this.tasker.create("bookingAudit", {
-            bookingUid,
-            actor,
-            organizationId,
-            timestamp: Date.now(),
-            action: action as BookingAuditAction,
-            data,
-        });
+        if (IS_PRODUCTION) {
+            return;
+        }
+        try {
+            // Cast action to BookingAuditAction since action service TYPE constants are typed as string
+            await this.tasker.create("bookingAudit", {
+                bookingUid,
+                actor,
+                organizationId,
+                timestamp: Date.now(),
+                action: action as BookingAuditAction,
+                data,
+            });
+        } catch (error) {
+            this.log.error(`Error while queueing ${action} audit`, safeStringify(error));
+        }
     }
 
     async queueCreatedAudit(

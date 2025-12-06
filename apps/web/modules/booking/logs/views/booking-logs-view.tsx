@@ -186,14 +186,6 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                             <span>{dayjs(log.timestamp).fromNow()}</span>
                                         </div>
                                     </div>
-
-                                    <Button
-                                        color="minimal"
-                                        size="sm"
-                                        variant="icon"
-                                        StartIcon="ellipsis"
-                                        className="h-6 w-6"
-                                    />
                                 </div>
                             </div>
 

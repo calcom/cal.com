@@ -12,7 +12,6 @@ import type { AttendeeNoShowUpdatedAuditData } from "@calcom/features/booking-au
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
 import type { Actor } from "../types/actor";
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
@@ -24,37 +23,24 @@ interface BookingEventHandlerDeps {
 
 export class BookingEventHandlerService {
   private readonly log: BookingEventHandlerDeps["log"];
-  private readonly hashedLinkService: BookingEventHandlerDeps["hashedLinkService"];
   private readonly bookingAuditProducerService: BookingEventHandlerDeps["bookingAuditProducerService"];
 
   constructor(private readonly deps: BookingEventHandlerDeps) {
     this.log = deps.log;
-    this.hashedLinkService = deps.hashedLinkService;
     this.bookingAuditProducerService = deps.bookingAuditProducerService;
   }
 
-  // TODO: actor to be made required in followup PR
-  async onBookingCreated(payload: BookingCreatedPayload, actor?: Actor) {
+  async onBookingCreated(payload: BookingCreatedPayload, actor: Actor) {
     this.log.debug("onBookingCreated", safeStringify(payload));
     if (payload.config.isDryRun) {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
-
-    if (!actor) {
-      return;
-    }
-
-    await this.bookingAuditProducerService.queueCreatedAudit(
-      payload.booking.uid,
-      actor,
-      payload.organizationId,
-      {
-        startTime: payload.booking.startTime.getTime(),
-        endTime: payload.booking.endTime.getTime(),
-        status: payload.booking.status,
-      }
-    );
+    await this.deps.bookingAuditProducerService.queueCreatedAudit(payload.booking.uid, actor, payload.organizationId, {
+      startTime: payload.booking.startTime.getTime(),
+      endTime: payload.booking.endTime.getTime(),
+      status: payload.booking.status,
+    });
   }
 
   // TODO: actor to be made required in followup PR
