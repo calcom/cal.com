@@ -461,6 +461,7 @@ model User {
   smsLockState                   SMSLockState                  @default(UNLOCKED)
   smsLockReviewedByAdmin         Boolean                       @default(false)
   NotificationsSubscriptions     NotificationsSubscriptions[]
+  notificationPreferences        UserNotificationPreference[]
   referralLinkId                 String?
   features                       UserFeatures[]
   reassignedBookings             Booking[]                     @relation("reassignByUser")
@@ -497,6 +498,42 @@ model NotificationsSubscriptions {
   subscription String
 
   @@index([userId, subscription])
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+}
+
+model UserNotificationPreference {
+  id               String   @id @default(uuid())
+  userId           Int
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationType String
+  emailEnabled     Boolean  @default(true)
+  smsEnabled       Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, notificationType])
+  @@index([userId])
+  @@index([notificationType])
+}
+
+model TeamNotificationPreference {
+  id               String   @id @default(uuid())
+  teamId           Int
+  team             Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  notificationType String
+  emailEnabled     Boolean  @default(true)
+  smsEnabled       Boolean  @default(true)
+  locked           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([teamId, notificationType])
+  @@index([teamId])
+  @@index([notificationType])
 }
 
 // It holds Organization Profiles as well as User Profiles for users that have been added to an organization
@@ -584,6 +621,7 @@ model Team {
   activeOrgWorkflows     WorkflowsOnTeams[]
   attributes             Attribute[]
   smsLockReviewedByAdmin Boolean                 @default(false)
+  notificationPreferences TeamNotificationPreference[]
   // Available for Organization only
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
