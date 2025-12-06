@@ -1,4 +1,4 @@
-import db from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -42,7 +42,7 @@ type Dependencies = {
 };
 
 export class TaskRepository {
-  constructor(private readonly deps: Dependencies) {}
+  constructor(private readonly deps: Dependencies) { }
 
   async create(
     type: TaskTypes,
@@ -235,4 +235,4 @@ export class TaskRepository {
 
 // Export singleton instance for backward compatibility
 // This allows existing code using Task.create(), Task.succeed(), etc. to continue working
-export const Task = new TaskRepository({ prismaClient: db });
+export const Task = new TaskRepository({ prismaClient: prisma });
