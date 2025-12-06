@@ -7,8 +7,8 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . ",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
     "build": "yarn trpc:generate || true",
     "trpc:generate": "yarn tsc --project tsconfig.json"
   },
@@ -22,7 +22,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
     "typescript": "^5.9.0-beta"
   }
 }

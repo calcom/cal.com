@@ -9,7 +9,7 @@ import type {
 } from "../../types";
 import { runAsap } from "./utils";
 
-export const enum EMBED_IFRAME_STATE {
+export enum EMBED_IFRAME_STATE {
   NOT_INITIALIZED,
   INITIALIZED,
 }

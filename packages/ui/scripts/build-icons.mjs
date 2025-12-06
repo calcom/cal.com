@@ -5,8 +5,12 @@ import glob from "fast-glob";
 import fsExtra from "fs-extra";
 import { parse } from "node-html-parser";
 import * as path from "node:path";
+import { createRequire } from "node:module";
 
 import { copyIcons, removeTempDir } from "./generate-icons.mjs";
+
+const require = createRequire(import.meta.url);
+const biomeBin = require.resolve("@biomejs/biome/bin/biome");
 
 const cwd = process.cwd();
 const inputDir = path.join(cwd, "svg-icons");
@@ -118,7 +122,7 @@ async function writeIfChanged(filepath, newContent) {
   const currentContent = await fsExtra.readFile(filepath, "utf8").catch(() => "");
   if (currentContent === newContent) return false;
   await fsExtra.writeFile(filepath, newContent, "utf8");
-  await $`prettier --write ${filepath} --ignore-unknown`;
+  await $`node ${biomeBin} format --write ${filepath}`;
   return true;
 }
 
