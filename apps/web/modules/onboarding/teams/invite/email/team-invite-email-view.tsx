@@ -1,14 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { EmailInviteForm } from "../../../components/EmailInviteForm";
 import { OnboardingCard } from "../../../components/OnboardingCard";
@@ -31,17 +32,29 @@ type FormValues = {
 
 export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => {
   const router = useRouter();
-  const { t } = useLocale();
+  const searchParams = useSearchParams();
+  const { t, i18n } = useLocale();
 
   const store = useOnboardingStore();
-  const { teamInvites, setTeamInvites, teamDetails } = store;
+  const { teamInvites, setTeamInvites, teamDetails, setTeamId, teamId } = store;
   const [inviteRole, setInviteRole] = React.useState<InviteRole>("MEMBER");
-  const { createTeam, isSubmitting } = useCreateTeam();
+  const { inviteMembers, isSubmitting } = useCreateTeam();
+
+  // Read teamId from query params and store it (from payment callback or redirect)
+  useEffect(() => {
+    const teamIdParam = searchParams?.get("teamId");
+    if (teamIdParam) {
+      const teamId = parseInt(teamIdParam, 10);
+      if (!isNaN(teamId)) {
+        setTeamId(teamId);
+      }
+    }
+  }, [searchParams, setTeamId]);
 
   const formSchema = z.object({
     invites: z.array(
       z.object({
-        email: z.string().email(t("invalid_email_address")),
+        email: z.union([z.literal(""), z.string().email(t("invalid_email_address"))]),
         role: z.enum(["MEMBER", "ADMIN"]),
       })
     ),
@@ -63,20 +76,53 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   });
 
   const handleContinue = async (data: FormValues) => {
+    const teamIdParam = searchParams?.get("teamId");
+    const parsedTeamId = !teamId ? parseInt(teamIdParam || "", 10) : teamId;
+    if (!parsedTeamId) {
+      showToast(
+        t("team_id_missing") || "Team ID is missing. Please go back and create your team first.",
+        "error"
+      );
+      return;
+    }
+
     const invitesWithTeam = data.invites.map((invite) => ({
       email: invite.email,
-      team: teamDetails.name,
       role: invite.role,
+      team: teamDetails.name,
     }));
 
     setTeamInvites(invitesWithTeam);
 
-    // Create the team (will handle checkout redirect if needed)
-    await createTeam(store);
+    // Filter out empty emails and invite members
+    const validInvites = data.invites.filter((invite) => invite.email && invite.email.trim().length > 0);
+
+    if (validInvites.length > 0) {
+      try {
+        await inviteMembers(
+          validInvites.map((invite) => ({
+            email: invite.email,
+            role: invite.role,
+          })),
+          i18n.language
+        );
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : t("something_went_wrong") || "Something went wrong";
+        showToast(errorMessage, "error");
+      }
+    } else {
+      // No invites, skip to personal settings
+      const gettingStartedPath = "/onboarding/personal/settings";
+      router.push(gettingStartedPath);
+    }
   };
 
-  const handleBack = () => {
-    router.push("/onboarding/teams/invite");
+  const handleSkip = async () => {
+    setTeamInvites([]);
+    // Skip inviting members and go to personal settings
+    const gettingStartedPath = "/onboarding/personal/settings";
+    router.push(gettingStartedPath);
   };
 
   const hasValidInvites = fields.some((_, index) => {
@@ -84,31 +130,40 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     return email && email.trim().length > 0;
   });
 
+  // Watch form values to pass to browser view for real-time updates
+  const watchedInvites = form.watch("invites");
+
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
       {/* Left column - Main content */}
-      <div className="flex w-full flex-col gap-4">
-        <OnboardingCard
-          title={t("invite_via_email")}
-          subtitle={t("team_invite_subtitle")}
-          footer={
-            <div className="flex w-full items-center justify-end gap-4">
-              <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
-                {t("back")}
-              </Button>
-              <Button
-                type="submit"
-                color="primary"
-                className="rounded-[10px]"
-                disabled={!hasValidInvites || isSubmitting}
-                loading={isSubmitting}
-                onClick={form.handleSubmit(handleContinue)}>
-                {t("continue")}
-              </Button>
-            </div>
-          }>
-          <div className="flex w-full flex-col gap-4 px-1">
-            <Form form={form} handleSubmit={handleContinue} className="w-full">
+      <div className="flex h-full w-full flex-col gap-4">
+        <Form form={form} handleSubmit={handleContinue} className="flex h-full w-full flex-col gap-4">
+          <OnboardingCard
+            title={t("invite")}
+            subtitle={t("team_invite_subtitle")}
+            footer={
+              <div className="flex w-full items-center justify-end gap-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    color="minimal"
+                    className="rounded-[10px]"
+                    onClick={handleSkip}
+                    disabled={isSubmitting}>
+                    {t("onboarding_skip_for_now")}
+                  </Button>
+                  <Button
+                    type="submit"
+                    color="primary"
+                    className="rounded-[10px]"
+                    disabled={!hasValidInvites || isSubmitting}
+                    loading={isSubmitting}>
+                    {t("continue")}
+                  </Button>
+                </div>
+              </div>
+            }>
+            <div className="flex w-full flex-col gap-4 px-1">
               <div className="flex w-full flex-col gap-4">
                 <EmailInviteForm
                   fields={fields}
@@ -129,13 +184,13 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                   showInfoBadge
                 />
               </div>
-            </Form>
-          </div>
-        </OnboardingCard>
+            </div>
+          </OnboardingCard>
+        </Form>
       </div>
 
       {/* Right column - Browser view */}
-      <OnboardingInviteBrowserView teamName={teamDetails.name} />
+      <OnboardingInviteBrowserView teamName={teamDetails.name} watchedInvites={watchedInvites} />
     </OnboardingLayout>
   );
 };

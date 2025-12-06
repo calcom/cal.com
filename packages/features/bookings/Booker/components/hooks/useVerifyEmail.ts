@@ -27,7 +27,7 @@ export const useVerifyEmail = ({
   const debouncedEmail = useDebounce(email, 600);
   const { data: session } = useSession();
 
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const sendEmailVerificationByCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
     onSuccess: () => {
       setEmailVerificationModalVisible(true);
@@ -55,6 +55,7 @@ export const useVerifyEmail = ({
     sendEmailVerificationByCodeMutation.mutate({
       email,
       username: typeof name === "string" ? name : name?.firstName,
+      language: i18n.language || "en",
     });
   };
 

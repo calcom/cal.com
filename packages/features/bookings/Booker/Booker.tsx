@@ -123,14 +123,15 @@ const BookerComponent = ({
   const addonDays =
     nonEmptyScheduleDays.length < extraDays
       ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
-      : nonEmptyScheduleDays.length === extraDays
-      ? totalWeekDays
       : 0;
   // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
-  if (nonEmptyScheduleDays.length !== 0)
+  if (nonEmptyScheduleDays.length !== 0) {
+    const slotIndex =
+      availableSlots.length === extraDays + 1 ? availableSlots.length - 2 : availableSlots.length - 1;
     columnViewExtraDays.current =
-      Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+      Math.abs(dayjs(selectedDate).diff(availableSlots[slotIndex], "day")) + addonDays;
+  }
 
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
@@ -222,12 +223,12 @@ const BookerComponent = ({
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
-        return !isTimeSlotAvailable({
-          scheduleData: schedule?.data ?? null,
-          slotToCheckInIso: slot,
-          quickAvailabilityChecks: slots.quickAvailabilityChecks,
-        });
-      })
+      return !isTimeSlotAvailable({
+        scheduleData: schedule?.data ?? null,
+        slotToCheckInIso: slot,
+        quickAvailabilityChecks: slots.quickAvailabilityChecks,
+      });
+    })
     : [];
 
   const slot = getQueryParam("slot");
@@ -351,7 +352,7 @@ const BookerComponent = ({
           data-testid="booker-container"
           className={classNames(
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            `bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
+            `bg-default dark:bg-cal-muted grid max-w-full items-start dark:scheme-dark sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
@@ -366,7 +367,7 @@ const BookerComponent = ({
                 className={classNames(
                   layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                    "bg-default dark:bg-muted sticky top-0 z-10"
+                    "bg-default dark:bg-cal-muted sticky top-0 z-10"
                 )}>
                 {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
                   <></>
@@ -406,7 +407,7 @@ const BookerComponent = ({
             <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
               <BookerSection
                 area="meta"
-                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                className="max-w-screen flex w-full flex-col md:w-(--booker-meta-width)">
                 {!hideEventTypeDetails && orgBannerUrl && (
                   <img
                     loading="eager"
@@ -430,7 +431,8 @@ const BookerComponent = ({
                     isPrivateLink={!!hashedLink}
                     locale={userLocale}
                     timeZones={timeZones}
-                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
+                    roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                    hideEventTypeDetails={hideEventTypeDetails}>
                     {eventMetaChildren}
                   </EventMeta>
                 )}
@@ -453,7 +455,7 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
+              className="sticky top-0 -ml-px h-full p-6 md:w-(--booker-main-width) md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
@@ -465,7 +467,7 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
+              className="md:border-subtle -ml-px h-full shrink px-5 py-3 md:border-l lg:w-(--booker-main-width)">
               <DatePicker
                 classNames={customClassNames?.datePickerCustomClassNames}
                 event={event}
@@ -480,7 +482,7 @@ const BookerComponent = ({
               key="large-calendar"
               area="main"
               visible={layout === BookerLayouts.WEEK_VIEW}
-              className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
+              className="border-subtle sticky top-0 -ml-px h-full md:border-l"
               {...fadeInLeft}>
               <LargeCalendar
                 extraDays={extraDays}
@@ -499,7 +501,7 @@ const BookerComponent = ({
               className={classNames(
                 "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
-                  "h-full overflow-hidden md:w-[var(--booker-timeslots-width)]",
+                  "h-full overflow-hidden md:w-(--booker-timeslots-width)",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
               )}
               ref={timeslotsRef}

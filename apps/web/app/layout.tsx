@@ -16,7 +16,7 @@ import { SpeculationRules } from "./SpeculationRules";
 import { extractUsernameFromPathname } from "./lib/extractUsernameFromPathname";
 import { Providers } from "./providers";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -104,6 +104,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const h = await headers();
   const nonce = h.get("x-csp-nonce") ?? "";
 
+  const country = h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || "Unknown";
+
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
   const ns = "common";
@@ -121,8 +123,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-inter: ${interFont.style.fontFamily.replace(/'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
+            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
       </head>
@@ -160,7 +162,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers isEmbed={isEmbed} nonce={nonce}>
+        <Providers isEmbed={isEmbed} nonce={nonce} country={country}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>

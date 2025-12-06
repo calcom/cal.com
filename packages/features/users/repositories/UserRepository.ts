@@ -16,6 +16,7 @@ import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
@@ -452,7 +453,7 @@ export class UserRepository {
     user: T;
     upId: UpId;
   }) {
-    const profile = await ProfileRepository.findByUpId(upId);
+    const profile = await ProfileRepository.findByUpIdWithAuth(upId, user.id);
     if (!profile) {
       return {
         ...user,
@@ -515,6 +516,45 @@ export class UserRepository {
     };
   }
 
+  async enrichUserWithItsProfileExcludingOrgMetadata<
+    T extends {
+      id: number;
+      username: string | null;
+    }
+  >({
+    user,
+  }: {
+    user: T;
+  }): Promise<
+    T & {
+      nonProfileUsername: string | null;
+      profile: UserProfile;
+    }
+  > {
+    const enrichedUser = await this.enrichUserWithItsProfile({ user });
+
+    const { profile } = enrichedUser;
+
+    if (!profile || !profile.organization) {
+      return enrichedUser;
+    }
+
+    // Exclude organization metadata
+    const sanitizedProfile: UserProfile = {
+      ...profile,
+      organization: {
+        ...profile.organization,
+        metadata: {},
+        organizationSettings: profile.organization.organizationSettings,
+      },
+    };
+
+    return {
+      ...enrichedUser,
+      profile: sanitizedProfile,
+    };
+  }
+
   async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
     users: T[]
   ): Promise<
@@ -570,6 +610,42 @@ export class UserRepository {
         ...user,
         nonProfileUsername: user.username,
         profile: personalProfileMap.get(user.id)!,
+      };
+    });
+  }
+
+  async enrichUsersWithTheirProfileExcludingOrgMetadata<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    const enrichedUsers = await this.enrichUsersWithTheirProfiles(users);
+
+    return enrichedUsers.map((enrichedUser) => {
+      const { profile } = enrichedUser;
+
+      if (!profile || !profile.organization) {
+        return enrichedUser;
+      }
+
+      // Exclude organization metadata
+      const sanitizedProfile: UserProfile = {
+        ...profile,
+        organization: {
+          ...profile.organization,
+          metadata: {},
+          organizationSettings: profile.organization.organizationSettings,
+        },
+      };
+
+      return {
+        ...enrichedUser,
+        profile: sanitizedProfile,
       };
     });
   }
@@ -1164,5 +1240,59 @@ export class UserRepository {
         },
       },
     });
+  }
+
+  async findByIdWithCredentialsAndCalendar({ userId }: { userId: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        locale: true,
+        timeFormat: true,
+        metadata: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        destinationCalendar: true,
+      },
+    });
+  }
+
+  /**
+   * Finds a user by ID returning only their username
+   * @param userId - The user ID
+   * @returns User with username or null
+   */
+  async findByIdWithUsername(userId: number): Promise<{ username: string | null } | null> {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+  }
+
+  async findManyByIdsWithCredentialsAndSelectedCalendars({ userIds }: { userIds: number[] }) {
+    const users = await this.prismaClient.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        ...prismaUserSelect, // Use the proper userSelect from @calcom/prisma/selects/user which includes schedules
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        selectedCalendars: {
+          select: {
+            eventTypeId: true,
+          },
+        },
+      },
+    });
+    return users.map(withSelectedCalendars);
   }
 }
