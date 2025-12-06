@@ -327,25 +327,17 @@ export default async function handleChildrenEventTypes({
     );
 
     if (currentWorkflowIds?.length) {
-      await prisma.$transaction(
-        currentWorkflowIds.flatMap((wfId) => {
-          return oldEventTypes.map((oEvTy) => {
-            return prisma.workflowsOnEventTypes.upsert({
-              create: {
-                eventTypeId: oEvTy.id,
-                workflowId: wfId,
-              },
-              update: {},
-              where: {
-                workflowId_eventTypeId: {
-                  eventTypeId: oEvTy.id,
-                  workflowId: wfId,
-                },
-              },
-            });
-          });
-        })
+      const workflowConnections = oldEventTypes.flatMap((event) =>
+        currentWorkflowIds.map((wfId) => ({
+          eventTypeId: event.id,
+          workflowId: wfId,
+        }))
       );
+
+      await prisma.workflowsOnEventTypes.createMany({
+        data: workflowConnections,
+        skipDuplicates: true,
+      });
     }
   }
 
