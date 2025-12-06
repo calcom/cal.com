@@ -884,6 +884,7 @@ export default function Success(props: PageProps) {
                             recurringEvent={eventType.recurringEvent}
                             team={eventType?.team?.name}
                             teamId={eventType?.team?.id}
+                            teamCancellationReasonRequired={eventType?.team?.cancellationReasonRequired}
                             setIsCancellationMode={setIsCancellationMode}
                             theme={isSuccessBookingPage ? props.profile.theme : "light"}
                             allRemainingBookings={allRemainingBookings}

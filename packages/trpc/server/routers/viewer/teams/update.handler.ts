@@ -1,4 +1,5 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { isTeamAdmin } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
@@ -85,6 +86,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     theme: input.theme,
     bookingLimits: input.bookingLimits ?? undefined,
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
+    cancellationReasonRequired: input.cancellationReasonRequired ?? undefined,
     rrResetInterval: input.rrResetInterval,
     rrTimestampBasis: input.rrTimestampBasis,
   };
@@ -188,6 +190,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     darkBrandColor: updatedTeam.darkBrandColor,
     bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
+    cancellationReasonRequired: updatedTeam.cancellationReasonRequired,
     rrResetInterval: updatedTeam.rrResetInterval,
     rrTimestampBasis: updatedTeam.rrTimestampBasis,
   };

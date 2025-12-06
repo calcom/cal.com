@@ -106,6 +106,11 @@ type Props = {
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
   eventTypeMetadata?: Record<string, unknown> | null;
+  teamCancellationReasonRequired?:
+    | "MANDATORY_FOR_BOTH"
+    | "MANDATORY_FOR_HOST_ONLY"
+    | "MANDATORY_FOR_ATTENDEE_ONLY"
+    | "OPTIONAL_FOR_BOTH";
 };
 
 export default function CancelBooking(props: Props) {
@@ -119,6 +124,7 @@ export default function CancelBooking(props: Props) {
     bookingCancelledEventProps,
     currentUserEmail,
     eventTypeMetadata,
+    teamCancellationReasonRequired,
   } = props;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
@@ -157,8 +163,15 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
+  const teamCancellationSetting = teamCancellationReasonRequired ?? "MANDATORY_FOR_HOST_ONLY";
+
+  const isCancellationReasonRequired =
+    teamCancellationSetting === "MANDATORY_FOR_BOTH" ||
+    (teamCancellationSetting === "MANDATORY_FOR_HOST_ONLY" && isCancellationUserHost) ||
+    (teamCancellationSetting === "MANDATORY_FOR_ATTENDEE_ONLY" && !isCancellationUserHost);
+
   const hostMissingCancellationReason =
-    isCancellationUserHost &&
+    isCancellationReasonRequired &&
     (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
@@ -174,7 +187,7 @@ export default function CancelBooking(props: Props) {
   return (
     <>
       {error && (
-        <div className="mt-8">
+        <div className="mt-8" data-testid="error-message">
           <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
             <Icon name="x" className="h-6 w-6 text-red-600" />
           </div>
@@ -211,7 +224,9 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{isCancellationUserHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+          <Label>
+            {isCancellationReasonRequired ? t("cancellation_reason_required") : t("cancellation_reason")}
+          </Label>
 
           <TextArea
             data-testid="cancel_reason"
@@ -225,7 +240,7 @@ export default function CancelBooking(props: Props) {
           {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
               <Icon name="info" className="text-subtle h-4 w-4" />
-              <p className="text-default text-subtle text-sm leading-none">
+              <p className="text-default text-sm leading-none">
                 {t("notify_attendee_cancellation_reason_warning")}
               </p>
             </div>
