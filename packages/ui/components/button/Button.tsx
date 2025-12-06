@@ -240,13 +240,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   } = props;
   // Buttons are **always** disabled if we're in a `loading` state
   const disabled = props.disabled || loading;
-  // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
+  // If pass an `href`-attr is passed it's Link, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
-  const elementType = isLink ? "a" : "button";
+  const elementType = isLink ? Link : "button";
   const element = React.createElement(
     elementType,
     {
       ...passThroughProps,
+      ...(isLink && { "data-testid": "link-component", shallow: shallow && shallow }),
       disabled,
       type: !isLink ? type : undefined,
       ref: forwardedRef,
@@ -334,10 +335,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     </>
   );
 
-  return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
-      {element}
-    </Link>
+  return isLink ? (
+    element
   ) : (
     <Wrapper
       data-testid="wrapper"
