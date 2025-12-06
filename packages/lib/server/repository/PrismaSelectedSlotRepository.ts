@@ -60,7 +60,10 @@ export class PrismaSelectedSlotRepository implements ISelectedSlotRepository {
   }) {
     return this.prismaClient.selectedSlots.findMany({
       where: {
-        userId: { in: userIds },
+        OR: [
+          { userId: { in: userIds } },
+          { userId: -1 } // Include generic Round-Robin reservations
+        ],
         releaseAt: { gt: currentTimeInUtc },
       },
       select: {
