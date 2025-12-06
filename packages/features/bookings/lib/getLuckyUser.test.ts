@@ -1642,3 +1642,41 @@ describe("get interval times", () => {
     expect(result).toEqual(new Date("2021-06-20T11:59:59Z")); // Based on the mocked system time
   });
 });
+
+it("returns the single user correctly without fetching data when only one user available", async () => {
+  const singleUser = buildUser({
+    id: 42,
+    username: "singleuser",
+    name: "Single User",
+    email: "singleuser@example.com",
+    bookings: [],
+  });
+
+  // Create spies to verify no data fetching occurs
+  const spyCalendar = vi.spyOn(CalendarManagerMock, "getBusyCalendarTimes");
+  const spyPrismaUser = vi.spyOn(prismaMock.user, "findMany");
+  const spyPrismaHost = vi.spyOn(prismaMock.host, "findMany");
+  const spyPrismaBooking = vi.spyOn(prismaMock.booking, "findMany");
+  const spyPrismaOOO = vi.spyOn(prismaMock.outOfOfficeEntry, "findMany");
+
+  await expect(
+    luckyUserService.getLuckyUser({
+      availableUsers: [singleUser],
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        includeNoShowInRRCalculation: false,
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    })
+  ).resolves.toStrictEqual(singleUser);
+
+  // Verify no expensive operations were called
+  expect(spyCalendar).not.toHaveBeenCalled();
+  expect(spyPrismaUser).not.toHaveBeenCalled();
+  expect(spyPrismaHost).not.toHaveBeenCalled();
+  expect(spyPrismaBooking).not.toHaveBeenCalled();
+  expect(spyPrismaOOO).not.toHaveBeenCalled();
+});
