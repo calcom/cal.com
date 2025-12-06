@@ -42,7 +42,6 @@ export const InstallableAppCard = ({
         title={app.name}>
         {app.name}
       </p>
-      <p className="text-subtle hidden text-left text-xs leading-tight xl:line-clamp-2">{app.description}</p>
       <InstallAppButtonWithoutPlanCheck
         type={app.type}
         options={installOptions}
