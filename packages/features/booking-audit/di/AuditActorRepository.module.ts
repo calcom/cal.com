@@ -4,11 +4,11 @@ import { bindModuleToClassOnToken } from "@calcom/features/di/di";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 import { createModule } from "../../di/di";
 
-export const actorRepositoryModule = createModule();
+export const auditActorRepositoryModule = createModule();
 const token = BOOKING_AUDIT_DI_TOKENS.AUDIT_ACTOR_REPOSITORY;
 const moduleToken = BOOKING_AUDIT_DI_TOKENS.AUDIT_ACTOR_REPOSITORY_MODULE;
 const loadModule = bindModuleToClassOnToken({
-    module: actorRepositoryModule,
+    module: auditActorRepositoryModule,
     moduleToken,
     token,
     classs: PrismaAuditActorRepository,
@@ -21,3 +21,4 @@ export const moduleLoader = {
     token,
     loadModule,
 };
+

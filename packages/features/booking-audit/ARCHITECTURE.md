@@ -671,14 +671,19 @@ The audit system is designed to capture what actually happened, not to enforce b
 // ❌ BAD: Enforcing expected values
 if (booking.status === 'ACCEPTED' || booking.status === 'PENDING' || booking.status === 'AWAITING_HOST') {
   // Only audit if status is "expected"
-  await auditService.onBookingCreated(...);
+  await auditTaskConsumer.onBookingAction(...);
 }
 
 // ✅ GOOD: Recording actual state
-await auditService.onBookingCreated(bookingId, userUuid, {
-  startTime: booking.startTime.toISOString(),
-  endTime: booking.endTime.toISOString(),
-  status: booking.status  // Whatever it actually is
+await bookingAuditProducerService.queueAudit({
+  bookingUid,
+  actor,
+  action: "CREATED",
+  data: {
+    startTime: booking.startTime.toISOString(),
+    endTime: booking.endTime.toISOString(),
+    status: booking.status  // Whatever it actually is
+  }
 });
 ```
 
@@ -728,40 +733,47 @@ await prisma.auditActor.update({
 `BookingEventHandlerService` is the primary entry point for tracking any booking changes. It acts as a coordinator that:
 
 1. **Receives booking events** from various parts of the application (booking creation, status changes, updates, etc.)
-2. **Relays to BookingAuditService** to create audit records
+2. **Queues audit tasks** via BookingAuditProducerService for asynchronous processing
 3. **Handles other side effects** such as webhooks, notifications, and workflow triggers
 
 
-### BookingAuditService
+### BookingAuditTaskConsumer
 
-The audit system is accessed through `BookingAuditService`, which provides:
+The audit system processes audit records through `BookingAuditTaskConsumer`, which provides:
 
-### Convenience Methods
+### Core Method
 
-- `onBookingCreated()` - Track booking creation
-- `onBookingAccepted()` - Track acceptance
-- `onBookingRejected()` - Track rejection
-- `onBookingCancelled()` - Track cancellation
-- `onBookingRescheduled()` - Track reschedule
-- `onAttendeeAdded()` - Track attendee addition
-- `onAttendeeRemoved()` - Track attendee removal
-- `onLocationChanged()` - Track location changes
-- `onHostNoShowUpdated()` - Track host no-show
-- `onAttendeeNoShowUpdated()` - Track attendee no-show
-- `onReassignment()` - Track booking reassignment
-- `onRescheduleRequested()` - Track reschedule requests
+- `onBookingAction(params)` - Generic method that handles any booking action
+  - Accepts a single object parameter with `bookingUid`, `actor`, `action`, and `data`
+  - Derives the record type (RECORD_CREATED, RECORD_UPDATED, RECORD_DELETED) from the action
+  - Routes to appropriate action service for data validation and formatting
+
+### Record Type Mapping
+
+- `getRecordType({ action })` - Maps booking actions to audit record types:
+  - `CREATED` → `RECORD_CREATED`
+  - Future actions like `CANCELLED`, `RESCHEDULED` → `RECORD_UPDATED`
+  - Future actions like `DELETED` → `RECORD_DELETED`
 
 ### Actor Management
 
-- `getOrCreateUserActor()` - Ensures User actors exist before creating audits
-- Automatic AuditActor creation/lookup for registered users
+- `resolveActorId()` - Resolves Actor objects to actor IDs in the AuditActor table
+- Automatic AuditActor creation/lookup for registered users, guests, and attendees
 - System actor for automated actions
 
 ### Future: Trigger.dev Task Orchestration
 
-**Current Flow (Synchronous):**
+**Current Flow (Asynchronous with Task Queue):**
 ```
-Booking Endpoint → BookingEventHandler.onBookingCreated() → await auditService, linkService, webhookService
+Booking Endpoint 
+  ↓
+BookingEventHandler.onBookingCreated() [orchestrator]
+  ├─ bookingAuditProducerService.queueAudit({ bookingUid, actor, action, data })
+  ├─ hashedLinkService.validateAndIncrementUsage(hashedLink)
+  └─ Other side effects...
+  
+Task Queue
+  └─ Task: Booking Audit → BookingAuditTaskConsumer.onBookingAction({ bookingUid, actor, action, data })
 ```
 
 **Future Flow (Async with Trigger.dev):**
@@ -769,14 +781,14 @@ Booking Endpoint → BookingEventHandler.onBookingCreated() → await auditServi
 Booking Endpoint 
   ↓
 BookingEventHandler.onBookingCreated() [orchestrator]
-  ├─ tasks.trigger('bookingAudit', { bookingId, userUuid, data })
+  ├─ tasks.trigger('bookingAudit', { bookingUid, actor, action, data })
   ├─ tasks.trigger('invalidateHashedLink', { bookingId, hashedLink })
   ├─ tasks.trigger('sendNotifications', { bookingId, email, sms })
   ├─ tasks.trigger('triggerWorkflows', { bookingId, event: 'NEW_EVENT' })
   └─ Immediately returns to user (non-blocking)
   
 Trigger.dev Queue
-  ├─ Task: Booking Audit (with retries, monitoring)
+  ├─ Task: Booking Audit → BookingAuditTaskConsumer.onBookingAction({ bookingUid, actor, action, data }) (with retries, monitoring)
   ├─ Task: Hashed Link Invalidation (independent)
   ├─ Task: Email & SMS Notifications (independent)
   └─ Task: Workflow Triggers (independent)
