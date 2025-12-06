@@ -48,7 +48,7 @@ export default defineContentScript({
 
     // Create iframe
     const iframe = document.createElement("iframe");
-    iframe.src = "http://localhost:8081";
+    iframe.src = "https://companion.cal.com";
     iframe.style.width = "400px";
     iframe.style.height = "100%";
     iframe.style.border = "none";
