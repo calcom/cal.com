@@ -1,22 +1,21 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 
-import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
 type UpdateHandlerOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: { id: number };
   };
   input: TUpdateInputSchema;
 };
 
-export const updateHandler = async ({ ctx, input }: UpdateHandlerOptions) => {
+export const updateHandler = async ({ ctx: { user: loggedInUser }, input }: UpdateHandlerOptions) => {
   const { phoneNumber, inboundAgentId, outboundAgentId, teamId } = input;
   const aiService = createDefaultAIPhoneServiceProvider();
 
   return await aiService.updatePhoneNumberWithAgents({
     phoneNumber,
-    userId: ctx.user.id,
+    userId: loggedInUser.id,
     teamId,
     inboundAgentId,
     outboundAgentId,
