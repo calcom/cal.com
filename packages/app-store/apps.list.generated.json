@@ -1,0 +1,438 @@
+[
+  {
+    "name": "Alby",
+    "slug": "alby"
+  },
+  {
+    "name": "Amie",
+    "slug": "amie"
+  },
+  {
+    "name": "Apple Calendar",
+    "slug": "apple-calendar"
+  },
+  {
+    "name": "Attio",
+    "slug": "attio"
+  },
+  {
+    "name": "Autocheckin",
+    "slug": "autocheckin"
+  },
+  {
+    "name": "BAA for HIPAA",
+    "slug": "baa-for-hipaa"
+  },
+  {
+    "name": "Basecamp3",
+    "slug": "basecamp3"
+  },
+  {
+    "name": "Bolna",
+    "slug": "bolna"
+  },
+  {
+    "name": "BTCPayServer",
+    "slug": "btcpayserver"
+  },
+  {
+    "name": "CalDav (Beta)",
+    "slug": "caldav-calendar"
+  },
+  {
+    "name": "Campfire",
+    "slug": "campfire"
+  },
+  {
+    "name": "Chatbase",
+    "slug": "chatbase"
+  },
+  {
+    "name": "Clic",
+    "slug": "clic"
+  },
+  {
+    "name": "Close.com",
+    "slug": "closecom"
+  },
+  {
+    "name": "Notion Calendar",
+    "slug": "cron"
+  },
+  {
+    "name": "Cal Video",
+    "slug": "daily-video"
+  },
+  {
+    "name": "Databuddy",
+    "slug": "databuddy"
+  },
+  {
+    "name": "Deel",
+    "slug": "deel"
+  },
+  {
+    "name": "Demodesk",
+    "slug": "demodesk"
+  },
+  {
+    "name": "dialpad",
+    "slug": "dialpad"
+  },
+  {
+    "name": "Discord",
+    "slug": "discord"
+  },
+  {
+    "name": "Dub",
+    "slug": "dub"
+  },
+  {
+    "name": "8x8",
+    "slug": "eightxeight"
+  },
+  {
+    "name": "Element Call",
+    "slug": "element-call"
+  },
+  {
+    "name": "ElevenLabs",
+    "slug": "elevenlabs"
+  },
+  {
+    "name": "Microsoft Exchange 2013 Calendar",
+    "slug": "exchange2013-calendar"
+  },
+  {
+    "name": "Microsoft Exchange 2016 Calendar",
+    "slug": "exchange2016-calendar"
+  },
+  {
+    "name": "Microsoft Exchange",
+    "slug": "exchange"
+  },
+  {
+    "name": "Facetime",
+    "slug": "facetime"
+  },
+  {
+    "name": "Fathom",
+    "slug": "fathom"
+  },
+  {
+    "name": "Feishu Calendar",
+    "slug": "feishu-calendar"
+  },
+  {
+    "name": "fonio.ai",
+    "slug": "fonio-ai"
+  },
+  {
+    "name": "Framer",
+    "slug": "framer"
+  },
+  {
+    "name": "Google Analytics",
+    "slug": "ga4"
+  },
+  {
+    "name": "Giphy",
+    "slug": "giphy"
+  },
+  {
+    "name": "Google Calendar",
+    "slug": "google-calendar"
+  },
+  {
+    "name": "Google Meet",
+    "slug": "google-meet"
+  },
+  {
+    "name": "Granola",
+    "slug": "granola"
+  },
+  {
+    "name": "Greetmate.ai",
+    "slug": "greetmate-ai"
+  },
+  {
+    "name": "Google Tag Manager",
+    "slug": "gtm"
+  },
+  {
+    "name": "HitPay",
+    "slug": "hitpay"
+  },
+  {
+    "name": "Horizon Workrooms",
+    "slug": "horizon-workrooms"
+  },
+  {
+    "name": "HubSpot CRM",
+    "slug": "hubspot"
+  },
+  {
+    "name": "Huddle01",
+    "slug": "huddle01"
+  },
+  {
+    "name": "ICS Feed",
+    "slug": "ics-feed"
+  },
+  {
+    "name": "Insihts",
+    "slug": "insihts"
+  },
+  {
+    "name": "Intercom",
+    "slug": "intercom"
+  },
+  {
+    "name": "Jelly",
+    "slug": "jelly"
+  },
+  {
+    "name": "Jitsi Video",
+    "slug": "jitsi"
+  },
+  {
+    "name": "Lark Calendar",
+    "slug": "lark-calendar"
+  },
+  {
+    "name": "Lindy",
+    "slug": "lindy"
+  },
+  {
+    "name": "Linear",
+    "slug": "linear"
+  },
+  {
+    "name": "Make",
+    "slug": "make"
+  },
+  {
+    "name": "Matomo",
+    "slug": "matomo"
+  },
+  {
+    "name": "Meta Pixel",
+    "slug": "metapixel"
+  },
+  {
+    "name": "Millis AI",
+    "slug": "millis-ai"
+  },
+  {
+    "name": "Mirotalk",
+    "slug": "mirotalk"
+  },
+  {
+    "name": "Mock Payment App",
+    "slug": "mock-payment-app"
+  },
+  {
+    "name": "Monobot CX",
+    "slug": "monobot"
+  },
+  {
+    "name": "n8n",
+    "slug": "n8n"
+  },
+  {
+    "name": "Nextcloud Talk",
+    "slug": "nextcloudtalk"
+  },
+  {
+    "name": "Outlook Calendar",
+    "slug": "office365-calendar"
+  },
+  {
+    "name": "Microsoft 365/Teams (Requires work/school account)",
+    "slug": "msteams"
+  },
+  {
+    "name": "Paypal",
+    "slug": "paypal"
+  },
+  {
+    "name": "Ping.gg",
+    "slug": "ping"
+  },
+  {
+    "name": "Pipedream",
+    "slug": "pipedream"
+  },
+  {
+    "name": "Pipedrive CRM",
+    "slug": "pipedrive-crm"
+  },
+  {
+    "name": "Plausible",
+    "slug": "plausible"
+  },
+  {
+    "name": "Posthog",
+    "slug": "posthog"
+  },
+  {
+    "name": "QR Code",
+    "slug": "qr_code"
+  },
+  {
+    "name": "Raycast",
+    "slug": "raycast"
+  },
+  {
+    "name": "Retell AI",
+    "slug": "retell-ai"
+  },
+  {
+    "name": "Riverside",
+    "slug": "riverside"
+  },
+  {
+    "name": "Roam",
+    "slug": "roam"
+  },
+  {
+    "name": "Routing",
+    "slug": "routing-forms"
+  },
+  {
+    "name": "Salesforce",
+    "slug": "salesforce"
+  },
+  {
+    "name": "Salesroom",
+    "slug": "salesroom"
+  },
+  {
+    "name": "Sendgrid",
+    "slug": "sendgrid"
+  },
+  {
+    "name": "Shimmer Video",
+    "slug": "shimmervideo"
+  },
+  {
+    "name": "Signal",
+    "slug": "signal"
+  },
+  {
+    "name": "Sirius Video",
+    "slug": "sirius_video"
+  },
+  {
+    "name": "Skype",
+    "slug": "skype"
+  },
+  {
+    "name": "Stripe",
+    "slug": "stripe"
+  },
+  {
+    "name": "Sylaps",
+    "slug": "sylapsvideo"
+  },
+  {
+    "name": "Synthflow",
+    "slug": "synthflow"
+  },
+  {
+    "name": "Tandem Video",
+    "slug": "tandem"
+  },
+  {
+    "name": "Telegram",
+    "slug": "telegram"
+  },
+  {
+    "name": "telli",
+    "slug": "telli"
+  },
+  {
+    "name": "Basic",
+    "slug": "basic"
+  },
+  {
+    "name": "Booking Pages Tag",
+    "slug": "booking-pages-tag"
+  },
+  {
+    "name": "EventType AppCard",
+    "slug": "event-type-app-card"
+  },
+  {
+    "name": "EventType Location Video - Static",
+    "slug": "event-type-location-video-static"
+  },
+  {
+    "name": "General App Settings",
+    "slug": "general-app-settings"
+  },
+  {
+    "name": "Link as An App",
+    "slug": "link-as-an-app"
+  },
+  {
+    "name": "Twipla",
+    "slug": "twipla"
+  },
+  {
+    "name": "Umami",
+    "slug": "umami"
+  },
+  {
+    "name": "Vimcal",
+    "slug": "vimcal"
+  },
+  {
+    "name": "Vital",
+    "slug": "vital-automation"
+  },
+  {
+    "name": "Weather in your Calendar",
+    "slug": "weather_in_your_calendar"
+  },
+  {
+    "name": "Webex",
+    "slug": "webex"
+  },
+  {
+    "name": "WhatsApp",
+    "slug": "whatsapp"
+  },
+  {
+    "name": "Whereby",
+    "slug": "whereby"
+  },
+  {
+    "name": "wipemycalother",
+    "slug": "wipe-my-cal"
+  },
+  {
+    "name": "Wordpress",
+    "slug": "wordpress"
+  },
+  {
+    "name": "Zapier",
+    "slug": "zapier"
+  },
+  {
+    "name": "Zoho Bigin",
+    "slug": "zoho-bigin"
+  },
+  {
+    "name": "Zoho Calendar",
+    "slug": "zohocalendar"
+  },
+  {
+    "name": "ZohoCRM",
+    "slug": "zohocrm"
+  },
+  {
+    "name": "Zoom Video",
+    "slug": "zoom"
+  }
+]

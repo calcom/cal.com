@@ -1,28 +1,16 @@
-import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { checkOnboardingRedirect } from "@calcom/features/auth/lib/onboardingUtils";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
-const RedirectPage = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-
-  if (!session?.user?.id) {
-    redirect("/auth/login");
-  }
-
-  // Check if user needs onboarding and redirect before going to event-types
-  const organizationId = session.user.profile?.organizationId ?? null;
-  const onboardingPath = await checkOnboardingRedirect(session.user.id, {
-    checkEmailVerification: true,
-    organizationId,
-  });
-  if (onboardingPath) {
-    redirect(onboardingPath);
-  }
-
+/**
+ * Lightweight root page redirect.
+ *
+ * This page intentionally avoids importing heavy server-side dependencies
+ * (like Prisma, session handlers) to keep Turbopack compile times fast.
+ *
+ * Authentication and onboarding checks are handled by:
+ * - /event-types page (for logged-in users)
+ * - NextAuth middleware (redirects to /auth/login if not authenticated)
+ */
+const RedirectPage = () => {
   redirect("/event-types");
 };
 
