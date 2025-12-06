@@ -40,6 +40,9 @@ const loadConfig = (): AppConfig => {
     app: {
       baseUrl: getEnv("WEB_APP_URL", "https://app.cal.com"),
     },
+    platform: {
+      embedOAuthClientId: getEnv("PLATFORM_EMBED_CLIENT_ID", ""),
+    },
     e2e: getEnv("IS_E2E", "false") === "true" ? true : false,
   };
 };

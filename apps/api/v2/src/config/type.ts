@@ -31,5 +31,8 @@ export type AppConfig = {
   app: {
     baseUrl: string;
   };
+  platform: {
+    embedOAuthClientId: string;
+  };
   e2e: boolean;
 };

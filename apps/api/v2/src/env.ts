@@ -38,6 +38,7 @@ export type Environment = {
   DATABASE_WRITE_POOL_MAX: number;
   DATABASE_READ_WORKER_POOL_MAX: number;
   DATABASE_WRITE_WORKER_POOL_MAX: number;
+  PLATFORM_EMBED_CLIENT_ID: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
