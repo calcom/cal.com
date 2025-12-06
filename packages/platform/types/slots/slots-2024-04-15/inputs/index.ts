@@ -205,6 +205,12 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @IsOptional()
   @ApiHideProperty()
   teamId?: number;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  @ApiHideProperty()
+  roundRobinHostId?: number;
 }
 
 export class RemoveSelectedSlotInput_2024_04_15 {
