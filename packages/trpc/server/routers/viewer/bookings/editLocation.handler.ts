@@ -7,6 +7,10 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import {
+  CredentialNotFoundError,
+  CredentialAccessDeniedError,
+} from "@calcom/features/credentials/errors";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -137,18 +141,28 @@ async function getAllCredentialsIncludeServiceAccountKey({
   let conferenceCredential;
 
   if (conferenceCredentialId) {
-    // Validate that the credential is accessible before fetching it
-    const credentialAccessService = new CredentialAccessService();
-    await credentialAccessService.ensureAccessible({
-      credentialId: conferenceCredentialId,
-      loggedInUserId: user.id,
-      bookingOwnerId,
-    });
+    try {
+      // Validate that the credential is accessible before fetching it
+      const credentialAccessService = new CredentialAccessService(prisma);
+      await credentialAccessService.ensureAccessible({
+        credentialId: conferenceCredentialId,
+        loggedInUserId: user.id,
+        bookingOwnerId,
+      });
 
-    // Now fetch the credential with the key
-    conferenceCredential = await CredentialRepository.findFirstByIdWithKeyAndUser({
-      id: conferenceCredentialId,
-    });
+      // Now fetch the credential with the key
+      conferenceCredential = await CredentialRepository.findFirstByIdWithKeyAndUser({
+        id: conferenceCredentialId,
+      });
+    } catch (error) {
+      if (error instanceof CredentialNotFoundError) {
+        throw new TRPCError({ code: "NOT_FOUND", message: error.message });
+      }
+      if (error instanceof CredentialAccessDeniedError) {
+        throw new TRPCError({ code: "FORBIDDEN", message: error.message });
+      }
+      throw error;
+    }
   }
   return [...(credentials ? credentials : []), ...(conferenceCredential ? [conferenceCredential] : [])];
 }
