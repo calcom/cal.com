@@ -7,9 +7,6 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Accepted Audit Action Service
  * Handles ACCEPTED action with per-action versioning
- *
- * Version History:
- * - v1: Initial schema with status
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
@@ -63,9 +60,10 @@ export class AcceptedAuditActionService
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AcceptedAuditDisplayData {
+        const { fields } = storedData;
         return {
-            previousStatus: storedData.fields.status.old ?? null,
-            newStatus: storedData.fields.status.new ?? null,
+            previousStatus: fields.status.old ?? null,
+            newStatus: fields.status.new ?? null,
         };
     }
 }

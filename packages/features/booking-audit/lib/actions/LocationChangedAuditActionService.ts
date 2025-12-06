@@ -7,9 +7,6 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Location Changed Audit Action Service
  * Handles LOCATION_CHANGED action with per-action versioning
- *
- * Version History:
- * - v1: Initial schema with location
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
@@ -63,9 +60,10 @@ export class LocationChangedAuditActionService
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): LocationChangedAuditDisplayData {
+        const { fields } = storedData;
         return {
-            previousLocation: storedData.fields.location.old ?? null,
-            newLocation: storedData.fields.location.new ?? null,
+            previousLocation: fields.location.old ?? null,
+            newLocation: fields.location.new ?? null,
         };
     }
 }

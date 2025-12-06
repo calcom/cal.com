@@ -7,9 +7,6 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Reassignment Audit Action Service
  * Handles REASSIGNMENT action with per-action versioning
- *
- * Version History:
- * - v1: Initial schema with assignedToId, assignedById, reassignmentReason, userPrimaryEmail, title
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope

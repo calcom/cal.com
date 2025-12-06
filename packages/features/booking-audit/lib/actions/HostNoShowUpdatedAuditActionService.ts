@@ -7,9 +7,6 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Host No-Show Updated Audit Action Service
  * Handles HOST_NO_SHOW_UPDATED action with per-action versioning
- *
- * Version History:
- * - v1: Initial schema with noShowHost
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
@@ -18,8 +15,7 @@ const fieldsSchemaV1 = z.object({
 });
 
 export class HostNoShowUpdatedAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1>
-{
+    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
     readonly VERSION = 1;
     public static readonly TYPE = "HOST_NO_SHOW_UPDATED";
     private static dataSchemaV1 = z.object({
@@ -64,9 +60,10 @@ export class HostNoShowUpdatedAuditActionService
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): HostNoShowUpdatedAuditDisplayData {
+        const { fields } = storedData;
         return {
-            noShowHost: storedData.fields.noShowHost.new,
-            previousNoShowHost: storedData.fields.noShowHost.old ?? null,
+            noShowHost: fields.noShowHost.new,
+            previousNoShowHost: fields.noShowHost.old ?? null,
         };
     }
 }

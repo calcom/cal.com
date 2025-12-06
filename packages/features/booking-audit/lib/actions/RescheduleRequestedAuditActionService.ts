@@ -7,9 +7,6 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Reschedule Requested Audit Action Service
  * Handles RESCHEDULE_REQUESTED action with per-action versioning
- *
- * Version History:
- * - v1: Initial schema with cancellationReason, cancelledBy, rescheduled
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
@@ -20,8 +17,7 @@ const fieldsSchemaV1 = z.object({
 });
 
 export class RescheduleRequestedAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1>
-{
+    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
     readonly VERSION = 1;
     public static readonly TYPE = "RESCHEDULE_REQUESTED";
     private static dataSchemaV1 = z.object({

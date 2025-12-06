@@ -62,10 +62,11 @@ export class CreatedAuditActionService implements IAuditActionService<
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): CreatedAuditDisplayData {
+        const { fields } = storedData;
         return {
-            startTime: new Date(storedData.fields.startTime).toISOString(),
-            endTime: new Date(storedData.fields.endTime).toISOString(),
-            status: storedData.fields.status,
+            startTime: new Date(fields.startTime).toISOString(),
+            endTime: new Date(fields.endTime).toISOString(),
+            status: fields.status,
         };
     }
 }

@@ -7,9 +7,6 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Rejected Audit Action Service
  * Handles REJECTED action with per-action versioning
- *
- * Version History:
- * - v1: Initial schema with rejectionReason, status
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
@@ -19,8 +16,7 @@ const fieldsSchemaV1 = z.object({
 });
 
 export class RejectedAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1>
-{
+    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
     readonly VERSION = 1;
     public static readonly TYPE = "REJECTED";
     private static dataSchemaV1 = z.object({
@@ -65,11 +61,12 @@ export class RejectedAuditActionService
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): RejectedAuditDisplayData {
+        const { fields } = storedData;
         return {
-            rejectionReason: storedData.fields.rejectionReason.new ?? null,
-            previousReason: storedData.fields.rejectionReason.old ?? null,
-            previousStatus: storedData.fields.status.old ?? null,
-            newStatus: storedData.fields.status.new ?? null,
+            rejectionReason: fields.rejectionReason.new ?? null,
+            previousReason: fields.rejectionReason.old ?? null,
+            previousStatus: fields.status.old ?? null,
+            newStatus: fields.status.new ?? null,
         };
     }
 }

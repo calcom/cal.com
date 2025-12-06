@@ -7,9 +7,6 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Cancelled Audit Action Service
  * Handles CANCELLED action with per-action versioning
- *
- * Version History:
- * - v1: Initial schema with cancellationReason, cancelledBy, status
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope

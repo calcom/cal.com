@@ -7,9 +7,6 @@ import type { IAuditActionService } from "./IAuditActionService";
 /**
  * Attendee Removed Audit Action Service
  * Handles ATTENDEE_REMOVED action with per-action versioning
- *
- * Version History:
- * - v1: Initial schema with removedAttendees
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope

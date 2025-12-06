@@ -80,6 +80,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     id,
     email,
     username,
+    uuid: user.uuid,
     locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
     requiresBookerEmailVerification: user.requiresBookerEmailVerification,

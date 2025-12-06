@@ -3926,12 +3926,6 @@
   "blocklist_entry_deleted": "Blocklist entry deleted successfully",
   "history": "History",
   "no_audit_history": "No audit history available",
-  "audit": {
-    "booking_created": "Booking created",
-    "start_time": "Start Time",
-    "end_time": "End Time",
-    "initial_status": "Initial Status"
-  },
   "remove_value_from_blocklist": "Remove {{value}} from blocklist?",
   "remove_value_from_blocklist_description": "The action is irreversible",
   "delete_blocklist_entry_confirmation": "Are you sure you want to remove \"{{value}}\" from the blocklist? This action cannot be undone.",
