@@ -79,6 +79,7 @@ const generateIcsString = ({
     startInputType: "utc",
     productId: "calcom/ics",
     title: event.title,
+    // Note: calendarEventDescription should already have variables substituted before reaching this point
     description: event.calendarEventDescription || getRichDescription(event, t),
     organizer: {
       name: event.organizer.name,
