@@ -56,6 +56,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   travelSchedules: [],
   locked: false,
   isPlatformManaged: false,
+  bookingLimits: null,
 };
 
 const customInputs: CustomInputSchema[] = [];
