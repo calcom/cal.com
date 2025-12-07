@@ -54,7 +54,7 @@ interface CustomCalendarDescriptionModalFormProps {
 const CustomCalendarDescriptionModalForm: FC<CustomCalendarDescriptionModalFormProps> = (props) => {
   const { t } = useLocale();
   const { placeHolder, close, setValue, event, isNameFieldSplit, customClassNames } = props;
-  const { register, handleSubmit, watch, getValues } = useFormContext<FormValues>();
+  const { register, handleSubmit, watch } = useFormContext<FormValues>();
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     setValue(data.customCalendarDescription);
     close();
@@ -71,10 +71,6 @@ const CustomCalendarDescriptionModalForm: FC<CustomCalendarDescriptionModalFormP
       onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        const isEmpty = getValues("customCalendarDescription") === "";
-        if (isEmpty) {
-          setValue("");
-        }
         handleSubmit(onSubmit)(e);
       }}>
       <TextAreaField
