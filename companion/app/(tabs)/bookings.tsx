@@ -25,6 +25,8 @@ import { FullScreenModal } from "../../components/FullScreenModal";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
+type ActiveModal = "FILTER" | "ACTIONS" | null;
+
 export default function Bookings() {
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -34,12 +36,11 @@ export default function Bookings() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
-  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
   const [eventTypesLoading, setEventTypesLoading] = useState(false);
-  const [showBookingActionsModal, setShowBookingActionsModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   const filterOptions: { key: BookingFilter; label: string }[] = [
@@ -238,7 +239,7 @@ export default function Bookings() {
   };
 
   const handleFilterButtonPress = () => {
-    setShowFilterModal(true);
+    setActiveModal("FILTER");
     if (eventTypes.length === 0) {
       fetchEventTypes();
     }
@@ -258,7 +259,7 @@ export default function Bookings() {
       setSelectedEventTypeLabel(label || null);
       applyFilters(bookings, searchQuery, eventTypeId);
     }
-    setShowFilterModal(false);
+    setActiveModal(null);
   };
 
   const handleFilterChange = (filter: BookingFilter) => {
@@ -792,7 +793,7 @@ export default function Bookings() {
           onPress={() => handleBookingPress(item)}
           onLongPress={() => {
             setSelectedBooking(item);
-            setShowBookingActionsModal(true);
+            setActiveModal("ACTIONS");
           }}
           style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
         >
@@ -826,7 +827,7 @@ export default function Bookings() {
           {/* Description */}
           {item.description && (
             <Text className="mb-2 text-sm leading-5 text-[#666]" numberOfLines={1}>
-              &quot;{item.description}&quot;
+              "{item.description}"
             </Text>
           )}
 
@@ -873,7 +874,7 @@ export default function Bookings() {
             onPress={(e) => {
               e.stopPropagation();
               setSelectedBooking(item);
-              setShowBookingActionsModal(true);
+              setActiveModal("ACTIONS");
             }}
           >
             <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
@@ -982,14 +983,14 @@ export default function Bookings() {
 
       {/* Filter Modal */}
       <FullScreenModal
-        visible={showFilterModal}
+        visible={activeModal === "FILTER"}
         animationType="fade"
-        onRequestClose={() => setShowFilterModal(false)}
+        onRequestClose={() => setActiveModal(null)}
       >
         <TouchableOpacity
           className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
           activeOpacity={1}
-          onPress={() => setShowFilterModal(false)}
+          onPress={() => setActiveModal(null)}
         >
           <TouchableOpacity
             activeOpacity={1}
@@ -1039,14 +1040,14 @@ export default function Bookings() {
 
       {/* Booking Actions Modal */}
       <FullScreenModal
-        visible={showBookingActionsModal}
+        visible={activeModal === "ACTIONS"}
         animationType="fade"
-        onRequestClose={() => setShowBookingActionsModal(false)}
+        onRequestClose={() => setActiveModal(null)}
       >
         <TouchableOpacity
           className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
           activeOpacity={1}
-          onPress={() => setShowBookingActionsModal(false)}
+          onPress={() => setActiveModal(null)}
         >
           <TouchableOpacity
             className="mx-4 w-full max-w-sm rounded-2xl bg-white"
@@ -1065,7 +1066,7 @@ export default function Bookings() {
               {/* View Booking */}
               <TouchableOpacity
                 onPress={() => {
-                  setShowBookingActionsModal(false);
+                  setActiveModal(null);
                   if (selectedBooking) {
                     handleBookingPress(selectedBooking);
                   }
@@ -1088,7 +1089,7 @@ export default function Bookings() {
               {activeFilter === "upcoming" && (
                 <TouchableOpacity
                   onPress={() => {
-                    setShowBookingActionsModal(false);
+                    setActiveModal(null);
                     if (selectedBooking) {
                       handleRescheduleBooking(selectedBooking);
                     }
@@ -1104,7 +1105,7 @@ export default function Bookings() {
               {activeFilter === "upcoming" && (
                 <TouchableOpacity
                   onPress={() => {
-                    setShowBookingActionsModal(false);
+                    setActiveModal(null);
                     Alert.alert("Edit Location", "Edit location functionality coming soon");
                   }}
                   className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
@@ -1118,7 +1119,7 @@ export default function Bookings() {
               {activeFilter === "upcoming" && (
                 <TouchableOpacity
                   onPress={() => {
-                    setShowBookingActionsModal(false);
+                    setActiveModal(null);
                     Alert.alert("Add Guests", "Add guests functionality coming soon");
                   }}
                   className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
@@ -1134,7 +1135,7 @@ export default function Bookings() {
                   <View className="mx-4 my-2 h-px bg-gray-200" />
                   <TouchableOpacity
                     onPress={() => {
-                      setShowBookingActionsModal(false);
+                      setActiveModal(null);
                       if (selectedBooking) {
                         handleOpenLocation(selectedBooking);
                       }
@@ -1163,7 +1164,7 @@ export default function Bookings() {
                   {activeFilter === "past" && (
                     <TouchableOpacity
                       onPress={() => {
-                        setShowBookingActionsModal(false);
+                        setActiveModal(null);
                         Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
                       }}
                       className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
@@ -1181,7 +1182,7 @@ export default function Bookings() {
                   <View className="mx-4 my-2 h-px bg-gray-200" />
                   <TouchableOpacity
                     onPress={() => {
-                      setShowBookingActionsModal(false);
+                      setActiveModal(null);
                       if (selectedBooking) {
                         handleConfirmBooking(selectedBooking);
                       }
@@ -1200,7 +1201,7 @@ export default function Bookings() {
               {/* Report Booking */}
               <TouchableOpacity
                 onPress={() => {
-                  setShowBookingActionsModal(false);
+                  setActiveModal(null);
                   if (selectedBooking) {
                     handleReportBooking(selectedBooking);
                   }
@@ -1218,7 +1219,7 @@ export default function Bookings() {
               {(activeFilter === "upcoming" || activeFilter === "unconfirmed") && (
                 <TouchableOpacity
                   onPress={() => {
-                    setShowBookingActionsModal(false);
+                    setActiveModal(null);
                     if (selectedBooking) {
                       if (activeFilter === "unconfirmed") {
                         handleRejectBooking(selectedBooking);
@@ -1241,7 +1242,7 @@ export default function Bookings() {
             <View className="border-t border-gray-200 p-2 md:p-4">
               <TouchableOpacity
                 className="w-full rounded-lg bg-gray-100 p-3"
-                onPress={() => setShowBookingActionsModal(false)}
+                onPress={() => setActiveModal(null)}
               >
                 <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
               </TouchableOpacity>
