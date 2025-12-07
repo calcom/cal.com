@@ -3,13 +3,12 @@ import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/ch
 import { checkDurationLimits } from "@calcom/features/bookings/lib/checkDurationLimits";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import prisma from "@calcom/prisma";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
 type EventType = Pick<
   NewBookingEventType,
-  "bookingLimits" | "durationLimits" | "id" | "schedule" | "userId" | "schedulingType"
+  "bookingLimits" | "durationLimits" | "id" | "schedule" | "userId" | "schedulingType" | "users"
 >;
 
 type InputProps = {
@@ -56,16 +55,7 @@ export class CheckBookingAndDurationLimitsService {
 
       // We are only interested in global booking limits for individual user events
       if (eventType.userId && !eventType.schedulingType) {
-        const eventTypeUser = await prisma.user.findUnique({
-          where: {
-            id: eventType.userId,
-          },
-          select: {
-            id: true,
-            email: true,
-            bookingLimits: true,
-          },
-        });
+        const eventTypeUser = eventType.users.find((user) => user.id === eventType.userId);
         if (eventTypeUser?.bookingLimits && Object.keys(eventTypeUser.bookingLimits).length > 0) {
           await this.dependencies.checkBookingLimitsService.checkBookingLimits(
             eventTypeUser.bookingLimits as IntervalLimit,
