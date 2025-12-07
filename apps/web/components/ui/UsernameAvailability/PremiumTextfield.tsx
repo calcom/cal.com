@@ -51,6 +51,11 @@ const obtainNewUsernameChangeCondition = ({
   }
 };
 
+type UsernameStatus =
+  | { type: "IDLE" }
+  | { type: "AVAILABLE"; isPremium: boolean }
+  | { type: "UNAVAILABLE"; isPremium: boolean };
+
 const PremiumTextfield = (props: ICustomUsernameProps) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -68,15 +73,15 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     readonly: disabled,
   } = props;
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
-  const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
-  const [markAsError, setMarkAsError] = useState(false);
+  
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>({ type: "IDLE" });
+
   const recentAttemptPaymentStatus = searchParams?.get("recentAttemptPaymentStatus");
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
   const { data: stripeCustomer } = trpc.viewer.loggedInViewerRouter.stripeCustomer.useQuery();
   const isCurrentUsernamePremium =
     user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
-  const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
-  // debounce the username input, set the delay to 600ms to be consistent with signup form
+  
   const debouncedUsername = useDebounce(inputUsernameValue, 600);
 
   useEffect(() => {
@@ -87,16 +92,19 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   useEffect(() => {
     async function checkUsername(username: string | undefined) {
       if (!username) {
-        setUsernameIsAvailable(false);
-        setMarkAsError(false);
-        setIsInputUsernamePremium(false);
+        setUsernameStatus({ type: "IDLE" });
         return;
       }
 
       const { data } = await fetchUsername(username, null);
-      setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
-      setIsInputUsernamePremium(data.premium);
-      setUsernameIsAvailable(data.available);
+      
+      const isUnavailable = !data.available && !!currentUsername && username !== currentUsername;
+      
+      if (isUnavailable) {
+          setUsernameStatus({ type: "UNAVAILABLE", isPremium: data.premium });
+      } else {
+          setUsernameStatus({ type: "AVAILABLE", isPremium: data.premium });
+      }
     }
 
     checkUsername(debouncedUsername);
@@ -113,8 +121,10 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     },
   });
 
-  // when current username isn't set - Go to stripe to check what username he wanted to buy and was it a premium and was it paid for
   const paymentRequired = !currentUsername && stripeCustomer?.isPremium;
+  const isInputUsernamePremium = usernameStatus.type !== "IDLE" && usernameStatus.isPremium;
+  const usernameIsAvailable = usernameStatus.type === "AVAILABLE";
+  const markAsError = usernameStatus.type === "UNAVAILABLE";
 
   const usernameChangeCondition = obtainNewUsernameChangeCondition({
     userIsPremium: isCurrentUsernamePremium,
