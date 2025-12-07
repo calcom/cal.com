@@ -39,6 +39,8 @@ interface PhoneNumberTabProps {
   eventTypeIds?: number[];
 }
 
+type ActiveDialog = "BUY" | "IMPORT" | "TEST_AGENT" | "WEB_CALL" | null;
+
 export function PhoneNumberTab({
   agentData,
   readOnly = false,
@@ -52,11 +54,9 @@ export function PhoneNumberTab({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const [isBuyDialogOpen, setIsBuyDialogOpen] = useState(false);
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<ActiveDialog>(null);
+ 
   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
-  const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
-  const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
 
   const phoneNumberActions = usePhoneNumberActions();
 
@@ -67,7 +67,7 @@ export function PhoneNumberTab({
       } else if (data.phoneNumber) {
         showToast(t("phone_number_purchased_successfully"), "success");
         await utils.viewer.me.get.invalidate();
-        setIsBuyDialogOpen(false);
+        setActiveDialog(null);
         if (agentId) {
           utils.viewer.aiVoiceAgent.get.invalidate({ id: agentId });
         }
@@ -83,7 +83,7 @@ export function PhoneNumberTab({
   const importNumberMutation = trpc.viewer.phoneNumber.import.useMutation({
     onSuccess: async () => {
       showToast(t("phone_number_imported_successfully"), "success");
-      setIsImportDialogOpen(false);
+      setActiveDialog(null); 
 
       await utils.viewer.me.get.invalidate();
       if (agentId) {
@@ -168,7 +168,7 @@ export function PhoneNumberTab({
                         type="button"
                         StartIcon="phone"
                         onClick={() => {
-                          setIsTestAgentDialogOpen(true);
+                          setActiveDialog("TEST_AGENT");
                         }}>
                         {t("phone_call")}
                       </DropdownItem>
@@ -178,7 +178,7 @@ export function PhoneNumberTab({
                         type="button"
                         StartIcon="monitor"
                         onClick={() => {
-                          setIsWebCallDialogOpen(true);
+                          setActiveDialog("WEB_CALL");
                         }}>
                         {t("web_call")}
                       </DropdownItem>
@@ -218,16 +218,16 @@ export function PhoneNumberTab({
         </div>
 
         <BuyNumberDialog
-          open={isBuyDialogOpen}
-          onOpenChange={setIsBuyDialogOpen}
+          open={activeDialog === "BUY"}
+          onOpenChange={(open) => setActiveDialog(open ? "BUY" : null)}
           agentId={agentId}
           workflowId={workflowId}
           teamId={teamId}
         />
 
         <ImportNumberDialog
-          open={isImportDialogOpen}
-          onOpenChange={setIsImportDialogOpen}
+          open={activeDialog === "IMPORT"}
+          onOpenChange={(open) => setActiveDialog(open ? "IMPORT" : null)}
           phoneNumberForm={phoneNumberActions.phoneNumberForm}
           showAdvancedFields={showAdvancedFields}
           setShowAdvancedFields={setShowAdvancedFields}
@@ -238,8 +238,8 @@ export function PhoneNumberTab({
 
         {agentId && form && (
           <TestPhoneCallDialog
-            open={isTestAgentDialogOpen}
-            onOpenChange={setIsTestAgentDialogOpen}
+            open={activeDialog === "TEST_AGENT"}
+            onOpenChange={(open) => setActiveDialog(open ? "TEST_AGENT" : null)}
             agentId={agentId}
             teamId={teamId}
             form={form}
@@ -250,8 +250,8 @@ export function PhoneNumberTab({
 
         {agentId && form && (
           <WebCallDialog
-            open={isWebCallDialogOpen}
-            onOpenChange={setIsWebCallDialogOpen}
+            open={activeDialog === "WEB_CALL"}
+            onOpenChange={(open) => setActiveDialog(open ? "WEB_CALL" : null)}
             agentId={agentId}
             teamId={teamId}
             isOrganization={isOrganization}
@@ -288,7 +288,7 @@ export function PhoneNumberTab({
               onClick={() => {
                 if (readOnly) return;
                 posthog.capture("calai_buy_number_modal_opened");
-                setIsBuyDialogOpen(true);
+                setActiveDialog("BUY");
               }}
               StartIcon="external-link"
               className="px-6"
@@ -298,7 +298,7 @@ export function PhoneNumberTab({
             <Button
               onClick={() => {
                 if (readOnly) return;
-                setIsImportDialogOpen(true);
+                setActiveDialog("IMPORT");
               }}
               color="secondary"
               className="px-6"
@@ -310,16 +310,16 @@ export function PhoneNumberTab({
       </div>
 
       <BuyNumberDialog
-        open={isBuyDialogOpen}
-        onOpenChange={setIsBuyDialogOpen}
+        open={activeDialog === "BUY"}
+        onOpenChange={(open) => setActiveDialog(open ? "BUY" : null)}
         agentId={agentId}
         workflowId={workflowId}
         teamId={teamId}
       />
 
       <ImportNumberDialog
-        open={isImportDialogOpen}
-        onOpenChange={setIsImportDialogOpen}
+        open={activeDialog === "IMPORT"}
+        onOpenChange={(open) => setActiveDialog(open ? "IMPORT" : null)}
         phoneNumberForm={phoneNumberActions.phoneNumberForm}
         showAdvancedFields={showAdvancedFields}
         setShowAdvancedFields={setShowAdvancedFields}
@@ -330,8 +330,8 @@ export function PhoneNumberTab({
 
       {agentId && form && (
         <TestPhoneCallDialog
-          open={isTestAgentDialogOpen}
-          onOpenChange={setIsTestAgentDialogOpen}
+          open={activeDialog === "TEST_AGENT"}
+          onOpenChange={(open) => setActiveDialog(open ? "TEST_AGENT" : null)}
           agentId={agentId}
           teamId={teamId}
           form={form}
@@ -342,8 +342,8 @@ export function PhoneNumberTab({
 
       {agentId && form && (
         <WebCallDialog
-          open={isWebCallDialogOpen}
-          onOpenChange={setIsWebCallDialogOpen}
+          open={activeDialog === "WEB_CALL"}
+          onOpenChange={(open) => setActiveDialog(open ? "WEB_CALL" : null)}
           agentId={agentId}
           teamId={teamId}
           isOrganization={isOrganization}
