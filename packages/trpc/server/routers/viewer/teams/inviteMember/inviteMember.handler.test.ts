@@ -41,7 +41,21 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
+vi.mock("@calcom/features/pbac/services/permission-check.service", () => {
+  return {
+    PermissionCheckService: vi.fn().mockImplementation(() => ({
+      checkPermission: vi.fn().mockResolvedValue(true),
+      checkPermissions: vi.fn().mockResolvedValue(true),
+      getUserPermissions: vi.fn().mockResolvedValue([]),
+      getResourcePermissions: vi.fn().mockResolvedValue([]),
+      getTeamIdsWithPermission: vi.fn().mockResolvedValue([]),
+      getTeamIdsWithPermissions: vi.fn().mockResolvedValue([]),
+    })),
+  };
+});
+
 function fakeNoUsersFoundMatchingInvitations(args: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   team: any;
   invitations: {
     role: MembershipRole;
