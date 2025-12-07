@@ -4045,5 +4045,7 @@
   "booking_response": "Booking Response",
   "list_view": "List view",
   "calendar_view": "Calendar view",
+  "edit_custom_description": "Edit custom description",
+  "edit_custom_name": "Edit custom name",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

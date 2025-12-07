@@ -228,7 +228,7 @@ const destinationCalendarComponents = {
                 <Button
                   color="minimal"
                   size="sm"
-                  aria-label="edit custom name"
+                  aria-label={t("edit_custom_name")}
                   className="hover:stroke-3 hover:text-emphasis min-w-fit py-0! px-0 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
                   <Icon name="pencil" className="h-4 w-4" />
@@ -248,7 +248,7 @@ const destinationCalendarComponents = {
               <Button
                 color="minimal"
                 size="sm"
-                aria-label="edit custom description"
+                aria-label={t("edit_custom_description")}
                 className="hover:stroke-3 hover:text-emphasis min-w-fit py-0! px-0 hover:bg-transparent"
                 onClick={() => setShowCalendarDescriptionTip((old) => !old)}>
                 <Icon name="pencil" className="h-4 w-4" />
@@ -414,26 +414,26 @@ const calendarComponents = {
         <div>
           {isConnectedCalendarSettingsApplicable
             ? showConnectedCalendarSettings && (
-                <div className="mt-4">
-                  <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    {!isPlatform && (
-                      <SelectedCalendarsSettingsWebWrapper
-                        eventTypeId={eventType.id}
-                        disabledScope={SelectedCalendarSettingsScope.User}
-                        disableConnectionModification={true}
-                        scope={selectedCalendarSettingsScope}
-                        destinationCalendarId={destinationCalendar?.externalId}
-                        setScope={(scope) => {
-                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                            shouldDirty: true,
-                          });
-                        }}
-                      />
-                    )}
-                  </Suspense>
-                </div>
-              )
+              <div className="mt-4">
+                <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
+                  {!isPlatform && (
+                    <SelectedCalendarsSettingsWebWrapper
+                      eventTypeId={eventType.id}
+                      disabledScope={SelectedCalendarSettingsScope.User}
+                      disableConnectionModification={true}
+                      scope={selectedCalendarSettingsScope}
+                      destinationCalendarId={destinationCalendar?.externalId}
+                      setScope={(scope) => {
+                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                  )}
+                </Suspense>
+              </div>
+            )
             : null}
         </div>
       </div>
@@ -463,7 +463,7 @@ export const EventAdvancedTab = ({
   const [lightModeError, setLightModeError] = useState(false);
   const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
     !!formMethods.getValues("multiplePrivateLinks") &&
-      formMethods.getValues("multiplePrivateLinks")?.length !== 0
+    formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
   const watchedInterfaceLanguage = formMethods.watch("interfaceLanguage");
   const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
@@ -1088,10 +1088,10 @@ export const EventAdvancedTab = ({
                 multiLocation
                   ? t("multilocation_doesnt_support_seats")
                   : noShowFeeEnabled
-                  ? t("no_show_fee_doesnt_support_seats")
-                  : isRecurringEvent
-                  ? t("recurring_event_doesnt_support_seats")
-                  : undefined
+                    ? t("no_show_fee_doesnt_support_seats")
+                    : isRecurringEvent
+                      ? t("recurring_event_doesnt_support_seats")
+                      : undefined
               }
               onCheckedChange={(e) => {
                 // Enabling seats will disable guests and requiring confirmation until fully supported
