@@ -1,0 +1,220 @@
+guilherme@guilherme-Nitro-AN515-43:~/Projetos/snifftsx$ npx tsx lib/index.ts /home/guilherme/Projetos/refactoring-code-smells-cal.com
+
+No such file or directory.
+
+
+React with TypeScript code smells
+
+/home/guilherme/Projetos/snifftsx/home/guilherme/Projetos/refactoring-code-smells-cal.com
+
+┌─────────┬───────────────────────────────────────────┬─────┬─────┬─────┬─────┬─────┬─────┐
+
+│ (index) │ file                                      │ MUT │ MBS │ ANY │ EIV │ NNA │ OFP │
+
+├─────────┼───────────────────────────────────────────┼─────┼─────┼─────┼─────┼─────┼─────┤
+
+│ 0       │ 'RouteBuilder.tsx'                        │ 'N' │ 'N' │ 1   │ 0   │ 1   │ 0   │
+
+│ 1       │ 'page.tsx'                                │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 2       │ 'RoleSheet.tsx'                           │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 3       │ 'WithAppDirSsr.tsx'                       │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 4       │ 'WithEmbedSSR.tsx'                        │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 5       │ 'TestFormDialog.test.tsx'                 │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 6       │ 'BookingListItem.tsx'                     │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 7       │ 'CancelBooking.tsx'                       │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 8       │ 'RerouteDialog.tsx'                       │ 'Y' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 9       │ 'EditLocationDialog.test.tsx'             │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 10      │ 'RerouteDialog.test.tsx'                  │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 11      │ 'notification-sound-handler.tsx'          │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 12      │ 'EnableTwoFactorModal.tsx'                │ 'N' │ 'N' │ 0   │ 1   │ 0   │ 0   │
+
+│ 13      │ 'EnableTwoFactorModal.tsx'                │ 'N' │ 'N' │ 0   │ 1   │ 0   │ 0   │
+
+│ 14      │ 'PremiumTextfield.tsx'                    │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 15      │ 'QueryCell.tsx'                           │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 16      │ 'UsersTable.tsx'                          │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 17      │ 'profile-view.tsx'                        │ 'N' │ 'Y' │ 0   │ 0   │ 1   │ 0   │
+
+│ 18      │ 'signup-view.tsx'                         │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 19      │ '_app.tsx'                                │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 20      │ '_document.tsx'                           │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 21      │ 'availability.tsx'                        │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 22      │ 'bookings.tsx'                            │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 23      │ 'event-types.tsx'                         │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 24      │ 'more.tsx'                                │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 25      │ 'availability-detail.tsx'                 │ 'Y' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 26      │ 'booking-detail.tsx'                      │ 'N' │ 'Y' │ 1   │ 0   │ 0   │ 0   │
+
+│ 27      │ 'AdvancedTab.tsx'                         │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 28      │ 'AvailabilityTab.tsx'                     │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 29      │ 'BasicsTab.tsx'                           │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 30      │ 'event-type-detail.tsx'                   │ 'N' │ 'Y' │ 1   │ 0   │ 0   │ 0   │
+
+│ 31      │ 'Tooltip.tsx'                             │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 32      │ 'AuthContext.tsx'                         │ 'Y' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 33      │ 'BookingPageTagManager.test.tsx'          │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 34      │ 'DynamicComponent.tsx'                    │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 35      │ 'eventTypeAppCardInterface.test.tsx'      │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 36      │ 'DynamicAppComponent.tsx'                 │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 37      │ 'ResultSection.tsx'                       │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 38      │ 'widgets.test.tsx'                        │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 39      │ 'RoutingFormOptions.tsx'                  │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 40      │ 'BrokenIntegrationEmail.tsx'              │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 41      │ 'inline.tsx'                              │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 42      │ 'Segment.test.tsx'                        │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 43      │ 'Booker.test.tsx'                         │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 44      │ 'BookEventForm.tsx'                       │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 45      │ 'BookingFields.test.tsx'                  │ 'N' │ 'N' │ 1   │ 0   │ 1   │ 0   │
+
+│ 46      │ 'DatePicker.tsx'                          │ 'N' │ 'N' │ 0   │ 1   │ 0   │ 0   │
+
+│ 47      │ 'DecoyBookingSuccessCard.tsx'             │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 48      │ 'LargeCalendar.tsx'                       │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 49      │ 'AvailableTimes.tsx'                      │ 'N' │ 'N' │ 0   │ 1   │ 0   │ 0   │
+
+│ 50      │ 'BookingSuccessCard.tsx'                  │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 51      │ 'AvailableEventLocations.tsx'             │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 52      │ 'Details.tsx'                             │ 'N' │ 'N' │ 0   │ 1   │ 0   │ 0   │
+
+│ 53      │ 'Price.tsx'                               │ 'N' │ 'N' │ 0   │ 1   │ 0   │ 0   │
+
+│ 54      │ 'booking-to-mutation-input-mapper.tsx'    │ 'Y' │ 'N' │ 0   │ 1   │ 0   │ 0   │
+
+│ 55      │ 'timezone-select.test.tsx'                │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 56      │ 'DataTable.tsx'                           │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 57      │ 'BaseSelectFilterOptions.tsx'             │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 58      │ 'ColumnVisibilityButton.test.tsx'         │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 59      │ 'FilterSegmentSelect.tsx'                 │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 60      │ 'Payment.tsx'                             │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 61      │ 'IntercomContactForm.tsx'                 │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 62      │ 'FreshChatScript.tsx'                     │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 63      │ 'EditMemberSheet.tsx'                     │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 64      │ 'create-button-with-teams-list.test.tsx'  │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 65      │ 'WorkflowDetailsPage.tsx'                 │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 66      │ 'WorkflowListPage.tsx'                    │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 67      │ 'WorkflowStepContainer.tsx'               │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 68      │ 'AgentConfigurationSheet.tsx'             │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 69      │ 'PhoneNumberTab.tsx'                      │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 70      │ 'workflow.tsx'                            │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 71      │ 'Embed.tsx'                               │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 72      │ 'EmbedCodes.tsx'                          │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 73      │ 'EmbedTabs.tsx'                           │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 74      │ 'CreateEventTypeDialog.tsx'               │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 75      │ 'MultiplePrivateLinksController.tsx'      │ 'Y' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 76      │ 'FormBuilder.test.tsx'                    │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 77      │ 'FormBuilderField.test.tsx'               │ 'N' │ 'N' │ 1   │ 0   │ 1   │ 0   │
+
+│ 78      │ 'RoutedToPerPeriod.tsx'                   │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 79      │ 'DateOverrideList.tsx'                    │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 80      │ 'Schedule.tsx'                            │ 'Y' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 81      │ 'ThemeLabel.tsx'                          │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 82      │ 'ServerTrans.tsx'                         │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 83      │ 'getBooking.tsx'                          │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 84      │ 'AvailabilitySettings.tsx'                │ 'Y' │ 'N' │ 0   │ 0   │ 0   │ 0   │
+
+│ 85      │ 'BookerPlatformWrapper.tsx'               │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 86      │ 'StripePaymentForm.tsx'                   │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 87      │ 'useAtomGetPublicEvent.tsx'               │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 88      │ 'SelectedCalendarsSettingsWebWrapper.tsx' │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 89      │ 'QueryCell.tsx'                           │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 90      │ 'button.test.tsx'                         │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 91      │ 'AutoLinkPlugin.test.tsx'                 │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 92      │ 'ToolbarPlugin.test.tsx'                  │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 93      │ 'ToolbarPlugin.tsx'                       │ 'N' │ 'Y' │ 0   │ 0   │ 0   │ 0   │
+
+│ 94      │ 'customEnterKeyPlugin.tsx'                │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 95      │ 'FileUploader.tsx'                        │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+│ 96      │ 'MultiSelectCheckboxes.tsx'               │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 97      │ 'MultiOptionInput.tsx'                    │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 98      │ 'select.test.tsx'                         │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 99      │ 'VerticalTabItem.tsx'                     │ 'N' │ 'N' │ 1   │ 0   │ 0   │ 0   │
+
+│ 100     │ 'section.tsx'                             │ 'N' │ 'N' │ 0   │ 0   │ 1   │ 0   │
+
+└─────────┴───────────────────────────────────────────┴─────┴─────┴─────┴─────┴─────┴─────┘
+
+Code smells (MUT: Missing Union Type Abstraction; MBS: Multiple Booleans for State; ANY: Any Type; EIV: Enum Implicit Values; NNA: Non-Null Assertions; OFP: Overly Flexible Props;)
