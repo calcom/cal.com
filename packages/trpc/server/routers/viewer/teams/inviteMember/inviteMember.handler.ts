@@ -247,6 +247,12 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   const { usernameOrEmail, role, isPlatform, creationSource } = input;
 
   const team = await getTeamOrThrow(input.teamId);
+
+  // If the team is part of an organization, ensure the inviter belongs to that organization
+  if (team.parentId && inviter.organization.id !== team.parentId) {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+
   const requestedSlugForTeam = team?.metadata?.requestedSlug ?? null;
   const isTeamAnOrg = team.isOrganization;
   const organization = inviter.profile.organization;
