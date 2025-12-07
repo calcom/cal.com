@@ -137,6 +137,10 @@ const ConditionalLink = ({
   );
 };
 
+type RejectionState =
+  | { status: "closed" }
+  | { status: "open"; reason: string };
+
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
@@ -147,9 +151,9 @@ function BookingListItem(booking: BookingItemProps) {
     i18n: { language },
   } = useLocale();
   const utils = trpc.useUtils();
-  const [rejectionReason, setRejectionReason] = useState<string>("");
-  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
 
+  const [rejectionState, setRejectionState] = useState<RejectionState>({ status: "closed" });
+  
   const attendeeList = booking.attendees.map((attendee) => {
     return {
       name: attendee.name,
@@ -163,7 +167,7 @@ function BookingListItem(booking: BookingItemProps) {
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
-        setRejectionDialogIsOpen(false);
+        setRejectionState({ status: "closed" }); 
         showToast(t("booking_rejection_success"), "success");
       } else {
         showToast(t("booking_confirmation_success"), "success");
@@ -221,7 +225,7 @@ function BookingListItem(booking: BookingItemProps) {
     let body = {
       bookingId: booking.id,
       confirmed: confirm,
-      reason: rejectionReason,
+      reason: rejectionState.status === "open" ? rejectionState.reason : "",
     };
     /**
      * Only pass down the recurring event id when we need to confirm the entire series, which happens in
@@ -270,7 +274,7 @@ function BookingListItem(booking: BookingItemProps) {
     ...action,
     onClick:
       action.id === "reject"
-        ? () => setRejectionDialogIsOpen(true)
+        ? () => setRejectionState({ status: "open", reason: "" }) 
         : action.id === "confirm"
         ? () => bookingConfirm(true)
         : undefined,
@@ -322,7 +326,11 @@ function BookingListItem(booking: BookingItemProps) {
 
   return (
     <>
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
+      <Dialog
+        open={rejectionState.status === "open"}
+        onOpenChange={(open) =>
+          setRejectionState(open ? { status: "open", reason: "" } : { status: "closed" })
+        }>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
             <TextAreaField
@@ -333,8 +341,8 @@ function BookingListItem(booking: BookingItemProps) {
                   <span className="text-subtle font-normal"> (Optional)</span>
                 </>
               }
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
+              value={rejectionState.status === "open" ? rejectionState.reason : ""}
+              onChange={(e) => setRejectionState({ status: "open", reason: e.target.value })}
             />
           </div>
 
