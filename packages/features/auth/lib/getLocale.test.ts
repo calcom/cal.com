@@ -137,7 +137,8 @@ describe("getLocale", () => {
 
       const result = await getLocale(mockReq as any, "some-user");
 
-      // lookup() transforms pt-BR to pt since both exist in i18n.locales and pt is the base language
+      // bcp-47-match's lookup() prefers matching by base language code.
+      // When pt-BR is requested, it matches to pt (the base language in locales) due to fallback behavior
       expect(result).toBe("pt");
     });
   });
@@ -181,9 +182,111 @@ describe("getLocale", () => {
 
       const result = await getLocale(mockReq as any);
 
-      // The function doesn't validate locale format, it just extracts it
-      // This may return the malformed value rather than defaulting to 'en'
+      // The function extracts the language code portion, so "invalid-locale-###" becomes "invalid-locale"
       expect(result).toBe("invalid-locale");
+    });
+
+    it("should skip DB lookup for invalid username format (uppercase) and fall back to Accept-Language", async () => {
+      // Usernames in DB are always slugified (lowercase). If URL has uppercase,
+      // it will never match the DB, so validation prevents unnecessary query.
+      mockGetToken.mockResolvedValue(null);
+
+      const mockReq = {
+        headers: new Headers({ "accept-language": "fr-FR" }),
+        cookies: {},
+      };
+
+      const result = await getLocale(mockReq as any, "JohnDoe");
+
+      expect(result).toBe("fr");
+      expect(mockFindFirst).not.toHaveBeenCalled(); // Should skip DB query
+    });
+
+    it("should skip DB lookup for invalid username starting with dash and fall back to Accept-Language", async () => {
+      // Slugified usernames never start with dash, so validation rejects it
+      mockGetToken.mockResolvedValue(null);
+
+      const mockReq = {
+        headers: new Headers({ "accept-language": "de-DE" }),
+        cookies: {},
+      };
+
+      const result = await getLocale(mockReq as any, "-invalid");
+
+      expect(result).toBe("de");
+      expect(mockFindFirst).not.toHaveBeenCalled();
+    });
+
+    it("should skip DB lookup for invalid username starting with period and fall back to Accept-Language", async () => {
+      // Slugified usernames never start with period, so validation rejects it
+      mockGetToken.mockResolvedValue(null);
+
+      const mockReq = {
+        headers: new Headers({ "accept-language": "en-US" }),
+        cookies: {},
+      };
+
+      const result = await getLocale(mockReq as any, ".invalid");
+
+      expect(result).toBe("en");
+      expect(mockFindFirst).not.toHaveBeenCalled();
+    });
+
+    it("should allow valid lowercase single-character username", async () => {
+      // Single char usernames like 'a' or 'z' are valid
+      mockGetToken.mockResolvedValue(null);
+      mockFindFirst.mockResolvedValue(null);
+
+      const mockReq = {
+        headers: new Headers({ "accept-language": "en-US" }),
+        cookies: {},
+      };
+
+      const result = await getLocale(mockReq as any, "a");
+
+      // Should attempt DB lookup for single-char username
+      expect(mockFindFirst).toHaveBeenCalledWith({
+        where: { username: "a", locked: false },
+        select: { locale: true },
+      });
+    });
+
+    it("should allow valid lowercase alphanumeric username", async () => {
+      // Lowercase alphanumeric usernames are valid
+      mockGetToken.mockResolvedValue(null);
+      mockFindFirst.mockResolvedValue(null);
+
+      const mockReq = {
+        headers: new Headers({ "accept-language": "en-US" }),
+        cookies: {},
+      };
+
+      const result = await getLocale(mockReq as any, "johndoe123");
+
+      // Should attempt DB lookup
+      expect(mockFindFirst).toHaveBeenCalledWith({
+        where: { username: "johndoe123", locked: false },
+        select: { locale: true },
+      });
+    });
+
+    it("should allow valid username with periods and hyphens in middle", async () => {
+      // Usernames like john.doe or john-doe are valid (periods/hyphens not at start/end)
+      mockGetToken.mockResolvedValue(null);
+      mockFindFirst.mockResolvedValue(null);
+
+      const mockReq = {
+        headers: new Headers({ "accept-language": "en-US" }),
+        cookies: {},
+      };
+
+      const result = await getLocale(mockReq as any, "john.doe-smith");
+
+      // Should attempt DB lookup
+      expect(mockFindFirst).toHaveBeenCalledWith({
+        where: { username: "john.doe-smith", locked: false },
+        select: { locale: true },
+      });
     });
   });
 

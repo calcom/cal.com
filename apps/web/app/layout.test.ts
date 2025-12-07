@@ -116,7 +116,11 @@ describe("Username extraction from pathname", () => {
       expect(extractUsernameFromPathname("//john-doe//meeting//")).toBe("john-doe");
     });
 
-    it("should handle case-sensitive usernames", () => {
+    it("should extract raw username without slugification", () => {
+      // Note: This function extracts the raw path segment without normalization.
+      // In practice, usernames are stored slugified (lowercase) in the database,
+      // so "JohnDoe" won't match and will fall back to Accept-Language.
+      // The validation in getLocale.ts will catch this and skip the DB query.
       expect(extractUsernameFromPathname("/JohnDoe")).toBe("JohnDoe");
     });
   });
