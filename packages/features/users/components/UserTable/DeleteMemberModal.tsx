@@ -4,7 +4,9 @@ import type { Dispatch } from "react";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { PasswordConfirmationDialogContent } from "@calcom/features/components/PasswordConfirmationDialogContent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableAction, UserTableState } from "./types";
@@ -19,6 +21,9 @@ export function DeleteMemberModal({
   const { t } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();
+
+  const isCALIdentityProvider = session?.user.identityProvider === IdentityProvider.CAL;
+
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {
       utils.viewer.organizations.listMembers.invalidate();
@@ -34,6 +39,18 @@ export function DeleteMemberModal({
       showToast(err.message, "error");
     },
   });
+
+  const handleConfirm = () => {
+    // Shouldn't ever happen just for type safety
+    if (!session?.user.org?.id || !state?.deleteMember?.user?.id) return;
+
+    removeMemberMutation.mutate({
+      teamIds: [session?.user.org.id],
+      memberIds: [state?.deleteMember?.user.id],
+      isOrg: true,
+    });
+  };
+
   return (
     <Dialog
       open={state.deleteMember.showModal}
@@ -43,23 +60,25 @@ export function DeleteMemberModal({
           type: "CLOSE_MODAL",
         })
       }>
-      <PasswordConfirmationDialogContent
-        variety="danger"
-        title={t("remove_member")}
-        confirmBtnText={t("confirm_remove_member")}
-        isPending={removeMemberMutation.isPending}
-        onConfirm={() => {
-          // Shouldn't ever happen just for type safety
-          if (!session?.user.org?.id || !state?.deleteMember?.user?.id) return;
-
-          removeMemberMutation.mutate({
-            teamIds: [session?.user.org.id],
-            memberIds: [state?.deleteMember?.user.id],
-            isOrg: true,
-          });
-        }}>
-        {t("remove_member_confirmation_message")}
-      </PasswordConfirmationDialogContent>
+      {isCALIdentityProvider ? (
+        <PasswordConfirmationDialogContent
+          variety="danger"
+          title={t("remove_member")}
+          confirmBtnText={t("confirm_remove_member")}
+          isPending={removeMemberMutation.isPending}
+          onConfirm={handleConfirm}>
+          {t("remove_member_confirmation_message")}
+        </PasswordConfirmationDialogContent>
+      ) : (
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("remove_member")}
+          confirmBtnText={t("confirm_remove_member")}
+          isPending={removeMemberMutation.isPending}
+          onConfirm={handleConfirm}>
+          {t("remove_member_confirmation_message")}
+        </ConfirmationDialogContent>
+      )}
     </Dialog>
   );
 }
