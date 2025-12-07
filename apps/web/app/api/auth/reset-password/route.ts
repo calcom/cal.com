@@ -50,6 +50,18 @@ async function handler(req: NextRequest) {
     },
   });
 
+  const userForPasswordCheck = await prisma.user.findUnique({
+    where: { email: maybeRequest.email },
+    select: { username: true },
+  });
+
+  if (
+    userForPasswordCheck?.username &&
+    rawPassword.toLowerCase() === userForPasswordCheck.username.toLowerCase()
+  ) {
+    return NextResponse.json({ error: "Password cannot be the same as username" }, { status: 400 });
+  }
+
   const hashedPassword = await hashPassword(rawPassword);
   // this can fail if a password request has been made for an email that has since changed or-
   // never existed within Cal. In this case we do not want to disclose the email's existence.
@@ -71,7 +83,7 @@ async function handler(req: NextRequest) {
         identityProviderId: null,
       },
     });
-  } catch (e) {
+  } catch {
     return NextResponse.json({}, { status: 404 });
   }
 

@@ -879,27 +879,37 @@ export const emailSchemaRefinement = (value: string) => {
   return emailSchema.safeParse(value).success;
 };
 
-export const signupSchema = z.object({
-  // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
-  // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
-  username: z.string().optional(),
-  email: z.string().regex(emailRegex, { message: "Invalid email" }),
-  password: z.string().superRefine((data, ctx) => {
-    const isStrict = false;
-    const result = isPasswordValid(data, true, isStrict);
-    Object.keys(result).map((key: string) => {
-      if (!result[key as keyof typeof result]) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [key],
-          message: key,
-        });
-      }
-    });
-  }),
-  language: z.string().optional(),
-  token: z.string().optional(),
-});
+export const signupSchema = z
+  .object({
+    // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
+    // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
+    username: z.string().optional(),
+    email: z.string().regex(emailRegex, { message: "Invalid email" }),
+    password: z.string().superRefine((data, ctx) => {
+      const isStrict = false;
+      const result = isPasswordValid(data, true, isStrict);
+      Object.keys(result).map((key: string) => {
+        if (!result[key as keyof typeof result]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key],
+            message: key,
+          });
+        }
+      });
+    }),
+    language: z.string().optional(),
+    token: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.username && data.password.toLowerCase() === data.username.toLowerCase()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["password"],
+        message: "password_same_as_username",
+      });
+    }
+  });
 
 export const ZVerifyCodeInputSchema = z.object({
   email: emailSchema,
