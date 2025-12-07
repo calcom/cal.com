@@ -539,6 +539,7 @@ const EmailEmbedPreview = ({
                 Object.keys(selectedDateAndTime)
                   .sort()
                   .map((key) => {
+                    selectedDateAndTime[key].sort();
                     const firstSlotOfSelectedDay = selectedDateAndTime[key][0];
                     const selectedDate = dayjs(firstSlotOfSelectedDay)
                       .tz(timezone)
