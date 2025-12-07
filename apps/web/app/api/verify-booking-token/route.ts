@@ -35,13 +35,6 @@ async function getHandler(request: NextRequest) {
   try {
     const { action, token, bookingUid, userId } = querySchema.parse(queryParams);
 
-    if (action === DirectAction.REJECT) {
-      // Rejections should use POST method
-      return NextResponse.redirect(
-        `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Rejection requires POST method")}`
-      );
-    }
-
     return await handleBookingAction(action, token, bookingUid, userId, request, undefined);
   } catch (error) {
     const bookingUid = queryParams.bookingUid || "";
