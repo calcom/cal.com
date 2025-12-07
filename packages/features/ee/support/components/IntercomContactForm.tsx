@@ -19,10 +19,13 @@ declare global {
   }
 }
 
+type FormStatus = "idle" | "submitting" | "success";
+
 export const IntercomContactForm = () => {
   const { t } = useLocale();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  
+  const [formStatus, setFormStatus] = useState<FormStatus>("idle");
+ 
   const [message, setMessage] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [showTrigger, setShowTrigger] = useState(false);
@@ -49,7 +52,7 @@ export const IntercomContactForm = () => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setFormStatus("submitting");
 
     try {
       const response = await fetch("/api/support/conversation", {
@@ -66,13 +69,11 @@ export const IntercomContactForm = () => {
       }
 
       showToast(t("success"), "success");
-      setIsSubmitting(false);
-      setIsSubmitted(true);
+      setFormStatus("success");
     } catch (error) {
       const message = error instanceof Error ? error.message : t("something_went_wrong");
       showToast(message, "error");
-    } finally {
-      setIsSubmitting(false);
+      setFormStatus("idle"); 
     }
   };
 
@@ -105,7 +106,7 @@ export const IntercomContactForm = () => {
   );
 
   const resetForm = () => {
-    setIsSubmitted(false);
+    setFormStatus("idle");
     setMessage("");
   };
 
@@ -141,7 +142,7 @@ export const IntercomContactForm = () => {
           </div>
 
           <div>
-            {isSubmitted ? (
+            {formStatus === "success" ? (
               <div className="py-4 text-center">
                 <h4 className="mb-2 text-lg font-medium ">{t("message_sent")}</h4>
                 <p className="text-subtle mb-4 text-sm">{t("support_message_sent_description")}</p>
@@ -169,10 +170,10 @@ export const IntercomContactForm = () => {
                     color="secondary"
                     variant="button"
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={formStatus === "submitting"}
                     className="w-full">
                     <div className="flex w-full justify-center">
-                      {isSubmitting ? (
+                      {formStatus === "submitting" ? (
                         <div className="flex items-center">
                           <Icon name="loader" className="mr-2 h-4 w-4 animate-spin rounded-full" />
                           {t("sending")}
