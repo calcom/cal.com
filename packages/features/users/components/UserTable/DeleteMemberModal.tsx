@@ -2,9 +2,9 @@ import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { PasswordConfirmationDialogContent } from "@calcom/features/components/PasswordConfirmationDialogContent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableAction, UserTableState } from "./types";
@@ -43,10 +43,11 @@ export function DeleteMemberModal({
           type: "CLOSE_MODAL",
         })
       }>
-      <ConfirmationDialogContent
+      <PasswordConfirmationDialogContent
         variety="danger"
         title={t("remove_member")}
         confirmBtnText={t("confirm_remove_member")}
+        isPending={removeMemberMutation.isPending}
         onConfirm={() => {
           // Shouldn't ever happen just for type safety
           if (!session?.user.org?.id || !state?.deleteMember?.user?.id) return;
@@ -58,7 +59,7 @@ export function DeleteMemberModal({
           });
         }}>
         {t("remove_member_confirmation_message")}
-      </ConfirmationDialogContent>
+      </PasswordConfirmationDialogContent>
     </Dialog>
   );
 }
