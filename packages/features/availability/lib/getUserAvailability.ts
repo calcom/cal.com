@@ -448,8 +448,10 @@ export class UserAvailabilityService {
       );
     }
 
-    // Check for global user-level booking limits
+    // Global user limits should ONLY apply to personal events
+    // Team events have their own separate team booking limits
     const userBookingLimits =
+      !eventType?.schedulingType &&
       user.bookingLimits &&
       typeof user.bookingLimits === "object" &&
       Object.keys(user.bookingLimits).length > 0
