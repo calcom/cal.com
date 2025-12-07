@@ -153,6 +153,8 @@ const getActivePhoneNumbers = (
   );
 };
 
+type ActiveDialog = "ADDITIONAL_INPUTS" | "TEST_AGENT" | "WEB_CALL" | "UNSUBSCRIBE" | null;
+
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
@@ -246,10 +248,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
+  const [activeDialog, setActiveDialog] = useState<ActiveDialog>(null);
+
   const unsubscribePhoneNumberMutation = trpc.viewer.phoneNumber.update.useMutation({
     onSuccess: async () => {
       showToast(t("phone_number_unsubscribed_successfully"), "success");
-      setIsUnsubscribeDialogOpen(false);
+      setActiveDialog(null);
       const currentAgentId = stepAgentId || stepInboundAgentId;
       if (currentAgentId) {
         utils.viewer.aiVoiceAgent.get.invalidate({ id: currentAgentId });
@@ -262,10 +266,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
   const verifiedEmails = _verifiedEmails || [];
-  const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
-  const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
-  const [isWebCallDialogOpen, setIsWebCallDialogOpen] = useState(false);
-  const [isUnsubscribeDialogOpen, setIsUnsubscribeDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
 
@@ -486,25 +486,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       }
     },
   });
-  /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
-    onSuccess: async () => {
-      showToast(t("notification_sent"), "success");
-    },
-    onError: (err) => {
-      let message = t("unexpected_error_try_again");
-      if (err instanceof TRPCClientError) {
-        if (err.message === "rate-limit-exceeded") {
-          message = t("rate_limit_exceeded");
-        } else {
-          message = err.message;
-        }
-      }
-      if (err instanceof HttpError) {
-        message = `${err.statusCode}: ${err.message}`;
-      }
-      showToast(message, "error");
-    },
-  }); */
 
   //trigger
   if (!step) {
@@ -926,7 +907,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <DropdownItem
                             type="button"
                             StartIcon="phone"
-                            onClick={() => setIsTestAgentDialogOpen(true)}>
+                            onClick={() => setActiveDialog("TEST_AGENT")}>
                             {t("phone_call")}
                           </DropdownItem>
                         </DropdownMenuItem>
@@ -934,7 +915,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <DropdownItem
                             type="button"
                             StartIcon="monitor"
-                            onClick={() => setIsWebCallDialogOpen(true)}>
+                            onClick={() => setActiveDialog("WEB_CALL")}>
                             {t("web_call")}
                           </DropdownItem>
                         </DropdownMenuItem>
@@ -956,7 +937,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </Button>
                       <Button
                         color="secondary"
-                        onClick={() => setIsWebCallDialogOpen(true)}
+                        onClick={() => setActiveDialog("WEB_CALL")}
                         disabled={props.readOnly}
                         StartIcon="monitor">
                         {t("test_web_call")}
@@ -994,7 +975,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <DropdownMenuItem>
                             <DropdownItem
                               type="button"
-                              onClick={() => setIsWebCallDialogOpen(true)}
+                              onClick={() => setActiveDialog("WEB_CALL")}
                               disabled={props.readOnly}
                               StartIcon="monitor">
                               {t("test_web_call")}
@@ -1401,7 +1382,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               )}
               {!props.readOnly && (
                 <div className="ml-1 mt-2">
-                  <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
+                  <button type="button" onClick={() => setActiveDialog("ADDITIONAL_INPUTS")}>
                     <div className="text-subtle ml-1 flex items-center gap-2">
                       <Icon name="circle-help" className="h-3 w-3" />
                       <p className="text-left text-xs">
@@ -1415,105 +1396,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               )}
             </div>
           )}
-
-          {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
-                <Button
-                  type="button"
-                  className="mt-7 w-full"
-                  onClick={() => {
-                    let isEmpty = false;
-
-                    if (!form.getValues(`steps.${step.stepNumber - 1}.sendTo`) && isPhoneNumberNeeded) {
-                      form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
-                        type: "custom",
-                        message: t("no_input"),
-                      });
-                      isEmpty = true;
-                    }
-
-                    if (!numberVerified && isPhoneNumberNeeded) {
-                      form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
-                        type: "custom",
-                        message: t("not_verified"),
-                      });
-                    }
-                    if (
-                      form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.CUSTOM
-                    ) {
-                      if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-                        form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
-                          type: "custom",
-                          message: t("no_input"),
-                        });
-                        isEmpty = true;
-                      } else if (
-                        isEmailSubjectNeeded &&
-                        !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)
-                      ) {
-                        form.setError(`steps.${step.stepNumber - 1}.emailSubject`, {
-                          type: "custom",
-                          message: t("no_input"),
-                        });
-                        isEmpty = true;
-                      }
-                    }
-
-                    if (!isPhoneNumberNeeded && !isEmpty) {
-                      //translate body and reminder to english
-                      const emailSubject = translateVariablesToEnglish(
-                        form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "",
-                        { locale: i18n.language, t }
-                      );
-                      const reminderBody = translateVariablesToEnglish(
-                        form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "",
-                        { locale: i18n.language, t }
-                      );
-
-                      testActionMutation.mutate({
-                        step,
-                        emailSubject,
-                        reminderBody,
-                      });
-                    } else {
-                      const isNumberValid =
-                        form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
-                          ? false
-                          : true;
-
-                      if (isPhoneNumberNeeded && isNumberValid && !isEmpty && numberVerified) {
-                        setConfirmationDialogOpen(true);
-                      }
-                    }
-                  }}
-                  color="secondary">
-                  <div className="w-full">{t("test_action")}</div>
-                </Button>
-              )} */}
         </div>
-        {/* <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
-          <ConfirmationDialogContent
-            variety="warning"
-            title={t("test_workflow_action")}
-            confirmBtnText={t("send_sms")}
-            onConfirm={(e) => {
-              e.preventDefault();
-              const reminderBody = translateVariablesToEnglish(
-                form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "",
-                { locale: i18n.language, t }
-              );
-
-              testActionMutation.mutate({
-                step,
-                emailSubject: "",
-                reminderBody: reminderBody || "",
-              });
-              setConfirmationDialogOpen(false);
-            }}>
-            {t("send_sms_to_number", { number: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) })}
-          </ConfirmationDialogContent>
-        </Dialog> */}
-        <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
+        <Dialog
+          open={activeDialog === "ADDITIONAL_INPUTS"}
+          onOpenChange={(open) => setActiveDialog(open ? "ADDITIONAL_INPUTS" : null)}>
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
               <h1 className="w-full text-xl font-semibold">
@@ -1536,7 +1422,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
+                      {isFormTrigger(trigger)
+                        ? t("form_field_identifier")
+                        : t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
@@ -1555,7 +1443,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
+                      {isFormTrigger(trigger)
+                        ? t("form_field_identifier")
+                        : t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
@@ -1606,8 +1496,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
         {stepAgentId && (
           <TestPhoneCallDialog
-            open={isTestAgentDialogOpen}
-            onOpenChange={setIsTestAgentDialogOpen}
+            open={activeDialog === "TEST_AGENT"}
+            onOpenChange={(open) => setActiveDialog(open ? "TEST_AGENT" : null)}
             agentId={stepAgentId || ""}
             teamId={teamId}
             form={form}
@@ -1618,8 +1508,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
         {stepAgentId && (
           <WebCallDialog
-            open={isWebCallDialogOpen}
-            onOpenChange={setIsWebCallDialogOpen}
+            open={activeDialog === "WEB_CALL"}
+            onOpenChange={(open) => setActiveDialog(open ? "WEB_CALL" : null)}
             agentId={stepAgentId || ""}
             teamId={teamId}
             isOrganization={props.isOrganization}
@@ -1630,7 +1520,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         )}
 
         {/* Unsubscribe Confirmation Dialog */}
-        <Dialog open={isUnsubscribeDialogOpen} onOpenChange={setIsUnsubscribeDialogOpen}>
+        <Dialog
+          open={activeDialog === "UNSUBSCRIBE"}
+          onOpenChange={(open) => setActiveDialog(open ? "UNSUBSCRIBE" : null)}>
           <DialogContent type="creation" title={t("unsubscribe_phone_number")}>
             <div className="stack-y-4">
               <p className="text-default text-sm">{t("do_you_still_want_to_unsubscribe")}</p>
@@ -1659,7 +1551,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <p className="text-subtle text-sm">{t("the_action_will_disconnect_phone_number")}</p>
             </div>
             <DialogFooter showDivider>
-              <Button type="button" color="secondary" onClick={() => setIsUnsubscribeDialogOpen(false)}>
+              <Button type="button" color="secondary" onClick={() => setActiveDialog(null)}>
                 {t("cancel")}
               </Button>
               <Button
