@@ -39,7 +39,7 @@ export const getLocale = async (
 
     if (!isValidUsername) {
       // Invalid username format - skip DB lookup and fall back to token/browser locale
-      console.warn(`[getLocale] Invalid username format, length: ${username.length}`);
+      console.warn("[getLocale] Invalid username format");
     } else if (typeof window === "undefined") {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

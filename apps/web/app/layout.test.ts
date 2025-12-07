@@ -52,11 +52,9 @@ describe("Username extraction from pathname", () => {
       expect(extractUsernameFromPathname("/d/user1+user2")).toBeUndefined();
     });
 
-    it("should extract username from virtual routes if used as username", () => {
-      // Virtual routes like /forms, /success are reserved and won't be treated as usernames
-      // but static routes like /booking, /d, /org don't need reservation because
-      // Next.js static routes take precedence over [user]
-      expect(extractUsernameFromPathname("/forms")).toBeUndefined(); // virtual route - reserved
+    it("should NOT extract from virtual routes like /forms", () => {
+      // Virtual routes like /forms, /success are reserved and should not be treated as usernames
+      expect(extractUsernameFromPathname("/forms")).toBeUndefined();
     });
   });
 

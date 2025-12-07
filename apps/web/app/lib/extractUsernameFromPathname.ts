@@ -34,8 +34,8 @@ export function extractUsernameFromPathname(pathname: string): string | undefine
 
   // Note: /team/[slug]/[type] routes don't have usernames - [type] is an event type
   // Team locale should be handled differently (e.g., by team settings)
-  // TODO: Implement separate team locale detection that extracts team slug
-  // and looks up team locale settings instead of user locale
+  // TODO: Team locale detection is not yet implemented. Team booking pages will fall back
+  // to the visitor's locale. Future work: extract team slug and look up team locale settings.
 
   return undefined;
 }

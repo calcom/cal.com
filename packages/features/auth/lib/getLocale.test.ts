@@ -249,6 +249,8 @@ describe("getLocale", () => {
         where: { username: "a", locked: false },
         select: { locale: true },
       });
+      // Result falls back to Accept-Language since user not found
+      expect(result).toBe("en");
     });
 
     it("should allow valid lowercase alphanumeric username", async () => {
@@ -261,7 +263,7 @@ describe("getLocale", () => {
         cookies: {},
       };
 
-      const result = await getLocale(mockReq as any, "johndoe123");
+      await getLocale(mockReq as any, "johndoe123");
 
       // Should attempt DB lookup
       expect(mockFindFirst).toHaveBeenCalledWith({
@@ -280,7 +282,7 @@ describe("getLocale", () => {
         cookies: {},
       };
 
-      const result = await getLocale(mockReq as any, "john.doe-smith");
+      await getLocale(mockReq as any, "john.doe-smith");
 
       // Should attempt DB lookup
       expect(mockFindFirst).toHaveBeenCalledWith({
