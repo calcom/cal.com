@@ -22,7 +22,7 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
-  const redirectUrl = "/auth/login?callbackUrl=/settings/my-account/general";
+  const redirectUrl = "/auth/login?callbackUrl=/settings/my-account/booking-limits";
 
   if (!userId) {
     return redirect(redirectUrl);
