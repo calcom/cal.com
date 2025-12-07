@@ -427,7 +427,7 @@ describe(
           },
         });
 
-        // this is the firth team booking (incl. managed) of this month for user 101, limit reached
+        // this is the fifth team booking (incl. managed) of this month for user 101, limit reached
         await expect(
           async () =>
             await handleNewBooking({
