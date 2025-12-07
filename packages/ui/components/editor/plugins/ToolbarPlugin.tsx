@@ -240,13 +240,22 @@ function getSelectedNode(selection: RangeSelection) {
   }
 }
 
+type TextFormatState = {
+  isLink: boolean;
+  isBold: boolean;
+  isItalic: boolean;
+};
+
 export default function ToolbarPlugin(props: TextEditorProps) {
   const [editor] = useLexicalComposerContext();
   const toolbarRef = useRef(null);
   const [blockType, setBlockType] = useState("paragraph");
-  const [isLink, setIsLink] = useState(false);
-  const [isBold, setIsBold] = useState(false);
-  const [isItalic, setIsItalic] = useState(false);
+  
+  const [textFormat, setTextFormat] = useState<TextFormatState>({
+    isLink: false,
+    isBold: false,
+    isItalic: false,
+  });
 
   const formatParagraph = () => {
     if (blockType !== "paragraph") {
@@ -337,16 +346,16 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           setBlockType(type);
         }
       }
-      setIsBold(selection.hasFormat("bold"));
-      setIsItalic(selection.hasFormat("italic"));
 
       const node = getSelectedNode(selection);
       const parent = node.getParent();
-      if ($isLinkNode(parent) || $isLinkNode(node)) {
-        setIsLink(true);
-      } else {
-        setIsLink(false);
-      }
+      const isLinkNode = $isLinkNode(parent) || $isLinkNode(node);
+
+      setTextFormat({
+        isBold: selection.hasFormat("bold"),
+        isItalic: selection.hasFormat("italic"),
+        isLink: isLinkNode,
+      });
     }
   }, [editor]);
 
@@ -442,12 +451,12 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   }, [editor, updateToolbar]);
 
   const insertLink = useCallback(() => {
-    if (!isLink) {
+    if (!textFormat.isLink) {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
     } else {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     }
-  }, [editor, isLink]);
+  }, [editor, textFormat.isLink]);
 
   if (!props.editable) return null;
   return (
@@ -501,7 +510,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
               }}
-              className={isBold ? "bg-subtle" : ""}
+              className={textFormat.isBold ? "bg-subtle" : ""}
             />
           )}
           {!props.excludedToolbarItems?.includes("italic") && (
@@ -514,7 +523,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
               }}
-              className={isItalic ? "bg-subtle" : ""}
+              className={textFormat.isItalic ? "bg-subtle" : ""}
             />
           )}
           {!props.excludedToolbarItems?.includes("link") && (
@@ -526,9 +535,9 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                 type="button"
                 StartIcon="link"
                 onClick={insertLink}
-                className={isLink ? "bg-subtle" : ""}
+                className={textFormat.isLink ? "bg-subtle" : ""}
               />
-              {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
+              {textFormat.isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
             </>
           )}
         </div>
