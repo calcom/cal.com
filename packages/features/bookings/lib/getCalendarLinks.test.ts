@@ -163,6 +163,25 @@ describe("getCalendarLinks", () => {
     expect(microsoftOutlookLink?.link).toContain(`subject=${encodeURIComponent(customTitle)}`);
   });
 
+  it("should use custom calendar description with variable substitution", () => {
+    const customDescription = "Meeting with {Scheduler} about {Event type title}";
+    const eventType = {
+      ...baseMockEventType,
+      calendarEventDescription: customDescription,
+    };
+    const booking = {
+      ...baseMockBooking,
+      responses: { name: "John Doe" },
+    };
+
+    const result = getCalendarLinks({ booking, eventType, t: mockT });
+
+    const googleLink = result.find((link) => link.id === CalendarLinkType.GOOGLE_CALENDAR);
+    
+    // "Meeting with John Doe about Test Title"
+    expect(googleLink?.link).toContain(encodeURIComponent("Meeting with John Doe about Test Title"));
+  });
+
   it("should handle recurring events - Only Google Calendar supports at the moment", async () => {
     // Mock a recurring event rule
     const mockRecurringRule = {

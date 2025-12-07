@@ -166,4 +166,27 @@ describe("generateIcsString", () => {
       expect(icsString).toEqual(expect.stringContaining(`LOCATION:${event.location}`));
     });
   });
+
+  describe("custom description", () => {
+    test("should use custom calendar description when provided", () => {
+      const customDescription = "Custom meeting description with details";
+      // Manually add calendarEventDescription as buildCalendarEvent may not support it yet
+      const event = {
+        ...buildCalendarEvent({
+          iCalSequence: 0,
+          attendees: [buildPerson()],
+        }),
+        calendarEventDescription: customDescription,
+      };
+
+      const icsString = generateIcsString({
+        event,
+        status: "CONFIRMED",
+      });
+
+      assertHasIcsString(icsString);
+
+      expect(icsString).toEqual(expect.stringContaining(`DESCRIPTION:${customDescription}`));
+    });
+  });
 });
