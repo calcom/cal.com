@@ -12,8 +12,6 @@ import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/get
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 const _getBusyTimesFromLimits = async (
