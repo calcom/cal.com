@@ -501,19 +501,13 @@ export const deleteEvent = async ({
  * Process the calendar event by generating description and removing attendees if needed
  */
 const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
-  if (calEvent.seatsPerTimeSlot){
-    calEvent.responses = null;
-    calEvent.userFieldsResponses = null;
-    calEvent.additionalNotes = null;
-    calEvent.customInputs = null;
-  }
-
   // Generate the calendar event description
   // Use custom calendar description if set, otherwise use the rich description
   let calendarDescription = getRichDescription(calEvent);
 
   // If custom calendar description is set, apply variable substitution
   if (calEvent.calendarEventDescription) {
+    const responses = calEvent.responses;
     const t = calEvent.organizer.language.translate;
     const attendeeName = calEvent.attendees[0]?.name || t("scheduler");
     const eventNameObject = {
@@ -522,11 +516,19 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
       eventName: calEvent.calendarEventDescription,
       host: calEvent.team?.name || calEvent.organizer.name,
       location: calEvent.location,
-      bookingFields: calEvent.responses as Record<string, unknown> | null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      bookingFields: responses as Record<string, any> | null,
       eventDuration: calEvent.length || 0,
       t,
     };
     calendarDescription = getEventName(eventNameObject, true);
+  }
+
+  if (calEvent.seatsPerTimeSlot) {
+    calEvent.responses = null;
+    calEvent.userFieldsResponses = null;
+    calEvent.additionalNotes = null;
+    calEvent.customInputs = null;
   }
 
   const calendarEvent: CalendarServiceEvent = {
