@@ -72,6 +72,14 @@ type Props = {
   user: RouterOutputs["viewer"]["me"]["get"];
 };
 
+type ActiveDialog = 
+  | "CONFIRM_PASSWORD"
+  | "CREATE_ACCOUNT_PASSWORD"
+  | "ACCOUNT_DISCONNECT_WARNING"
+  | "SECONDARY_EMAIL"
+  | "DELETE_ACCOUNT"
+  | null;
+
 const ProfileView = ({ user }: Props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -118,7 +126,7 @@ const ProfileView = ({ user }: Props) => {
 
   const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
-      setShowSecondaryEmailModalOpen(false);
+      setActiveDialog(null);
       setNewlyAddedSecondaryEmail(res?.data?.email);
       utils.viewer.me.invalidate();
       revalidateSettingsProfile();
@@ -130,16 +138,13 @@ const ProfileView = ({ user }: Props) => {
 
   const resendVerifyEmailMutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
-  const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<ActiveDialog>(null);
+  
   const [tempFormValues, setTempFormValues] = useState<ExtendedFormValues | null>(null);
   const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
-  const [showCreateAccountPasswordDialog, setShowCreateAccountPasswordDialog] = useState(false);
-  const [showAccountDisconnectWarning, setShowAccountDisconnectWarning] = useState(false);
-  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
   const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
   const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<undefined | string>(undefined);
 
-  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
   const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] = useState(false);
@@ -162,7 +167,7 @@ const ProfileView = ({ user }: Props) => {
   const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
     onSuccess() {
       if (tempFormValues) updateProfileMutation.mutate(tempFormValues);
-      setConfirmPasswordOpen(false);
+      setActiveDialog(null);
     },
     onError() {
       setConfirmPasswordDeleteErrorMessage(t("incorrect_password"));
@@ -278,12 +283,12 @@ const ProfileView = ({ user }: Props) => {
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
-            setConfirmPasswordOpen(true);
+            setActiveDialog("CONFIRM_PASSWORD");
           } else {
             updateProfileMutation.mutate(values);
           }
         }}
-        handleAddSecondaryEmail={() => setShowSecondaryEmailModalOpen(true)}
+        handleAddSecondaryEmail={() => setActiveDialog("SECONDARY_EMAIL")}
         handleResendVerifyEmail={(email) => {
           resendVerifyEmailMutation.mutate({ email });
           showToast(t("email_sent"), "success");
@@ -292,10 +297,10 @@ const ProfileView = ({ user }: Props) => {
           if (isCALIdentityProvider) return;
           if (user?.passwordAdded) {
             setTempFormValues(values);
-            setShowAccountDisconnectWarning(true);
+            setActiveDialog("ACCOUNT_DISCONNECT_WARNING");
             return;
           }
-          setShowCreateAccountPasswordDialog(true);
+          setActiveDialog("CREATE_ACCOUNT_PASSWORD");
         }}
         extraField={
           <div className="mt-6">
@@ -325,7 +330,10 @@ const ProfileView = ({ user }: Props) => {
         <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
       </div>
       {/* Delete account Dialog */}
-      <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
+      <Dialog 
+        open={activeDialog === "DELETE_ACCOUNT"} 
+        onOpenChange={(open) => setActiveDialog(open ? "DELETE_ACCOUNT" : null)}
+      >
         <SectionBottomActions align="end">
           <DialogTrigger asChild>
             <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon="trash-2">
@@ -376,7 +384,10 @@ const ProfileView = ({ user }: Props) => {
       </Dialog>
 
       {/* If changing email, confirm password */}
-      <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
+      <Dialog 
+        open={activeDialog === "CONFIRM_PASSWORD"} 
+        onOpenChange={(open) => setActiveDialog(open ? "CONFIRM_PASSWORD" : null)}
+      >
         <DialogContent
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
@@ -422,7 +433,10 @@ const ProfileView = ({ user }: Props) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showCreateAccountPasswordDialog} onOpenChange={setShowCreateAccountPasswordDialog}>
+      <Dialog 
+        open={activeDialog === "CREATE_ACCOUNT_PASSWORD"} 
+        onOpenChange={(open) => setActiveDialog(open ? "CREATE_ACCOUNT_PASSWORD" : null)}
+      >
         <DialogContent
           title={t("create_account_password")}
           description={t("create_account_password_hint")}
@@ -434,7 +448,10 @@ const ProfileView = ({ user }: Props) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showAccountDisconnectWarning} onOpenChange={setShowAccountDisconnectWarning}>
+      <Dialog 
+        open={activeDialog === "ACCOUNT_DISCONNECT_WARNING"} 
+        onOpenChange={(open) => setActiveDialog(open ? "ACCOUNT_DISCONNECT_WARNING" : null)}
+      >
         <DialogContent
           title={t("disconnect_account")}
           description={t("disconnect_account_hint")}
@@ -445,7 +462,7 @@ const ProfileView = ({ user }: Props) => {
               color="primary"
               onClick={() => {
                 unlinkConnectedAccountMutation.mutate();
-                setShowAccountDisconnectWarning(false);
+                setActiveDialog(null);
               }}>
               {t("confirm")}
             </Button>
@@ -454,7 +471,7 @@ const ProfileView = ({ user }: Props) => {
         </DialogContent>
       </Dialog>
 
-      {showSecondaryEmailModalOpen && (
+      {activeDialog === "SECONDARY_EMAIL" && (
         <SecondaryEmailModal
           isLoading={addSecondaryEmailMutation.isPending}
           errorMessage={secondaryEmailAddErrorMessage}
@@ -464,7 +481,7 @@ const ProfileView = ({ user }: Props) => {
           }}
           onCancel={() => {
             setSecondaryEmailAddErrorMessage("");
-            setShowSecondaryEmailModalOpen(false);
+            setActiveDialog(null);
           }}
           clearErrorMessage={() => {
             addSecondaryEmailMutation.reset();
