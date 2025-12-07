@@ -22,7 +22,8 @@ export function DeleteMemberModal({
   const { data: session } = useSession();
   const utils = trpc.useUtils();
 
-  const isCALIdentityProvider = session?.user.identityProvider === IdentityProvider.CAL;
+  const { data: currentUser } = trpc.viewer.me.get.useQuery();
+  const isCALIdentityProvider = currentUser?.identityProvider === IdentityProvider.CAL;
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {

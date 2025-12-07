@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -19,12 +18,12 @@ interface Props {
 
 export function DeleteBulkUsers({ users, onRemove }: Props) {
   const { t } = useLocale();
-  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const selectedRows = users; // Get selected rows from table
   const utils = trpc.useUtils();
 
-  const isCALIdentityProvider = session?.user.identityProvider === IdentityProvider.CAL;
+  const { data: currentUser } = trpc.viewer.me.get.useQuery();
+  const isCALIdentityProvider = currentUser?.identityProvider === IdentityProvider.CAL;
 
   const deleteMutation = trpc.viewer.organizations.bulkDeleteUsers.useMutation({
     onSuccess: () => {
