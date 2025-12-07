@@ -40,6 +40,8 @@ interface Props {
   permissions: WorkflowPermissions;
 }
 
+type ActiveDialog = "ADD_ACTION" | "DELETE_STEP" | null;
+
 export default function WorkflowDetailsPage(props: Props) {
   const {
     form,
@@ -55,8 +57,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const { t, i18n } = useLocale();
   const { hasActiveTeamPlan } = useHasActiveTeamPlan();
 
-  const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
-  const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<ActiveDialog>(null);
 
   const [reload, setReload] = useState(false);
   const [updateTemplate, setUpdateTemplate] = useState(false);
@@ -64,7 +65,6 @@ export default function WorkflowDetailsPage(props: Props) {
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
 
-  // Get base action options and transform them for form triggers
   const { data: baseActionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
   const transformedActionOptions = baseActionOptions
@@ -86,7 +86,6 @@ export default function WorkflowDetailsPage(props: Props) {
         .map((option) => {
           let label = option.label;
 
-          // Transform labels for form triggers
           if (isFormTrigger(form.getValues("trigger"))) {
             if (option.value === WorkflowActions.EMAIL_ATTENDEE) {
               label = t("email_attendee_action_form");
@@ -247,7 +246,7 @@ export default function WorkflowDetailsPage(props: Props) {
                                 agentData?.outboundPhoneNumbers &&
                                 agentData.outboundPhoneNumbers.length > 0
                               ) {
-                                setIsDeleteStepDialogOpen(true);
+                                setActiveDialog("DELETE_STEP");
                               } else {
                                 const steps = form.getValues("steps");
                                 const updatedSteps = steps
@@ -279,8 +278,10 @@ export default function WorkflowDetailsPage(props: Props) {
                         readOnly={permissions.readOnly}
                         eventTypeOptions={eventTypeOptions}
                         onSaveWorkflow={props.onSaveWorkflow}
-                        setIsDeleteStepDialogOpen={setIsDeleteStepDialogOpen}
-                        isDeleteStepDialogOpen={isDeleteStepDialogOpen}
+                        setIsDeleteStepDialogOpen={(open) =>
+                          setActiveDialog(open ? "DELETE_STEP" : null)
+                        }
+                        isDeleteStepDialogOpen={activeDialog === "DELETE_STEP"}
                         isAgentLoading={isAgentLoading}
                         agentData={agentData}
                         inboundAgentData={inboundAgentData}
@@ -305,7 +306,7 @@ export default function WorkflowDetailsPage(props: Props) {
             <div className="border-default mt-0! ml-7 h-3 w-2 border-l" />
             <Button
               type="button"
-              onClick={() => setIsAddActionDialogOpen(true)}
+              onClick={() => setActiveDialog("ADD_ACTION")}
               color="secondary"
               className="bg-default">
               {t("add_action")}
@@ -315,8 +316,8 @@ export default function WorkflowDetailsPage(props: Props) {
       </div>
 
       <AddActionDialog
-        isOpenDialog={isAddActionDialogOpen}
-        setIsOpenDialog={setIsAddActionDialogOpen}
+        isOpenDialog={activeDialog === "ADD_ACTION"}
+        setIsOpenDialog={(open) => setActiveDialog(open ? "ADD_ACTION" : null)}
         addAction={addAction}
         actionOptions={transformedActionOptions}
       />
