@@ -17,6 +17,7 @@ type EventType = {
   id: number;
   slug: string;
   duration: number;
+  teamId?: number | null;
 };
 
 export type TroubleshooterStore = {

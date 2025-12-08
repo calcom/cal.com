@@ -46,6 +46,7 @@ export function EventTypeSelect() {
             id: foundEventType.id,
             slug: foundEventType.slug,
             duration: foundEventType.length,
+            teamId: foundEventType.team?.id ?? null,
           });
           return;
         }
@@ -59,6 +60,7 @@ export function EventTypeSelect() {
         id: firstEvent.id,
         slug: firstEvent.slug,
         duration: firstEvent.length,
+        teamId: firstEvent.team?.id ?? null,
       });
     }
   }, [eventTypes, selectedEventType, setSelectedEventType]);
@@ -77,6 +79,7 @@ export function EventTypeSelect() {
             id: foundEventType.id,
             slug: foundEventType.slug,
             duration: foundEventType.length,
+            teamId: foundEventType.team?.id ?? null,
           });
         }
       }}
