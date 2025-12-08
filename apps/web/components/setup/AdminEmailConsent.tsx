@@ -8,7 +8,7 @@ import { z } from "zod";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Checkbox, EmailField } from "@calcom/ui/components/form";
+import { CheckboxField, EmailField } from "@calcom/ui/components/form";
 
 const FORM_ID = "d4fe10cb-6cb3-4c84-ae61-394a817c419e";
 const HEADLESS_ROUTER_URL = "https://i.cal.com/router";
@@ -112,7 +112,7 @@ const AdminEmailConsent = (props: {
             name="productChangelog"
             control={formMethods.control}
             render={({ field: { onChange, value } }) => (
-              <Checkbox
+              <CheckboxField
                 id="product"
                 description={t("product_changelog_consent")}
                 checked={value}
@@ -125,7 +125,7 @@ const AdminEmailConsent = (props: {
             name="marketingConsent"
             control={formMethods.control}
             render={({ field: { onChange, value } }) => (
-              <Checkbox
+              <CheckboxField
                 id="marketing"
                 description={t("marketing_consent")}
                 checked={value}
