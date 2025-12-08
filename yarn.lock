@@ -2562,12 +2562,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@base-ui-components/react@npm:1.0.0-beta.7":
-  version: 1.0.0-beta.7
-  resolution: "@base-ui-components/react@npm:1.0.0-beta.7"
+"@base-ui-components/react@npm:^1.0.0-rc.0":
+  version: 1.0.0-rc.0
+  resolution: "@base-ui-components/react@npm:1.0.0-rc.0"
   dependencies:
     "@babel/runtime": ^7.28.4
-    "@base-ui-components/utils": 0.2.1
+    "@base-ui-components/utils": 0.2.2
     "@floating-ui/react-dom": ^2.1.6
     "@floating-ui/utils": ^0.2.10
     reselect: ^5.1.1
@@ -2580,13 +2580,13 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: ef22d119763bdfd0a298df8a5fc254db6367f54dab8b951b9069cb5b5acaa18779d04088ac188aff39f04a5bb23a461bb271b9d6c6778ed48fe903ba14077d11
+  checksum: bfe996965a9ba1c032d18229d02f3cf1e8f4af4b07323d5f35a05d8674beceedcbd1efb21ee8cd45308ac845a09958e6e57994fa9bba96d6f745f887b9728a5e
   languageName: node
   linkType: hard
 
-"@base-ui-components/utils@npm:0.2.1":
-  version: 0.2.1
-  resolution: "@base-ui-components/utils@npm:0.2.1"
+"@base-ui-components/utils@npm:0.2.2":
+  version: 0.2.2
+  resolution: "@base-ui-components/utils@npm:0.2.2"
   dependencies:
     "@babel/runtime": ^7.28.4
     "@floating-ui/utils": ^0.2.10
@@ -2599,7 +2599,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 612cf028a7b0e967ad11c0b9195eeb05cf4e0cbabf95469b3fef491b89d0308d10ed280f4845d09c82091e0c6239acfb224856fbf7d4070620ee415a50abdb20
+  checksum: 2e6261fecfd1dc5f6cbdab454fca9b0f5d1b4c5fa9e16936a093d30f177aba26d63024f4d1ebe11b875122374bf44dff5bccd1b0a0af9a21221a19b1486a242e
   languageName: node
   linkType: hard
 
@@ -4833,11 +4833,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@coss/ui@workspace:packages/coss-ui"
   dependencies:
-    "@base-ui-components/react": 1.0.0-beta.7
+    "@base-ui-components/react": ^1.0.0-rc.0
     class-variance-authority: 0.4.0
-    clsx: 2.1.1
+    clsx: ^2.1.1
     lucide-react: 0.555.0
-    tailwind-merge: 3.4.0
+    tailwind-merge: ^3.4.0
     tsc-absolute: 1.0.0
     typescript: 5.9.0-beta
   languageName: unknown
@@ -22646,13 +22646,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:2.1.1, clsx@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "clsx@npm:2.1.1"
-  checksum: acd3e1ab9d8a433ecb3cc2f6a05ab95fe50b4a3cfc5ba47abb6cbf3754585fcb87b84e90c822a1f256c4198e3b41c7f6c391577ffc8678ad587fc0976b24fd57
-  languageName: node
-  linkType: hard
-
 "clsx@npm:^1.1.1":
   version: 1.1.1
   resolution: "clsx@npm:1.1.1"
@@ -22664,6 +22657,13 @@ __metadata:
   version: 2.1.0
   resolution: "clsx@npm:2.1.0"
   checksum: 43fefc29b6b49c9476fbce4f8b1cc75c27b67747738e598e6651dd40d63692135dc60b18fa1c5b78a2a9ba8ae6fd2055a068924b94e20b42039bd53b78b98e1d
+  languageName: node
+  linkType: hard
+
+"clsx@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "clsx@npm:2.1.1"
+  checksum: acd3e1ab9d8a433ecb3cc2f6a05ab95fe50b4a3cfc5ba47abb6cbf3754585fcb87b84e90c822a1f256c4198e3b41c7f6c391577ffc8678ad587fc0976b24fd57
   languageName: node
   linkType: hard
 
@@ -44185,17 +44185,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwind-merge@npm:3.4.0":
-  version: 3.4.0
-  resolution: "tailwind-merge@npm:3.4.0"
-  checksum: 172d0bc19af4512e037e481354e9038211b2748f1a96f51a6c33559aec2fc4230e6ad52c0b16c4ccc03d8392b87781a615cd1b93badcbd6333b160eb5aca30f7
-  languageName: node
-  linkType: hard
-
 "tailwind-merge@npm:^1.13.2":
   version: 1.13.2
   resolution: "tailwind-merge@npm:1.13.2"
   checksum: 8f9de3bd1e6271f5980f863ab85e0103f062bf84d814d3188bf6870af7eb43725ea40493ef0693dedd652b668cbdfcd6544235b16b70d438ed20bca6118a9066
+  languageName: node
+  linkType: hard
+
+"tailwind-merge@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "tailwind-merge@npm:3.4.0"
+  checksum: 172d0bc19af4512e037e481354e9038211b2748f1a96f51a6c33559aec2fc4230e6ad52c0b16c4ccc03d8392b87781a615cd1b93badcbd6333b160eb5aca30f7
   languageName: node
   linkType: hard
 

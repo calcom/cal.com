@@ -17,11 +17,11 @@
     "registry:diff": "yarn dlx shadcn@latest diff"
   },
   "dependencies": {
-    "@base-ui-components/react": "1.0.0-beta.7",
+    "@base-ui-components/react": "^1.0.0-rc.0",
     "class-variance-authority": "0.4.0",
-    "clsx": "2.1.1",
+    "clsx": "^2.1.1",
     "lucide-react": "0.555.0",
-    "tailwind-merge": "3.4.0"
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "tsc-absolute": "1.0.0",
