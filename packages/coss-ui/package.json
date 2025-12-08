@@ -13,7 +13,7 @@
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
-    "registry:pull": "yarn dlx shadcn@latest add @coss/ui -y -a",
+    "registry:pull": "yarn dlx shadcn@latest add @coss/ui --yes --all --overwrite",
     "registry:diff": "yarn dlx shadcn@latest diff"
   },
   "dependencies": {
