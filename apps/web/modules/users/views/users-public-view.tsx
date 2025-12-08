@@ -3,7 +3,7 @@
 import { Branding } from "@calid/features/ui/Branding";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon, type IconName } from "@calid/features/ui/components/icon";
+import { Icon, SocialIcon, type IconName, type SocialIconName } from "@calid/features/ui/components/icon";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
@@ -90,22 +90,25 @@ export function UserPage(props: PageProps) {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const { user: _user, orgSlug: _orgSlug, redirect: _redirect, ...query } = useRouterQuery();
+  const isLongName = (profile.name?.length ?? 0) > 18;
 
   useTheme(profile?.theme, false, false);
 
   const headerUrl = (user?.metadata as z.infer<typeof userMetadataSchema> | null)?.headerUrl ?? undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const socialProfiles = (user as any)?.socialProfiles as
-    | Record<SocialKey, string | undefined>
+    | Record<SocialIconName, string | undefined>
     | undefined
     | null;
-  const socialLinks = (["linkedin", "facebook", "twitter", "instagram", "youtube", "github"] as SocialKey[])
+  const socialLinks = (
+    ["linkedin", "facebook", "twitter", "instagram", "youtube", "github"] as SocialIconName[]
+  )
     .map((key) => {
       const url = socialProfiles?.[key];
       if (!url || !url.trim()) return null;
       return { key, url: url.trim() };
     })
-    .filter(Boolean) as Array<{ key: SocialKey; url: string }>;
+    .filter(Boolean) as Array<{ key: SocialIconName; url: string }>;
 
   useEffect(() => {
     const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
@@ -173,7 +176,13 @@ export function UserPage(props: PageProps) {
               alt={profile.name || "User Avatar"}
               title={profile.name || "User"}
             />
-            <div className="mt-2 flex flex-row items-end gap-2">
+            <div
+              className={classNames(
+                "mt-2 flex",
+                isLongName
+                  ? "flex-col items-center gap-1 md:flex-row md:items-center md:gap-2"
+                  : "flex-row items-center gap-2"
+              )}>
               <h1 className="text-default text-2xl font-bold leading-none" data-testid="name-title">
                 {profile.name}
                 {!isOrg && user.verified && (
@@ -190,10 +199,14 @@ export function UserPage(props: PageProps) {
                 )}
               </h1>
               {socialLinks.length > 0 && (
-                <div className="flex items-center gap-2 pb-[2px]">
+                <div
+                  className={classNames(
+                    "flex items-center gap-2",
+                    isLongName && "justify-center md:justify-start"
+                  )}>
                   {socialLinks.map((item) => (
                     <a key={item.key} href={item.url} target="_blank" rel="noreferrer">
-                      <Icon key={item.key} name={item.key} className="text-default h-4 w-4" />
+                      <SocialIcon key={item.key} name={item.key} />
                     </a>
                   ))}
                 </div>
