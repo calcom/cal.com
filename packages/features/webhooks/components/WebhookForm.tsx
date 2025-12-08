@@ -404,82 +404,38 @@ const WebhookForm = (props: {
                   }}
                 />
               </div>
-            )}
-          />
-          <Controller
-            name="eventTriggers"
-            control={formMethods.control}
-            render={({ field: { onChange, value } }) => {
-              const selectValue = translatedTriggerOptions.filter((option) => value.includes(option.value));
-              return (
-                <div className="mt-6">
-                  <Label className="font-sm text-emphasis font-medium">
-                    <>{t("event_triggers")}</>
-                  </Label>
-                  <Select
-                    grow
-                    options={translatedTriggerOptions}
-                    isMulti
-                    styles={{
-                      indicatorsContainer: (base) => ({
-                        ...base,
-                        alignItems: "flex-start",
-                      }),
-                    }}
-                    value={selectValue}
-                    onChange={(event) => {
-                      onChange(event.map((selection) => selection.value));
-                      const noShowWebhookTriggerExists = !!event.find(
-                        (trigger) =>
-                          trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-                          trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-                      );
+            );
+          }}
+        />
 
-                      if (noShowWebhookTriggerExists) {
-                        formMethods.setValue("time", props.webhook?.time ?? 5, { shouldDirty: true });
-                        formMethods.setValue("timeUnit", props.webhook?.timeUnit ?? TimeUnit.MINUTE, {
-                          shouldDirty: true,
-                        });
-                      } else {
-                        formMethods.setValue("time", undefined, { shouldDirty: true });
-                        formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
-                      }
-                    }}
-                  />
-                </div>
-              );
-            }}
-          />
+        {showTimeSection && (
+          <div className="mt-5">
+            <Label>{t("how_long_after_user_no_show_minutes")}</Label>
+            <TimeTimeUnitInput disabled={false} defaultTime={5} />
+          </div>
+        )}
 
-          {showTimeSection && (
-            <div className="mt-5">
-              <Label>{t("how_long_after_user_no_show_minutes")}</Label>
-              <TimeTimeUnitInput disabled={false} defaultTime={5} />
-            </div>
-          )}
-
-          <Controller
-            name="secret"
-            control={formMethods.control}
-            render={({ field: { value } }) => (
-              <div className="mt-6">
-                {!!hasSecretKey && !changeSecret && (
-                  <>
-                    <Label className="font-sm text-emphasis font-medium">Secret</Label>
-                    <div className="bg-default space-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
-                      <div className="text-emphasis rounded-sm border-b p-2 text-sm">
-                        {t("forgotten_secret_description")}
-                      </div>
-                      <div className="p-2">
-                        <Button
-                          color="secondary"
-                          type="button"
-                          onClick={() => {
-                            setChangeSecret(true);
-                          }}>
-                          {t("change_secret")}
-                        </Button>
-                      </div>
+        <Controller
+          name="secret"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <div className="mt-6">
+              {!!hasSecretKey && !changeSecret && (
+                <>
+                  <Label className="font-sm text-emphasis font-medium">Secret</Label>
+                  <div className="bg-default stack-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
+                    <div className="text-emphasis rounded-sm border-b p-2 text-sm">
+                      {t("forgotten_secret_description")}
+                    </div>
+                    <div className="p-2">
+                      <Button
+                        color="secondary"
+                        type="button"
+                        onClick={() => {
+                          setChangeSecret(true);
+                        }}>
+                        {t("change_secret")}
+                      </Button>
                     </div>
                   </>
                 )}
@@ -518,34 +474,52 @@ const WebhookForm = (props: {
                   />
                 )}
               </div>
-            )}
-          />
-
-          <Controller
-            name="payloadTemplate"
-            control={formMethods.control}
-            render={({ field: { value } }) => (
-              <>
-                <Label className="font-sm text-emphasis mt-6">
-                  <>{t("payload_template")}</>
-                </Label>
-                <div className="mb-2">
-                  <ToggleGroup
-                    onValueChange={(val) => {
-                      if (val === "default") {
-                        setUseCustomTemplate(false);
-                        formMethods.setValue("payloadTemplate", undefined, { shouldDirty: true });
-                      } else {
-                        setUseCustomTemplate(true);
-                      }
-                    }}
-                    value={useCustomTemplate ? "custom" : "default"}
-                    options={[
-                      { value: "default", label: t("default") },
-                      { value: "custom", label: t("custom") },
-                    ]}
-                    isFullWidth={true}
+              {useCustomTemplate && (
+                <div className="stack-y-3">
+                  <TextArea
+                    name="customPayloadTemplate"
+                    rows={8}
+                    value={value || ""}
+                    placeholder={`{\n\n}`}
+                    onChange={(e) =>
+                      formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true })
+                    }
                   />
+
+                  <Button type="button" color="secondary" onClick={() => setShowVariables(!showVariables)}>
+                    {showVariables ? t("webhook_hide_variables") : t("webhook_show_variable")}
+                  </Button>
+
+                  {showVariables && (
+                    <div className="border-muted max-h-80 overflow-y-auto rounded-md border p-3">
+                      {webhookVariables.map(({ category, variables }) => (
+                        <div key={category} className="mb-4">
+                          <h4 className="mb-2 text-sm font-medium">{category}</h4>
+                          <div className="stack-y-2">
+                            {variables.map(({ name, variable, description }) => (
+                              <div
+                                key={name}
+                                className="hover:bg-cal-muted  cursor-pointer rounded p-2 text-sm transition-colors"
+                                onClick={() => {
+                                  const currentValue = formMethods.getValues("payloadTemplate") || "{}";
+                                  const updatedValue = insertVariableIntoTemplate(
+                                    currentValue,
+                                    name,
+                                    variable
+                                  );
+                                  formMethods.setValue("payloadTemplate", updatedValue, {
+                                    shouldDirty: true,
+                                  });
+                                }}>
+                                <div className="text-emphasis font-mono">{variable}</div>
+                                <div className="text-muted mt-1 text-xs">{description}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {useCustomTemplate && (
                   <div className="space-y-3">
