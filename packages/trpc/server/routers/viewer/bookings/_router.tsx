@@ -6,25 +6,13 @@ import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetAuditLogsInputSchema } from "./getAuditLogs.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { bookingsProcedure } from "./util";
-
-type BookingsRouterHandlerCache = {
-  get?: typeof import("./get.handler").getHandler;
-  requestReschedule?: typeof import("./requestReschedule.handler").requestRescheduleHandler;
-  editLocation?: typeof import("./editLocation.handler").editLocationHandler;
-  addGuests?: typeof import("./addGuests.handler").addGuestsHandler;
-  confirm?: typeof import("./confirm.handler").confirmHandler;
-  getBookingAttendees?: typeof import("./getBookingAttendees.handler").getBookingAttendeesHandler;
-  getBookingDetails?: typeof import("./getBookingDetails.handler").getBookingDetailsHandler;
-  find?: typeof import("./find.handler").getHandler;
-  getInstantBookingLocation?: typeof import("./getInstantBookingLocation.handler").getHandler;
-  reportBooking?: typeof import("./reportBooking.handler").reportBookingHandler;
-};
 
 export const bookingsRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
@@ -116,6 +104,14 @@ export const bookingsRouter = router({
     const { reportBookingHandler } = await import("./reportBooking.handler");
 
     return reportBookingHandler({
+      ctx,
+      input,
+    });
+  }),
+  getAuditLogs: authedProcedure.input(ZGetAuditLogsInputSchema).query(async ({ input, ctx }) => {
+    const { getAuditLogsHandler } = await import("./getAuditLogs.handler");
+
+    return getAuditLogsHandler({
       ctx,
       input,
     });

@@ -68,7 +68,7 @@ test.describe("Booking Confirmation and Rejection via API", () => {
       maxRedirects: 0,
     });
 
-    expect(response.status()).toBe(307);
+    expect(response.status()).toBe(303);
     const location = response.headers()["location"];
     expect(location).toContain(`/booking/${booking.uid}`);
 
@@ -138,7 +138,7 @@ test.describe("Booking Confirmation and Rejection via API", () => {
       maxRedirects: 0,
     });
 
-    expect(response.status()).toBe(307);
+    expect(response.status()).toBe(303);
     const location = response.headers()["location"];
     expect(location).toContain(`/booking/${booking.uid}`);
 
