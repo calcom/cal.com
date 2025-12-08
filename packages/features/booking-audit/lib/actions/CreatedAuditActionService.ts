@@ -2,7 +2,7 @@ import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
 /**
  * Created Audit Action Service
@@ -59,6 +59,10 @@ export class CreatedAuditActionService implements IAuditActionService<
         // V1-only: validate and return as-is (no migration needed)
         const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
+    }
+
+    async getDisplayTitle(): Promise<TranslationWithParams> {
+        return { key: "booking_audit_action.created" };
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): CreatedAuditDisplayData {

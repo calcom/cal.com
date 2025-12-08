@@ -1,9 +1,10 @@
 import { z } from "zod";
 
+import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService } from "./IAuditActionService";
-
+import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import { getTranslation } from "@calcom/lib/server/i18n";
 /**
  * Location Changed Audit Action Service
  * Handles LOCATION_CHANGED action with per-action versioning
@@ -59,18 +60,20 @@ export class LocationChangedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): LocationChangedAuditDisplayData {
+    async getDisplayTitle(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Promise<TranslationWithParams> {
         const { fields } = storedData;
+        // TODO: Ideally we want to translate the location label to the user's locale
+        // We currently don't accept requesting user's translate fn here, fix it later.
+        const t = await getTranslation("en", "common");
+
+        const fromLocation = getHumanReadableLocationValue(fields.location.old, t);
+        const toLocation = getHumanReadableLocationValue(fields.location.new, t);
+
         return {
-            previousLocation: fields.location.old ?? null,
-            newLocation: fields.location.new ?? null,
+            key: "booking_audit_action.location_changed_from_to",
+            params: { fromLocation, toLocation },
         };
     }
 }
 
 export type LocationChangedAuditData = z.infer<typeof fieldsSchemaV1>;
-
-export type LocationChangedAuditDisplayData = {
-    previousLocation: string | null;
-    newLocation: string | null;
-};

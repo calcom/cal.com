@@ -15,7 +15,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { makeSystemActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
@@ -57,6 +57,7 @@ export const roundRobinManualReassignment = async ({
   orgId,
   reassignReason,
   reassignedById,
+  reassignedByUuid,
   emailsEnabled = true,
   platformClientParams,
 }: {
@@ -65,6 +66,12 @@ export const roundRobinManualReassignment = async ({
   orgId: number | null;
   reassignReason?: string;
   reassignedById: number;
+  /**
+   * The UUID of the user performing the reassignment.
+   * Used for audit logging to track who reassigned the booking.
+   * If not provided, audit log is skipped (reassignment requires auth, so this shouldn't happen).
+   */
+  reassignedByUuid?: string;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
 }) => {
@@ -204,9 +211,8 @@ export const roundRobinManualReassignment = async ({
     });
 
     const oldUserId = booking.userId;
-    const _oldUser = booking.user;
     const oldEmail = booking.user?.email;
-    const _oldTitle = booking.title;
+    const oldTitle = booking.title;
 
     booking = await prisma.booking.update({
       where: { id: bookingId },
@@ -226,24 +232,26 @@ export const roundRobinManualReassignment = async ({
       select: bookingSelect,
     });
 
-    try {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      const auditData: ReassignmentAuditData = {
-        assignedToId: { old: oldUserId ?? null, new: newUserId },
-        assignedById: { old: null, new: reassignedById },
-        reassignmentReason: { old: null, new: reassignReason || "Manual round robin reassignment" },
-        userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
-        title: { old: _oldTitle, new: newBookingTitle },
-      };
-      // TODO: Pass proper actor with user UUID once available
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditData: ReassignmentAuditData = {
+      assignedToId: { old: oldUserId ?? null, new: newUserId },
+      assignedById: { old: null, new: reassignedById },
+      reassignmentReason: { old: null, new: reassignReason ?? null },
+      userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
+      title: { old: oldTitle, new: newBookingTitle },
+    };
+
+    // Create audit log if user UUID is provided
+    if (reassignedByUuid) {
+      const actor = makeUserActor(reassignedByUuid);
       await bookingEventHandlerService.onReassignment(
         booking.uid,
-        makeSystemActor(),
+        actor,
         orgId,
         auditData
       );
-    } catch (error) {
-      logger.error("Failed to create booking audit log for manual round robin reassignment", error);
+    } else {
+      roundRobinReassignLogger.warn(`No reassignedByUuid provided, skipping audit log for booking ${bookingId}`);
     }
 
     await AssignmentReasonRecorder.roundRobinReassignment({

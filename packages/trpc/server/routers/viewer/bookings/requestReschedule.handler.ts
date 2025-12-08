@@ -114,40 +114,36 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     cancelledBy: user.email,
   });
 
-  try {
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    const auditTeamId = await getTeamIdFromEventType({
-      eventType: {
-        team: { id: bookingToReschedule.eventType?.teamId ?? null },
-        parentId: bookingToReschedule.eventType?.parentId ?? null,
-      },
-    });
-    const auditTriggerForUser = !auditTeamId || (auditTeamId && bookingToReschedule.eventType?.parentId);
-    const auditUserId = auditTriggerForUser ? bookingToReschedule.userId : null;
-    const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
-    const auditData: RescheduleRequestedAuditData = {
-      cancellationReason: {
-        old: null, // Original value not available in booking query
-        new: cancellationReason ?? null,
-      },
-      cancelledBy: {
-        old: null, // Original value not available in booking query
-        new: user.email,
-      },
-      rescheduled: {
-        old: false, // We're rescheduling, so original was false
-        new: true,
-      },
-    };
-    await bookingEventHandlerService.onRescheduleRequested(
-      bookingToReschedule.uid,
-      makeUserActor(user.uuid),
-      auditOrgId ?? null,
-      auditData
-    );
-  } catch (error) {
-    log.error("Failed to create booking audit log for reschedule request", error);
-  }
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  const auditTeamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: bookingToReschedule.eventType?.teamId ?? null },
+      parentId: bookingToReschedule.eventType?.parentId ?? null,
+    },
+  });
+  const auditTriggerForUser = !auditTeamId || (auditTeamId && bookingToReschedule.eventType?.parentId);
+  const auditUserId = auditTriggerForUser ? bookingToReschedule.userId : null;
+  const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
+  const auditData: RescheduleRequestedAuditData = {
+    cancellationReason: {
+      old: null, // Original value not available in booking query
+      new: cancellationReason ?? null,
+    },
+    cancelledBy: {
+      old: null, // Original value not available in booking query
+      new: user.email,
+    },
+    rescheduled: {
+      old: false, // We're rescheduling, so original was false
+      new: true,
+    },
+  };
+  await bookingEventHandlerService.onRescheduleRequested(
+    bookingToReschedule.uid,
+    makeUserActor(user.uuid),
+    auditOrgId ?? null,
+    auditData
+  );
 
   // delete scheduled jobs of previous booking
   const webhookPromises = [];

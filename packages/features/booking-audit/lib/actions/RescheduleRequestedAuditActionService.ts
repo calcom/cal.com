@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringChangeSchema, BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
 /**
  * Reschedule Requested Audit Action Service
@@ -61,15 +61,15 @@ export class RescheduleRequestedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
+    async getDisplayTitle(): Promise<TranslationWithParams> {
+        return { key: "booking_audit_action.reschedule_requested" };
+    }
+
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): RescheduleRequestedAuditDisplayData {
         const { fields } = storedData;
         return {
             reason: fields.cancellationReason.new ?? null,
-            previousReason: fields.cancellationReason.old ?? null,
-            cancelledBy: fields.cancelledBy.new ?? null,
-            previousCancelledBy: fields.cancelledBy.old ?? null,
-            rescheduled: fields.rescheduled?.new ?? null,
-            previousRescheduled: fields.rescheduled?.old ?? null,
+            requestedBy: fields.cancelledBy.new ?? null,
         };
     }
 }
@@ -78,9 +78,5 @@ export type RescheduleRequestedAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type RescheduleRequestedAuditDisplayData = {
     reason: string | null;
-    previousReason: string | null;
-    cancelledBy: string | null;
-    previousCancelledBy: string | null;
-    rescheduled: boolean | null;
-    previousRescheduled: boolean | null;
+    requestedBy: string | null;
 };

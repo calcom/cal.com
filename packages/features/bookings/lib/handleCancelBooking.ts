@@ -52,7 +52,7 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { makeSystemActor } from "./types/actor";
+import { makeUserActor, makeGuestActor } from "./types/actor";
 import type { Actor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -68,14 +68,17 @@ type PlatformParams = {
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
-  userId?: number;
-  bookingData: z.infer<typeof bookingCancelInput>;
   /**
-   * The actor performing the cancellation.
-   * Used for audit logging to track who cancelled the booking.
-   * Optional for backward compatibility - defaults to System actor if not provided.
+   * @deprecated Use userUuid instead
    */
-  actor?: Actor;
+  userId?: number;
+  /**
+   * The UUID of the user performing the cancellation.
+   * Used for audit logging to track who cancelled the booking.
+   * If not provided, the request is treated as unauthenticated.
+   */
+  userUuid?: string;
+  bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
 
 async function handler(input: CancelBookingInput) {
@@ -94,12 +97,12 @@ async function handler(input: CancelBookingInput) {
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
     userId,
+    userUuid,
     platformBookingUrl,
     platformCancelUrl,
     platformClientId,
     platformRescheduleUrl,
     arePlatformEmailsEnabled,
-    actor,
   } = input;
 
   /**
@@ -487,31 +490,34 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
 
-    try {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      const actorToUse = actor ?? makeSystemActor();
-      await bookingEventHandlerService.onBookingCancelled(
-        updatedBooking.uid,
-        actorToUse,
-        orgId ?? null,
-        {
-          cancellationReason: {
-            old: bookingToDelete.cancellationReason,
-            new: cancellationReason ?? null,
-          },
-          cancelledBy: {
-            old: bookingToDelete.cancelledBy,
-            new: cancelledBy ?? null,
-          },
-          status: {
-            old: bookingToDelete.status,
-            new: "CANCELLED",
-          },
-        }
-      );
-    } catch (error) {
-      log.error("Failed to create booking audit log for cancellation", error);
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    let actorToUse: Actor;
+    if (userUuid) {
+      // User is authenticated - create user actor from UUID
+      actorToUse = makeUserActor(userUuid);
+    } else {
+      // No user UUID - treat as unauthenticated request
+      actorToUse = makeGuestActor({ email: cancelledBy || "" });
     }
+    await bookingEventHandlerService.onBookingCancelled(
+      updatedBooking.uid,
+      actorToUse,
+      orgId ?? null,
+      {
+        cancellationReason: {
+          old: bookingToDelete.cancellationReason,
+          new: cancellationReason ?? null,
+        },
+        cancelledBy: {
+          old: bookingToDelete.cancelledBy,
+          new: cancelledBy ?? null,
+        },
+        status: {
+          old: bookingToDelete.status,
+          new: "CANCELLED",
+        },
+      }
+    );
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {

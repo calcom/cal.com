@@ -1,7 +1,8 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
-import { BookingAuditActionServiceRegistry, type AuditDisplayData } from "./BookingAuditActionServiceRegistry";
+import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
+import type { TranslationWithParams } from "../actions/IAuditActionService";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 interface BookingAuditViewerServiceDeps {
@@ -16,7 +17,8 @@ type EnrichedAuditLog = {
     action: BookingAuditAction;
     timestamp: string;
     createdAt: string;
-    data: AuditDisplayData;
+    data: Record<string, unknown> | null;
+    actionDisplayTitle: TranslationWithParams;
     actor: {
         id: string;
         type: string;
@@ -42,7 +44,7 @@ export class BookingAuditViewerService {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.userRepository = deps.userRepository;
 
-        this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
+        this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository });
     }
 
     /**
@@ -65,6 +67,13 @@ export class BookingAuditViewerService {
                 const actionService = this.actionServiceRegistry.getActionService(log.action);
                 const parsedData = actionService.parseStored(log.data);
 
+                const actionDisplayTitle = await actionService.getDisplayTitle(parsedData);
+
+                // Get display data - use custom getDisplayJson if available, otherwise use raw fields
+                const displayData = actionService.getDisplayJson
+                    ? actionService.getDisplayJson(parsedData)
+                    : parsedData.fields;
+
                 return {
                     id: log.id,
                     bookingUid: log.bookingUid,
@@ -72,7 +81,8 @@ export class BookingAuditViewerService {
                     action: log.action,
                     timestamp: log.timestamp.toISOString(),
                     createdAt: log.createdAt.toISOString(),
-                    data: actionService.getDisplayJson(parsedData) as AuditDisplayData,
+                    data: displayData,
+                    actionDisplayTitle,
                     actor: {
                         ...log.actor,
                         displayName: enrichedActor.displayName,

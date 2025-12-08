@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
 /**
  * Host No-Show Updated Audit Action Service
@@ -57,6 +57,10 @@ export class HostNoShowUpdatedAuditActionService
         // V1-only: validate and return as-is (no migration needed)
         const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
+    }
+
+    async getDisplayTitle(): Promise<TranslationWithParams> {
+        return { key: "booking_audit_action.host_no_show_updated" };
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): HostNoShowUpdatedAuditDisplayData {

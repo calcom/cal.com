@@ -20,7 +20,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { makeSystemActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -49,12 +49,14 @@ export const roundRobinReassignment = async ({
   emailsEnabled = true,
   platformClientParams,
   reassignedById,
+  reassignedByUuid,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   reassignedById: number;
+  reassignedByUuid: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
@@ -271,24 +273,19 @@ export const roundRobinReassignment = async ({
       select: bookingSelect,
     });
 
-    try {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      // TODO: Pass proper actor with user UUID once available
-      await bookingEventHandlerService.onReassignment(
-        booking.uid,
-        makeSystemActor(),
-        orgId,
-        {
-          assignedToId: { old: oldUserId, new: reassignedRRHost.id },
-          assignedById: { old: null, new: reassignedById },
-          reassignmentReason: { old: null, new: "Round robin reassignment" },
-          userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
-          title: { old: oldTitle, new: newBookingTitle },
-        }
-      );
-    } catch (error) {
-      logger.error("Failed to create booking audit log for round robin reassignment", error);
-    }
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    await bookingEventHandlerService.onReassignment(
+      booking.uid,
+      makeUserActor(reassignedByUuid),
+      orgId,
+      {
+        assignedToId: { old: oldUserId, new: reassignedRRHost.id },
+        assignedById: { old: null, new: reassignedById },
+        reassignmentReason: { old: null, new: "Round robin reassignment" },
+        userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
+        title: { old: oldTitle, new: newBookingTitle },
+      }
+    );
   } else {
     const previousRRHostAttendee = booking.attendees.find(
       (attendee) => attendee.email === previousRRHost.email

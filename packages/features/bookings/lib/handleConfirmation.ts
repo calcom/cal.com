@@ -318,33 +318,29 @@ export async function handleConfirmation(args: {
     });
     updatedBookings.push(updatedBooking);
 
-    try {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      const auditData: AcceptedAuditData = {
-        status: {
-          old: booking.status,
-          new: BookingStatus.ACCEPTED,
-        },
-      };
-      const actor = makeUserActor(user.uuid);
-      const auditTeamId = await getTeamIdFromEventType({
-        eventType: {
-          team: { id: booking.eventType?.teamId ?? null },
-          parentId: booking.eventType?.parentId ?? null,
-        },
-      });
-      const auditTriggerForUser = !auditTeamId || (auditTeamId && booking.eventType?.parentId);
-      const auditUserId = auditTriggerForUser ? booking.userId : null;
-      const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
-      await bookingEventHandlerService.onBookingAccepted(
-        updatedBooking.uid,
-        actor,
-        auditOrgId ?? null,
-        auditData
-      );
-    } catch (error) {
-      log.error("Failed to create booking audit log for confirmation", error);
-    }
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditData: AcceptedAuditData = {
+      status: {
+        old: booking.status,
+        new: BookingStatus.ACCEPTED,
+      },
+    };
+    const actor = makeUserActor(user.uuid);
+    const auditTeamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking.eventType?.parentId ?? null,
+      },
+    });
+    const auditTriggerForUser = !auditTeamId || (auditTeamId && booking.eventType?.parentId);
+    const auditUserId = auditTriggerForUser ? booking.userId : null;
+    const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
+    await bookingEventHandlerService.onBookingAccepted(
+      updatedBooking.uid,
+      actor,
+      auditOrgId ?? null,
+      auditData
+    );
   }
 
   const teamId = await getTeamIdFromEventType({

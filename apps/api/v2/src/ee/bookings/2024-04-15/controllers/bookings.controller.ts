@@ -125,7 +125,7 @@ export class BookingsController_2024_04_15 {
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeRepository: PrismaEventTypeRepository,
     private readonly teamRepository: PrismaTeamRepository
-  ) {}
+  ) { }
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
@@ -270,6 +270,7 @@ export class BookingsController_2024_04_15 {
         const res = await handleCancelBooking({
           bookingData: bookingRequest.body,
           userId: bookingRequest.userId,
+          userUuid: bookingRequest.userUuid,
           arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
           platformClientId: bookingRequest.platformClientId,
           platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -300,7 +301,7 @@ export class BookingsController_2024_04_15 {
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard)
   async markNoShow(
-    @GetUser("id") userId: number,
+    @GetUser() user: UserWithProfile,
     @Body() body: MarkNoShowInput_2024_04_15,
     @Param("bookingUid") bookingUid: string
   ): Promise<MarkNoShowOutput_2024_04_15> {
@@ -309,7 +310,8 @@ export class BookingsController_2024_04_15 {
         bookingUid: bookingUid,
         attendees: body.attendees,
         noShowHost: body.noShowHost,
-        userId,
+        userId: user.id,
+        userUuid: user.uuid,
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
@@ -561,12 +563,20 @@ export class BookingsController_2024_04_15 {
     oAuthClientId?: string,
     platformBookingLocation?: string,
     isEmbed?: string
-  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+  ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
     const requestId = req.get("X-Request-Id");
     const clone = { ...req };
     const userId = clone.body.rescheduleUid
       ? await this.getOwnerIdRescheduledBooking(req, oAuthClientId)
       : await this.getOwnerId(req);
+    
+    // Get userUuid if userId is available (user is authenticated)
+    let userUuid: string | undefined = undefined;
+    if (userId) {
+      const user = await this.usersRepository.findById(userId);
+      userUuid = user?.uuid;
+    }
+    
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
@@ -577,7 +587,7 @@ export class BookingsController_2024_04_15 {
       oAuthClientId,
       ...oAuthParams,
     });
-    Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
+    Object.assign(clone, { userId, userUuid, ...oAuthParams, platformBookingLocation });
     clone.body = {
       ...clone.body,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
@@ -586,7 +596,7 @@ export class BookingsController_2024_04_15 {
     if (oAuthClientId) {
       await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
     }
-    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+    return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
   }
 
   async setPlatformAttendeesEmails(
@@ -612,9 +622,17 @@ export class BookingsController_2024_04_15 {
     oAuthClientId?: string,
     platformBookingLocation?: string,
     isEmbed?: string
-  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+  ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
     const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
+    
+    // Get userUuid if userId is available (user is authenticated)
+    let userUuid: string | undefined = undefined;
+    if (userId && userId !== -1) {
+      const user = await this.usersRepository.findById(userId);
+      userUuid = user?.uuid;
+    }
+    
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
@@ -628,6 +646,7 @@ export class BookingsController_2024_04_15 {
     });
     Object.assign(clone, {
       userId,
+      userUuid,
       ...oAuthParams,
       platformBookingLocation,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
@@ -636,7 +655,7 @@ export class BookingsController_2024_04_15 {
     if (oAuthClientId) {
       await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
     }
-    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+    return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
   }
 
   private handleBookingErrors(

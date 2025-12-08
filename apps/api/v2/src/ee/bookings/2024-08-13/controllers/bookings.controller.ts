@@ -105,7 +105,7 @@ export class BookingsController_2024_08_13 {
     private readonly usersService: UsersService,
     private readonly bookingReferencesService: BookingReferencesService_2024_08_13,
     private readonly calVideoService: CalVideoService
-  ) {}
+  ) { }
 
   @Post("/")
   @UseGuards(OptionalApiAuthGuard)
@@ -400,9 +400,9 @@ export class BookingsController_2024_08_13 {
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
     @Body() body: MarkAbsentBookingInput_2024_08_13,
-    @GetUser("id") ownerId: number
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.markAbsent(bookingUid, ownerId, body);
+    const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
 
     return {
       status: SUCCESS_STATUS,

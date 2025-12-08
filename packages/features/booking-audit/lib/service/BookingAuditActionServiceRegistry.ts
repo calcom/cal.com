@@ -1,3 +1,4 @@
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { IAuditActionService } from "../actions/IAuditActionService";
 import type { BookingAuditAction } from "../repository/IBookingAuditRepository";
 
@@ -12,7 +13,7 @@ import { HostNoShowUpdatedAuditActionService, type HostNoShowUpdatedAuditData, t
 import { RejectedAuditActionService, type RejectedAuditData, type RejectedAuditDisplayData } from "../actions/RejectedAuditActionService";
 import { AttendeeRemovedAuditActionService, type AttendeeRemovedAuditData, type AttendeeRemovedAuditDisplayData } from "../actions/AttendeeRemovedAuditActionService";
 import { ReassignmentAuditActionService, type ReassignmentAuditData, type ReassignmentAuditDisplayData } from "../actions/ReassignmentAuditActionService";
-import { LocationChangedAuditActionService, type LocationChangedAuditData, type LocationChangedAuditDisplayData } from "../actions/LocationChangedAuditActionService";
+import { LocationChangedAuditActionService, type LocationChangedAuditData } from "../actions/LocationChangedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAuditData, type AttendeeNoShowUpdatedAuditDisplayData } from "../actions/AttendeeNoShowUpdatedAuditActionService";
 
 /**
@@ -33,23 +34,6 @@ export type AuditActionData =
     | LocationChangedAuditData
     | AttendeeNoShowUpdatedAuditData;
 
-/**
- * Union type for all audit display data types
- * Used for formatting audit logs for display
- */
-export type AuditDisplayData =
-    | CreatedAuditDisplayData
-    | CancelledAuditDisplayData
-    | RescheduledAuditDisplayData
-    | AcceptedAuditDisplayData
-    | RescheduleRequestedAuditDisplayData
-    | AttendeeAddedAuditDisplayData
-    | HostNoShowUpdatedAuditDisplayData
-    | RejectedAuditDisplayData
-    | AttendeeRemovedAuditDisplayData
-    | ReassignmentAuditDisplayData
-    | LocationChangedAuditDisplayData
-    | AttendeeNoShowUpdatedAuditDisplayData;
 
 /**
  * BookingAuditActionServiceRegistry
@@ -58,10 +42,14 @@ export type AuditDisplayData =
  * Provides a single source of truth for action service mapping and eliminates
  * code duplication between consumer and viewer services.
  */
+interface BookingAuditActionServiceRegistryDeps {
+    userRepository: UserRepository;
+}
+
 export class BookingAuditActionServiceRegistry {
     private readonly actionServices: Map<BookingAuditAction, IAuditActionService<any, any>>;
 
-    constructor() {
+    constructor(private deps: BookingAuditActionServiceRegistryDeps) {
         const services: Array<[BookingAuditAction, IAuditActionService<any, any>]> = [
             ["CREATED", new CreatedAuditActionService()],
             ["CANCELLED", new CancelledAuditActionService()],
@@ -72,7 +60,7 @@ export class BookingAuditActionServiceRegistry {
             ["HOST_NO_SHOW_UPDATED", new HostNoShowUpdatedAuditActionService()],
             ["REJECTED", new RejectedAuditActionService()],
             ["ATTENDEE_REMOVED", new AttendeeRemovedAuditActionService()],
-            ["REASSIGNMENT", new ReassignmentAuditActionService()],
+            ["REASSIGNMENT", new ReassignmentAuditActionService(deps.userRepository)],
             ["LOCATION_CHANGED", new LocationChangedAuditActionService()],
             ["ATTENDEE_NO_SHOW_UPDATED", new AttendeeNoShowUpdatedAuditActionService()],
         ];

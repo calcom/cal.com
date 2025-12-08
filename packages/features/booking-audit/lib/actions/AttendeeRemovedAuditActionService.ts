@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringArrayChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
 /**
  * Attendee Removed Audit Action Service
@@ -57,6 +57,10 @@ export class AttendeeRemovedAuditActionService
         // V1-only: validate and return as-is (no migration needed)
         const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
+    }
+
+    async getDisplayTitle(): Promise<TranslationWithParams> {
+        return { key: "booking_audit_action.attendee_removed" };
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeRemovedAuditDisplayData {

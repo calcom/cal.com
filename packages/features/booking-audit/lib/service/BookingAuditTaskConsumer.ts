@@ -2,6 +2,7 @@ import type { JsonValue } from "@calcom/types/Json";
 
 import logger from "@calcom/lib/logger";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
 import type { BookingAuditTaskBasePayload } from "../types/bookingAuditTask";
@@ -15,6 +16,7 @@ interface BookingAuditTaskConsumerDeps {
     bookingAuditRepository: IBookingAuditRepository;
     auditActorRepository: IAuditActorRepository;
     featuresRepository: IFeaturesRepository;
+    userRepository: UserRepository;
 }
 
 type CreateBookingAuditInput = {
@@ -45,20 +47,30 @@ type BookingAudit = {
  * 
  * Note: PENDING and AWAITING_HOST actions are intentionally not implemented.
  * These represent initial booking states captured by the CREATED action.
+ * 
+ * Dependency Injection Note:
+ * - `userRepository` is included in this service's dependencies because it's required by
+ *   ActionServices (e.g., ReassignmentAuditActionService) that need to fetch user data.
+ * - Currently, dependencies are passed down the flow: TaskConsumer → Registry → ActionService
+ * - Future improvement: Consider creating a container/module system for action services
+ *   that can build instances directly with their dependencies, eliminating the need to
+ *   pass dependencies through intermediate layers.
  */
 export class BookingAuditTaskConsumer {
     private readonly actionServiceRegistry: BookingAuditActionServiceRegistry;
     private readonly bookingAuditRepository: IBookingAuditRepository;
     private readonly auditActorRepository: IAuditActorRepository;
     private readonly featuresRepository: IFeaturesRepository;
+    private readonly userRepository: UserRepository;
 
     constructor(private readonly deps: BookingAuditTaskConsumerDeps) {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.auditActorRepository = deps.auditActorRepository;
         this.featuresRepository = deps.featuresRepository;
+        this.userRepository = deps.userRepository;
 
         // Centralized registry for all action services
-        this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
+        this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository });
     }
 
     /**
@@ -208,6 +220,14 @@ export class BookingAuditTaskConsumer {
                     actor.phone ?? null
                 );
                 return guestActor.id;
+            }
+            case "webhook": {
+                const webhookActor = await this.auditActorRepository.createIfNotExistsWebhookActor(actor.webhookId);
+                return webhookActor.id;
+            }
+            default: {
+                const exhaustiveCheck: never = actor;
+                throw new Error(`Unhandled actor type: ${JSON.stringify(exhaustiveCheck)}`);
             }
         }
     }

@@ -1,8 +1,9 @@
 import { z } from "zod";
 
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
 /**
  * Reassignment Audit Action Service
@@ -37,7 +38,7 @@ export class ReassignmentAuditActionService
         typeof ReassignmentAuditActionService.storedDataSchema
     >;
 
-    constructor() {
+    constructor(private userRepository: UserRepository) {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
             latestFieldsSchema: ReassignmentAuditActionService.latestFieldsSchema,
@@ -63,18 +64,21 @@ export class ReassignmentAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
+    async getDisplayTitle(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Promise<TranslationWithParams> {
+        const { fields } = storedData;
+        const user = await this.userRepository.findById({ id: fields.assignedToId.new });
+        const reassignedToName = user?.name || "Unknown";
+        return {
+            key: "booking_audit_action.booking_reassigned_to_host",
+            params: { host: reassignedToName },
+        };
+    }
+
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): ReassignmentAuditDisplayData {
         const { fields } = storedData;
         return {
-            previousAssignedToId: fields.assignedToId.old ?? null,
             newAssignedToId: fields.assignedToId.new,
-            previousAssignedById: fields.assignedById.old ?? null,
-            newAssignedById: fields.assignedById.new,
             reassignmentReason: fields.reassignmentReason.new ?? null,
-            previousEmail: fields.userPrimaryEmail?.old ?? null,
-            newEmail: fields.userPrimaryEmail?.new ?? null,
-            previousTitle: fields.title?.old ?? null,
-            newTitle: fields.title?.new ?? null,
         };
     }
 }
@@ -82,13 +86,6 @@ export class ReassignmentAuditActionService
 export type ReassignmentAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type ReassignmentAuditDisplayData = {
-    previousAssignedToId: number | null;
     newAssignedToId: number;
-    previousAssignedById: number | null;
-    newAssignedById: number;
     reassignmentReason: string | null;
-    previousEmail: string | null;
-    newEmail: string | null;
-    previousTitle: string | null;
-    newTitle: string | null;
 };

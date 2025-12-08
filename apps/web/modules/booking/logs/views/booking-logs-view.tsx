@@ -12,10 +12,16 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
+import { Avatar } from "@calcom/ui/components/avatar";
 
 interface BookingLogsViewProps {
     bookingUid: string;
 }
+
+type TranslationWithParams = {
+    key: string;
+    params?: Record<string, string | number>;
+};
 
 type AuditLog = {
     id: string;
@@ -23,9 +29,12 @@ type AuditLog = {
     type: string;
     timestamp: string;
     data: Record<string, unknown> | null;
+    actionDisplayTitle: TranslationWithParams;
     actor: {
         type: string;
         displayName: string | null;
+        displayEmail: string | null;
+        displayAvatar: string | null;
     };
 };
 
@@ -70,6 +79,21 @@ const getActionIcon = (action: string) => {
     }
 };
 
+const getActorRoleLabel = (actorType: string): string | null => {
+    switch (actorType) {
+        case "GUEST":
+            return "Guest";
+        case "ATTENDEE":
+            return "Attendee";
+        case "SYSTEM":
+            return null;
+        case "USER":
+            return null;
+        default:
+            return null;
+    }
+};
+
 function BookingLogsFilters({
     searchTerm,
     onSearchChange,
@@ -96,7 +120,7 @@ function BookingLogsFilters({
             <div className="min-w-[140px]">
                 <Select
                     size="sm"
-                    value={typeFilter ? { label: `${t("type")}: ${t(`audit_action.${typeFilter.toLowerCase()}`)}`, value: typeFilter } : { label: `${t("type")}: ${t("all")}`, value: "" }}
+                    value={typeFilter ? { label: `${t("type")}: ${t(`booking_audit_action.${typeFilter.toLowerCase()}`)}`, value: typeFilter } : { label: `${t("type")}: ${t("all")}`, value: "" }}
                     onChange={(option) => {
                         if (!option) return;
                         onTypeFilterChange(option.value || null);
@@ -157,8 +181,9 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
             {logs.map((log, index) => {
                 const isLast = index === logs.length - 1;
                 const isExpanded = expandedLogIds.has(log.id);
-                const actionDisplay = t(`audit_action.${log.action.toLowerCase()}`);
+                const actionDisplay = t(log.actionDisplayTitle.key, log.actionDisplayTitle.params);
                 const showJson = showJsonMap[log.id] || false;
+                const actorRole = getActorRoleLabel(log.actor.type);
 
                 return (
                     <div key={log.id} className="flex gap-1">
@@ -181,7 +206,17 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                             {actionDisplay}
                                         </h3>
                                         <div className="flex items-center gap-1 mt-1 text-xs text-subtle">
-                                            <span>{log.actor.displayName}</span>
+                                            {log.actor.displayAvatar && (
+                                                <Avatar
+                                                    size="xs"
+                                                    imageSrc={log.actor.displayAvatar}
+                                                    alt={log.actor.displayName || ""}
+                                                />
+                                            )}
+                                            <span>
+                                                {log.actor.displayName}
+                                                {actorRole && ` (${actorRole})`}
+                                            </span>
                                             <span>•</span>
                                             <span>{dayjs(log.timestamp).fromNow()}</span>
                                         </div>
@@ -190,58 +225,61 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                             </div>
 
                             <div className="px-3">
-                                <div className="bg-muted rounded-[10px] py-1">
-                                    <Button
-                                        color="minimal"
-                                        size="sm"
-                                        onClick={() => toggleExpand(log.id)}
-                                        StartIcon={isExpanded ? "chevron-down" : "chevron-right"}
-                                        className="w-full justify-start text-xs font-medium text-subtle h-6">
-                                        {isExpanded ? t("hide_details") : t("show_details")}
-                                    </Button>
+                                <div className="bg-muted rounded-lg border border-muted">
+                                    <div className="py-1">
+                                        <Button
+                                            color="minimal"
+                                            size="sm"
+                                            onClick={() => toggleExpand(log.id)}
+                                            StartIcon={isExpanded ? "chevron-down" : "chevron-right"}
+                                            className="justify-start text-xs font-medium text-subtle h-6">
+                                            {isExpanded ? t("hide_details") : t("show_details")}
+                                        </Button>
+                                    </div>
+
+                                    {isExpanded && (
+                                        <div className="bg-default rounded-lg m-0.5 text-xs">
+                                            <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                                                <span className="font-medium text-emphasis min-w-[80px]">{t("type")}</span>
+                                                <span className="text-[#096638] font-medium">{log.type.toLowerCase()}</span>
+                                            </div>
+                                            <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                                                <span className="font-medium text-emphasis min-w-[80px]">{t("actor")}</span>
+                                                <span className="text-default">{log.actor.displayName || log.actor.type}</span>
+                                            </div>
+                                            <div className="flex items-start gap-2 py-2 px-3 border-b border-subtle">
+                                                <span className="font-medium text-emphasis min-w-[80px]">
+                                                    {t("timestamp")}
+                                                </span>
+                                                <span className="text-default">
+                                                    {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
+                                                </span>
+                                            </div>
+                                            {log.data && Object.keys(log.data).length > 0 && (
+                                                <div>
+                                                    <div className="flex flex-col items-start gap-2 py-1 px-3 border-b border-subtle">
+                                                        <Button
+                                                            color="minimal"
+                                                            size="sm"
+                                                            onClick={() => toggleJson(log.id)}
+                                                            StartIcon={showJson ? "chevron-down" : "chevron-right"}
+                                                            className="-ml-3 h-6 px-2 font-medium text-xs">
+                                                            {t("json")}
+                                                        </Button>
+                                                    </div>
+                                                    <div>
+                                                        {showJson && (
+                                                            <pre className="bg-default p-3 rounded-md text-[10px] overflow-x-auto text-default font-mono">
+                                                                {JSON.stringify(log.data, null, 2)}
+                                                            </pre>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-
-                            {isExpanded && (
-                                <div className="mt-2 px-3">
-                                    <div className="space-y-2 text-xs">
-                                        <div className="flex items-start gap-2">
-                                            <span className="font-medium text-emphasis min-w-[80px]">{t("type")}</span>
-                                            <span className="text-default">{log.type}</span>
-                                        </div>
-                                        <div className="flex items-start gap-2">
-                                            <span className="font-medium text-emphasis min-w-[80px]">{t("actor")}</span>
-                                            <span className="text-default">{log.actor.type}</span>
-                                        </div>
-                                        <div className="flex items-start gap-2">
-                                            <span className="font-medium text-emphasis min-w-[80px]">
-                                                {t("timestamp")}
-                                            </span>
-                                            <span className="text-default">
-                                                {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
-                                            </span>
-                                        </div>
-
-                                        {log.data && Object.keys(log.data).length > 0 && (
-                                            <div className="pt-2">
-                                                <Button
-                                                    color="minimal"
-                                                    size="sm"
-                                                    onClick={() => toggleJson(log.id)}
-                                                    StartIcon={showJson ? "chevron-down" : "chevron-right"}
-                                                    className="mb-1 h-6 px-0 font-medium">
-                                                    {t("json")}
-                                                </Button>
-                                                {showJson && (
-                                                    <pre className="bg-subtle p-3 rounded-md text-[10px] overflow-x-auto text-default font-mono border border-subtle">
-                                                        {JSON.stringify(log.data, null, 2)}
-                                                    </pre>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 );
@@ -304,7 +342,7 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
     const uniqueActorTypes = Array.from(new Set(auditLogs.map((log) => log.actor.type)));
 
     const typeOptions = uniqueTypes.map((type) => ({
-        label: t(`audit_action.${type.toLowerCase()}`),
+        label: t(`booking_audit_action.${type.toLowerCase()}`),
         value: type,
     }));
 
