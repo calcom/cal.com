@@ -148,8 +148,23 @@ describe("handleChildrenEventTypes", () => {
       // Setup transaction mock to execute the callback
       setupTransactionMock();
 
-      // Mock createManyAndReturn to return the created event type
-      prismaMock.eventType.createManyAndReturn.mockResolvedValue([{ id: 123, userId: 4 }]);
+      // Mock createManyAndReturn to return the created event type (full EventType shape required for type safety)
+      const createdEventType = {
+        ...evType,
+        id: 123,
+        userId: 4,
+        schedulingType,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        autoTranslateDescriptionEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+      };
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -330,8 +345,24 @@ describe("handleChildrenEventTypes", () => {
       // Setup transaction mock to execute the callback
       setupTransactionMock();
 
-      // Mock createManyAndReturn to return the created event type
-      prismaMock.eventType.createManyAndReturn.mockResolvedValue([{ id: 123, userId: 4 }]);
+      // Mock createManyAndReturn to return the created event type (full EventType shape required for type safety)
+      const createdEventType = {
+        ...evType,
+        id: 123,
+        userId: 4,
+        schedulingType,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        autoTranslateDescriptionEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        assignRRMembersUsingSegment,
+      };
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
@@ -474,8 +505,26 @@ describe("handleChildrenEventTypes", () => {
       setupTransactionMock();
 
       // Mock createManyAndReturn to return the newly created event type for workflow linking
-      // This simulates the event type created for user 5
-      prismaMock.eventType.createManyAndReturn.mockResolvedValue([{ id: 3, userId: 5 }]);
+      // This simulates the event type created for user 5 (full EventType shape required for type safety)
+      const createdEventType = {
+        ...evType,
+        id: 3,
+        userId: 5,
+        schedulingType: _schedulingType,
+        teamId: _teamId,
+        locations: _locations,
+        timeZone: _timeZone,
+        parentId: _parentId,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        autoTranslateDescriptionEnabled,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        assignRRMembersUsingSegment,
+      };
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
       // Mock the event type that will be returned for existing users
       const mockUpdatedEventType = {
