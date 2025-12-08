@@ -162,6 +162,7 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
       };
@@ -361,6 +362,7 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
@@ -525,6 +527,7 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
         autoTranslateDescriptionEnabled,
+        autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
