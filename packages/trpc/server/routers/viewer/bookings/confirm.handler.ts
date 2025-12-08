@@ -7,6 +7,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -47,7 +48,6 @@ type ConfirmOptions = {
 };
 
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
-  const { user } = ctx;
   const {
     bookingId,
     recurringEventId,
@@ -141,12 +141,17 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     },
   });
 
+  const user = booking.user;
+  if (!user) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Booking must have an organizer" });
+  }
+
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
-    loggedInUserId: user.id,
+    loggedInUserId: ctx.user.id,
     teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
-    userRole: user.role,
+    userRole: ctx.user.role,
   });
 
   // Do not move this before authorization check.
@@ -250,6 +255,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),
+    organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
   };
 
@@ -403,6 +409,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
     try {
+      const creditService = new CreditService();
+
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
@@ -416,6 +424,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         },
         hideBranding: !!booking.eventType?.owner?.hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     } catch (error) {
       // Silently fail

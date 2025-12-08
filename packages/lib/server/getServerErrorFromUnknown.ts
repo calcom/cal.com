@@ -37,6 +37,12 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
     .join("; ");
 }
 
+/**
+ * Converts unknown error types to HttpError with proper status code mapping and error redaction.
+ * SERVER-ONLY: This function imports Prisma and Stripe schemas and should only be used in server-side code.
+ * Use in API routes, tRPC handlers, webhooks, and server-side services.
+ * For client-side code, use getErrorFromUnknown from @calcom/lib/errors instead.
+ */
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
   let traceId: string | undefined;
   let tracedData: Record<string, unknown> | undefined;
@@ -82,7 +88,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return getHttpError({ statusCode: 400, cause: stripeErrorObj, traceId, tracedData });
   }
   if (cause instanceof ErrorWithCode) {
-    const statusCode = getStatusCode(cause);
+    const statusCode = getHttpStatusCode(cause);
     return new HttpError({
       statusCode,
       message: cause.message ?? "",
@@ -102,7 +108,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     });
   }
   if (cause instanceof Error) {
-    const statusCode = getStatusCode(cause);
+    const statusCode = getHttpStatusCode(cause);
     return getHttpError({ statusCode, cause, traceId, tracedData });
   }
   if (typeof cause === "string") {
@@ -120,10 +126,23 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   });
 }
 
-function getStatusCode(cause: Error | ErrorWithCode): number {
+export function getHttpStatusCode(cause: Error | ErrorWithCode): number {
   const errorCode = cause instanceof ErrorWithCode ? cause.code : cause.message;
 
   switch (errorCode) {
+    // Generic HTTP error codes
+    case ErrorCode.BadRequest:
+      return 400;
+    case ErrorCode.Unauthorized:
+      return 401;
+    case ErrorCode.Forbidden:
+      return 403;
+    case ErrorCode.NotFound:
+      return 404;
+    case ErrorCode.InternalServerError:
+      return 500;
+
+    // Domain-specific error codes
     // 400 Bad Request
     case ErrorCode.RequestBodyWithouEnd:
     case ErrorCode.MissingPaymentCredential:
