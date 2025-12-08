@@ -2,6 +2,8 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
@@ -13,8 +15,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
+
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 
@@ -1588,7 +1589,7 @@ export class EventTypeRepository {
     return { eventTypes, total };
   }
 
-  /**
+    /**
    * List child event types for a given parent.
    * Supports search, user exclusion, cursor pagination.
    */
@@ -1610,12 +1611,12 @@ export class EventTypeRepository {
       parentId: parentEventTypeId,
       ...(excludeUserId ? { userId: { not: excludeUserId } } : {}),
       ...(searchTerm ? {
-            owner: {
-              OR: [
-                { name: { contains: searchTerm, mode: "insensitive" as const } },
-                { email: { contains: searchTerm, mode: "insensitive" as const } },
-              ],
-            },
+        owner: {
+          OR: [
+            { name: { contains: searchTerm, mode: "insensitive" as const } },
+            { email: { contains: searchTerm, mode: "insensitive" as const } },
+          ],
+        },
       } : {}),
     };
 
@@ -1655,20 +1656,20 @@ export class EventTypeRepository {
     };
   }
 
-  async findByIdWithParentAndUserId(eventTypeId: number) {
-    return this.prismaClient.eventType.findUnique({
-      where: { id: eventTypeId },
-      select: {
-        id: true,
-        parentId: true,
-        userId: true,
-        schedulingType: true,
-      },
-    });
-  }
+    async findByIdWithParentAndUserId(eventTypeId: number) {
+      return this.prismaClient.eventType.findUnique({
+        where: { id: eventTypeId },
+        select: {
+          id: true,
+          parentId: true,
+          userId: true,
+          schedulingType: true,
+        },
+      });
+    }
 
-  async findByIdTargetChildEventType(userId: number, parentId: number) {
-    return this.prismaClient.eventType.findUnique({
+    async findByIdTargetChildEventType(userId: number, parentId: number) {
+      return this.prismaClient.eventType.findUnique({
       where: {
         userId_parentId: {
           userId,
