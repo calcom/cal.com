@@ -1,9 +1,9 @@
 "use client";
 
 import { GettingStarted } from "@calid/features/modules/home/components/GettingStartedCard";
+import { Meetings } from "@calid/features/modules/home/components/MeetingsCard";
 import { MoreFeatures } from "@calid/features/modules/home/components/MoreFeaturesCard";
 import { MostUsedApps } from "@calid/features/modules/home/components/MostUsedApps";
-import { TodaysMeeting } from "@calid/features/modules/home/components/TodaysMeetingCard";
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -23,7 +23,7 @@ export default function HomePage() {
             <MoreFeatures />
           </div>
           <div className="flex w-full min-w-0 flex-col gap-4 lg:flex-[2]">
-            <TodaysMeeting />
+            <Meetings />
             <MostUsedApps />
           </div>
         </div>

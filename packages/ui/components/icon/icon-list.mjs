@@ -52,6 +52,8 @@ export const lucideIconList = new Set([
   "candy",
   "car-front",
   "car",
+  "circle-chevron-left",
+  "circle-chevron-right",
   "chart-bar",
   "chart-line",
   "chart-no-axes-column-increasing",

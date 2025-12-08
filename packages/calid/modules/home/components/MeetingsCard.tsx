@@ -2,7 +2,8 @@
 
 import { Icon } from "@calid/features/ui/components/icon";
 import { SkeletonText } from "@calid/features/ui/components/skeleton";
-import React, { useMemo } from "react";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
+import React, { useMemo, useState } from "react";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
@@ -11,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { DatePicker } from "@calcom/ui/components/form";
 
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
@@ -104,7 +106,7 @@ function EmptyState() {
       <div className="mb-4 rounded-full bg-blue-50 p-6">
         <Icon name="calendar-x-2" className="h-12 w-12 text-blue-500" />
       </div>
-      <h3 className="text-default mb-1 text-lg font-semibold">{t("no_meetings_today")}</h3>
+      <h3 className="text-default mb-1 text-lg font-semibold">{t("no_meetings")}</h3>
       <p className="text-subtle max-w-xs text-sm">{t("you_re_all_set")}</p>
     </div>
   );
@@ -166,52 +168,99 @@ function Skeleton() {
   );
 }
 
-export function TodaysMeeting() {
+export function Meetings() {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const timeZone = user?.timeZone || "UTC";
+  const [selectedDate, setSelectedDate] = useState(() => dayjs().tz(timeZone));
 
-  const todayStart = useMemo(() => {
-    return dayjs().tz(timeZone).startOf("day").toISOString();
-  }, [timeZone]);
+  const selectedDateStart = useMemo(() => {
+    return selectedDate.startOf("day").toISOString();
+  }, [selectedDate]);
 
-  const todayEnd = useMemo(() => {
-    return dayjs().tz(timeZone).endOf("day").toISOString();
-  }, [timeZone]);
+  const selectedDateEnd = useMemo(() => {
+    return selectedDate.add(1, "day").endOf("day").toISOString();
+  }, [selectedDate]);
 
-  const { data: bookingsData, isLoading } = trpc.viewer.bookings.get.useQuery({
-    limit: 100,
-    offset: 0,
-    filters: {
-      status: "upcoming",
-      afterStartDate: todayStart,
-      beforeEndDate: todayEnd,
+  const isToday = useMemo(() => {
+    return selectedDate.format("YYYY-MM-DD") === dayjs().tz(timeZone).format("YYYY-MM-DD");
+  }, [selectedDate, timeZone]);
+
+  const isPastDate = useMemo(() => {
+    return selectedDate.isBefore(dayjs().tz(timeZone), "day");
+  }, [selectedDate, timeZone]);
+
+  const { data: upcomingBookingsData, isLoading: isLoadingUpcoming } = trpc.viewer.bookings.get.useQuery(
+    {
+      limit: 100,
+      offset: 0,
+      filters: {
+        status: "upcoming",
+        afterStartDate: selectedDateStart,
+        beforeEndDate: selectedDateEnd,
+      },
     },
-  });
+    {
+      enabled: !isPastDate,
+    }
+  );
+
+  const { data: pastBookingsData, isLoading: isLoadingPast } = trpc.viewer.bookings.get.useQuery(
+    {
+      limit: 100,
+      offset: 0,
+      filters: {
+        status: "past",
+        afterStartDate: selectedDateStart,
+        beforeEndDate: selectedDateEnd,
+      },
+    },
+    {
+      enabled: isToday || isPastDate,
+    }
+  );
+
+  const bookingsData = useMemo(() => {
+    if (isPastDate) {
+      return pastBookingsData;
+    } else if (isToday) {
+      const upcomingBookings = upcomingBookingsData?.bookings || [];
+      const pastBookings = pastBookingsData?.bookings || [];
+      return {
+        bookings: [...pastBookings, ...upcomingBookings],
+      };
+    } else {
+      return upcomingBookingsData;
+    }
+  }, [isPastDate, isToday, pastBookingsData, upcomingBookingsData]);
+
+  const isLoading = isLoadingUpcoming || isLoadingPast;
 
   const todaysMeetings = useMemo(() => {
     if (!bookingsData?.bookings) return [];
 
-    const now = dayjs().tz(timeZone);
-    const todayBookings = bookingsData.bookings.filter((booking) => {
+    const selectedDateStr = selectedDate.format("YYYY-MM-DD");
+    const selectedBookings = bookingsData.bookings.filter((booking) => {
       const bookingDate = dayjs(booking.startTime).tz(timeZone);
-      return bookingDate.format("YYYY-MM-DD") === now.format("YYYY-MM-DD");
+      return bookingDate.format("YYYY-MM-DD") === selectedDateStr;
     });
 
-    return todayBookings
+    return selectedBookings
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
       .map((booking, index) => transformBookingToMeeting(booking, index, t));
-  }, [bookingsData, timeZone, t]);
+  }, [bookingsData, selectedDate, timeZone, t]);
 
   const now = useMemo(() => new Date(), []);
 
   const pastMeetings = useMemo(() => {
+    if (!isToday) return [];
     return todaysMeetings.filter((meeting) => meeting.startTime < now);
-  }, [todaysMeetings, now]);
+  }, [todaysMeetings, now, isToday]);
 
   const futureMeetings = useMemo(() => {
+    if (!isToday) return [];
     return todaysMeetings.filter((meeting) => meeting.startTime >= now);
-  }, [todaysMeetings, now]);
+  }, [todaysMeetings, now, isToday]);
 
   const upcomingMeetings = useMemo(() => {
     return futureMeetings.slice(0, 1);
@@ -223,17 +272,51 @@ export function TodaysMeeting() {
 
   const totalMeetings = todaysMeetings.length;
 
+  const handlePreviousDate = () => {
+    setSelectedDate((prev) => prev.subtract(1, "day").tz(timeZone));
+  };
+
+  const handleNextDate = () => {
+    setSelectedDate((prev) => prev.add(1, "day").tz(timeZone));
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(dayjs(date).tz(timeZone));
+  };
+
+  const selectedDateAsDate = useMemo(() => {
+    return selectedDate.toDate();
+  }, [selectedDate]);
+
   return (
-    <div className="border-default bg-default flex h-80 w-full flex-col rounded-md border px-4 py-6">
+    <div className="border-default bg-default flex h-80 w-full flex-shrink-0 flex-col overflow-hidden rounded-md border px-4 py-6">
       <div className="mb-6 flex flex-shrink-0 items-center justify-between">
-        <h2 className="text-default text-lg font-bold">{t("today_s_meetings")}</h2>
-        {!isLoading && (
-          <div className="border-default rounded-full border bg-blue-50 px-3 py-1">
-            <span className="text-default text-sm font-medium dark:text-black">
-              {totalMeetings} {totalMeetings === 1 ? t("meeting") : t("meetings")}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 rounded-md bg-blue-100 px-2 py-1">
+          <span className="text-sm font-semibold text-blue-600">
+            {totalMeetings} {totalMeetings === 1 ? t("meeting") : t("meetings")}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Tooltip content="Previous Day">
+            <button onClick={handlePreviousDate} className="flex">
+              <div className="bg-default flex h-12 w-5 items-center justify-end">
+                <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full border">
+                  <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+                </div>
+              </div>
+            </button>
+          </Tooltip>
+          <DatePicker date={selectedDateAsDate} onDatesChange={handleDateSelect} minDate={null} />
+          <Tooltip content="Next Day">
+            <button onClick={handleNextDate} className="flex">
+              <div className="bg-default flex h-12 w-5 items-center justify-end">
+                <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full border">
+                  <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+                </div>
+              </div>
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
@@ -241,7 +324,7 @@ export function TodaysMeeting() {
           <Skeleton />
         ) : totalMeetings === 0 ? (
           <EmptyState />
-        ) : (
+        ) : isToday ? (
           <>
             {upcomingMeetings.length > 0 && (
               <div className="flex flex-col gap-3">
@@ -282,6 +365,12 @@ export function TodaysMeeting() {
               </div>
             )}
           </>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {todaysMeetings.map((meeting) => (
+              <MeetingItem key={meeting.id} meeting={meeting} />
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -151,7 +151,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         switch (block) {
           case EventDetailBlocks.DURATION:
             return (
-              <EventMetaBlock key={block} icon="clock" label={t("duration")} className="items-center">
+              <EventMetaBlock key={block} icon="clock" className="items-center">
                 <EventDuration event={event} />
               </EventMetaBlock>
             );
