@@ -42,7 +42,7 @@ type Deps = {
 };
 
 export class AdminWatchlistOperationsService extends WatchlistOperationsService {
-  private log = logger.getSubLogger({ prefix: ["AdminWatchlistOperationsService"] });
+  private adminLog = logger.getSubLogger({ prefix: ["AdminWatchlistOperationsService"] });
 
   constructor(deps: Deps) {
     super(deps);
@@ -100,13 +100,14 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     if (successCount === 0 && failed.length > 0) {
-      this.log.error("Bulk delete watchlist entries failures", { failed });
+      this.adminLog.error("Bulk delete watchlist entries failures", { failed });
       throw WatchlistErrors.bulkDeletePartialFailure(`Failed to delete all entries: ${failed[0].reason}`);
     }
 
     return {
       success: successCount,
       failed: failed.length,
+      // TODO: use translate keys in follow up frontend PR
       message:
         failed.length === 0
           ? "All entries deleted successfully"
@@ -126,7 +127,9 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     const report = reports[0];
 
     if (report.watchlistId) {
-      throw WatchlistErrors.validationError("Cannot dismiss a report that has already been added to the blocklist");
+      throw WatchlistErrors.validationError(
+        "Cannot dismiss a report that has already been added to the blocklist"
+      );
     }
 
     await this.deps.bookingReportRepo.updateReportStatus({
@@ -172,7 +175,7 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     if (successCount === 0 && failed.length > 0) {
-      this.log.error("Bulk dismiss reports failures", { failed });
+      this.adminLog.error("Bulk dismiss reports failures", { failed });
       throw WatchlistErrors.bulkDeletePartialFailure(`Failed to dismiss all reports: ${failed[0].reason}`);
     }
 
