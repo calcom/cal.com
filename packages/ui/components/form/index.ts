@@ -34,3 +34,5 @@ export { FormStep, Steps, Stepper } from "./step";
 export { WizardForm } from "./wizard";
 export { default as ColorPicker } from "./color-picker/colorpicker";
 export { SettingsToggle, Switch } from "./switch";
+export { EmailTypoSuggestion } from "./inputs/EmailTypoSuggestion";
+export { useEmailTypoDetection } from "./hooks/useEmailTypoDetection";
