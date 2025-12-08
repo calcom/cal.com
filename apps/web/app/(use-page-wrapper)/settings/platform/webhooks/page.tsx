@@ -28,7 +28,7 @@ const ServerPageWrapper = async () => {
   }
 
   const caller = await createRouterCaller(webhookRouter);
-  const data = await caller.getByViewer();
+  const data = await caller.getByOrg();
 
   return <Webhooks data={data} />;
 };

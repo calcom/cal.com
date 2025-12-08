@@ -1,13 +1,14 @@
 "use client";
 
 import Shell from "@calcom/features/shell/Shell";
-import WebhooksView from "@calcom/features/webhooks/pages/webhooks-view";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
+
+import WebhooksView from "./webhooks-list";
 
 declare global {
   interface Window {
@@ -18,10 +19,10 @@ declare global {
   }
 }
 
-type WebhooksByViewer = RouterOutputs["viewer"]["webhook"]["getByViewer"];
+type WebhooksByOrg = RouterOutputs["viewer"]["webhook"]["getByOrg"];
 
 type Props = {
-  data: WebhooksByViewer;
+  data: WebhooksByOrg;
 };
 
 export default function Webhooks({ data }: Props) {
