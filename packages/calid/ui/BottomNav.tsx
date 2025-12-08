@@ -26,7 +26,7 @@ export default function BottomNav() {
 
   return (
     <div className="text-default flex hidden pb-4 text-xs lg:block">
-      <div className="mb-3">
+      <div className="mb-1.5">
         <Button
           color="minimal"
           StartIcon="external-link"
