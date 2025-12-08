@@ -4,6 +4,8 @@ import classNames from "classnames";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -18,6 +20,21 @@ type OnboardingBrowserViewProps = {
   teamSlug?: string;
 };
 
+const getDisplayUrl = (
+  orgSlug: string | null | undefined,
+  username: string | null | undefined,
+  teamSlug: string | undefined
+): string => {
+  if (orgSlug) {
+    return teamSlug !== undefined
+      ? `${orgSlug}.${subdomainSuffix()}/team/${teamSlug || ""}`
+      : `${orgSlug}.${subdomainSuffix()}/${username || ""}`;
+  }
+
+  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
+  return teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+};
+
 export const OnboardingBrowserView = ({
   avatar,
   name,
@@ -27,9 +44,9 @@ export const OnboardingBrowserView = ({
 }: OnboardingBrowserViewProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
-  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const displayUrl =
-    teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+  const orgBranding = useOrgBranding();
+
+  const displayUrl = getDisplayUrl(orgBranding?.slug, username, teamSlug);
 
   // Animation variants for entry and exit
   const containerVariants = {

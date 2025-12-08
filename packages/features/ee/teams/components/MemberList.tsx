@@ -830,6 +830,7 @@ function MemberListContent(props: Props) {
           state={state}
           currentMember={props.team.membership.role}
           teamId={props.team.id}
+          permissions={props.permissions}
         />
       )}
     </>

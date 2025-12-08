@@ -1,0 +1,64 @@
+{
+  "name": "cal-companion",
+  "displayName": "Cal.com Companion",
+  "version": "1.7.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "ext:build": "wxt build",
+    "ext": "wxt",
+    "ext:zip": "wxt zip",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "prepare": "cd .. && husky companion/.husky"
+  },
+  "dependencies": {
+    "@expo/ui": "^0.2.0-beta.7",
+    "@expo/vector-icons": "^15.0.3",
+    "@react-native-segmented-control/segmented-control": "^2.5.7",
+    "@types/react": "~19.1.10",
+    "@types/react-dom": "~19.1.7",
+    "base64-js": "^1.5.1",
+    "expo": "~54.0.0",
+    "expo-auth-session": "^7.0.9",
+    "expo-constants": "~18.0.10",
+    "expo-crypto": "^15.0.7",
+    "expo-device": "^8.0.9",
+    "expo-glass-effect": "~0.1.6",
+    "expo-linking": "~8.0.8",
+    "expo-router": "~6.0.14",
+    "expo-secure-store": "^15.0.7",
+    "expo-status-bar": "~3.0.8",
+    "expo-web-browser": "^15.0.9",
+    "nativewind": "^4.2.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-native": "0.81.5",
+    "react-native-context-menu-view": "^1.20.0",
+    "react-native-gesture-handler": "^2.29.1",
+    "react-native-reanimated": "~3.10.1",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-svg": "^15.15.0",
+    "react-native-web": "^0.21.2",
+    "react-native-worklets": "^0.6.1"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/chrome": "^0.1.31",
+    "babel-preset-expo": "^54.0.7",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.5.11",
+    "tailwindcss": "^3.4.17",
+    "wxt": "^0.20.11"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx,json,css,md}": [
+      "prettier --write"
+    ]
+  }
+}

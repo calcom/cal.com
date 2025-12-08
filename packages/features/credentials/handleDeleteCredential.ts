@@ -236,6 +236,11 @@ const handleDeleteCredential = async ({
                   name: true,
                   destinationCalendar: true,
                   locale: true,
+                  profiles: {
+                    select: {
+                      organizationId: true,
+                    },
+                  },
                 },
               },
               location: true,
@@ -357,6 +362,7 @@ const handleDeleteCredential = async ({
                       members: [],
                     }
                   : undefined,
+                organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
               },
               {
                 eventName: booking?.eventType?.eventName,

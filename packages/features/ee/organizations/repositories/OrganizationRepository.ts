@@ -289,6 +289,15 @@ export class OrganizationRepository {
         disablePhoneOnlySMSNotifications: true,
         disableAutofillOnBookingPage: true,
         orgAutoJoinOnSignup: true,
+        disableAttendeeConfirmationEmail: true,
+        disableAttendeeCancellationEmail: true,
+        disableAttendeeRescheduledEmail: true,
+        disableAttendeeRequestEmail: true,
+        disableAttendeeReassignedEmail: true,
+        disableAttendeeAwaitingPaymentEmail: true,
+        disableAttendeeRescheduleRequestEmail: true,
+        disableAttendeeLocationChangeEmail: true,
+        disableAttendeeNewEventEmail: true,
       },
     });
 
@@ -309,13 +318,24 @@ export class OrganizationRepository {
         disablePhoneOnlySMSNotifications: organizationSettings?.disablePhoneOnlySMSNotifications,
         disableAutofillOnBookingPage: organizationSettings?.disableAutofillOnBookingPage,
         orgAutoJoinOnSignup: organizationSettings?.orgAutoJoinOnSignup,
+        disableAttendeeConfirmationEmail: organizationSettings?.disableAttendeeConfirmationEmail,
+        disableAttendeeCancellationEmail: organizationSettings?.disableAttendeeCancellationEmail,
+        disableAttendeeRescheduledEmail: organizationSettings?.disableAttendeeRescheduledEmail,
+        disableAttendeeRequestEmail: organizationSettings?.disableAttendeeRequestEmail,
+        disableAttendeeReassignedEmail: organizationSettings?.disableAttendeeReassignedEmail,
+        disableAttendeeAwaitingPaymentEmail: organizationSettings?.disableAttendeeAwaitingPaymentEmail,
+        disableAttendeeRescheduleRequestEmail: organizationSettings?.disableAttendeeRescheduleRequestEmail,
+        disableAttendeeLocationChangeEmail: organizationSettings?.disableAttendeeLocationChangeEmail,
+        disableAttendeeNewEventEmail: organizationSettings?.disableAttendeeNewEventEmail,
       },
       user: {
         role: membership?.role,
         accepted: membership?.accepted,
       },
       ...membership?.team,
-      metadata,
+      metadata: {
+        requestedSlug: metadata?.requestedSlug ?? null,
+      },
     };
   }
 

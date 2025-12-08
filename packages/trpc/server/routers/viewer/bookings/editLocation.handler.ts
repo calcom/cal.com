@@ -262,6 +262,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const { booking, user: loggedInUser } = ctx;
 
   const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
+  const organizationId = booking.user?.profiles?.[0]?.organizationId ?? null;
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,
@@ -274,6 +275,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     organizer,
     location: newLocationInEvtFormat,
     conferenceCredentialId,
+    organizationId,
   });
 
   const eventManager = new EventManager({
