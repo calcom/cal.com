@@ -305,7 +305,15 @@ export class EventTypeRepository {
   ) {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
+    let profileId: number | null = null;
+    if (lookupTarget.type === LookupTarget.Profile) {
+      if ("uid" in lookupTarget && lookupTarget.uid) {
+        const profile = await ProfileRepository.findByUid(lookupTarget.uid);
+        profileId = profile?.id ?? null;
+      } else if ("id" in lookupTarget && lookupTarget.id !== undefined) {
+        profileId = lookupTarget.id;
+      }
+    }
     const select = {
       ...eventTypeSelect,
       hashedLink: hashedLinkSelect,
@@ -1580,7 +1588,7 @@ export class EventTypeRepository {
     return { eventTypes, total };
   }
 
-    /**
+  /**
    * List child event types for a given parent.
    * Supports search, user exclusion, cursor pagination.
    */
@@ -1602,12 +1610,12 @@ export class EventTypeRepository {
       parentId: parentEventTypeId,
       ...(excludeUserId ? { userId: { not: excludeUserId } } : {}),
       ...(searchTerm ? {
-        owner: {
-          OR: [
-            { name: { contains: searchTerm, mode: "insensitive" as const } },
-            { email: { contains: searchTerm, mode: "insensitive" as const } },
-          ],
-        },
+            owner: {
+              OR: [
+                { name: { contains: searchTerm, mode: "insensitive" as const } },
+                { email: { contains: searchTerm, mode: "insensitive" as const } },
+              ],
+            },
       } : {}),
     };
 
@@ -1647,20 +1655,20 @@ export class EventTypeRepository {
     };
   }
 
-    async findByIdWithParentAndUserId(eventTypeId: number) {
-      return this.prismaClient.eventType.findUnique({
-        where: { id: eventTypeId },
-        select: {
-          id: true,
-          parentId: true,
-          userId: true,
-          schedulingType: true,
-        },
-      });
-    }
+  async findByIdWithParentAndUserId(eventTypeId: number) {
+    return this.prismaClient.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: {
+        id: true,
+        parentId: true,
+        userId: true,
+        schedulingType: true,
+      },
+    });
+  }
 
-    async findByIdTargetChildEventType(userId: number, parentId: number) {
-      return this.prismaClient.eventType.findUnique({
+  async findByIdTargetChildEventType(userId: number, parentId: number) {
+    return this.prismaClient.eventType.findUnique({
       where: {
         userId_parentId: {
           userId,
