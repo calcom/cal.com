@@ -332,7 +332,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     return (
       <Link
         {...(passThroughProps as Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)}
-        data-testid="link-component"
         shallow={shallow && shallow}
         className={buttonClassName}
         onClick={handleClick}>
