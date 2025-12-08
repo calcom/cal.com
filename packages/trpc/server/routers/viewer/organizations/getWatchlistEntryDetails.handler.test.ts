@@ -88,7 +88,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
       });
     });
 
-    it("should map PERMISSION_DENIED error to UNAUTHORIZED", async () => {
+    it("should map PERMISSION_DENIED error to FORBIDDEN", async () => {
       mockService.getWatchlistEntryDetails.mockRejectedValue(
         WatchlistErrors.permissionDenied("You are not authorized to view blocklist entries")
       );
@@ -101,7 +101,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
           },
         })
       ).rejects.toMatchObject({
-        code: "UNAUTHORIZED",
+        code: "FORBIDDEN",
         message: "You are not authorized to view blocklist entries",
       });
     });
