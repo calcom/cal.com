@@ -1,3 +1,4 @@
+import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import type { PrismaClient } from "@calcom/prisma";
 import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
 
@@ -24,7 +25,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       });
 
       if (existing) {
-        throw new Error("Watchlist entry already exists for this organization");
+        throw WatchlistErrors.duplicateEntry("Watchlist entry already exists for this organization");
       }
     }
 
@@ -251,7 +252,7 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
 
     if (!existing) {
-      throw new Error("Watchlist entry not found");
+      throw WatchlistErrors.notFound("Watchlist entry not found");
     }
 
     await this.prismaClient.$transaction(async (tx) => {
@@ -288,8 +289,21 @@ export class WatchlistRepository implements IWatchlistRepository {
       return { deleted: 0 };
     }
 
-    await this.prismaClient.watchlist.deleteMany({
-      where: { id: { in: entries.map((e) => e.id) } },
+    await this.prismaClient.$transaction(async (tx) => {
+      await tx.watchlistAudit.createMany({
+        data: entries.map((entry) => ({
+          watchlistId: entry.id,
+          type: entry.type,
+          value: entry.value,
+          description: entry.description,
+          action: entry.action,
+          changedByUserId: params.userId,
+        })),
+      });
+
+      await tx.watchlist.deleteMany({
+        where: { id: { in: entries.map((e) => e.id) } },
+      });
     });
 
     return { deleted: entries.length };

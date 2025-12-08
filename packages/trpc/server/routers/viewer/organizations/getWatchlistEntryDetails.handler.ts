@@ -43,7 +43,7 @@ export const getWatchlistEntryDetailsHandler = async ({ ctx, input }: GetWatchli
         case WatchlistErrorCode.UNAUTHORIZED:
         case WatchlistErrorCode.PERMISSION_DENIED:
           throw new TRPCError({
-            code: "UNAUTHORIZED",
+            code: "FORBIDDEN",
             message: error.message,
           });
         default:

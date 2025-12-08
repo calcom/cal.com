@@ -32,9 +32,18 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
             code: "NOT_FOUND",
             message: error.message,
           });
+        case WatchlistErrorCode.UNAUTHORIZED:
+        case WatchlistErrorCode.PERMISSION_DENIED:
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: error.message,
+          });
         case WatchlistErrorCode.ALREADY_IN_WATCHLIST:
         case WatchlistErrorCode.INVALID_EMAIL:
         case WatchlistErrorCode.INVALID_DOMAIN:
+        case WatchlistErrorCode.INVALID_IP:
+        case WatchlistErrorCode.VALIDATION_ERROR:
+        case WatchlistErrorCode.DUPLICATE_ENTRY:
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: error.message,

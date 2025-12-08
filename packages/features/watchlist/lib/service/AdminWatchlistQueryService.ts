@@ -5,6 +5,8 @@ import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlis
 import type { PrismaClient } from "@calcom/prisma";
 import type { WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
+import { WatchlistErrors } from "../errors/WatchlistErrors";
+
 export interface ListWatchlistEntriesInput {
   limit: number;
   offset: number;
@@ -83,11 +85,11 @@ export class AdminWatchlistQueryService {
     const result = await this.deps.watchlistRepo.findEntryWithAuditAndReports(input.entryId);
 
     if (!result.entry) {
-      throw new Error("Blocklist entry not found");
+      throw WatchlistErrors.notFound("Blocklist entry not found");
     }
 
     if (!result.entry.isGlobal || result.entry.organizationId !== null) {
-      throw new Error("You can only view system blocklist entries");
+      throw WatchlistErrors.permissionDenied("You can only view system blocklist entries");
     }
 
     const userIds = result.auditHistory
