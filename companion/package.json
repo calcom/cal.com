@@ -28,6 +28,7 @@
     "base64-js": "^1.5.1",
     "expo": "~54.0.0",
     "expo-auth-session": "^7.0.9",
+    "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.10",
     "expo-crypto": "^15.0.7",
     "expo-device": "^8.0.9",

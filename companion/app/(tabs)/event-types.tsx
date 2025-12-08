@@ -12,11 +12,11 @@ import {
   ActionSheetIOS,
   Share,
   Alert,
-  Clipboard,
   Platform,
   Modal,
   KeyboardAvoidingView,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import Svg, { Path } from "react-native-svg";
 
 import { CalComAPIService, EventType } from "../../services/calcom";
@@ -24,11 +24,12 @@ import { Header } from "../../components/Header";
 import { Tooltip } from "../../components/Tooltip";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { EmptyScreen } from "../../components/EmptyScreen";
 import { slugify } from "../../utils/slugify";
 import { showErrorAlert } from "../../utils/alerts";
 import { offlineAwareRefresh } from "../../utils/network";
 import { openInAppBrowser } from "../../utils/browser";
-import { formatDuration } from "../event-type-detail/utils";
+import { formatDuration } from "../../components/event-type-detail/utils";
 import {
   useEventTypes,
   useCreateEventType,
@@ -221,7 +222,7 @@ export default function EventTypes() {
   const handleCopyLink = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      Clipboard.setString(link);
+      await Clipboard.setStringAsync(link);
 
       if (Platform.OS === "web") {
         showToastMessage("Link copied!", eventType.id);
@@ -549,24 +550,14 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search event types"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-        </View>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="calendar-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No event types found</Text>
-          <Text className="text-center text-base text-gray-500">
-            Create your first event type in Cal.com
-          </Text>
+          <EmptyScreen
+            icon="link-outline"
+            headline="Create your first event type"
+            description="Event types enable you to share links that show available times on your calendar and allow people to make bookings with you."
+            buttonText="New"
+            onButtonPress={handleCreateNew}
+          />
         </View>
       </View>
     );
@@ -576,7 +567,7 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
+        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
           <TextInput
             className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
             placeholder="Search event types"
@@ -587,13 +578,20 @@ export default function EventTypes() {
             autoCorrect={false}
             clearButtonMode="while-editing"
           />
+          <TouchableOpacity
+            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+            onPress={handleCreateNew}
+          >
+            <Ionicons name="add" size={18} color="#fff" />
+            <Text className="text-base font-semibold text-white">New</Text>
+          </TouchableOpacity>
         </View>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="search-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No results found</Text>
-          <Text className="text-center text-base text-gray-500">
-            Try searching with different keywords
-          </Text>
+          <EmptyScreen
+            icon="search-outline"
+            headline={`No results found for "${searchQuery}"`}
+            description="Try searching with different keywords"
+          />
         </View>
       </View>
     );

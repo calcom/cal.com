@@ -101,10 +101,7 @@ export function CacheStatusIndicator({
 
   // Normal state with last updated time
   if (dataUpdatedAt) {
-    const timeAgo = formatTimeAgo(dataUpdatedAt);
-
     if (compact) {
-      // In compact mode, only show icon with time in title
       return (
         <View style={[styles.container, style]}>
           <Ionicons name="time-outline" size={12} color="#8E8E93" />
@@ -115,7 +112,7 @@ export function CacheStatusIndicator({
     return (
       <View style={[styles.container, style]}>
         <Ionicons name="time-outline" size={12} color="#8E8E93" />
-        <Text style={styles.text}>Updated {timeAgo}</Text>
+        <Text style={styles.text}>Updated {formatTimeAgo(dataUpdatedAt)}</Text>
       </View>
     );
   }

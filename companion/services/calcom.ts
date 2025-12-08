@@ -309,10 +309,8 @@ export class CalComAPIService {
     return response.json();
   }
 
-  // Delete an event type
   static async deleteEventType(eventTypeId: number): Promise<void> {
     try {
-      console.log(`Deleting event type with ID: ${eventTypeId}`);
       await this.makeRequest(
         `/event-types/${eventTypeId}`,
         {
@@ -320,17 +318,15 @@ export class CalComAPIService {
         },
         "2024-06-14"
       );
-      console.log("Delete completed");
     } catch (error) {
       console.error("Delete API error:", error);
       throw error;
     }
   }
 
-  // Create an event type
   static async createEventType(input: CreateEventTypeInput): Promise<EventType> {
     try {
-      console.log("Creating event type with input:", JSON.stringify(input, null, 2));
+      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
 
       const response = await this.makeRequest<{ status: string; data: EventType }>(
         "/event-types",
@@ -340,13 +336,12 @@ export class CalComAPIService {
             "Content-Type": "application/json",
             "cal-api-version": "2024-06-14",
           },
-          body: JSON.stringify(input),
+          body: JSON.stringify(sanitizedInput),
         },
         "2024-06-14"
       );
 
       if (response && response.data) {
-        console.log("Event type created successfully:", response.data);
         return response.data;
       }
 
@@ -382,17 +377,14 @@ export class CalComAPIService {
     }
   }
 
-  // Reschedule a booking
   static async rescheduleBooking(
     bookingUid: string,
     input: {
-      start: string; // ISO 8601 datetime string
+      start: string;
       reschedulingReason?: string;
     }
   ): Promise<Booking> {
     try {
-      console.log(`Rescheduling booking ${bookingUid} to:`, input.start);
-
       const response = await this.makeRequest<{ status: string; data: Booking }>(
         `/bookings/${bookingUid}/reschedule`,
         {
@@ -407,7 +399,6 @@ export class CalComAPIService {
       );
 
       if (response && response.data) {
-        console.log("Booking rescheduled successfully:", response.data);
         return response.data;
       }
 
@@ -418,11 +409,8 @@ export class CalComAPIService {
     }
   }
 
-  // Confirm a pending booking
   static async confirmBooking(bookingUid: string): Promise<Booking> {
     try {
-      console.log(`Confirming booking ${bookingUid}`);
-
       const response = await this.makeRequest<{ status: string; data: Booking }>(
         `/bookings/${bookingUid}/confirm`,
         {
@@ -436,7 +424,6 @@ export class CalComAPIService {
       );
 
       if (response && response.data) {
-        console.log("Booking confirmed successfully:", response.data);
         return response.data;
       }
 
@@ -447,11 +434,8 @@ export class CalComAPIService {
     }
   }
 
-  // Decline a pending booking
   static async declineBooking(bookingUid: string, reason?: string): Promise<Booking> {
     try {
-      console.log(`Declining booking ${bookingUid}`);
-
       const body: { reason?: string } = {};
       if (reason) {
         body.reason = reason;
@@ -471,7 +455,6 @@ export class CalComAPIService {
       );
 
       if (response && response.data) {
-        console.log("Booking declined successfully:", response.data);
         return response.data;
       }
 
@@ -559,12 +542,7 @@ export class CalComAPIService {
         },
         "2024-08-13"
       );
-      console.log("getBookingByUid raw response:", JSON.stringify(response, null, 2));
       if (response && response.data) {
-        console.log("getBookingByUid booking data:", JSON.stringify(response.data, null, 2));
-        console.log("getBookingByUid user field:", response.data.user);
-        console.log("getBookingByUid hosts field:", response.data.hosts);
-        console.log("getBookingByUid attendees field:", response.data.attendees);
         return response.data;
       }
       throw new Error("Invalid response from get booking API");
@@ -734,7 +712,7 @@ export class CalComAPIService {
     }>;
   }): Promise<Schedule> {
     try {
-      console.log("Creating schedule with input:", JSON.stringify(input, null, 2));
+      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
 
       const response = await this.makeRequest<{ status: string; data: Schedule }>(
         "/schedules",
@@ -744,13 +722,12 @@ export class CalComAPIService {
             "Content-Type": "application/json",
             "cal-api-version": "2024-06-11",
           },
-          body: JSON.stringify(input),
+          body: JSON.stringify(sanitizedInput),
         },
         "2024-06-11"
       );
 
       if (response && response.data) {
-        console.log("Schedule created successfully:", response.data);
         return response.data;
       }
 
@@ -761,33 +738,26 @@ export class CalComAPIService {
     }
   }
 
-  // Get specific schedule by ID
   static async getScheduleById(scheduleId: number): Promise<Schedule | null> {
     try {
       const response = await this.makeRequest<any>(
         `/schedules/${scheduleId}`,
         {
           headers: {
-            "cal-api-version": "2024-06-11", // Override version for schedules
+            "cal-api-version": "2024-06-11",
           },
         },
         "2024-06-11"
       );
 
-      console.log("getScheduleById raw response:", JSON.stringify(response, null, 2));
-
       if (response && response.data) {
-        console.log("Returning schedule data:", response.data);
         return response.data;
       }
 
-      // Sometimes the response might be the schedule directly
       if (response && response.id) {
-        console.log("Returning schedule directly:", response);
         return response;
       }
 
-      console.log("No schedule data found in response");
       return null;
     } catch (error) {
       console.error("getScheduleById error:", error);
@@ -843,29 +813,105 @@ export class CalComAPIService {
   }
 
   // Update an event type
+  /**
+   * Sanitizes a payload before sending to the API.
+   * - Removes keys with null values for array fields (API expects arrays or field to be omitted)
+   * - Removes keys with undefined values
+   * - Recursively sanitizes nested objects
+   */
+  private static sanitizePayload(payload: Record<string, any>): Record<string, any> {
+    const sanitized: Record<string, any> = {};
+
+    // Fields that should NEVER be sent as null - API expects array or omit entirely
+    const arrayFields = [
+      "lengthInMinutesOptions",
+      "multipleDuration",
+      "locations",
+      "bookingFields",
+      "hosts",
+      "children",
+      "customInputs",
+    ];
+
+    // Fields that can be null (to clear the value)
+    const nullableFields = [
+      "description",
+      "successRedirectUrl",
+      "slotInterval",
+      "eventName",
+      "timeZone",
+    ];
+
+    for (const [key, value] of Object.entries(payload)) {
+      // Skip undefined values
+      if (value === undefined) continue;
+
+      // Handle null values
+      if (value === null) {
+        // For array fields, skip entirely (don't send null)
+        if (arrayFields.includes(key)) {
+          console.warn(`Skipping null value for array field: ${key}`);
+          continue;
+        }
+        // For nullable fields, allow null
+        if (nullableFields.includes(key)) {
+          sanitized[key] = null;
+          continue;
+        }
+        // For other fields, skip null to be safe
+        console.warn(`Skipping null value for field: ${key}`);
+        continue;
+      }
+
+      // Recursively sanitize nested objects (but not arrays)
+      if (typeof value === "object" && !Array.isArray(value)) {
+        const sanitizedNested = this.sanitizePayload(value);
+        // Only include if the nested object has values
+        if (Object.keys(sanitizedNested).length > 0) {
+          sanitized[key] = sanitizedNested;
+        }
+      } else {
+        sanitized[key] = value;
+      }
+    }
+
+    return sanitized;
+  }
+
   static async updateEventType(
     eventTypeId: number,
     updates: Partial<CreateEventTypeInput>
   ): Promise<EventType> {
     try {
-      console.log(`Updating event type ${eventTypeId} with:`, JSON.stringify(updates, null, 2));
+      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
 
-      const response = await this.makeRequest<{ status: string; data: EventType }>(
-        `/event-types/${eventTypeId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "cal-api-version": "2024-06-14",
-          },
-          body: JSON.stringify(updates),
+      const url = `${API_BASE_URL}/event-types/${eventTypeId}`;
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          Authorization: this.getAuthHeader(),
+          "Content-Type": "application/json",
+          "cal-api-version": "2024-06-14",
         },
-        "2024-06-14"
-      );
+        body: JSON.stringify(sanitizedUpdates),
+      });
 
-      if (response && response.data) {
-        console.log("Event type updated successfully:", response.data);
-        return response.data;
+      if (!response.ok) {
+        const errorBody = await response.text();
+        let errorMessage = response.statusText;
+        try {
+          const errorJson = JSON.parse(errorBody);
+          errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
+        } catch {
+          errorMessage = errorBody || response.statusText;
+        }
+        throw new Error(`API Error: ${errorMessage}`);
+      }
+
+      const result = await response.json();
+
+      if (result && result.data) {
+        return result.data;
       }
 
       throw new Error("Invalid response from update event type API");
@@ -895,6 +941,8 @@ export class CalComAPIService {
     }
   ): Promise<Schedule> {
     try {
+      // Sanitize the updates to remove null values
+      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
       const response = await this.makeRequest<{ status: string; data: Schedule }>(
         `/schedules/${scheduleId}`,
         {
@@ -903,7 +951,7 @@ export class CalComAPIService {
             "Content-Type": "application/json",
             "cal-api-version": "2024-06-11",
           },
-          body: JSON.stringify(updates),
+          body: JSON.stringify(sanitizedUpdates),
         },
         "2024-06-11"
       );
@@ -986,12 +1034,13 @@ export class CalComAPIService {
   // Create a global webhook
   static async createWebhook(input: CreateWebhookInput): Promise<Webhook> {
     try {
+      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
       const response = await this.makeRequest<{ status: string; data: Webhook }>("/webhooks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(input),
+        body: JSON.stringify(sanitizedInput),
       });
 
       if (response && response.data) {
@@ -1008,6 +1057,7 @@ export class CalComAPIService {
   // Update a global webhook
   static async updateWebhook(webhookId: string, updates: UpdateWebhookInput): Promise<Webhook> {
     try {
+      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
       const response = await this.makeRequest<{ status: string; data: Webhook }>(
         `/webhooks/${webhookId}`,
         {
@@ -1015,7 +1065,7 @@ export class CalComAPIService {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(updates),
+          body: JSON.stringify(sanitizedUpdates),
         }
       );
 
@@ -1066,6 +1116,7 @@ export class CalComAPIService {
     input: CreateWebhookInput
   ): Promise<Webhook> {
     try {
+      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
       const response = await this.makeRequest<{ status: string; data: Webhook }>(
         `/event-types/${eventTypeId}/webhooks`,
         {
@@ -1073,7 +1124,7 @@ export class CalComAPIService {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(input),
+          body: JSON.stringify(sanitizedInput),
         }
       );
 
@@ -1095,6 +1146,7 @@ export class CalComAPIService {
     updates: UpdateWebhookInput
   ): Promise<Webhook> {
     try {
+      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
       const response = await this.makeRequest<{ status: string; data: Webhook }>(
         `/event-types/${eventTypeId}/webhooks/${webhookId}`,
         {
@@ -1102,7 +1154,7 @@ export class CalComAPIService {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(updates),
+          body: JSON.stringify(sanitizedUpdates),
         }
       );
 
@@ -1157,6 +1209,7 @@ export class CalComAPIService {
     input: CreatePrivateLinkInput = {}
   ): Promise<PrivateLink> {
     try {
+      const sanitizedInput = this.sanitizePayload(input as Record<string, any>);
       const response = await this.makeRequest<{ status: string; data: PrivateLink }>(
         `/event-types/${eventTypeId}/private-links`,
         {
@@ -1164,7 +1217,7 @@ export class CalComAPIService {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(input),
+          body: JSON.stringify(sanitizedInput),
         }
       );
 
@@ -1186,6 +1239,7 @@ export class CalComAPIService {
     updates: UpdatePrivateLinkInput
   ): Promise<PrivateLink> {
     try {
+      const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
       const response = await this.makeRequest<{ status: string; data: PrivateLink }>(
         `/event-types/${eventTypeId}/private-links/${linkId}`,
         {
@@ -1193,7 +1247,7 @@ export class CalComAPIService {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(updates),
+          body: JSON.stringify(sanitizedUpdates),
         }
       );
 

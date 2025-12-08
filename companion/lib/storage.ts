@@ -44,9 +44,13 @@ export interface StorageAdapter {
 export const secureStorage = {
   get: async (key: string): Promise<string | null> => {
     if (isChromeStorageAvailable()) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         chrome.storage.local.get([key], (result) => {
-          resolve(result[key] || null);
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve((result[key] as string) || null);
+          }
         });
       });
     }
@@ -121,9 +125,13 @@ export const secureStorage = {
 export const generalStorage: StorageAdapter = {
   getItem: async (key: string): Promise<string | null> => {
     if (isChromeStorageAvailable()) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         chrome.storage.local.get([key], (result) => {
-          resolve((result[key] as string) || null);
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve((result[key] as string) || null);
+          }
         });
       });
     }

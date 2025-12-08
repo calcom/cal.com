@@ -10,8 +10,8 @@ import {
   Platform,
   ActionSheetIOS,
   Alert,
-  Clipboard,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, UserProfile } from "../services/calcom";
 import { CalComLogo } from "./CalComLogo";
@@ -49,9 +49,9 @@ export function Header() {
     }
   };
 
-  const handleCopyPublicPageLink = () => {
+  const handleCopyPublicPageLink = async () => {
     if (publicPageUrl) {
-      Clipboard.setString(publicPageUrl);
+      await Clipboard.setStringAsync(publicPageUrl);
       Alert.alert("Link Copied!", "Your public page link has been copied to clipboard.");
     }
   };

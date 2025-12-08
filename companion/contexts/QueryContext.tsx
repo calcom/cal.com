@@ -8,7 +8,7 @@
  * - Cross-platform compatibility (mobile + extension)
  */
 
-import React, { ReactNode, useState, useEffect, useCallback } from "react";
+import React, { ReactNode, useState, useEffect, useCallback, useMemo } from "react";
 import { Platform } from "react-native";
 import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -152,11 +152,14 @@ export function QueryProvider({ children }: QueryProviderProps) {
     await clearQueryCache();
   }, [queryClient]);
 
-  const contextValue: QueryContextValue = {
-    invalidateAllQueries,
-    clearCache,
-    isOnline,
-  };
+  const contextValue: QueryContextValue = useMemo(
+    () => ({
+      invalidateAllQueries,
+      clearCache,
+      isOnline,
+    }),
+    [invalidateAllQueries, clearCache, isOnline]
+  );
 
   return (
     <QueryContext.Provider value={contextValue}>

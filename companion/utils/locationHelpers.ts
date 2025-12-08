@@ -392,9 +392,12 @@ export function validateLocationItem(item: LocationItem): { valid: boolean; erro
     if (!item.link || item.link.trim() === "") {
       return { valid: false, error: "Meeting link is required" };
     }
-    // Basic URL validation
+    // URL validation with protocol restriction
     try {
-      new URL(item.link);
+      const url = new URL(item.link);
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        return { valid: false, error: "Meeting link must use http or https" };
+      }
     } catch {
       return { valid: false, error: "Invalid meeting link URL" };
     }

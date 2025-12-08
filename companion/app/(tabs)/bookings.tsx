@@ -25,6 +25,7 @@ import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { BookingActionsModal } from "../../components/BookingActionsModal";
+import { EmptyScreen } from "../../components/EmptyScreen";
 import { SvgImage } from "../../components/SvgImage";
 import { getAppIconUrl } from "../../utils/getAppIconUrl";
 import { useAuth } from "../../contexts/AuthContext";
@@ -343,33 +344,33 @@ export default function Bookings() {
     switch (activeFilter) {
       case "upcoming":
         return {
-          icon: "calendar-clear-outline",
+          icon: "calendar-outline" as const,
           title: "No upcoming bookings",
-          text: "Your upcoming appointments will appear here",
+          text: "As soon as someone books a time with you it will show up here.",
         };
       case "unconfirmed":
         return {
-          icon: "hourglass-outline",
+          icon: "calendar-outline" as const,
           title: "No unconfirmed bookings",
-          text: "Bookings awaiting confirmation will appear here",
+          text: "Your unconfirmed bookings will show up here.",
         };
       case "past":
         return {
-          icon: "archive-outline",
+          icon: "calendar-outline" as const,
           title: "No past bookings",
-          text: "Your completed appointments will appear here",
+          text: "Your past bookings will show up here.",
         };
       case "cancelled":
         return {
-          icon: "close-circle-outline",
+          icon: "calendar-outline" as const,
           title: "No cancelled bookings",
-          text: "Cancelled or rejected bookings will appear here",
+          text: "Your canceled bookings will show up here.",
         };
       default:
         return {
-          icon: "calendar-clear-outline",
+          icon: "calendar-outline" as const,
           title: "No bookings found",
-          text: "Your bookings will appear here",
+          text: "Your bookings will appear here.",
         };
     }
   };
@@ -1036,9 +1037,11 @@ export default function Bookings() {
                   hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                   onPress={async (e) => {
                     e.stopPropagation();
-                    // Open conferencing app links in external browser for better compatibility
-                    // Use clean URL for Google Meet redirect links
-                    await Linking.openURL(meetingInfo.cleanUrl);
+                    try {
+                      await Linking.openURL(meetingInfo.cleanUrl);
+                    } catch {
+                      showErrorAlert("Error", "Failed to open meeting link. Please try again.");
+                    }
                   }}
                 >
                   {meetingInfo.iconUrl ? (
@@ -1049,7 +1052,12 @@ export default function Bookings() {
                       style={{ marginRight: 6 }}
                     />
                   ) : (
-                    <Ionicons name="videocam" size={16} color="#007AFF" style={{ marginRight: 6 }} />
+                    <Ionicons
+                      name="videocam"
+                      size={16}
+                      color="#007AFF"
+                      style={{ marginRight: 6 }}
+                    />
                   )}
                   <Text className="text-sm font-medium text-[#007AFF]">{meetingInfo.label}</Text>
                 </TouchableOpacity>
@@ -1172,67 +1180,75 @@ export default function Bookings() {
     );
   }
 
-  if (bookings.length === 0 && !loading) {
-    const emptyState = getEmptyStateContent();
-    return (
-      <View className="flex-1 bg-gray-50">
-        <Header />
-        {renderSegmentedControl()}
-        <ScrollView
-          className="flex-1 bg-gray-50"
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          <Ionicons
-            name={emptyState.icon as keyof typeof Ionicons.glyphMap}
-            size={64}
-            color="#666"
-          />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
-            {emptyState.title}
-          </Text>
-          <Text className="text-center text-base text-gray-500">{emptyState.text}</Text>
-        </ScrollView>
-      </View>
-    );
-  }
-
-  if (filteredBookings.length === 0 && searchQuery.trim() !== "" && !loading) {
-    return (
-      <View className="flex-1 bg-gray-50">
-        <Header />
-        {renderSegmentedControl()}
-        <ScrollView
-          className="flex-1 bg-gray-50"
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", padding: 20 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          <Ionicons name="search-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No results found</Text>
-          <Text className="text-center text-base text-gray-500">
-            Try searching with different keywords
-          </Text>
-        </ScrollView>
-      </View>
-    );
-  }
+  // Determine what content to show
+  const showEmptyState = bookings.length === 0 && !loading;
+  const showSearchEmptyState =
+    filteredBookings.length === 0 && searchQuery.trim() !== "" && !loading && !showEmptyState;
+  const showList = !showEmptyState && !showSearchEmptyState && !loading;
+  const emptyState = getEmptyStateContent();
 
   return (
     <View className="flex-1 bg-[#f8f9fa]">
       <Header />
       {renderSegmentedControl()}
-      <View className="flex-1 px-2 pt-4 md:px-4">
-        <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-          <FlatList
-            data={groupBookingsByMonth(filteredBookings)}
-            keyExtractor={(item) => item.key}
-            renderItem={renderListItem}
-            contentContainerStyle={{ paddingBottom: 90 }}
+
+      {/* Empty state - no bookings */}
+      {showEmptyState && (
+        <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 20,
+            }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            showsVerticalScrollIndicator={false}
-          />
+          >
+            <EmptyScreen
+              icon={emptyState.icon}
+              headline={emptyState.title}
+              description={emptyState.text}
+            />
+          </ScrollView>
         </View>
-      </View>
+      )}
+
+      {/* Search empty state */}
+      {showSearchEmptyState && (
+        <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 20,
+            }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          >
+            <EmptyScreen
+              icon="search-outline"
+              headline={`No results found for "${searchQuery}"`}
+              description="Try searching with different keywords"
+            />
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Bookings list */}
+      {showList && (
+        <View className="flex-1 px-2 pt-4 md:px-4">
+          <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+            <FlatList
+              data={groupBookingsByMonth(filteredBookings)}
+              keyExtractor={(item) => item.key}
+              renderItem={renderListItem}
+              contentContainerStyle={{ paddingBottom: 90 }}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </View>
+      )}
 
       {/* Filter Modal */}
       <FullScreenModal
@@ -1342,11 +1358,10 @@ export default function Bookings() {
       {/* Reschedule Modal */}
       <FullScreenModal
         visible={showRescheduleModal}
-        onClose={() => {
+        onRequestClose={() => {
           setShowRescheduleModal(false);
           setRescheduleBooking(null);
         }}
-        title="Reschedule Booking"
       >
         <ScrollView className="flex-1 p-4">
           {rescheduleBooking && (
@@ -1470,8 +1485,7 @@ export default function Bookings() {
               {/* Reason Input */}
               <View className="mb-5">
                 <Text className="mb-1.5 text-sm text-gray-700">
-                  Reason for rejecting{" "}
-                  <Text className="font-normal text-gray-400">(Optional)</Text>
+                  Reason for rejecting <Text className="font-normal text-gray-400">(Optional)</Text>
                 </Text>
                 <TextInput
                   className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm"

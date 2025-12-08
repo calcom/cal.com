@@ -29,7 +29,7 @@ export function LoadingSpinner({
   if (supportsGlass && Platform.OS === "ios") {
     return (
       <GlassView style={styles.glassContainer} glassEffectStyle="regular">
-        <ActivityIndicator size={size} color={color} />
+        <ActivityIndicator size={size} color={color || "#000000"} />
       </GlassView>
     );
   }

@@ -236,10 +236,10 @@ export default function BookingDetail() {
   const openRescheduleModal = () => {
     if (!booking) return;
 
-    // Pre-fill with the current booking date/time
+    // Pre-fill with the current booking date/time (using local timezone consistently)
     const currentDate = new Date(booking.startTime);
-    const dateStr = currentDate.toISOString().split("T")[0]; // YYYY-MM-DD
-    const timeStr = currentDate.toTimeString().slice(0, 5); // HH:MM
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`;
+    const timeStr = `${String(currentDate.getHours()).padStart(2, "0")}:${String(currentDate.getMinutes()).padStart(2, "0")}`;
 
     setRescheduleDate(dateStr);
     setRescheduleTime(timeStr);

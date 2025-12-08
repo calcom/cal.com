@@ -1,5 +1,8 @@
 // Utility functions for Event Type Detail
 
+// Re-export partial update utilities
+export { buildPartialUpdatePayload, hasChanges } from "./utils/buildPartialUpdatePayload";
+
 /**
  * Format duration in minutes to a human-readable string
  * @param minutes - Duration in minutes (number or string)

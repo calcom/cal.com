@@ -293,7 +293,15 @@ export function usePrefetchSchedules() {
   return () => {
     queryClient.prefetchQuery({
       queryKey: queryKeys.schedules.lists(),
-      queryFn: () => CalComAPIService.getSchedules(),
+      queryFn: async () => {
+        const schedules = await CalComAPIService.getSchedules();
+        // Sort schedules: default first, then by name (must match useSchedules)
+        return schedules.sort((a, b) => {
+          if (a.isDefault && !b.isDefault) return -1;
+          if (!a.isDefault && b.isDefault) return 1;
+          return a.name.localeCompare(b.name);
+        });
+      },
       staleTime: CACHE_CONFIG.schedules.staleTime,
     });
   };

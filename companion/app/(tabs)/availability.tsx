@@ -13,12 +13,14 @@ import {
   Modal,
   TextInput,
   KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 
 import { CalComAPIService, Schedule } from "../../services/calcom";
 import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { EmptyScreen } from "../../components/EmptyScreen";
 import { showErrorAlert } from "../../utils/alerts";
 import { offlineAwareRefresh } from "../../utils/network";
 import {
@@ -346,108 +348,100 @@ export default function Availability() {
     );
   }
 
-  if (schedules.length === 0 && !loading) {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search schedules"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-          <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-            onPress={handleCreateNew}
-          >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
-          </TouchableOpacity>
-        </View>
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="calendar-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-[#333]">No schedules found</Text>
-          <Text className="text-center text-base text-[#666]">
-            Create your availability schedule in Cal.com
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (filteredSchedules.length === 0 && searchQuery.trim() !== "") {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search schedules"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-          <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-            onPress={handleCreateNew}
-          >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
-          </TouchableOpacity>
-        </View>
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="search-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-[#333]">No results found</Text>
-          <Text className="text-center text-base text-[#666]">
-            Try searching with different keywords
-          </Text>
-        </View>
-      </View>
-    );
-  }
+  // Determine what content to show
+  const showEmptyState = schedules.length === 0 && !loading;
+  const showSearchEmptyState =
+    filteredSchedules.length === 0 && searchQuery.trim() !== "" && !showEmptyState;
+  const showList = !showEmptyState && !showSearchEmptyState;
 
   return (
     <View className="flex-1 bg-gray-100">
       <Header />
-      <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-        <TextInput
-          className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-          placeholder="Search schedules"
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={handleSearch}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-        <TouchableOpacity
-          className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-          onPress={handleCreateNew}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text className="text-base font-semibold text-white">New</Text>
-        </TouchableOpacity>
-      </View>
-      <View className="flex-1 px-2 pt-4 md:px-4">
-        <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-          <FlatList
-            data={filteredSchedules}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderSchedule}
-            contentContainerStyle={{ paddingBottom: 90 }}
+
+      {/* Empty state - no schedules */}
+      {showEmptyState && (
+        <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 20,
+            }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            showsVerticalScrollIndicator={false}
-          />
+          >
+            <EmptyScreen
+              icon="time-outline"
+              headline="Create an availability schedule"
+              description="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
+              buttonText="New"
+              onButtonPress={handleCreateNew}
+            />
+          </ScrollView>
         </View>
-      </View>
+      )}
+
+      {/* Search bar and content for non-empty states */}
+      {!showEmptyState && (
+        <>
+          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+            <TextInput
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+              placeholder="Search schedules"
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
+            <TouchableOpacity
+              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              onPress={handleCreateNew}
+            >
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text className="text-base font-semibold text-white">New</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Search empty state */}
+          {showSearchEmptyState && (
+            <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
+              <ScrollView
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: 20,
+                }}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+              >
+                <EmptyScreen
+                  icon="search-outline"
+                  headline={`No results found for "${searchQuery}"`}
+                  description="Try searching with different keywords"
+                />
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Schedules list */}
+          {showList && (
+            <View className="flex-1 px-2 pt-4 md:px-4">
+              <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+                <FlatList
+                  data={filteredSchedules}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={renderSchedule}
+                  contentContainerStyle={{ paddingBottom: 90 }}
+                  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                  showsVerticalScrollIndicator={false}
+                />
+              </View>
+            </View>
+          )}
+        </>
+      )}
 
       {/* Create Schedule Modal */}
       <FullScreenModal

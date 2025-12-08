@@ -11,11 +11,11 @@ import {
   Switch,
   Modal,
   Alert,
-  Clipboard,
   Animated,
   Image,
   Platform,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
@@ -35,12 +35,20 @@ import {
   parseSlotInterval,
 } from "../utils/parsers/event-type-parsers";
 import { slugify } from "../utils/slugify";
-import { BasicsTab } from "./event-type-detail/tabs/BasicsTab";
-import { AvailabilityTab } from "./event-type-detail/tabs/AvailabilityTab";
-import { LimitsTab } from "./event-type-detail/tabs/LimitsTab";
-import { AdvancedTab } from "./event-type-detail/tabs/AdvancedTab";
-import { RecurringTab } from "./event-type-detail/tabs/RecurringTab";
-import { formatDuration, truncateTitle, formatAppIdToDisplayName } from "./event-type-detail/utils";
+import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
+import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";
+import { LimitsTab } from "../components/event-type-detail/tabs/LimitsTab";
+import { AdvancedTab } from "../components/event-type-detail/tabs/AdvancedTab";
+import { RecurringTab } from "../components/event-type-detail/tabs/RecurringTab";
+import {
+  formatDuration,
+  truncateTitle,
+  formatAppIdToDisplayName,
+} from "../components/event-type-detail/utils";
+import {
+  buildPartialUpdatePayload,
+  hasChanges,
+} from "../components/event-type-detail/utils/buildPartialUpdatePayload";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -73,9 +81,7 @@ export default function EventTypeDetail() {
   const [eventDuration, setEventDuration] = useState(duration || "30");
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
-  // Multiple locations support
   const [locations, setLocations] = useState<LocationItem[]>([]);
-  // Legacy single location input fields (kept for backward compatibility during transition)
   const [locationAddress, setLocationAddress] = useState("");
   const [locationLink, setLocationLink] = useState("");
   const [locationPhone, setLocationPhone] = useState("");
@@ -143,6 +149,7 @@ export default function EventTypeDetail() {
   const [forwardParamsSuccessRedirect, setForwardParamsSuccessRedirect] = useState(false);
   const [hideOrganizerEmail, setHideOrganizerEmail] = useState(false);
   const [lockTimezone, setLockTimezone] = useState(false);
+  const [lockedTimezone, setLockedTimezone] = useState("Europe/London");
   const [allowReschedulingPastEvents, setAllowReschedulingPastEvents] = useState(false);
   const [allowBookingThroughRescheduleLink, setAllowBookingThroughRescheduleLink] = useState(false);
   const [disableGuests, setDisableGuests] = useState(false);
@@ -150,13 +157,11 @@ export default function EventTypeDetail() {
   const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
   const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
 
-  // Seats state
   const [seatsEnabled, setSeatsEnabled] = useState(false);
   const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState("2");
   const [showAttendeeInfo, setShowAttendeeInfo] = useState(false);
   const [showAvailabilityCount, setShowAvailabilityCount] = useState(true);
 
-  // Recurring tab state
   const [recurringEnabled, setRecurringEnabled] = useState(false);
   const [recurringInterval, setRecurringInterval] = useState("1");
   const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "monthly" | "yearly">(
@@ -217,12 +222,10 @@ export default function EventTypeDetail() {
     "480 mins",
   ];
 
-  // Get location options for dropdown using helper
   const getLocationOptionsForDropdown = (): LocationOptionGroup[] => {
     return buildLocationOptions(conferencingOptions);
   };
 
-  // Location management handlers
   const handleAddLocation = (location: LocationItem) => {
     setLocations((prev) => [...prev, location]);
   };
@@ -237,9 +240,7 @@ export default function EventTypeDetail() {
     );
   };
 
-  // Legacy function for backward compatibility (used by BasicsTab if needed)
   const getSelectedLocationIconUrl = (): string | null => {
-    // Return icon of first location if exists
     if (locations.length > 0) {
       return locations[0].iconUrl;
     }
@@ -331,9 +332,7 @@ export default function EventTypeDetail() {
   const fetchScheduleDetails = async (scheduleId: number) => {
     try {
       setScheduleDetailsLoading(true);
-      console.log("Fetching schedule details for ID:", scheduleId);
       const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
-      console.log("Raw schedule details response:", scheduleDetails);
       setSelectedScheduleDetails(scheduleDetails);
       if (scheduleDetails.timeZone) {
         setSelectedTimezone(scheduleDetails.timeZone);
@@ -350,7 +349,6 @@ export default function EventTypeDetail() {
     try {
       setConferencingLoading(true);
       const options = await CalComAPIService.getConferencingOptions();
-      console.log("Fetched conferencing options:", JSON.stringify(options, null, 2));
       setConferencingOptions(options);
     } catch (error) {
       console.error("Failed to fetch conferencing options:", error);
@@ -373,6 +371,22 @@ export default function EventTypeDetail() {
         if (eventType.description) setEventDescription(eventType.description);
         if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
         if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+
+        const eventTypeAny = eventType as any;
+        if (
+          eventTypeAny.lengthInMinutesOptions &&
+          Array.isArray(eventTypeAny.lengthInMinutesOptions) &&
+          eventTypeAny.lengthInMinutesOptions.length > 0
+        ) {
+          setAllowMultipleDurations(true);
+          const durationStrings = eventTypeAny.lengthInMinutesOptions.map(
+            (mins: number) => `${mins} mins`
+          );
+          setSelectedDurations(durationStrings);
+          if (eventType.lengthInMinutes) {
+            setDefaultDuration(`${eventType.lengthInMinutes} mins`);
+          }
+        }
 
         // Load buffer times
         if (eventType.beforeEventBuffer) {
@@ -486,8 +500,6 @@ export default function EventTypeDetail() {
           setOnlyShowFirstAvailableSlot(eventType.onlyShowFirstAvailableSlot);
         }
 
-        // Load max active bookings
-        // API returns: { maximumActiveBookings: number, offerReschedule: boolean }
         if (eventType.bookerActiveBookingsLimit) {
           const bookingLimit = eventType.bookerActiveBookingsLimit as any;
           if (!("disabled" in bookingLimit)) {
@@ -502,8 +514,6 @@ export default function EventTypeDetail() {
           }
         }
 
-        // Load booking window (future bookings limit)
-        // API returns: { type: "range" | "calendarDays" | "businessDays", value: number | [string, string], rolling?: boolean }
         if (eventType.bookingWindow && !("disabled" in eventType.bookingWindow)) {
           setLimitFutureBookings(true);
           if (eventType.bookingWindow.type === "range") {
@@ -516,64 +526,46 @@ export default function EventTypeDetail() {
               setRangeEndDate(eventType.bookingWindow.value[1]);
             }
           } else {
-            // Both "calendarDays" and "businessDays" are rolling types
             setFutureBookingType("rolling");
             if (typeof eventType.bookingWindow.value === "number") {
               setRollingDays(eventType.bookingWindow.value.toString());
             }
-            // calendarDays = true means calendar days, businessDays = false means business days
             setRollingCalendarDays(eventType.bookingWindow.type === "calendarDays");
           }
         }
 
-        // Load Advanced tab fields - check both root level and metadata
-        // Some fields are at root level in the database but may be in metadata in API
         const eventTypeAnyForAdvanced = eventType as any;
 
-        // disableCancelling - check root level first, then metadata
         if (eventTypeAnyForAdvanced.disableCancelling !== undefined) {
           setDisableCancelling(eventTypeAnyForAdvanced.disableCancelling);
         } else if (eventType.metadata?.disableCancelling) {
           setDisableCancelling(true);
         }
 
-        // disableRescheduling - check root level first, then metadata
         if (eventTypeAnyForAdvanced.disableRescheduling !== undefined) {
           setDisableRescheduling(eventTypeAnyForAdvanced.disableRescheduling);
         } else if (eventType.metadata?.disableRescheduling) {
           setDisableRescheduling(true);
         }
 
-        // sendCalVideoTranscription - check root level first, then metadata
         if (eventTypeAnyForAdvanced.sendCalVideoTranscription !== undefined) {
           setSendCalVideoTranscription(eventTypeAnyForAdvanced.sendCalVideoTranscription);
         } else if (eventType.metadata?.sendCalVideoTranscription) {
           setSendCalVideoTranscription(true);
         }
 
-        // autoTranslate - check root level first, then metadata
         if (eventTypeAnyForAdvanced.autoTranslate !== undefined) {
           setAutoTranslate(eventTypeAnyForAdvanced.autoTranslate);
         } else if (eventType.metadata?.autoTranslate) {
           setAutoTranslate(true);
         }
 
-        // Other metadata fields
         if (eventType.metadata) {
           if (eventType.metadata.calendarEventName) {
             setCalendarEventName(eventType.metadata.calendarEventName);
           }
           if (eventType.metadata.addToCalendarEmail) {
             setAddToCalendarEmail(eventType.metadata.addToCalendarEmail);
-          }
-          if (eventType.metadata.customReplyToEmail) {
-            setCustomReplyToEmail(eventType.metadata.customReplyToEmail);
-          }
-          if (eventType.metadata.allowReschedulingPastEvents) {
-            setAllowReschedulingPastEvents(true);
-          }
-          if (eventType.metadata.allowBookingThroughRescheduleLink) {
-            setAllowBookingThroughRescheduleLink(true);
           }
         }
 
@@ -590,22 +582,16 @@ export default function EventTypeDetail() {
           }
         }
 
-        // Load confirmation settings
-        // API returns: { disabled: boolean } or { type: "always" | "time", ... }
         if (eventType.confirmationPolicy) {
           const policy = eventType.confirmationPolicy as any;
           if (!("disabled" in policy) || policy.disabled === false) {
             setRequiresConfirmation(true);
           }
         }
-        // Also check legacy field
         if (eventType.requiresConfirmation !== undefined) {
           setRequiresConfirmation(eventType.requiresConfirmation);
         }
 
-        // Load boolean fields from root level (API v2 returns these at root, not in metadata)
-        // Cast to any to handle fields that may not be in the type definition
-        const eventTypeAny = eventType as any;
         if (eventType.requiresBookerEmailVerification !== undefined) {
           setRequiresBookerEmailVerification(eventType.requiresBookerEmailVerification);
         }
@@ -614,6 +600,9 @@ export default function EventTypeDetail() {
         }
         if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
           setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
+        }
+        if (eventTypeAny.lockedTimeZone) {
+          setLockedTimezone(eventTypeAny.lockedTimeZone);
         }
         if (eventTypeAny.hideCalendarEventDetails !== undefined) {
           setHideCalendarEventDetails(eventTypeAny.hideCalendarEventDetails);
@@ -630,8 +619,6 @@ export default function EventTypeDetail() {
           setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
         }
 
-        // Load event type colors
-        // API returns: { darkThemeHex: string, lightThemeHex: string }
         if (eventTypeAny.color) {
           if (eventTypeAny.color.lightThemeHex) {
             setEventTypeColorLight(eventTypeAny.color.lightThemeHex);
@@ -640,7 +627,6 @@ export default function EventTypeDetail() {
             setEventTypeColorDark(eventTypeAny.color.darkThemeHex);
           }
         }
-        // Also check legacy format
         if (eventType.eventTypeColor) {
           if (eventType.eventTypeColor.lightEventTypeColor) {
             setEventTypeColorLight(eventType.eventTypeColor.lightEventTypeColor);
@@ -650,12 +636,8 @@ export default function EventTypeDetail() {
           }
         }
 
-        // Load recurring event settings
-        // API returns { disabled: false, interval, occurrences, frequency } when enabled
-        // or { disabled: true } when disabled
         if (eventType.recurrence) {
           const recurrence = eventType.recurrence as any;
-          // Check if disabled is explicitly true (not just present)
           if (recurrence.disabled !== true && recurrence.interval && recurrence.frequency) {
             setRecurringEnabled(true);
             setRecurringInterval(recurrence.interval.toString());
@@ -667,12 +649,10 @@ export default function EventTypeDetail() {
           }
         }
 
-        // Extract all locations from event type using helper
         if (eventType.locations && eventType.locations.length > 0) {
           const mappedLocations = eventType.locations.map((loc: any) => mapApiLocationToItem(loc));
           setLocations(mappedLocations);
 
-          // Also set legacy input fields for backward compatibility (from first location)
           const firstLocation = eventType.locations[0];
           if (firstLocation.address) {
             setLocationAddress(firstLocation.address);
@@ -685,16 +665,12 @@ export default function EventTypeDetail() {
           }
         }
 
-        // Load disableGuests setting
         if (eventType.disableGuests !== undefined) {
           setDisableGuests(eventType.disableGuests);
         }
 
-        // Load seats settings
-        // API returns: { disabled: boolean, seatsPerTimeSlot: number, showAttendeeInfo: boolean, showAvailabilityCount: boolean }
         if (eventType.seats) {
           const seats = eventType.seats as any;
-          // Check if seats are enabled (disabled: false or disabled not present with seatsPerTimeSlot)
           const seatsAreEnabled =
             seats.disabled === false || (!("disabled" in seats) && seats.seatsPerTimeSlot);
 
@@ -771,12 +747,8 @@ export default function EventTypeDetail() {
 
   const getDaySchedule = () => {
     if (!selectedScheduleDetails) {
-      console.log("No selectedScheduleDetails");
       return [];
     }
-
-    console.log("selectedScheduleDetails:", selectedScheduleDetails);
-    console.log("availability:", selectedScheduleDetails.availability);
 
     const daysOfWeek = [
       "Sunday",
@@ -809,8 +781,6 @@ export default function EventTypeDetail() {
         );
       });
 
-      console.log(`${day}: availability found:`, availability);
-
       return {
         day,
         available: !!availability,
@@ -838,7 +808,7 @@ export default function EventTypeDetail() {
       const eventTypeSlug = eventSlug || "event-link";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
 
-      Clipboard.setString(link);
+      await Clipboard.setStringAsync(link);
       Alert.alert("Success", "Link copied!");
     } catch (error) {
       console.error("Failed to copy link:", error);
@@ -854,7 +824,6 @@ export default function EventTypeDetail() {
         style: "destructive",
         onPress: async () => {
           try {
-            console.log("Attempting to delete event type with ID:", id);
             const eventTypeId = parseInt(id);
 
             if (isNaN(eventTypeId)) {
@@ -862,15 +831,11 @@ export default function EventTypeDetail() {
             }
 
             await CalComAPIService.deleteEventType(eventTypeId);
-            console.log("Event type deleted successfully");
 
             Alert.alert("Success", "Event type deleted successfully", [
               {
                 text: "OK",
-                onPress: () => {
-                  console.log("Navigating back after successful deletion");
-                  router.back();
-                },
+                onPress: () => router.back(),
               },
             ]);
           } catch (error) {
@@ -901,240 +866,47 @@ export default function EventTypeDetail() {
       return;
     }
 
+    // Validate locations before saving
+    if (locations.length > 0) {
+      for (const loc of locations) {
+        const validation = validateLocationItem(loc);
+        if (!validation.valid) {
+          Alert.alert("Error", validation.error || "Invalid location");
+          return;
+        }
+      }
+    }
+
+    // Detect create vs update mode
+    const isCreateMode = id === "new";
+
     try {
       setSaving(true);
 
-      // Build location payload from locations array
-      let locationsPayload:
-        | Array<{
-            type: string;
-            integration?: string;
-            address?: string;
-            link?: string;
-            phone?: string;
-            public?: boolean;
-          }>
-        | undefined;
-
-      if (locations.length > 0) {
-        // Validate all locations before saving
-        for (const loc of locations) {
-          const validation = validateLocationItem(loc);
-          if (!validation.valid) {
-            Alert.alert("Error", validation.error || "Invalid location");
-            setSaving(false);
-            return;
-          }
-        }
-
-        // Convert all locations to API format
-        locationsPayload = locations.map((loc) => mapItemToApiLocation(loc));
-      }
-
-      // Build the payload with all fields
-      const payload: any = {
-        title: eventTitle,
-        slug: eventSlug,
-        lengthInMinutes: durationNum,
-      };
-
-      // Add optional fields if they have values
-      if (eventDescription) {
-        payload.description = eventDescription;
-      }
-
-      if (locationsPayload) {
-        payload.locations = locationsPayload;
-      }
-
-      if (selectedSchedule) {
-        payload.scheduleId = selectedSchedule.id;
-      }
-
-      if (isHidden !== undefined) {
-        payload.hidden = isHidden;
-      }
-
-      // Add buffer times if set
-      if (beforeEventBuffer && beforeEventBuffer !== "No buffer time") {
-        const bufferMinutes = parseBufferTime(beforeEventBuffer);
-        if (bufferMinutes > 0) {
-          payload.beforeEventBuffer = bufferMinutes;
-        }
-      }
-
-      if (afterEventBuffer && afterEventBuffer !== "No buffer time") {
-        const bufferMinutes = parseBufferTime(afterEventBuffer);
-        if (bufferMinutes > 0) {
-          payload.afterEventBuffer = bufferMinutes;
-        }
-      }
-
-      // Add minimum booking notice
-      if (minimumNoticeValue && minimumNoticeUnit) {
-        const noticeMinutes = parseMinimumNotice(minimumNoticeValue, minimumNoticeUnit);
-        if (noticeMinutes > 0) {
-          payload.minimumBookingNotice = noticeMinutes;
-        }
-      }
-
-      // Add booking limits if enabled
-      if (limitBookingFrequency && frequencyLimits.length > 0) {
-        const limitsCount: any = {};
-        frequencyLimits.forEach((limit) => {
-          const unit = parseFrequencyUnit(limit.unit);
-          if (unit) {
-            limitsCount[unit] = parseInt(limit.value) || 1;
-          }
-        });
-        if (Object.keys(limitsCount).length > 0) {
-          payload.bookingLimitsCount = limitsCount;
-        }
-      }
-
-      if (limitTotalDuration && durationLimits.length > 0) {
-        const limitsDuration: any = {};
-        durationLimits.forEach((limit) => {
-          const unit = parseFrequencyUnit(limit.unit);
-          if (unit) {
-            limitsDuration[unit] = parseInt(limit.value) || 60;
-          }
-        });
-        if (Object.keys(limitsDuration).length > 0) {
-          payload.bookingLimitsDuration = limitsDuration;
-        }
-      }
-
-      // Add slot interval if not default
-      if (slotInterval && slotInterval !== "Default") {
-        const intervalMinutes = parseSlotInterval(slotInterval);
-        if (intervalMinutes > 0) {
-          payload.slotInterval = intervalMinutes;
-        }
-      }
-
-      // Add other boolean flags
-      if (onlyShowFirstAvailableSlot) {
-        payload.onlyShowFirstAvailableSlot = true;
-      }
-
-      if (maxActiveBookingsPerBooker && maxActiveBookingsValue) {
-        const count = parseInt(maxActiveBookingsValue);
-        if (count > 0) {
-          payload.bookerActiveBookingsLimit = {
-            count,
-            offerReschedule,
-          };
-        }
-      }
-
-      // Add booking window (future bookings limit)
-      if (limitFutureBookings) {
-        if (futureBookingType === "range") {
-          payload.bookingWindow = {
-            type: "range",
-            value: [rangeStartDate, rangeEndDate],
-          };
-        } else {
-          payload.bookingWindow = {
-            type: rollingCalendarDays ? "calendarDays" : "businessDays",
-            value: parseInt(rollingDays),
-            rolling: true,
-          };
-        }
-      } else {
-        payload.bookingWindow = { disabled: true };
-      }
-
-      // Add Advanced tab fields
-      if (calendarEventName) {
-        payload.metadata = payload.metadata || {};
-        payload.metadata.calendarEventName = calendarEventName;
-      }
-
-      if (addToCalendarEmail) {
-        payload.metadata = payload.metadata || {};
-        payload.metadata.addToCalendarEmail = addToCalendarEmail;
-      }
-
-      // Booker layouts
-      if (selectedLayouts.length > 0) {
-        payload.bookerLayouts = {
-          enabledLayouts: selectedLayouts,
-          defaultLayout: defaultLayout,
-        };
-      }
-
-      // Confirmation policy
-      payload.requiresConfirmation = requiresConfirmation;
-
-      // Boolean flags - always set the actual boolean value so toggling off works
-      payload.metadata = {
-        ...(payload.metadata || {}),
-        disableCancelling,
-        disableRescheduling,
-        sendCalVideoTranscription,
-        autoTranslate,
-        hideCalendarEventDetails,
-        hideOrganizerEmail,
-        allowReschedulingPastEvents,
-        allowBookingThroughRescheduleLink,
-      };
-      payload.requiresBookerEmailVerification = requiresBookerEmailVerification;
-      payload.hideCalendarNotes = hideCalendarNotes;
-      payload.lockTimeZoneToggleOnBookingPage = lockTimezone;
-      payload.disableGuests = disableGuests;
-
-      // Redirect URL
-      if (successRedirectUrl) {
-        payload.successRedirectUrl = successRedirectUrl;
-        if (forwardParamsSuccessRedirect) {
-          payload.forwardParamsSuccessRedirect = true;
-        }
-      }
-
-      // Custom reply-to email
-      if (customReplyToEmail) {
-        payload.metadata = payload.metadata || {};
-        payload.metadata.customReplyToEmail = customReplyToEmail;
-      }
-
-      // Event type colors
-      if (eventTypeColorLight || eventTypeColorDark) {
-        payload.eventTypeColor = {
-          lightEventTypeColor: eventTypeColorLight,
-          darkEventTypeColor: eventTypeColorDark,
-        };
-      }
-
-      // Recurring event
-      if (recurringEnabled) {
-        payload.recurrence = {
-          interval: parseInt(recurringInterval) || 1,
-          occurrences: parseInt(recurringOccurrences) || 12,
-          frequency: recurringFrequency,
-        };
-      } else {
-        payload.recurrence = { disabled: true };
-      }
-
-      // Seats
-      if (seatsEnabled) {
-        payload.seats = {
-          seatsPerTimeSlot: parseInt(seatsPerTimeSlot) || 2,
-          showAttendeeInfo,
-          showAvailabilityCount,
-        };
-      } else {
-        payload.seats = { disabled: true };
-      }
-
-      // Detect create vs update mode
-      const isCreateMode = id === "new";
-
       if (isCreateMode) {
+        // For CREATE mode, build full payload
+        const payload: any = {
+          title: eventTitle,
+          slug: eventSlug,
+          lengthInMinutes: durationNum,
+        };
+
+        if (eventDescription) {
+          payload.description = eventDescription;
+        }
+
+        if (locations.length > 0) {
+          payload.locations = locations.map((loc) => mapItemToApiLocation(loc));
+        }
+
+        if (selectedSchedule) {
+          payload.scheduleId = selectedSchedule.id;
+        }
+
+        payload.hidden = isHidden;
+
         // Create new event type
-        const newEventType = await CalComAPIService.createEventType(payload);
+        await CalComAPIService.createEventType(payload);
         Alert.alert("Success", "Event type created successfully", [
           {
             text: "OK",
@@ -1142,15 +914,98 @@ export default function EventTypeDetail() {
           },
         ]);
       } else {
-        // Update existing event type
+        // For UPDATE mode, use partial update - only send changed fields
+        const currentFormState = {
+          // Basics
+          eventTitle,
+          eventSlug,
+          eventDescription,
+          eventDuration,
+          isHidden,
+          locations,
+          disableGuests,
+
+          // Multiple durations
+          allowMultipleDurations,
+          selectedDurations,
+          defaultDuration,
+
+          // Availability
+          selectedScheduleId: selectedSchedule?.id,
+
+          // Limits
+          beforeEventBuffer,
+          afterEventBuffer,
+          minimumNoticeValue,
+          minimumNoticeUnit,
+          slotInterval,
+          limitBookingFrequency,
+          frequencyLimits,
+          limitTotalDuration,
+          durationLimits,
+          onlyShowFirstAvailableSlot,
+          maxActiveBookingsPerBooker,
+          maxActiveBookingsValue,
+          offerReschedule,
+          limitFutureBookings,
+          futureBookingType,
+          rollingDays,
+          rollingCalendarDays,
+          rangeStartDate,
+          rangeEndDate,
+
+          // Advanced
+          requiresConfirmation,
+          requiresBookerEmailVerification,
+          hideCalendarNotes,
+          hideCalendarEventDetails,
+          hideOrganizerEmail,
+          lockTimezone,
+          allowReschedulingPastEvents,
+          allowBookingThroughRescheduleLink,
+          successRedirectUrl,
+          forwardParamsSuccessRedirect,
+          customReplyToEmail,
+          eventTypeColorLight,
+          eventTypeColorDark,
+          calendarEventName,
+          addToCalendarEmail,
+          selectedLayouts,
+          defaultLayout,
+          disableCancelling,
+          disableRescheduling,
+          sendCalVideoTranscription,
+          autoTranslate,
+
+          // Seats
+          seatsEnabled,
+          seatsPerTimeSlot,
+          showAttendeeInfo,
+          showAvailabilityCount,
+
+          // Recurring
+          recurringEnabled,
+          recurringInterval,
+          recurringFrequency,
+          recurringOccurrences,
+        };
+
+        // Build partial payload with only changed fields
+        const payload = buildPartialUpdatePayload(currentFormState, eventTypeData);
+
+        if (Object.keys(payload).length === 0) {
+          Alert.alert("No Changes", "No changes were made to the event type.");
+          return;
+        }
+
         await CalComAPIService.updateEventType(parseInt(id), payload);
         Alert.alert("Success", "Event type updated successfully");
-        // Refresh event type data
+        // Refresh event type data to sync with server
         await fetchEventTypeData();
       }
     } catch (error) {
       console.error("Failed to save event type:", error);
-      const action = id === "new" ? "create" : "update";
+      const action = isCreateMode ? "create" : "update";
       showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
     } finally {
       setSaving(false);
@@ -1896,6 +1751,8 @@ export default function EventTypeDetail() {
               setHideOrganizerEmail={setHideOrganizerEmail}
               lockTimezone={lockTimezone}
               setLockTimezone={setLockTimezone}
+              lockedTimezone={lockedTimezone}
+              setLockedTimezone={setLockedTimezone}
               allowReschedulingPastEvents={allowReschedulingPastEvents}
               setAllowReschedulingPastEvents={setAllowReschedulingPastEvents}
               allowBookingThroughRescheduleLink={allowBookingThroughRescheduleLink}
@@ -1948,12 +1805,16 @@ export default function EventTypeDetail() {
               <View className="overflow-hidden rounded-lg border border-[#E5E5EA]">
                 {/* Apps */}
                 <TouchableOpacity
-                  onPress={() =>
-                    openInAppBrowser(
-                      `https://app.cal.com/event-types/${id}?tabName=apps`,
-                      "Apps settings"
-                    )
-                  }
+                  onPress={() => {
+                    if (id === "new") {
+                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                    } else {
+                      openInAppBrowser(
+                        `https://app.cal.com/event-types/${id}?tabName=apps`,
+                        "Apps settings"
+                      );
+                    }
+                  }}
                   className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
                   style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
                 >
@@ -1971,12 +1832,16 @@ export default function EventTypeDetail() {
 
                 {/* Workflows */}
                 <TouchableOpacity
-                  onPress={() =>
-                    openInAppBrowser(
-                      `https://app.cal.com/event-types/${id}?tabName=workflows`,
-                      "Workflows settings"
-                    )
-                  }
+                  onPress={() => {
+                    if (id === "new") {
+                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                    } else {
+                      openInAppBrowser(
+                        `https://app.cal.com/event-types/${id}?tabName=workflows`,
+                        "Workflows settings"
+                      );
+                    }
+                  }}
                   className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
                   style={{ borderBottomWidth: 1, borderBottomColor: "#E5E5EA" }}
                 >
@@ -1994,12 +1859,16 @@ export default function EventTypeDetail() {
 
                 {/* Webhooks */}
                 <TouchableOpacity
-                  onPress={() =>
-                    openInAppBrowser(
-                      `https://app.cal.com/event-types/${id}?tabName=webhooks`,
-                      "Webhooks settings"
-                    )
-                  }
+                  onPress={() => {
+                    if (id === "new") {
+                      Alert.alert("Info", "Save the event type first to configure this setting.");
+                    } else {
+                      openInAppBrowser(
+                        `https://app.cal.com/event-types/${id}?tabName=webhooks`,
+                        "Webhooks settings"
+                      );
+                    }
+                  }}
                   className="flex-row items-center justify-between bg-white px-4 py-4 active:bg-[#F8F9FA]"
                 >
                   <View className="flex-1 flex-row items-center">

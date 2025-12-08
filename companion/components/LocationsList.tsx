@@ -42,6 +42,18 @@ interface LocationsListProps {
   loading?: boolean;
 }
 
+function isLocationAlreadyAdded(locations: LocationItem[], optionValue: string): boolean {
+  return locations.some((loc) => {
+    if (loc.type === "integration" && optionValue.startsWith("integrations:")) {
+      return loc.integration === optionValue.replace("integrations:", "");
+    }
+    if (["address", "link", "phone"].includes(loc.type)) {
+      return false;
+    }
+    return loc.type === optionValue;
+  });
+}
+
 export const LocationsList: React.FC<LocationsListProps> = ({
   locations,
   onAdd,
@@ -55,24 +67,10 @@ export const LocationsList: React.FC<LocationsListProps> = ({
 
   const handleAddLocation = () => {
     if (Platform.OS === "ios") {
-      // Build flat list of options for ActionSheetIOS
       const allOptions: Array<{ label: string; value: string }> = [];
       locationOptions.forEach((group) => {
         group.options.forEach((option) => {
-          // Don't show options that are already added (except for address/link/phone which can have multiple)
-          const isAlreadyAdded = locations.some((loc) => {
-            if (loc.type === "integration" && option.value.startsWith("integrations:")) {
-              return loc.integration === option.value.replace("integrations:", "");
-            }
-            // For non-integration types, check if same type exists
-            // Allow multiple of address, link, phone types
-            if (["address", "link", "phone"].includes(loc.type)) {
-              return false; // Allow multiple
-            }
-            return loc.type === option.value;
-          });
-
-          if (!isAlreadyAdded) {
+          if (!isLocationAlreadyAdded(locations, option.value)) {
             allOptions.push({ label: option.label, value: option.value });
           }
         });
@@ -235,24 +233,15 @@ export const LocationsList: React.FC<LocationsListProps> = ({
                     {group.category}
                   </Text>
                   {group.options.map((option) => {
-                    // Check if option is already added
-                    const isAlreadyAdded = locations.some((loc) => {
-                      if (loc.type === "integration" && option.value.startsWith("integrations:")) {
-                        return loc.integration === option.value.replace("integrations:", "");
-                      }
-                      if (["address", "link", "phone"].includes(loc.type)) {
-                        return false;
-                      }
-                      return loc.type === option.value;
-                    });
+                    const alreadyAdded = isLocationAlreadyAdded(locations, option.value);
 
                     return (
                       <TouchableOpacity
                         key={option.value}
                         onPress={() => handleSelectOption(option.value, option.label)}
-                        disabled={isAlreadyAdded}
+                        disabled={alreadyAdded}
                         className={`flex-row items-center rounded-lg px-2 py-3 ${
-                          isAlreadyAdded ? "opacity-40" : "active:bg-gray-100"
+                          alreadyAdded ? "opacity-40" : "active:bg-gray-100"
                         }`}
                       >
                         {option.iconUrl ? (
@@ -268,7 +257,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
                           </View>
                         )}
                         <Text className="flex-1 text-base text-gray-900">{option.label}</Text>
-                        {isAlreadyAdded && <Ionicons name="checkmark" size={20} color="#10B981" />}
+                        {alreadyAdded && <Ionicons name="checkmark" size={20} color="#10B981" />}
                       </TouchableOpacity>
                     );
                   })}

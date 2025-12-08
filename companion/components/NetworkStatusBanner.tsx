@@ -31,16 +31,15 @@ export function NetworkStatusBanner() {
       const currentlyOffline = checkIfOffline(state);
       const wasOffline = previousOfflineRef.current;
 
-      // Transition: Online → Offline
-      if (currentlyOffline && wasOffline === false) {
-        userDismissedRef.current = false; // Reset dismiss state
+      // Transition: Online → Offline (only show if user hasn't dismissed)
+      if (currentlyOffline && wasOffline === false && !userDismissedRef.current) {
         setShowModal(true);
       }
 
       // Transition: Offline → Online
       if (!currentlyOffline && wasOffline === true) {
         setShowModal(false); // Auto-dismiss
-        userDismissedRef.current = false; // Reset for next time
+        userDismissedRef.current = false; // Reset for next offline event
       }
 
       previousOfflineRef.current = currentlyOffline;
