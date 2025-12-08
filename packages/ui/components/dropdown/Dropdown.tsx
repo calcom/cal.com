@@ -145,7 +145,9 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
   const isLink = typeof href !== "undefined";
 
   if (isLink) {
-    return <Link href={href} {...props} />;
+    // Strip ref from props when using Link (Link manages its own anchor element)
+    const { ref: _ref, ...linkProps } = props;
+    return <Link href={href} {...linkProps} />;
   }
 
   return <button {...props} />;
