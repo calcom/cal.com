@@ -27,10 +27,8 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Label, Select, SettingsToggle, NumberInput } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -103,12 +101,13 @@ const ChildrenEventTypesList = ({
           aria-label="assignment-dropdown"
           data-testid="assignment-dropdown"
           onChange={(options) => {
-            onChange &&
+            if (onChange) {
               onChange(
                 options.map((option) => ({
                   ...option,
                 }))
               );
+            }
           }}
           value={value}
           options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
@@ -280,7 +279,7 @@ type RoundRobinHostsCustomClassNames = {
 };
 
 const RoundRobinHosts = ({
-  orgId,
+  orgId: _orgId,
   teamMembers,
   value,
   onChange,
@@ -302,7 +301,7 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue, getValues, control, formState } = useFormContext<FormValues>();
+  const { setValue, getValues, control } = useFormContext<FormValues>();
   const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
     control,
@@ -515,6 +514,31 @@ const RoundRobinHosts = ({
               </SettingsToggle>
             )}
           />
+          <Controller<FormValues>
+            name="maxRoundRobinHosts"
+            render={({ field: { value, onChange } }) => (
+              <div className="mt-4">
+                <Label className="mb-1 text-sm font-medium">
+                  {t("max_round_robin_hosts_count")}
+                </Label>
+                <p className="text-subtle mb-2 text-sm">
+                  {t("max_round_robin_hosts_description")}
+                </p>
+                <NumberInput
+                  min={1}
+                  placeholder="1"
+                  className="w-24"
+                  value={value ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
+                    if (val === null || (!isNaN(val) && val >= 1)) {
+                      onChange(val);
+                    }
+                  }}
+                />
+              </div>
+            )}
+          />
         </>
         {!hostGroups.length ? (
           <AddMembersWithSwitchComponent groupId={hostGroups[0]?.id ?? null} />
@@ -725,7 +749,7 @@ const Hosts = ({
           ),
           MANAGED: <></>,
         };
-        return !!schedulingType ? schedulingTypeRender[schedulingType] : <></>;
+        return schedulingType ? schedulingTypeRender[schedulingType] : <></>;
       }}
     />
   );
@@ -891,10 +915,8 @@ export const EventTeamAssignmentTab = ({
                       hostGroups?.length > 1 ? (
                         <Tooltip
                           content={
-                            !!(
-                              eventType.team?.rrTimestampBasis &&
+                            eventType.team?.rrTimestampBasis &&
                               eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-                            )
                               ? t("rr_load_balancing_disabled")
                               : t("rr_load_balancing_disabled_with_groups")
                           }>

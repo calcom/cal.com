@@ -88,6 +88,7 @@ type Input = Pick<
   | "rescheduleWithSameRoundRobinHost"
   | "maxActiveBookingPerBookerOfferReschedule"
   | "maxActiveBookingsPerBooker"
+  | "maxRoundRobinHosts"
 >;
 
 @Injectable()
@@ -103,7 +104,7 @@ export class OutputOrganizationsEventTypesService {
 
     const emailSettings = this.transformEmailSettings(metadata);
 
-    const { teamId, userId, parentId, assignAllTeamMembers, rescheduleWithSameRoundRobinHost } =
+    const { teamId, userId, parentId, assignAllTeamMembers, rescheduleWithSameRoundRobinHost, maxRoundRobinHosts } =
       databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ownerId, users, ...rest } = this.outputEventTypesService.getResponseEventType(
@@ -139,6 +140,7 @@ export class OutputOrganizationsEventTypesService {
         theme: databaseEventType?.team?.theme,
       },
       rescheduleWithSameRoundRobinHost,
+      maxRoundRobinHosts,
     };
   }
 

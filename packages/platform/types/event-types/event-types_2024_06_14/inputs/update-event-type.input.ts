@@ -552,4 +552,13 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
     description: "Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
+
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "Only relevant for round robin event types. Specifies the maximum number of hosts that can be assigned per booking. Defaults to 1.",
+    example: 1,
+  })
+  maxRoundRobinHosts?: number;
 }
