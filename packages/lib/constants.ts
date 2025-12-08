@@ -21,8 +21,11 @@ export const WEBAPP_URL =
   RENDER_URL ||
   "http://localhost:3001";
 
+export const META_WEBHOOK_VERIFICATION_CODE = process.env.META_WEBHOOK_VERIFICATION_CODE;
+
 // OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
 // So for development purpose, we would stick to localhost only
+
 export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3001";
 
 /** @deprecated use `WEBAPP_URL` */
@@ -276,3 +279,5 @@ export const DEMO_URL = "https://app.cal.id/manas/demo";
 export const IS_PROD_DOMAIN = WEBAPP_URL.includes("cal.id");
 
 export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+
+export const META_API_VERSION = process.env.META_WHATSAPP_API_VERSION || "v21.0";

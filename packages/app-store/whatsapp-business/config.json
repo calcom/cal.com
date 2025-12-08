@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "WhatsApp Business",
+  "slug": "whatsapp-business",
+  "type": "whatsapp-business_messaging",
+  "logo": "icon.svg",
+  "url": "https://cal.id/",
+  "variant": "messaging",
+  "categories": [
+    "messaging"
+  ],
+  "publisher": "Cal ID",
+  "email": "support@cal.id",
+  "description": "Connect your business account and sync whatsapp templates to use within Cal ID.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic"
+}

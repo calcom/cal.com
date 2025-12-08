@@ -265,6 +265,8 @@ model Credential {
   calIdTeam              CalIdTeam?            @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade) // NEW
   calIdTeamId            Int?
 
+  whatsappBusinessPhone WhatsAppBusinessPhone[]
+
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
@@ -448,6 +450,9 @@ model User {
   calIdWorkflowReminders         CalIdWorkflowReminder[]       @relation("UserCalIdWorkflowReminders")
   bannerUrl                      String?
   faviconUrl                     String?
+  socialProfiles                 Json?
+
+  whatsappBusinessPhone WhatsAppBusinessPhone[]
 
   @@unique([email])
   @@unique([email, username])
@@ -1567,6 +1572,7 @@ enum WorkflowMethods {
 }
 
 enum WorkflowStatus {
+  QUEUED
   DELIVERED
   READ
   FAILED
@@ -2601,6 +2607,8 @@ model CalIdTeam {
   roundRobinTimestampBasis RoundRobinTimestampBasis? @default(CREATED_AT)
   internalNotePresets      InternalNotePreset[]
 
+  whatsappBusinessPhone WhatsAppBusinessPhone[]
+
   @@unique([slug])
 }
 
@@ -2646,15 +2654,19 @@ model CalIdTeamFeatures {
 // CalId Workflow Models - Duplicates of Workflow models with CalId prefix
 
 model CalIdWorkflowStep {
-  id                        Int                     @id @default(autoincrement())
+  id                        Int                @id @default(autoincrement())
   stepNumber                Int
   action                    WorkflowActions
   workflowId                Int
-  workflow                  CalIdWorkflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflow                  CalIdWorkflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   sendTo                    String?
   reminderBody              String?
   emailSubject              String?
-  template                  WorkflowTemplates       @default(REMINDER)
+  template                  WorkflowTemplates? @default(REMINDER)
+  metaTemplateName          String?
+  metaTemplatePhoneNumberId String?
+  variableMapping           Json?
+
   workflowReminders         CalIdWorkflowReminder[]
   numberRequired            Boolean?
   sender                    String?
@@ -2758,4 +2770,30 @@ enum RoundRobinResetInterval {
 enum RoundRobinTimestampBasis {
   CREATED_AT
   START_TIME
+}
+
+model WhatsAppBusinessPhone {
+  id           Int  @id @default(autoincrement())
+  userId       Int?
+  calIdTeamId  Int?
+  credentialId Int
+
+  templates Json?
+
+  wabaId        String
+  phoneNumberId String @unique
+  phoneNumber   String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User?      @relation(fields: [userId], references: [id])
+  calIdTeam  CalIdTeam? @relation(fields: [calIdTeamId], references: [id])
+  credential Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([phoneNumber])
+  @@index([phoneNumberId])
+  @@index([wabaId])
+  @@index([credentialId])
 }

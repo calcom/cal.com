@@ -3834,6 +3834,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/whatsapp-business@workspace:packages/app-store/whatsapp-business":
+  version: 0.0.0-use.local
+  resolution: "@calcom/whatsapp-business@workspace:packages/app-store/whatsapp-business"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/whatsapp@workspace:packages/app-store/whatsapp":
   version: 0.0.0-use.local
   resolution: "@calcom/whatsapp@workspace:packages/app-store/whatsapp"

@@ -262,7 +262,6 @@ const _getCurrentSeats = async (
       ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
       : booking.attendees;
 
-    console.log("All attendees: ", attendees);
     const paidAttendees = attendees.filter((attendee) =>
       attendee?.bookingSeat?.payment?.length > 0
         ? attendee?.bookingSeat?.payment?.some((p) => p.success && !p.refunded) ?? true

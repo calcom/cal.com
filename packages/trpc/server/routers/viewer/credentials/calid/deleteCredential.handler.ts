@@ -20,5 +20,6 @@ export const deleteCredentialHandler = async ({ ctx, input }: CalIdDeleteCredent
     userId: user.id,
     userMetadata: user.metadata,
     credentialId: id,
+    calIdTeamId: teamId,
   });
 };

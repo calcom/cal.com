@@ -5,6 +5,7 @@ import {
   WORKFLOW_TRIGGER_EVENTS,
 } from "@calid/features/modules/workflows/config/constants";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 export const ZCalIdUpdateInputSchema = z.object({
   id: z.number(),
@@ -19,6 +20,8 @@ export const ZCalIdUpdateInputSchema = z.object({
       sendTo: z.string().nullable(),
       reminderBody: z.string().nullable(),
       emailSubject: z.string().nullable(),
+      metaTemplateName: z.string().optional().nullable(),
+      metaTemplatePhoneNumberId: z.string().optional().nullable(),
       template: z.enum(WORKFLOW_TEMPLATES),
       numberRequired: z.boolean().nullable(),
       sender: z.string().nullable(),

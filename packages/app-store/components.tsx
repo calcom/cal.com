@@ -41,7 +41,9 @@ export const InstallAppButtonWithoutPlanCheck = (
   return (
     <InstallAppButtonComponent
       render={props.render}
-      onChanged={props.onChanged}
+      onChanged={() => {
+        props.onChanged();
+      }}
       disableInstall={props.disableInstall}
     />
   );

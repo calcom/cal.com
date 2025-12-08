@@ -69,6 +69,19 @@ export const ZCalIdUpdateProfileInputSchema = z.object({
       })
     )
     .optional(),
+  bannerUrl: z.string().nullable().optional(),
+  faviconUrl: z.string().nullable().optional(),
+  socialProfiles: z
+    .object({
+      linkedin: z.string().optional(),
+      facebook: z.string().optional(),
+      twitter: z.string().optional(),
+      instagram: z.string().optional(),
+      youtube: z.string().optional(),
+      github: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export type TCalIdUpdateProfileInputSchema = z.infer<typeof ZCalIdUpdateProfileInputSchema>;
