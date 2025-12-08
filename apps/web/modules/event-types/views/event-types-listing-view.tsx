@@ -174,6 +174,7 @@ const Item = ({
   const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
   const eventTypeColor =
     parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
+  const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
 
   const content = () => (
     <div>
@@ -189,6 +190,11 @@ const Item = ({
           {`/${group.profile.slug}/${type.slug}`}
         </small>
       ) : null}
+      {!isManagedEventType && type.hidden && (
+        <Badge variant="gray" className="ml-2 sm:hidden">
+          {t("hidden")}
+        </Badge>
+      )}
       {readOnly && (
         <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
           {t("readonly")}
@@ -223,6 +229,11 @@ const Item = ({
                   {`/${group.profile.slug}/${type.slug}`}
                 </small>
               ) : null}
+              {!isManagedEventType && type.hidden && (
+                <Badge variant="gray" className="ml-2 sm:hidden">
+                  {t("hidden")}
+                </Badge>
+              )}
               {readOnly && (
                 <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
                   {t("readonly")}
