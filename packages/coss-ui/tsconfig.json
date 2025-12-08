@@ -3,9 +3,9 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "experimentalDecorators": true,
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@coss/ui/*": ["./src/*"]
+      "@coss/ui/*": ["./*"]
     }
   },
   "include": ["src/**/*"],
