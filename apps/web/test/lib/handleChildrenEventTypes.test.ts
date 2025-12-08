@@ -255,6 +255,7 @@ describe("handleChildrenEventTypes", () => {
           requiresBookerEmailVerification: false,
           useBookerTimezone: false,
           restrictionScheduleId: null,
+
           hashedLink: {
             deleteMany: {},
           },
