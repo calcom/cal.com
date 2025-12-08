@@ -119,7 +119,7 @@ export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
 
-export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
+export { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 
@@ -128,3 +128,5 @@ export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEma
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
+
+export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
