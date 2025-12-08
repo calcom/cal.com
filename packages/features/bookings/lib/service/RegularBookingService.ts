@@ -22,6 +22,7 @@ import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type {
@@ -85,7 +86,6 @@ import {
   CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
@@ -580,7 +580,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "email_verification_required",
-        data: { traceId: traceContext.traceId },
       });
     }
 
@@ -590,7 +589,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "invalid_verification_code",
-        data: { traceId: traceContext.traceId },
       });
     }
   }
@@ -608,14 +606,12 @@ async function handler(
     throw new HttpError({
       statusCode: 404,
       message: "event_type_not_found",
-      data: { traceId: traceContext.traceId },
     });
 
   if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
     throw new HttpError({
       statusCode: 400,
       message: "recurring_event_seats_error",
-      data: { traceId: traceContext.traceId },
     });
   }
 
@@ -757,7 +753,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "Missing routingFormResponseId",
-        data: { traceId: traceContext.traceId },
       });
     }
     routingFormResponse = await deps.prismaClient.app_RoutingForms_FormResponse.findUnique({
@@ -1858,7 +1853,6 @@ async function handler(
       throw new HttpError({
         statusCode: 409,
         message: ErrorCode.BookingConflict,
-        data: { traceId: traceContext.traceId },
       });
     }
     throw err;
@@ -2105,7 +2099,6 @@ async function handler(
       const error = {
         errorCode: "BookingCreatingMeetingFailed",
         message: "Booking failed",
-        data: { traceId: traceContext.traceId },
       };
 
       tracingLogger.error(
@@ -2329,7 +2322,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "Missing payment credentials",
-        data: { traceId: traceContext.traceId },
       });
     }
 

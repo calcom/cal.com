@@ -1,10 +1,9 @@
 /// <reference types="chrome" />
-
-import * as AuthSession from "expo-auth-session";
-import * as WebBrowser from "expo-web-browser";
-import * as Crypto from "expo-crypto";
-import { Platform } from "react-native";
 import { fromByteArray } from "base64-js";
+import * as AuthSession from "expo-auth-session";
+import * as Crypto from "expo-crypto";
+import * as WebBrowser from "expo-web-browser";
+import { Platform } from "react-native";
 
 // Complete warm up for WebBrowser on mobile
 WebBrowser.maybeCompleteAuthSession();
@@ -291,16 +290,37 @@ export class CalComOAuthService {
   }
 
   private async getDiscoveryEndpoints(): Promise<AuthSession.DiscoveryDocument> {
+    const fallbackDiscovery: AuthSession.DiscoveryDocument = {
+      authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
+      tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
+      revocationEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/revoke`,
+    };
+
+    const isCrossOriginWeb =
+      Platform.OS === "web" &&
+      typeof window !== "undefined" &&
+      (() => {
+        try {
+          return new URL(this.config.calcomBaseUrl).origin !== window.location.origin;
+        } catch {
+          return true;
+        }
+      })();
+
+    // Skip discovery fetch when we know CORS will block it (e.g. companion.cal.com -> app.cal.com).
+    if (isCrossOriginWeb) {
+      return fallbackDiscovery;
+    }
+
     try {
-      const discovery = await AuthSession.fetchDiscoveryAsync(
-        `${this.config.calcomBaseUrl}/.well-known/openid_configuration`
-      );
-      return discovery;
-    } catch {
+      const discovery = await AuthSession.fetchDiscoveryAsync(this.config.calcomBaseUrl);
       return {
-        authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
-        tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
-      } as AuthSession.DiscoveryDocument;
+        ...fallbackDiscovery,
+        ...discovery,
+      };
+    } catch (error) {
+      console.warn("Failed to load discovery document, using fallback endpoints", error);
+      return fallbackDiscovery;
     }
   }
 
