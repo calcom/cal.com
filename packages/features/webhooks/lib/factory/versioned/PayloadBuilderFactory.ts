@@ -1,20 +1,23 @@
+import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
 
 import type {
-  WebhookEventDTO,
+  AfterGuestsNoShowDTO,
+  AfterHostsNoShowDTO,
   BookingWebhookEventDTO,
   FormSubmittedDTO,
   FormSubmittedNoEventDTO,
+  InstantMeetingDTO,
+  MeetingEndedDTO,
+  MeetingStartedDTO,
   OOOCreatedDTO,
   RecordingReadyDTO,
   TranscriptionGeneratedDTO,
-  MeetingStartedDTO,
-  MeetingEndedDTO,
-  AfterHostsNoShowDTO,
-  AfterGuestsNoShowDTO,
-  InstantMeetingDTO,
+  WebhookEventDTO,
 } from "../../dto/types";
 import type { WebhookPayload } from "../types";
+
+const log = logger.getSubLogger({ prefix: ["WebhookPayloadBuilderFactory"] });
 
 /**
  * Generic base interface for all payload builders
@@ -72,25 +75,29 @@ export interface PayloadBuilderSet {
 /**
  * Factory that routes to version-specific payload builders
  *
+ * The factory requires a default builder set to guarantee fallback always works.
+ * Use `createPayloadBuilderFactory()` from registry.ts to get a properly configured instance.
+ *
  * When adding a new webhook version:
  * 1. Add the version to WebhookVersion enum in schema.prisma
  * 2. Create a new directory: versioned/v{VERSION}/
  * 3. Implement version-specific builders in that directory
- * 4. Register the version in this factory
- *
- * @example
- * const factory = new PayloadBuilderFactory();
- * factory.registerVersion(WebhookVersion.V_2024_12_01, {
- *   booking: new BookingPayloadBuilder_2024_12_01(),
- *   form: new FormPayloadBuilder_2024_12_01(),
- *   // ... other builders
- * });
+ * 4. Register the version in registry.ts
  */
 export class PayloadBuilderFactory {
   private builders: Map<WebhookVersion, PayloadBuilderSet>;
+  private readonly defaultBuilderSet: PayloadBuilderSet;
+  private readonly defaultVersion: WebhookVersion;
 
-  constructor() {
+  /**
+   * @param defaultVersion - The version to use as fallback when requested version is not registered
+   * @param defaultBuilderSet - Required builders for the default version. Guarantees fallback always works.
+   */
+  constructor(defaultVersion: WebhookVersion, defaultBuilderSet: PayloadBuilderSet) {
+    this.defaultVersion = defaultVersion;
+    this.defaultBuilderSet = defaultBuilderSet;
     this.builders = new Map();
+    this.builders.set(defaultVersion, defaultBuilderSet);
   }
 
   /**
@@ -103,19 +110,26 @@ export class PayloadBuilderFactory {
   /**
    * Get the appropriate payload builder for a given version and event type
    * Returns a type-safe builder that accepts the correct DTO type
+   *
+   * If the requested version is not registered, falls back to the default version
+   * with a warning log to avoid breaking external consumers due to misconfiguration.
    */
   getBuilderForVersion(
     version: WebhookVersion,
     triggerEvent: WebhookTriggerEvents
   ): IPayloadBuilder<WebhookEventDTO> {
-    const builderSet = this.builders.get(version);
+    const requestedBuilderSet = this.builders.get(version);
 
-    if (!builderSet) {
-      throw new Error(
-        `No payload builders registered for webhook version: ${version}. ` +
+    // Fall back to default version if requested version is not registered
+    if (!requestedBuilderSet) {
+      log.warn(
+        `Webhook version "${version}" not registered, falling back to default version "${this.defaultVersion}". ` +
           `Available versions: ${Array.from(this.builders.keys()).join(", ")}`
       );
     }
+
+    // Use requested version or fall back to default (guaranteed by constructor)
+    const builderSet = requestedBuilderSet ?? this.defaultBuilderSet;
 
     // Route to appropriate builder by checking each builder's canHandle method
     // This uses the builder's own logic to determine if it can handle the event
@@ -149,5 +163,12 @@ export class PayloadBuilderFactory {
    */
   isVersionSupported(version: WebhookVersion): boolean {
     return this.builders.has(version);
+  }
+
+  /**
+   * Get the default/fallback version
+   */
+  getDefaultVersion(): WebhookVersion {
+    return this.defaultVersion;
   }
 }
