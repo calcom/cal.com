@@ -1,4 +1,5 @@
 import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
+import logger from "@calcom/lib/logger";
 import type { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import type { WatchlistEntry } from "@calcom/lib/server/repository/watchlist.interface";
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
@@ -55,13 +56,13 @@ type Deps = {
 };
 
 export abstract class WatchlistOperationsService {
+  private log = logger.getSubLogger({ prefix: ["WatchlistOperationsService"] });
+
   constructor(protected readonly deps: Deps) {}
 
-  protected abstract getScope(
-    input: AddReportsToWatchlistInput | CreateWatchlistEntryInput | DeleteWatchlistEntryInput
-  ): WatchlistOperationsScope;
+  protected abstract getScope(): WatchlistOperationsScope;
 
-  protected abstract validateReports(
+  protected abstract findReports(
     reportIds: string[]
   ): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>>;
 
@@ -76,9 +77,9 @@ export abstract class WatchlistOperationsService {
   }
 
   async addReportsToWatchlist(input: AddReportsToWatchlistInput): Promise<AddReportsToWatchlistResult> {
-    const scope = this.getScope(input);
+    const scope = this.getScope();
 
-    const validReports = await this.validateReports(input.reportIds);
+    const validReports = await this.findReports(input.reportIds);
 
     if (validReports.length !== input.reportIds.length) {
       const foundIds = new Set(validReports.map((r) => r.id));
@@ -102,6 +103,10 @@ export abstract class WatchlistOperationsService {
         normalizedValues.set(report.id, value);
       }
     } catch (error) {
+      this.log.error("Email normalization failed", {
+        error: error instanceof Error ? error.message : String(error),
+        reportIds: reportsToAdd.map((r) => r.id),
+      });
       throw WatchlistErrors.invalidEmail(error instanceof Error ? error.message : "Invalid email format");
     }
 
@@ -126,11 +131,11 @@ export abstract class WatchlistOperationsService {
   }
 
   async createWatchlistEntry(input: CreateWatchlistEntryInput): Promise<CreateWatchlistEntryResult> {
-    const scope = this.getScope(input);
+    const scope = this.getScope();
 
     this.validateEmailOrDomain(input.type, input.value);
 
-    const entry = await this.deps.watchlistRepo.createEntry({
+    const entry = await this.deps.watchlistRepo.createEntryIfNotExists({
       type: input.type,
       value: input.value.toLowerCase(),
       organizationId: scope.organizationId,

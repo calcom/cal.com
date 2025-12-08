@@ -168,7 +168,6 @@ describe("deleteWatchlistEntryHandler", () => {
 
       expect(mockService.deleteWatchlistEntry).toHaveBeenCalledWith({
         entryId: "entry-123",
-        organizationId: 100,
         userId: 1,
       });
       expect(result.success).toBe(true);

@@ -48,7 +48,7 @@ export class OrganizationWatchlistQueryService {
   async listWatchlistEntries(input: ListWatchlistEntriesInput) {
     await this.checkReadPermission(input.userId, input.organizationId);
 
-    const result = await this.deps.watchlistRepo.findAllEntries({
+    const result = await this.deps.watchlistRepo.findAllEntriesWithLatestAudit({
       organizationId: input.organizationId,
       limit: input.limit,
       offset: input.offset,
@@ -57,7 +57,7 @@ export class OrganizationWatchlistQueryService {
     });
 
     const userIds = result.rows
-      .map((entry) => entry.audits?.[0]?.changedByUserId)
+      .map((entry) => entry.latestAudit?.changedByUserId)
       .filter((id): id is number => id !== null && id !== undefined);
 
     const uniqueUserIds = Array.from(new Set(userIds));
@@ -67,17 +67,14 @@ export class OrganizationWatchlistQueryService {
     const userMap = new Map(users.map((u) => [u.id, u]));
 
     const rowsWithCreators = result.rows.map((entry) => {
-      const audit = entry.audits?.[0];
-      if (audit?.changedByUserId) {
-        const changedByUser = userMap.get(audit.changedByUserId);
+      if (entry.latestAudit?.changedByUserId) {
+        const changedByUser = userMap.get(entry.latestAudit.changedByUserId);
         return {
           ...entry,
-          audits: [
-            {
-              ...audit,
-              changedByUser,
-            },
-          ],
+          latestAudit: {
+            ...entry.latestAudit,
+            changedByUser,
+          },
         };
       }
       return entry;

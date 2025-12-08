@@ -1,4 +1,3 @@
-import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import type { PrismaClient } from "@calcom/prisma";
 import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
 
@@ -15,20 +14,7 @@ import type {
 export class WatchlistRepository implements IWatchlistRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
-  async createEntry(params: CreateWatchlistInput & { skipExistenceCheck?: boolean }): Promise<WatchlistEntry> {
-    if (!params.skipExistenceCheck) {
-      const existing = await this.checkExists({
-        type: params.type,
-        value: params.value,
-        organizationId: params.organizationId,
-        isGlobal: params.isGlobal,
-      });
-
-      if (existing) {
-        throw WatchlistErrors.duplicateEntry("Watchlist entry already exists for this organization");
-      }
-    }
-
+  async createEntry(params: CreateWatchlistInput): Promise<WatchlistEntry> {
     const watchlist = await this.prismaClient.$transaction(async (tx) => {
       const created = await tx.watchlist.create({
         data: {
@@ -57,6 +43,21 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
 
     return watchlist;
+  }
+
+  async createEntryIfNotExists(params: CreateWatchlistInput): Promise<WatchlistEntry> {
+    const existing = await this.checkExists({
+      type: params.type,
+      value: params.value,
+      organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
+    });
+
+    if (existing) {
+      throw new Error("Watchlist entry already exists for this organization");
+    }
+
+    return this.createEntry(params);
   }
 
   async checkExists(params: CheckWatchlistInput): Promise<WatchlistEntry | null> {
@@ -91,8 +92,8 @@ export class WatchlistRepository implements IWatchlistRepository {
     return null;
   }
 
-  async findAllEntries(params: FindAllEntriesInput): Promise<{
-    rows: (WatchlistEntry & { audits?: { changedByUserId: number | null }[] })[];
+  async findAllEntriesWithLatestAudit(params: FindAllEntriesInput): Promise<{
+    rows: (WatchlistEntry & { latestAudit: { changedByUserId: number | null } | null })[];
     meta: { totalRowCount: number };
   }> {
     const where = {
@@ -112,7 +113,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       }),
     };
 
-    const [rows, totalRowCount] = await Promise.all([
+    const [entries, totalRowCount] = await Promise.all([
       this.prismaClient.watchlist.findMany({
         where,
         take: params.limit,
@@ -143,6 +144,12 @@ export class WatchlistRepository implements IWatchlistRepository {
       }),
       this.prismaClient.watchlist.count({ where }),
     ]);
+
+    const rows = entries.map((entry) => ({
+      ...entry,
+      latestAudit: entry.audits[0] ?? null,
+      audits: undefined,
+    }));
 
     return {
       rows,
@@ -252,7 +259,7 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
 
     if (!existing) {
-      throw WatchlistErrors.notFound("Watchlist entry not found");
+      throw new Error("Watchlist entry not found");
     }
 
     await this.prismaClient.$transaction(async (tx) => {
@@ -334,7 +341,6 @@ export class WatchlistRepository implements IWatchlistRepository {
         action: WatchlistAction.BLOCK,
         description: params.description,
         userId: params.userId,
-        skipExistenceCheck: true,
       }));
 
     return { watchlistEntry, value: params.value };
@@ -369,7 +375,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       reportsToAdd.map(async (report) => {
         const normalizedValue = params.normalizedValues.get(report.id);
         if (!normalizedValue) {
-          throw new Error(`Normalized value not found for report ${report.id}`);
+          throw new Error("Unable to process the selected report. Please try again.");
         }
 
         const { watchlistEntry, value } = await this.createEntryFromReport({

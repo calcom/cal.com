@@ -1,14 +1,10 @@
+import logger from "@calcom/lib/logger";
 import type { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { BookingReportStatus } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
-import type {
-  AddReportsToWatchlistInput,
-  CreateWatchlistEntryInput,
-  DeleteWatchlistEntryInput,
-  WatchlistOperationsScope,
-} from "./WatchlistOperationsService";
+import type { WatchlistOperationsScope } from "./WatchlistOperationsService";
 import { WatchlistOperationsService } from "./WatchlistOperationsService";
 
 export interface BulkDeleteWatchlistEntriesInput {
@@ -46,20 +42,20 @@ type Deps = {
 };
 
 export class AdminWatchlistOperationsService extends WatchlistOperationsService {
+  private log = logger.getSubLogger({ prefix: ["AdminWatchlistOperationsService"] });
+
   constructor(deps: Deps) {
     super(deps);
   }
 
-  protected getScope(
-    _input: AddReportsToWatchlistInput | CreateWatchlistEntryInput | DeleteWatchlistEntryInput
-  ): WatchlistOperationsScope {
+  protected getScope(): WatchlistOperationsScope {
     return {
       organizationId: null,
       isGlobal: true,
     };
   }
 
-  protected async validateReports(
+  protected async findReports(
     reportIds: string[]
   ): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>> {
     const reports = await this.deps.bookingReportRepo.findReportsByIds({
@@ -104,6 +100,7 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     if (successCount === 0 && failed.length > 0) {
+      this.log.error("Bulk delete watchlist entries failures", { failed });
       throw WatchlistErrors.bulkDeletePartialFailure(`Failed to delete all entries: ${failed[0].reason}`);
     }
 
@@ -175,6 +172,7 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     if (successCount === 0 && failed.length > 0) {
+      this.log.error("Bulk dismiss reports failures", { failed });
       throw WatchlistErrors.bulkDeletePartialFailure(`Failed to dismiss all reports: ${failed[0].reason}`);
     }
 

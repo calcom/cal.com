@@ -84,7 +84,9 @@ export function getAdminWatchlistOperationsService(): AdminWatchlistOperationsSe
   });
 }
 
-export function getOrganizationWatchlistOperationsService(): OrganizationWatchlistOperationsService {
+export function getOrganizationWatchlistOperationsService(
+  organizationId: number
+): OrganizationWatchlistOperationsService {
   const watchlistRepo = new WatchlistRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
   const permissionCheckService = new PermissionCheckService();
@@ -93,6 +95,7 @@ export function getOrganizationWatchlistOperationsService(): OrganizationWatchli
     watchlistRepo,
     bookingReportRepo,
     permissionCheckService,
+    organizationId,
   });
 }
 

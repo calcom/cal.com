@@ -39,7 +39,7 @@ export class AdminWatchlistQueryService {
   constructor(private readonly deps: Deps) {}
 
   async listWatchlistEntries(input: ListWatchlistEntriesInput) {
-    const { rows, meta } = await this.deps.watchlistRepo.findAllEntries({
+    const { rows, meta } = await this.deps.watchlistRepo.findAllEntriesWithLatestAudit({
       organizationId: null,
       isGlobal: true,
       limit: input.limit,
@@ -49,7 +49,7 @@ export class AdminWatchlistQueryService {
     });
 
     const userIds = rows
-      .map((entry) => entry.audits?.[0]?.changedByUserId)
+      .map((entry) => entry.latestAudit?.changedByUserId)
       .filter((id): id is number => id !== null && id !== undefined);
 
     const uniqueUserIds = Array.from(new Set(userIds));
@@ -59,17 +59,14 @@ export class AdminWatchlistQueryService {
     const userMap = new Map(users.map((u) => [u.id, u]));
 
     const rowsWithCreators = rows.map((entry) => {
-      const audit = entry.audits?.[0];
-      if (audit?.changedByUserId) {
-        const changedByUser = userMap.get(audit.changedByUserId);
+      if (entry.latestAudit?.changedByUserId) {
+        const changedByUser = userMap.get(entry.latestAudit.changedByUserId);
         return {
           ...entry,
-          audits: [
-            {
-              ...audit,
-              changedByUser,
-            },
-          ],
+          latestAudit: {
+            ...entry.latestAudit,
+            changedByUser,
+          },
         };
       }
       return entry;

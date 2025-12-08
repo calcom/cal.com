@@ -24,15 +24,14 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
     });
   }
 
-  const service = getOrganizationWatchlistOperationsService();
+  const service = getOrganizationWatchlistOperationsService(organizationId);
 
   try {
-    return await service.addReportsToWatchlistInternal({
+    return await service.addReportsToWatchlist({
       reportIds: input.reportIds,
       type: input.type,
       description: input.description,
       userId: user.id,
-      organizationId,
     });
   } catch (error) {
     if (error instanceof WatchlistError) {

@@ -16,7 +16,7 @@ describe("addToWatchlistHandler (Organization)", () => {
   };
 
   const mockService = {
-    addReportsToWatchlistInternal: vi.fn(),
+    addReportsToWatchlist: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -42,13 +42,13 @@ describe("addToWatchlistHandler (Organization)", () => {
         message: "You must be part of an organization to add to watchlist",
       });
 
-      expect(mockService.addReportsToWatchlistInternal).not.toHaveBeenCalled();
+      expect(mockService.addReportsToWatchlist).not.toHaveBeenCalled();
     });
   });
 
   describe("error mapping", () => {
     it("should map NOT_FOUND error to NOT_FOUND", async () => {
-      mockService.addReportsToWatchlistInternal.mockRejectedValue(
+      mockService.addReportsToWatchlist.mockRejectedValue(
         WatchlistErrors.notFound("Booking report(s) not found: report-1")
       );
 
@@ -67,7 +67,7 @@ describe("addToWatchlistHandler (Organization)", () => {
     });
 
     it("should map PERMISSION_DENIED error to UNAUTHORIZED", async () => {
-      mockService.addReportsToWatchlistInternal.mockRejectedValue(
+      mockService.addReportsToWatchlist.mockRejectedValue(
         WatchlistErrors.permissionDenied("You are not authorized to add entries to the watchlist")
       );
 
@@ -86,7 +86,7 @@ describe("addToWatchlistHandler (Organization)", () => {
     });
 
     it("should map ALREADY_IN_WATCHLIST error to BAD_REQUEST", async () => {
-      mockService.addReportsToWatchlistInternal.mockRejectedValue(
+      mockService.addReportsToWatchlist.mockRejectedValue(
         WatchlistErrors.alreadyInWatchlist("All selected bookers are already in the watchlist")
       );
 
@@ -106,7 +106,7 @@ describe("addToWatchlistHandler (Organization)", () => {
 
     it("should re-throw unknown service errors", async () => {
       const unknownError = new Error("Database connection failed");
-      mockService.addReportsToWatchlistInternal.mockRejectedValue(unknownError);
+      mockService.addReportsToWatchlist.mockRejectedValue(unknownError);
 
       await expect(
         addToWatchlistHandler({
@@ -122,7 +122,7 @@ describe("addToWatchlistHandler (Organization)", () => {
 
   describe("successful delegation", () => {
     it("should delegate to service with correct parameters", async () => {
-      mockService.addReportsToWatchlistInternal.mockResolvedValue({
+      mockService.addReportsToWatchlist.mockResolvedValue({
         success: true,
         addedCount: 2,
         message: "Successfully added 2 entries to watchlist",
@@ -137,11 +137,10 @@ describe("addToWatchlistHandler (Organization)", () => {
         },
       });
 
-      expect(mockService.addReportsToWatchlistInternal).toHaveBeenCalledWith({
+      expect(mockService.addReportsToWatchlist).toHaveBeenCalledWith({
         reportIds: ["report-1", "report-2"],
         type: WatchlistType.EMAIL,
         description: "Spam users",
-        organizationId: 100,
         userId: 1,
       });
       expect(result.success).toBe(true);

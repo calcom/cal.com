@@ -147,7 +147,6 @@ describe("createWatchlistEntryHandler", () => {
         type: WatchlistType.EMAIL,
         value: "spam@example.com",
         description: "Known spammer",
-        organizationId: 100,
         userId: 1,
       });
       expect(result.success).toBe(true);
@@ -179,7 +178,6 @@ describe("createWatchlistEntryHandler", () => {
         type: WatchlistType.DOMAIN,
         value: "spammer.com",
         description: undefined,
-        organizationId: 100,
         userId: 1,
       });
       expect(result.success).toBe(true);

@@ -43,13 +43,12 @@ export const deleteWatchlistEntryHandler = async ({ ctx, input }: DeleteWatchlis
     });
   }
 
-  const service = getOrganizationWatchlistOperationsService();
+  const service = getOrganizationWatchlistOperationsService(organizationId);
 
   try {
     return await service.deleteWatchlistEntry({
       entryId: input.id,
       userId: user.id,
-      organizationId,
     });
   } catch (error) {
     if (error instanceof WatchlistError) {

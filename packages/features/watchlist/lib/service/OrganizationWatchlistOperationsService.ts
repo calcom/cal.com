@@ -20,78 +20,41 @@ type Deps = {
   watchlistRepo: WatchlistRepository;
   bookingReportRepo: PrismaBookingReportRepository;
   permissionCheckService: PermissionCheckService;
+  organizationId: number;
 };
-
-export interface OrganizationAddReportsToWatchlistInput extends AddReportsToWatchlistInput {
-  organizationId: number;
-}
-
-export interface OrganizationCreateWatchlistEntryInput extends CreateWatchlistEntryInput {
-  organizationId: number;
-}
-
-export interface OrganizationDeleteWatchlistEntryInput extends DeleteWatchlistEntryInput {
-  organizationId: number;
-}
-
-type OrganizationInput =
-  | OrganizationAddReportsToWatchlistInput
-  | OrganizationCreateWatchlistEntryInput
-  | OrganizationDeleteWatchlistEntryInput;
-
-function isOrganizationInput(
-  input: AddReportsToWatchlistInput | CreateWatchlistEntryInput | DeleteWatchlistEntryInput
-): input is OrganizationInput {
-  return (
-    "organizationId" in input &&
-    input.organizationId !== undefined &&
-    typeof input.organizationId === "number"
-  );
-}
 
 export class OrganizationWatchlistOperationsService extends WatchlistOperationsService {
   private readonly permissionCheckService: PermissionCheckService;
-  private currentOrganizationId: number | null = null;
+  private readonly organizationId: number;
 
   constructor(deps: Deps) {
     super(deps);
     this.permissionCheckService = deps.permissionCheckService;
+    this.organizationId = deps.organizationId;
   }
 
-  protected getScope(
-    input: AddReportsToWatchlistInput | CreateWatchlistEntryInput | DeleteWatchlistEntryInput
-  ): WatchlistOperationsScope {
-    if (!isOrganizationInput(input)) {
-      throw WatchlistErrors.unauthorized("You must be part of an organization to manage watchlist");
-    }
-
-    this.currentOrganizationId = input.organizationId;
-
+  protected getScope(): WatchlistOperationsScope {
     return {
-      organizationId: input.organizationId,
+      organizationId: this.organizationId,
       isGlobal: false,
     };
   }
 
-  protected async validateReports(
+  protected async findReports(
     reportIds: string[]
   ): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>> {
-    if (!this.currentOrganizationId) {
-      throw WatchlistErrors.validationError("Organization ID must be set before calling validateReports");
-    }
-
     const reports = await this.deps.bookingReportRepo.findReportsByIds({
       reportIds,
-      organizationId: this.currentOrganizationId,
+      organizationId: this.organizationId,
     });
 
     return reports;
   }
 
-  private async checkPermission(userId: number, organizationId: number, permission: PermissionString): Promise<void> {
+  private async checkPermission(userId: number, permission: PermissionString): Promise<void> {
     const hasPermission = await this.permissionCheckService.checkPermission({
       userId,
-      teamId: organizationId,
+      teamId: this.organizationId,
       permission,
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
@@ -101,31 +64,18 @@ export class OrganizationWatchlistOperationsService extends WatchlistOperationsS
     }
   }
 
-  async addReportsToWatchlist(
-    input: OrganizationAddReportsToWatchlistInput
-  ): Promise<AddReportsToWatchlistResult> {
-    await this.checkPermission(input.userId, input.organizationId, "watchlist.create");
+  async addReportsToWatchlist(input: AddReportsToWatchlistInput): Promise<AddReportsToWatchlistResult> {
+    await this.checkPermission(input.userId, "watchlist.create");
     return super.addReportsToWatchlist(input);
   }
 
-  async createWatchlistEntry(
-    input: OrganizationCreateWatchlistEntryInput
-  ): Promise<CreateWatchlistEntryResult> {
-    await this.checkPermission(input.userId, input.organizationId, "watchlist.create");
+  async createWatchlistEntry(input: CreateWatchlistEntryInput): Promise<CreateWatchlistEntryResult> {
+    await this.checkPermission(input.userId, "watchlist.create");
     return super.createWatchlistEntry(input);
   }
 
-  async deleteWatchlistEntry(
-    input: OrganizationDeleteWatchlistEntryInput
-  ): Promise<DeleteWatchlistEntryResult> {
-    await this.checkPermission(input.userId, input.organizationId, "watchlist.delete");
+  async deleteWatchlistEntry(input: DeleteWatchlistEntryInput): Promise<DeleteWatchlistEntryResult> {
+    await this.checkPermission(input.userId, "watchlist.delete");
     return super.deleteWatchlistEntry(input);
-  }
-
-  async addReportsToWatchlistInternal(
-    input: OrganizationAddReportsToWatchlistInput
-  ): Promise<AddReportsToWatchlistResult> {
-    await this.checkPermission(input.userId, input.organizationId, "watchlist.create");
-    return super.addReportsToWatchlist(input);
   }
 }

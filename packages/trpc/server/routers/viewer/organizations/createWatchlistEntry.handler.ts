@@ -24,7 +24,7 @@ export const createWatchlistEntryHandler = async ({ ctx, input }: CreateWatchlis
     });
   }
 
-  const service = getOrganizationWatchlistOperationsService();
+  const service = getOrganizationWatchlistOperationsService(organizationId);
 
   try {
     return await service.createWatchlistEntry({
@@ -32,7 +32,6 @@ export const createWatchlistEntryHandler = async ({ ctx, input }: CreateWatchlis
       value: input.value,
       description: input.description,
       userId: user.id,
-      organizationId,
     });
   } catch (error) {
     if (error instanceof WatchlistError) {
