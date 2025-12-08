@@ -424,6 +424,72 @@ export class WebhookRepository implements IWebhookRepository {
       })),
     };
   }
+
+  async getFilteredWebhooksForOrg({ userId, userRole }: { userId: number; userRole?: UserPermissionRole }) {
+    const webhooks: Webhook[] = [];
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatarUrl: true,
+        webhooks: true,
+        teams: {
+          where: {
+            accepted: true,
+            team: {
+              isPlatform: true,
+              isOrganization: true,
+            },
+          },
+          select: {
+            role: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                logoUrl: true,
+                platformOAuthClient: {
+                  select: {
+                    id: true,
+                    name: true,
+                    webhook: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (userRole === UserPermissionRole.USER) {
+      return {
+        hasReadPermission: true,
+        hasWritePermission: false,
+        webhooks,
+      };
+    }
+
+    user.teams.map((team) => {
+      team.team.platformOAuthClient.map((client) => {
+        webhooks.push(...client.webhook);
+      });
+    });
+
+    return {
+      hasReadPermission: true,
+      hasWritePermission: true,
+      webhooks,
+    };
+  }
 }
 
 export const webhookRepository = withReporting(
