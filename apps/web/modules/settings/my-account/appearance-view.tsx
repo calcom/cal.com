@@ -586,7 +586,7 @@ const AppearanceView = ({
           <div className="border-subtle mt-6 rounded-md border p-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
-              title={t("disable_branding")}
+              title={t("enable_custom_branding")}
               disabled={!hasPaidPlan || mutation?.isPending}
               description={t("removes_cal_branding", { appName: APP_NAME })}
               checked={hasPaidPlan ? hideBrandingValue : false}
@@ -623,8 +623,8 @@ const AppearanceView = ({
                       <div>
                         <div className="mt-6 flex flex-row justify-between">
                           <div className="flex flex-col">
-                            <div className="text-sm">{t("custom_brand_logo")}</div>
-                            <div className="text-subtle text-xs">{t("custom_brand_logo_description")}</div>
+                            <div className="text-sm font-medium">{t("custom_brand_logo")}</div>
+                            <div className="text-subtle text-sm">{t("custom_brand_logo_description")}</div>
                           </div>
                           <Button color="secondary" size="sm">
                             {t("preview")}
@@ -696,7 +696,7 @@ const AppearanceView = ({
                       <div>
                         <div className="mt-6 flex flex-row justify-between">
                           <div className="flex flex-col">
-                            <div className="text-sm">{t("custom_brand_favicon")}</div>
+                            <div className="text-sm font-medium">{t("custom_brand_favicon")}</div>
                             <div className="text-subtle text-xs">{t("custom_brand_favicon_description")}</div>
                           </div>
                         </div>

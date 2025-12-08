@@ -44,7 +44,7 @@ function Calendar({
         ),
         day_range_end: "hover:!bg-inverted hover:!text-inverted",
         day_range_start: "hover:!bg-inverted hover:!text-inverted",
-        day_selected: "bg-inverted text-inverted",
+        day_selected: "bg-blue-500 text-white",
         day_today: "",
         day_outside: "",
         day_disabled: "text-muted opacity-50",
