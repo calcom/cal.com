@@ -8,3 +8,6 @@ ADD COLUMN     "userId" INTEGER;
 
 -- AddForeignKey
 ALTER TABLE "public"."OAuthClient" ADD CONSTRAINT "OAuthClient_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- CreateIndex
+CREATE INDEX "OAuthClient_userId_idx" ON "public"."OAuthClient"("userId");

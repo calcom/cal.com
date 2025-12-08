@@ -1761,6 +1761,8 @@ model OAuthClient {
   userId         Int?
   user           User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt      DateTime                  @default(now())
+
+  @@index([userId])
 }
 
 model AccessCode {

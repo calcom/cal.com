@@ -52,6 +52,16 @@ export class OAuthClientRepository {
   async findByUserId(userId: number) {
     return this.prismaClient.oAuthClient.findMany({
       where: { userId },
+      select: {
+        clientId: true,
+        redirectUri: true,
+        name: true,
+        logo: true,
+        clientType: true,
+        approvalStatus: true,
+        userId: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: "desc" },
     });
   }
