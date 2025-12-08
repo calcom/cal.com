@@ -31,13 +31,13 @@ async function _scheduleMandatoryReminder({
   traceContext: TraceContext;
 }) {
   const reminderMeta = {
-    eventTitle: evt.title || "unknown",
-    attendeeCount: evt.attendees.length.toString(),
-    organizerId: evt.organizer.id?.toString() || "unknown",
-    requiresConfirmation: String(requiresConfirmation),
-    hideBranding: String(hideBranding),
-    seatReferenceUid: seatReferenceUid || "null",
-    isPlatformNoEmail: String(isPlatformNoEmail),
+    eventTitle: evt.title,
+    attendeeCount: evt.attendees.length,
+    organizerId: evt.organizer.id,
+    requiresConfirmation,
+    hideBranding,
+    seatReferenceUid,
+    isPlatformNoEmail,
   };
 
   const spanContext = distributedTracing.createSpan(
