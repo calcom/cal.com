@@ -189,6 +189,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         bio={organizationDetails.bio}
         slug={organizationDetails.link}
         bannerUrl={bannerPreview}
+        brandColor={brandColor}
       />
     </OnboardingLayout>
   );
