@@ -476,6 +476,10 @@ async function createOrganizationAndAddMembersAndTeams({
       organizationId: orgInDb.id,
       userId: { in: orgMembersInDb.map((m) => m.id) },
     },
+    select: {
+      id: true,
+      userId: true,
+    },
   });
 
   const orgMembersInDBWithProfileId = orgMembersInDb.map((member) => ({
