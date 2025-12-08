@@ -109,8 +109,8 @@ describe("WebhooksController (e2e)", () => {
       } satisfies CreateWebhookInputDto)
       .expect(409)
       .then((res) => {
-        expect(res.body.error.message).toContain("https://example.com");
-        expect(res.body.error.message).toContain(webhook.id);
+        expect(res.body.message).toContain("https://example.com");
+        expect(res.body.message).toContain(webhook.id);
       });
   });
 
