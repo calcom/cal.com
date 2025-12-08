@@ -18,15 +18,14 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
-import { TRPCError } from "@trpc/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
   prisma: PrismaClient;
-  isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
 }
@@ -38,7 +37,6 @@ export const getEventTypeById = async ({
   eventTypeId,
   userId,
   prisma,
-  isTrpcCall = false,
   isUserOrganizationAdmin,
 }: getEventTypeByIdProps) => {
   const userSelect = {
@@ -62,11 +60,7 @@ export const getEventTypeById = async ({
   });
 
   if (!rawEventType) {
-    if (isTrpcCall) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    } else {
-      throw new Error("Event type not found");
-    }
+    throw new ErrorWithCode(ErrorCode.EventTypeNotFound, "Event type not found");
   }
 
   const { locations, metadata, ...restEventType } = rawEventType;
@@ -167,14 +161,7 @@ export const getEventTypeById = async ({
       select: userSelect,
     });
     if (!fallbackUser) {
-      if (isTrpcCall) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "The event type doesn't have user and no fallback user was found",
-        });
-      } else {
-        throw Error("The event type doesn't have user and no fallback user was found");
-      }
+      throw new ErrorWithCode(ErrorCode.NotFound, "The event type doesn't have user and no fallback user was found");
     }
     eventType.users.push(fallbackUser);
   }
@@ -190,10 +177,7 @@ export const getEventTypeById = async ({
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
 
   if (!currentUser?.id && !eventType.teamId) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Could not find user or team",
-    });
+    throw new ErrorWithCode(ErrorCode.NotFound, "Could not find user or team");
   }
 
   const locationOptions = await getLocationGroupedOptions(
@@ -271,7 +255,7 @@ export async function getRawEventType({
   isUserOrganizationAdmin,
   currentOrganizationId,
   prisma,
-}: Omit<getEventTypeByIdProps, "isTrpcCall">) {
+}: getEventTypeByIdProps) {
   const eventTypeRepo = new EventTypeRepository(prisma);
   const organizationRepo = getOrganizationRepository();
   const isUserInPlatformOrganization = currentOrganizationId ? !!(await organizationRepo.findById({ id: currentOrganizationId }))?.isPlatform : false;
