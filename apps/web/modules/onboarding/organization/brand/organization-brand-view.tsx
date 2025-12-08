@@ -81,6 +81,11 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     router.push("/onboarding/organization/teams");
   };
 
+  const handleSkip = () => {
+    // Skip brand customization and go to teams
+    router.push("/onboarding/organization/teams");
+  };
+
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={4}>
       {/* Left column - Main content */}
@@ -95,9 +100,14 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               onClick={() => router.push("/onboarding/organization/details")}>
               {t("back")}
             </Button>
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-              {t("continue")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+                {t("onboarding_skip_for_now")}
+              </Button>
+              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                {t("continue")}
+              </Button>
+            </div>
           </div>
         }>
         {/* Form */}
@@ -189,6 +199,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         bio={organizationDetails.bio}
         slug={organizationDetails.link}
         bannerUrl={bannerPreview}
+        brandColor={brandColor}
       />
     </OnboardingLayout>
   );
