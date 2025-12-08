@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 import { CAL_URL, LOGO, WEBAPP_URL } from "./constants";
 
@@ -47,7 +47,8 @@ const joinMultipleNames = (names: string[] = []) => {
   return `${names.length > 0 ? `${names.join(", ")} & ${lastName}` : lastName}`;
 };
 
-const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CAL_URL}${url}`);
+const makeAbsoluteUrl = (url: string) =>
+  /^https?:\/\//.test(url) ? url : `${CAL_URL}${url}`;
 
 const OG_ASSETS = {
   meeting: {
@@ -81,12 +82,20 @@ export const getOGImageVersion = async (
     ...(additionalInputs ?? {}),
   };
 
-  const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
+  const content = JSON.stringify(
+    versionInputs,
+    Object.keys(versionInputs).sort()
+  );
 
   // Use Web Crypto API instead of Node.js crypto for Edge Runtime compatibility (`/api/social/og/image` is an Edge Runtime route)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(content));
+  const hashBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(content)
+  );
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 
   return hashHex.substring(0, 8);
 };
@@ -147,7 +156,10 @@ export const constructAppImage = async ({
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
-export const constructGenericImage = async ({ title, description }: GenericImageProps): Promise<string> => {
+export const constructGenericImage = async ({
+  title,
+  description,
+}: GenericImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "generic",
     title,
@@ -159,7 +171,11 @@ export const constructGenericImage = async ({ title, description }: GenericImage
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
-const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps) => (
+const Wrapper = ({
+  children,
+  variant = "light",
+  rotateBackground,
+}: WrapperProps) => (
   <div tw="flex w-full h-full">
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
@@ -169,7 +185,9 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
       width="1200"
       height="600"
     />
-    <div tw="flex flex-col w-full h-full px-[80px] py-[70px] items-start justify-center">{children}</div>
+    <div tw="flex flex-col w-full h-full px-[80px] py-[70px] items-start justify-center">
+      {children}
+    </div>
   </div>
 );
 
@@ -186,7 +204,8 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   // any non existing images for dynamic collectives, while at the same time removing them from
   // the names list, because the profile name of that event is a concatenation of all names.
   const attendees = (profile.image ? [profile, ...users] : users).filter(
-    (value, index, self) => self.findIndex((v) => v.name === value.name) == index
+    (value, index, self) =>
+      self.findIndex((v) => v.name === value.name) === index
   );
 
   // Construct list of avatar urls, removes duplicates and empty profile images
@@ -199,15 +218,26 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
 
   // In case there is NO other attendee than the single meeting profile without an image, we add
   // that name back in here, since the event probably is a round robin event.
-  const names = attendees.length > 0 ? attendees.map((user) => user.name) : [profile.name];
+  const names =
+    attendees.length > 0 ? attendees.map((user) => user.name) : [profile.name];
 
   return (
     <Wrapper variant={config.variant}>
       <div tw="h-full flex flex-col justify-start">
-        <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-          <img src={`${WEBAPP_URL}/${config.logo}`} width={config.logoWidth} alt="Logo" />
+        <div
+          tw="flex items-center justify-center"
+          style={{ fontFamily: "cal", fontWeight: 300 }}
+        >
+          <img
+            src={`${WEBAPP_URL}/${config.logo}`}
+            width={config.logoWidth}
+            alt="Logo"
+          />
           {avatars.length > 0 && (
-            <div style={{ color: "#111827" }} tw="font-bold text-[92px] mx-8 bottom-2">
+            <div
+              style={{ color: "#111827" }}
+              tw="font-bold text-[92px] mx-8 bottom-2"
+            >
               /
             </div>
           )}
@@ -217,28 +247,44 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
                 tw="rounded-full mr-[-36px] border-[6px] border-[#CDCED2]"
                 key={avatar}
                 src={avatar}
-                alt="Profile picture"
+                alt="Profile"
                 width={config.avatarSize}
                 height={config.avatarSize}
               />
             ))}
             {avatars.length > 3 && (
               <div
-                tw={`flex items-center justify-center w-[${config.avatarSize}px] h-[${config.avatarSize}px] rounded-full bg-black text-inverted text-[54px] font-bold`}>
-                <span tw="flex top-[-5px] left-[-5px]">+{avatars.length - 3}</span>
+                tw={`flex items-center justify-center w-[${config.avatarSize}px] h-[${config.avatarSize}px] rounded-full bg-black text-inverted text-[54px] font-bold`}
+              >
+                <span tw="flex top-[-5px] left-[-5px]">
+                  +{avatars.length - 3}
+                </span>
               </div>
             )}
           </div>
         </div>
-        <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
+        <div
+          style={{ color: "#111827" }}
+          tw="relative flex text-[54px] w-full flex-col mt-auto"
+        >
           <div
             tw="flex w-[1040px] overflow-hidden"
-            style={{ whiteSpace: "nowrap", fontFamily: "cal", textOverflow: "ellipsis" }}>
+            style={{
+              whiteSpace: "nowrap",
+              fontFamily: "cal",
+              textOverflow: "ellipsis",
+            }}
+          >
             Meet {joinMultipleNames(names)}
           </div>
           <div
             tw="flex mt-3 w-[1040px] overflow-hidden"
-            style={{ whiteSpace: "nowrap", fontFamily: "inter", textOverflow: "ellipsis" }}>
+            style={{
+              whiteSpace: "nowrap",
+              fontFamily: "inter",
+              textOverflow: "ellipsis",
+            }}
+          >
             {title}
           </div>
         </div>
@@ -309,7 +355,10 @@ export const App = ({ name, description, logoUrl }: AppImageProps) => {
         </div>
       </div>
       <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">
-        <div tw="flex text-[64px] mb-7" style={{ fontFamily: "cal", fontWeight: 600 }}>
+        <div
+          tw="flex text-[64px] mb-7"
+          style={{ fontFamily: "cal", fontWeight: 600 }}
+        >
           {name}
         </div>
         <div tw="flex text-[36px]" style={{ fontFamily: "inter" }}>
@@ -331,11 +380,21 @@ export const Generic = ({ title, description }: GenericImageProps) => {
   return (
     <Wrapper variant={config.variant}>
       <div tw="h-full flex flex-col justify-start">
-        <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-          <img src={`${WEBAPP_URL}/${config.logo}`} width={config.logoWidth} alt="Logo" />
+        <div
+          tw="flex items-center justify-center"
+          style={{ fontFamily: "cal", fontWeight: 300 }}
+        >
+          <img
+            src={`${WEBAPP_URL}/${config.logo}`}
+            width={config.logoWidth}
+            alt="Logo"
+          />
         </div>
 
-        <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
+        <div
+          style={{ color: "#111827" }}
+          tw="relative flex text-[54px] w-full flex-col mt-auto"
+        >
           <div tw="flex w-[1040px]" style={{ fontFamily: "cal" }}>
             {title}
           </div>
