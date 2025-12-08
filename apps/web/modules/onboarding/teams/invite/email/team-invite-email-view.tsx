@@ -113,16 +113,16 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       }
     } else {
       // No invites, skip to personal settings
-      const gettingStartedPath = "/onboarding/personal/settings";
-      router.push(gettingStartedPath);
+      const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
+      router.replace(gettingStartedPath);
     }
   };
 
   const handleSkip = async () => {
     setTeamInvites([]);
     // Skip inviting members and go to personal settings
-    const gettingStartedPath = "/onboarding/personal/settings";
-    router.push(gettingStartedPath);
+    const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
+    router.replace(gettingStartedPath);
   };
 
   const hasValidInvites = fields.some((_, index) => {
