@@ -6,7 +6,9 @@ import { Controller, useForm } from "react-hook-form";
 import { TimeTimeUnitInput } from "@calcom/features/ee/workflows/components/TimeTimeUnitInput";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeUnit, WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
+import { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import { WebhookVersion } from "../lib/interface/IWebhookRepository";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";

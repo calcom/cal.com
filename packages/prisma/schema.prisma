@@ -1104,10 +1104,6 @@ enum WebhookTriggerEvents {
   DELEGATION_CREDENTIAL_ERROR
 }
 
-enum WebhookVersion {
-  V_2021_10_20 @map("2021-10-20")
-}
-
 model Webhook {
   id                    String                     @id @unique
   userId                Int?
@@ -1131,7 +1127,7 @@ model Webhook {
   scheduledTriggers     WebhookScheduledTriggers[]
   time                  Int?
   timeUnit              TimeUnit?
-  version               WebhookVersion             @default(V_2021_10_20)
+  version               String                     @default("2021-10-20")
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
   @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")

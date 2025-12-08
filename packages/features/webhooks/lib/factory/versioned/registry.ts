@@ -1,13 +1,9 @@
-import { WebhookVersion } from "@calcom/prisma/enums";
-
+import { DEFAULT_WEBHOOK_VERSION } from "../../interface/IWebhookRepository";
 import { PayloadBuilderFactory } from "./PayloadBuilderFactory";
 import * as V2021_10_20 from "./v2021-10-20";
 
-/**
- * Default/fallback version - the oldest supported version for backward compatibility.
- * This is a configuration decision owned by the registry.
- */
-export const DEFAULT_WEBHOOK_VERSION = WebhookVersion.V_2021_10_20;
+// Re-export for consumers
+export { DEFAULT_WEBHOOK_VERSION } from "../../interface/IWebhookRepository";
 
 /**
  * Create and initialize a PayloadBuilderFactory with all registered versions.
@@ -18,10 +14,10 @@ export const DEFAULT_WEBHOOK_VERSION = WebhookVersion.V_2021_10_20;
  * @returns Fully configured PayloadBuilderFactory instance
  *
  * @example Adding a new webhook version
+ * 1. Create directory: versioned/v2024-12-01/
+ * 2. Implement builders in that directory
+ * 3. Import and register here:
  * ```ts
- * // 1. Create directory: versioned/v2024-12-01/
- * // 2. Implement builders in that directory
- * // 3. Import and register here:
  *
  * import * as V2024_12_01 from "./v2024-12-01";
  *

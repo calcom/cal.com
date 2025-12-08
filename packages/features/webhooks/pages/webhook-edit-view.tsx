@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
-import { WebhookVersion as WebhookVersionEnum } from "@calcom/prisma/enums";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import type { WebhookVersion } from "../lib/interface/IWebhookRepository";
+import { WebhookVersion as WebhookVersionEnum } from "../lib/interface/IWebhookRepository";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";

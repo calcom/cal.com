@@ -7,7 +7,7 @@ import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/Setti
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WebhookVersion } from "@calcom/prisma/enums";
+import { WebhookVersion } from "../lib/interface/IWebhookRepository";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";

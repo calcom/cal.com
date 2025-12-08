@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
+import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { showToast } from "@calcom/ui/components/toast";
 
 import {

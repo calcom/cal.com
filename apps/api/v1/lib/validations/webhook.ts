@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
-import { WebhookVersion } from "@calcom/prisma/enums";
+import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import { WebhookSchema } from "@calcom/prisma/zod/modelSchema/WebhookSchema";
 
 const schemaWebhookBaseBodyParams = WebhookSchema.pick({

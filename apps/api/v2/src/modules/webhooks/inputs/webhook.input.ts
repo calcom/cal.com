@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 
 import { WebhookTriggerEvents } from "@calcom/platform-libraries";
-import { WebhookVersion } from "@calcom/prisma/enums";
+import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 export class CreateWebhookInputDto {
   @IsString()

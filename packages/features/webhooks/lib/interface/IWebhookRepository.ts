@@ -1,7 +1,29 @@
 import type { Webhook } from "@calcom/prisma/client";
-import type { WebhookTriggerEvents, UserPermissionRole, WebhookVersion } from "@calcom/prisma/enums";
+import type { WebhookTriggerEvents, UserPermissionRole } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber } from "../dto/types";
+
+/**
+ * Webhook Version enum - defines the payload format versions.
+ *
+ * This is a TypeScript-only enum (not Prisma).
+ * DB operations go through the repository which enforces these values.
+ *
+ * When adding a new version:
+ * 1. Add the new value here
+ * 2. Create version-specific builders in versioned/v{VERSION}/
+ * 3. Register the version in registry.ts
+ */
+export const WebhookVersion = {
+  V_2021_10_20: "2021-10-20",
+} as const;
+
+export type WebhookVersion = (typeof WebhookVersion)[keyof typeof WebhookVersion];
+
+/**
+ * Default webhook version - used for new webhooks and as fallback
+ */
+export const DEFAULT_WEBHOOK_VERSION = WebhookVersion.V_2021_10_20;
 
 export interface GetSubscribersOptions {
   userId?: number | null;
@@ -55,3 +77,4 @@ export interface IWebhookRepository {
     }[];
   }>;
 }
+

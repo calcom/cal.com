@@ -7,10 +7,10 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
-import type { WebhookVersion } from "@calcom/prisma/enums";
+import type { WebhookVersion } from "../interface/IWebhookRepository";
 
 import type { WebhookSubscriber } from "../dto/types";
-import type { IWebhookRepository } from "../interface/repository";
+import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { GetSubscribersOptions } from "./types";
 
 // Type for raw query results from the database

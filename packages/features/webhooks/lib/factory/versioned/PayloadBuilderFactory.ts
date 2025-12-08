@@ -1,5 +1,7 @@
 import logger from "@calcom/lib/logger";
-import { WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import type { WebhookVersion } from "../../interface/IWebhookRepository";
 
 import type {
   AfterGuestsNoShowDTO,
