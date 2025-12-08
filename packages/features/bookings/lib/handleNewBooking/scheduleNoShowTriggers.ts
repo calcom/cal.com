@@ -1,5 +1,6 @@
 import { DailyLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
+import { createPreferenceTasker } from "@calcom/features/notifications/di";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -37,7 +38,8 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
 
   if (isDryRun || !isCalVideoLocation) return;
 
-  // Add task for automatic no show in cal video
+  const proxiedTasker = await createPreferenceTasker(tasker);
+
   const noShowPromises: Promise<any>[] = [];
 
   const subscribersHostsNoShowStarted = await getWebhooks({
@@ -55,7 +57,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
         const scheduledAt = dayjs(booking.startTime)
           .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
           .toDate();
-        return tasker.create(
+        return proxiedTasker.create(
           "triggerHostNoShowWebhook",
           {
             triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
@@ -86,7 +88,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
           .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
           .toDate();
 
-        return tasker.create(
+        return proxiedTasker.create(
           "triggerGuestNoShowWebhook",
           {
             triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,

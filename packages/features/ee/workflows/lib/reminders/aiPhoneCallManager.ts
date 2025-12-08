@@ -4,6 +4,7 @@ import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing
 import dayjs from "@calcom/dayjs";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import tasker from "@calcom/features/tasker";
+import { createPreferenceTasker } from "@calcom/features/notifications/di";
 import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -405,7 +406,8 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
   }
 
   try {
-    await tasker.create(
+    const proxiedTasker = await createPreferenceTasker(tasker);
+    await proxiedTasker.create(
       "executeAIPhoneCall",
       {
         workflowReminderId,

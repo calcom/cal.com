@@ -1,6 +1,7 @@
 import type { WorkflowEmailData } from "@calcom/emails/templates/workflow-email";
 import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import tasker from "@calcom/features/tasker";
+import { createPreferenceTasker } from "@calcom/features/notifications/di";
 
 type EmailData = Omit<WorkflowEmailData, "to"> & {
   to: string[];
@@ -10,7 +11,8 @@ export async function sendOrScheduleWorkflowEmails(mailData: EmailData) {
   if (mailData.sendAt) {
     if (mailData.sendAt <= new Date()) return;
     const { sendAt, referenceUid, ...taskerData } = mailData;
-    return await tasker.create("sendWorkflowEmails", taskerData, {
+    const proxiedTasker = await createPreferenceTasker(tasker);
+    return await proxiedTasker.create("sendWorkflowEmails", taskerData, {
       scheduledAt: sendAt,
       referenceUid,
     });
