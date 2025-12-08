@@ -148,8 +148,8 @@ describe("handleChildrenEventTypes", () => {
       // Setup transaction mock to execute the callback
       setupTransactionMock();
 
-      // Mock findMany to return empty array (no workflows to link)
-      prismaMock.eventType.findMany.mockResolvedValue([]);
+      // Mock createManyAndReturn to return the created event type
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([{ id: 123, userId: 4 }]);
 
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -162,7 +162,7 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
       const { createdAt, updatedAt, ...expectedEvType } = evType;
-      expect(prismaMock.eventType.createMany).toHaveBeenCalledWith({
+      expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
         data: [
           {
             ...expectedEvType,
@@ -183,6 +183,7 @@ describe("handleChildrenEventTypes", () => {
           },
         ],
         skipDuplicates: true,
+        select: { id: true, userId: true },
       });
       expect(result.newUserIds).toEqual([4]);
       expect(result.oldUserIds).toEqual([]);
@@ -329,8 +330,8 @@ describe("handleChildrenEventTypes", () => {
       // Setup transaction mock to execute the callback
       setupTransactionMock();
 
-      // Mock findMany to return empty array (no workflows to link)
-      prismaMock.eventType.findMany.mockResolvedValue([]);
+      // Mock createManyAndReturn to return the created event type
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([{ id: 123, userId: 4 }]);
 
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
@@ -344,7 +345,7 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
       const { createdAt, updatedAt, ...expectedEvType } = evType;
-      expect(prismaMock.eventType.createMany).toHaveBeenCalledWith({
+      expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
         data: [
           {
             ...expectedEvType,
@@ -366,6 +367,7 @@ describe("handleChildrenEventTypes", () => {
           },
         ],
         skipDuplicates: true,
+        select: { id: true, userId: true },
       });
       expect(result.newUserIds).toEqual([4]);
       expect(result.oldUserIds).toEqual([]);
@@ -471,92 +473,9 @@ describe("handleChildrenEventTypes", () => {
       // Setup transaction mock to execute the callback
       setupTransactionMock();
 
-      // Mock findMany to return the newly created event type for workflow linking
+      // Mock createManyAndReturn to return the newly created event type for workflow linking
       // This simulates the event type created for user 5
-      prismaMock.eventType.findMany.mockResolvedValue([
-        {
-          id: 3,
-          title: "test",
-          slug: "test",
-          description: null,
-          position: 0,
-          locations: [],
-          length: 30,
-          offsetStart: 0,
-          hidden: false,
-          userId: 5,
-          profileId: null,
-          teamId: null,
-          eventName: null,
-          parentId: 1,
-          bookingFields: null,
-          timeZone: null,
-          periodType: "UNLIMITED",
-          periodStartDate: null,
-          periodEndDate: null,
-          periodDays: null,
-          periodCountCalendarDays: null,
-          lockTimeZoneToggleOnBookingPage: false,
-          lockedTimeZone: null,
-          requiresConfirmation: false,
-          requiresConfirmationWillBlockSlot: false,
-          requiresConfirmationForFreeEmail: false,
-          requiresBookerEmailVerification: false,
-          canSendCalVideoTranscriptionEmails: true,
-          autoTranslateDescriptionEnabled: false,
-          recurringEvent: null,
-          disableGuests: false,
-          hideCalendarNotes: false,
-          hideCalendarEventDetails: false,
-          minimumBookingNotice: 120,
-          beforeEventBuffer: 0,
-          afterEventBuffer: 0,
-          seatsPerTimeSlot: null,
-          onlyShowFirstAvailableSlot: false,
-          showOptimizedSlots: false,
-          disableCancelling: false,
-          disableRescheduling: false,
-          seatsShowAttendees: false,
-          seatsShowAvailabilityCount: true,
-          schedulingType: null,
-          scheduleId: null,
-          price: 0,
-          currency: "usd",
-          slotInterval: null,
-          metadata: {},
-          successRedirectUrl: null,
-          forwardParamsSuccessRedirect: true,
-          bookingLimits: null,
-          durationLimits: null,
-          isInstantEvent: false,
-          instantMeetingExpiryTimeOffsetInSeconds: 90,
-          instantMeetingScheduleId: null,
-          assignAllTeamMembers: false,
-          useEventTypeDestinationCalendarEmail: false,
-          secondaryEmailId: null,
-          eventTypeColor: null,
-          rescheduleWithSameRoundRobinHost: false,
-          rrSegmentQueryValue: null,
-          assignRRMembersUsingSegment: false,
-          useEventLevelSelectedCalendars: false,
-          restrictionScheduleId: null,
-          useBookerTimezone: false,
-          allowReschedulingCancelledBookings: false,
-          includeNoShowInRRCalculation: false,
-          interfaceLanguage: null,
-          customReplyToEmail: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          instantMeetingParameters: [],
-          isRRWeightsEnabled: false,
-          maxLeadThreshold: null,
-          allowReschedulingPastBookings: false,
-          hideOrganizerEmail: false,
-          maxActiveBookingsPerBooker: null,
-          maxActiveBookingPerBookerOfferReschedule: false,
-          bookingRequiresAuthentication: false,
-        },
-      ]);
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([{ id: 3, userId: 5 }]);
 
       // Mock the event type that will be returned for existing users
       const mockUpdatedEventType = {
@@ -601,9 +520,9 @@ describe("handleChildrenEventTypes", () => {
 
       const { createdAt, updatedAt, ...expectedEvType } = evType;
       if ("workflows" in expectedEvType) delete expectedEvType.workflows;
-      // Verify createMany was called for new users (user 5)
-      // Note: createMany doesn't support nested relations like workflows, so they're handled separately
-      expect(prismaMock.eventType.createMany).toHaveBeenCalledWith({
+      // Verify createManyAndReturn was called for new users (user 5)
+      // Note: createManyAndReturn doesn't support nested relations like workflows, so they're handled separately
+      expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
         data: [
           {
             ...expectedEvType,
@@ -627,6 +546,7 @@ describe("handleChildrenEventTypes", () => {
           },
         ],
         skipDuplicates: true,
+        select: { id: true, userId: true },
       });
 
       // Verify workflowsOnEventTypes.createMany was called for new users' workflows
