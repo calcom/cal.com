@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -26,6 +27,7 @@ type FormValues = {
 
 const OAuthClientsView = () => {
   const { t } = useLocale();
+  const { copyToClipboard } = useCopy();
   const utils = trpc.useUtils();
   const [showDialog, setShowDialog] = useState(false);
   const [logo, setLogo] = useState("");
@@ -256,8 +258,9 @@ const OAuthClientsView = () => {
                 <Tooltip side="top" content={t("copy_to_clipboard")}>
                   <Button
                     onClick={() => {
-                      navigator.clipboard.writeText(submittedClient.clientId);
-                      showToast(t("client_id_copied"), "success");
+                      copyToClipboard(submittedClient.clientId, {
+                        onSuccess: () => showToast(t("client_id_copied"), "success"),
+                      });
                     }}
                     type="button"
                     className="rounded-l-none text-base"
@@ -302,8 +305,9 @@ const OAuthClientsView = () => {
                   <Tooltip side="top" content={t("copy_to_clipboard")}>
                     <Button
                       onClick={() => {
-                        navigator.clipboard.writeText(selectedClient.clientId);
-                        showToast(t("client_id_copied"), "success");
+                        copyToClipboard(selectedClient.clientId, {
+                          onSuccess: () => showToast(t("client_id_copied"), "success"),
+                        });
                       }}
                       type="button"
                       className="rounded-l-none text-base"

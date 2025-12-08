@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -36,6 +37,7 @@ type FormValues = {
 
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
+  const { copyToClipboard } = useCopy();
   const utils = trpc.useUtils();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [logo, setLogo] = useState("");
@@ -201,8 +203,9 @@ export default function OAuthClientsAdminView() {
                         )}
                         <DropdownMenuItem
                           onClick={() => {
-                            navigator.clipboard.writeText(client.clientId);
-                            showToast(t("client_id_copied"), "success");
+                            copyToClipboard(client.clientId, {
+                              onSuccess: () => showToast(t("client_id_copied"), "success"),
+                            });
                           }}>
                           <Icon name="clipboard" className="mr-2 h-4 w-4" />
                           {t("copy_client_id")}
@@ -305,8 +308,9 @@ export default function OAuthClientsAdminView() {
                 <Tooltip side="top" content={t("copy_to_clipboard")}>
                   <Button
                     onClick={() => {
-                      navigator.clipboard.writeText(createdClient.clientId);
-                      showToast(t("client_id_copied"), "success");
+                      copyToClipboard(createdClient.clientId, {
+                        onSuccess: () => showToast(t("client_id_copied"), "success"),
+                      });
                     }}
                     type="button"
                     className="rounded-l-none text-base"
@@ -325,8 +329,9 @@ export default function OAuthClientsAdminView() {
                     <Tooltip side="top" content={t("copy_to_clipboard")}>
                       <Button
                         onClick={() => {
-                          navigator.clipboard.writeText(createdClient.clientSecret || "");
-                          showToast(t("client_secret_copied"), "success");
+                          copyToClipboard(createdClient.clientSecret || "", {
+                            onSuccess: () => showToast(t("client_secret_copied"), "success"),
+                          });
                         }}
                         type="button"
                         className="rounded-l-none text-base"
