@@ -627,19 +627,11 @@ describe("handleChildrenEventTypes", () => {
           },
         },
       });
-      // Verify workflowsOnEventTypes.upsert was called for existing users' workflows
-      expect(prismaMock.workflowsOnEventTypes.upsert).toHaveBeenCalledWith({
-        create: {
-          eventTypeId: 2,
-          workflowId: 11,
-        },
-        update: {},
-        where: {
-          workflowId_eventTypeId: {
-            eventTypeId: 2,
-            workflowId: 11,
-          },
-        },
+      // Verify workflowsOnEventTypes.createMany was called for existing users' workflows
+      // Note: createMany is called twice - once for new users (in transaction) and once for existing users
+      expect(prismaMock.workflowsOnEventTypes.createMany).toHaveBeenCalledWith({
+        data: [{ eventTypeId: 2, workflowId: 11 }],
+        skipDuplicates: true,
       });
     });
   });
