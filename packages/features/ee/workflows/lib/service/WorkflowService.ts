@@ -8,6 +8,7 @@ import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { createPreferenceTasker } from "@calcom/features/notifications/di";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -307,7 +308,8 @@ export class WorkflowService {
       workflowReminderId: workflowReminder.id,
     };
 
-    await tasker.create("sendWorkflowEmails", taskerPayload, {
+    const proxiedTasker = await createPreferenceTasker(tasker);
+    await proxiedTasker.create("sendWorkflowEmails", taskerPayload, {
       scheduledAt: scheduledDate,
       referenceUid: workflowReminder.uuid,
     });

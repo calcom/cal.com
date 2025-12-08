@@ -71,4 +71,3 @@ export class DefaultNotificationMetadataExtractor implements INotificationMetada
     return null;
   }
 }
-

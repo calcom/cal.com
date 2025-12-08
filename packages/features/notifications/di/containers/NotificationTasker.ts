@@ -23,7 +23,7 @@ export function getNotificationTaskerFactory(): INotificationTaskerFactory {
   );
 }
 
-export async function createProxiedTasker(tasker: ITasker): Promise<ITasker> {
+export async function createPreferenceTasker(tasker: ITasker): Promise<ITasker> {
   const factory = getNotificationTaskerFactory();
   return factory.createProxiedTasker(tasker);
 }

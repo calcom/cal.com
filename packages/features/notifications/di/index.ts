@@ -4,7 +4,4 @@ export { moduleLoader as notificationPreferenceServiceModuleLoader } from "./mod
 export { moduleLoader as notificationMetadataExtractorModuleLoader } from "./modules/NotificationMetadataExtractor";
 export { moduleLoader as notificationTaskerPreferenceProxyModuleLoader } from "./modules/NotificationTaskerPreferenceProxy";
 export { moduleLoader as notificationTaskerFactoryModuleLoader } from "./modules/NotificationTaskerFactory";
-export {
-  getNotificationTaskerFactory,
-  createProxiedTasker,
-} from "./containers/NotificationTasker";
+export { getNotificationTaskerFactory, createPreferenceTasker } from "./containers/NotificationTasker";

@@ -12,4 +12,3 @@ export interface INotificationMetadataExtractor {
    */
   extract(type: string, payload: unknown): NotificationMetadata | null;
 }
-
