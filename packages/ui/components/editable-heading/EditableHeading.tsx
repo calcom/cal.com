@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "classnames";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
 import { Icon } from "../icon";
@@ -18,7 +18,32 @@ export const EditableHeading = function EditableHeading({
 } & Omit<JSX.IntrinsicElements["input"], "name" | "onChange"> &
   ControllerRenderProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [previousValue, setPreviousValue] = useState(value);
+
+  useEffect(() => {
+    setPreviousValue(value);
+  }, [value]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
   const enableEditing = () => setIsEditing(!disabled);
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const trimmedValue = e.target.value.trim();
+    
+    if (!trimmedValue || trimmedValue.length === 0) {
+      if (onChange && previousValue) {
+        onChange(previousValue);
+      }
+    } else {
+      setPreviousValue(trimmedValue);
+    }
+    
+    setIsEditing(false);
+    if (passThroughProps.onBlur) {
+      passThroughProps.onBlur(e);
+    }
+  };
+
   return (
     <div className="group pointer-events-auto relative truncate" onClick={enableEditing}>
       <div className={classNames(!disabled && "cursor-pointer", "flex items-center")}>
@@ -26,6 +51,7 @@ export const EditableHeading = function EditableHeading({
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
           <input
             {...passThroughProps}
+            ref={inputRef}
             disabled={disabled}
             type="text"
             value={value}
@@ -38,13 +64,16 @@ export const EditableHeading = function EditableHeading({
             )}
             onFocus={(e) => {
               setIsEditing(!disabled);
-              passThroughProps.onFocus && passThroughProps.onFocus(e);
+              if (passThroughProps.onFocus) {
+                passThroughProps.onFocus(e);
+              }
             }}
-            onBlur={(e) => {
-              setIsEditing(false);
-              passThroughProps.onBlur && passThroughProps.onBlur(e);
+            onBlur={handleBlur}
+            onChange={(e) => {
+              if (onChange) {
+                onChange(e.target.value);
+              }
             }}
-            onChange={(e) => onChange && onChange(e.target.value)}
           />
           {!isEditing && isReady && !disabled && (
             <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-3 inline h-3 w-3" />
