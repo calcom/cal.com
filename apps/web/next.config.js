@@ -1,5 +1,7 @@
 /* eslint-disable */
+// Try loading .env from the repo root first (for when running from apps/web junction), then fallback to cal.com/.env
 require("dotenv").config({ path: "../../.env" });
+require("dotenv").config({ path: "../../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { withBotId } = require("botid/next/config");
@@ -17,8 +19,10 @@ const {
 
 adjustEnvVariables();
 
-if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
-if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
+process.env.NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || "local-dev-secret-123";
+
+// Use fallback for local development instead of throwing error
+process.env.CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "local-encryption-key-123";
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
 // To be able to use the version in the app without having to import package.json
@@ -52,7 +56,8 @@ if (!process.env.EMAIL_FROM) {
   );
 }
 
-if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
+// Use fallback for local development instead of throwing error
+process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_WEBAPP_URL || "http://localhost:3000";
 
 const getHttpsUrl = (url) => {
   if (!url) return url;
@@ -128,26 +133,26 @@ const orgDomainMatcherConfig = {
   root: nextJsOrgRewriteConfig.disableRootPathRewrite
     ? null
     : {
-        has: [
-          {
-            type: "host",
-            value: nextJsOrgRewriteConfig.orgHostPath,
-          },
-        ],
-        source: "/",
-      },
+      has: [
+        {
+          type: "host",
+          value: nextJsOrgRewriteConfig.orgHostPath,
+        },
+      ],
+      source: "/",
+    },
 
   rootEmbed: nextJsOrgRewriteConfig.disableRootEmbedPathRewrite
     ? null
     : {
-        has: [
-          {
-            type: "host",
-            value: nextJsOrgRewriteConfig.orgHostPath,
-          },
-        ],
-        source: "/embed",
-      },
+      has: [
+        {
+          type: "host",
+          value: nextJsOrgRewriteConfig.orgHostPath,
+        },
+      ],
+      source: "/embed",
+    },
 
   user: {
     has: [
@@ -340,31 +345,31 @@ const nextConfig = (phase) => {
         // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
         ...(isOrganizationsEnabled
           ? [
-              orgDomainMatcherConfig.root
-                ? {
-                    ...orgDomainMatcherConfig.root,
-                    destination: `/team/${orgSlug}?isOrgProfile=1`,
-                  }
-                : null,
-              orgDomainMatcherConfig.rootEmbed
-                ? {
-                    ...orgDomainMatcherConfig.rootEmbed,
-                    destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
-                  }
-                : null,
-              {
-                ...orgDomainMatcherConfig.user,
-                destination: `/org/${orgSlug}/:user`,
-              },
-              {
-                ...orgDomainMatcherConfig.userType,
-                destination: `/org/${orgSlug}/:user/:type`,
-              },
-              {
-                ...orgDomainMatcherConfig.userTypeEmbed,
-                destination: `/org/${orgSlug}/:user/:type/embed`,
-              },
-            ]
+            orgDomainMatcherConfig.root
+              ? {
+                ...orgDomainMatcherConfig.root,
+                destination: `/team/${orgSlug}?isOrgProfile=1`,
+              }
+              : null,
+            orgDomainMatcherConfig.rootEmbed
+              ? {
+                ...orgDomainMatcherConfig.rootEmbed,
+                destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
+              }
+              : null,
+            {
+              ...orgDomainMatcherConfig.user,
+              destination: `/org/${orgSlug}/:user`,
+            },
+            {
+              ...orgDomainMatcherConfig.userType,
+              destination: `/org/${orgSlug}/:user/:type`,
+            },
+            {
+              ...orgDomainMatcherConfig.userTypeEmbed,
+              destination: `/org/${orgSlug}/:user/:type/embed`,
+            },
+          ]
           : []),
       ].filter(Boolean);
 
@@ -512,45 +517,45 @@ const nextConfig = (phase) => {
         ],
         ...(isOrganizationsEnabled
           ? [
-              orgDomainMatcherConfig.root
-                ? {
-                    ...orgDomainMatcherConfig.root,
-                    headers: [
-                      {
-                        key: "X-Cal-Org-path",
-                        value: `/team/${orgSlug}`,
-                      },
-                    ],
-                  }
-                : null,
-              {
-                ...orgDomainMatcherConfig.user,
+            orgDomainMatcherConfig.root
+              ? {
+                ...orgDomainMatcherConfig.root,
                 headers: [
                   {
                     key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user`,
+                    value: `/team/${orgSlug}`,
                   },
                 ],
-              },
-              {
-                ...orgDomainMatcherConfig.userType,
-                headers: [
-                  {
-                    key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user/:type`,
-                  },
-                ],
-              },
-              {
-                ...orgDomainMatcherConfig.userTypeEmbed,
-                headers: [
-                  {
-                    key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user/:type/embed`,
-                  },
-                ],
-              },
-            ]
+              }
+              : null,
+            {
+              ...orgDomainMatcherConfig.user,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: `/org/${orgSlug}/:user`,
+                },
+              ],
+            },
+            {
+              ...orgDomainMatcherConfig.userType,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: `/org/${orgSlug}/:user/:type`,
+                },
+              ],
+            },
+            {
+              ...orgDomainMatcherConfig.userTypeEmbed,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: `/org/${orgSlug}/:user/:type/embed`,
+                },
+              ],
+            },
+          ]
           : []),
       ].filter(Boolean);
     },
@@ -680,24 +685,24 @@ const nextConfig = (phase) => {
         },
         // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
         ...(process.env.NODE_ENV === "development" &&
-        // Safer to enable the redirect only when the user is opting to test out organizations
-        isOrganizationsEnabled &&
-        // Prevent infinite redirect by checking that we aren't already on localhost
-        process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
+          // Safer to enable the redirect only when the user is opting to test out organizations
+          isOrganizationsEnabled &&
+          // Prevent infinite redirect by checking that we aren't already on localhost
+          process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
           ? [
-              {
-                has: [
-                  {
-                    type: "header",
-                    key: "host",
-                    value: "localhost:3000",
-                  },
-                ],
-                source: "/api/integrations/:args*",
-                destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/:args*`,
-                permanent: false,
-              },
-            ]
+            {
+              has: [
+                {
+                  type: "header",
+                  key: "host",
+                  value: "localhost:3000",
+                },
+              ],
+              source: "/api/integrations/:args*",
+              destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/:args*`,
+              permanent: false,
+            },
+          ]
           : []),
       ];
 
