@@ -290,14 +290,37 @@ export class CalComOAuthService {
   }
 
   private async getDiscoveryEndpoints(): Promise<AuthSession.DiscoveryDocument> {
+    const fallbackDiscovery: AuthSession.DiscoveryDocument = {
+      authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
+      tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
+      revocationEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/revoke`,
+    };
+
+    const isCrossOriginWeb =
+      Platform.OS === "web" &&
+      typeof window !== "undefined" &&
+      (() => {
+        try {
+          return new URL(this.config.calcomBaseUrl).origin !== window.location.origin;
+        } catch {
+          return true;
+        }
+      })();
+
+    // Skip discovery fetch when we know CORS will block it (e.g. companion.cal.com -> app.cal.com).
+    if (isCrossOriginWeb) {
+      return fallbackDiscovery;
+    }
+
     try {
       const discovery = await AuthSession.fetchDiscoveryAsync(this.config.calcomBaseUrl);
-      return discovery;
-    } catch {
       return {
-        authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
-        tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
-      } as AuthSession.DiscoveryDocument;
+        ...fallbackDiscovery,
+        ...discovery,
+      };
+    } catch (error) {
+      console.warn("Failed to load discovery document, using fallback endpoints", error);
+      return fallbackDiscovery;
     }
   }
 
