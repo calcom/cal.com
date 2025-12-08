@@ -23,7 +23,7 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
         className="stack-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          props.onSuccess();
+          props.onSuccess?.();
         }}>
         <EmptyScreen
           Icon="user-check"
@@ -38,7 +38,7 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
 export const AdminUser = (props: {
   onSubmit: () => void;
   onError: () => void;
-  onSuccess: () => void;
+  onSuccess: (email?: string) => void;
   nav: { onNext: () => void; onPrev: () => void };
 }) => {
   const { t } = useLocale();
@@ -96,7 +96,7 @@ export const AdminUser = (props: {
         email: data.email_address.toLowerCase(),
         password: data.password,
       });
-      props.onSuccess();
+      props.onSuccess(data.email_address.toLowerCase());
     } else {
       props.onError();
     }
