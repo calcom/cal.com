@@ -1,7 +1,9 @@
-import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
-import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
+import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
+import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
+import { NOTIFICATION_DI_TOKENS } from "@calcom/features/notifications/di/tokens";
+
 import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
 
 export const DI_TOKENS = {
@@ -71,4 +73,5 @@ export const DI_TOKENS = {
   ...HASHED_LINK_DI_TOKENS,
   ...WATCHLIST_DI_TOKENS,
   ...ORGANIZATION_DI_TOKENS,
+  ...NOTIFICATION_DI_TOKENS,
 };
