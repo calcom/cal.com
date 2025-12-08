@@ -7,7 +7,7 @@ import {
 import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
@@ -54,12 +54,15 @@ const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isF
   return host.isFixed;
 };
 
-const isWithinHostSubset = <T extends { isFixed: boolean; user: { id: number } }>(
+const isWithinRRHostSubset = <T extends { isFixed: boolean; user: { id: number } }>(
   host: T,
   hostSubsetIds: number[],
-  enableHostSubset: boolean = false
+  { enableHostSubset, schedulingType }: { enableHostSubset: boolean; schedulingType?: SchedulingType } = {
+    enableHostSubset: false,
+    schedulingType: undefined,
+  }
 ): host is T & { isFixed: false } => {
-  if (hostSubsetIds.length === 0 || !enableHostSubset) {
+  if (hostSubsetIds.length === 0 || !enableHostSubset || schedulingType !== SchedulingType.ROUND_ROBIN) {
     return true;
   }
   return hostSubsetIds.includes(host.user.id);
@@ -134,12 +137,18 @@ export class QualifiedHostsService {
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
 
-    const fixedHosts = normalizedHosts
-      .filter(isFixedHost)
-      .filter((host) => isWithinHostSubset(host, hostSubsetIds ?? [], eventType.enableHostSubset ?? false));
-    const roundRobinHosts = normalizedHosts
-      .filter(isRoundRobinHost)
-      .filter((host) => isWithinHostSubset(host, hostSubsetIds ?? [], eventType.enableHostSubset ?? false));
+    const fixedHosts = normalizedHosts.filter(isFixedHost).filter((host) =>
+      isWithinRRHostSubset(host, hostSubsetIds ?? [], {
+        enableHostSubset: eventType.enableHostSubset ?? false,
+        schedulingType: eventType.schedulingType ?? undefined,
+      })
+    );
+    const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost).filter((host) =>
+      isWithinRRHostSubset(host, hostSubsetIds ?? [], {
+        enableHostSubset: eventType.enableHostSubset ?? false,
+        schedulingType: eventType.schedulingType ?? undefined,
+      })
+    );
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
