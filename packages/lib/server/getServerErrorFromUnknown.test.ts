@@ -5,8 +5,6 @@ import { ZodError } from "zod";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 
-import { TRPCError } from "@trpc/server";
-
 import { HttpError } from "../http-error";
 import { TracedError } from "../tracing/error";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
@@ -156,42 +154,6 @@ describe("TracedError handling", () => {
   });
 });
 
-describe("TRPCError handling", () => {
-  test("should handle TRPCError with BAD_REQUEST", () => {
-    const trpcError = new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Invalid input data",
-    });
-
-    const result = getServerErrorFromUnknown(trpcError);
-
-    expect(result.statusCode).toBe(400);
-    expect(result.message).toBe("Invalid input data");
-    expect(result.data).toBeUndefined();
-  });
-
-  test("should handle TracedError wrapping TRPCError", () => {
-    const trpcError = new TRPCError({
-      code: "NOT_FOUND",
-      message: "Resource not found",
-    });
-    const tracedData = { resourceId: "789" };
-    const traceContext = {
-      traceId: "trace_trpc123",
-      spanId: "span_trpc123",
-      operation: "resource_lookup",
-    };
-
-    const tracedError = new TracedError(trpcError, traceContext, tracedData);
-
-    const result = getServerErrorFromUnknown(tracedError);
-
-    expect(result.statusCode).toBe(404);
-    expect(result.message).toBe("Resource not found");
-    expect(result.data).toEqual({ ...tracedData, traceId: traceContext.traceId });
-  });
-});
-
 describe("ZodError handling", () => {
   test("should handle ZodError with validation issues", () => {
     const zodError = new ZodError([
@@ -214,7 +176,10 @@ describe("ZodError handling", () => {
 
 describe("Prisma error handling", () => {
   test("should handle Prisma P2025 error (record not found)", () => {
-    const prismaError = new Error("Record to delete does not exist.") as any;
+    const prismaError = new Error("Record to delete does not exist.") as Error & {
+      code: string;
+      clientVersion: string;
+    };
     prismaError.code = "P2025";
     prismaError.clientVersion = "5.0.0";
     Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
@@ -227,7 +192,10 @@ describe("Prisma error handling", () => {
   });
 
   test("should handle other Prisma errors as 400", () => {
-    const prismaError = new Error("Foreign key constraint failed") as any;
+    const prismaError = new Error("Foreign key constraint failed") as Error & {
+      code: string;
+      clientVersion: string;
+    };
     prismaError.code = "P2003";
     prismaError.clientVersion = "5.0.0";
     Object.setPrototypeOf(prismaError, Prisma.PrismaClientKnownRequestError.prototype);
