@@ -277,9 +277,9 @@ const ProfileView = ({ user }: Props) => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isPending={updateProfileMutation.isPending}
-        isFallbackImg={!user.avatarUrl}
+        _isFallbackImg={!user.avatarUrl}
         user={user}
-        userOrganization={user.organization}
+        _userOrganization={user.organization}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
