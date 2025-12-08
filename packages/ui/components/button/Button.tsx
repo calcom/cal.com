@@ -243,25 +243,40 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   // If pass an `href`-attr is passed it's Link, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
   const elementType = isLink ? Link : "button";
-  // Strip ref from passThroughProps when rendering Link (Link manages its own anchor element)
-  const { ref: _ref, ...linkSafeProps } = passThroughProps as typeof passThroughProps & { ref?: unknown };
+
+  // Build props object based on element type
+  // For Link: don't pass ref (Link manages its own anchor), disabled, or type
+  // For button: pass all props including ref, disabled, and type
+  const elementProps = isLink
+    ? {
+        ...passThroughProps,
+        "data-testid": "link-component",
+        shallow: shallow && shallow,
+        className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
+        onClick: disabled
+          ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+              e.preventDefault();
+            }
+          : props.onClick,
+      }
+    : {
+        ...passThroughProps,
+        ref: forwardedRef,
+        disabled,
+        type,
+        className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
+        onClick: disabled
+          ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+              e.preventDefault();
+            }
+          : props.onClick,
+      };
+
   const element = React.createElement(
     elementType,
-    {
-      ...(isLink ? linkSafeProps : passThroughProps),
-      ...(isLink && { "data-testid": "link-component", shallow: shallow && shallow }),
-      // Only pass disabled and type to button element, not to Link
-      ...(!isLink && { disabled, type }),
-      // Only pass ref to button element, not to Link (Link manages its own anchor)
-      ...(!isLink && { ref: forwardedRef }),
-      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-      // if we click a disabled button, we prevent going through the click handler
-      onClick: disabled
-        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-            e.preventDefault();
-          }
-        : props.onClick,
-    },
+    // Type assertion needed because TypeScript can't narrow the union type properly
+    // when using React.createElement with a dynamic element type
+    elementProps as React.ComponentProps<typeof elementType>,
     <>
       {CustomStartIcon ||
         (StartIcon && (
