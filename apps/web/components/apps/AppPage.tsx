@@ -229,7 +229,6 @@ export const AppPage = ({
                 handleAppInstall();
               },
               loading: isLoading,
-              disabled: disableInstall || props.disabled,
             };
           }
           return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
@@ -250,7 +249,6 @@ export const AppPage = ({
                 handleAppInstall();
               },
               loading: isLoading,
-              disabled: disableInstall || props.disabled,
             };
           }
 
