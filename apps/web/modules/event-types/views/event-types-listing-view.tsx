@@ -294,13 +294,30 @@ export const InfiniteEventTypeList = ({
       });
 
       if (previousValue) {
-        pages?.forEach((page) => {
-          page?.eventTypes?.forEach((eventType) => {
-            if (eventType.id === data.id) {
-              eventType.hidden = !eventType.hidden;
+        await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
+          (oldData) => {
+            if (!oldData) {
+              return {
+                pages: [],
+                pageParams: [],
+              };
             }
-          });
-        });
+            return {
+              ...oldData,
+              pages: oldData.pages.map((page) => ({
+                ...page,
+                eventTypes: page.eventTypes.map((eventType) =>
+                  eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
+                ),
+              })),
+            };
+          }
+        );
       }
 
       return { previousValue };
