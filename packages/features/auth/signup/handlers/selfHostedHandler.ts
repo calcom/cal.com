@@ -15,6 +15,7 @@ import { signupSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import { prefillAvatar } from "../utils/prefillAvatar";
+import { recordPolicyAcceptanceOnSignup } from "../utils/recordPolicyAcceptance";
 import {
   findTokenByToken,
   throwIfTokenExpired,
@@ -112,7 +113,7 @@ export default async function handler(body: Record<string, string>) {
         },
       });
 
-      const { membership } = await createOrUpdateMemberships({
+      await createOrUpdateMemberships({
         user,
         team,
       });
@@ -124,6 +125,9 @@ export default async function handler(body: Record<string, string>) {
           org: team.parent,
         });
       }
+
+      // Record policy acceptance on signup
+      await recordPolicyAcceptanceOnSignup(user.id, prisma);
     }
 
     // Cleanup token after use
@@ -146,7 +150,7 @@ export default async function handler(body: Record<string, string>) {
         );
       }
     }
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: userEmail },
       update: {
         username: correctedUsername,
@@ -166,6 +170,9 @@ export default async function handler(body: Record<string, string>) {
         identityProvider: IdentityProvider.CAL,
       },
     });
+
+    // Record policy acceptance on signup
+    await recordPolicyAcceptanceOnSignup(user.id, prisma);
 
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email: userEmail });

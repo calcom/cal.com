@@ -18,10 +18,7 @@ import {
   workspacePlatformUpdateServiceAccountSchema,
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
-
-const NAMESPACE = "admin";
-
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
+import { adminPolicyRouter } from "./policy/_router";
 
 export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
@@ -105,4 +102,5 @@ export const adminRouter = router({
       return handler(opts);
     }),
   }),
+  policy: adminPolicyRouter,
 });

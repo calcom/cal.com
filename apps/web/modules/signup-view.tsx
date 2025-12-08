@@ -212,10 +212,10 @@ export default function Signup({
     }
   }, [redirectUrl]);
 
-  const [userConsentToCookie, setUserConsentToCookie] = useState(false); // No need to be checked for user to proceed
+  const [acceptedPolicyAndCookies, setAcceptedPolicyAndCookies] = useState(false);
 
-  function handleConsentChange(consent: boolean) {
-    setUserConsentToCookie(!consent);
+  function handlePolicyConsentChange(checked: boolean) {
+    setAcceptedPolicyAndCookies(checked);
   }
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
@@ -319,7 +319,7 @@ export default function Signup({
 
   return (
     <>
-      {IS_CALCOM && (!IS_EUROPE || userConsentToCookie) ? (
+      {IS_CALCOM && (!IS_EUROPE || acceptedPolicyAndCookies) ? (
         <>
           {process.env.NEXT_PUBLIC_GTM_ID && (
             <>
@@ -521,7 +521,7 @@ export default function Signup({
 
                   <CheckboxField
                     data-testid="signup-cookie-content-checkbox"
-                    onChange={() => handleConsentChange(userConsentToCookie)}
+                    onChange={(e) => handlePolicyConsentChange(e.target.checked)}
                     description={t("cookie_consent_checkbox")}
                   />
                   {errors.apiError && (
@@ -542,7 +542,8 @@ export default function Signup({
                         !formMethods.getValues("email") ||
                         !formMethods.getValues("username") ||
                         premiumUsername ||
-                        isSubmitting
+                        isSubmitting ||
+                        !acceptedPolicyAndCookies
                       }
                       onClick={() => {
                         const username = formMethods.getValues("username");
@@ -592,7 +593,8 @@ export default function Signup({
                           !process.env.NEXT_PUBLIC_IS_E2E &&
                           !formMethods.getValues("cfToken")) ||
                         isSubmitting ||
-                        usernameTaken
+                        usernameTaken ||
+                        !acceptedPolicyAndCookies
                       }>
                       {premiumUsername && !usernameTaken
                         ? `${t("get_started")} (${getPremiumPlanPriceValue()})`

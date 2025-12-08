@@ -23,6 +23,7 @@ import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
+import { recordPolicyAcceptanceOnSignup } from "../utils/recordPolicyAcceptance";
 import {
   findTokenByToken,
   throwIfTokenExpired,
@@ -190,6 +191,9 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
           org: team.parent,
         });
       }
+
+      // Record policy acceptance on signup
+      await recordPolicyAcceptanceOnSignup(user.id, prisma);
     }
 
     // Cleanup token after use
@@ -200,7 +204,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
   } else {
     // Create the user
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         username,
         email,
@@ -213,6 +217,10 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
         creationSource: CreationSource.WEBAPP,
       },
     });
+
+    // Record policy acceptance on signup
+    await recordPolicyAcceptanceOnSignup(user.id, prisma);
+
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }

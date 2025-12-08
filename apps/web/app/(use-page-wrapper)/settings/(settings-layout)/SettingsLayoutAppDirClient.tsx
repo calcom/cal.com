@@ -151,6 +151,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "impersonation", href: "/settings/admin/impersonation", trackingMetadata: { section: "admin", page: "impersonation" } },
         { name: "apps", href: "/settings/admin/apps/calendar", trackingMetadata: { section: "admin", page: "apps" } },
         { name: "users", href: "/settings/admin/users", trackingMetadata: { section: "admin", page: "users" } },
+        { name: "policies", href: "/settings/admin/policies", trackingMetadata: { section: "admin", page: "policies" } },
         { name: "organizations", href: "/settings/admin/organizations", trackingMetadata: { section: "admin", page: "organizations" } },
         { name: "lockedSMS", href: "/settings/admin/lockedSMS", trackingMetadata: { section: "admin", page: "locked_sms" } },
         { name: "oAuth", href: "/settings/admin/oAuth", trackingMetadata: { section: "admin", page: "oauth" } },

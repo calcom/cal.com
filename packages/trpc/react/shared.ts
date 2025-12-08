@@ -4,6 +4,7 @@ export const ENDPOINTS = [
   "loggedInViewerRouter",
   "admin",
   "apiKeys",
+  "policy",
   "appRoutingForms",
   "apps",
   "auth",

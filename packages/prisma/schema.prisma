@@ -478,6 +478,8 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  acceptedPolicies               UserPolicyAcceptance[]        @relation("AcceptedPolicies")
+  createdPolicyVersions          PolicyVersion[]               @relation("CreatedPolicyVersions")
 
   @@unique([email])
   @@unique([email, username])
@@ -2903,4 +2905,41 @@ model CalendarCacheEvent {
   @@unique([selectedCalendarId, externalId])
   @@index([start, end, status])
   @@index([selectedCalendarId, iCalUID])
+}
+
+enum PolicyType {
+  PRIVACY_POLICY
+}
+
+model PolicyVersion {
+  version          DateTime @id @db.Timestamp(6)
+  publishedAt      DateTime @default(now())
+  description      String   @default("")
+  descriptionNonUS String   @default("")
+  type             PolicyType
+  createdById      Int
+  createdBy        User     @relation("CreatedPolicyVersions", fields: [createdById], references: [id])
+
+  userAcceptances UserPolicyAcceptance[]
+
+  @@unique([version, type])
+  @@index([version(sort: Desc)])
+  @@index([type, version(sort: Desc)])
+  @@index([publishedAt])
+  @@map("policy_versions")
+}
+
+model UserPolicyAcceptance {
+  userId        Int
+  user          User          @relation("AcceptedPolicies", fields: [userId], references: [id], onDelete: Cascade)
+  policyVersion DateTime      @db.Timestamp(6)
+  policyType    PolicyType
+  policy        PolicyVersion @relation(fields: [policyVersion, policyType], references: [version, type], onDelete: Cascade)
+  acceptedAt    DateTime      @default(now()) @db.Timestamp(6)
+
+  @@id([userId, policyVersion, policyType])
+  @@index([userId, policyType])
+  @@index([policyVersion, policyType])
+  @@index([acceptedAt])
+  @@map("user_policy_acceptances")
 }
