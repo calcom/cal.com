@@ -33,7 +33,7 @@ import {
   parseMinimumNotice,
   parseFrequencyUnit,
   parseSlotInterval,
-} from "../utils/parsers/event-type-parsers";
+} from "../utils/eventTypeParsers";
 import { slugify } from "../utils/slugify";
 import { BasicsTab } from "../components/event-type-detail/tabs/BasicsTab";
 import { AvailabilityTab } from "../components/event-type-detail/tabs/AvailabilityTab";

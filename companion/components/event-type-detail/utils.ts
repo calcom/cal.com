@@ -1,67 +1,15 @@
-// Utility functions for Event Type Detail
+/**
+ * Utility functions for Event Type Detail
+ *
+ * This file re-exports utilities from centralized locations for backward compatibility.
+ * New code should import directly from the source files.
+ */
 
 // Re-export partial update utilities
 export { buildPartialUpdatePayload, hasChanges } from "./utils/buildPartialUpdatePayload";
 
-/**
- * Format duration in minutes to a human-readable string
- * @param minutes - Duration in minutes (number or string)
- * @returns Formatted string like "30m", "1h", "1h 30m"
- */
-export const formatDuration = (minutes: number | string | undefined): string => {
-  const mins = typeof minutes === "string" ? parseInt(minutes) || 0 : minutes || 0;
-  if (mins <= 0) return "0m";
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  const remainingMins = mins % 60;
-  return remainingMins > 0 ? `${hours}h ${remainingMins}m` : `${hours}h`;
-};
+// Re-export formatting utilities from centralized location
+export { formatDuration, truncateTitle, formatAppIdToDisplayName } from "../../utils/formatters";
 
-export const truncateTitle = (text: string, maxLength: number = 20) => {
-  return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
-};
-
-export const formatAppIdToDisplayName = (appId: string): string => {
-  // Convert appId like "google-meet" to "Google Meet"
-  return appId
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
-export const displayNameToLocationValue = (
-  displayName: string,
-  defaultLocations: Array<{ label: string; type: string }>
-): {
-  type: string;
-  integration?: string;
-  address?: string;
-  link?: string;
-  phone?: string;
-  public?: boolean;
-} | null => {
-  // First check if it's a default location
-  const defaultLocation = defaultLocations.find((loc) => loc.label === displayName);
-  if (defaultLocation) {
-    // Map internal location types to API location types
-    switch (defaultLocation.type) {
-      case "attendeeInPerson":
-        return { type: "attendeeAddress" };
-      case "inPerson":
-        return { type: "address", address: "", public: true };
-      case "link":
-        return { type: "link", link: "", public: true };
-      case "phone":
-        return { type: "attendeePhone" };
-      case "userPhone":
-        return { type: "phone", phone: "", public: true };
-      default:
-        return null;
-    }
-  }
-
-  // Check if it's a conferencing app (formatted display name)
-  // e.g., "Google Meet", "Zoom", etc.
-  const appId = displayName.toLowerCase().replace(/\s+/g, "-");
-  return { type: "integration", integration: appId };
-};
+// Re-export location utilities from centralized location
+export { displayNameToLocationValue } from "../../utils/locationHelpers";

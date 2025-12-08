@@ -20,6 +20,7 @@ import { FullScreenModal } from "../components/FullScreenModal";
 import { BookingActionsModal } from "../components/BookingActionsModal";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
 import { getDefaultLocationIconUrl, defaultLocations } from "../utils/defaultLocations";
+import { formatAppIdToDisplayName } from "../utils/formatters";
 
 // Format date: "Tuesday, November 25, 2025"
 const formatDateFull = (dateString: string): string => {
@@ -139,14 +140,6 @@ const getLocationProvider = (location: string | undefined, metadata?: Record<str
     const iconUrl = getAppIconUrl("", appId);
 
     if (iconUrl) {
-      // Format appId to display name (e.g., "cal-video" -> "Cal Video")
-      const formatAppIdToDisplayName = (id: string): string => {
-        return id
-          .split("-")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ");
-      };
-
       return {
         label: formatAppIdToDisplayName(appId),
         iconUrl: iconUrl,

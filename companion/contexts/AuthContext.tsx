@@ -6,7 +6,7 @@ import {
   OAuthTokens,
   CalComOAuthService,
 } from "../services/oauthService";
-import { secureStorage } from "../lib/storage";
+import { secureStorage } from "../utils/storage";
 
 interface AuthContextType {
   isAuthenticated: boolean;

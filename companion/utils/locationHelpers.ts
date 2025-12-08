@@ -9,6 +9,7 @@ import {
   getDefaultLocationIconUrl,
   DefaultLocationType,
 } from "./defaultLocations";
+import { formatAppIdToDisplayName } from "./formatters";
 import {
   LocationItem,
   ApiLocation,
@@ -17,16 +18,8 @@ import {
   LocationOptionGroup,
 } from "../types/locations";
 
-/**
- * Format an app ID to a display name
- * e.g., "google-meet" -> "Google Meet", "cal-video" -> "Cal Video"
- */
-export function formatAppIdToDisplayName(appId: string): string {
-  return appId
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
+// Re-export formatAppIdToDisplayName for backward compatibility
+export { formatAppIdToDisplayName } from "./formatters";
 
 /**
  * Generate a unique ID for a location item
@@ -476,3 +469,48 @@ export function buildLocationOptions(
       options: grouped[category],
     }));
 }
+
+/**
+ * Convert a display name back to a location value for API
+ * Used when selecting a location from a dropdown
+ *
+ * @param displayName - The display name shown in UI (e.g., "Google Meet", "In Person (Organizer Address)")
+ * @param defaultLocationsList - List of default locations to check against
+ * @returns Location value object for API, or null if not found
+ */
+export const displayNameToLocationValue = (
+  displayName: string,
+  defaultLocationsList: Array<{ label: string; type: string }>
+): {
+  type: string;
+  integration?: string;
+  address?: string;
+  link?: string;
+  phone?: string;
+  public?: boolean;
+} | null => {
+  // First check if it's a default location
+  const defaultLocation = defaultLocationsList.find((loc) => loc.label === displayName);
+  if (defaultLocation) {
+    // Map internal location types to API location types
+    switch (defaultLocation.type) {
+      case "attendeeInPerson":
+        return { type: "attendeeAddress" };
+      case "inPerson":
+        return { type: "address", address: "", public: true };
+      case "link":
+        return { type: "link", link: "", public: true };
+      case "phone":
+        return { type: "attendeePhone" };
+      case "userPhone":
+        return { type: "phone", phone: "", public: true };
+      default:
+        return null;
+    }
+  }
+
+  // Check if it's a conferencing app (formatted display name)
+  // e.g., "Google Meet", "Zoom", etc.
+  const appId = displayName.toLowerCase().replace(/\s+/g, "-");
+  return { type: "integration", integration: appId };
+};

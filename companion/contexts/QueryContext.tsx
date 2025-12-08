@@ -13,7 +13,7 @@ import { Platform } from "react-native";
 import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { CACHE_CONFIG } from "../config/cache.config";
-import { createQueryPersister, clearQueryCache } from "../lib/queryPersister";
+import { createQueryPersister, clearQueryCache } from "../utils/queryPersister";
 
 /**
  * Create and configure the QueryClient instance

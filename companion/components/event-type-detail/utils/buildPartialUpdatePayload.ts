@@ -6,7 +6,7 @@ import {
   parseMinimumNotice,
   parseFrequencyUnit,
   parseSlotInterval,
-} from "../../../utils/parsers/event-type-parsers";
+} from "../../../utils/eventTypeParsers";
 
 interface FrequencyLimit {
   id: number;
