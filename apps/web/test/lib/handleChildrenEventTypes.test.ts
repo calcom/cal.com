@@ -553,6 +553,10 @@ describe("handleChildrenEventTypes", () => {
         updatedAt: new Date(),
       });
 
+      // Mock workflowsOnEventTypes.findMany to return empty array (no existing workflow links for old event types)
+      // This is needed because the new implementation uses findMany + createMany instead of upsert
+      prismaMock.workflowsOnEventTypes.findMany.mockResolvedValue([]);
+
       await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
@@ -627,19 +631,23 @@ describe("handleChildrenEventTypes", () => {
           },
         },
       });
-      // Verify workflowsOnEventTypes.upsert was called for existing users' workflows
-      expect(prismaMock.workflowsOnEventTypes.upsert).toHaveBeenCalledWith({
-        create: {
-          eventTypeId: 2,
-          workflowId: 11,
-        },
-        update: {},
+      // Verify workflowsOnEventTypes.findMany was called to check existing relationships
+      expect(prismaMock.workflowsOnEventTypes.findMany).toHaveBeenCalledWith({
         where: {
-          workflowId_eventTypeId: {
-            eventTypeId: 2,
-            workflowId: 11,
-          },
+          workflowId: { in: [11] },
+          eventTypeId: { in: [2] },
         },
+        select: {
+          workflowId: true,
+          eventTypeId: true,
+        },
+      });
+
+      // Verify workflowsOnEventTypes.createMany was called for existing users' workflows
+      // Since findMany returned empty array, all workflow-eventType pairs should be created
+      expect(prismaMock.workflowsOnEventTypes.createMany).toHaveBeenCalledWith({
+        data: [{ eventTypeId: 2, workflowId: 11 }],
+        skipDuplicates: false,
       });
     });
   });
