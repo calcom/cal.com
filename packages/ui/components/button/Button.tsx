@@ -239,44 +239,17 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     ...passThroughProps
   } = props;
   // Buttons are **always** disabled if we're in a `loading` state
-  const disabled = props.disabled || loading;
+  const disabled = props.disabled || loading || false;
   // If pass an `href`-attr is passed it's Link, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
-  const elementType = isLink ? Link : "button";
-
-  // Build props object based on element type
-  // For Link: don't pass ref (Link manages its own anchor), disabled, or type
-  // For button: pass all props including ref, disabled, and type
-  const elementProps = isLink
-    ? {
-        ...passThroughProps,
-        "data-testid": "link-component",
-        shallow: shallow && shallow,
-        className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-        onClick: disabled
-          ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-              e.preventDefault();
-            }
-          : props.onClick,
+  const buttonClassName = classNames(buttonClasses({ color, size, loading, variant }), props.className);
+  const handleClick = disabled
+    ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.preventDefault();
       }
-    : {
-        ...passThroughProps,
-        ref: forwardedRef,
-        disabled,
-        type,
-        className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-        onClick: disabled
-          ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-              e.preventDefault();
-            }
-          : props.onClick,
-      };
+    : props.onClick;
 
-  const element = React.createElement(
-    elementType,
-    // Type assertion needed because TypeScript can't narrow the union type properly
-    // when using React.createElement with a dynamic element type
-    elementProps as React.ComponentProps<typeof elementType>,
+  const buttonContent = (
     <>
       {CustomStartIcon ||
         (StartIcon && (
@@ -353,16 +326,37 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     </>
   );
 
-  return isLink ? (
-    element
-  ) : (
+  // Render Link or button separately to avoid type conflicts
+  // Link manages its own anchor element, so we don't pass ref to it
+  if (isLink) {
+    return (
+      <Link
+        {...(passThroughProps as Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)}
+        data-testid="link-component"
+        shallow={shallow && shallow}
+        className={buttonClassName}
+        onClick={handleClick}>
+        {buttonContent}
+      </Link>
+    );
+  }
+
+  return (
     <Wrapper
       data-testid="wrapper"
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
       tooltipOffset={tooltipOffset}
       tooltipClassName={tooltipClassName}>
-      {element}
+      <button
+        {...(passThroughProps as Omit<JSX.IntrinsicElements["button"], "onClick" | "ref">)}
+        ref={forwardedRef as React.Ref<HTMLButtonElement>}
+        disabled={disabled}
+        type={type as "button" | "submit" | "reset"}
+        className={buttonClassName}
+        onClick={handleClick}>
+        {buttonContent}
+      </button>
     </Wrapper>
   );
 });
