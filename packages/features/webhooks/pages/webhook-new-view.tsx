@@ -84,17 +84,16 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
       noRoutingFormTriggers={false}
       onSubmit={onCreateWebhook}
       apps={installedApps?.items.map((app) => app.slug)}
-      versionSelector={(formMethods) => (
+      headerWrapper={(formMethods, children) => (
         <SettingsHeaderWithBackButton
           title={t("add_webhook")}
           description={t("add_webhook_description", { appName: APP_NAME })}
           borderInShellHeader={true}
-          backButton={true}
           CTA={
             <Tooltip content={t("webhook_version")}>
               <div>
                 <Select
-                  className="w-32"
+                  className="min-w-36"
                   options={[{ value: WebhookVersion.V_2021_10_20, label: "2021-10-20" }]}
                   value={{
                     value: formMethods.watch("version"),
@@ -111,8 +110,9 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
                 />
               </div>
             </Tooltip>
-          }
-        />
+          }>
+          {children}
+        </SettingsHeaderWithBackButton>
       )}
     />
   );

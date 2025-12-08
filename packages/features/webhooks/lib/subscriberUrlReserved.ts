@@ -1,9 +1,20 @@
-import type { Webhook } from "@calcom/prisma/client";
+/**
+ * Minimal webhook shape for URL reservation check.
+ * Decoupled from Prisma to avoid hard coupling outside repositories.
+ */
+interface WebhookForReservationCheck {
+  id: string;
+  subscriberUrl: string;
+  teamId: number | null;
+  userId: number | null;
+  eventTypeId: number | null;
+  platform: boolean;
+}
 
 interface Params {
   subscriberUrl: string;
   id?: string;
-  webhooks?: Webhook[];
+  webhooks?: WebhookForReservationCheck[];
   teamId?: number;
   userId?: number;
   eventTypeId?: number;
@@ -23,20 +34,20 @@ export const subscriberUrlReserved = ({
     throw new Error("Either teamId, userId, eventTypeId or platform must be provided.");
   }
 
-  const findMatchingWebhook = (condition: (webhook: Webhook) => void) => {
+  const findMatchingWebhook = (condition: (webhook: WebhookForReservationCheck) => boolean) => {
     return !!webhooks?.find(
       (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id) && condition(webhook)
     );
   };
 
   if (teamId) {
-    return findMatchingWebhook((webhook: Webhook) => webhook.teamId === teamId);
+    return findMatchingWebhook((webhook) => webhook.teamId === teamId);
   }
   if (eventTypeId) {
-    return findMatchingWebhook((webhook: Webhook) => webhook.eventTypeId === eventTypeId);
+    return findMatchingWebhook((webhook) => webhook.eventTypeId === eventTypeId);
   }
   if (platform) {
-    return findMatchingWebhook((webhook: Webhook) => webhook.platform === true);
+    return findMatchingWebhook((webhook) => webhook.platform === true);
   }
-  return findMatchingWebhook((webhook: Webhook) => webhook.userId === userId);
+  return findMatchingWebhook((webhook) => webhook.userId === userId);
 };

@@ -65,79 +65,76 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
   if (isPending || !webhook) return <SkeletonContainer />;
 
   return (
-    <>
-      <WebhookForm
-        noRoutingFormTriggers={false}
-        webhook={webhook}
-        versionSelector={(formMethods) => (
-          <SettingsHeaderWithBackButton
-            title={t("edit_webhook")}
-            description={t("add_webhook_description", { appName: APP_NAME })}
-            borderInShellHeader={true}
-            backButton
-            onBackButtonClick={() => router.back()}
-            CTA={
-              <Tooltip content={t("webhook_version")}>
-                <div>
-                  <Select
-                    className="w-32"
-                    options={[{ value: WebhookVersionEnum.V_2021_10_20, label: "2021-10-20" }]}
-                    value={{
-                      value: formMethods.watch("version"),
-                      label:
-                        formMethods.watch("version") === WebhookVersionEnum.V_2021_10_20
-                          ? "2021-10-20"
-                          : formMethods.watch("version"),
-                    }}
-                    onChange={(option) => {
-                      if (option) {
-                        formMethods.setValue("version", option.value, { shouldDirty: true });
-                      }
-                    }}
-                  />
-                </div>
-              </Tooltip>
-            }
-          />
-        )}
-        onSubmit={(values: WebhookFormSubmitData) => {
-          if (
-            subscriberUrlReserved({
-              subscriberUrl: values.subscriberUrl,
-              id: webhook.id,
-              webhooks,
-              teamId: webhook.teamId ?? undefined,
-              userId: webhook.userId ?? undefined,
-              platform: webhook.platform ?? undefined,
-            })
-          ) {
-            showToast(t("webhook_subscriber_url_reserved"), "error");
-            return;
-          }
-
-          if (values.changeSecret) {
-            values.secret = values.newSecret.trim().length ? values.newSecret : null;
-          }
-
-          if (!values.payloadTemplate) {
-            values.payloadTemplate = null;
-          }
-
-          editWebhookMutation.mutate({
-            id: webhook.id,
+    <WebhookForm
+      noRoutingFormTriggers={false}
+      webhook={webhook}
+      headerWrapper={(formMethods, children) => (
+        <SettingsHeaderWithBackButton
+          title={t("edit_webhook")}
+          description={t("add_webhook_description", { appName: APP_NAME })}
+          borderInShellHeader={true}
+          CTA={
+            <Tooltip content={t("webhook_version")}>
+              <div>
+                <Select
+                  className="min-w-36"
+                  options={[{ value: WebhookVersionEnum.V_2021_10_20, label: "2021-10-20" }]}
+                  value={{
+                    value: formMethods.watch("version"),
+                    label:
+                      formMethods.watch("version") === WebhookVersionEnum.V_2021_10_20
+                        ? "2021-10-20"
+                        : formMethods.watch("version"),
+                  }}
+                  onChange={(option) => {
+                    if (option) {
+                      formMethods.setValue("version", option.value, { shouldDirty: true });
+                    }
+                  }}
+                />
+              </div>
+            </Tooltip>
+          }>
+          {children}
+        </SettingsHeaderWithBackButton>
+      )}
+      onSubmit={(values: WebhookFormSubmitData) => {
+        if (
+          subscriberUrlReserved({
             subscriberUrl: values.subscriberUrl,
-            eventTriggers: values.eventTriggers,
-            active: values.active,
-            payloadTemplate: values.payloadTemplate,
-            secret: values.secret,
-            time: values.time,
-            timeUnit: values.timeUnit,
-            version: values.version,
-          });
-        }}
-        apps={installedApps?.items.map((app) => app.slug)}
-      />
-    </>
+            id: webhook.id,
+            webhooks,
+            teamId: webhook.teamId ?? undefined,
+            userId: webhook.userId ?? undefined,
+            platform: webhook.platform ?? undefined,
+          })
+        ) {
+          showToast(t("webhook_subscriber_url_reserved"), "error");
+          return;
+        }
+
+        if (values.changeSecret) {
+          values.secret = values.newSecret.trim().length ? values.newSecret : null;
+        }
+
+        if (!values.payloadTemplate) {
+          values.payloadTemplate = null;
+        }
+
+        editWebhookMutation.mutate({
+          id: webhook.id,
+          subscriberUrl: values.subscriberUrl,
+          eventTriggers: values.eventTriggers,
+          active: values.active,
+          payloadTemplate: values.payloadTemplate,
+          secret: values.secret,
+          time: values.time,
+          timeUnit: values.timeUnit,
+          version: values.version,
+        });
+      }}
+      apps={installedApps?.items.map((app) => app.slug)}
+    />
   );
 }
 

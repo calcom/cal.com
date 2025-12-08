@@ -254,7 +254,10 @@ const WebhookForm = (props: {
   onCancel?: () => void;
   noRoutingFormTriggers: boolean;
   selectOnlyInstantMeetingOption?: boolean;
-  versionSelector?: (formMethods: ReturnType<typeof useForm<WebhookFormValues>>) => React.ReactNode;
+  headerWrapper?: (
+    formMethods: ReturnType<typeof useForm<WebhookFormValues>>,
+    children: React.ReactNode
+  ) => React.ReactNode;
 }) => {
   const { apps = [], selectOnlyInstantMeetingOption = false, overrideTriggerOptions } = props;
   const { t } = useLocale();
@@ -360,10 +363,8 @@ const WebhookForm = (props: {
     }
   }, [changeSecret, formMethods]);
 
-  return (
-    <>
-      {props.versionSelector?.(formMethods)}
-      <Form
+  const formContent = (
+    <Form
         form={formMethods}
         handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
         <div className="border-subtle border p-6">
@@ -622,8 +623,14 @@ const WebhookForm = (props: {
           <WebhookTestDisclosure />
         </div>
       </Form>
-    </>
   );
+
+  // If headerWrapper is provided, wrap the form content with it
+  if (props.headerWrapper) {
+    return <>{props.headerWrapper(formMethods, formContent)}</>;
+  }
+
+  return formContent;
 };
 
 export default WebhookForm;
