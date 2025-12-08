@@ -164,6 +164,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     bookingRequiresAuthentication: false,
     createdAt: null,
     updatedAt: null,
+    enableHostSubset: false,
     ...eventType,
   };
 };
