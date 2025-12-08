@@ -85,6 +85,46 @@ const checkExistentEventTypes = async ({
   }
 };
 
+function connectUsersToEventTypesQueryWithParams(
+  eventPairs: {
+    userId: number | null;
+    id: number;
+  }[]
+): { sqlQuery: string; parameters: (number | string)[] } {
+  if (eventPairs.length === 0) {
+    throw new Error("No event pairs provided for bulk connection.");
+  }
+
+  // Array to hold the SQL placeholders: ($1, $2), ($3, $4), ...
+  const valuePlaceholders: string[] = [];
+
+  // Flat array of all IDs to be inserted as raw SQL parameters
+  const parameters: (number | string)[] = [];
+
+  let paramIndex = 1;
+
+  // --- Build the parameterized SQL values ---
+  for (const pair of eventPairs) {
+    // Construct the pair of placeholders for the current row
+    valuePlaceholders.push(`($${paramIndex++}, $${paramIndex++})`);
+
+    if (pair.userId != null) {
+      parameters.push(pair.id);
+      parameters.push(pair.userId);
+    }
+  }
+
+  const sqlQuery = `
+        INSERT INTO "_user_eventtype" ("A", "B") 
+        VALUES 
+        ${valuePlaceholders.join(",\n")}
+        ON CONFLICT DO NOTHING;
+    `;
+
+  // sqlQuery and its parameters for execution
+  return { sqlQuery, parameters };
+}
+
 export default async function handleChildrenEventTypes({
   eventTypeId: parentId,
   oldEventType,
@@ -201,31 +241,20 @@ export default async function handleChildrenEventTypes({
     });
 
     await prisma.$transaction(async (tx) => {
-      await tx.eventType.createMany({
+      const createdEvents = await tx.eventType.createManyAndReturn({
         data: eventTypesToCreateData,
         skipDuplicates: true,
-      });
-
-      // Fetch the newly created event types to connect users and workflows
-      const createdEvents = await tx.eventType.findMany({
-        where: { parentId: parentId, userId: { in: newUserIds } },
         select: { id: true, userId: true },
       });
 
       // Connect users to their event types (many-to-many relation)
       // This is needed because createMany doesn't support nested relations
-      await Promise.all(
-        createdEvents.map((event) =>
-          tx.eventType.update({
-            where: { id: event.id },
-            data: {
-              users: {
-                connect: [{ id: event.userId! }],
-              },
-            },
-          })
-        )
-      );
+      if (createdEvents.length) {
+        const bulkQueryAndParams = connectUsersToEventTypesQueryWithParams(createdEvents);
+        if (bulkQueryAndParams) {
+          await tx.$executeRawUnsafe(bulkQueryAndParams.sqlQuery, ...bulkQueryAndParams.parameters);
+        }
+      }
 
       // Link workflows if any exist
       if (currentWorkflowIds && currentWorkflowIds.length > 0) {
