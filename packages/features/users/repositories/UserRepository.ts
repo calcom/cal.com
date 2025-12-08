@@ -1054,6 +1054,7 @@ export class UserRepository {
         receiveMonthlyDigestEmail: true,
         requiresBookerEmailVerification: true,
         profiles: true,
+        bookingLimits: true,
       },
     });
 

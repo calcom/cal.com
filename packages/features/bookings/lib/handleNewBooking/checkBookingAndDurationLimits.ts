@@ -6,7 +6,10 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
-type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | "id" | "schedule">;
+type EventType = Pick<
+  NewBookingEventType,
+  "bookingLimits" | "durationLimits" | "id" | "schedule" | "userId" | "schedulingType" | "users"
+>;
 
 type InputProps = {
   eventType: EventType;
@@ -48,6 +51,21 @@ export class CheckBookingAndDurationLimitsService {
           eventType.id,
           reqBodyRescheduleUid
         );
+      }
+
+      // We are only interested in global booking limits for individual user events
+      if (eventType.userId && !eventType.schedulingType) {
+        const eventTypeUser = eventType.users.find((user) => user.id === eventType.userId);
+        if (eventTypeUser?.bookingLimits && Object.keys(eventTypeUser.bookingLimits).length > 0) {
+          await this.dependencies.checkBookingLimitsService.checkBookingLimits(
+            eventTypeUser.bookingLimits as IntervalLimit,
+            startAsDate,
+            eventType.id,
+            reqBodyRescheduleUid,
+            eventType.schedule?.timeZone,
+            { id: eventTypeUser.id, email: eventTypeUser.email }
+          );
+        }
       }
     }
   }

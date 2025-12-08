@@ -11,6 +11,7 @@ export const availabilityUserSelect = {
   timeFormat: true,
   defaultScheduleId: true,
   isPlatformManaged: true,
+  bookingLimits: true,
   // Relationships
   schedules: {
     select: {

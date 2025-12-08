@@ -105,6 +105,20 @@ type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
 
 type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
 
+type UserBookingsParamsBase = {
+  userId: number;
+  startDate: Date;
+  endDate: Date;
+  excludedUid?: string | null;
+  shouldReturnCount?: boolean;
+};
+
+type UserBookingsParamsWithCount = UserBookingsParamsBase & {
+  shouldReturnCount: true;
+};
+
+type UserBookingsParamsWithoutCount = UserBookingsParamsBase;
+
 const buildWhereClauseForActiveBookings = ({
   eventTypeId,
   startDate,
@@ -1053,6 +1067,43 @@ export class BookingRepository {
     ];
   }
 
+  async getAllAcceptedUserBookings(params: UserBookingsParamsWithCount): Promise<number>;
+
+  async getAllAcceptedUserBookings(params: UserBookingsParamsWithoutCount): Promise<Array<Booking>>;
+
+  async getAllAcceptedUserBookings(params: UserBookingsParamsBase) {
+    const { userId, startDate, endDate, excludedUid, shouldReturnCount } = params;
+
+    const wherePersonalBookings: Prisma.BookingWhereInput = {
+      status: BookingStatus.ACCEPTED,
+      userId,
+      eventType: {
+        schedulingType: null,
+      },
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+      ...(excludedUid && {
+        uid: {
+          not: excludedUid,
+        },
+      }),
+    };
+
+    if (shouldReturnCount) {
+      return await this.prismaClient.booking.count({
+        where: wherePersonalBookings,
+      });
+    }
+
+    return await this.prismaClient.booking.findMany({
+      where: wherePersonalBookings,
+    });
+  }
+
   async findOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
     return await this.prismaClient.booking.findFirst({
       where: {
@@ -1563,7 +1614,7 @@ export class BookingRepository {
       },
     });
   }
-  
+
   findByUidIncludeEventTypeAndReferences({ bookingUid }: { bookingUid: string }) {
     return this.prismaClient.booking.findUniqueOrThrow({
       where: {
@@ -1618,7 +1669,7 @@ export class BookingRepository {
       },
     });
   }
-  
+
   async updateBookingStatus({
     bookingId,
     status,
@@ -1648,7 +1699,6 @@ export class BookingRepository {
       },
     });
   }
-
 
   /**
    * Cancels a booking as part of the Managed Event reassignment flow.
@@ -1724,8 +1774,8 @@ export class BookingRepository {
         location,
         smsReminderNumber,
         responses: responses ?? undefined,
-        customInputs: customInputs as unknown as Prisma.InputJsonValue ?? undefined,
-        metadata: metadata as unknown as Prisma.InputJsonValue ?? undefined,
+        customInputs: (customInputs as unknown as Prisma.InputJsonValue) ?? undefined,
+        metadata: (metadata as unknown as Prisma.InputJsonValue) ?? undefined,
         idempotencyKey,
         iCalUID,
         iCalSequence,

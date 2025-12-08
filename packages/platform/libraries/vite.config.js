@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 // vite.config.ts
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
@@ -215,6 +215,7 @@ export default defineConfig({
       "@calcom/prisma/client": resolve("../../prisma/client"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
+      "@calcom/web/public": path.resolve(__dirname, "../../../apps/web/public"),
       tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
     },
   },
