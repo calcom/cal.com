@@ -37,7 +37,6 @@ const OAuthClientsView = () => {
   } | null>(null);
   const [selectedClient, setSelectedClient] = useState<{
     clientId: string;
-    clientSecret?: string | null;
     name: string;
     logo?: string | null;
     redirectUri: string;
@@ -315,28 +314,8 @@ const OAuthClientsView = () => {
                 </div>
               </div>
 
-              {selectedClient.approvalStatus === "APPROVED" && selectedClient.clientSecret && (
-                <div>
-                  <div className="mb-2 font-medium">{t("client_secret")}</div>
-                  <div className="flex">
-                    <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
-                      {selectedClient.clientSecret}
-                    </code>
-                    <Tooltip side="top" content={t("copy_to_clipboard")}>
-                      <Button
-                        onClick={() => {
-                          navigator.clipboard.writeText(selectedClient.clientSecret || "");
-                          showToast(t("client_secret_copied"), "success");
-                        }}
-                        type="button"
-                        className="rounded-l-none text-base"
-                        StartIcon="clipboard">
-                        {t("copy")}
-                      </Button>
-                    </Tooltip>
-                  </div>
-                  <p className="text-subtle mt-2 text-sm">{t("client_secret_warning")}</p>
-                </div>
+              {selectedClient.approvalStatus === "APPROVED" && (
+                <p className="text-subtle text-sm">{t("oauth_client_approved_note")}</p>
               )}
 
               {selectedClient.approvalStatus === "PENDING" && (

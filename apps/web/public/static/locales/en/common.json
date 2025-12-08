@@ -1017,6 +1017,8 @@
     "oauth_client_status_update_error": "Failed to update OAuth client status",
     "oauth_client_pending_approval": "Your OAuth client is pending approval. You will receive an email notification once it has been reviewed.",
     "oauth_client_rejected": "Your OAuth client submission was rejected. Please contact support for more information.",
+    "oauth_client_approved_note": "Your OAuth client is approved and ready to use. The client secret was shown only once when the client was approved.",
+    "logo": "Logo",
     "logo_required": "Logo is required",
     "client_secret_warning": "Store this secret securely. You won't be able to see it again.",
     "add_oauth_client": "Add OAuth Client",
