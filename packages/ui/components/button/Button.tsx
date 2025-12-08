@@ -248,8 +248,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     {
       ...passThroughProps,
       ...(isLink && { "data-testid": "link-component", shallow: shallow && shallow }),
-      disabled,
-      type: !isLink ? type : undefined,
+      // Only pass disabled and type to button element, not to Link
+      ...(!isLink && { disabled, type }),
       // Only pass ref to button element, not to Link (Link manages its own anchor)
       ...(!isLink && { ref: forwardedRef }),
       className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
