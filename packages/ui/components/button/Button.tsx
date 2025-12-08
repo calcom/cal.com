@@ -243,10 +243,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   // If pass an `href`-attr is passed it's Link, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
   const elementType = isLink ? Link : "button";
+  // Strip ref from passThroughProps when rendering Link (Link manages its own anchor element)
+  const { ref: _ref, ...linkSafeProps } = passThroughProps as typeof passThroughProps & { ref?: unknown };
   const element = React.createElement(
     elementType,
     {
-      ...passThroughProps,
+      ...(isLink ? linkSafeProps : passThroughProps),
       ...(isLink && { "data-testid": "link-component", shallow: shallow && shallow }),
       // Only pass disabled and type to button element, not to Link
       ...(!isLink && { disabled, type }),
