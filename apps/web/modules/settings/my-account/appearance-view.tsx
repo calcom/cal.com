@@ -4,7 +4,7 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import ThemeCard from "@calid/features/ui/components/card/theme-card";
-import { Icon } from "@calid/features/ui/components/icon";
+import { SocialIcon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { CustomBannerUploader, CustomImageUploader } from "@calid/features/ui/components/uploader";
@@ -402,10 +402,9 @@ const AppearanceView = ({
                       <div>
                         <TextField
                           label={t("linkedin")}
-                          value
                           placeholder="https://linkedin.com/in/yourprofile"
                           {...field}
-                          addOnLeading={<Icon name="linkedin" className="mr-2 h-4 w-4 text-[#0077b5]" />}
+                          addOnLeading={<SocialIcon name="linkedin" className="mr-1" />}
                         />
                       </div>
                     )}
@@ -419,7 +418,7 @@ const AppearanceView = ({
                           label={t("facebook")}
                           placeholder="https://facebook.com/yourprofile"
                           {...field}
-                          addOnLeading={<Icon name="facebook" className="mr-2 h-4 w-4 text-[#1877f2]" />}
+                          addOnLeading={<SocialIcon name="facebook" className="mr-1" />}
                         />
                       </div>
                     )}
@@ -433,7 +432,7 @@ const AppearanceView = ({
                           label={t("twitter")}
                           placeholder="https://twitter.com/yourprofile"
                           {...field}
-                          addOnLeading={<Icon name="twitter" className="mr-2 h-4 w-4 text-[#1da1f2]" />}
+                          addOnLeading={<SocialIcon name="twitter" className="mr-1" />}
                         />
                       </div>
                     )}
@@ -447,7 +446,7 @@ const AppearanceView = ({
                           label={t("instagram")}
                           placeholder="https://instagram.com/yourprofile"
                           {...field}
-                          addOnLeading={<Icon name="instagram" className="mr-2 h-4 w-4 text-[#e4405f]" />}
+                          addOnLeading={<SocialIcon name="instagram" className="mr-1" />}
                         />
                       </div>
                     )}
@@ -461,7 +460,7 @@ const AppearanceView = ({
                           label={t("youtube")}
                           placeholder="https://youtube.com/@yourchannel"
                           {...field}
-                          addOnLeading={<Icon name="youtube" className="mr-2 h-4 w-4 text-[#ff0000]" />}
+                          addOnLeading={<SocialIcon name="youtube" className="mr-1" />}
                         />
                       </div>
                     )}
@@ -475,7 +474,7 @@ const AppearanceView = ({
                           label={t("github")}
                           placeholder="https://github.com/yourusername"
                           {...field}
-                          addOnLeading={<Icon name="github" className="text-default mr-2 h-4 w-4" />}
+                          addOnLeading={<SocialIcon name="github" className="mr-1" />}
                         />
                       </div>
                     )}
