@@ -84,7 +84,7 @@ initializeGlobalCalProps();
 
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 type ValidationSchemaPropType = string | Function;
 
 type ValidationSchema = {
@@ -468,7 +468,6 @@ export class Cal {
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
       if (top < 0 && Math.abs(top / height) >= 0.25) {
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Intentionally done
         this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
@@ -1292,6 +1291,32 @@ class CalApi {
   }) {
     this.cal.actionManager.off(action, callback);
   }
+
+  /**
+   * Closes modal-based embeds programmatically.
+   * 
+   * @throws {Error} If called on an inline embed (only works for modal-based embeds)
+   * 
+   * @example
+   * ```javascript
+   * // Close the modal after a successful booking
+   * cal("on", {
+   *   action: "bookingSuccessful",
+   *   callback: () => {
+   *     cal("closeModal");
+   *   }
+   * });
+   * ```
+   */
+  closeModal() {
+    if (this.cal.inlineEl && !this.cal.modalBox) {
+      throw new Error(
+        "closeModal() is only supported for modal-based embeds (ModalBox and FloatingButton). It cannot be used with inline embeds."
+      );
+    }
+    this.cal.actionManager.fire("__closeIframe", {});
+  }
+
   /**
    *
    * type is provided and prerenderIframe not set. We would assume prerenderIframe to be true
@@ -1533,7 +1558,7 @@ document.addEventListener("click", (e) => {
   let config;
   try {
     config = JSON.parse(configString);
-  } catch (e) {
+  } catch {
     config = {};
   }
 
