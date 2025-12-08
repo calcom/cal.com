@@ -32,3 +32,19 @@ export const WEBHOOK_TRIGGER_EVENTS = [
   ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP.core,
   ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP["routing-forms"],
 ] as const;
+
+export const PLATFORM_WEBHOOK_TRIGGER_OPTIONS = [
+  { value: WebhookTriggerEvents.BOOKING_CANCELLED, label: "booking_cancelled" },
+  { value: WebhookTriggerEvents.BOOKING_CREATED, label: "booking_created" },
+  { value: WebhookTriggerEvents.BOOKING_REJECTED, label: "booking_rejected" },
+  { value: WebhookTriggerEvents.BOOKING_REQUESTED, label: "booking_requested" },
+  { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
+  { value: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, label: "booking_no_show_updated" },
+  { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
+  { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
+  { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
+  {
+    value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+    label: "recording_transcription_generated",
+  },
+] as const;
