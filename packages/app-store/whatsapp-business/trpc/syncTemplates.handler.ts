@@ -1,6 +1,8 @@
 import type { createStepTools } from "inngest/components/InngestStepTools";
 import type { Logger } from "inngest/middleware/logger";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { META_API_VERSION } from "@calcom/lib/constants";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { Credential, Prisma, PrismaClient, WhatsAppBusinessPhone } from "@calcom/prisma/client";
@@ -43,25 +45,40 @@ type SyncTemplatesResult = {
   templates: WhatsAppTemplate;
 };
 
-const GRAPH_API_VERSION = "v21.0";
+const GRAPH_API_VERSION = META_API_VERSION;
 const TOKEN_EXPIRY_GRACE_PERIOD_MS = 5 * 60 * 1000;
 
 export const syncTemplatesHandler = async ({
   ctx,
+  input,
 }: SyncTemplatesHandlerOptions): Promise<SyncTemplatesResponse> => {
-  // This is handled by inngest
-
-  // using offset actually because cursor pagination requires a unique column
-  // for orderBy, but we don't use a unique column in our orderBy
-
-  const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
-
-  await inngestClient.send({
-    name: `whatsapp-template-sync-${key}`,
-    data: {},
+  const identifier = ctx.user.id;
+  await checkRateLimitAndThrowError({
+    identifier: `template.sync:${identifier}`,
+    rateLimitingType: "template.sync",
   });
 
-  return { message: "WhatsApp template sync initiated" };
+  const { phoneNumberId } = input;
+  return await syncTemplateByPhoneNumberId(phoneNumberId);
+};
+
+const syncTemplateByPhoneNumberId = async (phoneNumberId: string) => {
+  const whatsappBusinessPhone = await prisma.whatsAppBusinessPhone.findFirst({
+    where: {
+      phoneNumberId,
+    },
+    include: {
+      credential: true,
+    },
+  });
+
+  const templates = await syncTemplatesForPhone(whatsappBusinessPhone);
+  return {
+    id: whatsappBusinessPhone.id,
+    phoneNumberId: whatsappBusinessPhone.phoneNumberId,
+    phoneNumber: whatsappBusinessPhone.phoneNumber,
+    templates,
+  };
 };
 
 export const syncTemplates = async ({ step, logger }): Promise<SyncTemplatesResult[]> => {

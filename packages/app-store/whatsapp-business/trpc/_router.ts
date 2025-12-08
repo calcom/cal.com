@@ -1,3 +1,4 @@
+import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -7,7 +8,7 @@ import { ZSyncTemplatesInputSchema } from "./syncTemplates.schema";
 const UNSTABLE_HANDLER_CACHE: any = {};
 
 const appWhatsappBusiness = router({
-  syncTemplates: publicProcedure
+  syncTemplates: authedProcedure
     .input(ZSyncTemplatesInputSchema)
     .mutation(async ({ ctx, input }) => {
       if (!UNSTABLE_HANDLER_CACHE.syncTemplatesHandler) {

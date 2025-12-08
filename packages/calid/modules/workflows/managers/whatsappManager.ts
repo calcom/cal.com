@@ -1,17 +1,15 @@
 // whatsappManager.ts
-import type { VariablesType } from "../templates/customTemplate";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { getTimeFormatStringFromUserTimeFormat, TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { WorkflowTemplates } from "@calcom/prisma/enums";
 import {
   WorkflowTriggerEvents,
-  WorkflowTemplates,
   WorkflowActions,
   WorkflowMethods,
-  WorkflowStatus
+  WorkflowStatus,
 } from "@calcom/prisma/enums";
 
 import type { timeUnitLowerCase } from "../config/constants";
@@ -22,7 +20,6 @@ import { deleteScheduledSMSReminder } from "../managers/smsManager";
 import * as meta from "../providers/meta";
 import type { VariablesType } from "../templates/customTemplate";
 import { constructVariablesForTemplate } from "./constructTemplateVariable";
-
 
 const log = logger.getSubLogger({ prefix: ["[whatsappManager]"] });
 
@@ -45,10 +42,9 @@ const calculateScheduledDateTime = (
     case WorkflowTriggerEvents.NEW_EVENT:
       return dayjs().add(time, normalizedUnit);
     case WorkflowTriggerEvents.EVENT_CANCELLED:
+      return dayjs().add(time, normalizedUnit);
     case WorkflowTriggerEvents.RESCHEDULE_EVENT:
-      // For traditionally immediate events, schedule relative to event start time
-      // You can modify this logic based on your specific requirements
-      return dayjs(eventStartTime).add(time, normalizedUnit);
+      return dayjs().add(time, normalizedUnit);
     default:
       return null;
   }
@@ -118,51 +114,47 @@ const validateNumberVerification = async (
 //   // }
 // };
 
-
 const executeImmediateWhatsapp = async ({
-    eventTypeId,
-    workflowId,
-    reminderPhone,
-    action,
-    template,
-    evt,
-    timeZone,
-    variableData,
-    userId,
-    teamId,
-    metaTemplateName,
-    metaPhoneNumberId,
-   } : {
-    eventTypeId?: number | null;
-    workflowId?: number;
-    reminderPhone: string;
-    action: WorkflowActions;
-    template?: WorkflowTemplates | null;
-    evt: CalIdBookingInfo;
-    timeZone: string;
-    variableData: VariablesType;
-    userId?: number | null;
-    teamId?: number | null;
-    metaTemplateName?: string | null;
-    metaPhoneNumberId?: string | null;
-  }
-): Promise<void> => {
+  eventTypeId,
+  workflowId,
+  reminderPhone,
+  action,
+  template,
+  evt,
+  timeZone,
+  variableData,
+  userId,
+  teamId,
+  metaTemplateName,
+  metaPhoneNumberId,
+}: {
+  eventTypeId?: number | null;
+  workflowId?: number;
+  reminderPhone: string;
+  action: WorkflowActions;
+  template?: WorkflowTemplates | null;
+  evt: CalIdBookingInfo;
+  timeZone: string;
+  variableData: VariablesType;
+  userId?: number | null;
+  teamId?: number | null;
+  metaTemplateName?: string | null;
+  metaPhoneNumberId?: string | null;
+}): Promise<void> => {
   try {
-    const response = await meta.sendSMS(
-      {
-        eventTypeId,
-        workflowId,
-        phoneNumber: reminderPhone,
-        userId,
-        teamId,
-        template,
-        variableData,
-        metaTemplateName,
-        metaPhoneNumberId,
-      }
-    );
+    const response = await meta.sendSMS({
+      eventTypeId,
+      workflowId,
+      phoneNumber: reminderPhone,
+      userId,
+      teamId,
+      template,
+      variableData,
+      metaTemplateName,
+      metaPhoneNumberId,
+    });
 
-    if(response?.messageId) {
+    if (response?.messageId) {
       await prisma.calIdWorkflowInsights.create({
         data: {
           workflowId,
@@ -173,67 +165,62 @@ const executeImmediateWhatsapp = async ({
         },
       });
     }
-
   } catch (error) {
     console.log(`Error sending WHATSAPP with error ${error}`);
     console.log(error.stack);
   }
 };
 
-const scheduleDelayedWhatsapp = async (
-  {
-    eventTypeId,
-    workflowId,
-    reminderPhone,
-    scheduledDate,
-    action,
-    template,
-    evt,
-    timeZone,
-    uid,
-    workflowStepId,
-    seatReferenceUid,
-    variableData,
-    userId,
-    teamId,
-    metaTemplateName,
-    metaPhoneNumberId,
-  } : {
-    eventTypeId: number;
-    workflowId: number | null;
-    reminderPhone: string;
-    scheduledDate: Dayjs;
-    action: WorkflowActions;
-    template: WorkflowTemplates | undefined;
-    evt: CalIdBookingInfo;
-    timeZone: string;
-    uid: string;
-    workflowStepId: number | undefined;
-    seatReferenceUid: string | undefined;
-    variableData: VariablesType;
-    userId?: number | null;
-    teamId?: number | null;
-    metaTemplateName?: string | null;
-    metaPhoneNumberId?: string | null;
-  }
-): Promise<void> => {
+const scheduleDelayedWhatsapp = async ({
+  eventTypeId,
+  workflowId,
+  reminderPhone,
+  scheduledDate,
+  action,
+  template,
+  evt,
+  timeZone,
+  uid,
+  workflowStepId,
+  seatReferenceUid,
+  variableData,
+  userId,
+  teamId,
+  metaTemplateName,
+  metaPhoneNumberId,
+}: {
+  eventTypeId: number;
+  workflowId: number | null;
+  reminderPhone: string;
+  scheduledDate: Dayjs;
+  action: WorkflowActions;
+  template: WorkflowTemplates | undefined;
+  evt: CalIdBookingInfo;
+  timeZone: string;
+  uid: string;
+  workflowStepId: number | undefined;
+  seatReferenceUid: string | undefined;
+  variableData: VariablesType;
+  userId?: number | null;
+  teamId?: number | null;
+  metaTemplateName?: string | null;
+  metaPhoneNumberId?: string | null;
+}): Promise<void> => {
   try {
     const scheduledWHATSAPP = await meta.scheduleSMS({
-        eventTypeId,
-        workflowId,
-        scheduledDate: scheduledDate.toDate(),
-        phoneNumber: reminderPhone,
-        userId,
-        teamId,
-        template,
-        variableData,
-        metaTemplateName,
-        metaPhoneNumberId,
-        workflowStepId,
-        bookingUid: uid,
-      }
-    );
-
+      eventTypeId,
+      workflowId,
+      scheduledDate: scheduledDate.toDate(),
+      phoneNumber: reminderPhone,
+      userId,
+      teamId,
+      template,
+      variableData,
+      metaTemplateName,
+      metaPhoneNumberId,
+      workflowStepId,
+      bookingUid: uid,
+    });
 
     // if (scheduledWHATSAPP) {
     //   await prisma.calIdWorkflowReminder.create({
@@ -274,45 +261,41 @@ const storeFutureWhatsappReminder = async (
   });
 };
 
-const processScheduledWhatsapp = async (
-  {
-    eventTypeId,
-    workflowId,
-    reminderPhone,
-    scheduledDate,
-    action,
-    template,
-    evt,
-    timeZone,
-    uid,
-    variableData,
-    workflowStepId,
-    seatReferenceUid,
-    userId,
-    teamId,
-    metaTemplateName,
-    metaPhoneNumberId,
-  }:
-  {
-
-    eventTypeId: number,
-    workflowId?: number,
-    reminderPhone: string;
-    scheduledDate: Dayjs;
-    action: WorkflowActions;
-    template: WorkflowTemplates | undefined;
-    evt: any;
-    timeZone: string;
-    variableData: VariablesType;
-    uid: string;
-    workflowStepId: number | undefined;
-    seatReferenceUid: string | undefined;
-    userId?: number | null;
-    teamId?: number | null;
-    metaTemplateName?: string | null;
-    metaPhoneNumberId?: string | null;
-  }
-): Promise<void> => {
+const processScheduledWhatsapp = async ({
+  eventTypeId,
+  workflowId,
+  reminderPhone,
+  scheduledDate,
+  action,
+  template,
+  evt,
+  timeZone,
+  uid,
+  variableData,
+  workflowStepId,
+  seatReferenceUid,
+  userId,
+  teamId,
+  metaTemplateName,
+  metaPhoneNumberId,
+}: {
+  eventTypeId: number;
+  workflowId?: number;
+  reminderPhone: string;
+  scheduledDate: Dayjs;
+  action: WorkflowActions;
+  template: WorkflowTemplates | undefined;
+  evt: any;
+  timeZone: string;
+  variableData: VariablesType;
+  uid: string;
+  workflowStepId: number | undefined;
+  seatReferenceUid: string | undefined;
+  userId?: number | null;
+  teamId?: number | null;
+  metaTemplateName?: string | null;
+  metaPhoneNumberId?: string | null;
+}): Promise<void> => {
   const currentDate = dayjs();
 
   // Can only schedule at least 60 minutes in advance and at most 7 days in advance
@@ -320,26 +303,24 @@ const processScheduledWhatsapp = async (
   console.log("current date: ", currentDate.toISOString());
   console.log("scheduled date: ", scheduledDate.toISOString());
   if (!scheduledDate.isAfter(currentDate.add(7, "day"))) {
-    await scheduleDelayedWhatsapp(
-      {
-        eventTypeId,
-        workflowId,
-        reminderPhone,
-        scheduledDate,
-        action,
-        template,
-        evt,
-        timeZone,
-        uid,
-        workflowStepId,
-        variableData,
-        seatReferenceUid,
-        userId,
-        teamId,
-        metaTemplateName,
-        metaPhoneNumberId,
-      }
-    );
+    await scheduleDelayedWhatsapp({
+      eventTypeId,
+      workflowId,
+      reminderPhone,
+      scheduledDate,
+      action,
+      template,
+      evt,
+      timeZone,
+      uid,
+      workflowStepId,
+      variableData,
+      seatReferenceUid,
+      userId,
+      teamId,
+      metaTemplateName,
+      metaPhoneNumberId,
+    });
   } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
     await storeFutureWhatsappReminder(uid, workflowStepId, scheduledDate, seatReferenceUid, evt);
   }
@@ -393,8 +374,6 @@ const resolveRecipientDetails = (
 };
 
 export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppReminderArgs) => {
-  console.log("whatsappReminder");
-  console.log(args)
   const {
     evt,
     workflow,
@@ -415,7 +394,6 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
-  console.log("Event was: ", JSON.stringify(evt));
 
   // Always calculate scheduled date, even for traditionally immediate events
   const scheduledDate = calculateScheduledDateTime(triggerEvent, startTime, endTime, {
@@ -462,57 +440,48 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
   // Determine if this should be immediate or scheduled based on timestamp availability
   const shouldSendImmediately = !scheduledDate || (scheduledDate && scheduledDate.isBefore(dayjs()));
 
-  console.log(
-    "send immediately: ",
-    shouldSendImmediately,
-    metaTemplateName,
-    metaPhoneNumberId,
-  );
+  console.log("send immediately: ", shouldSendImmediately, metaTemplateName, metaPhoneNumberId);
 
   if (shouldSendImmediately) {
     // Send immediately for all trigger types when no valid future timestamp exists
     console.log("sending values: ", {
-        eventTypeId: evt.eventTypeId,
-        workflowId: workflow.id,
-    })
-    await executeImmediateWhatsapp(
-      {
-        eventTypeId: evt.eventTypeId,
-        workflowId: workflow.id,
-        reminderPhone,
-        action,
-        template,
-        evt,
-        variableData: templateVariables,
-        timeZone,
-        userId,
-        teamId,
-        metaTemplateName,
-        metaPhoneNumberId,
-      }
-    );
+      eventTypeId: evt.eventTypeId,
+      workflowId: workflow.id,
+    });
+    await executeImmediateWhatsapp({
+      eventTypeId: evt.eventTypeId,
+      workflowId: workflow.id,
+      reminderPhone,
+      action,
+      template,
+      evt,
+      variableData: templateVariables,
+      timeZone,
+      userId,
+      teamId,
+      metaTemplateName,
+      metaPhoneNumberId,
+    });
   } else {
     // Schedule for future delivery when valid timestamp exists
-    await processScheduledWhatsapp(
-      {
-        eventTypeId: evt.eventType.id,
-        workflowId: workflow.id,
-        reminderPhone,
-        scheduledDate,
-        action,
-        variableData: templateVariables,
-        template,
-        evt,
-        timeZone,
-        uid,
-        workflowStepId,
-        seatReferenceUid,
-        userId,
-        teamId,
-        metaTemplateName,
-        metaPhoneNumberId,
-      }
-    );
+    await processScheduledWhatsapp({
+      eventTypeId: evt.eventType.id,
+      workflowId: workflow.id,
+      reminderPhone,
+      scheduledDate,
+      action,
+      variableData: templateVariables,
+      template,
+      evt,
+      timeZone,
+      uid,
+      workflowStepId,
+      seatReferenceUid,
+      userId,
+      teamId,
+      metaTemplateName,
+      metaPhoneNumberId,
+    });
   }
 };
 

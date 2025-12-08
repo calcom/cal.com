@@ -178,8 +178,6 @@ export default function Login({
     setInWebView(isWebView());
   }, []);
 
-  console.log("Form state:", formState.isSubmitting, formState.errors);
-
   return (
     <>
       <style jsx global>{`

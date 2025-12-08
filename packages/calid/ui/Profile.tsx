@@ -89,9 +89,14 @@ export const Profile = ({ small }: ProfileProps) => {
           <Icon name="moon" className="mr-2 h-4 w-4" />
           {t("out_of_office")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => (window.location.href = `${window.location.origin}/?from=app`)}>
+        <DropdownMenuItem onClick={() => window.open(`${window.location.origin}/?from=app`, "_blank")}>
           <Icon name="globe" className="mr-2 h-4 w-4" />
           {t("go_to_website")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => window.open(`${window.location.origin}/${user?.username}`, "_blank")}>
+          <Icon name="external-link" className="mr-2 h-4 w-4" />
+          {t("view_public_page")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => window.open("https://roadmap.cal.id/", "_blank")}>
           <Icon name="map-pin" className="mr-2 h-4 w-4" />

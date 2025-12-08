@@ -3,7 +3,7 @@
 import { Branding } from "@calid/features/ui/Branding";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon, type IconName } from "@calid/features/ui/components/icon";
+import { Icon, SocialIcon, type IconName, type SocialIconName } from "@calid/features/ui/components/icon";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
@@ -11,12 +11,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { z } from "zod";
 
-import {
-  sdkActionManager,
-  useEmbedNonStylesConfig,
-  useEmbedStyles,
-  useIsEmbed,
-} from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useEmbedNonStylesConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -37,7 +32,7 @@ interface IconParams {
   color: string;
 }
 
-function getIconParamsFromMetadata(metadata: any): IconParams {
+function getIconParamsFromMetadata(metadata: Record<string, unknown> | null | undefined): IconParams {
   const iconParams = metadata?.iconParams as IconParams;
   return iconParams || { icon: "calendar", color: "#6B7280" };
 }
@@ -52,7 +47,7 @@ function UserNotFound(props: { slug: string }) {
         <div className="bg-default dark:bg-emphasis w-full max-w-xl rounded-lg p-10 text-center shadow-lg">
           <div className="flex flex-col items-center">
             <h2 className="dark:text-emphasis mt-4 text-3xl font-semibold text-gray-800">
-              No man's land - Conquer it today!
+              No man&apos;s land - Conquer it today!
             </h2>
             <p className="dark:text-default mt-4 text-lg text-gray-600">
               Claim username <span className="font-semibold">{`'${slug}'`}</span> on{" "}
@@ -92,20 +87,34 @@ export function UserPage(props: PageProps) {
   const isOrg = !!user?.profile?.organization;
   const isBioEmpty = !user?.bio || !user.bio.replace("<p><br></p>", "").length;
   const isEmbed = useIsEmbed(props.isEmbed);
-  const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const { user: _user, orgSlug: _orgSlug, redirect: _redirect, ...query } = useRouterQuery();
+  const isLongName = (profile.name?.length ?? 0) > 18;
 
   useTheme(profile?.theme, false, false);
 
   const headerUrl = (user?.metadata as z.infer<typeof userMetadataSchema> | null)?.headerUrl ?? undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const socialProfiles = (user as any)?.socialProfiles as
+    | Record<SocialIconName, string | undefined>
+    | undefined
+    | null;
+  const socialLinks = (
+    ["linkedin", "facebook", "twitter", "instagram", "youtube", "github"] as SocialIconName[]
+  )
+    .map((key) => {
+      const url = socialProfiles?.[key];
+      if (!url || !url.trim()) return null;
+      return { key, url: url.trim() };
+    })
+    .filter(Boolean) as Array<{ key: SocialIconName; url: string }>;
 
   useEffect(() => {
-    const defaultFavicons = document.querySelectorAll('link[rel="icon"]');
+    const defaultFavicons = document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]');
     defaultFavicons.forEach((link) => {
       link.rel = "icon";
-      link.href = user?.faviconUrl;
+      link.href = user?.faviconUrl || "";
       link.type = "image/png";
     });
     if (defaultFavicons.length === 0) {
@@ -167,21 +176,42 @@ export function UserPage(props: PageProps) {
               alt={profile.name || "User Avatar"}
               title={profile.name || "User"}
             />
-            <h1 className="text-default mt-2 text-2xl font-bold" data-testid="name-title">
-              {profile.name}
-              {!isOrg && user.verified && (
-                <Icon
-                  name="badge-check"
-                  className="text-default mx-1 -mt-1 inline h-6 w-6 fill-blue-500 dark:text-black"
-                />
+            <div
+              className={classNames(
+                "mt-2 flex",
+                isLongName
+                  ? "flex-col items-center gap-1 md:flex-row md:items-center md:gap-2"
+                  : "flex-row items-center gap-2"
+              )}>
+              <h1 className="text-default text-2xl font-bold leading-none" data-testid="name-title">
+                {profile.name}
+                {!isOrg && user.verified && (
+                  <Icon
+                    name="badge-check"
+                    className="text-default mx-1 -mt-1 inline h-6 w-6 fill-blue-500 dark:text-black"
+                  />
+                )}
+                {isOrg && (
+                  <Icon
+                    name="badge-check"
+                    className="text-default mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 dark:text-black"
+                  />
+                )}
+              </h1>
+              {socialLinks.length > 0 && (
+                <div
+                  className={classNames(
+                    "flex items-center gap-2",
+                    isLongName && "justify-center md:justify-start"
+                  )}>
+                  {socialLinks.map((item) => (
+                    <a key={item.key} href={item.url} target="_blank" rel="noreferrer">
+                      <SocialIcon key={item.key} name={item.key} />
+                    </a>
+                  ))}
+                </div>
               )}
-              {isOrg && (
-                <Icon
-                  name="badge-check"
-                  className="text-default mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 dark:text-black"
-                />
-              )}
-            </h1>
+            </div>
             {!isBioEmpty && (
               <>
                 <div
@@ -238,7 +268,7 @@ export function UserPage(props: PageProps) {
                         type="button"
                         size="base"
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevent double navigation
+                          e.stopPropagation();
                           handleEventTypeClick(type);
                         }}>
                         {t("schedule")}

@@ -31,7 +31,6 @@ export const InstallAppButtonWithoutPlanCheck = (
           useDefaultComponent: true,
           disabled: props.disableInstall,
           onClick: () => {
-            console.log("installating 2");
             mutation.mutate({ type: props.type });
           },
           loading: mutation.data?.setupPending,
@@ -43,7 +42,6 @@ export const InstallAppButtonWithoutPlanCheck = (
     <InstallAppButtonComponent
       render={props.render}
       onChanged={() => {
-        console.log("installating 3");
         props.onChanged();
       }}
       disableInstall={props.disableInstall}

@@ -119,6 +119,7 @@ const userSelect = {
   teams: true,
   bannerUrl: true,
   faviconUrl: true,
+  socialProfiles: true,
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
@@ -964,6 +965,7 @@ export class UserRepository {
         profiles: true,
         bannerUrl: true,
         faviconUrl: true,
+        socialProfiles: true,
       },
     });
 

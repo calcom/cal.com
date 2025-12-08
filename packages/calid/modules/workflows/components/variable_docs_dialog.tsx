@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogClose,
+  DialogFooter,
 } from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
 import type { Dispatch, SetStateAction } from "react";
@@ -114,7 +115,6 @@ export const VariableDocsDialog = ({ isOpen, setIsOpen }: VariableDocsDialogProp
             information. Variables must be enclosed in double curly braces exactly as shown below.
           </DialogDescription>
         </DialogHeader>
-
         <div className="mt-4 space-y-4">
           <div className="rounded-md bg-blue-50 p-4">
             <div className="flex items-start">
@@ -166,9 +166,9 @@ export const VariableDocsDialog = ({ isOpen, setIsOpen }: VariableDocsDialogProp
           </div>
         </div>
 
-        <DialogClose asChild>
-          <Button color="secondary">Close</Button>
-        </DialogClose>
+        <DialogFooter className="mt-4 gap-2">
+          <DialogClose />
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -142,14 +142,12 @@ export const AppPage = ({
         returnTo: WEBAPP_URL + onBoardingUrl,
       });
     } else if (!availableForTeams) {
-      console.log("Not available for teams");
       mutation.mutate({ type });
     } else {
       const onBoardingUrl = await getAppOnboardingUrl({
         slug: slug,
         step: AppOnboardingSteps.ACCOUNTS_STEP,
       });
-      console.log("onBoardingUrl is: ", onBoardingUrl);
 
       router.push(onBoardingUrl);
     }
@@ -213,7 +211,8 @@ export const AppPage = ({
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
 
-  const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
+  const allowedMultipleInstalls =
+    (categories.indexOf("calendar") > -1 && variant !== "other") || slug === "whatsapp-business";
   useEffect(() => {
     if (searchParams?.get("defaultInstall") === "true") {
       mutation.mutate({ type, variant, slug, defaultInstall: true });
@@ -279,7 +278,6 @@ export const AppPage = ({
             props = {
               ...props,
               onClick: async () => {
-                console.log("installating 4");
                 await handleAppInstall();
               },
               loading: isLoading,
@@ -300,7 +298,6 @@ export const AppPage = ({
             props = {
               ...props,
               onClick: async () => {
-                console.log("installating");
                 await handleAppInstall();
               },
               loading: isLoading,
@@ -331,6 +328,7 @@ export const AppPage = ({
           <>
             {existingCredentials.length > 1 ? (
               <MultiDisconnectIntegration
+                categories={categories}
                 credentials={existingCredentials}
                 onSuccess={() => appDbQuery.refetch()}
               />

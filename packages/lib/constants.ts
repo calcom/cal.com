@@ -47,12 +47,12 @@ export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app")
   ? WEBAPP_URL
   : process.env.NEXT_PUBLIC_WEBSITE_URL || WEBAPP_URL;
 
-export const IS_CALCOM = true;
-// WEBAPP_URL &&
-// (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"))
+export const IS_CALCOM =
+  WEBAPP_URL &&
+  (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
@@ -279,3 +279,5 @@ export const DEMO_URL = "https://app.cal.id/manas/demo";
 export const IS_PROD_DOMAIN = WEBAPP_URL.includes("cal.id");
 
 export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+
+export const META_API_VERSION = process.env.META_WHATSAPP_API_VERSION || "v21.0";

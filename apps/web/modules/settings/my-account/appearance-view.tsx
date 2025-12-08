@@ -4,6 +4,8 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import ThemeCard from "@calid/features/ui/components/card/theme-card";
+import { SocialIcon } from "@calid/features/ui/components/icon";
+import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { CustomBannerUploader, CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
@@ -144,6 +146,31 @@ const AppearanceView = ({
     reset: resetBrandColorsThemeReset,
   } = brandColorsFormMethods;
 
+  const DEFAULT_SOCIAL_PROFILES = {
+    linkedin: (user.socialProfiles as { linkedin?: string } | null)?.linkedin ?? "",
+    facebook: (user.socialProfiles as { facebook?: string } | null)?.facebook ?? "",
+    twitter: (user.socialProfiles as { twitter?: string } | null)?.twitter ?? "",
+    instagram: (user.socialProfiles as { instagram?: string } | null)?.instagram ?? "",
+    youtube: (user.socialProfiles as { youtube?: string } | null)?.youtube ?? "",
+    github: (user.socialProfiles as { github?: string } | null)?.github ?? "",
+  };
+
+  const hasSocialProfiles = Object.values(DEFAULT_SOCIAL_PROFILES).some(
+    (value) => value && value.trim() !== ""
+  );
+  const [isSocialProfilesEnabled, setIsSocialProfilesEnabled] = useState(hasSocialProfiles);
+
+  const socialProfilesFormMethods = useForm({
+    defaultValues: {
+      socialProfiles: DEFAULT_SOCIAL_PROFILES,
+    },
+  });
+
+  const {
+    formState: { isSubmitting: isSocialProfilesFormSubmitting, isDirty: isSocialProfilesFormDirty },
+    reset: resetSocialProfilesForm,
+  } = socialProfilesFormMethods;
+
   const selectedTheme = userThemeFormMethods.watch("theme");
   const selectedThemeIsDark =
     selectedTheme === "dark" ||
@@ -160,6 +187,13 @@ const AppearanceView = ({
       resetBookerLayoutThemeReset({ metadata: data.metadata });
       resetUserThemeReset({ theme: data.theme });
       resetUserAppThemeReset({ appTheme: data.appTheme });
+      if (data.socialProfiles) {
+        const hasProfiles = Object.values(data.socialProfiles as Record<string, string>).some(
+          (value) => value && value.trim() !== ""
+        );
+        setIsSocialProfilesEnabled(hasProfiles);
+        resetSocialProfilesForm({ socialProfiles: data.socialProfiles as typeof DEFAULT_SOCIAL_PROFILES });
+      }
     },
     onError: (error) => {
       if (error.message) {
@@ -326,6 +360,135 @@ const AppearanceView = ({
               isLoading={mutation.isPending}
               user={user}
             />
+          </Form>
+          <Form
+            form={socialProfilesFormMethods}
+            handleSubmit={(values) => {
+              mutation.mutate({
+                socialProfiles: values.socialProfiles,
+              });
+            }}>
+            <div className="border-subtle mt-6 rounded-md border p-6">
+              <SettingsToggle
+                toggleSwitchAtTheEnd={true}
+                title={t("social_profiles")}
+                description={t("social_profiles_description")}
+                checked={isSocialProfilesEnabled}
+                onCheckedChange={(checked) => {
+                  setIsSocialProfilesEnabled(checked);
+                  if (!checked) {
+                    const emptyProfiles = {
+                      linkedin: "",
+                      facebook: "",
+                      twitter: "",
+                      instagram: "",
+                      youtube: "",
+                      github: "",
+                    };
+                    socialProfilesFormMethods.setValue("socialProfiles", emptyProfiles, {
+                      shouldDirty: true,
+                    });
+                    mutation.mutate({
+                      socialProfiles: emptyProfiles,
+                    });
+                  }
+                }}
+                childrenClassName="lg:ml-0">
+                <div className="flex flex-col gap-4 py-6">
+                  <Controller
+                    name="socialProfiles.linkedin"
+                    control={socialProfilesFormMethods.control}
+                    render={({ field }) => (
+                      <div>
+                        <TextField
+                          label={t("linkedin")}
+                          placeholder="https://linkedin.com/in/yourprofile"
+                          {...field}
+                          addOnLeading={<SocialIcon name="linkedin" className="mr-1" />}
+                        />
+                      </div>
+                    )}
+                  />
+                  <Controller
+                    name="socialProfiles.facebook"
+                    control={socialProfilesFormMethods.control}
+                    render={({ field }) => (
+                      <div>
+                        <TextField
+                          label={t("facebook")}
+                          placeholder="https://facebook.com/yourprofile"
+                          {...field}
+                          addOnLeading={<SocialIcon name="facebook" className="mr-1" />}
+                        />
+                      </div>
+                    )}
+                  />
+                  <Controller
+                    name="socialProfiles.twitter"
+                    control={socialProfilesFormMethods.control}
+                    render={({ field }) => (
+                      <div>
+                        <TextField
+                          label={t("twitter")}
+                          placeholder="https://twitter.com/yourprofile"
+                          {...field}
+                          addOnLeading={<SocialIcon name="twitter" className="mr-1" />}
+                        />
+                      </div>
+                    )}
+                  />
+                  <Controller
+                    name="socialProfiles.instagram"
+                    control={socialProfilesFormMethods.control}
+                    render={({ field }) => (
+                      <div>
+                        <TextField
+                          label={t("instagram")}
+                          placeholder="https://instagram.com/yourprofile"
+                          {...field}
+                          addOnLeading={<SocialIcon name="instagram" className="mr-1" />}
+                        />
+                      </div>
+                    )}
+                  />
+                  <Controller
+                    name="socialProfiles.youtube"
+                    control={socialProfilesFormMethods.control}
+                    render={({ field }) => (
+                      <div>
+                        <TextField
+                          label={t("youtube")}
+                          placeholder="https://youtube.com/@yourchannel"
+                          {...field}
+                          addOnLeading={<SocialIcon name="youtube" className="mr-1" />}
+                        />
+                      </div>
+                    )}
+                  />
+                  <Controller
+                    name="socialProfiles.github"
+                    control={socialProfilesFormMethods.control}
+                    render={({ field }) => (
+                      <div>
+                        <TextField
+                          label={t("github")}
+                          placeholder="https://github.com/yourusername"
+                          {...field}
+                          addOnLeading={<SocialIcon name="github" className="mr-1" />}
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+                <Button
+                  loading={mutation.isPending}
+                  disabled={isSocialProfilesFormSubmitting || !isSocialProfilesFormDirty}
+                  color="primary"
+                  type="submit">
+                  {t("update")}
+                </Button>
+              </SettingsToggle>
+            </div>
           </Form>
           <Form
             form={brandColorsFormMethods}

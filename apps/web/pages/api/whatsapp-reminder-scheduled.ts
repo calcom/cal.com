@@ -57,8 +57,7 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         throw new NonRetriableError(`Reminder ${data.reminderId} not found`);
       }
 
-      // Check if booking was cancelled
-      if (reminderRecord.booking?.status === "CANCELLED" || reminderRecord.booking?.status === "REJECTED") {
+      if (reminderRecord.booking?.status === "REJECTED") {
         throw new NonRetriableError(`Booking ${data.bookingUid} was cancelled, skipping reminder`);
       }
 

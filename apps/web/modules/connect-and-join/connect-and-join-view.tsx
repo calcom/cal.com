@@ -24,7 +24,6 @@ function ConnectAndJoin() {
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   const session = useSession();
-  console.log("Sessions : ", session);
   const isUserPartOfOrg = session.status === "authenticated" && !!session.data.user?.org;
 
   const mutation = trpc.viewer.loggedInViewerRouter.connectAndJoin.useMutation({

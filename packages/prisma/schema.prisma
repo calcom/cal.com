@@ -450,6 +450,7 @@ model User {
   calIdWorkflowReminders         CalIdWorkflowReminder[]       @relation("UserCalIdWorkflowReminders")
   bannerUrl                      String?
   faviconUrl                     String?
+  socialProfiles                 Json?
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
 
@@ -2780,8 +2781,8 @@ model WhatsAppBusinessPhone {
   templates Json?
 
   wabaId        String
-  phoneNumberId String
-  phoneNumber   String
+  phoneNumberId String @unique
+  phoneNumber   String @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
