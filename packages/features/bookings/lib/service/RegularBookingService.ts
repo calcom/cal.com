@@ -1047,8 +1047,9 @@ async function handler(
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
-        let luckUserFound = false;
-        while (luckyUserPool.length > 0 && !luckUserFound) {
+        const maxHostsPerGroup = eventType.maxRoundRobinHosts ?? 1;
+        let hostsFoundInGroup = 0;
+        while (luckyUserPool.length > 0 && hostsFoundInGroup < maxHostsPerGroup) {
           const freeUsers = luckyUserPool.filter(
             (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           );
@@ -1117,7 +1118,7 @@ async function handler(
               }
               // if no error, then lucky user is available for the next slots
               luckyUsers.push(newLuckyUser);
-              luckUserFound = true;
+              hostsFoundInGroup++;
             } catch {
               notAvailableLuckyUsers.push(newLuckyUser);
               tracingLogger.info(
@@ -1126,7 +1127,7 @@ async function handler(
             }
           } else {
             luckyUsers.push(newLuckyUser);
-            luckUserFound = true;
+            hostsFoundInGroup++;
           }
         }
       }
@@ -1150,7 +1151,7 @@ async function handler(
       // If there are RR hosts, we need to find a lucky user
       if (
         [...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 &&
-        luckyUsers.length !== (Object.keys(nonEmptyHostGroups).length || 1)
+        luckyUsers.length < (Object.keys(nonEmptyHostGroups).length || 1)
       ) {
         throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
       }

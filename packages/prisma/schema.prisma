@@ -247,6 +247,8 @@ model EventType {
   eventTypeColor                   Json?
   rescheduleWithSameRoundRobinHost Boolean @default(false)
 
+  maxRoundRobinHosts Int?
+
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
