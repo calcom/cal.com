@@ -79,7 +79,7 @@ const emailRatingTemplate = ({
   const branding =
     !isBrandingDisabled && !isEditingMode ? `<div>_<br><br>${t("scheduling_by")} ${APP_NAME}</div>` : "";
 
-  const endingHtml = `${t("email_survey_triggered_by_workflow")}${branding}`;
+  const endingHtml = `${branding}`;
 
   const emailBody = `<body>${introHtml}${ratingHtml}<p>${noShowHtml}${eventHtml}${dateTimeHtml}${attendeeHtml}${endingHtml}</p></body>`;
 
@@ -89,4 +89,4 @@ const emailRatingTemplate = ({
 export default emailRatingTemplate;
 
 export const plainTextTemplate =
-  "Hi {ORGANIZER},We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?😠  🙁  😐  😄  😍{ORGANIZER} didn't join the meeting? Reschedule here.Event: {EVENT_NAME}Date & Time: {EVENT_DATE_ddd, MMM D, YYYY h:mma} - {EVENT_END_TIME} ({TIMEZONE})Attendees: You & {ORGANIZER}This survey was triggered by a Workflow in Cal.";
+  "Hi {ORGANIZER},We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?😠  🙁  😐  😄  😍{ORGANIZER} didn't join the meeting? Reschedule here.Event: {EVENT_NAME}Date & Time: {EVENT_DATE_ddd, MMM D, YYYY h:mma} - {EVENT_END_TIME} ({TIMEZONE})Attendees: You & {ORGANIZER}";

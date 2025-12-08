@@ -1,5 +1,3 @@
-import slugify from "@calcom/lib/slugify";
-
 import type { FormResponse, NonRouterRoute, Field } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
 import { getHumanReadableFieldResponseValue } from "./responseData/getHumanReadableFieldResponseValue";
@@ -18,7 +16,7 @@ export const substituteVariables = (
   response: FormResponse,
   fields: Field[]
 ) => {
-  const regex = /\{([^\}]+)\}/g;
+  const regex = /\{([^}]+)\}/g;
   const variables: string[] = routeValue.match(regex)?.map((match: string) => match.slice(1, -1)) || [];
 
   let eventTypeUrl = routeValue;
@@ -37,23 +35,9 @@ export const substituteVariables = (
           field,
           value: response[key].value,
         });
-        const humanReadableString = humanReadableValues.toString();
-
-        const variablePattern = `{${variable}}`;
-        const variableIndex = eventTypeUrl.indexOf(variablePattern);
-        const isInQueryString = queryStringIndex !== -1 && variableIndex > queryStringIndex;
-
-        let valueToSubstitute: string;
-        if (isInQueryString) {
-          // For query parameters, preserve original formatting with proper URL encoding
-          valueToSubstitute = encodeURIComponent(humanReadableString);
-        } else {
-          // For URL path segments, slugify the value for URL safety
-          // ['abc', 'def'] ----toString---> 'abc,def' ----slugify---> 'abc-def'
-          valueToSubstitute = slugify(humanReadableString);
-        }
-
-        eventTypeUrl = eventTypeUrl.replace(variablePattern, valueToSubstitute);
+        // ['abc', 'def'] ----toString---> 'abc,def' ----encode---> 'abc%2Cdef'
+        const valueToSubstitute = encodeURIComponent(humanReadableValues.toString());
+        eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, valueToSubstitute);
       }
     }
   });
