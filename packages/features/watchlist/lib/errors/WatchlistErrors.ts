@@ -18,7 +18,6 @@ export class WatchlistError extends Error {
   ) {
     super(message);
     this.name = "WatchlistError";
-    Object.setPrototypeOf(this, WatchlistError.prototype);
   }
 }
 
