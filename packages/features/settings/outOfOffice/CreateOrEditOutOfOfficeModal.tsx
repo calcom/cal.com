@@ -180,7 +180,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   return (
     <Dialog
       open={openModal}
-      modal={false}
       onOpenChange={(open) => {
         if (!open) {
           closeModal();
