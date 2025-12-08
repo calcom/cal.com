@@ -35,8 +35,8 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
-import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
+import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -455,7 +455,6 @@ function buildBookingCreatedPayload({
     organizationId,
   };
 }
-
 
 export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
@@ -1045,54 +1044,56 @@ async function handler(
       );
 
       const luckyUsers: typeof users = [];
+      const maxHostsPerGroup = eventType.maxRoundRobinHosts ?? 1;
+      const excludedUserIds = new Set<number>();
+      const userIdsSet = new Set(users.map((user) => user.id));
+
+      const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+        memberId: eventTypeWithUsers.users[0]?.id ?? null,
+        teamId: eventType.teamId,
+      });
+
+      const enrichedHosts = await enrichHostsWithDelegationCredentials({
+        orgId: firstUserOrgId ?? null,
+        hosts: eventTypeWithUsers.hosts,
+      });
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
-        const maxHostsPerGroup = eventType.maxRoundRobinHosts ?? 1;
         let hostsFoundInGroup = 0;
+
+        const groupRRHosts = enrichedHosts.filter(
+          (host) =>
+            !host.isFixed &&
+            userIdsSet.has(host.user.id) &&
+            (host.groupId === groupId || (!host.groupId && groupId === DEFAULT_GROUP_ID))
+        );
+
         while (luckyUserPool.length > 0 && hostsFoundInGroup < maxHostsPerGroup) {
-          const freeUsers = luckyUserPool.filter(
-            (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
-          );
+          const freeUsers = luckyUserPool.filter((user) => !excludedUserIds.has(user.id));
+
           // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
           if (freeUsers.length === 0) break;
           assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too with an assertion; the error will never be thrown.
-          // freeUsers is ensured
 
-          const userIdsSet = new Set(users.map((user) => user.id));
-          const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
-            memberId: eventTypeWithUsers.users[0].id ?? null,
-            teamId: eventType.teamId,
-          });
           const newLuckyUser = await deps.luckyUserService.getLuckyUser({
-            // find a lucky user that is not already in the luckyUsers array
             availableUsers: freeUsers,
-            // only hosts from the same group
-            allRRHosts: (
-              await enrichHostsWithDelegationCredentials({
-                orgId: firstUserOrgId ?? null,
-                hosts: eventTypeWithUsers.hosts,
-              })
-            ).filter(
-              (host) =>
-                !host.isFixed &&
-                userIdsSet.has(host.user.id) &&
-                (host.groupId === groupId || (!host.groupId && groupId === DEFAULT_GROUP_ID))
-            ),
+            allRRHosts: groupRRHosts,
             eventType,
             routingFormResponse,
             meetingStartTime: new Date(reqBody.start),
           });
+
           if (!newLuckyUser) {
-            break; // prevent infinite loop
+            break;
           }
+
           if (
             input.bookingData.isFirstRecurringSlot &&
             eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
             input.bookingData.numSlotsToCheckForAvailability &&
             input.bookingData.allRecurringDates
           ) {
-            // for recurring round robin events check if lucky user is available for next slots
             try {
               for (
                 let i = 0;
@@ -1117,17 +1118,19 @@ async function handler(
                   );
                 }
               }
-              // if no error, then lucky user is available for the next slots
               luckyUsers.push(newLuckyUser);
+              excludedUserIds.add(newLuckyUser.id);
               hostsFoundInGroup++;
             } catch {
               notAvailableLuckyUsers.push(newLuckyUser);
+              excludedUserIds.add(newLuckyUser.id);
               tracingLogger.info(
-                `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
+                `Round robin host ${newLuckyUser.name} not available for first two slots. Trying another host.`
               );
             }
           } else {
             luckyUsers.push(newLuckyUser);
+            excludedUserIds.add(newLuckyUser.id);
             hostsFoundInGroup++;
           }
         }
@@ -1311,9 +1314,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1359,8 +1362,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1981,14 +1984,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2289,8 +2292,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   const bookingCreatedPayload = buildBookingCreatedPayload({
@@ -2304,10 +2307,12 @@ async function handler(
 
   const bookingRescheduledPayload: BookingRescheduledPayload = {
     ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking ? {
-      startTime: originalRescheduledBooking.startTime,
-      endTime: originalRescheduledBooking.endTime,
-    } : undefined,
+    oldBooking: originalRescheduledBooking
+      ? {
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        }
+      : undefined,
   };
 
   const bookingEventHandler = deps.bookingEventHandler;
@@ -2383,9 +2388,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2719,7 +2724,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
