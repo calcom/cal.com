@@ -96,6 +96,7 @@ export function DatePickerWithRange({
 
   return (
     <div className={classNames("grid gap-2", className)}>
+      {/* modal prop required for iOS compatibility when nested inside Dialog modals */}
       <Popover.Root modal>
         <Popover.Trigger asChild>
           <Button
