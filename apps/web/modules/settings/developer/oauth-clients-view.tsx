@@ -29,10 +29,19 @@ const OAuthClientsView = () => {
   const utils = trpc.useUtils();
   const [showDialog, setShowDialog] = useState(false);
   const [logo, setLogo] = useState("");
+  const [logoError, setLogoError] = useState(false);
   const [submittedClient, setSubmittedClient] = useState<{
     clientId: string;
     name: string;
     isPkceEnabled?: boolean;
+  } | null>(null);
+  const [selectedClient, setSelectedClient] = useState<{
+    clientId: string;
+    clientSecret?: string | null;
+    name: string;
+    logo?: string | null;
+    redirectUri: string;
+    approvalStatus: string;
   } | null>(null);
 
   const oAuthForm = useForm<FormValues>({
@@ -62,6 +71,11 @@ const OAuthClientsView = () => {
   });
 
   const handleSubmit = (values: FormValues) => {
+    if (!values.logo) {
+      setLogoError(true);
+      return;
+    }
+    setLogoError(false);
     submitMutation.mutate({
       name: values.name,
       redirectUri: values.redirectUri,
@@ -74,7 +88,12 @@ const OAuthClientsView = () => {
     setShowDialog(false);
     setSubmittedClient(null);
     setLogo("");
+    setLogoError(false);
     oAuthForm.reset();
+  };
+
+  const handleCloseClientDialog = () => {
+    setSelectedClient(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -106,9 +125,17 @@ const OAuthClientsView = () => {
           {oAuthClients.map((client, index) => (
             <div
               key={client.clientId}
-              className={`flex items-center justify-between p-4 ${
+              className={`flex cursor-pointer items-center justify-between p-4 transition-colors hover:bg-subtle ${
                 index !== oAuthClients.length - 1 ? "border-subtle border-b" : ""
-              }`}>
+              }`}
+              onClick={() => setSelectedClient(client)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  setSelectedClient(client);
+                }
+              }}>
               <div className="flex items-center gap-4">
                 <Avatar
                   alt={client.name}
@@ -123,19 +150,7 @@ const OAuthClientsView = () => {
               </div>
               <div className="flex items-center gap-4">
                 {getStatusBadge(client.approvalStatus)}
-                {client.approvalStatus === "APPROVED" && (
-                  <Tooltip content={t("copy_client_id")}>
-                    <Button
-                      color="minimal"
-                      size="sm"
-                      StartIcon="clipboard"
-                      onClick={() => {
-                        navigator.clipboard.writeText(client.clientId);
-                        showToast(t("client_id_copied"), "success");
-                      }}
-                    />
-                  </Tooltip>
-                )}
+                <Icon name="chevron-right" className="text-subtle h-5 w-5" />
               </div>
             </div>
           ))}
@@ -195,24 +210,33 @@ const OAuthClientsView = () => {
                 </div>
               </div>
 
-              <div className="flex items-center">
-                <Avatar
-                  alt=""
-                  fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
-                  className="mr-5 items-center"
-                  imageSrc={logo}
-                  size="lg"
-                />
-                <ImageUploader
-                  target="avatar"
-                  id="avatar-upload"
-                  buttonMsg={t("upload_logo")}
-                  handleAvatarChange={(newLogo: string) => {
-                    setLogo(newLogo);
-                    oAuthForm.setValue("logo", newLogo);
-                  }}
-                  imageSrc={logo}
-                />
+              <div>
+                <Label className="text-emphasis mb-2 block text-sm font-medium">
+                  {t("logo")} <span className="text-error">*</span>
+                </Label>
+                <div className="flex items-center">
+                  <Avatar
+                    alt=""
+                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+                    className="mr-5 items-center"
+                    imageSrc={logo}
+                    size="lg"
+                  />
+                  <ImageUploader
+                    target="avatar"
+                    id="avatar-upload"
+                    buttonMsg={t("upload_logo")}
+                    handleAvatarChange={(newLogo: string) => {
+                      setLogo(newLogo);
+                      setLogoError(false);
+                      oAuthForm.setValue("logo", newLogo);
+                    }}
+                    imageSrc={logo}
+                  />
+                </div>
+                {logoError && (
+                  <p className="text-error mt-2 text-sm">{t("logo_required")}</p>
+                )}
               </div>
 
               <DialogFooter>
@@ -246,6 +270,85 @@ const OAuthClientsView = () => {
               <div className="text-subtle mt-4 text-sm">{t("oauth_client_pending_approval")}</div>
               <DialogFooter className="mt-6">
                 <Button onClick={handleCloseDialog}>{t("done")}</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!selectedClient} onOpenChange={(open) => !open && handleCloseClientDialog()}>
+        <DialogContent type="creation" title={selectedClient?.name || ""}>
+          {selectedClient && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Avatar
+                  alt={selectedClient.name}
+                  imageSrc={selectedClient.logo || undefined}
+                  fallback={<Icon name="key" className="text-subtle h-6 w-6" />}
+                  size="lg"
+                />
+                <div>
+                  <div className="text-emphasis font-medium">{selectedClient.name}</div>
+                  <div className="text-subtle text-sm">{selectedClient.redirectUri}</div>
+                </div>
+                {getStatusBadge(selectedClient.approvalStatus)}
+              </div>
+
+              <div>
+                <div className="mb-2 font-medium">{t("client_id")}</div>
+                <div className="flex">
+                  <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+                    {selectedClient.clientId}
+                  </code>
+                  <Tooltip side="top" content={t("copy_to_clipboard")}>
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedClient.clientId);
+                        showToast(t("client_id_copied"), "success");
+                      }}
+                      type="button"
+                      className="rounded-l-none text-base"
+                      StartIcon="clipboard">
+                      {t("copy")}
+                    </Button>
+                  </Tooltip>
+                </div>
+              </div>
+
+              {selectedClient.approvalStatus === "APPROVED" && selectedClient.clientSecret && (
+                <div>
+                  <div className="mb-2 font-medium">{t("client_secret")}</div>
+                  <div className="flex">
+                    <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+                      {selectedClient.clientSecret}
+                    </code>
+                    <Tooltip side="top" content={t("copy_to_clipboard")}>
+                      <Button
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedClient.clientSecret || "");
+                          showToast(t("client_secret_copied"), "success");
+                        }}
+                        type="button"
+                        className="rounded-l-none text-base"
+                        StartIcon="clipboard">
+                        {t("copy")}
+                      </Button>
+                    </Tooltip>
+                  </div>
+                  <p className="text-subtle mt-2 text-sm">{t("client_secret_warning")}</p>
+                </div>
+              )}
+
+              {selectedClient.approvalStatus === "PENDING" && (
+                <p className="text-subtle text-sm">{t("oauth_client_pending_approval")}</p>
+              )}
+
+              {selectedClient.approvalStatus === "REJECTED" && (
+                <p className="text-error text-sm">{t("oauth_client_rejected")}</p>
+              )}
+
+              <DialogFooter>
+                <Button onClick={handleCloseClientDialog}>{t("done")}</Button>
               </DialogFooter>
             </div>
           )}
