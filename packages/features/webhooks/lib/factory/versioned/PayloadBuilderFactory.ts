@@ -26,7 +26,6 @@ const log = logger.getSubLogger({ prefix: ["WebhookPayloadBuilderFactory"] });
  * Ensures type-safe input DTOs and output payloads
  */
 export interface IPayloadBuilder<TInput extends WebhookEventDTO = WebhookEventDTO> {
-  canHandle(triggerEvent: WebhookTriggerEvents): boolean;
   build(dto: TInput): WebhookPayload;
 }
 
@@ -75,16 +74,100 @@ export interface PayloadBuilderSet {
 }
 
 /**
+ * Builder categories - used for explicit routing
+ */
+type BuilderCategory = keyof PayloadBuilderSet;
+
+/**
+ * Explicit mapping of trigger events to builder categories.
+ * This prevents ambiguous routing - each event has exactly one handler.
+ *
+ * Note: Record<WebhookTriggerEvents, BuilderCategory> ensures all events are mapped.
+ */
+const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory> = {
+  // Booking events
+  [WebhookTriggerEvents.BOOKING_CREATED]: "booking",
+  [WebhookTriggerEvents.BOOKING_RESCHEDULED]: "booking",
+  [WebhookTriggerEvents.BOOKING_CANCELLED]: "booking",
+  [WebhookTriggerEvents.BOOKING_REJECTED]: "booking",
+  [WebhookTriggerEvents.BOOKING_REQUESTED]: "booking",
+  [WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED]: "booking",
+  [WebhookTriggerEvents.BOOKING_PAID]: "booking",
+  [WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED]: "booking",
+
+  // Form events
+  [WebhookTriggerEvents.FORM_SUBMITTED]: "form",
+  [WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "form",
+
+  // OOO events
+  [WebhookTriggerEvents.OOO_CREATED]: "ooo",
+
+  // Recording events
+  [WebhookTriggerEvents.RECORDING_READY]: "recording",
+  [WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED]: "recording",
+
+  // Meeting events
+  [WebhookTriggerEvents.MEETING_STARTED]: "meeting",
+  [WebhookTriggerEvents.MEETING_ENDED]: "meeting",
+  [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "meeting",
+  [WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "meeting",
+
+  // Instant meeting events
+  [WebhookTriggerEvents.INSTANT_MEETING]: "instantMeeting",
+
+  // Delegation events (use booking builder as fallback)
+  [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "booking",
+};
+
+/**
+ * Type mapping: TriggerEvent → DTO type
+ * Used for compile-time type safety
+ *
+ * Note: WebhookTriggerEvents is a const object, so we use typeof to extract literal types
+ */
+type BookingTriggerEvents =
+  | typeof WebhookTriggerEvents.BOOKING_CREATED
+  | typeof WebhookTriggerEvents.BOOKING_RESCHEDULED
+  | typeof WebhookTriggerEvents.BOOKING_CANCELLED
+  | typeof WebhookTriggerEvents.BOOKING_REJECTED
+  | typeof WebhookTriggerEvents.BOOKING_REQUESTED
+  | typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED
+  | typeof WebhookTriggerEvents.BOOKING_PAID
+  | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED
+  | typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
+
+type FormTriggerEvents =
+  | typeof WebhookTriggerEvents.FORM_SUBMITTED
+  | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT;
+
+type OOOTriggerEvents = typeof WebhookTriggerEvents.OOO_CREATED;
+
+type RecordingTriggerEvents =
+  | typeof WebhookTriggerEvents.RECORDING_READY
+  | typeof WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED;
+
+type MeetingTriggerEvents =
+  | typeof WebhookTriggerEvents.MEETING_STARTED
+  | typeof WebhookTriggerEvents.MEETING_ENDED
+  | typeof WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+  | typeof WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW;
+
+type InstantMeetingTriggerEvents = typeof WebhookTriggerEvents.INSTANT_MEETING;
+
+/**
  * Factory that routes to version-specific payload builders
  *
- * The factory requires a default builder set to guarantee fallback always works.
- * Use `createPayloadBuilderFactory()` from registry.ts to get a properly configured instance.
+ * Uses explicit trigger→builder mapping for:
+ * - No ambiguous routing (each event has exactly one handler)
+ * - Compile-time validation (all events must be mapped)
+ * - Type-safe builder selection via overloads
  *
- * When adding a new webhook version:
- * 1. Add the version to WebhookVersion enum in schema.prisma
- * 2. Create a new directory: versioned/v{VERSION}/
- * 3. Implement version-specific builders in that directory
- * 4. Register the version in registry.ts
+ * @example
+ * ```ts
+ * const factory = createPayloadBuilderFactory();
+ * const builder = factory.getBuilder(version, WebhookTriggerEvents.BOOKING_CREATED);
+ * const payload = builder.build(bookingDTO); // Type-safe: expects BookingWebhookEventDTO
+ * ```
  */
 export class PayloadBuilderFactory {
   private builders: Map<WebhookVersion, PayloadBuilderSet>;
@@ -110,47 +193,37 @@ export class PayloadBuilderFactory {
   }
 
   /**
-   * Get the appropriate payload builder for a given version and event type
-   * Returns a type-safe builder that accepts the correct DTO type
-   *
-   * If the requested version is not registered, falls back to the default version
-   * with a warning log to avoid breaking external consumers due to misconfiguration.
+   * Get the builder set for a version, falling back to default if not registered
    */
-  getBuilderForVersion(
-    version: WebhookVersion,
-    triggerEvent: WebhookTriggerEvents
-  ): IPayloadBuilder<WebhookEventDTO> {
+  private getBuilderSet(version: WebhookVersion): PayloadBuilderSet {
     const requestedBuilderSet = this.builders.get(version);
 
-    // Fall back to default version if requested version is not registered
     if (!requestedBuilderSet) {
       log.warn(
         `Webhook version "${version}" not registered, falling back to default version "${this.defaultVersion}". ` +
           `Available versions: ${Array.from(this.builders.keys()).join(", ")}`
       );
+      return this.defaultBuilderSet;
     }
 
-    // Use requested version or fall back to default (guaranteed by constructor)
-    const builderSet = requestedBuilderSet ?? this.defaultBuilderSet;
+    return requestedBuilderSet;
+  }
 
-    // Route to appropriate builder by checking each builder's canHandle method
-    // This uses the builder's own logic to determine if it can handle the event
-    const builders: IPayloadBuilder<WebhookEventDTO>[] = [
-      builderSet.booking,
-      builderSet.form,
-      builderSet.ooo,
-      builderSet.recording,
-      builderSet.meeting,
-      builderSet.instantMeeting,
-    ];
+  /**
+   * Type-safe builder getters - overloaded for compile-time DTO type safety
+   */
+  getBuilder(version: WebhookVersion, triggerEvent: BookingTriggerEvents): IBookingPayloadBuilder;
+  getBuilder(version: WebhookVersion, triggerEvent: FormTriggerEvents): IFormPayloadBuilder;
+  getBuilder(version: WebhookVersion, triggerEvent: OOOTriggerEvents): IOOOPayloadBuilder;
+  getBuilder(version: WebhookVersion, triggerEvent: RecordingTriggerEvents): IRecordingPayloadBuilder;
+  getBuilder(version: WebhookVersion, triggerEvent: MeetingTriggerEvents): IMeetingPayloadBuilder;
+  getBuilder(version: WebhookVersion, triggerEvent: InstantMeetingTriggerEvents): IInstantMeetingBuilder;
+  getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO>;
+  getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO> {
+    const builderSet = this.getBuilderSet(version);
+    const category = TRIGGER_TO_BUILDER_CATEGORY[triggerEvent];
 
-    for (const builder of builders) {
-      if (builder.canHandle(triggerEvent)) {
-        return builder;
-      }
-    }
-
-    throw new Error(`No builder found for trigger event: ${triggerEvent}`);
+    return builderSet[category];
   }
 
   /**
