@@ -30,6 +30,7 @@ export type InternalGetSlotsQuery = {
   timeZone: string | undefined;
   orgSlug: string | null | undefined;
   rescheduleUid: string | null;
+  disableRollingWindowAdjustment?: boolean;
 };
 
 export type InternalGetSlotsQueryWithRouting = InternalGetSlotsQuery & {
@@ -67,6 +68,7 @@ export class SlotsInputService_2024_09_04 {
     const timeZone = query.timeZone;
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
     const rescheduleUid = query.bookingUidToReschedule || null;
+    const disableRollingWindowAdjustment = query.disableRollingWindowAdjustment;
 
     return {
       isTeamEvent,
@@ -79,6 +81,7 @@ export class SlotsInputService_2024_09_04 {
       timeZone,
       orgSlug,
       rescheduleUid,
+      disableRollingWindowAdjustment,
     };
   }
 

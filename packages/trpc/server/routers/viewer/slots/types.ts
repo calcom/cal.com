@@ -39,6 +39,7 @@ export const getScheduleSchemaObject = z.object({
   routingFormResponseId: z.number().optional(),
   queuedFormResponseId: z.string().nullish(),
   email: z.string().nullish(),
+  disableRollingWindowAdjustment: z.boolean().optional(),
 });
 
 export const getScheduleSchema = getScheduleSchemaObject

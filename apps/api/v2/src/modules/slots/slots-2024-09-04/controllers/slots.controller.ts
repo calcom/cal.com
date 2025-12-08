@@ -185,6 +185,13 @@ export class SlotsController_2024_09_04 {
       "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
     example: "abc123def456",
   })
+  @ApiQuery({
+    name: "disableRollingWindowAdjustment",
+    required: false,
+    description:
+      "When true, disables the 1-month backward adjustment for rolling window event types, returning slots only within the exact requested date range. Defaults to false.",
+    example: "true",
+  })
   @DocsResponse({
     status: 200,
     description: `A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.
