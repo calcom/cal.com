@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -81,6 +82,11 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     router.push("/onboarding/organization/teams");
   };
 
+  const handleSkip = () => {
+    // Skip brand customization and go to teams
+    router.push("/onboarding/organization/teams");
+  };
+
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={4}>
       {/* Left column - Main content */}
@@ -95,9 +101,14 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               onClick={() => router.push("/onboarding/organization/details")}>
               {t("back")}
             </Button>
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-              {t("continue")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+                {t("onboarding_skip_for_now")}
+              </Button>
+              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                {t("continue")}
+              </Button>
+            </div>
           </div>
         }>
         {/* Form */}
@@ -111,10 +122,13 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                 <div className="flex w-full flex-col gap-2">
                   <div className="bg-cal-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
                     {bannerPreview && (
-                      <img
+                      <Image
                         src={bannerPreview}
                         alt={t("onboarding_banner_preview_alt")}
                         className="h-full w-full object-cover"
+                        width={400}
+                        height={92}
+                        unoptimized
                       />
                     )}
                   </div>
@@ -145,10 +159,13 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                 <div className="flex items-center gap-2">
                   <div className="bg-cal-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
                     {logoPreview && (
-                      <img
+                      <Image
                         src={logoPreview}
                         alt={t("onboarding_logo_preview_alt")}
                         className="h-full w-full object-cover"
+                        width={64}
+                        height={64}
+                        unoptimized
                       />
                     )}
                   </div>

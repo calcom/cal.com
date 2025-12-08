@@ -43,7 +43,7 @@ async function getHandler(request: NextRequest) {
     }
 
     return await handleBookingAction(action, token, bookingUid, userId, request, undefined);
-  } catch (error) {
+  } catch {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
       `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
@@ -61,10 +61,11 @@ async function postHandler(request: NextRequest) {
     const { reason } = z.object({ reason: z.string().optional() }).parse(body || {});
 
     return await handleBookingAction(action, token, bookingUid, userId, request, reason);
-  } catch (error) {
+  } catch {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
-      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
+      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`,
+      { status: 303 }
     );
   }
 }
@@ -84,7 +85,8 @@ async function handleBookingAction(
 
   if (!booking) {
     return NextResponse.redirect(
-      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
+      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`,
+      { status: 303 }
     );
   }
 
@@ -119,8 +121,8 @@ async function handleBookingAction(
     const createCaller = createCallerFactory(bookingsRouter);
 
     // Use buildLegacyRequest to create a request object compatible with Pages Router
-    const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as any);
-    const res = {} as any;
+    const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as Record<string, unknown>);
+    const res = {} as Record<string, unknown>;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
     const caller = createCaller({
@@ -140,7 +142,10 @@ async function handleBookingAction(
   } catch (e) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
-    return NextResponse.redirect(`${url.origin}/booking/${booking.uid}?error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(
+      `${url.origin}/booking/${booking.uid}?error=${encodeURIComponent(message)}`,
+      { status: 303 }
+    );
   }
 
   await prisma.booking.update({
@@ -148,7 +153,7 @@ async function handleBookingAction(
     data: { oneTimePassword: null },
   });
 
-  return NextResponse.redirect(`${url.origin}/booking/${booking.uid}`);
+  return NextResponse.redirect(`${url.origin}/booking/${booking.uid}`, { status: 303 });
 }
 
 export const GET = defaultResponderForAppDir(getHandler);

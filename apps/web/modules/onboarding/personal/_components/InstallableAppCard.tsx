@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/InstallAppButtonWithoutPlanCheck";
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,10 +38,10 @@ export const InstallableAppCard = ({
           {t("connected")}
         </span>
       )}
-      {app.logo && <img src={app.logo} alt={app.name} className="h-9 w-9 rounded-md" />}
-      <p
-        className="text-default line-clamp-1 break-words text-left text-sm font-medium leading-none"
-        title={app.name}>
+      {app.logo && (
+        <Image src={app.logo} alt={app.name} className="h-9 w-9 rounded-md" width={36} height={36} unoptimized />
+      )}
+      <p className="text-default line-clamp-1 break-words text-left text-sm font-medium" title={app.name}>
         {app.name}
       </p>
       <InstallAppButtonWithoutPlanCheck
