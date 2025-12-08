@@ -76,7 +76,7 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
   event: null,
   setEvent: (event: EventType) => {
     set({ event });
-    updateQueryParam("eventType", event.slug ?? "");
+    updateQueryParam("eventTypeId", event.id.toString());
   },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {

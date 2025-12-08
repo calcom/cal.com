@@ -28,6 +28,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         .add(extraDays - 1, "day")
         .utc()
         .format(),
+      eventTypeId: event?.id,
       withSource: true,
     },
     {
