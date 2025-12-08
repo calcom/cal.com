@@ -1,11 +1,13 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import { BookingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/BookingPayloadBuilder";
-import { FormPayloadBuilder } from "@calcom/features/webhooks/lib/factory/FormPayloadBuilder";
-import { InstantMeetingBuilder } from "@calcom/features/webhooks/lib/factory/InstantMeetingBuilder";
-import { MeetingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/MeetingPayloadBuilder";
-import { OOOPayloadBuilder } from "@calcom/features/webhooks/lib/factory/OOOPayloadBuilder";
-import { RecordingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/RecordingPayloadBuilder";
+import {
+  BookingPayloadBuilder,
+  FormPayloadBuilder,
+  InstantMeetingBuilder,
+  MeetingPayloadBuilder,
+  OOOPayloadBuilder,
+  RecordingPayloadBuilder,
+} from "@calcom/features/webhooks/lib/factory/versioned/v2021-10-20";
 import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import { FormWebhookService } from "@calcom/features/webhooks/lib/service/FormWebhookService";

@@ -1,13 +1,15 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import type { WebhookEventDTO } from "../dto/types";
-import type { BookingPayloadBuilder } from "../factory/BookingPayloadBuilder";
-import type { FormPayloadBuilder } from "../factory/FormPayloadBuilder";
-import type { InstantMeetingBuilder } from "../factory/InstantMeetingBuilder";
-import type { MeetingPayloadBuilder } from "../factory/MeetingPayloadBuilder";
-import type { OOOPayloadBuilder } from "../factory/OOOPayloadBuilder";
-import type { RecordingPayloadBuilder } from "../factory/RecordingPayloadBuilder";
+import type { WebhookEventDTO, DelegationCredentialErrorPayloadType } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
+import type {
+  IBookingPayloadBuilder,
+  IFormPayloadBuilder,
+  IInstantMeetingBuilder,
+  IMeetingPayloadBuilder,
+  IOOOPayloadBuilder,
+  IRecordingPayloadBuilder,
+} from "../factory/versioned/PayloadBuilderFactory";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
 import type { IWebhookNotificationHandler } from "../interface/webhook";
@@ -17,12 +19,12 @@ export class WebhookNotificationHandler implements IWebhookNotificationHandler {
 
   constructor(
     private readonly webhookService: IWebhookService,
-    private readonly bookingPayloadBuilder: BookingPayloadBuilder,
-    private readonly formPayloadBuilder: FormPayloadBuilder,
-    private readonly oooPayloadBuilder: OOOPayloadBuilder,
-    private readonly recordingPayloadBuilder: RecordingPayloadBuilder,
-    private readonly meetingPayloadBuilder: MeetingPayloadBuilder,
-    private readonly instantMeetingBuilder: InstantMeetingBuilder,
+    private readonly bookingPayloadBuilder: IBookingPayloadBuilder,
+    private readonly formPayloadBuilder: IFormPayloadBuilder,
+    private readonly oooPayloadBuilder: IOOOPayloadBuilder,
+    private readonly recordingPayloadBuilder: IRecordingPayloadBuilder,
+    private readonly meetingPayloadBuilder: IMeetingPayloadBuilder,
+    private readonly instantMeetingBuilder: IInstantMeetingBuilder,
     logger: ILogger
   ) {
     this.log = logger.getSubLogger({ prefix: ["[WebhookNotificationHandler]"] });
@@ -126,14 +128,15 @@ export class WebhookNotificationHandler implements IWebhookNotificationHandler {
       }
 
       case WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR: {
+        const payload: DelegationCredentialErrorPayloadType = {
+          error: dto.error,
+          credential: dto.credential,
+          user: dto.user,
+        };
         return {
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
-          payload: {
-            error: dto.error,
-            credential: dto.credential,
-            user: dto.user,
-          },
+          payload,
         };
       }
 
