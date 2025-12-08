@@ -2383,7 +2383,7 @@ model WatchlistAudit {
   changedByUserId Int?
 
   watchlistId String     @db.Uuid
-  watchlist   Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  watchlist   Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
 
   @@index([watchlistId, changedAt])
 }
