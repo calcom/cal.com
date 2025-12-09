@@ -1,15 +1,35 @@
 import dayjs from "@calcom/dayjs";
+import { HolidayRepository } from "@calcom/lib/server/repository/HolidayRepository";
 
-import { GOOGLE_HOLIDAY_CALENDARS } from "./constants";
-import { getHolidayCacheService, type CachedHoliday, type HolidayCacheService } from "./HolidayCacheService";
+import {
+  getHolidayServiceCachingProxy,
+  type CachedHoliday,
+  type HolidayServiceCachingProxy,
+} from "./HolidayServiceCachingProxy";
+import { CONFLICT_CHECK_MONTHS, GOOGLE_HOLIDAY_CALENDARS } from "./constants";
 import type { Country, Holiday, HolidayWithStatus } from "./types";
 
+export interface ConflictingBooking {
+  id: number;
+  title: string;
+  startTime: Date;
+  endTime: Date;
+  attendeeName: string | null;
+}
+
+export interface HolidayConflict {
+  holidayId: string;
+  holidayName: string;
+  date: string;
+  bookings: ConflictingBooking[];
+}
+
 export class HolidayService {
-  private cacheService: HolidayCacheService;
+  private cachingProxy: HolidayServiceCachingProxy;
   private countriesCache: Country[] | null = null;
 
-  constructor(cacheService?: HolidayCacheService) {
-    this.cacheService = cacheService || getHolidayCacheService();
+  constructor(cachingProxy?: HolidayServiceCachingProxy) {
+    this.cachingProxy = cachingProxy || getHolidayServiceCachingProxy();
   }
 
   getSupportedCountries(): Country[] {
@@ -25,6 +45,49 @@ export class HolidayService {
     return this.countriesCache;
   }
 
+  isSupportedCountry(countryCode: string): boolean {
+    return countryCode in GOOGLE_HOLIDAY_CALENDARS;
+  }
+
+  async getUserSettings(
+    userId: number
+  ): Promise<{ countryCode: string | null; holidays: HolidayWithStatus[] }> {
+    const settings = await HolidayRepository.findUserSettingsSelect({
+      userId,
+      select: { countryCode: true, disabledIds: true },
+    });
+
+    if (!settings?.countryCode) {
+      return { countryCode: null, holidays: [] };
+    }
+
+    const holidays = await this.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
+    return { countryCode: settings.countryCode, holidays };
+  }
+
+  async updateSettings(
+    userId: number,
+    countryCode: string | null,
+    resetDisabledHolidays: boolean
+  ): Promise<{ countryCode: string | null; holidays: HolidayWithStatus[] }> {
+    if (countryCode && !this.isSupportedCountry(countryCode)) {
+      throw new Error("Invalid country code");
+    }
+
+    const settings = await HolidayRepository.upsertUserSettings({
+      userId,
+      countryCode,
+      resetDisabledHolidays,
+    });
+
+    if (settings.countryCode) {
+      const holidays = await this.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
+      return { countryCode: settings.countryCode, holidays };
+    }
+
+    return { countryCode: null, holidays: [] };
+  }
+
   private cachedHolidayToHoliday(cached: CachedHoliday): Holiday {
     return {
       id: cached.eventId,
@@ -36,7 +99,7 @@ export class HolidayService {
 
   async getHolidaysForCountry(countryCode: string, year?: number): Promise<Holiday[]> {
     const targetYear = year || dayjs().year();
-    const cached = await this.cacheService.getHolidaysForCountry(countryCode, targetYear);
+    const cached = await this.cachingProxy.getHolidaysForCountry(countryCode, targetYear);
     return cached.map((h) => this.cachedHolidayToHoliday(h));
   }
 
@@ -45,8 +108,8 @@ export class HolidayService {
     const nextYear = currentYear + 1;
 
     const [currentYearHolidays, nextYearHolidays] = await Promise.all([
-      this.cacheService.getHolidaysForCountry(countryCode, currentYear),
-      this.cacheService.getHolidaysForCountry(countryCode, nextYear),
+      this.cachingProxy.getHolidaysForCountry(countryCode, currentYear),
+      this.cachingProxy.getHolidaysForCountry(countryCode, nextYear),
     ]);
 
     const allHolidays = [...currentYearHolidays, ...nextYearHolidays];
@@ -65,12 +128,16 @@ export class HolidayService {
       .sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  async getHolidayOnDate(date: Date, countryCode: string, disabledIds: string[] = []): Promise<Holiday | null> {
+  async getHolidayOnDate(
+    date: Date,
+    countryCode: string,
+    disabledIds: string[] = []
+  ): Promise<Holiday | null> {
     const year = dayjs(date).year();
     const dateStr = dayjs(date).format("YYYY-MM-DD");
     const disabledSet = new Set(disabledIds);
 
-    const holidays = await this.cacheService.getHolidaysForCountry(countryCode, year);
+    const holidays = await this.cachingProxy.getHolidaysForCountry(countryCode, year);
 
     for (const holiday of holidays) {
       if (disabledSet.has(holiday.eventId)) continue;
@@ -91,7 +158,7 @@ export class HolidayService {
   ): Promise<Array<{ date: string; holiday: Holiday }>> {
     const disabledSet = new Set(disabledIds);
 
-    const holidays = await this.cacheService.getHolidaysInRange(countryCode, startDate, endDate);
+    const holidays = await this.cachingProxy.getHolidaysInRange(countryCode, startDate, endDate);
 
     return holidays
       .filter((h) => !disabledSet.has(h.eventId))
@@ -110,6 +177,100 @@ export class HolidayService {
   ): Promise<boolean> {
     const holidays = await this.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate);
     return holidays.length > 0;
+  }
+
+  async toggleHoliday(
+    userId: number,
+    holidayId: string,
+    enabled: boolean
+  ): Promise<{ countryCode: string; holidays: HolidayWithStatus[] }> {
+    const settings = await HolidayRepository.findUserSettingsSelect({
+      userId,
+      select: { countryCode: true, disabledIds: true },
+    });
+
+    if (!settings?.countryCode) {
+      throw new Error("No holiday country selected");
+    }
+
+    const holidays = await this.getHolidaysForCountry(settings.countryCode);
+    if (!holidays.some((h) => h.id === holidayId)) {
+      throw new Error("Holiday not found for this country");
+    }
+
+    let disabledIds = [...settings.disabledIds];
+    if (enabled) {
+      disabledIds = disabledIds.filter((id) => id !== holidayId);
+    } else if (!disabledIds.includes(holidayId)) {
+      disabledIds.push(holidayId);
+    }
+
+    await HolidayRepository.updateDisabledIds({ userId, disabledIds });
+
+    const updatedHolidays = await this.getHolidaysWithStatus(settings.countryCode, disabledIds);
+    return { countryCode: settings.countryCode, holidays: updatedHolidays };
+  }
+
+  async checkConflicts(
+    userId: number,
+    countryCode: string,
+    disabledIds: string[]
+  ): Promise<{ conflicts: HolidayConflict[] }> {
+    if (!countryCode) {
+      return { conflicts: [] };
+    }
+
+    const startDate = new Date();
+    const endDate = dayjs().add(CONFLICT_CHECK_MONTHS, "months").toDate();
+
+    const holidayDates = await this.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate);
+    if (holidayDates.length === 0) {
+      return { conflicts: [] };
+    }
+
+    const dateRanges = holidayDates.map((h) => ({
+      start: dayjs(h.date).startOf("day").toDate(),
+      end: dayjs(h.date).endOf("day").toDate(),
+    }));
+
+    const bookings = await HolidayRepository.findBookingsInDateRanges({ userId, dateRanges });
+    if (bookings.length === 0) {
+      return { conflicts: [] };
+    }
+
+    const bookingsWithTimestamps = bookings.map((b) => ({
+      ...b,
+      startTimestamp: b.startTime.getTime(),
+      endTimestamp: b.endTime.getTime(),
+    }));
+
+    const conflicts: HolidayConflict[] = [];
+
+    for (const holidayDate of holidayDates) {
+      const holidayStart = dayjs(holidayDate.date).startOf("day").valueOf();
+      const holidayEnd = dayjs(holidayDate.date).endOf("day").valueOf();
+
+      const conflictingBookings = bookingsWithTimestamps.filter(
+        (booking) => booking.startTimestamp < holidayEnd && booking.endTimestamp > holidayStart
+      );
+
+      if (conflictingBookings.length > 0) {
+        conflicts.push({
+          holidayId: holidayDate.holiday.id,
+          holidayName: holidayDate.holiday.name,
+          date: holidayDate.date,
+          bookings: conflictingBookings.map((b) => ({
+            id: b.id,
+            title: b.title,
+            startTime: b.startTime,
+            endTime: b.endTime,
+            attendeeName: b.attendees[0]?.name || null,
+          })),
+        });
+      }
+    }
+
+    return { conflicts };
   }
 }
 

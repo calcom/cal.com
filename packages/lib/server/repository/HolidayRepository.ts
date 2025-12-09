@@ -1,5 +1,6 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 const holidayCacheSelect = {
   id: true,
@@ -180,6 +181,36 @@ export class HolidayRepository {
       where: { userId },
       data: { disabledIds },
       select: userHolidaySettingsSelect,
+    });
+  }
+
+  static async findBookingsInDateRanges({
+    userId,
+    dateRanges,
+  }: {
+    userId: number;
+    dateRanges: Array<{ start: Date; end: Date }>;
+  }) {
+    if (dateRanges.length === 0) return [];
+
+    return prisma.booking.findMany({
+      where: {
+        userId,
+        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+        OR: dateRanges.map(({ start, end }) => ({
+          AND: [{ startTime: { lt: end } }, { endTime: { gt: start } }],
+        })),
+      },
+      select: {
+        id: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        attendees: {
+          take: 1,
+          select: { name: true },
+        },
+      },
     });
   }
 }

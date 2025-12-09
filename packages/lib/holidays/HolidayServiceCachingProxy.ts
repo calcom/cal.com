@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { HolidayRepository } from "@calcom/lib/server/repository/HolidayRepository";
 
-import { GOOGLE_HOLIDAY_CALENDARS, getHolidayCacheDays } from "./constants";
+import { GOOGLE_HOLIDAY_CALENDARS, HOLIDAY_CACHE_DAYS } from "./constants";
 import { getGoogleCalendarClient, type GoogleCalendarClient, type GoogleCalendarHoliday } from "./GoogleCalendarClient";
 
 export interface CachedHoliday {
@@ -13,7 +13,7 @@ export interface CachedHoliday {
   year: number;
 }
 
-export class HolidayCacheService {
+export class HolidayServiceCachingProxy {
   private calendarClient: GoogleCalendarClient;
 
   constructor(calendarClient?: GoogleCalendarClient) {
@@ -21,8 +21,7 @@ export class HolidayCacheService {
   }
 
   private async isCacheStale(countryCode: string, year: number): Promise<boolean> {
-    const cacheDays = getHolidayCacheDays();
-    const staleDate = dayjs().subtract(cacheDays, "days").toDate();
+    const staleDate = dayjs().subtract(HOLIDAY_CACHE_DAYS, "days").toDate();
 
     const cachedEntry = await HolidayRepository.findFirstCacheEntry({ countryCode, year });
 
@@ -68,7 +67,7 @@ export class HolidayCacheService {
 
     const cached = await HolidayRepository.findManyCachedHolidays({ countryCode, year });
 
-    return cached.map((h) => ({
+    return cached.map((h): CachedHoliday => ({
       id: h.id,
       countryCode: h.countryCode,
       eventId: h.eventId,
@@ -95,7 +94,7 @@ export class HolidayCacheService {
       endDate,
     });
 
-    return cached.map((h) => ({
+    return cached.map((h): CachedHoliday => ({
       id: h.id,
       countryCode: h.countryCode,
       eventId: h.eventId,
@@ -106,12 +105,12 @@ export class HolidayCacheService {
   }
 }
 
-let defaultService: HolidayCacheService | null = null;
+let defaultProxy: HolidayServiceCachingProxy | null = null;
 
-export function getHolidayCacheService(): HolidayCacheService {
-  if (!defaultService) {
-    defaultService = new HolidayCacheService();
+export function getHolidayServiceCachingProxy(): HolidayServiceCachingProxy {
+  if (!defaultProxy) {
+    defaultProxy = new HolidayServiceCachingProxy();
   }
-  return defaultService;
+  return defaultProxy;
 }
 

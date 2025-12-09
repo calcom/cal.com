@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GOOGLE_HOLIDAY_CALENDARS } from "./constants";
-import type { CachedHoliday } from "./HolidayCacheService";
+import type { CachedHoliday } from "./HolidayServiceCachingProxy";
 
-vi.mock("./HolidayCacheService", () => ({
-  getHolidayCacheService: vi.fn(() => ({
+vi.mock("./HolidayServiceCachingProxy", () => ({
+  getHolidayServiceCachingProxy: vi.fn(() => ({
     getHolidaysForCountry: vi.fn(),
     getHolidaysInRange: vi.fn(),
   })),
-  HolidayCacheService: vi.fn(),
+  HolidayServiceCachingProxy: vi.fn(),
 }));
 
-import { getHolidayCacheService } from "./HolidayCacheService";
+import { getHolidayServiceCachingProxy } from "./HolidayServiceCachingProxy";
 import { HolidayService } from "./HolidayService";
 
 const mockHolidays: CachedHoliday[] = [
@@ -35,16 +35,16 @@ const mockHolidays: CachedHoliday[] = [
 
 describe("HolidayService", () => {
   let holidayService: HolidayService;
-  let mockCacheService: ReturnType<typeof getHolidayCacheService>;
+  let mockCachingProxy: ReturnType<typeof getHolidayServiceCachingProxy>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCacheService = {
+    mockCachingProxy = {
       getHolidaysForCountry: vi.fn(),
       getHolidaysInRange: vi.fn(),
-    } as unknown as ReturnType<typeof getHolidayCacheService>;
-    vi.mocked(getHolidayCacheService).mockReturnValue(mockCacheService);
-    holidayService = new HolidayService(mockCacheService);
+    } as unknown as ReturnType<typeof getHolidayServiceCachingProxy>;
+    vi.mocked(getHolidayServiceCachingProxy).mockReturnValue(mockCachingProxy);
+    holidayService = new HolidayService(mockCachingProxy);
   });
 
   describe("getSupportedCountries", () => {
@@ -60,12 +60,12 @@ describe("HolidayService", () => {
   });
 
   describe("getHolidaysForCountry", () => {
-    it("should return holidays from cache service", async () => {
-      vi.mocked(mockCacheService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+    it("should return holidays from caching proxy", async () => {
+      vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
       const holidays = await holidayService.getHolidaysForCountry("US", 2025);
 
-      expect(mockCacheService.getHolidaysForCountry).toHaveBeenCalledWith("US", 2025);
+      expect(mockCachingProxy.getHolidaysForCountry).toHaveBeenCalledWith("US", 2025);
       expect(holidays).toHaveLength(2);
       expect(holidays[0].name).toBe("New Year's Day");
     });
@@ -75,7 +75,7 @@ describe("HolidayService", () => {
     it("should mark holidays as enabled by default", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2025-06-15"));
-      vi.mocked(mockCacheService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+      vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
       const holidays = await holidayService.getHolidaysWithStatus("US", []);
 
@@ -87,7 +87,7 @@ describe("HolidayService", () => {
     it("should mark disabled holidays correctly", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2025-06-15"));
-      vi.mocked(mockCacheService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+      vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
       const holidays = await holidayService.getHolidaysWithStatus("US", ["christmas_day_2025"]);
 
@@ -99,7 +99,7 @@ describe("HolidayService", () => {
 
   describe("getHolidayOnDate", () => {
     it("should return holiday if date matches", async () => {
-      vi.mocked(mockCacheService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+      vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
       const holiday = await holidayService.getHolidayOnDate(new Date("2025-12-25"), "US");
 
@@ -107,7 +107,7 @@ describe("HolidayService", () => {
     });
 
     it("should return null if holiday is disabled", async () => {
-      vi.mocked(mockCacheService.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+      vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
       const holiday = await holidayService.getHolidayOnDate(new Date("2025-12-25"), "US", ["christmas_day_2025"]);
 
@@ -117,7 +117,7 @@ describe("HolidayService", () => {
 
   describe("getHolidayDatesInRange", () => {
     it("should return holidays within date range", async () => {
-      vi.mocked(mockCacheService.getHolidaysInRange).mockResolvedValue([mockHolidays[1]]);
+      vi.mocked(mockCachingProxy.getHolidaysInRange).mockResolvedValue([mockHolidays[1]]);
 
       const holidays = await holidayService.getHolidayDatesInRange(
         "US",
@@ -131,7 +131,7 @@ describe("HolidayService", () => {
     });
 
     it("should exclude disabled holidays", async () => {
-      vi.mocked(mockCacheService.getHolidaysInRange).mockResolvedValue([mockHolidays[1]]);
+      vi.mocked(mockCachingProxy.getHolidaysInRange).mockResolvedValue([mockHolidays[1]]);
 
       const holidays = await holidayService.getHolidayDatesInRange(
         "US",

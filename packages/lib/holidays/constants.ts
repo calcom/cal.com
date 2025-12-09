@@ -1,8 +1,8 @@
 /** Number of months to check for booking conflicts */
 export const CONFLICT_CHECK_MONTHS = 3;
 
-/** Default number of days to cache holiday data */
-export const DEFAULT_HOLIDAY_CACHE_DAYS = 7;
+/** Number of days to cache holiday data */
+export const HOLIDAY_CACHE_DAYS = 7;
 
 /**
  * Google Calendar IDs for religious holiday calendars.
@@ -258,14 +258,3 @@ export const GOOGLE_HOLIDAY_CALENDARS: Record<string, { name: string; calendarId
   ZW: { name: "Zimbabwe", calendarId: "en.zw.official#holiday@group.v.calendar.google.com" },
 };
 
-/** Get holiday cache duration from env or use default */
-export function getHolidayCacheDays(): number {
-  const envValue = process.env.HOLIDAY_CACHE_DAYS;
-  if (envValue) {
-    const parsed = parseInt(envValue, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      return parsed;
-    }
-  }
-  return DEFAULT_HOLIDAY_CACHE_DAYS;
-}
