@@ -101,7 +101,6 @@ type Input = Pick<
   | "interfaceLanguage"
   | "allowReschedulingPastBookings"
   | "allowReschedulingCancelledBookings"
-  | "customReplyToEmail"
   | "showOptimizedSlots"
 >;
 
@@ -150,7 +149,6 @@ export class OutputEventTypesService_2024_06_14 {
       interfaceLanguage,
       allowReschedulingPastBookings,
       allowReschedulingCancelledBookings,
-      customReplyToEmail,
       showOptimizedSlots,
     } = databaseEventType;
 
@@ -239,7 +237,6 @@ export class OutputEventTypesService_2024_06_14 {
       interfaceLanguage,
       allowReschedulingPastBookings,
       allowReschedulingCancelledBookings,
-      customReplyToEmail,
       showOptimizedSlots,
     };
   }

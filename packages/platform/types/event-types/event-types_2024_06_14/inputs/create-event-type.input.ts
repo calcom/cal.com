@@ -565,14 +565,6 @@ export class BaseCreateEventTypeInput {
   allowReschedulingCancelledBookings?: boolean;
 
   @IsOptional()
-  @IsString()
-  @DocsPropertyOptional({
-    description:
-      "Use a different email address as the replyTo for confirmation emails instead of the organizer's email.",
-  })
-  customReplyToEmail?: string;
-
-  @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
     description: "Arrange time slots to optimize availability.",

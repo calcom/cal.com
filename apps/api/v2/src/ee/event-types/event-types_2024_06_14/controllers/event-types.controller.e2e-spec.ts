@@ -539,7 +539,6 @@ describe("Event types Endpoints", () => {
         interfaceLanguage: "en",
         allowReschedulingPastBookings: true,
         allowReschedulingCancelledBookings: true,
-        customReplyToEmail: "custom-reply@example.com",
         showOptimizedSlots: true,
       };
 
@@ -628,7 +627,6 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.allowReschedulingCancelledBookings).toEqual(
             body.allowReschedulingCancelledBookings
           );
-          expect(createdEventType.customReplyToEmail).toEqual(body.customReplyToEmail);
           expect(createdEventType.showOptimizedSlots).toEqual(body.showOptimizedSlots);
           eventType = responseBody.data;
         });
@@ -732,7 +730,6 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.allowReschedulingCancelledBookings).toEqual(
         eventType.allowReschedulingCancelledBookings
       );
-      expect(fetchedEventType?.customReplyToEmail).toEqual(eventType.customReplyToEmail);
       expect(fetchedEventType?.showOptimizedSlots).toEqual(eventType.showOptimizedSlots);
 
       expect(fetchedHiddenEventType?.id).toEqual(hiddenEventType.id);
@@ -878,7 +875,6 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.allowReschedulingCancelledBookings).toEqual(
         eventType.allowReschedulingCancelledBookings
       );
-      expect(fetchedEventType?.customReplyToEmail).toEqual(eventType.customReplyToEmail);
       expect(fetchedEventType?.showOptimizedSlots).toEqual(eventType.showOptimizedSlots);
     });
 
@@ -1333,7 +1329,6 @@ describe("Event types Endpoints", () => {
         interfaceLanguage: "es",
         allowReschedulingPastBookings: false,
         allowReschedulingCancelledBookings: false,
-        customReplyToEmail: "updated-reply@example.com",
         showOptimizedSlots: false,
       };
 
@@ -1454,7 +1449,6 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.allowReschedulingCancelledBookings).toEqual(
             body.allowReschedulingCancelledBookings
           );
-          expect(updatedEventType.customReplyToEmail).toEqual(body.customReplyToEmail);
           expect(updatedEventType.showOptimizedSlots).toEqual(body.showOptimizedSlots);
 
           eventType.disableCancelling = updatedEventType.disableCancelling;
@@ -1465,7 +1459,6 @@ describe("Event types Endpoints", () => {
           eventType.interfaceLanguage = updatedEventType.interfaceLanguage;
           eventType.allowReschedulingPastBookings = updatedEventType.allowReschedulingPastBookings;
           eventType.allowReschedulingCancelledBookings = updatedEventType.allowReschedulingCancelledBookings;
-          eventType.customReplyToEmail = updatedEventType.customReplyToEmail;
           eventType.showOptimizedSlots = updatedEventType.showOptimizedSlots;
         });
     });

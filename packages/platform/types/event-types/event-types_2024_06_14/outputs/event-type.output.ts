@@ -521,16 +521,6 @@ class BaseEventTypeOutput_2024_06_14 {
   allowReschedulingCancelledBookings?: boolean | null;
 
   @IsOptional()
-  @IsString()
-  @ApiPropertyOptional({
-    type: String,
-    nullable: true,
-    description:
-      "Use a different email address as the replyTo for confirmation emails instead of the organizer's email.",
-  })
-  customReplyToEmail?: string | null;
-
-  @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional({
     type: Boolean,

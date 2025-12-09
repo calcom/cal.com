@@ -95,7 +95,6 @@ type Input = Pick<
   | "interfaceLanguage"
   | "allowReschedulingPastBookings"
   | "allowReschedulingCancelledBookings"
-  | "customReplyToEmail"
   | "showOptimizedSlots"
 >;
 

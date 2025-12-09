@@ -18089,10 +18089,6 @@
             "type": "boolean",
             "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
           },
-          "customReplyToEmail": {
-            "type": "string",
-            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
-          },
           "showOptimizedSlots": {
             "type": "boolean",
             "description": "Arrange time slots to optimize availability."
@@ -19336,11 +19332,6 @@
             "nullable": true,
             "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
           },
-          "customReplyToEmail": {
-            "type": "string",
-            "nullable": true,
-            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
-          },
           "showOptimizedSlots": {
             "type": "boolean",
             "nullable": true,
@@ -19733,11 +19724,6 @@
             "type": "boolean",
             "nullable": true,
             "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
-          },
-          "customReplyToEmail": {
-            "type": "string",
-            "nullable": true,
-            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
           },
           "showOptimizedSlots": {
             "type": "boolean",
@@ -20139,10 +20125,6 @@
           "allowReschedulingCancelledBookings": {
             "type": "boolean",
             "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
-          },
-          "customReplyToEmail": {
-            "type": "string",
-            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
           },
           "showOptimizedSlots": {
             "type": "boolean",
@@ -21800,10 +21782,6 @@
             "type": "boolean",
             "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
           },
-          "customReplyToEmail": {
-            "type": "string",
-            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
-          },
           "showOptimizedSlots": {
             "type": "boolean",
             "description": "Arrange time slots to optimize availability."
@@ -22298,10 +22276,6 @@
           "allowReschedulingCancelledBookings": {
             "type": "boolean",
             "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
-          },
-          "customReplyToEmail": {
-            "type": "string",
-            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
           },
           "showOptimizedSlots": {
             "type": "boolean",
