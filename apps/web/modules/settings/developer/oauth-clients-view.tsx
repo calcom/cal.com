@@ -277,7 +277,7 @@ const OAuthClientsView = () => {
       </Dialog>
 
       <Dialog open={!!selectedClient} onOpenChange={(open) => !open && handleCloseClientDialog()}>
-        <DialogContent type="creation" title={selectedClient?.name || ""}>
+        <DialogContent type="creation" title={t("oauth_client")}>
           {selectedClient && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
@@ -290,8 +290,8 @@ const OAuthClientsView = () => {
                 <div>
                   <div className="text-emphasis font-medium">{selectedClient.name}</div>
                   <div className="text-subtle text-sm">{selectedClient.redirectUri}</div>
+                  {getStatusBadge(selectedClient.approvalStatus)}
                 </div>
-                {getStatusBadge(selectedClient.approvalStatus)}
               </div>
 
               <div>

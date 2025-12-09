@@ -1053,7 +1053,7 @@
   "oauth_client_approved_email_body": "Great news! Your OAuth client has been approved and is now ready to use.",
   "oauth_client_approved_email_cta": "View Your OAuth Clients",
   "oauth_client_approved_email_footer": "You can now use your client ID and secret to integrate with Cal.com.",
-  "create_new_team_description":"Create a new team to collaborate with users.",
+  "create_new_team_description": "Create a new team to collaborate with users.",
   "create_new_team": "Create a new team",
   "booking_redirect_uri": "URL of your booking page",
   "booking_cancel_redirect_uri": "URL of the page where your users can cancel their booking",
@@ -4102,5 +4102,6 @@
   "booking_response": "Booking Response",
   "list_view": "List view",
   "calendar_view": "Calendar view",
+  "oauth_client": "OAuth Client",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
