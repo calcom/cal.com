@@ -4,11 +4,18 @@ import { router } from "../../../trpc";
 import { ZAddClientInputSchema } from "./addClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 import { ZGetClientInputSchema } from "./getClient.schema";
+import { ZListClientsInputSchema } from "./listClients.schema";
+import { ZSubmitClientInputSchema } from "./submitClient.schema";
+import { ZUpdateClientStatusInputSchema } from "./updateClientStatus.schema";
 
-type OAuthRouterHandlerCache = {
+type _OAuthRouterHandlerCache = {
   getClient?: typeof import("./getClient.handler").getClientHandler;
   addClient?: typeof import("./addClient.handler").addClientHandler;
   generateAuthCode?: typeof import("./generateAuthCode.handler").generateAuthCodeHandler;
+  submitClient?: typeof import("./submitClient.handler").submitClientHandler;
+  listClients?: typeof import("./listClients.handler").listClientsHandler;
+  listUserClients?: typeof import("./listUserClients.handler").listUserClientsHandler;
+  updateClientStatus?: typeof import("./updateClientStatus.handler").updateClientStatusHandler;
 };
 
 export const oAuthRouter = router({
@@ -33,6 +40,39 @@ export const oAuthRouter = router({
 
     return generateAuthCodeHandler({
       ctx,
+      input,
+    });
+  }),
+
+  submitClient: authedProcedure.input(ZSubmitClientInputSchema).mutation(async ({ ctx, input }) => {
+    const { submitClientHandler } = await import("./submitClient.handler");
+
+    return submitClientHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  listClients: authedAdminProcedure.input(ZListClientsInputSchema).query(async ({ input }) => {
+    const { listClientsHandler } = await import("./listClients.handler");
+
+    return listClientsHandler({
+      input,
+    });
+  }),
+
+  listUserClients: authedProcedure.query(async ({ ctx }) => {
+    const { listUserClientsHandler } = await import("./listUserClients.handler");
+
+    return listUserClientsHandler({
+      ctx,
+    });
+  }),
+
+  updateClientStatus: authedAdminProcedure.input(ZUpdateClientStatusInputSchema).mutation(async ({ input }) => {
+    const { updateClientStatusHandler } = await import("./updateClientStatus.handler");
+
+    return updateClientStatusHandler({
       input,
     });
   }),
