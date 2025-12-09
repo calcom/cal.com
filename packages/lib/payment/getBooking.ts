@@ -37,6 +37,8 @@ export async function getBooking(bookingId: number) {
       responses: true,
       eventType: {
         select: {
+          seatsShowAttendees: true,
+          seatsPerTimeSlot: true,
           currency: true,
           description: true,
           id: true,
@@ -164,6 +166,10 @@ export async function getBooking(bookingId: number) {
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
+
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     ...getCalEventResponses({
       booking: booking,
