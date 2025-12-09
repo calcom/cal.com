@@ -81,17 +81,21 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
     return { conflicts: [] };
   }
 
+  const bookingsWithTimestamps = bookings.map((b) => ({
+    ...b,
+    startTimestamp: b.startTime.getTime(),
+    endTimestamp: b.endTime.getTime(),
+  }));
+
   const conflicts: HolidayConflict[] = [];
 
   for (const holidayDate of holidayDates) {
-    const holidayStart = dayjs(holidayDate.date).startOf("day");
-    const holidayEnd = dayjs(holidayDate.date).endOf("day");
+    const holidayStart = dayjs(holidayDate.date).startOf("day").valueOf();
+    const holidayEnd = dayjs(holidayDate.date).endOf("day").valueOf();
 
-    const conflictingBookings = bookings.filter((booking) => {
-      const bookingStart = dayjs(booking.startTime);
-      const bookingEnd = dayjs(booking.endTime);
-      return bookingStart.isBefore(holidayEnd) && bookingEnd.isAfter(holidayStart);
-    });
+    const conflictingBookings = bookingsWithTimestamps.filter(
+      (booking) => booking.startTimestamp < holidayEnd && booking.endTimestamp > holidayStart
+    );
 
     if (conflictingBookings.length > 0) {
       conflicts.push({

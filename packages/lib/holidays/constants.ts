@@ -21,12 +21,7 @@ export const GOOGLE_RELIGIOUS_HOLIDAY_CALENDARS: Record<string, { name: string; 
  * Source: Google Calendar API
  */
 export const GOOGLE_HOLIDAY_CALENDARS: Record<string, { name: string; calendarId: string }> = {
-  // Religious Holidays
-  CHRISTIAN: { name: "Christian Holidays", calendarId: "en.christian#holiday@group.v.calendar.google.com" },
-  HINDU: { name: "Hindu Holidays", calendarId: "en.hinduism#holiday@group.v.calendar.google.com" },
-  JEWISH: { name: "Jewish Holidays", calendarId: "en.judaism#holiday@group.v.calendar.google.com" },
-  MUSLIM: { name: "Muslim Holidays", calendarId: "en.islamic#holiday@group.v.calendar.google.com" },
-  ORTHODOX: { name: "Orthodox Holidays", calendarId: "en.orthodox_christianity#holiday@group.v.calendar.google.com" },
+  ...GOOGLE_RELIGIOUS_HOLIDAY_CALENDARS,
 
   // Countries A-Z
   AF: { name: "Afghanistan", calendarId: "en.af.official#holiday@group.v.calendar.google.com" },

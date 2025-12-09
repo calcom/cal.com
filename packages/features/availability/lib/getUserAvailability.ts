@@ -704,6 +704,10 @@ export class UserAvailabilityService {
   ): Promise<IOutOfOfficeData> {
     const holidaySettings = await prisma.userHolidaySettings.findUnique({
       where: { userId },
+      select: {
+        countryCode: true,
+        disabledIds: true,
+      },
     });
 
     if (!holidaySettings || !holidaySettings.countryCode) {

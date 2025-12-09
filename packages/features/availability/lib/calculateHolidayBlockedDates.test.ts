@@ -45,6 +45,10 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
 
     expect(prismaMock.userHolidaySettings.findUnique).toHaveBeenCalledWith({
       where: { userId: 123 },
+      select: {
+        countryCode: true,
+        disabledIds: true,
+      },
     });
     expect(result).toEqual({});
   });
