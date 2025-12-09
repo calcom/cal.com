@@ -213,14 +213,13 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   useEffect(() => {
     if (hasSession) onOverlaySwitchStateChange(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasSession]);
+  }, [hasSession, onOverlaySwitchStateChange]);
 
   return (
     <BookerComponent
       {...props}
       onGoBackInstantMeeting={() => {
-        if (pathname) window.location.href = pathname;
+        if (pathname) router.push(pathname);
       }}
       onConnectNowInstantMeeting={() => {
         const newPath = `${pathname}?isInstantMeeting=true`;
