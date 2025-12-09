@@ -139,6 +139,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        maxRoundRobinHosts,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -228,6 +229,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        maxRoundRobinHosts,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -339,6 +341,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        maxRoundRobinHosts,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -431,6 +434,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
+        maxRoundRobinHosts,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -497,6 +501,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        maxRoundRobinHosts,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
