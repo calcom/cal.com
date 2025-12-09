@@ -34,6 +34,7 @@ type WebhookProps = {
 export default function WebhookListItem(props: {
   webhook: WebhookProps;
   canEditWebhook?: boolean;
+  onDeleteWebhook?: () => void;
   onEditWebhook: () => void;
   lastItem: boolean;
   permissions: {
@@ -141,7 +142,7 @@ export default function WebhookListItem(props: {
               color="destructive"
               StartIcon="trash"
               variant="icon"
-              onClick={onDeleteWebhook}
+              onClick={props.onDeleteWebhook ?? onDeleteWebhook}
             />
           )}
 
@@ -162,7 +163,10 @@ export default function WebhookListItem(props: {
 
               {props.permissions.canDeleteWebhook && (
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                  <DropdownItem
+                    StartIcon="trash"
+                    color="destructive"
+                    onClick={props.onDeleteWebhook ?? onDeleteWebhook}>
                     {t("delete")}
                   </DropdownItem>
                 </DropdownMenuItem>
