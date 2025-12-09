@@ -308,9 +308,22 @@ import { Button } from "@calcom/ui/components/button";
 
 ## Repository + DTO Pattern and Method Conventions
 
-We use a Repository + DTO pattern to isolate Prisma and the database from business logic. Repositories are the only layer that talks to Prisma and database models. All services, tRPC handlers, API controllers, workflows, and UI should depend on DTOs or domain types, not Prisma types. This makes it possible to evolve the Prisma schema or even swap the ORM without rewriting business logic.
+We use a Repository + DTO pattern to isolate Prisma and the database from business logic. Repositories are the only layer that talks to Prisma and database models. All services, tRPC handlers, API controllers, workflows, and UI should depend on DTOs or domain types, not Prisma types.
 
 DTOs (Data Transfer Objects) are simple TypeScript types or interfaces that represent our domain data in an ORM-agnostic way and are returned from repositories.
+
+### Why this pattern?
+
+Understanding the "why" makes adoption easier. This pattern provides three key benefits:
+
+**1. Type-leak prevention**
+When Prisma types spread throughout the codebase, any schema change (renaming a field, changing a type, adding a required field) causes type errors across dozens of files. With DTOs, schema changes only affect repository mapping functions—the rest of the codebase remains untouched.
+
+**2. Safe refactors**
+Business logic that depends on DTOs can be refactored, tested, and reasoned about independently of the database. You can change how data is stored without touching service logic, and vice versa. This separation makes large refactors tractable and reduces the risk of breaking unrelated features.
+
+**3. ORM swap possibility**
+While we currently use Prisma, isolating it to repositories means we could migrate to a different ORM (Drizzle, Kysely, raw SQL) without rewriting business logic. The repository interface stays the same; only the implementation changes. This future-proofs the codebase against ORM-level breaking changes or performance needs.
 
 ### What not to do: tight Prisma coupling in business logic
 
