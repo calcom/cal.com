@@ -130,3 +130,5 @@ export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publ
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
 
 export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+export { getTasker } from "@calcom/features/tasker/tasker-factory";
+export type { Tasker } from "@calcom/features/tasker/tasker";
