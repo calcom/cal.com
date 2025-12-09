@@ -145,6 +145,7 @@ const commons = {
   requiresConfirmationWillBlockSlot: false,
   canSendCalVideoTranscriptionEmails: false,
   instantMeetingExpiryTimeOffsetInSeconds: 0,
+  autoTranslateInstantMeetingTitleEnabled: true,
   instantMeetingScheduleId: null,
   instantMeetingParameters: [],
   eventTypeColor: null,

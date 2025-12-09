@@ -155,6 +155,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     assignRRMembersUsingSegment: false,
     rrSegmentQueryValue: null,
     autoTranslateDescriptionEnabled: false,
+    autoTranslateInstantMeetingTitleEnabled: true,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
     hideOrganizerEmail: false,
