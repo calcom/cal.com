@@ -558,46 +558,46 @@ export class BookingsController_2024_04_15 {
     }
   }
 
-    private async createNextApiBookingRequest(
-      req: BookingRequest,
-      oAuthClientId?: string,
-      platformBookingLocation?: string,
-      isEmbed?: string
-    ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
-      const requestId = req.get("X-Request-Id");
-      const clone = { ...req };
-      const userId = clone.body.rescheduleUid
-        ? await this.getOwnerIdRescheduledBooking(req, oAuthClientId)
-        : await this.getOwnerId(req);
+  private async createNextApiBookingRequest(
+    req: BookingRequest,
+    oAuthClientId?: string,
+    platformBookingLocation?: string,
+    isEmbed?: string
+  ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
+    const requestId = req.get("X-Request-Id");
+    const clone = { ...req };
+    const userId = clone.body.rescheduleUid
+      ? await this.getOwnerIdRescheduledBooking(req, oAuthClientId)
+      : await this.getOwnerId(req);
 
-      // Get userUuid if userId is available (user is authenticated)
-      let userUuid: string | undefined = undefined;
-      if (userId) {
-        const user = await this.usersRepository.findById(userId);
-        userUuid = user?.uuid;
-      }
-
-      const oAuthParams = oAuthClientId
-        ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
-        : DEFAULT_PLATFORM_PARAMS;
-      this.logger.log(`createNextApiBookingRequest_2024_04_15`, {
-        requestId,
-        ownerId: userId,
-        platformBookingLocation,
-        oAuthClientId,
-        ...oAuthParams,
-      });
-      Object.assign(clone, { userId, userUuid, ...oAuthParams, platformBookingLocation });
-      clone.body = {
-        ...clone.body,
-        noEmail: !oAuthParams.arePlatformEmailsEnabled,
-        creationSource: CreationSource.API_V2,
-      };
-      if (oAuthClientId) {
-        await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
-      }
-      return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
+    // Get userUuid if userId is available (user is authenticated)
+    let userUuid: string | undefined = undefined;
+    if (userId) {
+      const user = await this.usersRepository.findById(userId);
+      userUuid = user?.uuid;
     }
+
+    const oAuthParams = oAuthClientId
+      ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
+      : DEFAULT_PLATFORM_PARAMS;
+    this.logger.log(`createNextApiBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      platformBookingLocation,
+      oAuthClientId,
+      ...oAuthParams,
+    });
+    Object.assign(clone, { userId, userUuid, ...oAuthParams, platformBookingLocation });
+    clone.body = {
+      ...clone.body,
+      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      creationSource: CreationSource.API_V2,
+    };
+    if (oAuthClientId) {
+      await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
+    }
+    return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
+  }
 
   async setPlatformAttendeesEmails(
     requestBody: { responses?: { email?: string; guests?: string[] } },
@@ -617,46 +617,46 @@ export class BookingsController_2024_04_15 {
     }
   }
 
-    private async createNextApiRecurringBookingRequest(
-      req: BookingRequest,
-      oAuthClientId?: string,
-      platformBookingLocation?: string,
-      isEmbed?: string
-    ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
-      const clone = { ...req };
-      const userId = (await this.getOwnerId(req)) ?? -1;
+  private async createNextApiRecurringBookingRequest(
+    req: BookingRequest,
+    oAuthClientId?: string,
+    platformBookingLocation?: string,
+    isEmbed?: string
+  ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
+    const clone = { ...req };
+    const userId = (await this.getOwnerId(req)) ?? -1;
 
-      // Get userUuid if userId is available (user is authenticated)
-      let userUuid: string | undefined = undefined;
-      if (userId && userId !== -1) {
-        const user = await this.usersRepository.findById(userId);
-        userUuid = user?.uuid;
-      }
-
-      const oAuthParams = oAuthClientId
-        ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
-        : DEFAULT_PLATFORM_PARAMS;
-      const requestId = req.get("X-Request-Id");
-      this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
-        requestId,
-        ownerId: userId,
-        platformBookingLocation,
-        oAuthClientId,
-        ...oAuthParams,
-      });
-      Object.assign(clone, {
-        userId,
-        userUuid,
-        ...oAuthParams,
-        platformBookingLocation,
-        noEmail: !oAuthParams.arePlatformEmailsEnabled,
-        creationSource: CreationSource.API_V2,
-      });
-      if (oAuthClientId) {
-        await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
-      }
-      return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
+    // Get userUuid if userId is available (user is authenticated)
+    let userUuid: string | undefined = undefined;
+    if (userId && userId !== -1) {
+      const user = await this.usersRepository.findById(userId);
+      userUuid = user?.uuid;
     }
+
+    const oAuthParams = oAuthClientId
+      ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
+      : DEFAULT_PLATFORM_PARAMS;
+    const requestId = req.get("X-Request-Id");
+    this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      platformBookingLocation,
+      oAuthClientId,
+      ...oAuthParams,
+    });
+    Object.assign(clone, {
+      userId,
+      userUuid,
+      ...oAuthParams,
+      platformBookingLocation,
+      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      creationSource: CreationSource.API_V2,
+    });
+    if (oAuthClientId) {
+      await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
+    }
+    return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
+  }
 
   private handleBookingErrors(
     err: Error | HttpError | unknown,
