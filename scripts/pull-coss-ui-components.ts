@@ -13,6 +13,12 @@ import path from 'node:path';
 const REGISTRY_BASE_URL = 'https://coss.com/ui/r';
 const UI_JSON_URL = `${REGISTRY_BASE_URL}/ui.json`;
 
+// Security limits
+const MAX_RESPONSE_SIZE = 10 * 1024 * 1024; // 10MB
+const REQUEST_TIMEOUT = 30000; // 30 seconds
+const MAX_FILE_NAME_LENGTH = 255;
+const VALID_COMPONENT_NAME_REGEX = /^[a-z0-9-]+$/i;
+
 type ComponentFile = {
   type?: string;
   path: string;
@@ -41,15 +47,37 @@ async function resolvePaths(): Promise<{ targetDirs: TargetDirs; targetRoot: str
 
 async function fetchJSON<T>(url: string): Promise<T> {
   return new Promise((resolve, reject) => {
-    https
-      .get(url, (res) => {
+    const req = https.get(url, (res) => {
+        // Validate HTTP status code
+        if (res.statusCode !== 200) {
+          clearTimeout(timeout);
+          req.destroy();
+          reject(new Error(`HTTP ${res.statusCode} error fetching ${url}`));
+          return;
+        }
+
+        // Validate content type
+        const contentType = res.headers['content-type'] || '';
+        if (!contentType.includes('application/json')) {
+          console.warn(`⚠️  Unexpected content-type: ${contentType} for ${url}`);
+        }
+
         let data = '';
+        let size = 0;
 
         res.on('data', (chunk: Buffer | string) => {
+          size += chunk.length;
+          if (size > MAX_RESPONSE_SIZE) {
+            clearTimeout(timeout);
+            req.destroy();
+            reject(new Error(`Response too large (max ${MAX_RESPONSE_SIZE} bytes) for ${url}`));
+            return;
+          }
           data += chunk.toString();
         });
 
         res.on('end', () => {
+          clearTimeout(timeout);
           try {
             const json = JSON.parse(data) as T;
             resolve(json);
@@ -59,17 +87,59 @@ async function fetchJSON<T>(url: string): Promise<T> {
         });
       })
       .on('error', (error: Error) => {
+        clearTimeout(timeout);
         reject(new Error(`Failed to fetch ${url}: ${error.message}`));
       });
+
+    const timeout = setTimeout(() => {
+      req.destroy();
+      reject(new Error(`Request timeout after ${REQUEST_TIMEOUT}ms for ${url}`));
+    }, REQUEST_TIMEOUT);
   });
 }
 
+function validateComponentName(name: string): boolean {
+  if (!name || name.length === 0 || name.length > MAX_FILE_NAME_LENGTH) {
+    return false;
+  }
+  return VALID_COMPONENT_NAME_REGEX.test(name);
+}
+
 function getComponentName(registryDependency: string): string {
-  return registryDependency.replace('@coss/', '');
+  if (!registryDependency.startsWith('@coss/')) {
+    throw new Error(`Invalid registry dependency format: ${registryDependency}`);
+  }
+  const componentName = registryDependency.replace('@coss/', '');
+  if (!validateComponentName(componentName)) {
+    throw new Error(`Invalid component name: ${componentName}`);
+  }
+  return componentName;
 }
 
 function getFileName(filePath: string): string {
-  return path.basename(filePath);
+  const fileName = path.basename(filePath);
+  // Additional validation
+  if (!fileName || fileName.length === 0 || fileName.length > MAX_FILE_NAME_LENGTH) {
+    throw new Error(`Invalid file name: ${fileName}`);
+  }
+  // Ensure it's a .tsx file
+  if (!fileName.endsWith('.tsx')) {
+    throw new Error(`File must be a .tsx file: ${fileName}`);
+  }
+  // Prevent path traversal attempts
+  if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
+    throw new Error(`Invalid file name (path traversal detected): ${fileName}`);
+  }
+  return fileName;
+}
+
+function validateContent(content: string): void {
+  if (!content || typeof content !== 'string') {
+    throw new Error('Content must be a non-empty string');
+  }
+  if (content.length > MAX_RESPONSE_SIZE) {
+    throw new Error(`Content too large (max ${MAX_RESPONSE_SIZE} bytes)`);
+  }
 }
 
 function rewriteImports(code: string): string {
@@ -84,7 +154,14 @@ function rewriteImports(code: string): string {
 }
 
 async function processComponent(registryDependency: string, targetDirs: TargetDirs): Promise<boolean> {
-  const componentName = getComponentName(registryDependency);
+  let componentName: string;
+  try {
+    componentName = getComponentName(registryDependency);
+  } catch (error) {
+    console.error(`❌ Invalid component dependency: ${registryDependency}`, (error as Error).message);
+    return false;
+  }
+
   const componentUrl = `${REGISTRY_BASE_URL}/${componentName}.json`;
 
   console.log(`Pulling ${componentName}...`);
@@ -92,7 +169,16 @@ async function processComponent(registryDependency: string, targetDirs: TargetDi
   try {
     const componentJson = await fetchJSON<ComponentJson>(componentUrl);
 
-    const componentFile = componentJson.files?.find(
+    // Validate JSON structure
+    if (!componentJson || typeof componentJson !== 'object') {
+      throw new Error('Invalid component JSON structure');
+    }
+
+    if (!Array.isArray(componentJson.files)) {
+      throw new Error('Component files must be an array');
+    }
+
+    const componentFile = componentJson.files.find(
       (file) => file.type === 'registry:ui' && file.path.endsWith('.tsx')
     );
 
@@ -101,7 +187,14 @@ async function processComponent(registryDependency: string, targetDirs: TargetDi
       return false;
     }
 
+    // Validate file structure
+    if (!componentFile.path || !componentFile.content) {
+      throw new Error('Component file missing path or content');
+    }
+
     const fileName = getFileName(componentFile.path);
+    validateContent(componentFile.content);
+
     const content = rewriteImports(componentFile.content);
     const filePath = path.join(targetDirs.components, fileName);
 
@@ -125,6 +218,15 @@ async function main(): Promise<void> {
 
     console.log(`Pulling index: ${UI_JSON_URL}...`);
     const uiJson = await fetchJSON<ComponentJson>(UI_JSON_URL);
+
+    // Validate index structure
+    if (!uiJson || typeof uiJson !== 'object') {
+      throw new Error('Invalid UI index JSON structure');
+    }
+
+    if (!Array.isArray(uiJson.registryDependencies)) {
+      throw new Error('registryDependencies must be an array');
+    }
 
     const registryDependencies = uiJson.registryDependencies || [];
     console.log(`Found ${registryDependencies.length} components\n`);
