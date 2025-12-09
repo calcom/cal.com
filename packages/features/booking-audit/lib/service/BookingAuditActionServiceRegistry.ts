@@ -47,10 +47,12 @@ interface BookingAuditActionServiceRegistryDeps {
 }
 
 export class BookingAuditActionServiceRegistry {
-    private readonly actionServices: Map<BookingAuditAction, IAuditActionService<AuditActionData, unknown>>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private readonly actionServices: Map<BookingAuditAction, IAuditActionService<any, any>>;
 
     constructor(private deps: BookingAuditActionServiceRegistryDeps) {
-        const services: Array<[BookingAuditAction, IAuditActionService<AuditActionData, unknown>]> = [
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const services: Array<[BookingAuditAction, IAuditActionService<any, any>]> = [
             ["CREATED", new CreatedAuditActionService()],
             ["CANCELLED", new CancelledAuditActionService()],
             ["RESCHEDULED", new RescheduledAuditActionService()],
@@ -74,7 +76,8 @@ export class BookingAuditActionServiceRegistry {
      * @returns The corresponding action service instance
      * @throws Error if no service is found for the action
      */
-    getActionService(action: BookingAuditAction): IAuditActionService<AuditActionData, unknown> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getActionService(action: BookingAuditAction): IAuditActionService<any, any> {
         const service = this.actionServices.get(action);
         if (!service) {
             throw new Error(`No action service found for: ${action}`);

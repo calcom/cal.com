@@ -67,14 +67,17 @@ export class BookingAuditViewerService {
         bookingUid: string,
         _userId: number,
         _userEmail: string,
-        userTimeZone: string
+        userTimeZone?: string
     ): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
         await this.checkPermissions();
 
         const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
+        // Default to UTC if no timezone provided (backwards compatibility)
+        const timezone = userTimeZone ?? "UTC";
+
         const enrichedAuditLogs = await Promise.all(
-            auditLogs.map((log) => this.enrichAuditLog(log, userTimeZone))
+            auditLogs.map((log) => this.enrichAuditLog(log, timezone))
         );
 
         const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
@@ -84,7 +87,7 @@ export class BookingAuditViewerService {
             const rescheduledFromLog = await this.buildRescheduledFromLog({
                 fromRescheduleUid,
                 currentBookingUid: bookingUid,
-                userTimeZone,
+                userTimeZone: timezone,
             });
             if (rescheduledFromLog) {
                 // Add the rescheduled log from the previous booking as the first entry
@@ -111,9 +114,9 @@ export class BookingAuditViewerService {
         const actionDisplayTitle = await actionService.getDisplayTitle({ storedData: parsedData, userTimeZone });
 
         // Get display data - use custom getDisplayJson if available, otherwise use raw fields
-        const displayData = actionService.getDisplayJson
+        const displayData = (actionService.getDisplayJson
             ? actionService.getDisplayJson({ storedData: parsedData, userTimeZone })
-            : parsedData.fields;
+            : parsedData.fields) as Record<string, unknown> | null;
 
         // Get display fields - use custom getDisplayFields if available
         const displayFields = actionService.getDisplayFields

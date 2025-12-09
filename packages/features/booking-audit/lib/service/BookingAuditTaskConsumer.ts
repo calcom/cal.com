@@ -124,7 +124,8 @@ export class BookingAuditTaskConsumer {
         // Step 2: Validate and migrate data with action-specific schema
         const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload: validatedPayload, taskId });
 
-        await this.onBookingAction({ bookingUid, actor, action, data: dataInLatestFormat, timestamp });
+        // dataInLatestFormat is validated by action-specific schema in migrateIfNeeded
+        await this.onBookingAction({ bookingUid, actor, action, data: dataInLatestFormat as AuditActionData, timestamp });
     }
 
     /**
@@ -311,7 +312,8 @@ export class BookingAuditTaskConsumer {
             actorId,
             type: recordType,
             action,
-            data: versionedData,
+            // versionedData is { version: number; fields: unknown } which is JsonValue-compatible
+            data: versionedData as JsonValue,
             timestamp: new Date(timestamp),
         });
     }

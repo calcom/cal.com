@@ -5,7 +5,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
-import type { BookingAuditAction } from "../types/bookingAuditTask";
+import type { BookingAuditAction, BookingAuditTaskProducerActionData } from "../types/bookingAuditTask";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
@@ -41,6 +41,26 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     constructor(private readonly deps: BookingAuditTaskerProducerServiceDeps) {
         this.tasker = deps.tasker;
         this.log = deps.log;
+    }
+
+    /**
+     * Queue Audit - Legacy method for backwards compatibility
+     * 
+     * @deprecated Use specialized methods (queueCreatedAudit, queueCancelledAudit, etc.) instead
+     */
+    async queueAudit(
+        bookingUid: string,
+        actor: Actor,
+        organizationId: number | null,
+        actionData: BookingAuditTaskProducerActionData
+    ): Promise<void> {
+        await this.queueTask({
+            bookingUid,
+            actor,
+            organizationId,
+            action: actionData.action,
+            data: actionData.data,
+        });
     }
 
     /**

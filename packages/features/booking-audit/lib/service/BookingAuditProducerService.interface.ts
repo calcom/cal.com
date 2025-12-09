@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
+import type { BookingAuditTaskProducerActionData } from "../types/bookingAuditTask";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
@@ -28,6 +29,13 @@ import { RescheduledAuditActionService } from "../actions/RescheduledAuditAction
  * - BookingAuditTriggerProducerService: (Future) Uses Trigger.dev for cloud jobs
  */
 export interface BookingAuditProducerService {
+    /**
+     * Queue Audit - Legacy method for backwards compatibility with existing code
+     * 
+     * @deprecated Use specialized methods (queueCreatedAudit, queueCancelledAudit, etc.) instead
+     */
+    queueAudit(bookingUid: string, actor: Actor, organizationId: number | null, actionData: BookingAuditTaskProducerActionData): Promise<void>;
+
     queueCreatedAudit(params: {
         bookingUid: string;
         actor: Actor;
