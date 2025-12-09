@@ -133,11 +133,61 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   }
 };
 
+const handleCheckoutSessionExpired = async (event: Stripe.Event) => {
+  const session = event.data.object as Stripe.Checkout.Session;
+  const intent =
+    (typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id) ??
+    (typeof session.setup_intent === "string" ? session.setup_intent : session.setup_intent?.id);
+
+  if (!intent) {
+    throw new HttpCode({ statusCode: 202, message: "No intent on checkout.session.expired" });
+  }
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      externalId: intent,
+    },
+    select: {
+      id: true,
+      bookingId: true,
+    },
+  });
+
+  if (!payment?.bookingId || !payment.id) {
+    throw new HttpCode({ statusCode: 202, message: "Payment not found for expired session" });
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: payment.bookingId },
+    select: { id: true, status: true },
+  });
+
+  // Nothing to do if the booking is already handled
+  if (!booking || booking.status !== BookingStatus.PENDING) {
+    throw new HttpCode({ statusCode: 202, message: "Booking already handled for expired session" });
+  }
+
+  await prisma.$transaction([
+    prisma.booking.update({
+      where: { id: booking.id },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: "checkout_session_expired",
+      },
+    }),
+    prisma.payment.update({
+      where: { id: payment.id },
+      data: { success: false },
+    }),
+  ]);
+};
+
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handleStripePaymentSuccess,
   "setup_intent.succeeded": handleSetupSuccess,
+  "checkout.session.expired": handleCheckoutSessionExpired,
 };
 
 /**
