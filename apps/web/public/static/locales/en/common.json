@@ -1033,6 +1033,7 @@
   "authentication_mode": "Authentication Mode",
   "use_pkce": "Use PKCE (recommended for mobile/SPA applications)",
   "upload_logo": "Upload Logo",
+  "client_id": "Client ID",
   "copy_client_id": "Copy Client ID",
   "client_id_copied": "Client ID copied to clipboard",
   "submitted_by": "Submitted By",

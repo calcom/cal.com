@@ -7,6 +7,8 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+
+import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -110,7 +112,7 @@ const OAuthClientsView = () => {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center py-8">{t("loading")}</div>;
+    return <OAuthClientsSkeleton />;
   }
 
   return (
@@ -250,9 +252,9 @@ const OAuthClientsView = () => {
           ) : (
             <div>
               <div className="text-emphasis mb-5 text-xl font-semibold">{submittedClient.name}</div>
-              <div className="mb-2 font-medium">{t("client_id")}</div>
+              <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
               <div className="flex">
-                <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+                <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
                   {submittedClient.clientId}
                 </code>
                 <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -263,7 +265,8 @@ const OAuthClientsView = () => {
                       });
                     }}
                     type="button"
-                    className="rounded-l-none text-base"
+                    size="sm"
+                    className="rounded-l-none"
                     StartIcon="clipboard">
                     {t("copy")}
                   </Button>
@@ -297,9 +300,9 @@ const OAuthClientsView = () => {
               </div>
 
               <div>
-                <div className="mb-2 font-medium">{t("client_id")}</div>
+                <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
                 <div className="flex">
-                  <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+                  <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
                     {selectedClient.clientId}
                   </code>
                   <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -310,7 +313,8 @@ const OAuthClientsView = () => {
                         });
                       }}
                       type="button"
-                      className="rounded-l-none text-base"
+                      size="sm"
+                      className="rounded-l-none"
                       StartIcon="clipboard">
                       {t("copy")}
                     </Button>

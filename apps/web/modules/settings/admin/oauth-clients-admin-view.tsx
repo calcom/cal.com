@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+
+import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -123,7 +125,7 @@ export default function OAuthClientsAdminView() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center py-8">{t("loading")}</div>;
+    return <OAuthClientsAdminSkeleton />;
   }
 
   return (
@@ -300,9 +302,9 @@ export default function OAuthClientsAdminView() {
           ) : (
             <div>
               <div className="text-emphasis mb-5 text-xl font-semibold">{createdClient.name}</div>
-              <div className="mb-2 font-medium">{t("client_id")}</div>
+              <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
               <div className="flex">
-                <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+                <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
                   {createdClient.clientId}
                 </code>
                 <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -313,7 +315,8 @@ export default function OAuthClientsAdminView() {
                       });
                     }}
                     type="button"
-                    className="rounded-l-none text-base"
+                    size="sm"
+                    className="rounded-l-none"
                     StartIcon="clipboard">
                     {t("copy")}
                   </Button>
@@ -321,9 +324,9 @@ export default function OAuthClientsAdminView() {
               </div>
               {createdClient.clientSecret && (
                 <>
-                  <div className="mb-2 mt-4 font-medium">{t("client_secret")}</div>
+                  <div className="text-subtle mb-1 mt-4 text-sm">{t("client_secret")}</div>
                   <div className="flex">
-                    <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+                    <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
                       {createdClient.clientSecret}
                     </code>
                     <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -334,7 +337,8 @@ export default function OAuthClientsAdminView() {
                           });
                         }}
                         type="button"
-                        className="rounded-l-none text-base"
+                        size="sm"
+                        className="rounded-l-none"
                         StartIcon="clipboard">
                         {t("copy")}
                       </Button>
