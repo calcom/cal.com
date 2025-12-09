@@ -73,46 +73,48 @@ export function PoliciesTable() {
             isActive: policyType === option.value,
           }))}
         />
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("version")}</TableHead>
-              <TableHead>{t("published_date")}</TableHead>
-              <TableHead>{t("type")}</TableHead>
-              <TableHead>{t("description_us")}</TableHead>
-              <TableHead>{t("description_non_us")}</TableHead>
-              <TableHead>{t("status")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {allPolicies.map((policy, index) => (
-              <TableRow key={`${policy.version}-${policy.type}`}>
-                <TableCell className="font-mono text-xs">{new Date(policy.version).toISOString()}</TableCell>
-                <TableCell className="font-medium">{dayjs(policy.publishedAt).format("MMM D, YYYY HH:mm:ss")}</TableCell>
-                <TableCell>
-                  <Badge variant="gray">{policy.type.replace("_", " ")}</Badge>
-                </TableCell>
-                <TableCell className="max-w-xs">
-                  <div className="max-h-20 overflow-y-auto">
-                    <p className="text-default text-sm whitespace-pre-wrap">{policy.description}</p>
-                  </div>
-                </TableCell>
-                <TableCell className="max-w-xs">
-                  <div className="max-h-20 overflow-y-auto">
-                    <p className="text-default text-sm whitespace-pre-wrap">{policy.descriptionNonUS}</p>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {index === 0 ? (
-                    <Badge variant="green">{t("latest")}</Badge>
-                  ) : (
-                    <Badge variant="gray">{t("archived")}</Badge>
-                  )}
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("version")}</TableHead>
+                <TableHead>{t("published_date")}</TableHead>
+                <TableHead>{t("type")}</TableHead>
+                <TableHead>{t("description_us")}</TableHead>
+                <TableHead>{t("description_non_us")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {allPolicies.map((policy, index) => (
+                <TableRow key={`${policy.version}-${policy.type}`}>
+                  <TableCell className="font-mono text-xs">{new Date(policy.version).toISOString()}</TableCell>
+                  <TableCell className="font-medium">{dayjs(policy.publishedAt).format("MMM D, YYYY HH:mm:ss")}</TableCell>
+                  <TableCell>
+                    <Badge variant="gray">{t(policy.type.replace("_", " "))}</Badge>
+                  </TableCell>
+                  <TableCell className="max-w-[150px]">
+                    <div className="max-h-20 overflow-y-auto">
+                      <p className="text-default text-sm wrap-break-word whitespace-pre-wrap">{policy.description}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="max-w-[150px]">
+                    <div className="max-h-20 overflow-y-auto">
+                      <p className="text-default text-sm wrap-break-word whitespace-pre-wrap">{policy.descriptionNonUS}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {index === 0 ? (
+                      <Badge variant="green">{t("latest")}</Badge>
+                    ) : (
+                      <Badge variant="gray">{t("archived")}</Badge>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {hasNextPage && (
