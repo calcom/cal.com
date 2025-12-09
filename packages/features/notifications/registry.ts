@@ -67,7 +67,7 @@ export function getNotificationTypesByChannel(channel: NotificationChannel): Not
 
 export function isChannelSupported(type: NotificationType, channel: NotificationChannel): boolean {
   const config = NOTIFICATION_REGISTRY[type];
-  return config?.supportedChannels.includes(channel) ?? false;
+  return (config?.supportedChannels as readonly NotificationChannel[]).includes(channel) ?? false;
 }
 
 export function createNotificationContext<T extends NotificationType>(
@@ -89,5 +89,5 @@ export function createNotificationContext<T extends NotificationType>(
     teamId: teamId ?? null,
     notificationType,
     channel,
-  };
+  } as NotificationContext;
 }
