@@ -26,6 +26,7 @@ export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" 
 
 export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction; attendee: Person }) {
   const { t } = props;
+  const isOrganizer = props.calEvent.organizer.email === props.attendee.email;
   return (
     <Info
       label={t("who")}
@@ -40,7 +41,14 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction; attendee
             <PersonInfo key={member.name} name={member.name} role={t("team_member")} email={member?.email} />
           ))}
 
-          {(!props.calEvent.seatsShowAttendess ? [props.attendee] : [...props.calEvent.attendees]).map((attendee) => (
+          {(!isOrganizer &&
+          props.attendee &&
+          props.calEvent.seatsPerTimeSlot &&
+          props.calEvent.seatsPerTimeSlot > 1 &&
+          !props.calEvent.seatsShowAttendess
+            ? [props.attendee]
+            : [...props.calEvent.attendees]
+          ).map((attendee) => (
             <PersonInfo
               key={attendee.id || attendee.name}
               name={attendee.name}

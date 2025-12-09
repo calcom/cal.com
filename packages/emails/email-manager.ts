@@ -116,7 +116,8 @@ const _sendScheduledEmailsAndSMS = async (
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
   attendeeEmailDisabled?: boolean,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  curAttendee?: Person // In some places passing proper responses like the payment success, passing original responses field isn't possible so we pass the current attendee to get their email or phone number
 ) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
@@ -133,18 +134,22 @@ const _sendScheduledEmailsAndSMS = async (
     }
   }
 
+  const attendeeInfo = {
+    email: curAttendee?.email ?? formattedCalEvent.responses?.email?.value,
+    phone: curAttendee?.phoneNumber ?? formattedCalEvent.responses?.attendeePhoneNumber?.value,
+  };
+
   if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
-      ...(
-        !formattedCalEvent.seatsShowAttendees
-          ? [
+      ...(formattedCalEvent.seatsPerTimeSlot > 1 && !formattedCalEvent.seatsShowAttendees
+        ? [
             formattedCalEvent.attendees.find((e) =>
-              e.email
-                ? e.email === formattedCalEvent.responses?.email?.value
-                : e.phoneNumber === formattedCalEvent.responses?.attendeePhoneNumber?.value
+              e.email && attendeeInfo.email
+                ? e.email === attendeeInfo.email
+                : e.phoneNumber === attendeeInfo.phone
             ),
           ]
-          : [...formattedCalEvent.attendees]
+        : [...formattedCalEvent.attendees]
       )
         .filter((a): a is Person => Boolean(a))
         .map((attendee) => {
