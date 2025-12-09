@@ -1,12 +1,23 @@
 import { z } from "zod";
 
 /**
- * Represents a translation key with optional interpolation params
+ * Represents a component that can be interpolated into translations
+ * Used with react-i18next Trans component for proper i18n support (RTL, word order, etc.)
+ */
+export type TranslationComponent = {
+    type: "link";
+    href: string;
+};
+
+/**
+ * Represents a translation key with optional interpolation params and components
  * Used for dynamic display titles that need to be translated with context
+ * Components are used for clickable links within translations (e.g., "Rescheduled to <1>New Booking</1>")
  */
 export type TranslationWithParams = {
     key: string;
     params?: Record<string, string | number>;
+    components?: TranslationComponent[];
 };
 
 /**

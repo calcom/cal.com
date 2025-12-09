@@ -1,13 +1,16 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
 import type { TranslationWithParams } from "../actions/IAuditActionService";
+import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
     userRepository: UserRepository;
+    bookingRepository: BookingRepository;
 }
 
 type EnrichedAuditLog = {
@@ -39,10 +42,14 @@ export class BookingAuditViewerService {
     private readonly actionServiceRegistry: BookingAuditActionServiceRegistry;
     private readonly bookingAuditRepository: IBookingAuditRepository;
     private readonly userRepository: UserRepository;
+    private readonly bookingRepository: BookingRepository;
+    private readonly rescheduledAuditActionService: RescheduledAuditActionService;
 
     constructor(private readonly deps: BookingAuditViewerServiceDeps) {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.userRepository = deps.userRepository;
+        this.bookingRepository = deps.bookingRepository;
+        this.rescheduledAuditActionService = new RescheduledAuditActionService();
 
         this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository });
     }
@@ -50,6 +57,10 @@ export class BookingAuditViewerService {
     /**
      * Get audit logs for a booking with full enrichment and formatting
      * Handles permission checks, fetches logs, enriches actors, and formats display
+     * 
+     * For bookings created from a reschedule (has fromReschedule field), this also
+     * fetches the last RESCHEDULED log from the previous booking and includes it
+     * as the first log entry with "rescheduled from" context.
      */
     async getAuditLogsForBooking(
         bookingUid: string,
@@ -61,41 +72,111 @@ export class BookingAuditViewerService {
         const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
         const enrichedAuditLogs = await Promise.all(
-            auditLogs.map(async (log) => {
-                const enrichedActor = await this.enrichActorInformation(log.actor);
-
-                const actionService = this.actionServiceRegistry.getActionService(log.action);
-                const parsedData = actionService.parseStored(log.data);
-
-                const actionDisplayTitle = await actionService.getDisplayTitle(parsedData);
-
-                // Get display data - use custom getDisplayJson if available, otherwise use raw fields
-                const displayData = actionService.getDisplayJson
-                    ? actionService.getDisplayJson(parsedData)
-                    : parsedData.fields;
-
-                return {
-                    id: log.id,
-                    bookingUid: log.bookingUid,
-                    type: log.type,
-                    action: log.action,
-                    timestamp: log.timestamp.toISOString(),
-                    createdAt: log.createdAt.toISOString(),
-                    data: displayData,
-                    actionDisplayTitle,
-                    actor: {
-                        ...log.actor,
-                        displayName: enrichedActor.displayName,
-                        displayEmail: enrichedActor.displayEmail,
-                        displayAvatar: enrichedActor.displayAvatar,
-                    },
-                };
-            })
+            auditLogs.map((log) => this.enrichAuditLog(log))
         );
+
+        const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
+
+        // Check if this booking was created from a reschedule
+        if (fromRescheduleUid) {
+            const rescheduledFromLog = await this.buildRescheduledFromLog({
+                fromRescheduleUid,
+                currentBookingUid: bookingUid,
+            });
+            if (rescheduledFromLog) {
+                // Add the rescheduled log from the previous booking as the first entry
+                // (appears last chronologically since logs are ordered by timestamp DESC)
+                enrichedAuditLogs.unshift(rescheduledFromLog);
+            }
+        }
 
         return {
             bookingUid,
             auditLogs: enrichedAuditLogs,
+        };
+    }
+
+    /**
+     * Enriches a single audit log with actor information and formatted display data
+     */
+    private async enrichAuditLog(log: BookingAuditWithActor): Promise<EnrichedAuditLog> {
+        const enrichedActor = await this.enrichActorInformation(log.actor);
+
+        const actionService = this.actionServiceRegistry.getActionService(log.action);
+        const parsedData = actionService.parseStored(log.data);
+
+        const actionDisplayTitle = await actionService.getDisplayTitle(parsedData);
+
+        // Get display data - use custom getDisplayJson if available, otherwise use raw fields
+        const displayData = actionService.getDisplayJson
+            ? actionService.getDisplayJson(parsedData)
+            : parsedData.fields;
+
+        return {
+            id: log.id,
+            bookingUid: log.bookingUid,
+            type: log.type,
+            action: log.action,
+            timestamp: log.timestamp.toISOString(),
+            createdAt: log.createdAt.toISOString(),
+            data: displayData,
+            actionDisplayTitle,
+            actor: {
+                ...log.actor,
+                displayName: enrichedActor.displayName,
+                displayEmail: enrichedActor.displayEmail,
+                displayAvatar: enrichedActor.displayAvatar,
+            },
+        };
+    }
+    /**
+     * Builds a "rescheduled from" log entry for bookings created from a reschedule.
+     * Fetches the RESCHEDULED log from the previous booking and transforms it
+     * to show "rescheduled from" context for the current booking.
+     */
+    private async buildRescheduledFromLog({
+        fromRescheduleUid,
+        currentBookingUid,
+    }: {
+        fromRescheduleUid: string;
+        currentBookingUid: string;
+    }): Promise<EnrichedAuditLog | null> {
+        const rescheduledLogs = await this.bookingAuditRepository.findRescheduledLogsOfBooking(
+            fromRescheduleUid
+        );
+
+        // Find the specific log that created this booking by matching rescheduledToUid
+        const rescheduledLog = this.rescheduledAuditActionService.getMatchingLog({
+            rescheduledLogs,
+            rescheduledToBookingUid: currentBookingUid,
+        });
+
+        if (!rescheduledLog) {
+            // TODO: Use logger instead of console.error
+            console.error(`No rescheduled log found for booking ${fromRescheduleUid} -> ${currentBookingUid}`);
+            // Instead of crashing, we ignore because it is important to be able to access other logs as well.
+            return null;
+        }
+
+        const enrichedLog = await this.enrichAuditLog(rescheduledLog);
+
+        // Transform the display data to show "rescheduled from" instead of "rescheduled to"
+        // by replacing rescheduledToUid with rescheduledFromUid
+        const transformedData = {
+            ...enrichedLog.data,
+            rescheduledFromUid: fromRescheduleUid,
+        };
+
+        return {
+            ...enrichedLog,
+            // Override bookingUid to associate with the current booking being viewed
+            bookingUid: currentBookingUid,
+            data: transformedData,
+            // Use a different translation key to show "Rescheduled from" instead of "Rescheduled"
+            actionDisplayTitle: {
+                key: "booking_audit_action.rescheduled_from",
+                components: [{ type: "link", href: `/booking/${fromRescheduleUid}` }],
+            },
         };
     }
 

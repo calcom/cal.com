@@ -129,7 +129,7 @@ import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import type { Actor } from "../types/actor";
-import { makeAttendeeActor, makeUserActor } from "../types/actor";
+import { makeAttendeeActor, makeGuestActor, makeUserActor } from "../types/actor";
 
 const translator = short();
 
@@ -2306,7 +2306,13 @@ async function handler(
 
   const bookingEventHandler = deps.bookingEventHandler;
 
-  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
+  const auditActor = await this.getAuditActor({
+    userId: userId ?? null,
+    bookingId: booking.id,
+    bookerEmail,
+    logger: tracingLogger,
+  });
+
   if (originalRescheduledBooking) {
     const bookingRescheduledPayload: BookingRescheduledPayload = {
       ...bookingCreatedPayload,
@@ -2316,17 +2322,9 @@ async function handler(
         endTime: originalRescheduledBooking.endTime,
       },
     };
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, auditActor);
   } else {
-    const auditActor = await this.getAuditActor({
-      userId: userId ?? null,
-      bookingId: booking.id,
-      bookerEmail,
-      logger: tracingLogger,
-    });
-    if (auditActor) {
-      await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
-    }
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
   }
 
   const webhookData: EventPayloadType = {
@@ -2731,19 +2729,19 @@ export class RegularBookingService implements IBookingService {
 
   /**
    * Resolves the appropriate actor for audit logging based on available context.
-   * Priority: UserActor (if userId provided and user found) > AttendeeActor (fallback)
+   * Priority: UserActor (if userId provided and user found) > AttendeeActor > GuestActor (fallback)
    *
    * @param params.userId - The user ID if the booker is logged in
    * @param params.bookingId - The booking ID to find the attendee
    * @param params.bookerEmail - The booker's email to identify the attendee
-   * @returns Actor or null if attendee not found (shouldn't happen in normal flow)
+   * @returns Actor - always returns an actor, falling back to guest actor if needed
    */
   async getAuditActor(params: {
     userId: number | null;
     bookingId: number;
     bookerEmail: string;
     logger: Logger<unknown>;
-  }): Promise<Actor | null> {
+  }): Promise<Actor> {
     const { userId, bookingId, bookerEmail, logger } = params;
 
     // If user is logged in, try to create a UserActor
@@ -2774,11 +2772,11 @@ export class RegularBookingService implements IBookingService {
     });
 
     if (!bookerAttendee) {
-      logger.error("Booker attendee not found after booking creation, continuing without audit log", {
+      logger.warn("Booker attendee not found after booking creation, creating guest actor for audit", {
         bookingId,
         bookerEmail,
       });
-      return null;
+      return makeGuestActor({ email: bookerEmail });
     }
 
     return makeAttendeeActor(bookerAttendee.id);

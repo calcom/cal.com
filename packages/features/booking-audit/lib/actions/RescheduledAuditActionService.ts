@@ -61,8 +61,12 @@ export class RescheduledAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(): Promise<TranslationWithParams> {
-        return { key: "booking_audit_action.rescheduled" };
+    async getDisplayTitle(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Promise<TranslationWithParams> {
+        const rescheduledToUid = storedData.fields.rescheduledToUid.new;
+        return {
+            key: "booking_audit_action.rescheduled",
+            components: rescheduledToUid ? [{ type: "link", href: `/booking/${rescheduledToUid}` }] : undefined,
+        };
     }
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): RescheduledAuditDisplayData {
@@ -74,6 +78,26 @@ export class RescheduledAuditActionService
             newEndTime: fields.endTime.new ?? null,
             rescheduledToUid: fields.rescheduledToUid.new ?? null,
         };
+    }
+
+    /**
+     * Finds the rescheduled log that created a specific booking
+     * by matching the rescheduledToUid field with the target booking UID
+     * @param rescheduledLogs - Array of rescheduled audit logs to search through
+     * @param rescheduledToBookingUid - The UID of the booking that was created from the reschedule
+     * @returns The matching log or null if not found
+     */
+    getMatchingLog<T extends { data: unknown }>({
+        rescheduledLogs,
+        rescheduledToBookingUid,
+    }: {
+        rescheduledLogs: T[];
+        rescheduledToBookingUid: string;
+    }): T | null {
+        return rescheduledLogs.find((log) => {
+            const parsedData = this.parseStored(log.data);
+            return parsedData.fields.rescheduledToUid.new === rescheduledToBookingUid;
+        }) ?? null;
     }
 }
 

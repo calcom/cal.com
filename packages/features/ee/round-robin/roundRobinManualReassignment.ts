@@ -15,7 +15,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeGuestActor, makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
@@ -241,18 +241,20 @@ export const roundRobinManualReassignment = async ({
       title: { old: oldTitle, new: newBookingTitle },
     };
 
-    // Create audit log if user UUID is provided
+    // Create audit log - always create an actor, fallback to guest if UUID not provided
+    let actor;
     if (reassignedByUuid) {
-      const actor = makeUserActor(reassignedByUuid);
-      await bookingEventHandlerService.onReassignment(
-        booking.uid,
-        actor,
-        orgId,
-        auditData
-      );
+      actor = makeUserActor(reassignedByUuid);
     } else {
-      roundRobinReassignLogger.warn(`No reassignedByUuid provided, skipping audit log for booking ${bookingId}`);
+      roundRobinReassignLogger.warn(
+        `No reassignedByUuid provided, creating fallback guest actor for audit log`,
+        { bookingId, bookingUid: booking.uid }
+      );
+      actor = makeGuestActor({
+        email: `fallback-${booking.uid}-${Date.now()}@guest.internal`,
+      });
     }
+    await bookingEventHandlerService.onReassignment(booking.uid, actor, orgId, auditData);
 
     await AssignmentReasonRecorder.roundRobinReassignment({
       bookingId,

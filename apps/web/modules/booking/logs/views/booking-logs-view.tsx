@@ -3,8 +3,10 @@
  */
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Trans } from "react-i18next";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import dayjs from "@calcom/dayjs";
 import { trpc } from "@calcom/trpc/react";
@@ -18,9 +20,15 @@ interface BookingLogsViewProps {
     bookingUid: string;
 }
 
+type TranslationComponent = {
+    type: "link";
+    href: string;
+};
+
 type TranslationWithParams = {
     key: string;
     params?: Record<string, string | number>;
+    components?: TranslationComponent[];
 };
 
 type AuditLog = {
@@ -144,6 +152,35 @@ function BookingLogsFilters({
     );
 }
 
+/**
+ * Renders the action display title with support for Trans component interpolation
+ * Handles translations with embedded components (e.g., links) for proper i18n support
+ */
+function ActionTitle({ actionDisplayTitle }: { actionDisplayTitle: TranslationWithParams }) {
+    const { t } = useLocale();
+
+    if (actionDisplayTitle.components?.length) {
+        return (
+            <Trans
+                i18nKey={actionDisplayTitle.key}
+                components={actionDisplayTitle.components.map((comp) =>
+                    comp.type === "link" ? (
+                        <Link
+                            key={comp.href}
+                            href={comp.href}
+                            className="text-emphasis underline hover:no-underline"
+                        />
+                    ) : (
+                        <span key={comp.href} />
+                    )
+                )}
+            />
+        );
+    }
+
+    return <>{t(actionDisplayTitle.key, actionDisplayTitle.params)}</>;
+}
+
 function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
     const { t } = useLocale();
     const [expandedLogIds, setExpandedLogIds] = useState<Set<string>>(new Set());
@@ -181,7 +218,6 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
             {logs.map((log, index) => {
                 const isLast = index === logs.length - 1;
                 const isExpanded = expandedLogIds.has(log.id);
-                const actionDisplay = t(log.actionDisplayTitle.key, log.actionDisplayTitle.params);
                 const showJson = showJsonMap[log.id] || false;
                 const actorRole = getActorRoleLabel(log.actor.type);
 
@@ -203,7 +239,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex-1 min-w-0">
                                         <h3 className="text-sm font-medium text-emphasis leading-4">
-                                            {actionDisplay}
+                                            <ActionTitle actionDisplayTitle={log.actionDisplayTitle} />
                                         </h3>
                                         <div className="flex items-center gap-1 mt-1 text-xs text-subtle">
                                             {log.actor.displayAvatar && (

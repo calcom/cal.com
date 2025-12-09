@@ -495,9 +495,17 @@ async function handler(input: CancelBookingInput) {
     if (userUuid) {
       // User is authenticated - create user actor from UUID
       actorToUse = makeUserActor(userUuid);
+    } else if (cancelledBy) {
+      // No user UUID but have cancelledBy email - create guest actor
+      actorToUse = makeGuestActor({ email: cancelledBy });
     } else {
-      // No user UUID - treat as unauthenticated request
-      actorToUse = makeGuestActor({ email: cancelledBy || "" });
+      // No user UUID and no cancelledBy - create fallback guest actor with unique email
+      log.warn("No cancelledBy email available, creating fallback guest actor for audit", {
+        bookingUid: updatedBooking.uid,
+      });
+      actorToUse = makeGuestActor({
+        email: `fallback-${updatedBooking.uid}-${Date.now()}@guest.internal`,
+      });
     }
     await bookingEventHandlerService.onBookingCancelled(
       updatedBooking.uid,

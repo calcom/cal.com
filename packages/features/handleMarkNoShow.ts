@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { makeUserActor, makeWebhookActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeGuestActor, makeUserActor, makeWebhookActor } from "@calcom/features/bookings/lib/types/actor";
 import type { Actor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -114,14 +114,18 @@ const handleMarkNoShow = async ({
   const t = await getTranslation(locale ?? "en", "common");
 
   // Helper function to get the appropriate actor
-  const getActor = (): Actor | null => {
+  const getActor = (): Actor => {
     if (webhookId) {
       return makeWebhookActor(webhookId);
     }
     if (userUuid) {
       return makeUserActor(userUuid);
     }
-    return null;
+    // Fallback: create guest actor with unique email when no identifier available
+    logger.warn("No actor identifier available for mark no-show audit, creating fallback guest actor", {
+      bookingUid,
+    });
+    return makeGuestActor({ email: `fallback-${bookingUid}-${Date.now()}@guest.internal` });
   };
 
   try {
@@ -424,24 +428,22 @@ const handleMarkNoShow = async ({
 
         if (bookingForAudit) {
           const actor = getActor();
-          if (actor) {
-            const bookingEventHandlerService = getBookingEventHandlerService();
-            const orgId = await getOrgIdFromMemberOrTeamId({
-              memberId: bookingForAudit.eventType?.userId ?? null,
-              teamId: bookingForAudit.eventType?.teamId ?? null,
-            });
-            await bookingEventHandlerService.onHostNoShowUpdated(
-              bookingUid,
-              actor,
-              orgId ?? null,
-              {
-                noShowHost: {
-                  old: bookingToUpdate.noShowHost,
-                  new: true,
-                },
-              }
-            );
-          }
+          const bookingEventHandlerService = getBookingEventHandlerService();
+          const orgId = await getOrgIdFromMemberOrTeamId({
+            memberId: bookingForAudit.eventType?.userId ?? null,
+            teamId: bookingForAudit.eventType?.teamId ?? null,
+          });
+          await bookingEventHandlerService.onHostNoShowUpdated(
+            bookingUid,
+            actor,
+            orgId ?? null,
+            {
+              noShowHost: {
+                old: bookingToUpdate.noShowHost,
+                new: true,
+              },
+            }
+          );
         }
       }
 

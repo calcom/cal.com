@@ -43,17 +43,13 @@ export class BookingEventHandlerService {
     });
   }
 
-  // TODO: actor to be made required in followup PR
-  async onBookingRescheduled(payload: BookingRescheduledPayload, actor?: Actor) {
+  async onBookingRescheduled(payload: BookingRescheduledPayload, actor: Actor) {
     this.log.debug("onBookingRescheduled", safeStringify(payload));
     await this.onBookingCreatedOrRescheduled(payload);
 
-    if (!actor) {
-      return;
-    }
-
     await this.bookingAuditProducerService.queueRescheduledAudit(
-      payload.booking.uid,
+      // In case of rescheduled booking, we send old booking uid because the action took place on that booking only
+      payload.oldBooking.uid,
       actor,
       payload.organizationId,
       {
