@@ -88,6 +88,15 @@ type Input = Pick<
   | "rescheduleWithSameRoundRobinHost"
   | "maxActiveBookingPerBookerOfferReschedule"
   | "maxActiveBookingsPerBooker"
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "canSendCalVideoTranscriptionEmails"
+  | "autoTranslateInstantMeetingTitleEnabled"
+  | "interfaceLanguage"
+  | "allowReschedulingPastBookings"
+  | "allowReschedulingCancelledBookings"
+  | "customReplyToEmail"
+  | "showOptimizedSlots"
 >;
 
 @Injectable()

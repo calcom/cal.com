@@ -532,6 +532,15 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: true,
+        disableCancelling: true,
+        disableRescheduling: true,
+        canSendCalVideoTranscriptionEmails: true,
+        autoTranslateInstantMeetingTitleEnabled: true,
+        interfaceLanguage: "en",
+        allowReschedulingPastBookings: true,
+        allowReschedulingCancelledBookings: true,
+        customReplyToEmail: "custom-reply@example.com",
+        showOptimizedSlots: true,
       };
 
       return request(app.getHttpServer())
@@ -606,6 +615,21 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.disableCancelling).toEqual(body.disableCancelling);
+          expect(createdEventType.disableRescheduling).toEqual(body.disableRescheduling);
+          expect(createdEventType.canSendCalVideoTranscriptionEmails).toEqual(
+            body.canSendCalVideoTranscriptionEmails
+          );
+          expect(createdEventType.autoTranslateInstantMeetingTitleEnabled).toEqual(
+            body.autoTranslateInstantMeetingTitleEnabled
+          );
+          expect(createdEventType.interfaceLanguage).toEqual(body.interfaceLanguage);
+          expect(createdEventType.allowReschedulingPastBookings).toEqual(body.allowReschedulingPastBookings);
+          expect(createdEventType.allowReschedulingCancelledBookings).toEqual(
+            body.allowReschedulingCancelledBookings
+          );
+          expect(createdEventType.customReplyToEmail).toEqual(body.customReplyToEmail);
+          expect(createdEventType.showOptimizedSlots).toEqual(body.showOptimizedSlots);
           eventType = responseBody.data;
         });
     });
@@ -693,6 +717,23 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
+      expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
+      expect(fetchedEventType?.canSendCalVideoTranscriptionEmails).toEqual(
+        eventType.canSendCalVideoTranscriptionEmails
+      );
+      expect(fetchedEventType?.autoTranslateInstantMeetingTitleEnabled).toEqual(
+        eventType.autoTranslateInstantMeetingTitleEnabled
+      );
+      expect(fetchedEventType?.interfaceLanguage).toEqual(eventType.interfaceLanguage);
+      expect(fetchedEventType?.allowReschedulingPastBookings).toEqual(
+        eventType.allowReschedulingPastBookings
+      );
+      expect(fetchedEventType?.allowReschedulingCancelledBookings).toEqual(
+        eventType.allowReschedulingCancelledBookings
+      );
+      expect(fetchedEventType?.customReplyToEmail).toEqual(eventType.customReplyToEmail);
+      expect(fetchedEventType?.showOptimizedSlots).toEqual(eventType.showOptimizedSlots);
 
       expect(fetchedHiddenEventType?.id).toEqual(hiddenEventType.id);
       expect(fetchedHiddenEventType?.hidden).toEqual(true);
@@ -822,6 +863,23 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType?.color).toEqual(eventType.color);
       expect(fetchedEventType?.hidden).toEqual(false);
+      expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
+      expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
+      expect(fetchedEventType?.canSendCalVideoTranscriptionEmails).toEqual(
+        eventType.canSendCalVideoTranscriptionEmails
+      );
+      expect(fetchedEventType?.autoTranslateInstantMeetingTitleEnabled).toEqual(
+        eventType.autoTranslateInstantMeetingTitleEnabled
+      );
+      expect(fetchedEventType?.interfaceLanguage).toEqual(eventType.interfaceLanguage);
+      expect(fetchedEventType?.allowReschedulingPastBookings).toEqual(
+        eventType.allowReschedulingPastBookings
+      );
+      expect(fetchedEventType?.allowReschedulingCancelledBookings).toEqual(
+        eventType.allowReschedulingCancelledBookings
+      );
+      expect(fetchedEventType?.customReplyToEmail).toEqual(eventType.customReplyToEmail);
+      expect(fetchedEventType?.showOptimizedSlots).toEqual(eventType.showOptimizedSlots);
     });
 
     it(`/GET/event-types by username and eventSlug should not return hidden event type if auth of non event type owner provided`, async () => {
@@ -1268,6 +1326,15 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: false,
+        disableCancelling: false,
+        disableRescheduling: false,
+        canSendCalVideoTranscriptionEmails: false,
+        autoTranslateInstantMeetingTitleEnabled: false,
+        interfaceLanguage: "es",
+        allowReschedulingPastBookings: false,
+        allowReschedulingCancelledBookings: false,
+        customReplyToEmail: "updated-reply@example.com",
+        showOptimizedSlots: false,
       };
 
       return request(app.getHttpServer())
@@ -1374,6 +1441,32 @@ describe("Event types Endpoints", () => {
           eventType.calVideoSettings = updatedEventType.calVideoSettings;
 
           expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
+          expect(updatedEventType.disableCancelling).toEqual(body.disableCancelling);
+          expect(updatedEventType.disableRescheduling).toEqual(body.disableRescheduling);
+          expect(updatedEventType.canSendCalVideoTranscriptionEmails).toEqual(
+            body.canSendCalVideoTranscriptionEmails
+          );
+          expect(updatedEventType.autoTranslateInstantMeetingTitleEnabled).toEqual(
+            body.autoTranslateInstantMeetingTitleEnabled
+          );
+          expect(updatedEventType.interfaceLanguage).toEqual(body.interfaceLanguage);
+          expect(updatedEventType.allowReschedulingPastBookings).toEqual(body.allowReschedulingPastBookings);
+          expect(updatedEventType.allowReschedulingCancelledBookings).toEqual(
+            body.allowReschedulingCancelledBookings
+          );
+          expect(updatedEventType.customReplyToEmail).toEqual(body.customReplyToEmail);
+          expect(updatedEventType.showOptimizedSlots).toEqual(body.showOptimizedSlots);
+
+          eventType.disableCancelling = updatedEventType.disableCancelling;
+          eventType.disableRescheduling = updatedEventType.disableRescheduling;
+          eventType.canSendCalVideoTranscriptionEmails = updatedEventType.canSendCalVideoTranscriptionEmails;
+          eventType.autoTranslateInstantMeetingTitleEnabled =
+            updatedEventType.autoTranslateInstantMeetingTitleEnabled;
+          eventType.interfaceLanguage = updatedEventType.interfaceLanguage;
+          eventType.allowReschedulingPastBookings = updatedEventType.allowReschedulingPastBookings;
+          eventType.allowReschedulingCancelledBookings = updatedEventType.allowReschedulingCancelledBookings;
+          eventType.customReplyToEmail = updatedEventType.customReplyToEmail;
+          eventType.showOptimizedSlots = updatedEventType.showOptimizedSlots;
         });
     });
 

@@ -13841,7 +13841,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.\n      If no slots are available, the data object will be empty {}.",
+            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.\n      If no slots are available, the data field will be an empty object {}.",
             "content": {
               "application/json": {
                 "schema": {
@@ -14452,7 +14452,7 @@
       },
       "get": {
         "operationId": "TeamsEventTypesController_getTeamEventTypes",
-        "summary": "Get a team event type",
+        "summary": "Get team event types",
         "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
         "parameters": [
           {
@@ -18061,6 +18061,42 @@
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "disableCancelling": {
+            "type": "boolean",
+            "description": "If true, guests and organizer can no longer cancel the event."
+          },
+          "disableRescheduling": {
+            "type": "boolean",
+            "description": "If true, guests and organizer can no longer reschedule the event."
+          },
+          "canSendCalVideoTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+          },
+          "autoTranslateInstantMeetingTitleEnabled": {
+            "type": "boolean",
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "customReplyToEmail": {
+            "type": "string",
+            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability."
+          },
           "locations": {
             "type": "array",
             "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
@@ -19268,6 +19304,42 @@
             "type": "boolean",
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "disableCancelling": {
+            "type": "object",
+            "description": "If true, guests and organizer can no longer cancel the event."
+          },
+          "disableRescheduling": {
+            "type": "object",
+            "description": "If true, guests and organizer can no longer reschedule the event."
+          },
+          "canSendCalVideoTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+          },
+          "autoTranslateInstantMeetingTitleEnabled": {
+            "type": "boolean",
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+          },
+          "interfaceLanguage": {
+            "type": "object",
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "object",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "customReplyToEmail": {
+            "type": "object",
+            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
+          },
+          "showOptimizedSlots": {
+            "type": "object",
+            "description": "Arrange time slots to optimize availability."
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -19623,6 +19695,42 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "type": "object",
+            "description": "If true, guests and organizer can no longer cancel the event."
+          },
+          "disableRescheduling": {
+            "type": "object",
+            "description": "If true, guests and organizer can no longer reschedule the event."
+          },
+          "canSendCalVideoTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+          },
+          "autoTranslateInstantMeetingTitleEnabled": {
+            "type": "boolean",
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+          },
+          "interfaceLanguage": {
+            "type": "object",
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "object",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "customReplyToEmail": {
+            "type": "object",
+            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
+          },
+          "showOptimizedSlots": {
+            "type": "object",
+            "description": "Arrange time slots to optimize availability."
           },
           "teamId": {
             "type": "number"
@@ -19991,6 +20099,42 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "type": "boolean",
+            "description": "If true, guests and organizer can no longer cancel the event."
+          },
+          "disableRescheduling": {
+            "type": "boolean",
+            "description": "If true, guests and organizer can no longer reschedule the event."
+          },
+          "canSendCalVideoTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+          },
+          "autoTranslateInstantMeetingTitleEnabled": {
+            "type": "boolean",
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "customReplyToEmail": {
+            "type": "string",
+            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability."
           },
           "locations": {
             "type": "array",
@@ -21616,6 +21760,42 @@
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "disableCancelling": {
+            "type": "boolean",
+            "description": "If true, guests and organizer can no longer cancel the event."
+          },
+          "disableRescheduling": {
+            "type": "boolean",
+            "description": "If true, guests and organizer can no longer reschedule the event."
+          },
+          "canSendCalVideoTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+          },
+          "autoTranslateInstantMeetingTitleEnabled": {
+            "type": "boolean",
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "customReplyToEmail": {
+            "type": "string",
+            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability."
+          },
           "schedulingType": {
             "type": "string",
             "enum": ["collective", "roundRobin", "managed"],
@@ -22078,6 +22258,42 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "type": "boolean",
+            "description": "If true, guests and organizer can no longer cancel the event."
+          },
+          "disableRescheduling": {
+            "type": "boolean",
+            "description": "If true, guests and organizer can no longer reschedule the event."
+          },
+          "canSendCalVideoTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+          },
+          "autoTranslateInstantMeetingTitleEnabled": {
+            "type": "boolean",
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "customReplyToEmail": {
+            "type": "string",
+            "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability."
           },
           "schedulingType": {
             "type": "string",
@@ -29442,6 +29658,10 @@
             "example": "success",
             "enum": ["success", "error"]
           },
+          "message": {
+            "type": "string",
+            "example": "This endpoint will require authentication in a future release."
+          },
           "error": {
             "type": "object"
           },
@@ -29468,6 +29688,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "message": {
+            "type": "string",
+            "example": "This endpoint will require authentication in a future release."
           },
           "error": {
             "type": "object"

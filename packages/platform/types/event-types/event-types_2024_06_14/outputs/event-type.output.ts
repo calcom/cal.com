@@ -460,6 +460,72 @@ class BaseEventTypeOutput_2024_06_14 {
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description: "If true, guests and organizer can no longer cancel the event.",
+  })
+  disableCancelling?: boolean | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description: "If true, guests and organizer can no longer reschedule the event.",
+  })
+  disableRescheduling?: boolean | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
+  })
+  canSendCalVideoTranscriptionEmails?: boolean;
+
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description: "Automatically translate instant meeting title to the visitor's browser language using AI.",
+  })
+  autoTranslateInstantMeetingTitleEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Set preferred language for the booking interface.",
+  })
+  interfaceLanguage?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description: "Enabling this option allows for past events to be rescheduled.",
+  })
+  allowReschedulingPastBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description:
+      "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+  })
+  allowReschedulingCancelledBookings?: boolean | null;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      "Use a different email address as the replyTo for confirmation emails instead of the organizer's email.",
+  })
+  customReplyToEmail?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description: "Arrange time slots to optimize availability.",
+  })
+  showOptimizedSlots?: boolean | null;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
