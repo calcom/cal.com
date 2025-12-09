@@ -570,6 +570,7 @@ export class EventTypeRepository {
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
+      autoTranslateInstantMeetingTitleEnabled: true,
       fieldTranslations: {
         select: {
           translatedText: true,
@@ -868,6 +869,7 @@ export class EventTypeRepository {
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
+      autoTranslateInstantMeetingTitleEnabled: true,
       fieldTranslations: {
         select: {
           translatedText: true,

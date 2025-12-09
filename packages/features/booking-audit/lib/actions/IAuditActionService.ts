@@ -1,6 +1,26 @@
 import { z } from "zod";
 
 /**
+ * Represents a component that can be interpolated into translations
+ * Used with react-i18next Trans component for proper i18n support (RTL, word order, etc.)
+ */
+export type TranslationComponent = {
+    type: "link";
+    href: string;
+};
+
+/**
+ * Represents a translation key with optional interpolation params and components
+ * Used for dynamic display titles that need to be translated with context
+ * Components are used for clickable links within translations (e.g., "Rescheduled to <1>New Booking</1>")
+ */
+export type TranslationWithParams = {
+    key: string;
+    params?: Record<string, string | number>;
+    components?: TranslationComponent[];
+};
+
+/**
  * Interface for Audit Action Services
  * 
  * Defines the contract that all audit action services must implement.
@@ -43,10 +63,20 @@ export interface IAuditActionService<
 
     /**
      * Get flattened JSON data for display (fields only, no version wrapper)
+     * Optional - implement only if custom display formatting is needed
      * @param storedData - Parsed stored data { version, fields }
      * @returns The fields object without version wrapper and we decide what fields to show to the client
      */
-    getDisplayJson(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): unknown;
+    getDisplayJson?(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): unknown;
+
+    /**
+     * Get the display title for the audit action
+     * Returns a translation key with optional interpolation params for dynamic titles
+     * (e.g., "Booking reassigned to John Doe" instead of just "Reassignment")
+     * @param storedData - Parsed stored data { version, fields }
+     * @returns Translation key with optional interpolation params
+     */
+    getDisplayTitle(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): Promise<TranslationWithParams>;
 
     /**
      * Migrate old version data to latest version
