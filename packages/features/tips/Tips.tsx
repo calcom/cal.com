@@ -254,7 +254,10 @@ function Tips() {
                       ? {
                         href: tip.href,
                         text: t("learn_more"),
-                        onClick: tip.onClick,
+                        onClick: () => {
+                          posthog.capture("tip_learn_more_clicked", tip);
+                          if (tip.onClick) tip.onClick();
+                        }
                       }
                       : undefined
                   }
