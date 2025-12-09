@@ -35,8 +35,8 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
-import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
+import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -456,7 +456,6 @@ function buildBookingCreatedPayload({
   };
 }
 
-
 export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
@@ -579,7 +578,7 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
-    hostSubsetIds,
+    rrHostSubsetIds,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -830,7 +829,7 @@ async function handler(
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
     routingFormResponse,
-    hostSubsetIds: hostSubsetIds ?? undefined,
+    rrHostSubsetIds: rrHostSubsetIds ?? undefined,
   });
 
   // We filter out users but ensure allHostUsers remain same.
@@ -1312,9 +1311,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1360,8 +1359,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1982,14 +1981,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2290,8 +2289,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   const bookingCreatedPayload = buildBookingCreatedPayload({
@@ -2305,10 +2304,12 @@ async function handler(
 
   const bookingRescheduledPayload: BookingRescheduledPayload = {
     ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking ? {
-      startTime: originalRescheduledBooking.startTime,
-      endTime: originalRescheduledBooking.endTime,
-    } : undefined,
+    oldBooking: originalRescheduledBooking
+      ? {
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        }
+      : undefined,
   };
 
   const bookingEventHandler = deps.bookingEventHandler;
@@ -2384,9 +2385,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2720,7 +2721,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);

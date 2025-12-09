@@ -559,5 +559,5 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
       "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
   })
   @ApiHideProperty()
-  enableHostSubset?: boolean;
+  rrHostSubsetEnabled?: boolean;
 }

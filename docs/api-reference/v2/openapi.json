@@ -3271,7 +3271,7 @@
             }
           },
           {
-            "name": "hostSubsetIds",
+            "name": "rrHostSubsetIds",
             "required": false,
             "in": "query",
             "description": "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
@@ -6826,7 +6826,7 @@
             }
           },
           {
-            "name": "hostSubsetIds",
+            "name": "rrHostSubsetIds",
             "required": false,
             "in": "query",
             "description": "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
@@ -13345,7 +13345,7 @@
             }
           },
           {
-            "name": "hostSubsetIds",
+            "name": "rrHostSubsetIds",
             "required": false,
             "in": "query",
             "description": "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
@@ -19703,7 +19703,7 @@
             "type": "boolean",
             "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           },
-          "enableHostSubset": {
+          "rrHostSubsetEnabled": {
             "type": "boolean",
             "description": "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type."
           }
@@ -21720,7 +21720,7 @@
             "type": "boolean",
             "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           },
-          "enableHostSubset": {
+          "rrHostSubsetEnabled": {
             "type": "boolean",
             "description": "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type."
           }
@@ -22187,7 +22187,7 @@
             "type": "boolean",
             "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           },
-          "enableHostSubset": {
+          "rrHostSubsetEnabled": {
             "type": "boolean",
             "description": "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type."
           }
@@ -28003,7 +28003,7 @@
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
           },
-          "hostSubsetIds": {
+          "rrHostSubsetIds": {
             "description": "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
             "example": [1, 2, 3],
             "type": "array",
@@ -28134,7 +28134,7 @@
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
           },
-          "hostSubsetIds": {
+          "rrHostSubsetIds": {
             "description": "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
             "example": [1, 2, 3],
             "type": "array",
@@ -28270,7 +28270,7 @@
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
           },
-          "hostSubsetIds": {
+          "rrHostSubsetIds": {
             "description": "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
             "example": [1, 2, 3],
             "type": "array",

@@ -88,7 +88,7 @@ type Input = Pick<
   | "rescheduleWithSameRoundRobinHost"
   | "maxActiveBookingPerBookerOfferReschedule"
   | "maxActiveBookingsPerBooker"
-  | "enableHostSubset"
+  | "rrHostSubsetEnabled"
 >;
 
 @Injectable()
@@ -110,7 +110,7 @@ export class OutputOrganizationsEventTypesService {
       parentId,
       assignAllTeamMembers,
       rescheduleWithSameRoundRobinHost,
-      enableHostSubset,
+      rrHostSubsetEnabled,
     } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ownerId, users, ...rest } = this.outputEventTypesService.getResponseEventType(
@@ -146,7 +146,7 @@ export class OutputOrganizationsEventTypesService {
         theme: databaseEventType?.team?.theme,
       },
       rescheduleWithSameRoundRobinHost,
-      enableHostSubset,
+      rrHostSubsetEnabled,
     };
   }
 

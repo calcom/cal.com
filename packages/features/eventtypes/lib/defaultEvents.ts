@@ -152,7 +152,7 @@ const commons = {
   bookingRequiresAuthentication: false,
   createdAt: null,
   updatedAt: null,
-  enableHostSubset: false,
+  rrHostSubsetEnabled: false,
 };
 
 export const dynamicEvent = {

@@ -405,7 +405,7 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })
-  hostSubsetIds?: number[];
+  rrHostSubsetIds?: number[];
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

@@ -352,7 +352,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         assignAllTeamMembers: true,
         bookingFields: [],
         locations: [],
-        enableHostSubset: true,
+        rrHostSubsetEnabled: true,
       });
 
       team2RREventTypeId = team2RREventType.id;
@@ -650,7 +650,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a team 2 RR booking and use hostSubsetIds for force teamUser2 as host ", async () => {
+      it("should create a team 2 RR booking and use rrHostSubsetIds for force teamUser2 as host ", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
           eventTypeId: team2RREventTypeId,
@@ -661,7 +661,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             language: "it",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
-          hostSubsetIds: [teamUser2.id],
+          rrHostSubsetIds: [teamUser2.id],
         };
 
         return request(app.getHttpServer())
@@ -704,7 +704,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a team 2 RR booking and use hostSubsetIds for force teamUser as host ", async () => {
+      it("should create a team 2 RR booking and use rrHostSubsetIds for force teamUser as host ", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
           eventTypeId: team2RREventTypeId,
@@ -715,7 +715,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             language: "it",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
-          hostSubsetIds: [teamUser.id],
+          rrHostSubsetIds: [teamUser.id],
         };
 
         return request(app.getHttpServer())
@@ -758,7 +758,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a team 2 RR booking and use hostSubsetIds for force teamUser and teamUser2 as host ", async () => {
+      it("should create a team 2 RR booking and use rrHostSubsetIds for force teamUser and teamUser2 as host ", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString(),
           eventTypeId: team2RREventTypeId,
@@ -769,7 +769,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             language: "it",
           },
           meetingUrl: "https://meet.google.com/abc-def-ghi",
-          hostSubsetIds: [teamUser.id, teamUser2.id],
+          rrHostSubsetIds: [teamUser.id, teamUser2.id],
         };
 
         return request(app.getHttpServer())

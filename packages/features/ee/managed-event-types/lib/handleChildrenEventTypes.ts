@@ -237,7 +237,7 @@ export default async function handleChildrenEventTypes({
         useBookerTimezone: false,
         allowReschedulingCancelledBookings:
           managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
-        enableHostSubset: false,
+        rrHostSubsetEnabled: false,
       };
     });
 
@@ -332,7 +332,7 @@ export default async function handleChildrenEventTypes({
           },
           data: {
             ...updatePayloadFiltered,
-            enableHostSubset: false,
+            rrHostSubsetEnabled: false,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,

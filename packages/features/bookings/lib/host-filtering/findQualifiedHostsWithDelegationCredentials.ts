@@ -56,16 +56,19 @@ const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isF
 
 const isWithinRRHostSubset = <T extends { isFixed: boolean; user: { id: number } }>(
   host: T,
-  hostSubsetIds: number[],
-  { enableHostSubset, schedulingType }: { enableHostSubset: boolean; schedulingType?: SchedulingType } = {
-    enableHostSubset: false,
+  rrHostSubsetIds: number[],
+  {
+    rrHostSubsetEnabled,
+    schedulingType,
+  }: { rrHostSubsetEnabled: boolean; schedulingType?: SchedulingType } = {
+    rrHostSubsetEnabled: false,
     schedulingType: undefined,
   }
 ): host is T & { isFixed: false } => {
-  if (hostSubsetIds.length === 0 || !enableHostSubset || schedulingType !== SchedulingType.ROUND_ROBIN) {
+  if (rrHostSubsetIds.length === 0 || !rrHostSubsetEnabled || schedulingType !== SchedulingType.ROUND_ROBIN) {
     return true;
   }
-  return hostSubsetIds.includes(host.user.id);
+  return rrHostSubsetIds.includes(host.user.id);
 };
 
 export class QualifiedHostsService {
@@ -84,7 +87,7 @@ export class QualifiedHostsService {
     routedTeamMemberIds,
     contactOwnerEmail,
     routingFormResponse,
-    hostSubsetIds,
+    rrHostSubsetIds,
   }: {
     eventType: {
       id: number;
@@ -95,13 +98,13 @@ export class QualifiedHostsService {
       isRRWeightsEnabled: boolean;
       rescheduleWithSameRoundRobinHost: boolean;
       includeNoShowInRRCalculation: boolean;
-      enableHostSubset?: boolean;
+      rrHostSubsetEnabled?: boolean;
     } & EventType;
     rescheduleUid: string | null;
     routedTeamMemberIds: number[];
     contactOwnerEmail: string | null;
     routingFormResponse: RoutingFormResponse | null;
-    hostSubsetIds?: number[];
+    rrHostSubsetIds?: number[];
   }): Promise<{
     qualifiedRRHosts: {
       isFixed: boolean;
@@ -138,14 +141,14 @@ export class QualifiedHostsService {
     }
 
     const fixedHosts = normalizedHosts.filter(isFixedHost).filter((host) =>
-      isWithinRRHostSubset(host, hostSubsetIds ?? [], {
-        enableHostSubset: eventType.enableHostSubset ?? false,
+      isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
+        rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
         schedulingType: eventType.schedulingType ?? undefined,
       })
     );
     const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost).filter((host) =>
-      isWithinRRHostSubset(host, hostSubsetIds ?? [], {
-        enableHostSubset: eventType.enableHostSubset ?? false,
+      isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
+        rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
         schedulingType: eventType.schedulingType ?? undefined,
       })
     );

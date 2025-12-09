@@ -238,5 +238,5 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })
-  hostSubsetIds?: number[];
+  rrHostSubsetIds?: number[];
 }

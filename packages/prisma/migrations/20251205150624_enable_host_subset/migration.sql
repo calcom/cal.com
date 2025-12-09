@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "public"."EventType" ADD COLUMN     "enableHostSubset" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "public"."EventType" ADD COLUMN   "rrHostSubsetEnabled" BOOLEAN NOT NULL DEFAULT false;

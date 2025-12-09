@@ -108,7 +108,7 @@ export class GetAvailableSlotsInput_2024_09_04 {
     example: [1, 2, 3],
   })
   @ApiHideProperty()
-  hostSubsetIds?: number[];
+  rrHostSubsetIds?: number[];
 }
 
 export const ById_2024_09_04_type = "byEventTypeId";

@@ -389,7 +389,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
-          expect(data.enableHostSubset).toEqual(false);
+          expect(data.rrHostSubsetEnabled).toEqual(false);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
           expect(data.emailSettings).toEqual(body.emailSettings);
           collectiveEventType = responseBody.data;
@@ -538,7 +538,7 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.title).toEqual(collectiveEventType.title);
           expect(data.hosts.length).toEqual(2);
-          expect(data.enableHostSubset).toEqual(false);
+          expect(data.rrHostSubsetEnabled).toEqual(false);
           evaluateHost(collectiveEventType.hosts[0], data.hosts[0]);
           evaluateHost(collectiveEventType.hosts[1], data.hosts[1]);
 
@@ -1144,7 +1144,7 @@ describe("Organizations Event Types Endpoints", () => {
         hideCalendarEventDetails: true,
         hideOrganizerEmail: true,
         lockTimeZoneToggleOnBookingPage: true,
-        enableHostSubset: true,
+        rrHostSubsetEnabled: true,
         color: {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
@@ -1178,7 +1178,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
-          expect(data.enableHostSubset).toEqual(true);
+          expect(data.rrHostSubsetEnabled).toEqual(true);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
           collectiveEventType = responseBody.data;
         });

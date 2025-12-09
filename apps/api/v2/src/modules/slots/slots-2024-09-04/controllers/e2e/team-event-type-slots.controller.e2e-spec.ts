@@ -276,7 +276,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             },
           ],
         },
-        enableHostSubset: true,
+        rrHostSubsetEnabled: true,
       });
 
       roundRobinEventTypeWithoutFixedHostsId = roundRobinEventTypeWithoutFixedHosts.id;
@@ -312,7 +312,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
               },
             ],
           },
-          enableHostSubset: true,
+          rrHostSubsetEnabled: true,
         });
 
       roundRobinEventTypeWithFixedAndNonFixedHostsId = roundRobinEventTypeWithFixedAndNonFixedHosts.id;
@@ -399,7 +399,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event without fixed hosts slots in UTC with subsetIds for teammateThree who has a smaller schedule", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2050-09-05&end=2050-09-09&hostSubsetIds[]=${teammateThree.id}`
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateThree.id}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -416,7 +416,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event  without fixed hosts slots in UTC with subsetIds for teammateOne", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2050-09-05&end=2050-09-09&hostSubsetIds[]=${teammateOne.id}`
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -435,7 +435,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event with and without fixed hosts slots in UTC with subsetIds for teammateOne(fixed) and teammateThree(not fixed) ", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2050-09-05&end=2050-09-09&hostSubsetIds[]=${teammateOne.id}&hostSubsetIds[]=${teammateThree.id}`
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}&rrHostSubsetIds[]=${teammateThree.id}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -453,7 +453,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event with and without fixed hosts slots in UTC with subsetIds for teammateOne(fixed) and teammateTwo(not fixed) ", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2050-09-05&end=2050-09-09&hostSubsetIds[]=${teammateOne.id}&hostSubsetIds[]=${teammateTwo.id}`
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}&rrHostSubsetIds[]=${teammateTwo.id}`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)

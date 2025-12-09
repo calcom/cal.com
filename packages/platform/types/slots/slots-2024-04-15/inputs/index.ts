@@ -225,7 +225,7 @@ export class GetAvailableSlotsInput_2024_04_15 {
     example: [1, 2, 3],
   })
   @ApiHideProperty()
-  hostSubsetIds?: number[];
+  rrHostSubsetIds?: number[];
 }
 
 export class RemoveSelectedSlotInput_2024_04_15 {

@@ -181,7 +181,7 @@ const getEventTypesFromDBSelect = {
       name: true,
     },
   },
-  enableHostSubset: true,
+  rrHostSubsetEnabled: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {

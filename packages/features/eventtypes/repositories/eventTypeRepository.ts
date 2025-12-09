@@ -1274,7 +1274,7 @@ export class EventTypeRepository {
         useEventLevelSelectedCalendars: true,
         restrictionScheduleId: true,
         useBookerTimezone: true,
-        enableHostSubset: true,
+        rrHostSubsetEnabled: true,
         hostGroups: {
           select: {
             id: true,
