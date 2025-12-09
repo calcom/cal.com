@@ -7,8 +7,6 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-
-import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -19,6 +17,8 @@ import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 
 type FormValues = {
   name: string;
@@ -128,7 +128,7 @@ const OAuthClientsView = () => {
           {oAuthClients.map((client, index) => (
             <div
               key={client.clientId}
-              className={`flex cursor-pointer items-center justify-between p-4 transition-colors hover:bg-subtle ${
+              className={`hover:bg-subtle flex cursor-pointer items-center justify-between p-4 transition-colors ${
                 index !== oAuthClients.length - 1 ? "border-subtle border-b" : ""
               }`}
               onClick={() => setSelectedClient(client)}
@@ -179,10 +179,7 @@ const OAuthClientsView = () => {
             submittedClient ? t("oauth_client_submitted_description") : t("new_oauth_client_description")
           }>
           {!submittedClient ? (
-            <Form
-              form={oAuthForm}
-              handleSubmit={handleSubmit}
-              className="space-y-4">
+            <Form form={oAuthForm} handleSubmit={handleSubmit} className="space-y-4">
               <TextField
                 {...oAuthForm.register("name", { required: true })}
                 label={t("client_name")}
@@ -237,9 +234,7 @@ const OAuthClientsView = () => {
                     imageSrc={logo}
                   />
                 </div>
-                {logoError && (
-                  <p className="text-error mt-2 text-sm">{t("logo_required")}</p>
-                )}
+                {logoError && <p className="text-error mt-2 text-sm">{t("logo_required")}</p>}
               </div>
 
               <DialogFooter>
