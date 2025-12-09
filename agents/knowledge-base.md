@@ -306,9 +306,129 @@ import { Button } from "@calcom/ui/components/button";
 - **Tests**: Same as source file + `.test.ts` or `.spec.ts`
 - **Avoid**: Dot-suffixes like `.service.ts`, `.repository.ts` (except for tests, types, specs)
 
-## Repository Method Conventions
+## Repository + DTO Pattern and Method Conventions
 
-Repositories should follow consistent naming and design patterns to promote reusability and maintainability.
+We use a Repository + DTO pattern to isolate Prisma and the database from business logic. Repositories are the only layer that talks to Prisma and database models. All services, tRPC handlers, API controllers, workflows, and UI should depend on DTOs or domain types, not Prisma types. This makes it possible to evolve the Prisma schema or even swap the ORM without rewriting business logic.
+
+DTOs (Data Transfer Objects) are simple TypeScript types or interfaces that represent our domain data in an ORM-agnostic way and are returned from repositories.
+
+### What not to do: tight Prisma coupling in business logic
+
+Do not import Prisma types or `Prisma.*GetPayload` in business logic (services, handlers, UI, workflows, webhooks, etc.). Prisma types belong only in the data access layer.
+
+```typescript
+// ❌ Bad – tight coupling to Prisma in business logic
+import type { Webhook } from "@calcom/prisma/client";
+
+export async function sendGenericWebhookPayload(webhook: Webhook) {
+  // Business logic now depends on Prisma's schema and types
+}
+```
+
+Instead, depend on DTOs and repositories:
+
+```typescript
+// ✅ Good – business logic depends on DTOs and repository abstraction
+export interface WebhookDTO {
+  id: string;
+  version: string;
+  url: string;
+}
+
+export interface IWebhookRepository {
+  findMany(): Promise<WebhookDTO[]>;
+  findById(id: string): Promise<WebhookDTO | null>;
+}
+
+export async function sendGenericWebhookPayload(
+  repo: IWebhookRepository,
+  webhookId: string,
+) {
+  const webhook = await repo.findById(webhookId);
+  if (!webhook) return;
+
+  // Pure business logic using WebhookDTO, no Prisma dependency
+}
+```
+
+### DTOs in repositories
+
+Repositories should expose DTOs or domain types from their public methods, and keep Prisma types internal.
+
+```typescript
+// DTO – ORM-agnostic type exported from the repository module
+export interface BookingDTO {
+  id: string;
+  userId: number;
+  startTime: Date;
+  endTime: Date;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+}
+```
+
+```typescript
+import type { Prisma, PrismaClient } from "@calcom/prisma/client";
+
+type PrismaBooking = Prisma.BookingGetPayload<{
+  select: {
+    id: true;
+    userId: true;
+    startTime: true;
+    endTime: true;
+    status: true;
+  };
+}>;
+
+export class BookingRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  private toDTO(row: PrismaBooking): BookingDTO {
+    return {
+      id: row.id,
+      userId: row.userId,
+      startTime: row.startTime,
+      endTime: row.endTime,
+      status: row.status,
+    };
+  }
+
+  async findByUserId(userId: number): Promise<BookingDTO[]> {
+    const rows = await this.prisma.booking.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        userId: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+      },
+    });
+
+    return rows.map((row) => this.toDTO(row));
+  }
+}
+```
+
+Notes:
+- Prisma utilities like `Prisma.*GetPayload` are fine inside repositories, as long as the public API returns DTOs.
+- Mapping logic (Prisma → DTO) is allowed in repositories; it's not "business logic".
+- DTOs can be co-located with their repository; the important rule is that they don't depend on Prisma and can be used freely by services/handlers.
+
+### Prisma boundaries
+
+Prisma usage is restricted to the data access layer:
+
+**Prisma is allowed in:**
+- `packages/prisma` (schema, migrations, zod-utils)
+- Repository implementations (e.g. `packages/features/**/repositories/*Repository.ts`)
+- Low-level infrastructure explicitly designated as part of the data access layer
+
+**Prisma is not allowed in:**
+- `packages/features/**/` business logic (non-repository)
+- `packages/trpc/**` handlers
+- `apps/web/**` pages, components, server actions
+- `apps/api/v2/**` services and controllers
+- Workflow/webhook/service logic layers
 
 ### Method Naming Rules
 
