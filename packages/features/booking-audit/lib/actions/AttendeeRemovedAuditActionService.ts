@@ -65,10 +65,13 @@ export class AttendeeRemovedAuditActionService
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeRemovedAuditDisplayData {
         const { fields } = storedData;
+        const newAttendeesSet = new Set(fields.removedAttendees.new ?? []);
+        // Only include attendees that are in the old list but not in the new list
+        const removedAttendees = (fields.removedAttendees.old ?? []).filter(
+            (email) => !newAttendeesSet.has(email)
+        );
         return {
-            removedAttendees: fields.removedAttendees.new,
-            previousAttendees: fields.removedAttendees.old ?? [],
-            count: fields.removedAttendees.new.length,
+            removedAttendees,
         };
     }
 }
@@ -77,6 +80,4 @@ export type AttendeeRemovedAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type AttendeeRemovedAuditDisplayData = {
     removedAttendees: string[];
-    previousAttendees: string[];
-    count: number;
 };
