@@ -11,9 +11,12 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { showToast } from "@calcom/ui/components/toast";
 import NoPlatformPlan from "@calcom/web/components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
+
+import { useDeleteOAuthClientWebhook } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClientWebhooks";
 
 type WebhooksByOrg = RouterOutputs["viewer"]["webhook"]["getByOrg"];
 
@@ -34,7 +37,19 @@ const WebhooksList = ({ data }: Props) => {
   const { t } = useLocale();
   const { isPlatformUser, isPaidUser, userOrgId, isUserLoading, isUserBillingDataLoading, userBillingData } =
     useGetUserAttributes();
+  const { mutateAsync: deleteWebhook } = useDeleteOAuthClientWebhook();
   const router = useRouter();
+
+  const handleDelete = async (clientId: string, webhookId: string) => {
+    try {
+      await deleteWebhook({ clientId, webhookId });
+      showToast(t("webhook_removed_successfully"), "success");
+
+      router.refresh();
+    } catch {
+      showToast(t("webhook_delete_failed"), "error");
+    }
+  };
 
   if (isUserLoading || (isUserBillingDataLoading && !userBillingData)) {
     return <div className="m-5">{t("loading")}</div>;
@@ -73,8 +88,6 @@ const WebhooksList = ({ data }: Props) => {
           color="secondary"
           onClick={() => {
             window.location.href = "/settings/platform/webhooks/add";
-
-            // router.push("/settings/platform/webhooks/add");
           }}
           data-testid="create-new-webhook-btn">
           {t("new")}
@@ -96,8 +109,15 @@ const WebhooksList = ({ data }: Props) => {
                       canDeleteWebhook: hasWritePermission ?? false,
                     }}
                     onEditWebhook={() =>
-                      router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
+                      router.push(
+                        `${WEBAPP_URL}/settings/platform/webhooks/edit?clientId=${webhook.platformOAuthClientId}&webhookId=${webhook.id}`
+                      )
                     }
+                    onDeleteWebhook={() => {
+                      if (webhook.platformOAuthClientId) {
+                        handleDelete(webhook.platformOAuthClientId, webhook.id);
+                      }
+                    }}
                   />
                 ))}
               </div>
@@ -117,7 +137,6 @@ const WebhooksList = ({ data }: Props) => {
               size="sm"
               color="secondary"
               onClick={() => {
-                // router.push("/settings/platform/webhooks/add");
                 window.location.href = "/settings/platform/webhooks/add";
               }}
               data-testid="create-new-webhook-btn">
