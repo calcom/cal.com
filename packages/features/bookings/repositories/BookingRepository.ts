@@ -1391,6 +1391,19 @@ export class BookingRepository {
             metadata: true,
           },
         },
+        user: {
+          select: {
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
+          },
+        },
         payment: {
           select: {
             id: true,
@@ -1433,6 +1446,11 @@ export class BookingRepository {
           include: {
             destinationCalendar: true,
             credentials: true,
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
           },
         },
       },

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import classNames from "@calcom/ui/classNames";
 
 import { useCalendarStore } from "../../state/store";
 import { calculateEventLayouts, createLayoutMap } from "../../utils/overlap";
@@ -77,7 +78,10 @@ export function EventList({ day }: Props) {
         return (
           <div
             key={`${event.id}-${eventStart.toISOString()}`}
-            className="absolute transition-all duration-100 ease-out"
+            className={classNames(
+              "absolute transition-all duration-100 ease-out",
+              event.options?.borderOnly && "pointer-events-none"
+            )}
             data-testid={event.options?.["data-test-id"]}
             onMouseEnter={() => setHoveredEventId(event.id)}
             onMouseLeave={() => setHoveredEventId(null)}
