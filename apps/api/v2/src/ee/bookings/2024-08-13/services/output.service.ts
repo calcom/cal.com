@@ -93,7 +93,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
-  private cleanOAuthEmailSuffix(email: string): string {
+  private getDisplayEmail(email: string): string {
     return email.replace(/\+[a-zA-Z0-9]{25}/, "");
   }
 
@@ -130,7 +130,8 @@ export class OutputBookingsService_2024_08_13 {
       eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
-        email: this.cleanOAuthEmailSuffix(attendee.email),
+        email: attendee.email,
+        displayEmail: this.getDisplayEmail(attendee.email),
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
@@ -158,7 +159,7 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.email &&
       typeof bookingTransformed.bookingFieldsResponses.email === "string"
     ) {
-      bookingTransformed.bookingFieldsResponses.email = this.cleanOAuthEmailSuffix(
+      bookingTransformed.bookingFieldsResponses.displayEmail = this.getDisplayEmail(
         bookingTransformed.bookingFieldsResponses.email
       );
     }
@@ -167,8 +168,8 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.guests &&
       Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
     ) {
-      bookingTransformed.bookingFieldsResponses.guests = bookingTransformed.bookingFieldsResponses.guests.map(
-        (guest: string) => this.cleanOAuthEmailSuffix(guest)
+      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
+        (guest: string) => this.getDisplayEmail(guest)
       );
     }
 
@@ -215,13 +216,14 @@ export class OutputBookingsService_2024_08_13 {
         id: "unknown",
         name: "unknown",
         email: "unknown",
+        displayEmail: "unknown",
         username: "unknown",
       };
     }
 
     return {
       ...user,
-      email: this.cleanOAuthEmailSuffix(user.email),
+      displayEmail: this.getDisplayEmail(user.email),
       username: user.username || "unknown",
     };
   }
@@ -272,7 +274,8 @@ export class OutputBookingsService_2024_08_13 {
       eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
-        email: this.cleanOAuthEmailSuffix(attendee.email),
+        email: attendee.email,
+        displayEmail: this.getDisplayEmail(attendee.email),
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
@@ -301,7 +304,7 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.email &&
       typeof bookingTransformed.bookingFieldsResponses.email === "string"
     ) {
-      bookingTransformed.bookingFieldsResponses.email = this.cleanOAuthEmailSuffix(
+      bookingTransformed.bookingFieldsResponses.displayEmail = this.getDisplayEmail(
         bookingTransformed.bookingFieldsResponses.email
       );
     }
@@ -310,8 +313,8 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.guests &&
       Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
     ) {
-      bookingTransformed.bookingFieldsResponses.guests = bookingTransformed.bookingFieldsResponses.guests.map(
-        (guest: string) => this.cleanOAuthEmailSuffix(guest)
+      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
+        (guest: string) => this.getDisplayEmail(guest)
       );
     }
 
@@ -379,7 +382,8 @@ export class OutputBookingsService_2024_08_13 {
 
           const attendeeData = {
             name: attendee.name,
-            email: this.cleanOAuthEmailSuffix(attendee.email),
+            email: attendee.email,
+            displayEmail: this.getDisplayEmail(attendee.email),
             timeZone: attendee.timeZone,
             language: attendee.locale,
             absent: !!attendee.noShow,
@@ -507,7 +511,8 @@ export class OutputBookingsService_2024_08_13 {
 
           const attendeeData = {
             name: attendee.name,
-            email: this.cleanOAuthEmailSuffix(attendee.email),
+            email: attendee.email,
+            displayEmail: this.getDisplayEmail(attendee.email),
             timeZone: attendee.timeZone,
             language: attendee.locale,
             absent: !!attendee.noShow,
@@ -539,8 +544,9 @@ export class OutputBookingsService_2024_08_13 {
       reassignedTo: {
         id: databaseBooking?.user?.id || 0,
         name: databaseBooking?.user?.name || "unknown",
-        email: databaseBooking?.user?.email
-          ? this.cleanOAuthEmailSuffix(databaseBooking.user.email)
+        email: databaseBooking?.user?.email || "unknown",
+        displayEmail: databaseBooking?.user?.email
+          ? this.getDisplayEmail(databaseBooking.user.email)
           : "unknown",
       },
     };
