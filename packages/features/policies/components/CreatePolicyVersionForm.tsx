@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,12 +9,11 @@ import { PolicyType } from "@calcom/prisma/enums";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Form, TextField, TextAreaField } from "@calcom/ui/components/form";
+import { Form, TextAreaField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 const createPolicySchema = z.object({
   type: z.nativeEnum(PolicyType),
-  version: z.string().min(1, "Version date is required"),
   description: z.string().min(1, "Description for US users is required"),
   descriptionNonUS: z.string().min(1, "Description for non-US users is required"),
 });
@@ -30,24 +29,16 @@ export function CreatePolicyVersionForm() {
     resolver: zodResolver(createPolicySchema),
     defaultValues: {
       type: PolicyType.PRIVACY_POLICY,
-      version: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:MM format
       description: "",
       descriptionNonUS: "",
     },
   });
-
-  useEffect(() => {
-    if (isOpen) {
-      form.setValue("version", new Date().toISOString().slice(0, 16));
-    }
-  }, [isOpen, form]);
 
   const createMutation = trpc.viewer.admin.policy.create.useMutation({
     onSuccess: () => {
       showToast(t("policy_version_created_successfully"), "success");
       form.reset({
         type: PolicyType.PRIVACY_POLICY,
-        version: new Date().toISOString().slice(0, 16),
         description: "",
         descriptionNonUS: "",
       });
@@ -64,7 +55,6 @@ export function CreatePolicyVersionForm() {
   const onSubmit = (data: CreatePolicyFormValues) => {
     createMutation.mutate({
       type: data.type,
-      version: new Date(data.version),
       description: data.description,
       descriptionNonUS: data.descriptionNonUS,
     });
@@ -104,13 +94,6 @@ export function CreatePolicyVersionForm() {
             </select>
           </div>
 
-          <TextField
-            label={t("version_date")}
-            type="datetime-local"
-            {...form.register("version")}
-            required
-          />
-
           <TextAreaField
             label={t("description_us")}
             placeholder={t("policy_description_us_placeholder")}
@@ -126,12 +109,6 @@ export function CreatePolicyVersionForm() {
             rows={3}
             required
           />
-
-          <div className="bg-subtle rounded-md p-3">
-            <p className="text-default text-xs">
-              <strong>{t("note")}:</strong> {t("policy_version_note")}
-            </p>
-          </div>
 
           <div className="flex justify-end space-x-2">
             <Button color="secondary" onClick={() => setIsOpen(false)}>

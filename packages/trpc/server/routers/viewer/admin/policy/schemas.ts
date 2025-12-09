@@ -4,7 +4,6 @@ import { PolicyType } from "@calcom/prisma/enums";
 
 export const ZCreatePolicyVersionSchema = z.object({
   type: z.nativeEnum(PolicyType),
-  version: z.coerce.date(),
   description: z.string().min(1, "Description for US users is required"),
   descriptionNonUS: z.string().min(1, "Description for non-US users is required"),
 });

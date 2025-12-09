@@ -17,11 +17,11 @@ export const createPolicyVersionHandler = async ({ ctx, input }: CreatePolicyVer
 
   const policyRepository = new PolicyRepository(prisma);
 
-  // Create the policy version using repository
+  // Create the policy version using repository with current timestamp
   const policyVersion = await policyRepository.createPolicyVersion(
     {
       type: input.type,
-      version: input.version,
+      version: new Date(),
       description: input.description,
       descriptionNonUS: input.descriptionNonUS,
     },
