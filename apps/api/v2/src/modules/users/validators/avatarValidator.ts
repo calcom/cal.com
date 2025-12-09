@@ -7,9 +7,7 @@ const BASE64_IMAGE_REGEX =
 @ValidatorConstraint({ name: "avatarValidator", async: false })
 export class AvatarValidator implements ValidatorConstraintInterface {
   validate(avatarString: string): boolean {
-    if (avatarString === null || avatarString === undefined) return true;
     if (!avatarString?.trim()) return false;
-
     return this.isValidUrl(avatarString) || this.isValidBase64Image(avatarString);
   }
 
