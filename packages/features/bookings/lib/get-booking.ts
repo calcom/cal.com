@@ -234,6 +234,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
       startTime: true,
       endTime: true,
       status: true,
+      userId: true,
       attendees: {
         select: {
           id: true,
