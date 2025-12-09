@@ -98,10 +98,8 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingAccepted(bookingUid: string, actor: Actor, organizationId: number | null, data?: AcceptedAuditData) {
-    if (data) {
-      await this.bookingAuditProducerService.queueAcceptedAudit(bookingUid, actor, organizationId, data);
-    }
+  async onBookingAccepted(bookingUid: string, actor: Actor, organizationId: number | null, data: AcceptedAuditData) {
+    await this.bookingAuditProducerService.queueAcceptedAudit(bookingUid, actor, organizationId, data);
   }
 
   async onBookingCancelled(bookingUid: string, actor: Actor, organizationId: number | null, data: CancelledAuditData) {

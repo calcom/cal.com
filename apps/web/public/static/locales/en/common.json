@@ -4098,8 +4098,8 @@
   "booking_audit_action": {
     "created": "Created",
     "cancelled": "Cancelled",
-    "rescheduled": "Rescheduled to <1>New Booking</1>",
-    "rescheduled_from": "Rescheduled from <1>Previous Booking</1>",
+    "rescheduled": "Rescheduled to <0>New Booking</0>",
+    "rescheduled_from": "Rescheduled from <0>Previous Booking</0>",
     "accepted": "Accepted",
     "reschedule_requested": "Reschedule Requested",
     "attendee_added": "Attendee Added",

@@ -173,10 +173,7 @@ export class BookingAuditViewerService {
             bookingUid: currentBookingUid,
             data: transformedData,
             // Use a different translation key to show "Rescheduled from" instead of "Rescheduled"
-            actionDisplayTitle: {
-                key: "booking_audit_action.rescheduled_from",
-                components: [{ type: "link", href: `/booking/${fromRescheduleUid}` }],
-            },
+            actionDisplayTitle: this.rescheduledAuditActionService.getDisplayTitleForRescheduledFromLog(fromRescheduleUid),
         };
     }
 

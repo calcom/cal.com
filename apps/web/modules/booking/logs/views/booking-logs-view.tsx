@@ -6,7 +6,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Trans } from "react-i18next";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import dayjs from "@calcom/dayjs";
 import { trpc } from "@calcom/trpc/react";
@@ -15,6 +14,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 interface BookingLogsViewProps {
     bookingUid: string;
@@ -161,7 +161,8 @@ function ActionTitle({ actionDisplayTitle }: { actionDisplayTitle: TranslationWi
 
     if (actionDisplayTitle.components?.length) {
         return (
-            <Trans
+            <ServerTrans
+                t={t}
                 i18nKey={actionDisplayTitle.key}
                 components={actionDisplayTitle.components.map((comp) =>
                     comp.type === "link" ? (

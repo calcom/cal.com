@@ -65,7 +65,14 @@ export class RescheduledAuditActionService
         const rescheduledToUid = storedData.fields.rescheduledToUid.new;
         return {
             key: "booking_audit_action.rescheduled",
-            components: rescheduledToUid ? [{ type: "link", href: `/booking/${rescheduledToUid}` }] : undefined,
+            components: rescheduledToUid ? [{ type: "link", href: `/booking/${rescheduledToUid}/logs` }] : undefined,
+        };
+    }
+
+    getDisplayTitleForRescheduledFromLog(fromRescheduleUid: string): TranslationWithParams {
+        return {
+            key: "booking_audit_action.rescheduled_from",
+            components: [{ type: "link", href: `/booking/${fromRescheduleUid}/logs` }],
         };
     }
 

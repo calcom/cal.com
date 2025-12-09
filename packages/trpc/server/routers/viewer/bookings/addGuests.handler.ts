@@ -85,7 +85,7 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
     makeUserActor(user.uuid),
     organizationId,
     {
-      addedAttendees: {
+      attendees: {
         old: booking.attendees.map((a) => a.email),
         new: [...booking.attendees.map((a) => a.email), ...uniqueGuestEmails],
       },
