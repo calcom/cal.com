@@ -293,4 +293,16 @@ export class CredentialRepository {
       },
     });
   }
+
+  async findByTeamIdAndSlugs({ teamId, slugs }: { teamId: number; slugs: string[] }) {
+    return prisma.credential.findMany({
+      where: {
+        teamId,
+        appId: {
+          in: slugs,
+        },
+      },
+      select: safeCredentialSelect,
+    });
+  }
 }
