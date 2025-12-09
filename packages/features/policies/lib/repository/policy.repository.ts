@@ -89,7 +89,7 @@ export class PolicyRepository {
 
   async recordAcceptance(userId: number, policyVersion: Date, policyType: PolicyType) {
     try {
-      return await this.prismaClient.userPolicyAcceptance.create({
+      const result = await this.prismaClient.userPolicyAcceptance.create({
         data: {
           userId,
           policyVersion,
@@ -97,6 +97,8 @@ export class PolicyRepository {
           acceptedAt: new Date(),
         },
       });
+
+      return result;
     } catch (err) {
       captureException(err);
       throw err;

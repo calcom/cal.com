@@ -26,7 +26,6 @@ const POLICY_CONFIG: Record<
 export function PolicyAcceptanceModal() {
   const { t } = useLocale();
   const { country } = useGeo();
-  const [isAccepting, setIsAccepting] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 
   const { data: me } = trpc.viewer.me.get.useQuery();
@@ -44,7 +43,6 @@ export function PolicyAcceptanceModal() {
     },
     onError: (err) => {
       showToast(err.message, "error");
-      setIsAccepting(false);
     },
   });
 
@@ -59,17 +57,11 @@ export function PolicyAcceptanceModal() {
 
   const description = isUS ? policyData.description : policyData.descriptionNonUS;
 
-  const handleAccept = async () => {
-    setIsAccepting(true);
-    try {
-      await acceptMutation.mutateAsync({
-        type: policyData.type,
-        version: policyData.version,
-      });
-    } catch (error) {
-      setIsAccepting(false);
-      console.log("Error accepting policy:", error);
-    }
+  const handleAccept = () => {
+    acceptMutation.mutate({
+      type: policyData.type,
+      version: policyData.version,
+    });
   };
 
   const handleClose = () => {
@@ -100,13 +92,13 @@ export function PolicyAcceptanceModal() {
               <Button
                 color="minimal"
                 href={policyConfig.learnMoreUrl}
-                disabled={isAccepting}>
+                disabled={acceptMutation.isPending}>
                 {t("learn_more")}
               </Button>
               <Button
                 type="button"
-                loading={isAccepting}
-                disabled={isAccepting}
+                loading={acceptMutation.isPending}
+                disabled={acceptMutation.isPending}
                 onClick={handleAccept}>
                 {t("accept")}
               </Button>
@@ -132,7 +124,7 @@ export function PolicyAcceptanceModal() {
             </div>
             <Button
               onClick={handleClose}
-              disabled={isAccepting}
+              disabled={acceptMutation.isPending}
               color="minimal"
               StartIcon="x"
               className="text-muted hover:text-emphasis -mt-1 shrink-0" />
@@ -142,7 +134,7 @@ export function PolicyAcceptanceModal() {
             <Button
               color="primary"
               href={policyConfig.learnMoreUrl}
-              disabled={isAccepting}
+              disabled={acceptMutation.isPending}
               className="w-full sm:w-auto">
               {t("learn_more")}
             </Button>

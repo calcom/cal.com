@@ -18,6 +18,7 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { PolicyService } from "@calcom/features/policies/lib/service/policy.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
@@ -1047,6 +1048,10 @@ export const getOptions = ({
             user.email
           );
           await calcomAdapter.linkAccount(linkAccountNewUserData);
+
+          // Record policy acceptance for OAuth signups
+          const policyService = new PolicyService();
+          await policyService.recordLatestPolicyAcceptanceOnSignup(newUser.id);
 
           if (account.twoFactorEnabled) {
             return loginWithTotp(newUser.email);

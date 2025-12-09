@@ -1,3 +1,5 @@
+import { TRPCError } from "@trpc/server";
+
 import { PolicyService } from "@calcom/features/policies/lib/service/policy.service";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -25,10 +27,11 @@ export const acceptPolicyHandler = async ({ ctx, input }: AcceptPolicyOptions) =
     },
   });
 
-  console.log("Policy Version:", policyVersion);
-
   if (!policyVersion) {
-    throw new Error("Policy version not found");
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Policy version not found",
+    });
   }
 
   // Use service layer for business logic
