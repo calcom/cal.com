@@ -75,7 +75,9 @@ export default function AddOAuthClientWebhook() {
                 </p>
               </div>
               <div>
-                <h2 className="font-semi-bold font-cal text-emphasis mb-2  tracking-wide">OAuth client</h2>
+                <h2 className="font-semi-bold font-cal text-emphasis mb-2  tracking-wide">
+                  {t("oauth_client")}
+                </h2>
                 <SelectField
                   styles={{
                     singleValue: (baseStyles) => ({

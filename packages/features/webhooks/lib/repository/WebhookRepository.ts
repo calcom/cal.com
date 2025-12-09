@@ -432,10 +432,6 @@ export class WebhookRepository implements IWebhookRepository {
       where: { id: userId },
       select: {
         id: true,
-        username: true,
-        name: true,
-        avatarUrl: true,
-        webhooks: true,
         teams: {
           where: {
             accepted: true,
