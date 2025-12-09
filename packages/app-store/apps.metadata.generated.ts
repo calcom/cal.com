@@ -18,6 +18,7 @@ import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
+import databuddy_config_json from "./databuddy/config.json";
 import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
 import dialpad_config_json from "./dialpad/config.json";
@@ -128,6 +129,7 @@ export const appStoreMetadata = {
   closecom: closecom_config_json,
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
+  databuddy: databuddy_config_json,
   deel: deel_config_json,
   demodesk: demodesk_config_json,
   dialpad: dialpad_config_json,

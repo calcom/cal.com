@@ -10,6 +10,7 @@ import prisma from "@calcom/prisma";
 import type { User as PrismaUser } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 
@@ -59,6 +60,23 @@ const organizationWithSettingsSelect = {
   ...organizationSelect,
   organizationSettings: {
     select: organizationSettingsSelect,
+  },
+};
+
+const organizationWithSettingsAndMembersSelect = {
+  ...organizationSelect,
+  isPrivate: true,
+  organizationSettings: {
+    select: {
+      lockEventTypeCreationForUsers: true,
+      allowSEOIndexing: true,
+    },
+  },
+  members: {
+    select: membershipSelect,
+    where: {
+      accepted: true,
+    },
   },
 };
 
@@ -122,18 +140,42 @@ export class ProfileRepository {
       bufferTime: user.bufferTime,
     };
   }
-
+  /**
+   * Parses a Universal Profile ID (upId) into a lookup target.
+   * - "usr-{id}" → { type: User, id }
+   * - "prof-{uuid}" → { type: Profile, uid } (no `id`)
+   * - "{numericId}" → { type: Profile, id } (legacy)
+   * For profiles, always check for `uid` first; `id` may be undefined.
+   */
   static getLookupTarget(upId: UpId) {
+    if (upId.trim() === "") {
+      return {
+        type: LookupTarget.Profile,
+        id: -1,
+      } as const;
+    }
     if (upId.startsWith("usr-")) {
       return {
         type: LookupTarget.User,
         id: parseInt(upId.replace("usr-", "")),
       } as const;
     }
-    return {
-      type: LookupTarget.Profile,
-      id: parseInt(upId),
-    } as const;
+    if (upId.startsWith("prof-")) {
+      // UUID-based profile identifier (new secure format)
+      return {
+        type: LookupTarget.Profile,
+        uid: upId.replace("prof-", ""),
+      } as const;
+    }
+    // Legacy support: numeric profile ID (deprecated, kept for backward compatibility)
+    const numericId = parseInt(upId);
+    if (!isNaN(numericId)) {
+      return {
+        type: LookupTarget.Profile,
+        id: numericId,
+      } as const;
+    }
+    throw new Error(`Invalid upId format: ${upId}`);
   }
 
   private static async _create({
@@ -296,9 +338,9 @@ export class ProfileRepository {
 
     for (let i = 0; i < createdProfiles.length; i += DATABASE_CHUNK_SIZE) {
       const profilesBatch = createdProfiles.slice(i, i + DATABASE_CHUNK_SIZE);
-      await Promise.allSettled([
+      await Promise.allSettled(
         profilesBatch.map((profile) => {
-          prisma.user.update({
+          return prisma.user.update({
             where: {
               id: profile.userId,
             },
@@ -308,8 +350,8 @@ export class ProfileRepository {
               },
             },
           });
-        }),
-      ]);
+        })
+      );
     }
   }
 
@@ -435,11 +477,57 @@ export class ProfileRepository {
     return profile;
   }
 
-  static async findByUpId(upId: string) {
+  static async findByUid(uid: string) {
+    const profile = await prisma.profile.findFirst({
+      where: {
+        uid,
+      },
+      include: {
+        user: {
+          select: userSelect,
+        },
+        movedFromUser: {
+          select: {
+            id: true,
+          },
+        },
+        organization: {
+          select: organizationWithSettingsAndMembersSelect,
+        },
+      },
+    });
+
+    if (!profile) {
+      return null;
+    }
+
+    return normalizeProfile(profile);
+  }
+
+  static async findByUpIdWithAuth(upId: string, userId: number) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    log.debug("findByUpId", safeStringify({ upId, lookupTarget }));
+    log.debug("findByUpIdWithAuth", safeStringify({ upId, lookupTarget, userId }));
+
     if (lookupTarget.type === LookupTarget.User) {
-      const user = await this.findUserByid({ id: lookupTarget.id });
+      const targetUserId = lookupTarget.id;
+
+      if (targetUserId !== userId) {
+        // Check if requesting user is an org admin/owner and can access target user's profile
+        const canAccessAsAdmin = await ProfileRepository.checkOrgAdminAccessToUser({
+          requestingUserId: userId,
+          targetUserId,
+        });
+
+        if (!canAccessAsAdmin) {
+          log.warn(
+            "Unauthorized access attempt to user profile",
+            safeStringify({ upId, userId, targetUserId })
+          );
+          return null;
+        }
+      }
+
+      const user = await this.findUserByid({ id: targetUserId });
       if (!user) {
         return null;
       }
@@ -453,11 +541,94 @@ export class ProfileRepository {
       };
     }
 
-    const profile = await ProfileRepository.findById(lookupTarget.id);
-    if (!profile) {
+    let rawProfile;
+    if ("uid" in lookupTarget) {
+      // UUID-based lookup (new secure format)
+      if (!lookupTarget.uid) {
+        return null;
+      }
+      rawProfile = await prisma.profile.findFirst({
+        where: { uid: lookupTarget.uid },
+        include: {
+          user: { select: userSelect },
+          organization: {
+            select: organizationWithSettingsAndMembersSelect,
+          },
+        },
+      });
+    } else {
+      // Legacy numeric ID lookup (deprecated)
+      rawProfile = await prisma.profile.findUnique({
+        where: { id: lookupTarget.id },
+        include: {
+          user: { select: userSelect },
+          movedFromUser: { select: { id: true } },
+          organization: {
+            select: {
+              id: true,
+              logoUrl: true,
+              name: true,
+              slug: true,
+              metadata: true,
+              bannerUrl: true,
+              isPrivate: true,
+              isPlatform: true,
+              hideBranding: true,
+              brandColor: true,
+              darkBrandColor: true,
+              theme: true,
+              organizationSettings: {
+                select: {
+                  lockEventTypeCreationForUsers: true,
+                  allowSEOIndexing: true,
+                },
+              },
+              members: {
+                select: membershipSelect,
+                where: {
+                  accepted: true,
+                  user: { profiles: { some: { id: lookupTarget.id } } },
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (!rawProfile) {
       return null;
     }
-    const user = profile.user;
+
+    // Authorization check: verify user has access to this profile
+    const profileId = rawProfile.id;
+    const organizationId = rawProfile.organizationId;
+
+    if (profileId && organizationId) {
+      const hasAccess = await ProfileRepository.checkUserAccessToProfile({
+        userId,
+        profileId,
+        organizationId,
+      });
+
+      if (!hasAccess) {
+        log.warn(
+          "Unauthorized access attempt to profile",
+          safeStringify({ upId, userId, profileId, organizationId })
+        );
+        return null;
+      }
+    } else if (profileId) {
+      // For personal profiles, check if user owns it
+      if (rawProfile.userId !== userId) {
+        log.warn("Unauthorized access attempt to profile", safeStringify({ upId, userId, profileId }));
+        return null;
+      }
+    }
+
+    const profile = normalizeProfile(rawProfile);
+    const user = rawProfile.user;
+
     if (profile.organization?.isPlatform && !user.isPlatformManaged) {
       return {
         ...this.buildPersonalProfileFromUser({ user }),
@@ -468,6 +639,93 @@ export class ProfileRepository {
       ...profile,
       ...ProfileRepository.getInheritedDataFromUser({ user }),
     };
+  }
+
+  private static async checkOrgAdminAccessToUser({
+    requestingUserId,
+    targetUserId,
+  }: {
+    requestingUserId: number;
+    targetUserId: number;
+  }): Promise<boolean> {
+    const requestingUserOrgMemberships = await prisma.membership.findMany({
+      where: {
+        userId: requestingUserId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        team: {
+          isOrganization: true,
+        },
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    const orgIdsWhereRequestingUserIsAdmin = requestingUserOrgMemberships.map((m) => m.teamId);
+
+    if (orgIdsWhereRequestingUserIsAdmin.length === 0) {
+      return false;
+    }
+
+    const targetUserOrgMembership = await prisma.membership.findFirst({
+      where: {
+        userId: targetUserId,
+        accepted: true,
+        teamId: {
+          in: orgIdsWhereRequestingUserIsAdmin,
+        },
+        team: {
+          isOrganization: true,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (targetUserOrgMembership) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private static async checkUserAccessToProfile({
+    userId,
+    profileId,
+    organizationId,
+  }: {
+    userId: number;
+    profileId: number | null;
+    organizationId: number | null;
+  }): Promise<boolean> {
+    if (!profileId || !organizationId) {
+      return false;
+    }
+
+    // Check if user owns the profile
+    const profile = await prisma.profile.findUnique({
+      where: { id: profileId },
+      select: { userId: true },
+    });
+
+    if (profile?.userId === userId) {
+      return true;
+    }
+
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: organizationId,
+        accepted: true,
+      },
+      select: { id: true },
+    });
+
+    return !!membership;
   }
 
   static async findById(id: number | null) {
@@ -753,6 +1011,7 @@ export class ProfileRepository {
 export const normalizeProfile = <
   T extends {
     id: number;
+    uid: string;
     organization: Pick<Team, keyof typeof organizationSelect>;
     createdAt?: Date;
     updatedAt?: Date;
@@ -762,7 +1021,7 @@ export const normalizeProfile = <
 ) => {
   return {
     ...profile,
-    upId: profile.id.toString(),
+    upId: `prof-${profile.uid}`,
     organization: getParsedTeam(profile.organization),
     // Make these ↓ props ISO strings so that they can be returned from getServerSideProps as is without any issues
     ...(profile.createdAt ? { createdAt: profile.createdAt.toISOString() } : null),

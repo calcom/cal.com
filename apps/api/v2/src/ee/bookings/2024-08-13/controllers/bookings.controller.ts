@@ -1,3 +1,4 @@
+import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
@@ -23,6 +24,7 @@ import {
   GetOptionalUser,
 } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
@@ -66,6 +68,7 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
   GetBookingRecordingsOutput,
   GetBookingTranscriptsOutput,
+  GetBookingVideoSessionsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -209,12 +212,16 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid/recordings")
+  // @Pbac(["booking.readRecordings"])
+  @Permissions([BOOKING_READ])
   @UseGuards(BookingUidGuard)
+  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
-    description: `Fetches all the recordings for the booking \`:bookingUid\`
+    description: `Fetches all the recordings for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
 
-    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>
     `,
   })
   async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
@@ -223,16 +230,26 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: recordings,
+      message:
+        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
   @Get("/:bookingUid/transcripts")
+  // @Pbac(["booking.readRecordings"])
+  @Permissions([BOOKING_READ])
   @UseGuards(BookingUidGuard)
+  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get Cal Video real time transcript download links for the booking",
-    description: `Fetches all the transcripts download links for the booking \`:bookingUid\`
+    description: `Fetches all the transcript download links for the booking \`:bookingUid\`
 
-    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    <Note>
+    Transcripts are generated when clicking "Transcribe" during a Cal Video meeting. Download links are valid for 1 hour only - make a new request to generate fresh links after expiration.
+
+    Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.
+    </Note>
     `,
   })
   async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {
@@ -241,6 +258,8 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: transcripts ?? [],
+      message:
+        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
@@ -378,18 +397,18 @@ export class BookingsController_2024_08_13 {
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
-  async markNoShow(
-    @Param("bookingUid") bookingUid: string,
-    @Body() body: MarkAbsentBookingInput_2024_08_13,
-    @GetUser("id") ownerId: number
-  ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.markAbsent(bookingUid, ownerId, body);
+    async markNoShow(
+      @Param("bookingUid") bookingUid: string,
+      @Body() body: MarkAbsentBookingInput_2024_08_13,
+      @GetUser() user: ApiAuthGuardUser
+    ): Promise<MarkAbsentBookingOutput_2024_08_13> {
+      const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
 
-    return {
-      status: SUCCESS_STATUS,
-      data: booking,
-    };
-  }
+      return {
+        status: SUCCESS_STATUS,
+        data: booking,
+      };
+    }
 
   @Post("/:bookingUid/reassign")
   @HttpCode(HttpStatus.OK)
@@ -540,6 +559,27 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookingReferences,
+    };
+  }
+
+  @Get("/:bookingUid/conferencing-sessions")
+  @HttpCode(HttpStatus.OK)
+  @Pbac(["booking.readRecordings"])
+  @Permissions([BOOKING_READ])
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get Video Meeting Sessions. Only supported for Cal Video",
+    description: `Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
+
+    <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>`,
+  })
+  async getVideoSessions(@Param("bookingUid") bookingUid: string): Promise<GetBookingVideoSessionsOutput> {
+    const sessions = await this.calVideoService.getVideoSessions(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: sessions,
     };
   }
 }

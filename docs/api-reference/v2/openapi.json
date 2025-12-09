@@ -2819,6 +2819,7 @@
                   "organization.attributes.update",
                   "organization.attributes.delete",
                   "organization.attributes.create",
+                  "organization.attributes.editUsers",
                   "routingForm.create",
                   "routingForm.read",
                   "routingForm.update",
@@ -4470,6 +4471,7 @@
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamEventTypes",
         "summary": "Get team event types",
+        "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
         "parameters": [
           {
             "name": "Authorization",
@@ -4522,6 +4524,16 @@
             "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
             }
           }
         ],
@@ -4816,6 +4828,7 @@
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamsEventTypes",
         "summary": "Get all team event types",
+        "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
         "parameters": [
           {
             "name": "Authorization",
@@ -4875,6 +4888,16 @@
               "minimum": 0,
               "default": 0,
               "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
             }
           }
         ],
@@ -9903,7 +9926,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingRecordings",
         "summary": "Get all the recordings for the booking",
-        "description": "Fetches all the recordings for the booking `:bookingUid`\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": "Fetches all the recordings for the booking `:bookingUid`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9919,6 +9942,15 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9943,7 +9975,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
         "summary": "Get Cal Video real time transcript download links for the booking",
-        "description": "Fetches all the transcripts download links for the booking `:bookingUid`\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": "Fetches all the transcript download links for the booking `:bookingUid`\n\n    <Note>\n    Transcripts are generated when clicking \"Transcribe\" during a Cal Video meeting. Download links are valid for 1 hour only - make a new request to generate fresh links after expiration.\n\n    Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.\n    </Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9959,6 +9991,15 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -10540,6 +10581,55 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/conferencing-sessions": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getVideoSessions",
+        "summary": "Get Video Meeting Sessions. Only supported for Cal Video",
+        "description": "Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingVideoSessionsOutput"
                 }
               }
             }
@@ -11485,7 +11575,7 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypes",
         "summary": "Get all event types",
-        "description": "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "description": "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.\n      \n      Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -11540,6 +11630,16 @@
             "description": "ID of the organization of the user you want the get the event-types of, orgSlug is not needed when using this parameter",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
             }
           },
           {
@@ -13741,7 +13841,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.",
+            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.\n      If no slots are available, the data object will be empty {}.",
             "content": {
               "application/json": {
                 "schema": {
@@ -14353,6 +14453,7 @@
       "get": {
         "operationId": "TeamsEventTypesController_getTeamEventTypes",
         "summary": "Get a team event type",
+        "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
         "parameters": [
           {
             "name": "teamId",
@@ -14378,6 +14479,16 @@
             "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
             }
           }
         ],
@@ -16714,7 +16825,37 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video", "google-meet", "office365-video", "zoom"]
+            "enum": [
+              "cal-video",
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campfire-video"
+            ]
           }
         },
         "required": ["type", "integration"]
@@ -17922,7 +18063,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -19853,7 +19994,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -21494,7 +21635,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -21957,7 +22098,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -26227,6 +26368,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26330,6 +26472,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26461,6 +26604,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26563,6 +26707,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -27400,6 +27545,14 @@
             "type": "string",
             "nullable": true
           },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
           "timeFormat": {
             "type": "number"
           },
@@ -27426,6 +27579,8 @@
           "username",
           "email",
           "name",
+          "avatarUrl",
+          "bio",
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
@@ -29684,6 +29839,86 @@
             "items": {
               "$ref": "#/components/schemas/BookingReference"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CalMeetingParticipant": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "nullable": true,
+            "example": "user123"
+          },
+          "userName": {
+            "type": "string",
+            "nullable": true,
+            "example": "John Doe"
+          },
+          "joinTime": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          }
+        },
+        "required": ["userId", "userName", "joinTime", "duration"]
+      },
+      "CalMeetingSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "session123"
+          },
+          "room": {
+            "type": "string",
+            "example": "daily-video-room-123"
+          },
+          "startTime": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          },
+          "ongoing": {
+            "type": "boolean",
+            "example": false
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 10
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalMeetingParticipant"
+            }
+          }
+        },
+        "required": ["id", "room", "startTime", "duration", "ongoing", "maxParticipants", "participants"]
+      },
+      "GetBookingVideoSessionsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalMeetingSession"
+            }
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]

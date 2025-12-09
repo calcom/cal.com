@@ -161,7 +161,7 @@ export function TimezoneSelectComponent({
           classNames(
             "bg-default py-2.5 px-3 rounded-md text-default ",
             state.isFocused && "bg-subtle",
-            state.isDisabled && "bg-muted",
+            state.isDisabled && "bg-cal-muted",
             state.isSelected && "bg-emphasis text-default",
             timezoneClassNames?.option && timezoneClassNames.option(state)
           ),
@@ -205,7 +205,7 @@ export function TimezoneSelectComponent({
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
         menuList: (state) =>
           classNames(
-            "scroll-bar scrollbar-track-w-20 rounded-md",
+            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-1",
             timezoneClassNames?.menuList && timezoneClassNames.menuList(state)
           ),
         indicatorsContainer: (state) =>
