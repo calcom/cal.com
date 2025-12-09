@@ -47,19 +47,19 @@ export function GatedFeaturesModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
-      <DialogContent className="!p-0" style={{ maxWidth: "400px" }}>
+      <DialogContent className="p-0!" style={{ maxWidth: "400px" }}>
         <div className="p-6">
           <img src={image} alt={t(title)} className="w-full h-36 mb-5" />
           <div className="p-1 text-xs bg-emphasis rounded-md w-fit mb-3 leading-3">{t(badgeText)}</div>
 
           <div className="mb-5 flex flex-col gap-2">
             <div className="text-xl font-semibold text-emphasis leading-6">{t(title)}</div>
-            <div className="text-xs text-default">{t(description)}</div>
+            <div className="text-sm leading-5 font-normal text-default">{t(description)}</div>
           </div>
-          <div className="flex flex-col gap-1 ml-6 text-sm text-default font-semibold">
+          <div className="flex flex-col gap-1 ml-6">
             <ul className="list-disc">
               {features.map((feature) => (
-                <li key={feature}>{t(feature)}</li>
+                <li className="text-sm text-default font-medium" key={feature}>{t(feature)}</li>
               ))}
             </ul>
           </div>

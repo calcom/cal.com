@@ -136,7 +136,6 @@ export interface BaseCardProps extends CVACardType {
     href?: string;
     text: string;
     onClick?: (event: React.MouseEvent<HTMLElement>) => void;
-    onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };
   mediaLink?: string;
   mediaLinkOnClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
@@ -260,15 +259,14 @@ export function Card({
                   target="_blank"
                   rel="noreferrer"
                   onClick={learnMore.onClick}
-                  onClick={learnMore.onClick}
-                  className={classNames("text-default text-xs font-medium", buttonClassName)}>
+                  className={classNames("text-default text-xs font-medium cursor-pointer", buttonClassName)}>
                   {learnMore.text}
                 </LinkComponent>
               ) : learnMore.onClick ? (
                 <button type="button"
                   color="minimal"
                   onClick={learnMore.onClick}
-                  className={classNames("text-default text-xs font-medium", buttonClassName)}>
+                  className={classNames("cursor-pointer text-default text-xs font-medium", buttonClassName)}>
                   {learnMore.text}
                 </button>
               ) : undefined}
@@ -277,7 +275,7 @@ export function Card({
           {actionButton?.child && (
             <button
               className={classNames(
-                "text-default hover:text-emphasis p-0 text-xs font-normal",
+                "text-default hover:text-emphasis p-0 text-xs font-normal cursor-pointer",
                 buttonClassName
               )}
               color="minimal"
