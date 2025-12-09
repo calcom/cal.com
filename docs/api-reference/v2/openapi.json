@@ -19305,11 +19305,13 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "disableCancelling": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "If true, guests and organizer can no longer cancel the event."
           },
           "disableRescheduling": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "If true, guests and organizer can no longer reschedule the event."
           },
           "canSendCalVideoTranscriptionEmails": {
@@ -19321,7 +19323,8 @@
             "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
           },
           "interfaceLanguage": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "description": "Set preferred language for the booking interface."
           },
           "allowReschedulingPastBookings": {
@@ -19329,15 +19332,18 @@
             "description": "Enabling this option allows for past events to be rescheduled."
           },
           "allowReschedulingCancelledBookings": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
           },
           "customReplyToEmail": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
           },
           "showOptimizedSlots": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "Arrange time slots to optimize availability."
           },
           "ownerId": {
@@ -19697,11 +19703,13 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "disableCancelling": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "If true, guests and organizer can no longer cancel the event."
           },
           "disableRescheduling": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "If true, guests and organizer can no longer reschedule the event."
           },
           "canSendCalVideoTranscriptionEmails": {
@@ -19713,7 +19721,8 @@
             "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
           },
           "interfaceLanguage": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "description": "Set preferred language for the booking interface."
           },
           "allowReschedulingPastBookings": {
@@ -19721,15 +19730,18 @@
             "description": "Enabling this option allows for past events to be rescheduled."
           },
           "allowReschedulingCancelledBookings": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
           },
           "customReplyToEmail": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email."
           },
           "showOptimizedSlots": {
-            "type": "object",
+            "type": "boolean",
+            "nullable": true,
             "description": "Arrange time slots to optimize availability."
           },
           "teamId": {

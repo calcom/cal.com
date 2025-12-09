@@ -464,6 +464,8 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional({
+    type: Boolean,
+    nullable: true,
     description: "If true, guests and organizer can no longer cancel the event.",
   })
   disableCancelling?: boolean | null;
@@ -471,6 +473,8 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional({
+    type: Boolean,
+    nullable: true,
     description: "If true, guests and organizer can no longer reschedule the event.",
   })
   disableRescheduling?: boolean | null;
@@ -493,6 +497,8 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsString()
   @ApiPropertyOptional({
+    type: String,
+    nullable: true,
     description: "Set preferred language for the booking interface.",
   })
   interfaceLanguage?: string | null;
@@ -507,6 +513,8 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional({
+    type: Boolean,
+    nullable: true,
     description:
       "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
   })
@@ -515,6 +523,8 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsString()
   @ApiPropertyOptional({
+    type: String,
+    nullable: true,
     description:
       "Use a different email address as the replyTo for confirmation emails instead of the organizer's email.",
   })
@@ -523,6 +533,8 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional({
+    type: Boolean,
+    nullable: true,
     description: "Arrange time slots to optimize availability.",
   })
   showOptimizedSlots?: boolean | null;
