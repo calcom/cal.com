@@ -22961,7 +22961,7 @@ __metadata:
     date-fns-tz: ^3.2.0
     dotenv-checker: ^1.1.5
     eslint: 9.36.0
-    husky: ^9.1.7
+    husky: 9.1.7
     i18n-unused: ^0.13.0
     jest-diff: ^29.5.0
     jest-summarizing-reporter: ^1.1.4
@@ -31324,7 +31324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:^9.1.7":
+"husky@npm:9.1.7":
   version: 9.1.7
   resolution: "husky@npm:9.1.7"
   bin:
