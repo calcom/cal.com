@@ -857,6 +857,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(teammateOne.email);
       await userRepositoryFixture.deleteByEmail(teammateTwo.email);
+      await userRepositoryFixture.deleteByEmail(teammateThree.email);
       await userRepositoryFixture.deleteByEmail(outsiderEmail);
       await teamRepositoryFixture.delete(team.id);
       await bookingsRepositoryFixture.deleteById(collectiveBookingId);

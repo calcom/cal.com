@@ -650,7 +650,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a team 2 RR booking and use rrHostSubsetIds for force teamUser2 as host ", async () => {
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser2 as host ", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
           eventTypeId: team2RREventTypeId,
@@ -704,7 +704,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a team 2 RR booking and use rrHostSubsetIds for force teamUser as host ", async () => {
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser as host ", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
           eventTypeId: team2RREventTypeId,
@@ -758,7 +758,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      it("should create a team 2 RR booking and use rrHostSubsetIds for force teamUser and teamUser2 as host ", async () => {
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser and teamUser2 as host ", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString(),
           eventTypeId: team2RREventTypeId,
