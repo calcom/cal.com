@@ -273,6 +273,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     location: null,
     eventType: {
       disableRescheduling: false,
+      minimumRescheduleNotice: null,
     },
     // mask attendee emails for seated events
     attendees: booking.attendees.map((attendee) => ({

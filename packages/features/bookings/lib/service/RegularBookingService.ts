@@ -126,6 +126,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 
 const translator = short();
 
@@ -431,7 +432,7 @@ async function validateRescheduleRestrictions({
 }: {
   rescheduleUid: string | null | undefined;
   userId: number | null;
-  eventType: { seatsPerTimeSlot: boolean | null } | null;
+  eventType: { seatsPerTimeSlot: number | null; minimumRescheduleNotice: number | null } | null;
 }): Promise<void> {
   if (!rescheduleUid || !eventType) {
     return; // Not a reschedule, skip validation
@@ -557,8 +558,13 @@ async function handler(
   // Early validation: Check reschedule restrictions if rescheduling
   await validateRescheduleRestrictions({
     rescheduleUid: rawBookingData.rescheduleUid,
-    userId: userId,
-    eventType: eventType,
+    userId: userId ?? null,
+    eventType: eventType
+      ? {
+          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+          minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+        }
+      : null,
   });
 
   const bookingDataSchema = bookingDataSchemaGetter({
@@ -912,6 +918,7 @@ async function handler(
       users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
