@@ -40,7 +40,8 @@ export interface TeamBrand {
 }
 
 export interface PersonalDetails {
-  name: string;
+  givenName: string;
+  lastName: string;
   username: string;
   timezone: string;
   bio: string;
@@ -117,7 +118,8 @@ const initialState = {
   teamInvites: [],
   teamId: null,
   personalDetails: {
-    name: "",
+    givenName: "",
+    lastName: "",
     username: "",
     timezone: "",
     bio: "",
