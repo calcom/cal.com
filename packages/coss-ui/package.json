@@ -13,8 +13,7 @@
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
-    "registry:pull": "yarn dlx shadcn@latest add @coss/ui --yes --all --overwrite",
-    "registry:diff": "yarn dlx shadcn@latest diff"
+    "registry:pull": "ts-node ../../scripts/pull-coss-ui-components.ts"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-rc.0",
@@ -24,6 +23,7 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
+    "ts-node": "^10.9.2",
     "tsc-absolute": "1.0.0",
     "typescript": "5.9.0-beta"
   }
