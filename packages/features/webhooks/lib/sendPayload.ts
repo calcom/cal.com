@@ -173,11 +173,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
   return JSON.stringify(body);
 }
 
-function applyTemplate(
-  template: string,
-  data: WebhookDataType | Record<string, unknown>,
-  contentType: ContentType
-) {
+function applyTemplate(template: string, data: WebhookDataType, contentType: ContentType) {
   const compiled = compile(template)(data).replace(/&quot;/g, '"');
 
   if (contentType === "application/json") {
