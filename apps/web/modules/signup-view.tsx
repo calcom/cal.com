@@ -242,13 +242,6 @@ export default function Signup({
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
-    if (CLOUDFLARE_SITE_ID && !_data.cfToken) {
-      formMethods.setError("apiError", {
-        message: "Please complete the verification again",
-      });
-      return;
-    }
-
     const { cfToken, ...data } = _data;
 
     posthog.capture("signup_form_submitted", {
