@@ -32,20 +32,14 @@ export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) =
 
   // Send email notification to team@cal.com
   const t = await getTranslation("en", "common");
-  try {
-    await sendAdminOAuthClientNotification({
-      t,
-      clientName: client.name,
-      clientId: client.clientId,
-      redirectUri: client.redirectUri,
-      submitterEmail: ctx.user.email,
-      submitterName: ctx.user.name,
-    });
-  } catch (error) {
-    // Log the error but don't fail the request - email sending can fail in dev due to
-    // Turbopack's handling of react-dom/server. The OAuth client is still created successfully.
-    console.error("Failed to send admin OAuth client notification email:", error);
-  }
+  await sendAdminOAuthClientNotification({
+    t,
+    clientName: client.name,
+    clientId: client.clientId,
+    redirectUri: client.redirectUri,
+    submitterEmail: ctx.user.email,
+    submitterName: ctx.user.name,
+  });
 
   return {
     clientId: client.clientId,
