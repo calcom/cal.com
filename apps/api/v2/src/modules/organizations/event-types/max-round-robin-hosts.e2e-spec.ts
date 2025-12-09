@@ -20,6 +20,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { SchedulingType } from "@calcom/platform-libraries";
 import type {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
@@ -35,7 +36,7 @@ describe("maxRoundRobinHosts for Round Robin event types", () => {
   let organization: Team;
   let managedTeam: OrgTeamOutputDto;
   let platformAdmin: User;
-  let managedUsers: CreateManagedUserData[] = [];
+  const managedUsers: CreateManagedUserData[] = [];
 
   // Fixtures
   let userRepositoryFixture: UserRepositoryFixture;
@@ -81,8 +82,7 @@ describe("maxRoundRobinHosts for Round Robin event types", () => {
       title: "Round Robin Event",
       slug: `max-rr-hosts-${randomString()}`,
       lengthInMinutes: 30,
-      // @ts-ignore - schedulingType accepts string
-      schedulingType: "roundRobin",
+      schedulingType: SchedulingType.ROUND_ROBIN,
       assignAllTeamMembers: true,
       ...overrides,
     };
@@ -226,6 +226,30 @@ describe("maxRoundRobinHosts for Round Robin event types", () => {
       const updated = await updateEventType(eventType.id, { maxRoundRobinHosts: 3 });
 
       expect(updated.maxRoundRobinHosts).toEqual(3);
+    });
+  });
+
+  describe("validation", () => {
+    it("rejects maxRoundRobinHosts greater than 20", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/organizations/${organization.id}/teams/${managedTeam.id}/event-types`)
+        .send({
+          title: "Round Robin Event",
+          slug: `max-rr-validation-${randomString()}`,
+          lengthInMinutes: 30,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+          assignAllTeamMembers: true,
+          maxRoundRobinHosts: 25,
+        })
+        .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+        .set(X_CAL_CLIENT_ID, oAuthClient.id);
+
+      expect(response.status).toEqual(400);
+    });
+
+    it("accepts maxRoundRobinHosts at maximum limit (20)", async () => {
+      const eventType = await createRoundRobinEventType({ maxRoundRobinHosts: 20 });
+      expect(eventType.maxRoundRobinHosts).toEqual(20);
     });
   });
 });

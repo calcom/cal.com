@@ -1046,22 +1046,24 @@ async function handler(
       const luckyUsers: typeof users = [];
       const maxHostsPerGroup = eventType.maxRoundRobinHosts ?? 1;
       const excludedUserIds = new Set<number>();
-      const userIdsSet = new Set(users.map((user) => user.id));
 
+      // Pre-compute values outside the loop for performance optimization
+      const userIdsSet = new Set(users.map((user) => user.id));
       const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
         memberId: eventTypeWithUsers.users[0]?.id ?? null,
         teamId: eventType.teamId,
       });
-
       const enrichedHosts = await enrichHostsWithDelegationCredentials({
         orgId: firstUserOrgId ?? null,
         hosts: eventTypeWithUsers.hosts,
       });
+
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
         let hostsFoundInGroup = 0;
 
+        // Filter hosts for this group once per group iteration
         const groupRRHosts = enrichedHosts.filter(
           (host) =>
             !host.isFixed &&
@@ -1069,24 +1071,34 @@ async function handler(
             (host.groupId === groupId || (!host.groupId && groupId === DEFAULT_GROUP_ID))
         );
 
-        while (luckyUserPool.length > 0 && hostsFoundInGroup < maxHostsPerGroup) {
-          const freeUsers = luckyUserPool.filter((user) => !excludedUserIds.has(user.id));
+        const freeUsersForGroup = luckyUserPool.filter((user) => !excludedUserIds.has(user.id));
+        if (freeUsersForGroup.length === 0) continue;
 
-          // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
-          if (freeUsers.length === 0) break;
-          assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too with an assertion; the error will never be thrown.
+        // Map users to convert undefined priority/weight to null (required by getOrderedListOfLuckyUsers)
+        const mappedUsers = freeUsersForGroup.map((user) => ({
+          ...user,
+          priority: user.priority ?? null,
+          weight: user.weight ?? null,
+        }));
+        assertNonEmptyArray(mappedUsers);
 
-          const newLuckyUser = await deps.luckyUserService.getLuckyUser({
-            availableUsers: freeUsers,
-            allRRHosts: groupRRHosts,
-            eventType,
-            routingFormResponse,
-            meetingStartTime: new Date(reqBody.start),
-          });
+        // Get ordered list of lucky users with a single data fetch (optimized for multi-host selection)
+        const { users: orderedCandidates } = await deps.luckyUserService.getOrderedListOfLuckyUsers({
+          availableUsers: mappedUsers,
+          allRRHosts: groupRRHosts,
+          eventType,
+          routingFormResponse,
+          meetingStartTime: new Date(reqBody.start),
+        });
 
-          if (!newLuckyUser) {
-            break;
-          }
+        // Iterate through pre-ordered candidates (no additional DB queries)
+        for (const candidate of orderedCandidates) {
+          if (hostsFoundInGroup >= maxHostsPerGroup) break;
+          if (excludedUserIds.has(candidate.id)) continue;
+
+          // Find the original user object to preserve full type information
+          const originalUser = freeUsersForGroup.find((u) => u.id === candidate.id);
+          if (!originalUser) continue;
 
           if (
             input.bookingData.isFirstRecurringSlot &&
@@ -1094,43 +1106,43 @@ async function handler(
             input.bookingData.numSlotsToCheckForAvailability &&
             input.bookingData.allRecurringDates
           ) {
+            // For recurring round robin events, check availability across multiple slots in parallel
             try {
-              for (
-                let i = 0;
-                i < input.bookingData.allRecurringDates.length &&
-                i < input.bookingData.numSlotsToCheckForAvailability;
-                i++
-              ) {
-                const start = input.bookingData.allRecurringDates[i].start;
-                const end = input.bookingData.allRecurringDates[i].end;
+              if (!skipAvailabilityCheck) {
+                const slotsToCheck = input.bookingData.allRecurringDates.slice(
+                  0,
+                  input.bookingData.numSlotsToCheckForAvailability
+                );
 
-                if (!skipAvailabilityCheck) {
-                  await ensureAvailableUsers(
-                    { ...eventTypeWithUsers, users: [newLuckyUser] },
-                    {
-                      dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-                      dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-                      timeZone: reqBody.timeZone,
-                      originalRescheduledBooking,
-                    },
-                    tracingLogger,
-                    shouldServeCache
-                  );
-                }
+                await Promise.all(
+                  slotsToCheck.map(({ start, end }) =>
+                    ensureAvailableUsers(
+                      { ...eventTypeWithUsers, users: [originalUser] },
+                      {
+                        dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                        dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                        timeZone: reqBody.timeZone,
+                        originalRescheduledBooking,
+                      },
+                      tracingLogger,
+                      shouldServeCache
+                    )
+                  )
+                );
               }
-              luckyUsers.push(newLuckyUser);
-              excludedUserIds.add(newLuckyUser.id);
+              luckyUsers.push(originalUser);
+              excludedUserIds.add(originalUser.id);
               hostsFoundInGroup++;
             } catch {
-              notAvailableLuckyUsers.push(newLuckyUser);
-              excludedUserIds.add(newLuckyUser.id);
+              notAvailableLuckyUsers.push(originalUser);
+              excludedUserIds.add(originalUser.id);
               tracingLogger.info(
-                `Round robin host ${newLuckyUser.name} not available for first two slots. Trying another host.`
+                `Round robin host ${originalUser.name} not available for recurring slots. Trying another host.`
               );
             }
           } else {
-            luckyUsers.push(newLuckyUser);
-            excludedUserIds.add(newLuckyUser.id);
+            luckyUsers.push(originalUser);
+            excludedUserIds.add(originalUser.id);
             hostsFoundInGroup++;
           }
         }

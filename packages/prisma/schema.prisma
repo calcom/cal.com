@@ -247,6 +247,7 @@ model EventType {
   eventTypeColor                   Json?
   rescheduleWithSameRoundRobinHost Boolean @default(false)
 
+  /// @zod.number.int().min(1).max(20)
   maxRoundRobinHosts Int?
 
   secondaryEmailId Int?

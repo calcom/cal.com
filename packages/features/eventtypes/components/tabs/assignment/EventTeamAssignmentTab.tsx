@@ -526,12 +526,13 @@ const RoundRobinHosts = ({
                 </p>
                 <NumberInput
                   min={1}
+                  max={20}
                   placeholder="1"
                   className="w-24"
                   value={value ?? ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
-                    if (val === null || (!isNaN(val) && val >= 1)) {
+                    if (val === null || (!isNaN(val) && val >= 1 && val <= 20)) {
                       onChange(val);
                     }
                   }}
