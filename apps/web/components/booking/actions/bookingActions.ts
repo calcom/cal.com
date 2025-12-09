@@ -254,7 +254,10 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
         booking.loggedInUser.userId === booking.user.id;
       const isWithinMinimumNotice =
         !isUserOrganizer &&
-        isWithinMinimumRescheduleNotice(booking.startTime, booking.eventType.minimumRescheduleNotice ?? null);
+        isWithinMinimumRescheduleNotice(
+          new Date(booking.startTime),
+          booking.eventType.minimumRescheduleNotice ?? null
+        );
       return (
         (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
         isDisabledRescheduling ||
