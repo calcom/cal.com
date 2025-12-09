@@ -5,7 +5,7 @@ async function renderEmail<K extends keyof typeof templates>(
   props: React.ComponentProps<(typeof templates)[K]>
 ) {
   const Component = templates[template];
-  const ReactDOMServer = (await import("react-dom/server")).default;
+  const ReactDOMServer = await import("react-dom/server");
   return (
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
