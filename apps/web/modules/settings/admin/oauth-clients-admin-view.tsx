@@ -19,6 +19,7 @@ import {
 } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
+  DropdownItem,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -181,36 +182,55 @@ export default function OAuthClientsAdminView() {
                       <DropdownMenuContent align="end">
                         {client.approvalStatus === "PENDING" && (
                           <>
-                            <DropdownMenuItem onClick={() => handleApprove(client.clientId)}>
-                              <Icon name="check" className="mr-2 h-4 w-4" />
-                              {t("approve")}
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                StartIcon="check"
+                                onClick={() => handleApprove(client.clientId)}>
+                                {t("approve")}
+                              </DropdownItem>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleReject(client.clientId)}>
-                              <Icon name="x" className="mr-2 h-4 w-4" />
-                              {t("reject")}
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                StartIcon="x"
+                                onClick={() => handleReject(client.clientId)}>
+                                {t("reject")}
+                              </DropdownItem>
                             </DropdownMenuItem>
                           </>
                         )}
                         {client.approvalStatus === "REJECTED" && (
-                          <DropdownMenuItem onClick={() => handleApprove(client.clientId)}>
-                            <Icon name="check" className="mr-2 h-4 w-4" />
-                            {t("approve")}
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              StartIcon="check"
+                              onClick={() => handleApprove(client.clientId)}>
+                              {t("approve")}
+                            </DropdownItem>
                           </DropdownMenuItem>
                         )}
                         {client.approvalStatus === "APPROVED" && (
-                          <DropdownMenuItem onClick={() => handleReject(client.clientId)}>
-                            <Icon name="x" className="mr-2 h-4 w-4" />
-                            {t("reject")}
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              StartIcon="x"
+                              onClick={() => handleReject(client.clientId)}>
+                              {t("reject")}
+                            </DropdownItem>
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem
-                          onClick={() => {
-                            copyToClipboard(client.clientId, {
-                              onSuccess: () => showToast(t("client_id_copied"), "success"),
-                            });
-                          }}>
-                          <Icon name="clipboard" className="mr-2 h-4 w-4" />
-                          {t("copy_client_id")}
+                        <DropdownMenuItem>
+                          <DropdownItem
+                            type="button"
+                            StartIcon="clipboard"
+                            onClick={() => {
+                              copyToClipboard(client.clientId, {
+                                onSuccess: () => showToast(t("client_id_copied"), "success"),
+                              });
+                            }}>
+                            {t("copy_client_id")}
+                          </DropdownItem>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </Dropdown>

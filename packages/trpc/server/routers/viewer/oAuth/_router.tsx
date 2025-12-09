@@ -69,10 +69,11 @@ export const oAuthRouter = router({
     });
   }),
 
-  updateClientStatus: authedAdminProcedure.input(ZUpdateClientStatusInputSchema).mutation(async ({ input }) => {
+  updateClientStatus: authedAdminProcedure.input(ZUpdateClientStatusInputSchema).mutation(async ({ ctx, input }) => {
     const { updateClientStatusHandler } = await import("./updateClientStatus.handler");
 
     return updateClientStatusHandler({
+      ctx,
       input,
     });
   }),

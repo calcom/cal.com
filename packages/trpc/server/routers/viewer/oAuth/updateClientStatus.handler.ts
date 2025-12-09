@@ -1,15 +1,29 @@
+import { TRPCError } from "@trpc/server";
+
 import { sendOAuthClientApprovedNotification } from "@calcom/emails/oauth-email-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import type { TUpdateClientStatusInputSchema } from "./updateClientStatus.schema";
 
 type UpdateClientStatusOptions = {
+  ctx: {
+    user: {
+      id: number;
+      role: UserPermissionRole;
+    };
+  };
   input: TUpdateClientStatusInputSchema;
 };
 
-export const updateClientStatusHandler = async ({ input }: UpdateClientStatusOptions) => {
+export const updateClientStatusHandler = async ({ ctx, input }: UpdateClientStatusOptions) => {
   const { clientId, status } = input;
+
+  // Defense-in-depth: Only instance admins can update OAuth client status
+  if (ctx.user.role !== UserPermissionRole.ADMIN) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can update OAuth client status" });
+  }
 
   const oAuthClientRepository = await OAuthClientRepository.withGlobalPrisma();
 
