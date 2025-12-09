@@ -123,7 +123,7 @@ const userSelect = {
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
 
   async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await this.prismaClient.membership.findMany({
@@ -236,35 +236,35 @@ export class UserRepository {
     // Lookup in profiles because that's where the organization usernames exist
     const profiles = orgSlug
       ? (
-          await ProfileRepository.findManyByOrgSlugOrRequestedSlug({
-            orgSlug: orgSlug,
-            usernames: usernameList,
-          })
-        ).map((profile) => ({
-          ...profile,
-          organization: getParsedTeam(profile.organization),
-        }))
+        await ProfileRepository.findManyByOrgSlugOrRequestedSlug({
+          orgSlug: orgSlug,
+          usernames: usernameList,
+        })
+      ).map((profile) => ({
+        ...profile,
+        organization: getParsedTeam(profile.organization),
+      }))
       : null;
     const where =
       profiles && profiles.length > 0
         ? {
-            // Get UserIds from profiles
-            id: {
-              in: profiles.map((profile) => profile.user.id),
-            },
-          }
+          // Get UserIds from profiles
+          id: {
+            in: profiles.map((profile) => profile.user.id),
+          },
+        }
         : {
-            username: {
-              in: usernameList,
-            },
-            ...(orgSlug
-              ? {
-                  organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
-                }
-              : {
-                  organization: null,
-                }),
-          };
+          username: {
+            in: usernameList,
+          },
+          ...(orgSlug
+            ? {
+              organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+            }
+            : {
+              organization: null,
+            }),
+        };
     return { where, profiles };
   }
 
@@ -386,6 +386,19 @@ export class UserRepository {
       ...user,
       metadata: userMetadata.parse(user.metadata),
     };
+  }
+
+  async findByUuid({ uuid }: { uuid: string }) {
+    return this.prismaClient.user.findUnique({
+      where: {
+        uuid,
+      },
+      select: {
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+    });
   }
 
   async findByIds({ ids }: { ids: number[] }) {
@@ -516,6 +529,45 @@ export class UserRepository {
     };
   }
 
+  async enrichUserWithItsProfileExcludingOrgMetadata<
+    T extends {
+      id: number;
+      username: string | null;
+    }
+  >({
+    user,
+  }: {
+    user: T;
+  }): Promise<
+    T & {
+      nonProfileUsername: string | null;
+      profile: UserProfile;
+    }
+  > {
+    const enrichedUser = await this.enrichUserWithItsProfile({ user });
+
+    const { profile } = enrichedUser;
+
+    if (!profile || !profile.organization) {
+      return enrichedUser;
+    }
+
+    // Exclude organization metadata
+    const sanitizedProfile: UserProfile = {
+      ...profile,
+      organization: {
+        ...profile.organization,
+        metadata: {},
+        organizationSettings: profile.organization.organizationSettings,
+      },
+    };
+
+    return {
+      ...enrichedUser,
+      profile: sanitizedProfile,
+    };
+  }
+
   async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
     users: T[]
   ): Promise<
@@ -575,6 +627,42 @@ export class UserRepository {
     });
   }
 
+  async enrichUsersWithTheirProfileExcludingOrgMetadata<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    const enrichedUsers = await this.enrichUsersWithTheirProfiles(users);
+
+    return enrichedUsers.map((enrichedUser) => {
+      const { profile } = enrichedUser;
+
+      if (!profile || !profile.organization) {
+        return enrichedUser;
+      }
+
+      // Exclude organization metadata
+      const sanitizedProfile: UserProfile = {
+        ...profile,
+        organization: {
+          ...profile.organization,
+          metadata: {},
+          organizationSettings: profile.organization.organizationSettings,
+        },
+      };
+
+      return {
+        ...enrichedUser,
+        profile: sanitizedProfile,
+      };
+    });
+  }
+
   enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
     user,
   }: {
@@ -593,27 +681,27 @@ export class UserRepository {
 
   async enrichEntityWithProfile<
     T extends
-      | {
-          profile: {
-            id: number;
-            username: string | null;
-            organizationId: number | null;
-            organization?: {
-              id: number;
-              name: string;
-              calVideoLogo?: string | null;
-              bannerUrl: string | null;
-              slug: string | null;
-              metadata: Prisma.JsonValue;
-            };
-          };
-        }
-      | {
-          user: {
-            username: string | null;
-            id: number;
-          };
-        }
+    | {
+      profile: {
+        id: number;
+        username: string | null;
+        organizationId: number | null;
+        organization?: {
+          id: number;
+          name: string;
+          calVideoLogo?: string | null;
+          bannerUrl: string | null;
+          slug: string | null;
+          metadata: Prisma.JsonValue;
+        };
+      };
+    }
+    | {
+      user: {
+        username: string | null;
+        id: number;
+      };
+    }
   >(entity: T) {
     if ("profile" in entity) {
       const { profile, ...entityWithoutProfile } = entity;
@@ -626,11 +714,11 @@ export class UserRepository {
           ...profileWithoutOrganization,
           ...(parsedOrg
             ? {
-                organization: parsedOrg,
-              }
+              organization: parsedOrg,
+            }
             : {
-                organization: null,
-              }),
+              organization: null,
+            }),
         },
       };
       return ret;
@@ -666,10 +754,10 @@ export class UserRepository {
       data: {
         movedToProfile: data.movedToProfileId
           ? {
-              connect: {
-                id: data.movedToProfileId,
-              },
-            }
+            connect: {
+              id: data.movedToProfileId,
+            },
+          }
           : undefined,
       },
     });
@@ -715,15 +803,15 @@ export class UserRepository {
         locked,
         ...(organizationIdValue
           ? {
-              organizationId: organizationIdValue,
-              profiles: {
-                create: {
-                  username,
-                  organizationId: organizationIdValue,
-                  uid: ProfileRepository.generateProfileUid(),
-                },
+            organizationId: organizationIdValue,
+            profiles: {
+              create: {
+                username,
+                organizationId: organizationIdValue,
+                uid: ProfileRepository.generateProfileUid(),
               },
-            }
+            },
+          }
           : {}),
         ...rest,
       },
