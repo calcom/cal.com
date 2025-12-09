@@ -365,6 +365,14 @@
   --fill-attention: var(--cal-text-attention, #73321B);
   --fill-error: var(--cal-text-error, #752522);
   --fill-brand: var(--cal-brand-text);
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.25rem;  
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.75rem; 
 }
 
 .dark {
