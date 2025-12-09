@@ -59,16 +59,18 @@ export class AttendeeRemovedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.attendee_removed" };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeRemovedAuditDisplayData {
+    getDisplayJson({
+        storedData,
+    }: {
+        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        userTimeZone: string;
+    }): AttendeeRemovedAuditDisplayData {
         const { fields } = storedData;
-        // Note: fields.attendees stores the state change (old -> new), not the removed attendees directly
-        // old = attendees before removal, new = remaining attendees after removal
         const remainingAttendeesSet = new Set(fields.attendees.new ?? []);
-        // Compute removed attendees: those in old but not in new (remaining)
         const removedAttendees = (fields.attendees.old ?? []).filter(
             (email) => !remainingAttendeesSet.has(email)
         );

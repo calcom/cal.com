@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatInTimeZone } from "date-fns-tz";
 
 /**
  * Audit Action Service Helper
@@ -60,6 +61,26 @@ export class AuditActionServiceHelper<
   getVersion(data: unknown): number {
     const parsed = z.object({ version: z.number() }).parse(data);
     return parsed.version;
+  }
+
+  /**
+   * Format date in user's timezone with format: MMM d, yyyy (e.g., "Jul 7, 2025")
+   * @param date - Date string or timestamp
+   * @param timeZone - User's timezone (defaults to UTC)
+   * @returns Formatted date string
+   */
+  static formatDateInTimeZone(date: string | number, timeZone: string = "UTC"): string {
+    return formatInTimeZone(new Date(date), timeZone, "MMM d, yyyy");
+  }
+
+  /**
+   * Format datetime in user's timezone with format: yyyy-MM-dd HH:mm:ss (e.g., "2025-07-07 09:42:10")
+   * @param date - Date string or timestamp
+   * @param timeZone - User's timezone (defaults to UTC)
+   * @returns Formatted datetime string
+   */
+  static formatDateTimeInTimeZone(date: string | number, timeZone: string = "UTC"): string {
+    return formatInTimeZone(new Date(date), timeZone, "yyyy-MM-dd HH:mm:ss");
   }
 }
 

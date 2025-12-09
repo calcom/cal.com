@@ -55,4 +55,11 @@ export interface IBookingAuditRepository {
      * @returns Array of audit logs with actor information, ordered by timestamp DESC
      */
     findAllForBooking(bookingUid: string): Promise<BookingAuditWithActor[]>;
+
+    /**
+     * Retrieves all RESCHEDULED audit logs for a specific booking
+     * @param bookingUid - The unique identifier of the booking
+     * @returns Array of RESCHEDULED audit logs with actor information, ordered by timestamp DESC
+     */
+    findRescheduledLogsOfBooking(bookingUid: string): Promise<BookingAuditWithActor[]>;
 }

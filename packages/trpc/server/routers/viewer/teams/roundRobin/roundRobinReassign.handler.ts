@@ -31,6 +31,7 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
     bookingId,
     orgId: ctx.user.organizationId,
     reassignedById: ctx.user.id,
+    reassignedByUuid: ctx.user.uuid,
   });
 };
 

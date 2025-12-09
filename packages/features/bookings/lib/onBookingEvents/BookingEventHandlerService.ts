@@ -1,10 +1,18 @@
 import type { BookingAuditProducerService } from "@calcom/features/booking-audit/lib/service/BookingAuditProducerService.interface";
+import type { AcceptedAuditData } from "@calcom/features/booking-audit/lib/actions/AcceptedAuditActionService";
+import type { CancelledAuditData } from "@calcom/features/booking-audit/lib/actions/CancelledAuditActionService";
+import type { RejectedAuditData } from "@calcom/features/booking-audit/lib/actions/RejectedAuditActionService";
+import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
+import type { AttendeeAddedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeAddedAuditActionService";
+import type { AttendeeRemovedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeRemovedAuditActionService";
+import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
+import type { LocationChangedAuditData } from "@calcom/features/booking-audit/lib/actions/LocationChangedAuditActionService";
+import type { HostNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/HostNoShowUpdatedAuditActionService";
+import type { AttendeeNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeNoShowUpdatedAuditActionService";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Actor } from "../types/actor";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
-
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
 interface BookingEventHandlerDeps {
@@ -15,8 +23,11 @@ interface BookingEventHandlerDeps {
 
 export class BookingEventHandlerService {
   private readonly log: BookingEventHandlerDeps["log"];
+  private readonly bookingAuditProducerService: BookingEventHandlerDeps["bookingAuditProducerService"];
+
   constructor(private readonly deps: BookingEventHandlerDeps) {
     this.log = deps.log;
+    this.bookingAuditProducerService = deps.bookingAuditProducerService;
   }
 
   async onBookingCreated(payload: BookingCreatedPayload, actor: Actor) {
@@ -25,31 +36,42 @@ export class BookingEventHandlerService {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
-    if (IS_PRODUCTION) {
-      // Skip queueing audit for production environments till we are absolutely sure that the payload schema is correct for CREATED action
-      // We might get more clarity as we implement more actions and test them
-      return;
-    }
-    try {
-      await this.deps.bookingAuditProducerService.queueAudit(payload.booking.uid, actor, payload.organizationId, {
-        action: "CREATED",
-        data: {
-          startTime: payload.booking.startTime.getTime(),
-          endTime: payload.booking.endTime.getTime(),
-          status: payload.booking.status,
-        },
-      });
-    } catch (error) {
-      this.log.error("Error while queueing booking audit", safeStringify(error));
-    }
+    await this.deps.bookingAuditProducerService.queueCreatedAudit({
+      bookingUid: payload.booking.uid,
+      actor,
+      organizationId: payload.organizationId,
+      data: {
+        startTime: payload.booking.startTime.getTime(),
+        endTime: payload.booking.endTime.getTime(),
+        status: payload.booking.status,
+      },
+    });
   }
 
-  async onBookingRescheduled(payload: BookingRescheduledPayload) {
+  async onBookingRescheduled(payload: BookingRescheduledPayload, actor: Actor) {
     this.log.debug("onBookingRescheduled", safeStringify(payload));
-    if (payload.config.isDryRun) {
-      return;
-    }
     await this.onBookingCreatedOrRescheduled(payload);
+
+    await this.bookingAuditProducerService.queueRescheduledAudit({
+      // In case of rescheduled booking, we send old booking uid because the action took place on that booking only
+      bookingUid: payload.oldBooking.uid,
+      actor,
+      organizationId: payload.organizationId,
+      data: {
+        startTime: {
+          old: payload.oldBooking?.startTime.toISOString() ?? null,
+          new: payload.booking.startTime.toISOString(),
+        },
+        endTime: {
+          old: payload.oldBooking?.endTime.toISOString() ?? null,
+          new: payload.booking.endTime.toISOString(),
+        },
+        rescheduledToUid: {
+          old: null,
+          new: payload.booking.uid,
+        },
+      },
+    });
   }
 
   /**
@@ -79,5 +101,95 @@ export class BookingEventHandlerService {
     } catch (error) {
       this.log.error("Error while updating hashed link", safeStringify(error));
     }
+  }
+
+  async onBookingAccepted(bookingUid: string, actor: Actor, organizationId: number | null, data: AcceptedAuditData) {
+    await this.bookingAuditProducerService.queueAcceptedAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onBookingCancelled(bookingUid: string, actor: Actor, organizationId: number | null, data: CancelledAuditData) {
+    await this.bookingAuditProducerService.queueCancelledAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onRescheduleRequested(bookingUid: string, actor: Actor, organizationId: number | null, data: RescheduleRequestedAuditData) {
+    await this.bookingAuditProducerService.queueRescheduleRequestedAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onAttendeeAdded(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeAddedAuditData) {
+    await this.bookingAuditProducerService.queueAttendeeAddedAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onHostNoShowUpdated(bookingUid: string, actor: Actor, organizationId: number | null, data: HostNoShowUpdatedAuditData) {
+    await this.bookingAuditProducerService.queueHostNoShowUpdatedAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onBookingRejected(bookingUid: string, actor: Actor, organizationId: number | null, data: RejectedAuditData) {
+    await this.bookingAuditProducerService.queueRejectedAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onAttendeeRemoved(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeRemovedAuditData) {
+    await this.bookingAuditProducerService.queueAttendeeRemovedAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onReassignment(bookingUid: string, actor: Actor, organizationId: number | null, data: ReassignmentAuditData) {
+    await this.bookingAuditProducerService.queueReassignmentAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onLocationChanged(bookingUid: string, actor: Actor, organizationId: number | null, data: LocationChangedAuditData) {
+    await this.bookingAuditProducerService.queueLocationChangedAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
+  }
+
+  async onAttendeeNoShowUpdated(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeNoShowUpdatedAuditData) {
+    await this.bookingAuditProducerService.queueAttendeeNoShowUpdatedAudit({
+      bookingUid,
+      actor,
+      organizationId,
+      data,
+    });
   }
 }

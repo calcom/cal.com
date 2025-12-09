@@ -5,7 +5,10 @@ import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/de
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
+import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -111,6 +114,37 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     cancelledBy: user.email,
   });
 
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  const auditTeamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: bookingToReschedule.eventType?.teamId ?? null },
+      parentId: bookingToReschedule.eventType?.parentId ?? null,
+    },
+  });
+  const auditTriggerForUser = !auditTeamId || (auditTeamId && bookingToReschedule.eventType?.parentId);
+  const auditUserId = auditTriggerForUser ? bookingToReschedule.userId : null;
+  const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
+  const auditData: RescheduleRequestedAuditData = {
+    cancellationReason: {
+      old: null, // Original value not available in booking query
+      new: cancellationReason ?? null,
+    },
+    cancelledBy: {
+      old: null, // Original value not available in booking query
+      new: user.email,
+    },
+    rescheduled: {
+      old: false, // We're rescheduling, so original was false
+      new: true,
+    },
+  };
+  await bookingEventHandlerService.onRescheduleRequested(
+    bookingToReschedule.uid,
+    makeUserActor(user.uuid),
+    auditOrgId ?? null,
+    auditData
+  );
+
   // delete scheduled jobs of previous booking
   const webhookPromises = [];
   webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
@@ -167,10 +201,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: bookingToReschedule.eventType?.team
       ? {
-          name: bookingToReschedule.eventType.team.name,
-          id: bookingToReschedule.eventType.team.id,
-          members: [],
-        }
+        name: bookingToReschedule.eventType.team.name,
+        id: bookingToReschedule.eventType.team.id,
+        members: [],
+      }
       : undefined,
   });
 

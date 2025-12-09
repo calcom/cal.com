@@ -116,6 +116,7 @@ describe("roundRobinReassignment test", () => {
     await roundRobinReassignment({
       bookingId: 123,
       reassignedById: 101,
+      reassignedByUuid: "test-uuid-101",
       orgId: null,
     });
 

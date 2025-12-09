@@ -1,4 +1,5 @@
 import short, { uuid } from "short-uuid";
+import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
@@ -127,7 +128,8 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
-import { makeGuestActor } from "../types/actor";
+import type { Actor } from "../types/actor";
+import { makeAttendeeActor, makeGuestActor, makeUserActor } from "../types/actor";
 
 const translator = short();
 
@@ -509,6 +511,7 @@ async function getEventOrganizationId({
 }
 
 async function handler(
+  this: RegularBookingService,
   input: BookingHandlerInput,
   deps: IBookingServiceDependencies,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
@@ -2301,22 +2304,26 @@ async function handler(
     organizationId: eventOrganizationId,
   });
 
-  const bookingRescheduledPayload: BookingRescheduledPayload = {
-    ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking ? {
-      startTime: originalRescheduledBooking.startTime,
-      endTime: originalRescheduledBooking.endTime,
-    } : undefined,
-  };
-
   const bookingEventHandler = deps.bookingEventHandler;
 
-  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
+  const auditActor = await this.getAuditActor({
+    userId: userId ?? null,
+    bookingId: booking.id,
+    bookerEmail,
+    logger: tracingLogger,
+  });
+
   if (originalRescheduledBooking) {
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+    const bookingRescheduledPayload: BookingRescheduledPayload = {
+      ...bookingCreatedPayload,
+      oldBooking: {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      },
+    };
+    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, auditActor);
   } else {
-    // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
-    const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
     await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
   }
 
@@ -2720,12 +2727,67 @@ async function handler(
 export class RegularBookingService implements IBookingService {
   constructor(private readonly deps: IBookingServiceDependencies) { }
 
+  /**
+   * Resolves the appropriate actor for audit logging based on available context.
+   * Priority: UserActor (if userId provided and user found) > AttendeeActor > GuestActor (fallback)
+   *
+   * @param params.userId - The user ID if the booker is logged in
+   * @param params.bookingId - The booking ID to find the attendee
+   * @param params.bookerEmail - The booker's email to identify the attendee
+   * @returns Actor - always returns an actor, falling back to guest actor if needed
+   */
+  async getAuditActor(params: {
+    userId: number | null;
+    bookingId: number;
+    bookerEmail: string;
+    logger: Logger<unknown>;
+  }): Promise<Actor> {
+    const { userId, bookingId, bookerEmail, logger } = params;
+
+    // If user is logged in, try to create a UserActor
+    if (userId) {
+      const user = await this.deps.prismaClient.user.findUnique({
+        where: { id: userId },
+        select: { uuid: true },
+      });
+      if (user?.uuid) {
+        return makeUserActor(user.uuid);
+      }
+      // User not found - log warning and fall through to attendee actor
+      logger.warn("User not found for userId, falling back to attendee actor", {
+        userId,
+        bookingId,
+      });
+    }
+
+    // Fallback: Create AttendeeActor using the booker's attendee record
+    const bookerAttendee = await this.deps.prismaClient.attendee.findFirst({
+      where: {
+        bookingId,
+        email: bookerEmail,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!bookerAttendee) {
+      logger.warn("Booker attendee not found after booking creation, creating guest actor for audit", {
+        bookingId,
+        bookerEmail,
+      });
+      return makeGuestActor({ email: bookerEmail });
+    }
+
+    return makeAttendeeActor(bookerAttendee.id);
+  }
+
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
   }
 
   /**
@@ -2737,7 +2799,7 @@ export class RegularBookingService implements IBookingService {
     bookingDataSchemaGetter: BookingDataSchemaGetter;
   }) {
     const bookingMeta = input.bookingMeta ?? {};
-    return handler(
+    return handler.bind(this)(
       {
         bookingData: input.bookingData,
         ...bookingMeta,
