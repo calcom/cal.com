@@ -15,7 +15,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Add translations to `apps/web/public/static/locales/en/common.json` for all UI strings
 - Use `date-fns` or native `Date` instead of Day.js when timezone awareness isn't needed
 - Put permission checks in `page.tsx`, never in `layout.tsx`
-- Use `rg` (ripgrep) for searching if available; fall back to `grep` if not
+- Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
 
 ## Don't
 
