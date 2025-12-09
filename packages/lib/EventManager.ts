@@ -311,9 +311,9 @@ export default class EventManager {
       // TODO: We could extend this logic to Regular Credentials also. Having a Google Calendar credential would cause fallback to use that credential to create calendar and thus we could have Google Meet link
       if (!isDelegationCredential({ credentialId: googleCalendarCredential?.id })) {
         log.warn(
-          "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
+          "Falling back to Jitsi integration for Regular Credential as Google Calendar is not set as destination calendar"
         );
-        evt["location"] = "integrations:daily";
+        evt["location"] = "integrations:jitsi";
         evt["conferenceCredentialId"] = undefined;
       }
     }
