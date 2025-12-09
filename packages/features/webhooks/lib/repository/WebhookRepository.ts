@@ -241,12 +241,12 @@ export class WebhookRepository implements IWebhookRepository {
       time: webhook.time,
       timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers,
-      version: webhook.version,
+      version: webhook.version as unknown as WebhookVersion,
     };
   }
 
   async findByWebhookId(webhookId?: string) {
-    return await this.prisma.webhook.findUniqueOrThrow({
+    const webhook = await this.prisma.webhook.findUniqueOrThrow({
       where: {
         id: webhookId,
       },
@@ -265,6 +265,11 @@ export class WebhookRepository implements IWebhookRepository {
         version: true,
       },
     });
+
+    return {
+      ...webhook,
+      version: webhook.version as unknown as WebhookVersion,
+    };
   }
 
   async findByOrgIdAndTrigger({
@@ -274,7 +279,7 @@ export class WebhookRepository implements IWebhookRepository {
     orgId: number;
     triggerEvent: WebhookTriggerEvents;
   }): Promise<WebhookSubscriber[]> {
-    return await this.prisma.webhook.findMany({
+    const webhooks = await this.prisma.webhook.findMany({
       where: {
         teamId: orgId,
         platform: false,
@@ -296,6 +301,11 @@ export class WebhookRepository implements IWebhookRepository {
         version: true,
       },
     });
+    return webhooks.map((webhook) => ({
+      ...webhook,
+      eventTriggers: webhook.eventTriggers as WebhookTriggerEvents[],
+      version: webhook.version as unknown as WebhookVersion,
+    }));
   }
 
   async getFilteredWebhooksForUser({ userId, userRole }: { userId: number; userRole?: UserPermissionRole }) {

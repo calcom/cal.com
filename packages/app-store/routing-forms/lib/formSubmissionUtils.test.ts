@@ -14,8 +14,8 @@ import {
   WorkflowActions,
   WorkflowTemplates,
   TimeUnit,
-  WebhookVersion,
 } from "@calcom/prisma/enums";
+import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 import type { FormResponse, Field } from "../types/types";
 import { _onFormSubmission } from "./formSubmissionUtils";
@@ -110,7 +110,7 @@ describe("_onFormSubmission", () => {
         eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
         time: null,
         timeUnit: null,
-        version: WebhookVersion.V_2021_10_20,
+        version: WebhookVersion.V_2021_10_20 as WebhookVersion,
       };
       vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
 
