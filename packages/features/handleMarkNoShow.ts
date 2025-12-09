@@ -101,10 +101,6 @@ const handleMarkNoShow = async ({
    * @deprecated Use userUuid instead
    */
   userId?: number;
-  /**
-   * The UUID of the user performing the action.
-   * Used for audit logging. If not provided, the request is treated as unauthenticated.
-   */
   userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;

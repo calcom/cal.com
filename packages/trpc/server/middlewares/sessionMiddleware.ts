@@ -45,7 +45,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     safeStringify({ user, userFromDb, upId })
   );
 
-  const { email, username, id } = user;
+  const { email, username, id, uuid } = user;
   if (!email || !id) {
     return null; // should we return null here?
   }
@@ -78,9 +78,9 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     organization,
     organizationId: organization.id,
     id,
+    uuid,
     email,
     username,
-    uuid: user.uuid,
     locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
     requiresBookerEmailVerification: user.requiresBookerEmailVerification,

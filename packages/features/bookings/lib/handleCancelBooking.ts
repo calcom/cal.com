@@ -72,11 +72,6 @@ export type CancelBookingInput = {
    * @deprecated Use userUuid instead
    */
   userId?: number;
-  /**
-   * The UUID of the user performing the cancellation.
-   * Used for audit logging to track who cancelled the booking.
-   * If not provided, the request is treated as unauthenticated.
-   */
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
