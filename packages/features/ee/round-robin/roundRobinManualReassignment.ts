@@ -237,6 +237,7 @@ export const roundRobinManualReassignment = async ({
       assignedToId: { old: oldUserId ?? null, new: newUserId },
       assignedById: { old: null, new: reassignedById },
       reassignmentReason: { old: null, new: reassignReason ?? null },
+      reassignmentType: "manual",
       userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
       title: { old: oldTitle, new: newBookingTitle },
     };

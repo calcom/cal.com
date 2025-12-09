@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatInTimeZone } from "date-fns-tz";
 
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
@@ -61,17 +62,59 @@ export class RescheduledAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Promise<TranslationWithParams> {
+    async getDisplayTitle({
+        storedData,
+        userTimeZone,
+    }: {
+        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        userTimeZone?: string;
+    }): Promise<TranslationWithParams> {
         const rescheduledToUid = storedData.fields.rescheduledToUid.new;
+        const timeZone = userTimeZone || "UTC";
+
+        // Format dates in user timezone
+        const oldDate = storedData.fields.startTime.old
+            ? formatInTimeZone(new Date(storedData.fields.startTime.old), timeZone, "MMM d, yyyy")
+            : "";
+        const newDate = storedData.fields.startTime.new
+            ? formatInTimeZone(new Date(storedData.fields.startTime.new), timeZone, "MMM d, yyyy")
+            : "";
+
         return {
             key: "booking_audit_action.rescheduled",
+            params: {
+                oldDate,
+                newDate,
+            },
             components: rescheduledToUid ? [{ type: "link", href: `/booking/${rescheduledToUid}/logs` }] : undefined,
         };
     }
 
-    getDisplayTitleForRescheduledFromLog(fromRescheduleUid: string): TranslationWithParams {
+    getDisplayTitleForRescheduledFromLog({
+        fromRescheduleUid,
+        userTimeZone,
+        parsedData,
+    }: {
+        fromRescheduleUid: string;
+        userTimeZone: string;
+        parsedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+    }): TranslationWithParams {
+        const timeZone = userTimeZone || "UTC";
+
+        // Format dates in user timezone
+        const oldDate = parsedData.fields.startTime.old
+            ? formatInTimeZone(new Date(parsedData.fields.startTime.old), timeZone, "MMM d, yyyy")
+            : "";
+        const newDate = parsedData.fields.startTime.new
+            ? formatInTimeZone(new Date(parsedData.fields.startTime.new), timeZone, "MMM d, yyyy")
+            : "";
+
         return {
             key: "booking_audit_action.rescheduled_from",
+            params: {
+                oldDate,
+                newDate,
+            },
             components: [{ type: "link", href: `/booking/${fromRescheduleUid}/logs` }],
         };
     }

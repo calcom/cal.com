@@ -38,6 +38,7 @@ type AuditLog = {
     timestamp: string;
     data: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
+    displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
         type: string;
         displayName: string | null;
@@ -49,11 +50,8 @@ type AuditLog = {
 interface BookingLogsFiltersProps {
     searchTerm: string;
     onSearchChange: (value: string) => void;
-    typeFilter: string | null;
-    onTypeFilterChange: (value: string | null) => void;
     actorFilter: string | null;
     onActorFilterChange: (value: string | null) => void;
-    typeOptions: Array<{ label: string; value: string }>;
     actorOptions: Array<{ label: string; value: string }>;
 }
 
@@ -105,11 +103,8 @@ const getActorRoleLabel = (actorType: string): string | null => {
 function BookingLogsFilters({
     searchTerm,
     onSearchChange,
-    typeFilter,
-    onTypeFilterChange,
     actorFilter,
     onActorFilterChange,
-    typeOptions,
     actorOptions,
 }: BookingLogsFiltersProps) {
     const { t } = useLocale();
@@ -122,18 +117,6 @@ function BookingLogsFilters({
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
                     containerClassName=""
-                />
-            </div>
-
-            <div className="min-w-[140px]">
-                <Select
-                    size="sm"
-                    value={typeFilter ? { label: `${t("type")}: ${t(`booking_audit_action.${typeFilter.toLowerCase()}`)}`, value: typeFilter } : { label: `${t("type")}: ${t("all")}`, value: "" }}
-                    onChange={(option) => {
-                        if (!option) return;
-                        onTypeFilterChange(option.value || null);
-                    }}
-                    options={[{ label: `${t("type")}: ${t("all")}`, value: "" }, ...typeOptions.map(opt => ({ ...opt, label: `${t("type")}: ${opt.label}` }))]}
                 />
             </div>
 
@@ -164,6 +147,7 @@ function ActionTitle({ actionDisplayTitle }: { actionDisplayTitle: TranslationWi
             <ServerTrans
                 t={t}
                 i18nKey={actionDisplayTitle.key}
+                values={actionDisplayTitle.params}
                 components={actionDisplayTitle.components.map((comp) =>
                     comp.type === "link" ? (
                         <Link
@@ -180,6 +164,37 @@ function ActionTitle({ actionDisplayTitle }: { actionDisplayTitle: TranslationWi
     }
 
     return <>{t(actionDisplayTitle.key, actionDisplayTitle.params)}</>;
+}
+
+interface JsonViewerProps {
+    data: Record<string, unknown> | null;
+}
+
+function JsonViewer({ data }: JsonViewerProps) {
+    if (!data || Object.keys(data).length === 0) {
+        return null;
+    }
+
+    const jsonString = JSON.stringify(data, null, 2);
+    const lines = jsonString.split("\n");
+    const lineCount = lines.length;
+    const lineNumberWidth = Math.max(2, Math.ceil(Math.log10(lineCount)) + 1);
+
+    return (
+        <div className="bg-default p-3 rounded-md text-[10px] overflow-x-auto font-mono">
+            {lines.map((line, idx) => (
+                <div key={idx} className="flex gap-2">
+                    <span
+                        className="text-subtle select-none text-right shrink-0"
+                        style={{ minWidth: `${lineNumberWidth}ch` }}
+                    >
+                        {idx + 1}
+                    </span>
+                    <span className="text-default whitespace-pre">{line || " "}</span>
+                </div>
+            ))}
+        </div>
+    );
 }
 
 function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
@@ -276,10 +291,15 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 
                                     {isExpanded && (
                                         <div className="bg-default rounded-lg m-0.5 text-xs">
-                                            <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                                                <span className="font-medium text-emphasis min-w-[80px]">{t("type")}</span>
-                                                <span className="text-[#096638] font-medium">{log.type.toLowerCase()}</span>
-                                            </div>
+                                            {/* Render displayFields if available, otherwise show type */}
+                                            {log.displayFields && log.displayFields.length > 0 ? (
+                                                log.displayFields.map((field, idx) => (
+                                                    <div key={idx} className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                                                        <span className="font-medium text-emphasis min-w-[80px]">{t(field.labelKey)}</span>
+                                                        <span className="text-[#096638] font-medium">{t(field.valueKey)}</span>
+                                                    </div>
+                                                ))
+                                            ) : null}
                                             <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
                                                 <span className="font-medium text-emphasis min-w-[80px]">{t("actor")}</span>
                                                 <span className="text-default">{log.actor.displayName || log.actor.type}</span>
@@ -305,11 +325,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                         </Button>
                                                     </div>
                                                     <div>
-                                                        {showJson && (
-                                                            <pre className="bg-default p-3 rounded-md text-[10px] overflow-x-auto text-default font-mono">
-                                                                {JSON.stringify(log.data, null, 2)}
-                                                            </pre>
-                                                        )}
+                                                        {showJson && <JsonViewer data={log.data} />}
                                                     </div>
                                                 </div>
                                             )}
@@ -328,7 +344,6 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
-    const [typeFilter, setTypeFilter] = useState<string | null>(null);
     const [actorFilter, setActorFilter] = useState<string | null>(null);
     const { t } = useLocale();
     const { data, isLoading, error } = trpc.viewer.bookings.getAuditLogs.useQuery({
@@ -369,19 +384,12 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
             log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
             log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesType = !typeFilter || log.action === typeFilter;
         const matchesActor = !actorFilter || log.actor.type === actorFilter;
 
-        return matchesSearch && matchesType && matchesActor;
+        return matchesSearch && matchesActor;
     });
 
-    const uniqueTypes = Array.from(new Set(auditLogs.map((log) => log.action)));
     const uniqueActorTypes = Array.from(new Set(auditLogs.map((log) => log.actor.type)));
-
-    const typeOptions = uniqueTypes.map((type) => ({
-        label: t(`booking_audit_action.${type.toLowerCase()}`),
-        value: type,
-    }));
 
     const actorOptions = uniqueActorTypes.map((actorType) => ({
         label: actorType,
@@ -393,11 +401,8 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
             <BookingLogsFilters
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
-                typeFilter={typeFilter}
-                onTypeFilterChange={setTypeFilter}
                 actorFilter={actorFilter}
                 onActorFilterChange={setActorFilter}
-                typeOptions={typeOptions}
                 actorOptions={actorOptions}
             />
 

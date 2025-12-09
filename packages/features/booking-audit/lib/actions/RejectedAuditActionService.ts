@@ -60,7 +60,7 @@ export class RejectedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone?: string }): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.rejected" };
     }
 

@@ -282,6 +282,7 @@ export const roundRobinReassignment = async ({
         assignedToId: { old: oldUserId, new: reassignedRRHost.id },
         assignedById: { old: null, new: reassignedById },
         reassignmentReason: { old: null, new: "Round robin reassignment" },
+        reassignmentType: "roundRobin",
         userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
         title: { old: oldTitle, new: newBookingTitle },
       }

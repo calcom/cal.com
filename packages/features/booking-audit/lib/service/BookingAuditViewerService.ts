@@ -22,6 +22,7 @@ type EnrichedAuditLog = {
     createdAt: string;
     data: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
+    displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
         id: string;
         type: string;
@@ -65,14 +66,15 @@ export class BookingAuditViewerService {
     async getAuditLogsForBooking(
         bookingUid: string,
         _userId: number,
-        _userEmail: string
+        _userEmail: string,
+        userTimeZone: string
     ): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
         await this.checkPermissions();
 
         const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
         const enrichedAuditLogs = await Promise.all(
-            auditLogs.map((log) => this.enrichAuditLog(log))
+            auditLogs.map((log) => this.enrichAuditLog(log, userTimeZone))
         );
 
         const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
@@ -82,6 +84,7 @@ export class BookingAuditViewerService {
             const rescheduledFromLog = await this.buildRescheduledFromLog({
                 fromRescheduleUid,
                 currentBookingUid: bookingUid,
+                userTimeZone,
             });
             if (rescheduledFromLog) {
                 // Add the rescheduled log from the previous booking as the first entry
@@ -99,18 +102,23 @@ export class BookingAuditViewerService {
     /**
      * Enriches a single audit log with actor information and formatted display data
      */
-    private async enrichAuditLog(log: BookingAuditWithActor): Promise<EnrichedAuditLog> {
+    private async enrichAuditLog(log: BookingAuditWithActor, userTimeZone: string): Promise<EnrichedAuditLog> {
         const enrichedActor = await this.enrichActorInformation(log.actor);
 
         const actionService = this.actionServiceRegistry.getActionService(log.action);
         const parsedData = actionService.parseStored(log.data);
 
-        const actionDisplayTitle = await actionService.getDisplayTitle(parsedData);
+        const actionDisplayTitle = await actionService.getDisplayTitle({ storedData: parsedData, userTimeZone });
 
         // Get display data - use custom getDisplayJson if available, otherwise use raw fields
         const displayData = actionService.getDisplayJson
             ? actionService.getDisplayJson(parsedData)
             : parsedData.fields;
+
+        // Get display fields - use custom getDisplayFields if available
+        const displayFields = actionService.getDisplayFields
+            ? actionService.getDisplayFields(parsedData)
+            : undefined;
 
         return {
             id: log.id,
@@ -121,6 +129,7 @@ export class BookingAuditViewerService {
             createdAt: log.createdAt.toISOString(),
             data: displayData,
             actionDisplayTitle,
+            displayFields,
             actor: {
                 ...log.actor,
                 displayName: enrichedActor.displayName,
@@ -137,9 +146,11 @@ export class BookingAuditViewerService {
     private async buildRescheduledFromLog({
         fromRescheduleUid,
         currentBookingUid,
+        userTimeZone,
     }: {
         fromRescheduleUid: string;
         currentBookingUid: string;
+        userTimeZone: string;
     }): Promise<EnrichedAuditLog | null> {
         const rescheduledLogs = await this.bookingAuditRepository.findRescheduledLogsOfBooking(
             fromRescheduleUid
@@ -158,7 +169,8 @@ export class BookingAuditViewerService {
             return null;
         }
 
-        const enrichedLog = await this.enrichAuditLog(rescheduledLog);
+        const enrichedLog = await this.enrichAuditLog(rescheduledLog, userTimeZone);
+        const parsedData = this.rescheduledAuditActionService.parseStored(rescheduledLog.data);
 
         // Transform the display data to show "rescheduled from" instead of "rescheduled to"
         // by replacing rescheduledToUid with rescheduledFromUid
@@ -173,7 +185,11 @@ export class BookingAuditViewerService {
             bookingUid: currentBookingUid,
             data: transformedData,
             // Use a different translation key to show "Rescheduled from" instead of "Rescheduled"
-            actionDisplayTitle: this.rescheduledAuditActionService.getDisplayTitleForRescheduledFromLog(fromRescheduleUid),
+            actionDisplayTitle: this.rescheduledAuditActionService.getDisplayTitleForRescheduledFromLog({
+                fromRescheduleUid,
+                userTimeZone,
+                parsedData,
+            }),
         };
     }
 
