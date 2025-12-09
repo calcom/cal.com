@@ -3496,6 +3496,7 @@
   "error_accessing_webhooks": "Error while trying to access webhooks.",
   "webhook_update_failed": "Failed to update webhook.",
   "webhook_create_failed": "Failed to create webhook.",
+  "webhook_delete_failed": "Failed to delete webhook.",
   "invalid_link": "Invalid Link",
   "currently_subscribed_to_plan": "You are currently subscribed to {{planFirstLetter}}{{planRest}} plan",
   "user_team": "User/Team",
