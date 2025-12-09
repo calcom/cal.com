@@ -23,7 +23,11 @@ export class NotificationTaskerPreferenceProxy implements ITasker {
     payload: Parameters<TaskerCreate>[1],
     options?: Parameters<TaskerCreate>[2]
   ): Promise<string> => {
-    const metadata = this.metadataExtractor.extract(type as string, payload);
+    const metadata = await this.metadataExtractor.extract(
+      type as string,
+      payload,
+      options?.notificationContext
+    );
 
     if (metadata) {
       const shouldSend = await this.preferenceService.shouldSendNotification({

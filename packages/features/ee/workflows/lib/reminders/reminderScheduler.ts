@@ -325,6 +325,10 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
             replyTo: msg.booking?.user?.email ?? "",
             sendAt: msg.scheduledDate,
             referenceUid: msg.uuid || undefined,
+            notificationContext: {
+              userId: msg.booking?.userId ?? undefined,
+              teamId: msg.booking?.eventType?.teamId ?? undefined,
+            },
           });
         }
       }

@@ -42,6 +42,10 @@ export async function sendSmsOrFallbackEmail(props: {
         subject: fallbackData.t("notification_about_your_booking"),
         html: twilioData.bodyWithoutOptOut || twilioData.body,
         replyTo: fallbackData.replyTo,
+        notificationContext: {
+          userId: twilioData.userId ?? undefined,
+          teamId: twilioData.teamId ?? undefined,
+        },
       });
     }
 
@@ -100,6 +104,10 @@ export async function scheduleSmsOrFallbackEmail(props: {
         replyTo: fallbackData.replyTo,
         sendAt: twilioData.scheduledDate,
         referenceUid: reminder.uuid || undefined,
+        notificationContext: {
+          userId: twilioData.userId ?? undefined,
+          teamId: twilioData.teamId ?? undefined,
+        },
       });
       return { emailReminderId: reminder.id, sid: null };
     }

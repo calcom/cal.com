@@ -462,6 +462,10 @@ export async function handler(req: NextRequest) {
                 ...mailData,
                 sendAt: reminder.scheduledDate,
                 referenceUid,
+                notificationContext: {
+                  userId: reminder.booking?.userId ?? undefined,
+                  teamId: reminder.booking?.eventType?.teamId ?? undefined,
+                },
               })
             );
           }
