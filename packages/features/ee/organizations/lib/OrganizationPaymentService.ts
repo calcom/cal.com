@@ -2,7 +2,6 @@ import { getBillingProviderService } from "@calcom/features/ee/billing/di/contai
 import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
-  ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
   ORG_TRIAL_DAYS,
@@ -14,8 +13,8 @@ import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 import type { OnboardingUser } from "./service/onboarding/types";
@@ -134,7 +133,7 @@ export class OrganizationPaymentService {
   }): PaymentConfig {
     return {
       billingPeriod: input.billingPeriod || "MONTHLY",
-      seats: input.seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
+      seats: input.seats ?? 1,
       pricePerSeat: input.pricePerSeat || Number(ORGANIZATION_SELF_SERVE_PRICE),
     };
   }
@@ -181,10 +180,10 @@ export class OrganizationPaymentService {
       this.permissionService.hasModifiedDefaultPayment(input) &&
       !this.permissionService.hasPermissionToModifyDefaultPayment()
     ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You do not have permission to modify the default payment settings",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.Unauthorized,
+        "You do not have permission to modify the default payment settings"
+      );
     }
 
     await this.permissionService.validatePermissions(input);

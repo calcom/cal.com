@@ -11,6 +11,8 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
+import type { SortOrderType } from "@calcom/platform-types";
+
 import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()
@@ -101,8 +103,8 @@ export class TeamsEventTypesService {
     return eventType;
   }
 
-  async getTeamEventTypes(teamId: number): Promise<DatabaseTeamEventType[]> {
-    return await this.teamsEventTypesRepository.getTeamEventTypes(teamId);
+  async getTeamEventTypes(teamId: number, sortCreatedAt?: SortOrderType): Promise<DatabaseTeamEventType[]> {
+    return await this.teamsEventTypesRepository.getTeamEventTypes(teamId, sortCreatedAt);
   }
 
   async updateTeamEventType(
