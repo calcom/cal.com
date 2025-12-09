@@ -169,21 +169,15 @@ const providers: Provider[] = [
         identifier: hashEmail(user.email),
       });
 
-      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
-      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
+      // Users without a password must use their identity provider (Google/SAML) to login
+      if (!user.password?.hash) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
-      if (user.password?.hash && !credentials.totpCode) {
-        if (!user.password?.hash) {
-          throw new Error(ErrorCode.IncorrectEmailPassword);
-        }
-        const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
-        if (!isCorrectPassword) {
-          throw new Error(ErrorCode.IncorrectEmailPassword);
-        }
+      // Always verify password for users who have one
+      const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
+      if (!isCorrectPassword) {
+        throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
       if (user.twoFactorEnabled && credentials.backupCode) {
@@ -557,7 +551,7 @@ export const getOptions = ({
         );
         const { upId } = determineProfile({ profiles: allProfiles, token });
 
-        const profile = await ProfileRepository.findByUpId(upId);
+        const profile = await ProfileRepository.findByUpIdWithAuth(upId, existingUser.id);
         if (!profile) {
           throw new Error("Profile not found");
         }
