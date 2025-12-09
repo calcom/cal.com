@@ -32,8 +32,8 @@ export const acceptPolicyHandler = async ({ ctx, input }: AcceptPolicyOptions) =
   }
 
   // Use service layer for business logic
-  const policyService = new PolicyService(prisma);
-  const result = await policyService.acceptPolicy(user.id, input.version, input.type, prisma);
+  const policyService = new PolicyService();
+  const result = await policyService.acceptPolicy(user.id, input.version, input.type);
 
   return {
     success: result.success,

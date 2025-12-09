@@ -1,6 +1,6 @@
 import { PolicyRepository } from "@calcom/features/policies/lib/repository/policy.repository";
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListPolicyVersionsSchema } from "./schemas";
 
@@ -17,8 +17,7 @@ export const listPolicyVersionsHandler = async ({ ctx, input }: ListPolicyVersio
 
   const policyRepository = new PolicyRepository(prisma);
 
-  // Use repository to list policy versions with pagination
-  const result = await policyRepository.listPolicyVersions(input.type, input.cursor, input.limit);
+  const result = await policyRepository.listPolicyVersions(input.cursor, input.limit, input.type);
 
   return {
     policies: result.policies,

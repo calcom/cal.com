@@ -107,7 +107,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
       },
     })) !== null;
 
-  const policyService = new PolicyService(prisma);
+  const policyService = new PolicyService();
   const policyAcceptance = await policyService.getAnyUnacceptedPolicyForUser(user.id);
 
   return {

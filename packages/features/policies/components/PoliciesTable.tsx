@@ -88,7 +88,7 @@ export function PoliciesTable() {
             {allPolicies.map((policy, index) => (
               <TableRow key={`${policy.version}-${policy.type}`}>
                 <TableCell className="font-mono text-xs">{new Date(policy.version).toISOString()}</TableCell>
-                <TableCell className="font-medium">{dayjs(policy.publishedAt).format("MMM D, YYYY HH:mm")}</TableCell>
+                <TableCell className="font-medium">{dayjs(policy.publishedAt).format("MMM D, YYYY HH:mm:ss")}</TableCell>
                 <TableCell>
                   <Badge variant="gray">{policy.type.replace("_", " ")}</Badge>
                 </TableCell>

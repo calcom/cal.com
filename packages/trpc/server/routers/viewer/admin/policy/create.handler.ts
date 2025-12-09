@@ -1,6 +1,6 @@
 import { PolicyRepository } from "@calcom/features/policies/lib/repository/policy.repository";
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TCreatePolicyVersionSchema } from "./schemas";
 

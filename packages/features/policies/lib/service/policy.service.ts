@@ -1,13 +1,9 @@
 import { PolicyRepository } from "@calcom/features/policies/lib/repository/policy.repository";
 import logger from "@calcom/lib/logger";
-import type { PrismaClient } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { PolicyType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["PolicyService"] });
-
-interface PolicyServiceDeps {
-  policyRepository: PolicyRepository;
-}
 
 /**
  * Service layer for policy-related business logic.
@@ -16,8 +12,8 @@ interface PolicyServiceDeps {
 export class PolicyService {
   private readonly policyRepository: PolicyRepository;
 
-  constructor(prisma: PrismaClient, deps?: PolicyServiceDeps) {
-    this.policyRepository = deps?.policyRepository ?? new PolicyRepository(prisma);
+  constructor(policyRepository?: PolicyRepository) {
+    this.policyRepository = policyRepository ?? new PolicyRepository(prisma);
   }
 
   /**
@@ -84,15 +80,9 @@ export class PolicyService {
    * @param userId - The user ID
    * @param policyVersion - The policy version date
    * @param policyType - The policy type
-   * @param prisma - Prisma client for transaction support
    * @returns Object with success status and acceptance timestamp
    */
-  async acceptPolicy(
-    userId: number,
-    policyVersion: Date,
-    policyType: PolicyType,
-    prisma: PrismaClient
-  ) {
+  async acceptPolicy(userId: number, policyVersion: Date, policyType: PolicyType) {
     const hasAccepted = await this.policyRepository.hasUserAcceptedPolicy(
       userId,
       policyVersion,

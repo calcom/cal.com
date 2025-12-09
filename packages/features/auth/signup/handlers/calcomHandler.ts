@@ -8,6 +8,7 @@ import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/cr
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { PolicyService } from "@calcom/features/policies/lib/service/policy.service";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
@@ -23,7 +24,6 @@ import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
-import { recordPolicyAcceptanceOnSignup } from "../utils/recordPolicyAcceptance";
 import {
   findTokenByToken,
   throwIfTokenExpired,
@@ -193,7 +193,8 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       }
 
       // Record policy acceptance on signup
-      await recordPolicyAcceptanceOnSignup(user.id, prisma);
+      const policyService = new PolicyService();
+      await policyService.recordLatestPolicyAcceptanceOnSignup(user.id);
     }
 
     // Cleanup token after use
@@ -219,7 +220,8 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
 
     // Record policy acceptance on signup
-    await recordPolicyAcceptanceOnSignup(user.id, prisma);
+    const policyService = new PolicyService();
+    await policyService.recordLatestPolicyAcceptanceOnSignup(user.id);
 
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });

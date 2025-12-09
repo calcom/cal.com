@@ -4,6 +4,7 @@ import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { PolicyService } from "@calcom/features/policies/lib/service/policy.service";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -15,7 +16,6 @@ import { signupSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import { prefillAvatar } from "../utils/prefillAvatar";
-import { recordPolicyAcceptanceOnSignup } from "../utils/recordPolicyAcceptance";
 import {
   findTokenByToken,
   throwIfTokenExpired,
@@ -127,7 +127,8 @@ export default async function handler(body: Record<string, string>) {
       }
 
       // Record policy acceptance on signup
-      await recordPolicyAcceptanceOnSignup(user.id, prisma);
+      const policyService = new PolicyService();
+      await policyService.recordLatestPolicyAcceptanceOnSignup(user.id);
     }
 
     // Cleanup token after use
@@ -172,7 +173,8 @@ export default async function handler(body: Record<string, string>) {
     });
 
     // Record policy acceptance on signup
-    await recordPolicyAcceptanceOnSignup(user.id, prisma);
+    const policyService = new PolicyService();
+    await policyService.recordLatestPolicyAcceptanceOnSignup(user.id);
 
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email: userEmail });

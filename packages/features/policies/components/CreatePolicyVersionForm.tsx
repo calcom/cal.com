@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,10 +36,21 @@ export function CreatePolicyVersionForm() {
     },
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      form.setValue("version", new Date().toISOString().slice(0, 16));
+    }
+  }, [isOpen, form]);
+
   const createMutation = trpc.viewer.admin.policy.create.useMutation({
     onSuccess: () => {
       showToast(t("policy_version_created_successfully"), "success");
-      form.reset();
+      form.reset({
+        type: PolicyType.PRIVACY_POLICY,
+        version: new Date().toISOString().slice(0, 16),
+        description: "",
+        descriptionNonUS: "",
+      });
       setIsOpen(false);
       // Invalidate both the admin list and the /me query so users see the modal immediately
       utils.viewer.admin.policy.list.invalidate();
