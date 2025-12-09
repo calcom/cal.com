@@ -1,26 +1,28 @@
 name: Run i18n AI automation
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - main
-concurrency:
-  group: ${{ github.workflow }}-main
-  cancel-in-progress: false
+      - develop
+  workflow_dispatch:
 
 jobs:
   i18n:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     name: Run i18n
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
       actions: write
       contents: write
       pull-requests: write
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
+          cache: npm
       - uses: lingodotdev/lingo.dev@main
         env:
           GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}

@@ -28,7 +28,6 @@ export const config = {
 const log = logger.getSubLogger({ prefix: ["api/webhook/sengdrid"] });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("Status map: ", statusMap)
   log.info("Received request", req.method, req.body);
   if (req.method === "POST") {
     //VERIFICATION
@@ -64,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           eventTypeId,
         }: { msgId: string; event: keyof typeof statusMap; eventTypeId: number } = eventObj;
 
-        console.log("eventObj: ", eventObj)
+        console.log("eventObj: ", eventObj);
 
         if (!msgId || !event || !eventTypeId) {
           log.warn("Skipping event due to missing fields", eventObj);

@@ -9,7 +9,8 @@ import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import * as twilio from "../../providers/twilio";
+// import * as twilio from "../../providers/twilio";
+import * as smsService from "../..//providers/messaging/dispatcher";
 import customTemplate from "../../templates/customTemplate";
 import type { VariablesType } from "../../templates/customTemplate";
 import smsReminderTemplate from "../../templates/sms/reminder";
@@ -133,7 +134,8 @@ const processNotificationQueue = async (): Promise<number> => {
       }
 
       if (messageText?.length && messageText?.length > 0 && recipientNumber) {
-        const dispatchedSMS = await twilio.scheduleSMS(
+        // const dispatchedSMS = await twilio.scheduleSMS(
+        const dispatchedSMS = await smsService.scheduleSMS(
           recipientNumber,
           messageText,
           notification.scheduledDate,
@@ -153,7 +155,7 @@ const processNotificationQueue = async (): Promise<number> => {
             },
             data: {
               scheduled: true,
-              referenceId: dispatchedSMS.sid,
+              referenceId: dispatchedSMS.response?.sid,
             },
           });
         } else {
@@ -217,10 +219,11 @@ const executeCancellationProcess = async (): Promise<void> => {
     },
   });
 
-  const cancellationTasks: Promise<void>[] = [];
+  const cancellationTasks: Promise<any>[] = [];
   for (const messageToCancel of messagesToCancel) {
     if (messageToCancel.referenceId) {
-      const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
+      // const twilioRequest = twilio.cancelSMS(messageToCancel.referenceId);
+      const twilioRequest = smsService.cancelSMS(messageToCancel.referenceId);
 
       const databaseUpdate = prisma.calIdWorkflowReminder
         .update({

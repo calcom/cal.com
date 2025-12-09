@@ -12,7 +12,7 @@ import type {
   CalIdScheduleTextReminderAction,
   CalIdScheduleTextReminderArgs,
 } from "../config/types";
-import * as twilio from "../providers/twilio";
+import * as smsService from "../providers/messaging/dispatcher";
 import type { VariablesType } from "../templates/customTemplate";
 import customTemplate from "../templates/customTemplate";
 import smsReminderTemplate from "../templates/sms/reminder";
@@ -160,7 +160,7 @@ const executeImmediateNotification = async (
   eventTypeRef?: number
 ): Promise<void> => {
   try {
-    await twilio.sendSMS(
+    await smsService.sendSMS(
       phoneDestination,
       textContent,
       senderIdentifier,
@@ -171,6 +171,17 @@ const executeImmediateNotification = async (
       undefined,
       { eventTypeId: eventTypeRef }
     );
+    // await twilio.sendSMS(
+    //   phoneDestination,
+    //   textContent,
+    //   senderIdentifier,
+    //   userRef,
+    //   teamRef,
+    //   false,
+    //   undefined,
+    //   undefined,
+    //   { eventTypeId: eventTypeRef }
+    // );
   } catch (exception) {
     moduleLogger.error(`Immediate SMS delivery failed: ${exception}`);
   }
@@ -189,7 +200,7 @@ const scheduleDelayedNotification = async (
   eventTypeRef?: number | null
 ): Promise<void> => {
   try {
-    const scheduledMessage = await twilio.scheduleSMS(
+    const scheduledMessage = await smsService.scheduleSMS(
       phoneDestination,
       textContent,
       dispatchTime.toDate(),
@@ -201,6 +212,19 @@ const scheduleDelayedNotification = async (
       undefined,
       { eventTypeId: eventTypeRef }
     );
+    // //
+    // const scheduledMessage = await twilio.scheduleSMS(
+    //   phoneDestination,
+    //   textContent,
+    //   dispatchTime.toDate(),
+    //   senderIdentifier,
+    //   userRef,
+    //   teamRef,
+    //   false,
+    //   undefined,
+    //   undefined,
+    //   { eventTypeId: eventTypeRef }
+    // );
 
     if (scheduledMessage) {
       await prisma.calIdWorkflowReminder.create({
@@ -210,7 +234,7 @@ const scheduleDelayedNotification = async (
           method: WorkflowMethods.SMS,
           scheduledDate: dispatchTime.toDate(),
           scheduled: true,
-          referenceId: scheduledMessage.sid,
+          referenceId: scheduledMessage.response?.sid || "",
           seatReferenceId: seatReference,
         },
       });
