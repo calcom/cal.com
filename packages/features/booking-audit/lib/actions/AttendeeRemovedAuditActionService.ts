@@ -11,7 +11,7 @@ import type { IAuditActionService, TranslationWithParams } from "./IAuditActionS
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-    removedAttendees: StringArrayChangeSchema,
+    attendees: StringArrayChangeSchema,
 });
 
 export class AttendeeRemovedAuditActionService
@@ -65,10 +65,12 @@ export class AttendeeRemovedAuditActionService
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeRemovedAuditDisplayData {
         const { fields } = storedData;
-        const newAttendeesSet = new Set(fields.removedAttendees.new ?? []);
-        // Only include attendees that are in the old list but not in the new list
-        const removedAttendees = (fields.removedAttendees.old ?? []).filter(
-            (email) => !newAttendeesSet.has(email)
+        // Note: fields.attendees stores the state change (old -> new), not the removed attendees directly
+        // old = attendees before removal, new = remaining attendees after removal
+        const remainingAttendeesSet = new Set(fields.attendees.new ?? []);
+        // Compute removed attendees: those in old but not in new (remaining)
+        const removedAttendees = (fields.attendees.old ?? []).filter(
+            (email) => !remainingAttendeesSet.has(email)
         );
         return {
             removedAttendees,
