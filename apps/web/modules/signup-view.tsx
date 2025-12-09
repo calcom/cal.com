@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -15,7 +15,6 @@ import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
-import type { TurnstileInstance } from "@calcom/features/auth/Turnstile";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -191,7 +190,6 @@ export default function Signup({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const [turnstileKey, setTurnstileKey] = useState(0);
-  const turnstileRef = useRef<TurnstileInstance>(null);
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -211,13 +209,6 @@ export default function Signup({
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
-
-  // Test: Verify ref works through dynamic import
-  useEffect(() => {
-    if (CLOUDFLARE_SITE_ID) {
-      console.log("Turnstile ref available:", Boolean(turnstileRef.current));
-    }
-  }, []);
 
   const [userConsentToCookie, setUserConsentToCookie] = useState(false); // No need to be checked for user to proceed
 
@@ -270,10 +261,6 @@ export default function Signup({
     })
       .then(handleErrorsAndStripe)
       .then(async () => {
-        if (turnstileRef.current) {
-          turnstileRef.current.reset();
-        }
-
         if (process.env.NEXT_PUBLIC_GTM_ID)
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
@@ -315,19 +302,14 @@ export default function Signup({
         });
       })
       .catch((err) => {
-        const message =
-          err.message === "Invalid cloudflare token"
-            ? "Verification expired. Please try again."
-            : err.message;
-
-        formMethods.setError("apiError", { message });
-        if (turnstileRef.current) {
-          turnstileRef.current.reset();
-        } else {
-          // Fallback: force remount if ref doesn't work
-          setTurnstileKey((k) => k + 1);
-        }
+        setTurnstileKey((k) => k + 1);
         formMethods.setValue("cfToken", undefined);
+
+        if (err.message === "Invalid cloudflare token") {
+          return;
+        }
+
+        formMethods.setError("apiError", { message: err.message });
       });
   };
 
@@ -477,7 +459,6 @@ export default function Signup({
                   {CLOUDFLARE_SITE_ID ? (
                     <TurnstileCaptcha
                       key={turnstileKey}
-                      ref={turnstileRef}
                       appearance="interaction-only"
                       onVerify={(token) => {
                         formMethods.setValue("cfToken", token);
