@@ -33,7 +33,7 @@ export type AppFlags = {
   "booking-calendar-view": boolean;
   "booking-email-sms-tasker": boolean;
   "bookings-v3": boolean;
-  holidays: boolean;
+  "booking-audit": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;
