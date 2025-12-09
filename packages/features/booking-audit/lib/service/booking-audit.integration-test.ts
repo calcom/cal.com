@@ -56,24 +56,7 @@ describe("Booking Audit Integration", () => {
     });
     testEventTypeId = eventType.id;
 
-    // Create test booking
-    const startTime = new Date();
-    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
-    testBookingUid = `test-booking-${timestamp}-${randomSuffix}`;
-
-    const testBooking = await prisma.booking.create({
-      data: {
-        uid: testBookingUid,
-        title: "Test Booking",
-        startTime,
-        endTime,
-        userId: testUserId,
-        eventTypeId: testEventTypeId,
-        status: BookingStatus.ACCEPTED,
-      },
-    });
-
-    // Create test attendee user for permission tests
+    // Create test attendee user for permission tests (needed before booking creation)
     const attendeeUser = await prisma.user.create({
       data: {
         email: `test-attendee-${timestamp}-${randomSuffix}@example.com`,
@@ -84,13 +67,29 @@ describe("Booking Audit Integration", () => {
     testAttendeeUserId = attendeeUser.id;
     testAttendeeEmail = attendeeUser.email;
 
-    // Add attendee to booking
-    await prisma.attendee.create({
+    // Create test booking with attendee in single atomic operation
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+    testBookingUid = `test-booking-${timestamp}-${randomSuffix}`;
+
+    await prisma.booking.create({
       data: {
-        email: testAttendeeEmail,
-        name: "Test Attendee",
-        timeZone: "UTC",
-        bookingId: testBooking.id,
+        uid: testBookingUid,
+        title: "Test Booking",
+        startTime,
+        endTime,
+        userId: testUserId,
+        eventTypeId: testEventTypeId,
+        status: BookingStatus.ACCEPTED,
+        attendees: {
+          create: [
+            {
+              email: testAttendeeEmail,
+              name: "Test Attendee",
+              timeZone: "UTC",
+            },
+          ],
+        },
       },
     });
   });

@@ -11,14 +11,14 @@ export default defineConfig({
     description: "Your calendar companion for quick booking and scheduling",
     permissions: ["activeTab", "storage", "identity"],
     host_permissions: [
-      "http://localhost:8081/*",
+      "https://companion.cal.com/*",
       "https://api.cal.com/*",
       "https://app.cal.com/*",
       "https://mail.google.com/*",
     ],
     content_security_policy: {
       extension_pages:
-        "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;",
+        "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com",
     },
     action: {
       default_title: "Cal.com Companion",
