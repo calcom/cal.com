@@ -1,14 +1,28 @@
+import type { SupportedChannelsMap } from "./registry";
+
 export enum NotificationChannel {
   EMAIL = "EMAIL",
   SMS = "SMS",
 }
 
-export interface NotificationContext {
+export enum NotificationType {
+  WORKFLOW_EMAIL_REMINDER = "WORKFLOW_EMAIL_REMINDER",
+  WORKFLOW_SMS_REMINDER = "WORKFLOW_SMS_REMINDER",
+  BOOKING_CONFIRMED = "BOOKING_CONFIRMED",
+  BOOKING_CANCELLED = "BOOKING_CANCELLED",
+  BOOKING_RESCHEDULED = "BOOKING_RESCHEDULED",
+  BOOKING_REMINDER = "BOOKING_REMINDER",
+}
+
+export type NotificationContext = {
   userId: number;
   teamId?: number | null;
-  notificationType: string;
-  channel: NotificationChannel;
-}
+} & {
+  [K in NotificationType]: {
+    notificationType: K;
+    channel: SupportedChannelsMap[K];
+  };
+}[NotificationType];
 
 export interface NotificationPreference {
   emailEnabled: boolean;

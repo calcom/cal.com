@@ -8,6 +8,7 @@ import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { NotificationChannel, NotificationType } from "@calcom/features/notifications/types";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -254,7 +255,7 @@ export class WorkflowService {
     // TODO: Expand this method to other workflow triggers
     workflowTriggerEvent: "BEFORE_EVENT" | "AFTER_EVENT";
     workflowStepId: number;
-    workflow: Pick<Workflow, "time" | "timeUnit">;
+    workflow: Pick<Workflow, "time" | "timeUnit" | "userId" | "teamId">;
     evt: Pick<CalendarEvent, "uid" | "startTime" | "endTime">;
     seatReferenceId?: string;
   }) {
@@ -310,6 +311,14 @@ export class WorkflowService {
     await tasker.create("sendWorkflowEmails", taskerPayload, {
       scheduledAt: scheduledDate,
       referenceUid: workflowReminder.uuid,
+      notificationContext: workflow.userId
+        ? {
+            userId: workflow.userId,
+            teamId: workflow.teamId ?? null,
+            notificationType: NotificationType.WORKFLOW_EMAIL_REMINDER,
+            channel: NotificationChannel.EMAIL,
+          }
+        : undefined,
     });
   }
   static processWorkflowScheduledDate({

@@ -27,6 +27,8 @@ export type ScheduleReminderArgs = {
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
+  userId?: number | null;
+  teamId?: number | null;
 } & WorkflowContextData;
 
 type scheduleEmailReminderArgs = ScheduleReminderArgs & {
@@ -58,10 +60,12 @@ type SendEmailReminderParams = {
   uid?: string;
   workflowStepId?: number;
   seatReferenceUid?: string;
+  userId?: number | null;
+  teamId?: number | null;
 };
 
 const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminderParams) => {
-  const { mailData, sendTo, scheduledDate, uid, workflowStepId } = params;
+  const { mailData, sendTo, scheduledDate, uid, workflowStepId, userId, teamId } = params;
 
   let reminderUid = undefined;
   if (scheduledDate) {
@@ -82,6 +86,8 @@ const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminder
     to: sendTo,
     sendAt: scheduledDate,
     referenceUid: reminderUid ?? undefined,
+    userId,
+    teamId,
   });
 };
 
@@ -114,6 +120,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     hideBranding,
     includeCalendarEvent,
     action,
+    userId,
+    teamId,
   } = args;
 
   const uid = evt.uid as string;
@@ -149,6 +157,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     uid,
     workflowStepId,
     seatReferenceUid,
+    userId,
+    teamId,
   });
 };
 
@@ -167,6 +177,8 @@ const scheduleEmailReminderForForm = async (
     emailSubject = "",
     emailBody = "",
     hideBranding,
+    userId,
+    teamId,
   } = args;
 
   const emailContent = {
@@ -207,6 +219,8 @@ const scheduleEmailReminderForForm = async (
     triggerEvent,
     workflowStepId,
     scheduledDate: null,
+    userId,
+    teamId,
   });
 };
 
