@@ -11,7 +11,7 @@ import type { IAuditActionService, TranslationWithParams } from "./IAuditActionS
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
-    removedAttendees: StringArrayChangeSchema,
+    attendees: StringArrayChangeSchema,
 });
 
 export class AttendeeRemovedAuditActionService
@@ -65,10 +65,12 @@ export class AttendeeRemovedAuditActionService
 
     getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeRemovedAuditDisplayData {
         const { fields } = storedData;
+        const remainingAttendeesSet = new Set(fields.attendees.new ?? []);
+        const removedAttendees = (fields.attendees.old ?? []).filter(
+            (email) => !remainingAttendeesSet.has(email)
+        );
         return {
-            removedAttendees: fields.removedAttendees.new,
-            previousAttendees: fields.removedAttendees.old ?? [],
-            count: fields.removedAttendees.new.length,
+            removedAttendees,
         };
     }
 }
@@ -77,6 +79,4 @@ export type AttendeeRemovedAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type AttendeeRemovedAuditDisplayData = {
     removedAttendees: string[];
-    previousAttendees: string[];
-    count: number;
 };
