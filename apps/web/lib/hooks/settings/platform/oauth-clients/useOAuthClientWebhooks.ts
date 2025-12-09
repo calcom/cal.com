@@ -82,3 +82,16 @@ export const useCreateOAuthClientWebhook = (clientId: string) => {
 
   return mutation;
 };
+
+export const useDeleteOAuthClientWebhook = () => {
+  const mutation = useMutation<ApiSuccessResponse<Output>, unknown, { clientId: string; webhookId: string }>({
+    mutationFn: ({ clientId, webhookId }: { clientId: string; webhookId: string }) => {
+      return fetch(`/api/v2/oauth-clients/${clientId}/webhooks/${webhookId}`, {
+        method: "DELETE",
+        headers: { "Content-type": "application/json" },
+      }).then((res) => res.json());
+    },
+  });
+
+  return mutation;
+};
