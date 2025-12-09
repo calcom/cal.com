@@ -1,11 +1,16 @@
 import dayjs from "@calcom/dayjs";
 
 import { GOOGLE_HOLIDAY_CALENDARS } from "./constants";
-import { GoogleHolidayService, type CachedHoliday } from "./GoogleHolidayService";
+import { getHolidayCacheService, type CachedHoliday, type HolidayCacheService } from "./HolidayCacheService";
 import type { Country, Holiday, HolidayWithStatus } from "./types";
 
-class HolidayServiceClass {
+export class HolidayService {
+  private cacheService: HolidayCacheService;
   private countriesCache: Country[] | null = null;
+
+  constructor(cacheService?: HolidayCacheService) {
+    this.cacheService = cacheService || getHolidayCacheService();
+  }
 
   getSupportedCountries(): Country[] {
     if (this.countriesCache) {
@@ -31,8 +36,8 @@ class HolidayServiceClass {
 
   async getHolidaysForCountry(countryCode: string, year?: number): Promise<Holiday[]> {
     const targetYear = year || dayjs().year();
-    const cached = await GoogleHolidayService.getHolidaysForCountry(countryCode, targetYear);
-    return cached.map(this.cachedHolidayToHoliday);
+    const cached = await this.cacheService.getHolidaysForCountry(countryCode, targetYear);
+    return cached.map((h) => this.cachedHolidayToHoliday(h));
   }
 
   async getHolidaysWithStatus(countryCode: string, disabledIds: string[]): Promise<HolidayWithStatus[]> {
@@ -40,8 +45,8 @@ class HolidayServiceClass {
     const nextYear = currentYear + 1;
 
     const [currentYearHolidays, nextYearHolidays] = await Promise.all([
-      GoogleHolidayService.getHolidaysForCountry(countryCode, currentYear),
-      GoogleHolidayService.getHolidaysForCountry(countryCode, nextYear),
+      this.cacheService.getHolidaysForCountry(countryCode, currentYear),
+      this.cacheService.getHolidaysForCountry(countryCode, nextYear),
     ]);
 
     const allHolidays = [...currentYearHolidays, ...nextYearHolidays];
@@ -60,16 +65,12 @@ class HolidayServiceClass {
       .sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  async getHolidayOnDate(
-    date: Date,
-    countryCode: string,
-    disabledIds: string[] = []
-  ): Promise<Holiday | null> {
+  async getHolidayOnDate(date: Date, countryCode: string, disabledIds: string[] = []): Promise<Holiday | null> {
     const year = dayjs(date).year();
     const dateStr = dayjs(date).format("YYYY-MM-DD");
     const disabledSet = new Set(disabledIds);
 
-    const holidays = await GoogleHolidayService.getHolidaysForCountry(countryCode, year);
+    const holidays = await this.cacheService.getHolidaysForCountry(countryCode, year);
 
     for (const holiday of holidays) {
       if (disabledSet.has(holiday.eventId)) continue;
@@ -90,7 +91,7 @@ class HolidayServiceClass {
   ): Promise<Array<{ date: string; holiday: Holiday }>> {
     const disabledSet = new Set(disabledIds);
 
-    const holidays = await GoogleHolidayService.getHolidaysInRange(countryCode, startDate, endDate);
+    const holidays = await this.cacheService.getHolidaysInRange(countryCode, startDate, endDate);
 
     return holidays
       .filter((h) => !disabledSet.has(h.eventId))
@@ -112,6 +113,11 @@ class HolidayServiceClass {
   }
 }
 
-export const HolidayService = new HolidayServiceClass();
+let defaultService: HolidayService | null = null;
 
-export { HolidayServiceClass };
+export function getHolidayService(): HolidayService {
+  if (!defaultService) {
+    defaultService = new HolidayService();
+  }
+  return defaultService;
+}

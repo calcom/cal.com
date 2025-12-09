@@ -1,5 +1,5 @@
-import { HolidayService } from "@calcom/lib/holidays";
-import prisma from "@calcom/prisma";
+import { getHolidayService } from "@calcom/lib/holidays";
+import { HolidayRepository } from "@calcom/lib/server/repository/HolidayRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,8 +17,10 @@ export async function updateSettingsHandler({ ctx, input }: UpdateSettingsOption
   const userId = ctx.user.id;
   const { countryCode, resetDisabledHolidays } = input;
 
+  const holidayService = getHolidayService();
+
   if (countryCode) {
-    const countries = HolidayService.getSupportedCountries();
+    const countries = holidayService.getSupportedCountries();
     const isValidCountry = countries.some((c) => c.code === countryCode);
     if (!isValidCountry) {
       throw new TRPCError({
@@ -28,25 +30,14 @@ export async function updateSettingsHandler({ ctx, input }: UpdateSettingsOption
     }
   }
 
-  const settings = await prisma.userHolidaySettings.upsert({
-    where: { userId },
-    create: {
-      userId,
-      countryCode,
-      disabledIds: [],
-    },
-    update: {
-      countryCode,
-      ...(resetDisabledHolidays ? { disabledIds: [] } : {}),
-    },
-    select: {
-      countryCode: true,
-      disabledIds: true,
-    },
+  const settings = await HolidayRepository.upsertUserSettings({
+    userId,
+    countryCode: countryCode ?? null,
+    resetDisabledHolidays,
   });
 
   if (settings.countryCode) {
-    const holidays = await HolidayService.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
+    const holidays = await holidayService.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
     return {
       countryCode: settings.countryCode,
       holidays,

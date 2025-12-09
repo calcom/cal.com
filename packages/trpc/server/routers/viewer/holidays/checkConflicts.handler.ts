@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
+import { getHolidayService } from "@calcom/lib/holidays";
 import { CONFLICT_CHECK_MONTHS } from "@calcom/lib/holidays/constants";
-import { HolidayService } from "@calcom/lib/holidays";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -40,7 +40,8 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
   const startDate = new Date();
   const endDate = dayjs().add(CONFLICT_CHECK_MONTHS, "months").toDate();
 
-  const holidayDates = await HolidayService.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate);
+  const holidayService = getHolidayService();
+  const holidayDates = await holidayService.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate);
 
   if (holidayDates.length === 0) {
     return { conflicts: [] };

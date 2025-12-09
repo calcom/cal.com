@@ -1,7 +1,8 @@
-import { HolidayService } from "@calcom/lib/holidays";
+import { getHolidayService } from "@calcom/lib/holidays";
 
 export async function getSupportedCountriesHandler() {
-  return HolidayService.getSupportedCountries();
+  const holidayService = getHolidayService();
+  return holidayService.getSupportedCountries();
 }
 
 export default getSupportedCountriesHandler;

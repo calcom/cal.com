@@ -17,7 +17,7 @@ import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-r
 import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { HolidayService } from "@calcom/lib/holidays";
+import { getHolidayService } from "@calcom/lib/holidays";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -710,7 +710,8 @@ export class UserAvailabilityService {
       return {};
     }
 
-    const holidayDates = await HolidayService.getHolidayDatesInRange(
+    const holidayService = getHolidayService();
+    const holidayDates = await holidayService.getHolidayDatesInRange(
       holidaySettings.countryCode,
       holidaySettings.disabledIds,
       startDate,
