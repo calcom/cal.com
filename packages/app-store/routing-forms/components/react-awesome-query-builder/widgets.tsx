@@ -10,6 +10,7 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
@@ -403,7 +404,7 @@ function DateWidget({ value, setValue, timezone, ...remainingProps }: TextLikeCo
 
   return (
     <div className="mb-2 w-full">
-      <DatePicker date={dateValue} onDatesChange={handleDateChange} timezone={timezone} {...remainingProps} />
+      <DatePicker date={dateValue} onDatesChange={handleDateChange} {...remainingProps} />
     </div>
   );
 }

@@ -100,7 +100,7 @@ test.describe("Manage Booking Questions - Date Type", () => {
                     await expect(page.locator('[role="dialog"]').first()).toBeVisible();
                     await expect(page.locator('[role="grid"]').first()).toBeVisible();
 
-                    const nextMonthButton = page.locator('[role="dialog"]').first().locator('[aria-label*="next"], [aria-label*="Next"], button:has-text("›"), button:has-text(">")').first();
+                    const nextMonthButton = page.locator('[role="dialog"]').first().getByTestId("datepicker-next-month");
                     if (await nextMonthButton.isVisible()) {
                         await nextMonthButton.click();
                         await page.waitForTimeout(500);
@@ -124,7 +124,7 @@ test.describe("Manage Booking Questions - Date Type", () => {
                     await expect(page.locator('[role="dialog"]').first()).toBeVisible();
                     await expect(page.locator('[role="grid"]').first()).toBeVisible();
 
-                    const nextMonthButton = page.locator('[role="dialog"]').first().locator('[aria-label*="next"], [aria-label*="Next"], button:has-text("›"), button:has-text(">")').first();
+                    const nextMonthButton = page.locator('[role="dialog"]').first().getByTestId("datepicker-next-month");
                     if (await nextMonthButton.isVisible()) {
                         await nextMonthButton.click();
                         await page.waitForTimeout(500);
@@ -247,6 +247,24 @@ async function bookTimeSlot({
     }
 }
 
+
+function getFieldTypeValue(label: string): string {
+
+    const labelToValueMap: Record<string, string> = {
+        "Date": "date",
+        "Address": "address",
+        "Checkbox": "boolean",
+        "Checkbox Group": "checkbox",
+        "Long Text": "textarea",
+        "Short Text": "text",
+        "Multiple Emails": "multiemail",
+        "MultiSelect": "multiselect",
+        "Radio Group": "radio",
+    };
+
+    return labelToValueMap[label] || label.toLowerCase();
+}
+
 async function selectOption({
     page,
     selector,
@@ -258,7 +276,8 @@ async function selectOption({
 }) {
     const locatorForSelect = page.locator(selector.selector).nth(selector.nth);
     await locatorForSelect.click();
-    await locatorForSelect.locator(`text="${optionText}"`).click();
+    const optionValue = getFieldTypeValue(optionText);
+    await page.getByTestId(`select-option-${optionValue}`).click();
 }
 
 async function addQuestionAndSave({

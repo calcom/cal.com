@@ -398,7 +398,6 @@ export class AddressFieldInput_2024_06_14 {
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
   @DocsProperty({ example: "e.g., 1234 Main St" })
   placeholder?: string;
 
@@ -446,7 +445,6 @@ export class TextFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., Enter text here" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -493,7 +491,6 @@ export class UrlFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., Enter url here" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -540,7 +537,6 @@ export class NumberFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., 100" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -587,7 +583,6 @@ export class TextAreaFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., Detailed description here..." })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -634,7 +629,6 @@ export class SelectFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "Select..." })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsArray()
@@ -730,7 +724,6 @@ export class MultiEmailFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., example@example.com" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()
@@ -908,7 +901,6 @@ export class DateFieldInput_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "e.g., Select a date" })
   @IsOptional()
-  @DocsProperty()
   placeholder?: string;
 
   @IsBoolean()

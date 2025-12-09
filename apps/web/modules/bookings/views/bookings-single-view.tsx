@@ -488,7 +488,7 @@ export default function Success(props: PageProps) {
                         className={classNames(
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
-                            "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
+                          "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
                             ? "bg-cal-success"
                             : "",
@@ -689,6 +689,49 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {eventType.bookingFields
+                          .filter((field) => {
+                            if (!field) return false;
+                            if (!bookingInfo.responses[field.name]) return false;
+                            if (!shouldShowFieldInCustomResponses(field.name)) return false;
+                            return field.type === "date";
+                          })
+                          .map((field) => {
+                            const response = bookingInfo.responses[field.name];
+                            let label = field.label || t(field.defaultLabel);
+                            label = label.charAt(0).toUpperCase() + label.slice(1);
+
+                            let formattedDate = response.toString();
+                            try {
+                              const dateValue = dayjs(response.toString());
+                              if (dateValue.isValid()) {
+                                formattedDate = formatToLocalizedDate(dateValue, undefined, "full", tz) ||
+                                  dateValue.format("dddd, MMMM D, YYYY");
+                              }
+                            } catch (error) {
+                              // Fallback to original value if parsing fails
+                            }
+
+                            return (
+                              <Fragment key={field.name}>
+                                <div className="mt-3 font-medium">
+                                  <span
+                                    dangerouslySetInnerHTML={{
+                                      __html: markdownToSafeHTML(label),
+                                    }}
+                                  />
+                                </div>
+                                <div className="col-span-2 mt-3">
+                                  <p
+                                    className="text-default wrap-break-word"
+                                    data-testid="field-response"
+                                    data-fob-field={field.name}>
+                                    {formattedDate}
+                                  </p>
+                                </div>
+                              </Fragment>
+                            );
+                          })}
                         {props.paymentStatus && (
                           <>
                             <div className="mt-3 font-medium">
@@ -737,7 +780,7 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
-                                  0 ? (
+                                    0 ? (
                                     <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
@@ -769,6 +812,10 @@ export default function Success(props: PageProps) {
                           // We show rescheduleReason at the top
 
                           if (!shouldShowFieldInCustomResponses(field.name)) {
+                            return null;
+                          }
+
+                          if (field.type === "date") {
                             return null;
                           }
 
@@ -839,11 +886,10 @@ export default function Success(props: PageProps) {
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                          currentUserEmail
-                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                            : ""
-                                        }`}
+                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${currentUserEmail
+                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                          : ""
+                                          }`}
                                         legacyBehavior>
                                         {t("reschedule")}
                                       </Link>
