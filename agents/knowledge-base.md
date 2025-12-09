@@ -314,59 +314,31 @@ DTOs (Data Transfer Objects) are simple TypeScript types or interfaces that repr
 
 ### Why this pattern?
 
-Understanding the "why" makes adoption easier. This pattern provides three key benefits:
-
-**1. Type-leak prevention**
-When Prisma types spread throughout the codebase, any schema change (renaming a field, changing a type, adding a required field) causes type errors across dozens of files. With DTOs, schema changes only affect repository mapping functions—the rest of the codebase remains untouched.
-
-**2. Safe refactors**
-Business logic that depends on DTOs can be refactored, tested, and reasoned about independently of the database. You can change how data is stored without touching service logic, and vice versa. This separation makes large refactors tractable and reduces the risk of breaking unrelated features.
-
-**3. ORM swap possibility**
-While we currently use Prisma, isolating it to repositories means we could migrate to a different ORM (Drizzle, Kysely, raw SQL) without rewriting business logic. The repository interface stays the same; only the implementation changes. This future-proofs the codebase against ORM-level breaking changes or performance needs.
+- **Prevent type leaks**: Prisma type changes stay inside repositories instead of breaking services, handlers, and UI across dozens of files.
+- **Enable safe refactors**: Business logic works against stable DTOs, so you can change storage details without touching higher layers.
+- **Keep ORM swappable**: If we ever change ORM, only repository implementations change; services and handlers stay the same.
 
 ### What not to do: tight Prisma coupling in business logic
 
-Do not import Prisma types or `Prisma.*GetPayload` in business logic (services, handlers, UI, workflows, webhooks, etc.). Prisma types belong only in the data access layer.
+Do not import Prisma types in business logic. Prisma types belong only in the data access layer.
 
 ```typescript
-// ❌ Bad – tight coupling to Prisma in business logic
+// ❌ Bad – business logic depends on Prisma
 import type { Webhook } from "@calcom/prisma/client";
+export function sendPayload(webhook: Webhook) { /* ... */ }
 
-export async function sendGenericWebhookPayload(webhook: Webhook) {
-  // Business logic now depends on Prisma's schema and types
-}
-```
-
-Instead, depend on DTOs and repositories:
-
-```typescript
-// ✅ Good – business logic depends on DTOs and repository abstraction
-export interface WebhookDTO {
-  id: string;
-  version: string;
-  url: string;
-}
-
-export interface IWebhookRepository {
-  findMany(): Promise<WebhookDTO[]>;
-  findById(id: string): Promise<WebhookDTO | null>;
-}
-
-export async function sendGenericWebhookPayload(
-  repo: IWebhookRepository,
-  webhookId: string,
-) {
-  const webhook = await repo.findById(webhookId);
-  if (!webhook) return;
-
-  // Pure business logic using WebhookDTO, no Prisma dependency
+// ✅ Good – business logic depends on DTO + repository
+export interface WebhookDTO { id: string; url: string; }
+export interface IWebhookRepository { findById(id: string): Promise<WebhookDTO | null>; }
+export async function sendPayload(repo: IWebhookRepository, id: string) {
+  const webhook = await repo.findById(id);
+  // ...
 }
 ```
 
 ### DTOs in repositories
 
-Repositories should expose DTOs or domain types from their public methods, and keep Prisma types internal.
+Repositories should expose DTOs from their public methods and keep Prisma types internal. Inside the repository, use `Prisma.*GetPayload` and map rows to DTOs. The public methods should only return DTOs, never Prisma models.
 
 ```typescript
 // DTO – ORM-agnostic type exported from the repository module
@@ -374,74 +346,14 @@ export interface BookingDTO {
   id: string;
   userId: number;
   startTime: Date;
-  endTime: Date;
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
 }
 ```
 
-```typescript
-import type { Prisma, PrismaClient } from "@calcom/prisma/client";
-
-type PrismaBooking = Prisma.BookingGetPayload<{
-  select: {
-    id: true;
-    userId: true;
-    startTime: true;
-    endTime: true;
-    status: true;
-  };
-}>;
-
-export class BookingRepository {
-  constructor(private readonly prisma: PrismaClient) {}
-
-  private toDTO(row: PrismaBooking): BookingDTO {
-    return {
-      id: row.id,
-      userId: row.userId,
-      startTime: row.startTime,
-      endTime: row.endTime,
-      status: row.status,
-    };
-  }
-
-  async findByUserId(userId: number): Promise<BookingDTO[]> {
-    const rows = await this.prisma.booking.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        userId: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-      },
-    });
-
-    return rows.map((row) => this.toDTO(row));
-  }
-}
-```
-
-Notes:
-- Prisma utilities like `Prisma.*GetPayload` are fine inside repositories, as long as the public API returns DTOs.
-- Mapping logic (Prisma → DTO) is allowed in repositories; it's not "business logic".
-- DTOs can be co-located with their repository; the important rule is that they don't depend on Prisma and can be used freely by services/handlers.
-
 ### Prisma boundaries
 
-Prisma usage is restricted to the data access layer:
-
-**Prisma is allowed in:**
-- `packages/prisma` (schema, migrations, zod-utils)
-- Repository implementations (e.g. `packages/features/**/repositories/*Repository.ts`)
-- Low-level infrastructure explicitly designated as part of the data access layer
-
-**Prisma is not allowed in:**
-- `packages/features/**/` business logic (non-repository)
-- `packages/trpc/**` handlers
-- `apps/web/**` pages, components, server actions
-- `apps/api/v2/**` services and controllers
-- Workflow/webhook/service logic layers
+- **Allowed**: `packages/prisma`, repository implementations (`packages/features/**/repositories/*Repository.ts`), and low-level data access infrastructure.
+- **Not allowed**: `packages/features/**` business logic (non-repository), `packages/trpc/**` handlers, `apps/web/**`, `apps/api/v2/**` services/controllers, and workflow/webhook/service layers.
 
 ### Method Naming Rules
 
