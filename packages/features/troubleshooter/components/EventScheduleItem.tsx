@@ -31,7 +31,7 @@ export function EventScheduleItem() {
         suffixSlot={
           schedule && (
             <Link href={`/availability/${schedule.id}`} className="inline-flex">
-              <Badge color="orange" size="sm" className="hidden hover:cursor-pointer group-hover:inline-flex">
+              <Badge color="orange" size="sm" className="invisible hover:cursor-pointer group-hover:visible">
                 {t("edit")}
               </Badge>
             </Link>
