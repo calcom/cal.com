@@ -15,7 +15,7 @@ export interface WatchlistEntry {
 
 export interface WatchlistAuditEntry {
   id: string;
-  watchlistId: string;
+  watchlistId: string | null;
   type: WatchlistType;
   value: string;
   description: string | null;

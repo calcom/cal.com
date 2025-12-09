@@ -43,6 +43,7 @@ async function getHandler(req: NextRequest) {
 
     // If onboarding-v3 is enabled AND organizationOnboardingId exists, redirect to onboarding flow
     if (isOnboardingV3Enabled && organizationOnboardingId) {
+      params.append("fromTeamOnboarding", "true");
       const redirectUrl = new URL(
         `/onboarding/personal/settings?${params.toString()}`,
         WEBAPP_URL

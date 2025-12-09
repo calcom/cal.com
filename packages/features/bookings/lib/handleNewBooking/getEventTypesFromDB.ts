@@ -181,6 +181,8 @@ const getEventTypesFromDBSelect = {
       name: true,
     },
   },
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  autoTranslateInstantMeetingTitleEnabled: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {

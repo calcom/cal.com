@@ -140,7 +140,13 @@ export class ProfileRepository {
       bufferTime: user.bufferTime,
     };
   }
-
+  /**
+   * Parses a Universal Profile ID (upId) into a lookup target.
+   * - "usr-{id}" → { type: User, id }
+   * - "prof-{uuid}" → { type: Profile, uid } (no `id`)
+   * - "{numericId}" → { type: Profile, id } (legacy)
+   * For profiles, always check for `uid` first; `id` may be undefined.
+   */
   static getLookupTarget(upId: UpId) {
     if (upId.trim() === "") {
       return {

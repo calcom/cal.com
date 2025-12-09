@@ -588,4 +588,15 @@ export class TeamRepository {
     const action = permission.substring(lastDotIndex + 1);
     return { resource, action };
   }
+
+  async findTeamsNotBelongingToOrgByIds({ teamIds, orgId }: { teamIds: number[]; orgId: number }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        id: { in: teamIds },
+        NOT: {
+          parentId: orgId, // Finds any team whose orgId is NOT the target ID
+        },
+      },
+    });
+  }
 }
