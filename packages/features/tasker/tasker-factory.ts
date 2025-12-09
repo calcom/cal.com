@@ -1,6 +1,10 @@
+import type { Container } from "@calcom/features/di/di";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { InternalTasker } from "./internal-tasker";
+import { NotificationAwareTasker } from "./NotificationAwareTasker";
 // import { RedisTasker } from "./redis-tasker";
 import { type Tasker, type TaskerTypes } from "./tasker";
+import type { NotificationPreferenceService } from "@calcom/features/notifications/services/NotificationPreferenceService";
 
 /**
  * This is a factory class that creates Taskers.
@@ -17,6 +21,23 @@ export class TaskerFactory {
     if (type === "internal") return new InternalTasker();
     // Default to InternalTasker
     return new InternalTasker();
+  }
+
+  createTaskerWithDI(container: Container): Tasker {
+    const baseTasker = new InternalTasker();
+
+    try {
+      const notificationPreferenceService = container.get<NotificationPreferenceService>(
+        DI_TOKENS.NOTIFICATION_PREFERENCE_SERVICE
+      );
+
+      return new NotificationAwareTasker({
+        tasker: baseTasker,
+        notificationPreferenceService,
+      });
+    } catch {
+      return baseTasker;
+    }
   }
 }
 
