@@ -75,6 +75,11 @@ export async function handlePaymentSuccess(
     select: {
       data: true,
       success: true,
+      bookingSeat: {
+        select: {
+          attendee: true,
+        },
+      },
     },
   });
 
@@ -136,7 +141,14 @@ export async function handlePaymentSuccess(
     }
   } else if (areEmailsEnabled) {
     try {
-      await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+      await sendScheduledEmailsAndSMS(
+        { ...evt },
+        undefined,
+        undefined,
+        undefined,
+        eventType.metadata,
+        existingPayment.bookingSeat?.attendee
+      );
     } catch (e) {
       log.error(`Error sending scheduled emails/SMS for bookingId ${booking.id}: ${e}`);
     }
