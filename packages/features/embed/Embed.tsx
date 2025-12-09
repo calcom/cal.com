@@ -540,7 +540,7 @@ const EmailEmbedPreview = ({
                   .sort()
                   .map((key) => {
                     const sortedTimes = [...selectedDateAndTime[key]].sort();
-                    const firstSlotOfSelectedDay = sortedTimes[key][0];
+                    const firstSlotOfSelectedDay = sortedTimes[0];
                     const selectedDate = dayjs(firstSlotOfSelectedDay)
                       .tz(timezone)
                       .format("dddd, MMMM D, YYYY");
@@ -574,8 +574,8 @@ const EmailEmbedPreview = ({
                               <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
                                 <tbody>
                                   <tr style={{ height: "25px" }}>
-                                    {sortedTimes[key]?.length > 0 &&
-                                      sortedTimes[key].map((time) => {
+                                    {sortedTimes?.length > 0 &&
+                                      sortedTimes.map((time) => {
                                         // If teamId is present on eventType and is not null, it means it is a team event.
                                         // So we add 'team/' to the url.
                                         const bookingURL = `${eventType.bookerUrl}/${
