@@ -1,4 +1,4 @@
-import AdminOAuthClientNotification from "@calcom/emails/templates/admin-oauth-client-notification";
+import { sendAdminOAuthClientNotification } from "@calcom/emails/oauth-email-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
 
@@ -32,7 +32,7 @@ export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) =
 
   // Send email notification to team@cal.com
   const t = await getTranslation("en", "common");
-  const adminNotification = new AdminOAuthClientNotification({
+  await sendAdminOAuthClientNotification({
     t,
     clientName: client.name,
     clientId: client.clientId,
@@ -40,7 +40,6 @@ export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) =
     submitterEmail: ctx.user.email,
     submitterName: ctx.user.name,
   });
-  await adminNotification.sendEmail();
 
   return {
     clientId: client.clientId,

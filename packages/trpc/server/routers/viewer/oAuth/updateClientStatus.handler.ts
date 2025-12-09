@@ -1,4 +1,4 @@
-import OAuthClientApprovedEmail from "@calcom/emails/templates/oauth-client-approved-notification";
+import { sendOAuthClientApprovedNotification } from "@calcom/emails/oauth-email-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
 
@@ -21,14 +21,13 @@ export const updateClientStatusHandler = async ({ input }: UpdateClientStatusOpt
   // Send approval notification email to user if approved
   if (status === "APPROVED" && clientWithUser?.user) {
     const t = await getTranslation("en", "common");
-    const approvalNotification = new OAuthClientApprovedEmail({
+    await sendOAuthClientApprovedNotification({
       t,
       userEmail: clientWithUser.user.email,
       userName: clientWithUser.user.name,
       clientName: updatedClient.name,
       clientId: updatedClient.clientId,
     });
-    await approvalNotification.sendEmail();
   }
 
   return {
