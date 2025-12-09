@@ -22,17 +22,11 @@ const ActorByIdSchema = z.object({
   id: z.string(),
 });
 
-const WebhookActorSchema = z.object({
-  identifiedBy: z.literal("webhook"),
-  webhookId: z.string(),
-});
-
 export const ActorSchema = z.discriminatedUnion("identifiedBy", [
   ActorByIdSchema,
   UserActorSchema,
   GuestActorSchema,
   AttendeeActorSchema,
-  WebhookActorSchema,
 ]);
 
 export type Actor = z.infer<typeof ActorSchema>;
@@ -40,7 +34,6 @@ type UserActor = z.infer<typeof UserActorSchema>;
 type GuestActor = z.infer<typeof GuestActorSchema>;
 type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
-type WebhookActor = z.infer<typeof WebhookActorSchema>;
 
 /**
  * Creates an Actor representing a User by UUID
@@ -96,16 +89,6 @@ export function makeAttendeeActor(attendeeId: number): AttendeeActor {
   return {
     identifiedBy: "attendee",
     attendeeId,
-  };
-}
-
-/**
- * Creates an Actor representing a Webhook
- */
-export function makeWebhookActor(webhookId: string): WebhookActor {
-  return {
-    identifiedBy: "webhook",
-    webhookId,
   };
 }
 

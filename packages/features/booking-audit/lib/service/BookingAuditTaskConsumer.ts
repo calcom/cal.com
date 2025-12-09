@@ -221,10 +221,6 @@ export class BookingAuditTaskConsumer {
                 );
                 return guestActor.id;
             }
-            case "webhook": {
-                const webhookActor = await this.auditActorRepository.createIfNotExistsWebhookActor(actor.webhookId);
-                return webhookActor.id;
-            }
             default: {
                 const exhaustiveCheck: never = actor;
                 throw new Error(`Unhandled actor type: ${JSON.stringify(exhaustiveCheck)}`);

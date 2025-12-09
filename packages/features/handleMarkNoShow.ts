@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { makeGuestActor, makeUserActor, makeWebhookActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeGuestActor, makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import type { Actor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -95,7 +95,6 @@ const handleMarkNoShow = async ({
   userUuid,
   locale,
   platformClientParams,
-  webhookId,
 }: TNoShowInputSchema & {
   /**
    * @deprecated Use userUuid instead
@@ -104,16 +103,12 @@ const handleMarkNoShow = async ({
   userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
-  webhookId?: string;
 }) => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
 
   // Helper function to get the appropriate actor
   const getActor = (): Actor => {
-    if (webhookId) {
-      return makeWebhookActor(webhookId);
-    }
     if (userUuid) {
       return makeUserActor(userUuid);
     }

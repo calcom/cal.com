@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { formatInTimeZone } from "date-fns-tz";
 
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
@@ -67,17 +66,17 @@ export class RescheduledAuditActionService
         userTimeZone,
     }: {
         storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone?: string;
+        userTimeZone: string;
     }): Promise<TranslationWithParams> {
         const rescheduledToUid = storedData.fields.rescheduledToUid.new;
-        const timeZone = userTimeZone || "UTC";
+        const timeZone = userTimeZone;
 
         // Format dates in user timezone
         const oldDate = storedData.fields.startTime.old
-            ? formatInTimeZone(new Date(storedData.fields.startTime.old), timeZone, "MMM d, yyyy")
+            ? AuditActionServiceHelper.formatDateInTimeZone(storedData.fields.startTime.old, timeZone)
             : "";
         const newDate = storedData.fields.startTime.new
-            ? formatInTimeZone(new Date(storedData.fields.startTime.new), timeZone, "MMM d, yyyy")
+            ? AuditActionServiceHelper.formatDateInTimeZone(storedData.fields.startTime.new, timeZone)
             : "";
 
         return {
@@ -99,14 +98,14 @@ export class RescheduledAuditActionService
         userTimeZone: string;
         parsedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
     }): TranslationWithParams {
-        const timeZone = userTimeZone || "UTC";
+        const timeZone = userTimeZone;
 
         // Format dates in user timezone
         const oldDate = parsedData.fields.startTime.old
-            ? formatInTimeZone(new Date(parsedData.fields.startTime.old), timeZone, "MMM d, yyyy")
+            ? AuditActionServiceHelper.formatDateInTimeZone(parsedData.fields.startTime.old, timeZone)
             : "";
         const newDate = parsedData.fields.startTime.new
-            ? formatInTimeZone(new Date(parsedData.fields.startTime.new), timeZone, "MMM d, yyyy")
+            ? AuditActionServiceHelper.formatDateInTimeZone(parsedData.fields.startTime.new, timeZone)
             : "";
 
         return {
@@ -119,13 +118,29 @@ export class RescheduledAuditActionService
         };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): RescheduledAuditDisplayData {
+    getDisplayJson({
+        storedData,
+        userTimeZone,
+    }: {
+        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        userTimeZone: string;
+    }): RescheduledAuditDisplayData {
         const { fields } = storedData;
+        const timeZone = userTimeZone;
+
         return {
-            previousStartTime: fields.startTime.old ?? null,
-            newStartTime: fields.startTime.new ?? null,
-            previousEndTime: fields.endTime.old ?? null,
-            newEndTime: fields.endTime.new ?? null,
+            previousStartTime: fields.startTime.old
+                ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.old, timeZone)
+                : null,
+            newStartTime: fields.startTime.new
+                ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.new, timeZone)
+                : null,
+            previousEndTime: fields.endTime.old
+                ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.old, timeZone)
+                : null,
+            newEndTime: fields.endTime.new
+                ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.new, timeZone)
+                : null,
             rescheduledToUid: fields.rescheduledToUid.new ?? null,
         };
     }

@@ -45,17 +45,17 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
 
     /**
      * Internal helper to queue audit task to Tasker
-     * @param action - Must be a valid BookingAuditAction value (TYPE from action services are string-typed)
+     * @param params.action - Must be a valid BookingAuditAction value (TYPE from action services are string-typed)
      */
-    private async queueTask(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        action: string,
-        data: unknown
-    ): Promise<void> {
+    private async queueTask(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        action: string;
+        data: unknown;
+    }): Promise<void> {
         // Skip queueing for non-organization bookings
-        if (organizationId === null) {
+        if (params.organizationId === null) {
             return;
         }
         if (IS_PRODUCTION) {
@@ -64,123 +64,159 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         try {
             // Cast action to BookingAuditAction since action service TYPE constants are typed as string
             await this.tasker.create("bookingAudit", {
-                bookingUid,
-                actor,
-                organizationId,
+                bookingUid: params.bookingUid,
+                actor: params.actor,
+                organizationId: params.organizationId,
                 timestamp: Date.now(),
-                action: action as BookingAuditAction,
-                data,
+                action: params.action as BookingAuditAction,
+                data: params.data,
             });
         } catch (error) {
-            this.log.error(`Error while queueing ${action} audit`, safeStringify(error));
+            this.log.error(`Error while queueing ${params.action} audit`, safeStringify(error));
         }
     }
 
-    async queueCreatedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, CreatedAuditActionService.TYPE, data);
+    async queueCreatedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: CreatedAuditActionService.TYPE,
+        });
     }
 
-    async queueRescheduledAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, RescheduledAuditActionService.TYPE, data);
+    async queueRescheduledAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: RescheduledAuditActionService.TYPE,
+        });
     }
 
-    async queueAcceptedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, AcceptedAuditActionService.TYPE, data);
+    async queueAcceptedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: AcceptedAuditActionService.TYPE,
+        });
     }
 
-    async queueCancelledAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, CancelledAuditActionService.TYPE, data);
+    async queueCancelledAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: CancelledAuditActionService.TYPE,
+        });
     }
 
-    async queueRescheduleRequestedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, RescheduleRequestedAuditActionService.TYPE, data);
+    async queueRescheduleRequestedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: RescheduleRequestedAuditActionService.TYPE,
+        });
     }
 
-    async queueAttendeeAddedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, AttendeeAddedAuditActionService.TYPE, data);
+    async queueAttendeeAddedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: AttendeeAddedAuditActionService.TYPE,
+        });
     }
 
-    async queueHostNoShowUpdatedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, HostNoShowUpdatedAuditActionService.TYPE, data);
+    async queueHostNoShowUpdatedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: HostNoShowUpdatedAuditActionService.TYPE,
+        });
     }
 
-    async queueRejectedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, RejectedAuditActionService.TYPE, data);
+    async queueRejectedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: RejectedAuditActionService.TYPE,
+        });
     }
 
-    async queueAttendeeRemovedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, AttendeeRemovedAuditActionService.TYPE, data);
+    async queueAttendeeRemovedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: AttendeeRemovedAuditActionService.TYPE,
+        });
     }
 
-    async queueReassignmentAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, ReassignmentAuditActionService.TYPE, data);
+    async queueReassignmentAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: ReassignmentAuditActionService.TYPE,
+        });
     }
 
-    async queueLocationChangedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, LocationChangedAuditActionService.TYPE, data);
+    async queueLocationChangedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: LocationChangedAuditActionService.TYPE,
+        });
     }
 
-    async queueAttendeeNoShowUpdatedAudit(
-        bookingUid: string,
-        actor: Actor,
-        organizationId: number | null,
-        data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>
-    ): Promise<void> {
-        await this.queueTask(bookingUid, actor, organizationId, AttendeeNoShowUpdatedAuditActionService.TYPE, data);
+    async queueAttendeeNoShowUpdatedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: AttendeeNoShowUpdatedAuditActionService.TYPE,
+        });
     }
 }

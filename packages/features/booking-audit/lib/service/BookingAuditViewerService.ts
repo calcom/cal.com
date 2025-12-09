@@ -112,7 +112,7 @@ export class BookingAuditViewerService {
 
         // Get display data - use custom getDisplayJson if available, otherwise use raw fields
         const displayData = actionService.getDisplayJson
-            ? actionService.getDisplayJson(parsedData)
+            ? actionService.getDisplayJson({ storedData: parsedData, userTimeZone })
             : parsedData.fields;
 
         // Get display fields - use custom getDisplayFields if available

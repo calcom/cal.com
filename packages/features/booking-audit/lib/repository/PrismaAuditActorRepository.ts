@@ -107,22 +107,5 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         });
     }
 
-    async createIfNotExistsWebhookActor(webhookId: string) {
-        // Webhooks are stored as SYSTEM type actors with email pattern: {webhookId}@webhook.internal
-        // Using .internal domain (RFC 6762) which is reserved for internal use, similar to GCP's pattern
-        // This allows us to use the unique email constraint for efficient upsert operations
-        const webhookEmail = `${webhookId}@webhook.internal`;
-
-        return this.deps.prismaClient.auditActor.upsert({
-            where: { email: webhookEmail },
-            create: {
-                type: "SYSTEM",
-                email: webhookEmail,
-                name: webhookId,
-            },
-            update: {},
-        });
-    }
-
 }
 
