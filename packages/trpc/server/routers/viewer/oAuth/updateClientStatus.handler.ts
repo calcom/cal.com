@@ -21,13 +21,19 @@ export const updateClientStatusHandler = async ({ input }: UpdateClientStatusOpt
   // Send approval notification email to user if approved
   if (status === "APPROVED" && clientWithUser?.user) {
     const t = await getTranslation("en", "common");
-    await sendOAuthClientApprovedNotification({
-      t,
-      userEmail: clientWithUser.user.email,
-      userName: clientWithUser.user.name,
-      clientName: updatedClient.name,
-      clientId: updatedClient.clientId,
-    });
+    try {
+      await sendOAuthClientApprovedNotification({
+        t,
+        userEmail: clientWithUser.user.email,
+        userName: clientWithUser.user.name,
+        clientName: updatedClient.name,
+        clientId: updatedClient.clientId,
+      });
+    } catch (error) {
+      // Log the error but don't fail the request - email sending can fail in dev due to
+      // Turbopack's handling of react-dom/server. The status update is still applied successfully.
+      console.error("Failed to send OAuth client approved notification email:", error);
+    }
   }
 
   return {
