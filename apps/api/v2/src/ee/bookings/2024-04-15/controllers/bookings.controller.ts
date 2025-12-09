@@ -125,7 +125,7 @@ export class BookingsController_2024_04_15 {
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeRepository: PrismaEventTypeRepository,
     private readonly teamRepository: PrismaTeamRepository
-  ) {}
+  ) { }
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
@@ -264,19 +264,19 @@ export class BookingsController_2024_04_15 {
           `Can't cancel booking with uid=${bookingUid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
         );
       }
-            try {
-              req.body.uid = bookingUid;
-              const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
-              const res = await handleCancelBooking({
-                bookingData: bookingRequest.body,
-                userId: bookingRequest.userId,
-                userUuid: bookingRequest.userUuid,
-                arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
-                platformClientId: bookingRequest.platformClientId,
-                platformCancelUrl: bookingRequest.platformCancelUrl,
-                platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-                platformBookingUrl: bookingRequest.platformBookingUrl,
-              });
+      try {
+        req.body.uid = bookingUid;
+        const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+        const res = await handleCancelBooking({
+          bookingData: bookingRequest.body,
+          userId: bookingRequest.userId,
+          userUuid: bookingRequest.userUuid,
+          arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
+          platformClientId: bookingRequest.platformClientId,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+        });
         if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
         }
@@ -297,29 +297,29 @@ export class BookingsController_2024_04_15 {
     throw new InternalServerErrorException("Could not cancel booking.");
   }
 
-    @Post("/:bookingUid/mark-no-show")
-    @Permissions([BOOKING_WRITE])
-    @UseGuards(ApiAuthGuard)
-    async markNoShow(
-      @GetUser() user: UserWithProfile,
-      @Body() body: MarkNoShowInput_2024_04_15,
-      @Param("bookingUid") bookingUid: string
-    ): Promise<MarkNoShowOutput_2024_04_15> {
-      try {
-        const markNoShowResponse = await handleMarkNoShow({
-          bookingUid: bookingUid,
-          attendees: body.attendees,
-          noShowHost: body.noShowHost,
-          userId: user.id,
-          userUuid: user.uuid,
-        });
+  @Post("/:bookingUid/mark-no-show")
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard)
+  async markNoShow(
+    @GetUser() user: UserWithProfile,
+    @Body() body: MarkNoShowInput_2024_04_15,
+    @Param("bookingUid") bookingUid: string
+  ): Promise<MarkNoShowOutput_2024_04_15> {
+    try {
+      const markNoShowResponse = await handleMarkNoShow({
+        bookingUid: bookingUid,
+        attendees: body.attendees,
+        noShowHost: body.noShowHost,
+        userId: user.id,
+        userUuid: user.uuid,
+      });
 
-        return { status: SUCCESS_STATUS, data: markNoShowResponse };
-      } catch (err) {
-        this.handleBookingErrors(err, "no-show");
-      }
-      throw new InternalServerErrorException("Could not mark no show.");
+      return { status: SUCCESS_STATUS, data: markNoShowResponse };
+    } catch (err) {
+      this.handleBookingErrors(err, "no-show");
     }
+    throw new InternalServerErrorException("Could not mark no show.");
+  }
 
   @Post("/recurring")
   async createRecurringBooking(
@@ -380,7 +380,7 @@ export class BookingsController_2024_04_15 {
   ): Promise<ApiResponse<InstantBookingCreateResult>> {
     const oAuthClientId =
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
-    req.userId = (await this.getOwnerId(req)) ?? -1;
+    req.userId = (await this.getOwner(req))?.id ?? -1;
     try {
       const bookingReq = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
       const instantMeeting = await this.instantBookingCreateService.createBooking({
@@ -407,30 +407,45 @@ export class BookingsController_2024_04_15 {
     throw new InternalServerErrorException("Could not create instant booking.");
   }
 
-  private async getOwnerId(req: Request): Promise<number | undefined> {
+  private async getOwner(req: Request): Promise<{ id: number; uuid: string } | null> {
     try {
       const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (bearerToken) {
-        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
-          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-          const apiKeyHash = sha256Hash(strippedApiKey);
-          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
-          return keyData?.userId;
-        } else {
-          // Access Token
-          const ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
-          return ownerId;
-        }
+      if (!bearerToken) {
+        return null;
       }
+
+      let ownerId: number | null = null;
+
+      if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+        const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
+        const apiKeyHash = sha256Hash(strippedApiKey);
+        const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
+        ownerId = keyData?.userId ?? null;
+      } else {
+        // Access Token
+        ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
+      }
+
+      if (!ownerId) {
+        return null;
+      }
+
+      const user = await this.usersRepository.findById(ownerId);
+      if (!user) {
+        return null;
+      }
+
+      return { id: user.id, uuid: user.uuid };
     } catch (err) {
       this.logger.error(err);
+      return null;
     }
   }
 
-  private async getOwnerIdRescheduledBooking(
+  private async getOwnerRescheduledBooking(
     request: Request,
     platformClientId?: string
-  ): Promise<number | undefined> {
+  ): Promise<{ id: number; uuid: string } | null> {
     if (
       platformClientId &&
       request.body.rescheduledBy &&
@@ -442,13 +457,15 @@ export class BookingsController_2024_04_15 {
       );
     }
 
-    if (request.body.rescheduledBy) {
-      if (request.body.rescheduledBy !== request.body.responses.email) {
-        return (await this.usersRepository.findByEmail(request.body.rescheduledBy))?.id;
+    if (request.body.rescheduledBy && request.body.rescheduledBy !== request.body.responses.email) {
+      const user = await this.usersRepository.findByEmail(request.body.rescheduledBy);
+      if (!user) {
+        return null;
       }
+      return { id: user.id, uuid: user.uuid };
     }
 
-    return undefined;
+    return null;
   }
 
   private async getOAuthClientIdFromEventType(eventTypeId: number): Promise<string | undefined> {
@@ -500,7 +517,8 @@ export class BookingsController_2024_04_15 {
       }
     }
 
-    const userId = await this.getOwnerId(req);
+    const owner = await this.getOwner(req);
+    const userId = owner?.id;
 
     if (!userId) {
       throw new UnauthorizedException(
@@ -566,16 +584,12 @@ export class BookingsController_2024_04_15 {
   ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
     const requestId = req.get("X-Request-Id");
     const clone = { ...req };
-    const userId = clone.body.rescheduleUid
-      ? await this.getOwnerIdRescheduledBooking(req, oAuthClientId)
-      : await this.getOwnerId(req);
+    const owner = clone.body.rescheduleUid
+      ? await this.getOwnerRescheduledBooking(req, oAuthClientId)
+      : await this.getOwner(req);
 
-    // Get userUuid if userId is available (user is authenticated)
-    let userUuid: string | undefined = undefined;
-    if (userId) {
-      const user = await this.usersRepository.findById(userId);
-      userUuid = user?.uuid;
-    }
+    const userId = owner?.id;
+    const userUuid = owner?.uuid;
 
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
@@ -624,14 +638,9 @@ export class BookingsController_2024_04_15 {
     isEmbed?: string
   ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
     const clone = { ...req };
-    const userId = (await this.getOwnerId(req)) ?? -1;
-
-    // Get userUuid if userId is available (user is authenticated)
-    let userUuid: string | undefined = undefined;
-    if (userId && userId !== -1) {
-      const user = await this.usersRepository.findById(userId);
-      userUuid = user?.uuid;
-    }
+    const owner = await this.getOwner(req);
+    const userId = owner?.id ?? -1;
+    const userUuid = owner?.uuid;
 
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
