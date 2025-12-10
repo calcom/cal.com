@@ -208,9 +208,13 @@ export class EmailWorkflowService {
         }
     }
 
-    // The evt builder already validates the bookerUrl exists
-    if (!evt || typeof evt.bookerUrl !== "string") {
+    // Only check for bookerUrl when evt is provided (not for form submissions)
+    if (evt && typeof evt.bookerUrl !== "string") {
       throw new Error("bookerUrl not a part of the evt");
+    }
+
+    if (!evt && !formData) {
+      throw new Error("Either evt or formData must be provided");
     }
 
     const contextData: WorkflowContextData = evt
@@ -311,7 +315,8 @@ export class EmailWorkflowService {
         organizerEmail: evt.organizer.email,
         sendToEmail: sendTo[0],
       });
-      const meetingUrl = getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+      const meetingUrl =
+        getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,

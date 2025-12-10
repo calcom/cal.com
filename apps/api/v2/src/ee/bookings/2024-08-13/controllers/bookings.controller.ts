@@ -397,18 +397,18 @@ export class BookingsController_2024_08_13 {
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
-  async markNoShow(
-    @Param("bookingUid") bookingUid: string,
-    @Body() body: MarkAbsentBookingInput_2024_08_13,
-    @GetUser("id") ownerId: number
-  ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.markAbsent(bookingUid, ownerId, body);
+    async markNoShow(
+      @Param("bookingUid") bookingUid: string,
+      @Body() body: MarkAbsentBookingInput_2024_08_13,
+      @GetUser() user: ApiAuthGuardUser
+    ): Promise<MarkAbsentBookingOutput_2024_08_13> {
+      const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
 
-    return {
-      status: SUCCESS_STATUS,
-      data: booking,
-    };
-  }
+      return {
+        status: SUCCESS_STATUS,
+        data: booking,
+      };
+    }
 
   @Post("/:bookingUid/reassign")
   @HttpCode(HttpStatus.OK)

@@ -174,9 +174,9 @@ export async function executeAIPhoneCall(payload: string) {
     }
 
     const rateLimitIdentifier = data.teamId
-      ? `ai-phone-call:team:${data.teamId}`
+      ? `executeAIPhoneCall:team-${data.teamId}`
       : data.userId
-      ? `ai-phone-call:user:${data.userId}`
+      ? `executeAIPhoneCall:user-${data.userId}`
       : null;
 
     if (!rateLimitIdentifier) {

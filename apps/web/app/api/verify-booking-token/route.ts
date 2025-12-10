@@ -64,7 +64,8 @@ async function postHandler(request: NextRequest) {
   } catch (error) {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
-      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
+      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`,
+      { status: 303 }
     );
   }
 }
@@ -84,7 +85,8 @@ async function handleBookingAction(
 
   if (!booking) {
     return NextResponse.redirect(
-      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
+      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`,
+      { status: 303 }
     );
   }
 
@@ -140,7 +142,10 @@ async function handleBookingAction(
   } catch (e) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
-    return NextResponse.redirect(`${url.origin}/booking/${booking.uid}?error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(
+      `${url.origin}/booking/${booking.uid}?error=${encodeURIComponent(message)}`,
+      { status: 303 }
+    );
   }
 
   await prisma.booking.update({
@@ -148,7 +153,7 @@ async function handleBookingAction(
     data: { oneTimePassword: null },
   });
 
-  return NextResponse.redirect(`${url.origin}/booking/${booking.uid}`);
+  return NextResponse.redirect(`${url.origin}/booking/${booking.uid}`, { status: 303 });
 }
 
 export const GET = defaultResponderForAppDir(getHandler);

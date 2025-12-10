@@ -1,9 +1,10 @@
 import z from "zod";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole, type Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,7 +27,7 @@ type ListOptions = {
   input: TListOtherTeamMembersSchema;
 };
 
-export const listOtherTeamMembers = async ({ input }: ListOptions) => {
+export const listOtherTeamMembers = async ({ ctx, input }: ListOptions) => {
   const whereConditional: Prisma.MembershipWhereInput = {
     teamId: input.teamId,
   };
@@ -73,6 +74,28 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Team not found",
+    });
+  }
+
+  if (!team.parentId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Team does not belong to an organization",
+    });
+  }
+
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: team.parentId,
+    permission: "team.listMembers",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasPermission) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You are not authorized to view team members in this organization",
     });
   }
 

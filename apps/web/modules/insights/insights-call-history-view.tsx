@@ -312,14 +312,12 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           </>
         }
         EmptyView={
-          <div className="px-6 py-8">
             <EmptyScreen
               Icon="phone"
               headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_call_history")}
               description={t("no_call_history_description")}
               className="mb-16"
             />
-          </div>
         }
       />
 

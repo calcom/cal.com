@@ -24,7 +24,7 @@ export const resendVerifyEmail = async ({ input, ctx }: ResendEmailOptions) => {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `resendVerifyEmail.${ctx.user.id}`,
+    identifier: `resendVerifyEmail:${ctx.user.id}`,
   });
 
   let emailVerified = Boolean(ctx.user.emailVerified);
