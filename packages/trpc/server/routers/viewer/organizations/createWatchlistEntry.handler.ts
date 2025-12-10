@@ -1,5 +1,6 @@
 import { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
 import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
+import logger from "@calcom/lib/logger";
 
 import { TRPCError } from "@trpc/server";
 
@@ -34,6 +35,7 @@ export const createWatchlistEntryHandler = async ({ ctx, input }: CreateWatchlis
       userId: user.id,
     });
   } catch (error) {
+    logger.error("Failed to create blocklist entry", { error });
     if (error instanceof WatchlistError) {
       switch (error.code) {
         case WatchlistErrorCode.UNAUTHORIZED:
