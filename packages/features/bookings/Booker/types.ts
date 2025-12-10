@@ -28,11 +28,7 @@ export interface BookerEntityConfig {
 
 export interface BookerProps {
   eventSlug: string;
-  /**
-   * Username for the booking. For dynamic bookings with multiple users,
-   * pass usernames joined with "+" (e.g., "alice+bob").
-   * In Platform Booker Atom, you can pass an array directly.
-   */
+
   username: string;
   orgBannerUrl?: string | null;
 
