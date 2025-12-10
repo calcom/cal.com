@@ -60,13 +60,13 @@ export function ScrollableWithGradients({ children, className, ariaLabel }: Scro
       </div>
       {gradients.top && (
         <div
-          className="from-default pointer-events-none absolute left-0 right-0 top-0 h-8 bg-gradient-to-b to-transparent"
+          className="from-default pointer-events-none absolute left-0 right-0 top-0 h-8 bg-gradient-to-b to-transparent dark:from-[var(--cal-bg-muted)]"
           aria-hidden="true"
         />
       )}
       {gradients.bottom && (
         <div
-          className="from-default pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t to-transparent"
+          className="from-default pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t to-transparent dark:from-[var(--cal-bg-muted)]"
           aria-hidden="true"
         />
       )}
