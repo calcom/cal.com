@@ -598,7 +598,8 @@ model Team {
 
   /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   bookingLimits                Json?
-  includeManagedEventsInLimits Boolean                 @default(false)
+  includeManagedEventsInLimits Boolean                    @default(false)
+  cancellationReasonRequired   CancellationReasonRequired @default(MANDATORY_FOR_HOST_ONLY)
   internalNotePresets          InternalNotePreset[]
   creditBalance                CreditBalance?
   organizationOnboarding       OrganizationOnboarding?
@@ -706,6 +707,13 @@ enum MembershipRole {
   MEMBER
   ADMIN
   OWNER
+}
+
+enum CancellationReasonRequired {
+  MANDATORY_FOR_BOTH
+  MANDATORY_FOR_HOST_ONLY
+  MANDATORY_FOR_ATTENDEE_ONLY
+  OPTIONAL_FOR_BOTH
 }
 
 model Membership {
