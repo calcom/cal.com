@@ -6,11 +6,6 @@ import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowType as PrismaWorkflowType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-/**
- * Get all workflows that apply to an event type.
- * This includes workflows directly attached to the event type,
- * as well as team/org-level workflows that apply.
- */
 export async function getAllWorkflowsFromEventType(
   eventType: {
     workflows?: {
