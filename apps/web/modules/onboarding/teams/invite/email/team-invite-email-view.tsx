@@ -125,13 +125,12 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     router.replace(gettingStartedPath);
   };
 
-  const hasValidInvites = fields.some((_, index) => {
-    const email = form.watch(`invites.${index}.email`);
-    return email && email.trim().length > 0;
-  });
-
   // Watch form values to pass to browser view for real-time updates
   const watchedInvites = form.watch("invites");
+
+  const hasValidInvites = watchedInvites.some((invite) => {
+    return invite.email && invite.email.trim().length > 0;
+  });
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
