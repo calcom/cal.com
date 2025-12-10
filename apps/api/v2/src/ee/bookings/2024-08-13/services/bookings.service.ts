@@ -919,34 +919,40 @@ export class BookingsService_2024_08_13 {
     return await this.getBooking(recurringBookingUid, authUser);
   }
 
-  async markAbsent(bookingUid: string, bookingOwnerId: number, body: MarkAbsentBookingInput_2024_08_13) {
-    const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
-    const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
+    async markAbsent(
+      bookingUid: string,
+      bookingOwnerId: number,
+      body: MarkAbsentBookingInput_2024_08_13,
+      userUuid?: string
+    ) {
+      const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
+      const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
 
-    if (!bookingBefore) {
-      throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
-    }
+      if (!bookingBefore) {
+        throw new NotFoundException(`Booking with uid=${bookingUid} not found.`);
+      }
 
-    const nowUtc = DateTime.utc();
-    const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
+      const nowUtc = DateTime.utc();
+      const bookingStartTimeUtc = DateTime.fromJSDate(bookingBefore.startTime, { zone: "utc" });
 
-    if (nowUtc < bookingStartTimeUtc) {
-      throw new BadRequestException(
-        `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
-      );
-    }
+      if (nowUtc < bookingStartTimeUtc) {
+        throw new BadRequestException(
+          `Bookings can only be marked as absent after their scheduled start time. Current time in UTC+0: ${nowUtc.toISO()}, Booking start time in UTC+0: ${bookingStartTimeUtc.toISO()}`
+        );
+      }
 
-    const platformClientParams = bookingBefore?.eventTypeId
-      ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
-      : undefined;
+      const platformClientParams = bookingBefore?.eventTypeId
+        ? await this.platformBookingsService.getOAuthClientParams(bookingBefore.eventTypeId)
+        : undefined;
 
-    await handleMarkNoShow({
-      bookingUid,
-      attendees: bodyTransformed.attendees,
-      noShowHost: bodyTransformed.noShowHost,
-      userId: bookingOwnerId,
-      platformClientParams,
-    });
+      await handleMarkNoShow({
+        bookingUid,
+        attendees: bodyTransformed.attendees,
+        noShowHost: bodyTransformed.noShowHost,
+        userId: bookingOwnerId,
+        userUuid,
+        platformClientParams,
+      });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
 
