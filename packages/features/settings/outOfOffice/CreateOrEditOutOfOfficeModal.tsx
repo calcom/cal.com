@@ -187,6 +187,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       }}>
       <DialogContent
         enableOverflow
+        preventCloseOnOutsideClick
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
