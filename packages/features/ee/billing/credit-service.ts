@@ -4,7 +4,6 @@ import dayjs from "@calcom/dayjs";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma, type PrismaTransaction } from "@calcom/prisma";
@@ -172,10 +171,27 @@ export class CreditService {
 
       if (teamId) {
         // Check if this team belongs to an organization or is itself an organization
-        const orgId = await getOrgIdFromMemberOrTeamId({ teamId }, tx);
+        const teamRepository = new TeamRepository(prisma);
+        const orgContext = await teamRepository.getOrgContextFromTeamId(teamId, tx);
+
+        if (orgContext && orgContext?.isPlatform) {
+          if (orgContext.platformBilling?.plan === "none") {
+            log.info(
+              "CreditService - hasAvailableCredits - Team belongs to platform organization with no active billing plan, assuming no available credits",
+              { teamId, orgContext }
+            );
+            return false;
+          }
+          // TODO: Implemented sms credits for platform teams
+          log.info(
+            "CreditService - hasAvailableCredits - Team belongs to platform organization with active billing plan, assuming available credits",
+            { teamId, orgContext }
+          );
+          return true;
+        }
 
         // Use organization credits if team belongs to org, otherwise use team's own credits
-        const teamIdToCheck = orgId ?? teamId;
+        const teamIdToCheck = orgContext?.id ?? teamId;
 
         const creditBalance = await CreditsRepository.findCreditBalance({ teamId: teamIdToCheck }, tx);
 
