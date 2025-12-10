@@ -222,10 +222,6 @@ export class BookingAuditTaskConsumer {
                 );
                 return guestActor.id;
             }
-            default: {
-                const exhaustiveCheck: never = actor;
-                throw new Error(`Unhandled actor type: ${JSON.stringify(exhaustiveCheck)}`);
-            }
         }
     }
 
@@ -289,8 +285,6 @@ export class BookingAuditTaskConsumer {
             case "PENDING":
             case "AWAITING_HOST":
                 throw new Error(`Action ${action} is not supported - it represents an initial booking state captured by CREATED`);
-            default:
-                throw new Error(`Unsupported action for record type mapping: ${action}`);
         }
     }
 
