@@ -1,4 +1,9 @@
-import { ApiPropertyOptional as DocsPropertyOptional, getSchemaPath, ApiExtraModels } from "@nestjs/swagger";
+import {
+  ApiPropertyOptional as DocsPropertyOptional,
+  getSchemaPath,
+  ApiExtraModels,
+  ApiHideProperty,
+} from "@nestjs/swagger";
 import { Type, Transform } from "class-transformer";
 import {
   IsString,
@@ -11,7 +16,10 @@ import {
   ArrayNotEmpty,
   ArrayUnique,
   IsUrl,
+  IsIn,
 } from "class-validator";
+
+import { SchedulingType } from "@calcom/platform-enums";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
@@ -459,7 +467,7 @@ export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @ValidateLocations_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+      "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
     oneOf: [
       { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
       { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
@@ -476,6 +484,25 @@ export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
 }
 
 export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
+  @Transform(({ value }) => {
+    if (value === "collective") {
+      return SchedulingType.COLLECTIVE;
+    }
+    if (value === "roundRobin") {
+      return SchedulingType.ROUND_ROBIN;
+    }
+    return value;
+  })
+  @IsIn([SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN])
+  @IsOptional()
+  @DocsPropertyOptional({
+    enum: ["collective", "roundRobin"],
+    example: "collective",
+    description: `The scheduling type for the team event - collective or roundRobin. ❗If you change scheduling type you must also provide \`hosts\` or \`assignAllTeamMembers\` in the request body, otherwise the event type will have no hosts - this is required because
+      in case of collective event type all hosts are mandatory but in case of round robin some or non can be mandatory so we can't predict how you want the hosts to be setup which is why you must provide that information.  If you want to convert round robin or collective into managed or managed into round robin or collective then you will have to create a new team event type and delete old one.`,
+  })
+  schedulingType?: "COLLECTIVE" | "ROUND_ROBIN";
+
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
@@ -499,7 +526,7 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
   @ValidateTeamLocations_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+      "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
     oneOf: [
       { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
       { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
@@ -530,4 +557,13 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
     description: "Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+  })
+  @ApiHideProperty()
+  rrHostSubsetEnabled?: boolean;
 }

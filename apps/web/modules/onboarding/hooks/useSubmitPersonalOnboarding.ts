@@ -2,10 +2,11 @@ import { useRouter } from "next/navigation";
 
 import { setShowWelcomeToCalcomModalFlag } from "@calcom/features/shell/hooks/useWelcomeToCalcomModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { telemetryEventTypes } from "@calcom/lib/telemetry";
+import { sessionStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+
+const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";
 
 const DEFAULT_EVENT_TYPES = [
   {
@@ -29,7 +30,6 @@ const DEFAULT_EVENT_TYPES = [
 export const useSubmitPersonalOnboarding = () => {
   const router = useRouter();
   const { t } = useLocale();
-  const telemetry = useTelemetry();
   const utils = trpc.useUtils();
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
@@ -56,9 +56,19 @@ export const useSubmitPersonalOnboarding = () => {
       }
 
       await utils.viewer.me.get.refetch();
-      // Set flag to show welcome modal after redirect
-      setShowWelcomeToCalcomModalFlag();
-      router.push("/event-types?welcomeToCalcomModal=true");
+      // Check if org modal flag is set - if so, don't show personal modal
+      // Organization onboarding takes precedence
+      const hasOrgModalFlag = sessionStorage.getItem(ORG_MODAL_STORAGE_KEY) === "true";
+      
+      if (!hasOrgModalFlag) {
+        // Only set personal modal flag if org modal flag is not set
+        setShowWelcomeToCalcomModalFlag();
+        router.push("/event-types?welcomeToCalcomModal=true");
+      } else {
+        // Org modal flag exists - redirect to event-types without personal modal query param
+        // The org modal will show via sessionStorage check
+        router.push("/event-types?newOrganizationModal=true");
+      }
     },
     onError: (error) => {
       showToast(t("something_went_wrong"), "error");
@@ -67,7 +77,7 @@ export const useSubmitPersonalOnboarding = () => {
   });
 
   const submitPersonalOnboarding = () => {
-    telemetry.event(telemetryEventTypes.onboardingFinished);
+    // telemetry.event(telemetryEventTypes.onboardingFinished);
     mutation.mutate({
       completedOnboarding: true,
     });

@@ -10,10 +10,11 @@ import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number; traceContext: TraceContext }) {
   const userIp = getIP(req);
 
   if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
@@ -35,7 +36,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: piiHasher.hash(userIp),
+    identifier: `createBooking:${piiHasher.hash(userIp)}`,
   });
 
   const session = await getServerSession({ req });
@@ -52,8 +53,10 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       userId: session?.user?.id || -1,
       hostname: req.headers.host || "",
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+      traceContext: req.traceContext,
     },
   });
+
   // const booking = await createBookingThroughFactory();
   return booking;
 

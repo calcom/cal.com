@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -125,6 +126,7 @@ export async function _onFormSubmission(
   chosenAction?: {
     type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
     value: string;
+    eventTypeId?: number;
   }
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
@@ -219,11 +221,19 @@ export async function _onFormSubmission(
       await Promise.all(promises);
 
       const workflows = await WorkflowService.getAllWorkflowsFromRoutingForm(form);
+      const routedEventTypeId: number | null =
+        chosenAction && chosenAction.type === "eventTypeRedirectUrl" && chosenAction.eventTypeId
+          ? chosenAction.eventTypeId
+          : null;
+
+      const creditService = new CreditService();
 
       await WorkflowService.scheduleFormWorkflows({
         workflows,
         responseId,
         responses: fieldResponsesByIdentifier,
+        routedEventTypeId,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         form: {
           ...form,
           fields: form.fields.map((field) => ({
@@ -287,6 +297,7 @@ export const onSubmissionOfFormResponse = async ({
   chosenRouteAction: {
     type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
     value: string;
+    eventTypeId?: number;
   } | null;
 }) => {
   if (!form.fields) {

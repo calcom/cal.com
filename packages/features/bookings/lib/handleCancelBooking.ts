@@ -4,11 +4,12 @@ import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -65,6 +66,7 @@ export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
   userId?: number;
+  userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
 
@@ -312,6 +314,7 @@ async function handler(input: CancelBookingInput) {
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
+    organizationId: ownerProfile?.organizationId ?? null,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -353,6 +356,8 @@ async function handler(input: CancelBookingInput) {
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
+  const creditService = new CreditService();
+
   await sendCancelledReminders({
     workflows,
     smsReminderNumber: bookingToDelete.smsReminderNumber,
@@ -371,6 +376,7 @@ async function handler(input: CancelBookingInput) {
       },
     },
     hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 
   let updatedBookings: {
