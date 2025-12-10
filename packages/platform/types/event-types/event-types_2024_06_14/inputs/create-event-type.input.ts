@@ -519,6 +519,7 @@ export class BaseCreateEventTypeInput {
   @IsBoolean()
   @DocsPropertyOptional({
     description: "If true, guests and organizer can no longer cancel the event.",
+    default: false,
   })
   disableCancelling?: boolean;
 
@@ -526,6 +527,7 @@ export class BaseCreateEventTypeInput {
   @IsBoolean()
   @DocsPropertyOptional({
     description: "If true, guests and organizer can no longer reschedule the event.",
+    default: false,
   })
   disableRescheduling?: boolean;
 
@@ -533,6 +535,7 @@ export class BaseCreateEventTypeInput {
   @IsBoolean()
   @DocsPropertyOptional({
     description: "Send emails with the transcription of the Cal Video after the meeting ends.",
+    default: true,
   })
   canSendCalVideoTranscriptionEmails?: boolean;
 
@@ -540,6 +543,7 @@ export class BaseCreateEventTypeInput {
   @IsBoolean()
   @DocsPropertyOptional({
     description: "Automatically translate instant meeting title to the visitor's browser language using AI.",
+    default: false,
   })
   autoTranslateInstantMeetingTitleEnabled?: boolean;
 
@@ -557,6 +561,7 @@ export class BaseCreateEventTypeInput {
   @IsBoolean()
   @DocsPropertyOptional({
     description: "Enabling this option allows for past events to be rescheduled.",
+    default: false,
   })
   allowReschedulingPastBookings?: boolean;
 
@@ -565,6 +570,7 @@ export class BaseCreateEventTypeInput {
   @DocsPropertyOptional({
     description:
       "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+    default: false,
   })
   allowReschedulingCancelledBookings?: boolean;
 
@@ -572,6 +578,7 @@ export class BaseCreateEventTypeInput {
   @IsBoolean()
   @DocsPropertyOptional({
     description: "Arrange time slots to optimize availability.",
+    default: false,
   })
   showOptimizedSlots?: boolean;
 }

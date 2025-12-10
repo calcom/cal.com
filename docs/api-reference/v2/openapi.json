@@ -18063,19 +18063,23 @@
           },
           "disableCancelling": {
             "type": "boolean",
-            "description": "If true, guests and organizer can no longer cancel the event."
+            "description": "If true, guests and organizer can no longer cancel the event.",
+            "default": false
           },
           "disableRescheduling": {
             "type": "boolean",
-            "description": "If true, guests and organizer can no longer reschedule the event."
+            "description": "If true, guests and organizer can no longer reschedule the event.",
+            "default": false
           },
           "canSendCalVideoTranscriptionEmails": {
             "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
+            "default": true
           },
           "autoTranslateInstantMeetingTitleEnabled": {
             "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI.",
+            "default": false
           },
           "interfaceLanguage": {
             "type": "string",
@@ -18123,15 +18127,18 @@
           },
           "allowReschedulingPastBookings": {
             "type": "boolean",
-            "description": "Enabling this option allows for past events to be rescheduled."
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
           },
           "allowReschedulingCancelledBookings": {
             "type": "boolean",
-            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
           },
           "showOptimizedSlots": {
             "type": "boolean",
-            "description": "Arrange time slots to optimize availability."
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "locations": {
             "type": "array",
@@ -20140,19 +20147,23 @@
           },
           "disableCancelling": {
             "type": "boolean",
-            "description": "If true, guests and organizer can no longer cancel the event."
+            "description": "If true, guests and organizer can no longer cancel the event.",
+            "default": false
           },
           "disableRescheduling": {
             "type": "boolean",
-            "description": "If true, guests and organizer can no longer reschedule the event."
+            "description": "If true, guests and organizer can no longer reschedule the event.",
+            "default": false
           },
           "canSendCalVideoTranscriptionEmails": {
             "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
+            "default": true
           },
           "autoTranslateInstantMeetingTitleEnabled": {
             "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI.",
+            "default": false
           },
           "interfaceLanguage": {
             "type": "string",
@@ -20200,15 +20211,18 @@
           },
           "allowReschedulingPastBookings": {
             "type": "boolean",
-            "description": "Enabling this option allows for past events to be rescheduled."
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
           },
           "allowReschedulingCancelledBookings": {
             "type": "boolean",
-            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
           },
           "showOptimizedSlots": {
             "type": "boolean",
-            "description": "Arrange time slots to optimize availability."
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "locations": {
             "type": "array",
@@ -21836,19 +21850,23 @@
           },
           "disableCancelling": {
             "type": "boolean",
-            "description": "If true, guests and organizer can no longer cancel the event."
+            "description": "If true, guests and organizer can no longer cancel the event.",
+            "default": false
           },
           "disableRescheduling": {
             "type": "boolean",
-            "description": "If true, guests and organizer can no longer reschedule the event."
+            "description": "If true, guests and organizer can no longer reschedule the event.",
+            "default": false
           },
           "canSendCalVideoTranscriptionEmails": {
             "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
+            "default": true
           },
           "autoTranslateInstantMeetingTitleEnabled": {
             "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI.",
+            "default": false
           },
           "interfaceLanguage": {
             "type": "string",
@@ -21896,15 +21914,18 @@
           },
           "allowReschedulingPastBookings": {
             "type": "boolean",
-            "description": "Enabling this option allows for past events to be rescheduled."
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
           },
           "allowReschedulingCancelledBookings": {
             "type": "boolean",
-            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
           },
           "showOptimizedSlots": {
             "type": "boolean",
-            "description": "Arrange time slots to optimize availability."
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "schedulingType": {
             "type": "string",
@@ -22371,19 +22392,23 @@
           },
           "disableCancelling": {
             "type": "boolean",
-            "description": "If true, guests and organizer can no longer cancel the event."
+            "description": "If true, guests and organizer can no longer cancel the event.",
+            "default": false
           },
           "disableRescheduling": {
             "type": "boolean",
-            "description": "If true, guests and organizer can no longer reschedule the event."
+            "description": "If true, guests and organizer can no longer reschedule the event.",
+            "default": false
           },
           "canSendCalVideoTranscriptionEmails": {
             "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
+            "default": true
           },
           "autoTranslateInstantMeetingTitleEnabled": {
             "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+            "description": "Automatically translate instant meeting title to the visitor's browser language using AI.",
+            "default": false
           },
           "interfaceLanguage": {
             "type": "string",
@@ -22431,15 +22456,18 @@
           },
           "allowReschedulingPastBookings": {
             "type": "boolean",
-            "description": "Enabling this option allows for past events to be rescheduled."
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
           },
           "allowReschedulingCancelledBookings": {
             "type": "boolean",
-            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
           },
           "showOptimizedSlots": {
             "type": "boolean",
-            "description": "Arrange time slots to optimize availability."
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "schedulingType": {
             "type": "string",
