@@ -102,7 +102,7 @@ export const tabs = [
             className="text-default bg-muted h-[calc(100%-50px)] font-mono"
             readOnly
             style={{ resize: "none", overflow: "auto" }}
-            value={`/* First make sure that you have installed the package */
+            value={`/*  font-mono sure that you have installed the package */
 
 /* If you are using yarn */
 // yarn add @calcom/embed-react
@@ -154,8 +154,7 @@ export const tabs = [
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
 
-/* If you are using yarn */
-// yarn add @calcom/atoms
+/* If you are using yarn  font-mono add @calcom/atoms
 
 /* If you are using npm */
 // npm install @calcom/atoms

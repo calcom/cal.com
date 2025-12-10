@@ -114,6 +114,7 @@ export const DialogContent = React.forwardRef<
       enableOverflow,
       preventCloseOnOutsideClick,
       showCloseButton,
+      onOpenAutoFocus,
       ...props
     },
     ref
@@ -135,6 +136,14 @@ export const DialogContent = React.forwardRef<
           if (preventCloseOnOutsideClick) {
             e.preventDefault();
           }
+        }}
+        onOpenAutoFocus={(event) => {
+          if (showCloseButton && !onOpenAutoFocus) {
+            event.preventDefault();
+            return;
+          }
+
+          onOpenAutoFocus?.(event);
         }}
         {...props}>
         {showCloseButton && (
