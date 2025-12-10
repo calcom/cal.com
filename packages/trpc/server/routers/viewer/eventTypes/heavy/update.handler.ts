@@ -93,6 +93,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     aiPhoneCallConfig,
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
+    autoTranslateInstantMeetingTitleEnabled,
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
@@ -231,7 +232,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
-    // autoTranslate feature is allowed for org users only
+    // Only update autoTranslateInstantMeetingTitleEnabled when explicitly provided to avoid overwriting saved opt-out
+    ...(autoTranslateInstantMeetingTitleEnabled !== undefined && { autoTranslateInstantMeetingTitleEnabled }),
     // Only set if explicitly provided to avoid overwriting existing value with false
     ...(autoTranslateDescriptionEnabled !== undefined && {
       autoTranslateDescriptionEnabled: Boolean(ctx.user.organizationId && autoTranslateDescriptionEnabled),
