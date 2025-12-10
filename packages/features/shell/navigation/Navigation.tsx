@@ -239,7 +239,7 @@ const useNavigationItems = (isPlatformNavigation = false) => {
   const navigationInsightsConfig = useMemo(
     () => ({
       hasAccess: isPending || !!hasTeamPlan,
-      upgradeHref: "/settings/teams/new",
+      upgradeHref: "/insights",
     }),
     [hasTeamPlan, isPending]
   );
