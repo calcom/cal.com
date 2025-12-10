@@ -42,9 +42,8 @@ import { Booker } from "@calcom/atoms";
 export default function DynamicBooker() {
   return (
     <Booker
-      // Pass multiple usernames for combined availability
       username={["alice", "bob", "charlie"]}
-      eventSlug="group-meeting"
+      eventSlug="30min"
       onCreateBookingSuccess={() => {
         console.log("Dynamic booking created!");
       }}
@@ -54,8 +53,9 @@ export default function DynamicBooker() {
 ```
 
 <Note>
-  **Requirements for Dynamic Bookings:** - All specified users must have `allowDynamicBooking` enabled in
-  their settings (this is enabled by default, so only check this setting if dynamic bookings aren't working)
+  **Requirements for Dynamic Bookings:** All specified users must have `allowDynamicBooking` enabled in their
+  settings (this is enabled by default, so only check this setting if dynamic bookings aren't working). The
+  combined availability is automatically resolved.
 </Note>
 
 For a demonstration of the booker atom, please refer to the video below.

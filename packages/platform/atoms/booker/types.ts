@@ -2,7 +2,7 @@ import type React from "react";
 
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import type { BookerStore, CountryCode } from "@calcom/features/bookings/Booker/store";
-import type { Timezone, VIEW_TYPE } from "@calcom/features/bookings/Booker/types";
+import type { BookerEntityConfig, Timezone, VIEW_TYPE } from "@calcom/features/bookings/Booker/types";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
@@ -38,17 +38,6 @@ export type BookerStoreValues = Omit<
   | "setFormValues"
   | "setOrg"
 >;
-
-type BookerEntityConfig = {
-  fromRedirectOfNonOrgLink?: boolean;
-  considerUnpublished: boolean;
-  isUnpublished?: boolean;
-  orgSlug?: string | null;
-  teamSlug?: string | null;
-  name?: string | null;
-  logoUrl?: string | null;
-  eventTypeId?: number | null;
-};
 
 export type BookerPlatformWrapperAtomProps = Omit<
   BookerProps,
