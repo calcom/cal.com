@@ -51,6 +51,7 @@ export const bookingCreateBodySchema = z.object({
   dub_id: z.string().nullish(),
   creationSource: z.nativeEnum(CreationSource).optional(),
   verificationCode: z.string().optional(),
+  roundRobinHostId: z.number().optional(),
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
