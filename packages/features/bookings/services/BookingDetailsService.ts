@@ -1,6 +1,5 @@
+import { ErrorWithCode } from "@calcom/lib/errors";
 import type { PrismaClient } from "@calcom/prisma";
-
-import { TRPCError } from "@trpc/server";
 
 import { BookingRepository } from "../repositories/BookingRepository";
 import { BookingAccessService } from "./BookingAccessService";
@@ -21,19 +20,13 @@ export class BookingDetailsService {
     });
 
     if (!hasAccess) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You do not have permission to view this booking",
-      });
+      throw ErrorWithCode.Factory.Forbidden("You do not have permission to view this booking");
     }
 
     const booking = await this.bookingRepo.findByUidForDetails({ bookingUid });
 
     if (!booking) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Booking not found",
-      });
+      throw ErrorWithCode.Factory.BookingNotFound("Booking not found");
     }
 
     const [rescheduledToBooking, previousBooking] = await Promise.all([
