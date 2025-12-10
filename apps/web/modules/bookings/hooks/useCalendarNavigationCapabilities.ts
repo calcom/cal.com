@@ -1,12 +1,22 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 
+import { getWeekStart } from "../lib/weekUtils";
 import type { NavigationCapabilities } from "../store/bookingDetailsSheetStore";
 
 interface UseCalendarNavigationCapabilitiesProps {
   currentWeekStart: dayjs.Dayjs;
   setCurrentWeekStart: (date: dayjs.Dayjs) => void;
+  userWeekStart: number;
+  /** Start time of the nearest future booking (from probe query) */
+  nextBookingDate: string | null;
+  /** Start time of the nearest past booking (from probe query) */
+  prevBookingDate: string | null;
+  /** Whether there is a future booking within the probe window */
+  hasFutureBooking: boolean;
+  /** Whether there is a past booking within the probe window */
+  hasPastBooking: boolean;
 }
 
 /**
@@ -14,30 +24,41 @@ interface UseCalendarNavigationCapabilitiesProps {
  * Provides week-based navigation logic for the booking details sheet.
  *
  * This hook:
- * - Calculates next/previous week dates
- * - Updates the calendar view's selected week (no data fetching)
+ * - Uses probe query results to determine if navigation is possible
+ * - Jumps directly to the week containing the nearest booking (not just adjacent week)
+ * - Disables navigation buttons when no bookings exist in that direction
  */
 export function useCalendarNavigationCapabilities({
-  currentWeekStart,
   setCurrentWeekStart,
+  userWeekStart,
+  nextBookingDate,
+  prevBookingDate,
+  hasFutureBooking,
+  hasPastBooking,
 }: UseCalendarNavigationCapabilitiesProps): NavigationCapabilities {
-  const nextWeekStart = useMemo(() => currentWeekStart.add(1, "week"), [currentWeekStart]);
+  const canNavigateToNextPeriod = useCallback(() => hasFutureBooking, [hasFutureBooking]);
 
-  const prevWeekStart = useMemo(() => currentWeekStart.subtract(1, "week"), [currentWeekStart]);
+  const canNavigateToPreviousPeriod = useCallback(() => hasPastBooking, [hasPastBooking]);
+
+  const requestNextPeriod = useCallback(() => {
+    if (!nextBookingDate) return;
+    const targetWeekStart = getWeekStart(dayjs(nextBookingDate), userWeekStart);
+    setCurrentWeekStart(targetWeekStart);
+  }, [nextBookingDate, setCurrentWeekStart, userWeekStart]);
+
+  const requestPreviousPeriod = useCallback(() => {
+    if (!prevBookingDate) return;
+    const targetWeekStart = getWeekStart(dayjs(prevBookingDate), userWeekStart);
+    setCurrentWeekStart(targetWeekStart);
+  }, [prevBookingDate, setCurrentWeekStart, userWeekStart]);
 
   return useMemo(
     () => ({
-      canNavigateToNextPeriod: () => true,
-      canNavigateToPreviousPeriod: () => true,
-
-      requestNextPeriod: () => {
-        setCurrentWeekStart(nextWeekStart);
-      },
-
-      requestPreviousPeriod: () => {
-        setCurrentWeekStart(prevWeekStart);
-      },
+      canNavigateToNextPeriod,
+      canNavigateToPreviousPeriod,
+      requestNextPeriod,
+      requestPreviousPeriod,
     }),
-    [nextWeekStart, prevWeekStart, setCurrentWeekStart]
+    [canNavigateToNextPeriod, canNavigateToPreviousPeriod, requestNextPeriod, requestPreviousPeriod]
   );
 }
