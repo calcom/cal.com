@@ -2,6 +2,8 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
+import type { SortOrderType } from "@calcom/platform-types";
+
 @Injectable()
 export class TeamsEventTypesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -88,11 +90,12 @@ export class TeamsEventTypesRepository {
     });
   }
 
-  async getTeamEventTypes(teamId: number) {
+  async getTeamEventTypes(teamId: number, sortCreatedAt?: SortOrderType) {
     return this.dbRead.prisma.eventType.findMany({
       where: {
         teamId,
       },
+      ...(sortCreatedAt && { orderBy: { id: sortCreatedAt } }),
       include: {
         users: true,
         schedule: true,

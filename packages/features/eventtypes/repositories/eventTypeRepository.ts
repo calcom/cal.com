@@ -305,7 +305,15 @@ export class EventTypeRepository {
   ) {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
+    let profileId: number | null = null;
+    if (lookupTarget.type === LookupTarget.Profile) {
+      if ("uid" in lookupTarget && lookupTarget.uid) {
+        const profile = await ProfileRepository.findByUid(lookupTarget.uid);
+        profileId = profile?.id ?? null;
+      } else if ("id" in lookupTarget && lookupTarget.id !== undefined) {
+        profileId = lookupTarget.id;
+      }
+    }
     const select = {
       ...eventTypeSelect,
       hashedLink: hashedLinkSelect,
@@ -562,6 +570,7 @@ export class EventTypeRepository {
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
+      autoTranslateInstantMeetingTitleEnabled: true,
       fieldTranslations: {
         select: {
           translatedText: true,
@@ -860,6 +869,7 @@ export class EventTypeRepository {
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
+      autoTranslateInstantMeetingTitleEnabled: true,
       fieldTranslations: {
         select: {
           translatedText: true,
