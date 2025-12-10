@@ -4,7 +4,11 @@ import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlis
 import { BookingReportStatus } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
-import type { WatchlistOperationsScope } from "./WatchlistOperationsService";
+import type {
+  DeleteWatchlistEntryInput,
+  DeleteWatchlistEntryResult,
+  WatchlistOperationsScope,
+} from "./WatchlistOperationsService";
 import { WatchlistOperationsService } from "./WatchlistOperationsService";
 
 export interface BulkDeleteWatchlistEntriesInput {
@@ -112,6 +116,25 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
         failed.length === 0
           ? "All entries deleted successfully"
           : `Deleted ${successCount} entries, ${failed.length} failed`,
+    };
+  }
+
+  async deleteWatchlistEntry(input: DeleteWatchlistEntryInput): Promise<DeleteWatchlistEntryResult> {
+    const { entry } = await this.deps.watchlistRepo.findEntryWithAuditAndReports(input.entryId);
+
+    if (!entry) {
+      throw WatchlistErrors.notFound("Blocklist entry not found");
+    }
+
+    if (!entry.isGlobal || entry.organizationId !== null) {
+      throw WatchlistErrors.permissionDenied("You can only delete system blocklist entries");
+    }
+
+    await this.deps.watchlistRepo.deleteEntry(input.entryId, input.userId);
+
+    return {
+      success: true,
+      message: "Entry deleted successfully",
     };
   }
 

@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
 
-import type { IBookingReportRepository } from "./bookingReport.interface";
 import type {
   IWatchlistRepository,
   CreateWatchlistInput,
@@ -54,7 +53,7 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
 
     if (existing) {
-      throw new Error("Watchlist entry already exists for this organization");
+      return existing;
     }
 
     return this.createEntry(params);
@@ -324,86 +323,17 @@ export class WatchlistRepository implements IWatchlistRepository {
     userId: number;
     description?: string;
   }): Promise<{ watchlistEntry: WatchlistEntry; value: string }> {
-    const existing = await this.checkExists({
+    const watchlistEntry = await this.createEntryIfNotExists({
       type: params.type,
       value: params.value,
       organizationId: params.organizationId,
       isGlobal: params.isGlobal,
+      action: WatchlistAction.BLOCK,
+      description: params.description,
+      userId: params.userId,
     });
-
-    const watchlistEntry =
-      existing ??
-      (await this.createEntry({
-        type: params.type,
-        value: params.value,
-        organizationId: params.organizationId,
-        isGlobal: params.isGlobal,
-        action: WatchlistAction.BLOCK,
-        description: params.description,
-        userId: params.userId,
-      }));
 
     return { watchlistEntry, value: params.value };
   }
 
-  async addReportsToWatchlist(params: {
-    reportIds: string[];
-    type: CreateWatchlistInput["type"];
-    normalizedValues: Map<string, string>;
-    organizationId: number | null;
-    isGlobal: boolean;
-    userId: number;
-    description?: string;
-    bookingReportRepo: IBookingReportRepository;
-  }): Promise<{
-    success: number;
-    skipped: number;
-    results: Array<{ reportId: string; watchlistId: string; value: string }>;
-  }> {
-    const reports = await params.bookingReportRepo.findReportsByIds({
-      reportIds: params.reportIds,
-      organizationId: params.isGlobal ? undefined : params.organizationId ?? undefined,
-    });
-
-    const reportsToAdd = reports.filter((r) => !r.watchlistId);
-
-    if (reportsToAdd.length === 0) {
-      return { success: 0, skipped: reports.length, results: [] };
-    }
-
-    const results = await Promise.all(
-      reportsToAdd.map(async (report) => {
-        const normalizedValue = params.normalizedValues.get(report.id);
-        if (!normalizedValue) {
-          throw new Error("Unable to process the selected report. Please try again.");
-        }
-
-        const { watchlistEntry, value } = await this.createEntryFromReport({
-          type: params.type,
-          value: normalizedValue,
-          organizationId: params.organizationId,
-          isGlobal: params.isGlobal,
-          userId: params.userId,
-          description: params.description,
-        });
-
-        return {
-          reportId: report.id,
-          watchlistId: watchlistEntry.id,
-          value,
-        };
-      })
-    );
-
-    await params.bookingReportRepo.bulkLinkWatchlistWithStatus({
-      links: results.map((r) => ({ reportId: r.reportId, watchlistId: r.watchlistId })),
-      status: "BLOCKED",
-    });
-
-    return {
-      success: reportsToAdd.length,
-      skipped: reports.length - reportsToAdd.length,
-      results,
-    };
-  }
 }

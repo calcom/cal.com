@@ -110,23 +110,40 @@ export abstract class WatchlistOperationsService {
       throw WatchlistErrors.invalidEmail(error instanceof Error ? error.message : "Invalid email format");
     }
 
-    const result = await this.deps.watchlistRepo.addReportsToWatchlist({
-      reportIds: reportsToAdd.map((r) => r.id),
-      type: input.type,
-      normalizedValues,
-      organizationId: scope.organizationId,
-      isGlobal: scope.isGlobal,
-      userId: input.userId,
-      description: input.description,
-      bookingReportRepo: this.deps.bookingReportRepo,
+    const results = await Promise.all(
+      reportsToAdd.map(async (report) => {
+        const normalizedValue = normalizedValues.get(report.id);
+        if (!normalizedValue) {
+          throw new Error("Unable to process the selected report. Please try again.");
+        }
+
+        const { watchlistEntry } = await this.deps.watchlistRepo.createEntryFromReport({
+          type: input.type,
+          value: normalizedValue,
+          organizationId: scope.organizationId,
+          isGlobal: scope.isGlobal,
+          userId: input.userId,
+          description: input.description,
+        });
+
+        return {
+          reportId: report.id,
+          watchlistId: watchlistEntry.id,
+        };
+      })
+    );
+
+    await this.deps.bookingReportRepo.bulkLinkWatchlistWithStatus({
+      links: results.map((r) => ({ reportId: r.reportId, watchlistId: r.watchlistId })),
+      status: "BLOCKED",
     });
 
     return {
       success: true,
-      message: `Successfully added ${result.success} report(s) to watchlist`,
-      addedCount: result.success,
-      skippedCount: result.skipped,
-      results: result.results.map((r) => ({ reportId: r.reportId, watchlistId: r.watchlistId })),
+      message: `Successfully added ${results.length} report(s) to watchlist`,
+      addedCount: results.length,
+      skippedCount: validReports.length - reportsToAdd.length,
+      results,
     };
   }
 
