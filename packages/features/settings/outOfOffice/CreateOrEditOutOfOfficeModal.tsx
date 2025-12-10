@@ -11,10 +11,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
-import { Badge, UpgradeTeamsBadge } from "@calcom/ui/components/badge";
+import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
+import { DateRangePicker, TextArea, Input, Checkbox } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
@@ -182,7 +182,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   return (
     <Dialog
       open={openModal}
-      modal={false}
       onOpenChange={(open) => {
         if (!open) {
           closeModal();
@@ -190,7 +189,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       }}>
       <DialogContent
         enableOverflow
-        preventCloseOnOutsideClick
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
@@ -340,24 +338,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
             {/* Notes input */}
             <div className="mt-4">
-              <div className="flex items-center justify-between">
-                <p className="text-emphasis text-sm font-medium">{t("notes")}</p>
-                <Controller
-                  control={control}
-                  name="showNotePublicly"
-                  render={({ field: { value, onChange } }) => (
-                    <div className="flex items-center space-x-2">
-                      {!value && <Badge variant="grayWithoutHover">{t("hidden")}</Badge>}
-                      <Switch
-                        data-testid="show-note-publicly-switch"
-                        checked={value ?? false}
-                        onCheckedChange={onChange}
-                        tooltip={t("show_note_publicly_description")}
-                      />
-                    </div>
-                  )}
-                />
-              </div>
+              <p className="text-emphasis text-sm font-medium">{t("notes")}</p>
               <TextArea
                 data-testid="notes_input"
                 className="border-subtle mt-2 h-10 w-full rounded-lg border px-2"
@@ -366,6 +347,24 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 onChange={(e) => {
                   setValue("notes", e?.target.value);
                 }}
+              />
+              <Controller
+                control={control}
+                name="showNotePublicly"
+                render={({ field: { value, onChange } }) => (
+                  <div className="mt-2 flex items-center">
+                    <Checkbox
+                      data-testid="show-note-publicly-checkbox"
+                      checked={value ?? false}
+                      onCheckedChange={onChange}
+                    />
+                    <label
+                      className="text-emphasis ml-2 cursor-pointer text-sm"
+                      onClick={() => onChange(!value)}>
+                      {t("show_note_publicly_description")}
+                    </label>
+                  </div>
+                )}
               />
             </div>
 
@@ -401,7 +400,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onChange={(e) => setSearchRedirectMember(e.target.value)}
                       value={searchRedirectMember}
                     />
-                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-2 pl-5">
+                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
                       {redirectToMemberListOptions
                         .filter((member) => member.value !== getValues("forUserId"))
                         .map((member) => (

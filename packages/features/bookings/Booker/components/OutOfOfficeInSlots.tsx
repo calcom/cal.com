@@ -52,8 +52,8 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
           </p>
 
           {notes && showNotePublicly && (
-            <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm">
-              {t("ooo_message")}: <span className="italic">{notes}</span>
+            <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm italic">
+              {notes}
             </p>
           )}
 
