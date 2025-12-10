@@ -29,16 +29,14 @@ import {
   WorkflowTriggerEvents,
   WorkflowActions,
 } from "@calcom/prisma/enums";
-import {
-  deleteRemindersOfActiveOnIds,
-  bookingSelect,
-} from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { deleteRemindersOfActiveOnIds } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { scheduleAIPhoneCall } from "../reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "../reminders/emailReminderManager";
 import * as emailProvider from "../reminders/providers/emailProvider";
+import { bookingSelect } from "../scheduleWorkflowNotifications";
 
 const workflowSelect = {
   id: true,

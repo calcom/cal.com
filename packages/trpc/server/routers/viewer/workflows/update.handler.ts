@@ -4,6 +4,7 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
+import { verifyEmailSender } from "@calcom/features/ee/workflows/lib/verifyEmailSender";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import tasker from "@calcom/features/tasker";
@@ -28,7 +29,6 @@ import {
   upsertSmsReminderFieldForEventTypes,
   deleteRemindersOfActiveOnIds,
   isAuthorizedToAddActiveOnIds,
-  verifyEmailSender,
   removeSmsReminderFieldForEventTypes,
   isStepEdited,
   getEmailTemplateText,

@@ -4,20 +4,22 @@ import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsRemin
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
-type BookingsForReminders = Awaited<ReturnType<typeof WorkflowRepository.getBookingsForWorkflowReminders>>;
+import type { getBookings } from "./scheduleWorkflowNotifications";
+import { verifyEmailSender } from "./verifyEmailSender";
 
-/**
- * Schedule reminders for a list of bookings based on workflow steps.
- */
+type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
+type Bookings = UnwrapPromise<ReturnType<typeof getBookings>>;
+
+// some parts of  scheduleWorkflowReminders (reminderSchedule.ts) is quite similar to this code
+// we should consider refactoring this to  reuse similar code snippets
 export async function scheduleBookingReminders(
-  bookings: BookingsForReminders,
+  bookings: Bookings,
   workflowSteps: Partial<WorkflowStep>[],
   time: number | null,
   timeUnit: TimeUnit | null,
@@ -33,7 +35,7 @@ export async function scheduleBookingReminders(
 
   const creditService = new CreditService();
 
-  // Create reminders for all bookings for each workflow step
+  //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
     const promiseScheduleReminders = bookings.map(async (booking) => {
       const defaultLocale = "en";
@@ -98,6 +100,7 @@ export async function scheduleBookingReminders(
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
             break;
           case WorkflowActions.EMAIL_ADDRESS:
+            await verifyEmailSender(step.sendTo || "", userId, teamId);
             sendTo = [step.sendTo || ""];
             break;
         }
