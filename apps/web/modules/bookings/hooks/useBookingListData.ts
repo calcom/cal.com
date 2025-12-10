@@ -29,9 +29,11 @@ export function useBookingListData({
 
   // Build a Map for recurringInfo lookups
   const recurringInfoMap = useMemo(() => {
-    const map = new Map<string, (typeof data)["recurringInfo"][number]>();
+    const map = new Map<string, NonNullable<typeof data>["recurringInfo"][number]>();
     for (const info of data?.recurringInfo ?? []) {
-      map.set(info.recurringEventId, info);
+      if (info.recurringEventId) {
+        map.set(info.recurringEventId, info);
+      }
     }
     return map;
   }, [data?.recurringInfo]);
