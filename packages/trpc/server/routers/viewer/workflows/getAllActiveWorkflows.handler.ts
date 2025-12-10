@@ -1,12 +1,11 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
-
-import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/workflowUtils";
 
 import type { TGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
 import { getEventTypeWorkflows } from "./util";
