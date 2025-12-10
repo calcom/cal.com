@@ -5,6 +5,8 @@ import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 
+import env from "../utils/env";
+
 // Complete warm up for WebBrowser on mobile
 WebBrowser.maybeCompleteAuthSession();
 
@@ -497,18 +499,16 @@ export class CalComOAuthService {
 }
 
 export function createCalComOAuthService(overrides: Partial<OAuthConfig> = {}): CalComOAuthService {
-  let defaultRedirectUri: string;
-
   const defaultConfig: OAuthConfig = {
-    clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID || "",
-    redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI,
-    calcomBaseUrl: "https://app.cal.com",
+    clientId: env.CALCOM_OAUTH_CLIENT_ID,
+    redirectUri: env.CALCOM_OAUTH_REDIRECT_URI,
+    calcomBaseUrl: env.CALCOM_BASE_URL,
     ...overrides,
   };
 
   if (!defaultConfig.clientId) {
     throw new Error(
-      "OAuth client ID is required. Set EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID environment variable."
+      "OAuth client ID is required. Set EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID environment variable or configure it in app.json extra field."
     );
   }
 
