@@ -194,6 +194,7 @@ export class InputBookingsService_2024_08_13 {
         location,
       },
       ...this.getRoutingFormData(inputBooking.routing),
+      rrHostSubsetIds: inputBooking.rrHostSubsetIds,
     };
   }
 
@@ -492,6 +493,7 @@ export class InputBookingsService_2024_08_13 {
         },
         schedulingType: eventType.schedulingType,
         ...this.getRoutingFormData(inputBooking.routing),
+        rrHostSubsetIds: inputBooking.rrHostSubsetIds,
       });
 
       switch (timeBetween) {

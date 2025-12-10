@@ -39,7 +39,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: piiHasher.hash(userIp),
+    identifier: `createRecurringBooking:${piiHasher.hash(userIp)}`,
   });
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */

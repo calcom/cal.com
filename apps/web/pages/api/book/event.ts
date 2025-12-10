@@ -37,7 +37,7 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: piiHasher.hash(userIp),
+    identifier: `createBooking:${piiHasher.hash(userIp)}`,
   });
 
   const session = await getServerSession({ req });
