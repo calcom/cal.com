@@ -432,6 +432,29 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
+    it("should return an error when creating an event type with invalid interfaceLanguage", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class invalid locale",
+        slug: "coding-class-invalid-locale",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        interfaceLanguage: "invalid-locale-xyz",
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(400);
+    });
+
     it("should create an event type", async () => {
       const nameBookingField: NameDefaultFieldInput_2024_06_14 = {
         type: "name",
@@ -1484,6 +1507,19 @@ describe("Event types Endpoints", () => {
             integration: "office365-video",
           },
         ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+    });
+
+    it("should return an error when updating an event type with invalid interfaceLanguage", async () => {
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        interfaceLanguage: "invalid-locale-xyz",
       };
 
       return request(app.getHttpServer())

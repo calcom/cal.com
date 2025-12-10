@@ -14,6 +14,7 @@ import {
   IsIn,
 } from "class-validator";
 
+import { SUPPORTED_LOCALES } from "@calcom/platform-constants";
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
@@ -478,7 +479,6 @@ class BaseUpdateEventTypeInput {
   })
   canSendCalVideoTranscriptionEmails?: boolean;
 
-
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
@@ -488,8 +488,11 @@ class BaseUpdateEventTypeInput {
 
   @IsOptional()
   @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
   @DocsPropertyOptional({
-    description: "Set preferred language for the booking interface.",
+    description:
+      "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+    enum: SUPPORTED_LOCALES,
   })
   interfaceLanguage?: string;
 

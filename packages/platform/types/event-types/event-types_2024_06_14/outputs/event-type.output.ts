@@ -486,7 +486,6 @@ class BaseEventTypeOutput_2024_06_14 {
   })
   canSendCalVideoTranscriptionEmails?: boolean;
 
-
   @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional({
