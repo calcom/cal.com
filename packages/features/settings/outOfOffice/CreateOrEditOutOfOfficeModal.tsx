@@ -354,13 +354,12 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 render={({ field: { value, onChange } }) => (
                   <div className="mt-2 flex items-center">
                     <Checkbox
+                      id="show-note-publicly"
                       data-testid="show-note-publicly-checkbox"
                       checked={value ?? false}
                       onCheckedChange={onChange}
                     />
-                    <label
-                      className="text-emphasis ml-2 cursor-pointer text-sm"
-                      onClick={() => onChange(!value)}>
+                    <label htmlFor="show-note-publicly" className="text-emphasis ml-2 cursor-pointer text-sm">
                       {t("show_note_publicly_description")}
                     </label>
                   </div>
