@@ -1,9 +1,10 @@
-import { scheduleWorkflowNotifications } from "@calcom/ee/workflows/lib/scheduleWorkflowNotifications";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { deleteRemindersOfActiveOnIds } from "@calcom/features/ee/workflows/lib/deleteRemindersOfActiveOnIds";
 import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
+import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 import { verifyEmailSender } from "@calcom/features/ee/workflows/lib/verifyEmailSender";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
@@ -27,7 +28,6 @@ import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
   upsertSmsReminderFieldForEventTypes,
-  deleteRemindersOfActiveOnIds,
   isAuthorizedToAddActiveOnIds,
   removeSmsReminderFieldForEventTypes,
   isStepEdited,

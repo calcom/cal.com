@@ -9,14 +9,13 @@ import {
   getAIAgentCallPhoneNumberField,
   getAIAgentCallPhoneNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
+import type { WorkflowStep } from "@calcom/prisma/client";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
@@ -350,57 +349,6 @@ export async function isAuthorizedToAddActiveOnIds({
     }
   }
   return true;
-}
-
-export async function deleteRemindersOfActiveOnIds({
-  removedActiveOnIds,
-  workflowSteps,
-  isOrg,
-  activeOnIds,
-}: {
-  removedActiveOnIds: number[];
-  workflowSteps: WorkflowStep[];
-  isOrg: boolean;
-  activeOnIds?: number[];
-}) {
-  const remindersToDelete = !isOrg
-    ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps)
-    : await WorkflowRepository.getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, activeOnIds);
-  await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
-}
-
-async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], workflowSteps: WorkflowStep[]) {
-  const remindersToDeletePromise: Prisma.PrismaPromise<
-    {
-      id: number;
-      referenceId: string | null;
-      method: string;
-    }[]
-  >[] = [];
-  removedEventTypes.forEach((eventTypeId) => {
-    const remindersToDelete = prisma.workflowReminder.findMany({
-      where: {
-        booking: {
-          eventTypeId,
-        },
-        workflowStepId: {
-          in: workflowSteps.map((step) => {
-            return step.id;
-          }),
-        },
-      },
-      select: {
-        id: true,
-        referenceId: true,
-        method: true,
-      },
-    });
-
-    remindersToDeletePromise.push(remindersToDelete);
-  });
-
-  const remindersToDelete = (await Promise.all(remindersToDeletePromise)).flat();
-  return remindersToDelete;
 }
 
 export function isStepEdited(oldStep: WorkflowStep, newStep: WorkflowStep) {
