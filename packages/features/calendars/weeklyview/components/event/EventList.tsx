@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -64,11 +64,25 @@ export function EventList({ day }: Props) {
   // Find the event ID that matches the selected booking UID (only for events on this day)
   const selectedEventId = useMemo(() => {
     if (!selectedBookingUid) return undefined;
-    const matchingEvent = dayEvents.find(
-      (event) => event.options?.bookingUid === selectedBookingUid
-    );
+    const matchingEvent = dayEvents.find((event) => event.options?.bookingUid === selectedBookingUid);
     return matchingEvent?.id;
   }, [dayEvents, selectedBookingUid]);
+
+  // Scroll to the selected event when it changes
+  useEffect(() => {
+    if (selectedEventId === undefined) return;
+
+    // Use requestAnimationFrame to ensure the DOM has updated
+    requestAnimationFrame(() => {
+      const eventElement = document.querySelector(`[data-calendar-event-id="${selectedEventId}"]`);
+      if (eventElement) {
+        eventElement.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    });
+  }, [selectedEventId]);
 
   return (
     <>
@@ -84,7 +98,7 @@ export function EventList({ day }: Props) {
         const isHovered = hoveredEventId === event.id;
         const isSelected = selectedEventId === event.id;
         const isInHoveredGroup = hoveredGroupIndex !== null && layout.groupIndex === hoveredGroupIndex;
-        const zIndex = isHovered || isSelected ? 100 : layout.baseZIndex;
+        const zIndex = isHovered || isSelected ? 79 : layout.baseZIndex;
 
         return (
           <div
@@ -94,6 +108,7 @@ export function EventList({ day }: Props) {
               event.options?.borderOnly && "pointer-events-none"
             )}
             data-testid={event.options?.["data-test-id"]}
+            data-calendar-event-id={event.id}
             onMouseEnter={() => setHoveredEventId(event.id)}
             onMouseLeave={() => setHoveredEventId(null)}
             style={{
