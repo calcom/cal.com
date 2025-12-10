@@ -7,7 +7,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Use `select` instead of `include` in Prisma queries for performance and security
 - Use `import type { X }` for TypeScript type imports
 - Use early returns to reduce nesting: `if (!booking) return null;`
-- Use TRPCError with proper error codes for API errors
+- Use `ErrorWithCode` for errors in non-tRPC files (services, repositories, utilities); use `TRPCError` only in tRPC routers
 - Use conventional commits: `feat:`, `fix:`, `refactor:`
 - Create PRs in draft mode by default
 - Run `yarn type-check:ci --force` before concluding CI failures are unrelated to your changes
@@ -130,15 +130,27 @@ packages/lib/                # Shared utilities
 ### Good error handling
 
 ```typescript
-// Good - Descriptive error with context
+// Good - Use ErrorWithCode in services, repositories, utilities (non-tRPC files)
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+
+throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
+// Or use the Factory pattern:
+throw ErrorWithCode.Factory.Forbidden("You don't have permission");
+
+// Good - Use TRPCError only in tRPC routers/procedures
+import { TRPCError } from "@trpc/server";
+
 throw new TRPCError({
   code: "BAD_REQUEST",
   message: `Unable to create booking: User ${userId} has no available time slots for ${date}`,
 });
 
-// Bad - Generic error
+// Bad - Generic error without context
 throw new Error("Booking failed");
 ```
+
+> **Note**: `packages/features/**` should NOT import from `trpc`. The tRPC middleware `errorConversionMiddleware` automatically converts `ErrorWithCode` to `TRPCError`.
 
 ### Good Prisma query
 
