@@ -986,18 +986,9 @@ export class AvailableSlotsService {
       logger.settings.minLevel = 2;
     }
 
-    const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
-    const startTimeAsIsoString = input.startTime;
-    const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
-
-    // If startTime is already sent in the past, we don't need to adjust it.
-    // We assume that the client is already sending startTime as per their requirement.
-    // Note: We could optimize it further to go back 1 month in past only for the 2nd month because that is what we are putting a hard limit at.
-    // If disableRollingWindowAdjustment is true, skip the 1-month backward adjustment to return slots only within the exact requested date range.
-    const startTimeAdjustedForRollingWindowComputation =
-      isStartTimeInPast || !isRollingWindowPeriodType || input.disableRollingWindowAdjustment
-        ? startTimeAsIsoString
-        : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
+    // Always use the exact startTime provided by the user.
+    // Users explicitly provide startTime/endTime and expect slots within that exact date range.
+    const startTimeAdjustedForRollingWindowComputation = input.startTime;
 
     const loggerWithEventDetails = logger.getSubLogger({
       type: "json",
