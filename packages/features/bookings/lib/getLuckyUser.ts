@@ -300,6 +300,11 @@ export class LuckyUserService implements ILuckyUserService {
     const oooCalibration = new Map<number, number>();
 
     oooData.forEach(({ userId, oooEntries }) => {
+      // Skip OOO calibration if there's only one host (division by zero would occur)
+      if (hosts.length <= 1) {
+        return;
+      }
+
       let calibration = 0;
 
       oooEntries.forEach((oooEntry) => {

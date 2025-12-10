@@ -81,6 +81,11 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     router.push("/onboarding/organization/teams");
   };
 
+  const handleSkip = () => {
+    // Skip brand customization and go to teams
+    router.push("/onboarding/organization/teams");
+  };
+
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={4}>
       {/* Left column - Main content */}
@@ -95,9 +100,14 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               onClick={() => router.push("/onboarding/organization/details")}>
               {t("back")}
             </Button>
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-              {t("continue")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+                {t("onboarding_skip_for_now")}
+              </Button>
+              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                {t("continue")}
+              </Button>
+            </div>
           </div>
         }>
         {/* Form */}
@@ -109,7 +119,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               <div className="flex w-full flex-col gap-2">
                 <p className="text-emphasis text-sm font-medium leading-4">{t("onboarding_banner_label")}</p>
                 <div className="flex w-full flex-col gap-2">
-                  <div className="bg-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
+                  <div className="bg-cal-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
                     {bannerPreview && (
                       <img
                         src={bannerPreview}
@@ -143,7 +153,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               <div className="flex w-full flex-col gap-2">
                 <p className="text-emphasis text-sm font-medium leading-4">{t("logo")}</p>
                 <div className="flex items-center gap-2">
-                  <div className="bg-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
+                  <div className="bg-cal-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
                     {logoPreview && (
                       <img
                         src={logoPreview}
@@ -189,6 +199,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         bio={organizationDetails.bio}
         slug={organizationDetails.link}
         bannerUrl={bannerPreview}
+        brandColor={brandColor}
       />
     </OnboardingLayout>
   );

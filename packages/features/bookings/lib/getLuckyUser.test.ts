@@ -827,6 +827,75 @@ describe("maximize availability and weights", () => {
     );
   });
 
+  it("skips OOO calibration when there is only one host", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [],
+      }),
+    ];
+
+    const allRRHosts = [
+      {
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+        weight: users[0].weight,
+        createdAt: new Date(0),
+      },
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
+
+    // Mock OOO entry for the single host
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
+      {
+        start: dayjs().subtract(10, "day").toDate(),
+        end: dayjs().subtract(5, "day").toDate(),
+        userId: users[0].id,
+      },
+    ]);
+
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([
+      {
+        userId: allRRHosts[0].user.id,
+        weight: allRRHosts[0].weight,
+        createdAt: allRRHosts[0].createdAt,
+      },
+    ]);
+
+    // Mock some bookings during the OOO period (though there's only one host)
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 1,
+        userId: 1,
+        createdAt: dayjs().subtract(7, "days").toDate(),
+      }),
+    ]);
+
+    // Should return the only available user without throwing division by zero error
+    await expect(
+      luckyUserService.getLuckyUser({
+        availableUsers: users,
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
+        },
+        allRRHosts,
+        routingFormResponse: null,
+      })
+    ).resolves.toStrictEqual(users[0]);
+  });
+
   it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
     const users: GetLuckyUserAvailableUsersType = [
       buildUser({
