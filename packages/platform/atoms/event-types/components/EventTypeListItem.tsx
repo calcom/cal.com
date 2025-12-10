@@ -17,7 +17,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { AtomEventTypeListItem } from "../../../platform/atoms/event-types/types";
+import type { AtomEventTypeListItem } from "../types";
 import { formatEventTypeDuration } from "../lib/formatEventTypeDuration";
 
 const EventTypeContent = ({ eventType }: { eventType: AtomEventTypeListItem }) => {

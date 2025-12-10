@@ -1,7 +1,7 @@
 import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
-import { EventTypeListItem } from "@calcom/features/eventtypes/components/EventTypeListItem";
+import { EventTypeListItem } from "../components/EventTypeListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 

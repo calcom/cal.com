@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatEventTypeDuration } from "./formatEventTypeDuration";
+import { formatEventTypeDuration } from "../lib/formatEventTypeDuration";
 
 describe("formatEventTypeDuration", () => {
   it("should format single digit minutes", () => {

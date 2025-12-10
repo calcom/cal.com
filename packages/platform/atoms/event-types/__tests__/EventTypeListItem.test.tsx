@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { AtomEventTypeListItem } from "../../../../platform/atoms/event-types/types";
-import { EventTypeListItem } from "../EventTypeListItem";
+import type { AtomEventTypeListItem } from "../types";
+import { EventTypeListItem } from "../components/EventTypeListItem";
 
 // Mock auto-animate
 vi.mock("@formkit/auto-animate/react", () => ({
