@@ -6,7 +6,9 @@ export const ZGetInputSchema = z.object({
   filters: z.object({
     teamIds: z.number().array().optional(),
     userIds: z.number().array().optional(),
+    // Support both singular 'status' (for API v2) and plural 'statuses' (/bookings page)
     status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).optional(),
+    statuses: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).array().optional(),
     eventTypeIds: z.number().array().optional(),
     attendeeEmail: z.union([z.string(), ZTextFilterValue]).optional(),
     attendeeName: z.union([z.string(), ZTextFilterValue]).optional(),
@@ -20,6 +22,8 @@ export const ZGetInputSchema = z.object({
   }),
   limit: z.number().min(1).max(100),
   offset: z.number().default(0),
+  // Cursor for infinite query support (calendar view)
+  cursor: z.string().optional(),
 });
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
