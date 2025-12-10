@@ -6,9 +6,9 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import * as constants from "@calcom/lib/constants";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
-import { createTeamsHandler } from "../../../createTeams";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
+import { createTeams } from "../../../createTeams";
 import { SelfHostedOrganizationOnboardingService } from "../SelfHostedOnboardingService";
 import type { CreateOnboardingIntentInput, OnboardingUser, OrganizationOnboardingData } from "../types";
 
@@ -33,10 +33,10 @@ vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.hand
 }));
 
 vi.mock("../../../createTeams", () => ({
-  createTeamsHandler: vi.fn(),
+  createTeams: vi.fn(),
 }));
 
-// Type for mock createTeamsHandler return value used in tests
+// Type for mock createTeams return value used in tests
 type MockCreateTeamsResult = {
   teams?: { id: number; name: string }[];
   duplicatedSlugs?: string[];
@@ -370,7 +370,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
 
       // Verify teams and members
       expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalled();
-      expect(createTeamsHandler).toHaveBeenCalled();
+      expect(createTeams).toHaveBeenCalled();
     });
 
     it("should throw error if organization with same slug exists", async () => {
@@ -501,8 +501,8 @@ describe("SelfHostedOrganizationOnboardingService", () => {
         ],
       };
 
-      // Setup: createTeamsHandler will be called and we need teams to exist for inviteMembers
-      vi.mocked(createTeamsHandler).mockImplementation(async (options) => {
+      // Setup: createTeams will be called and we need teams to exist for inviteMembers
+      vi.mocked(createTeams).mockImplementation(async (options) => {
         const marketing = await prismock.team.create({
           data: {
             name: "Marketing",

@@ -1,4 +1,4 @@
-import { createTeamsHandler as createTeamsHandlerFromFeatures } from "@calcom/features/ee/organizations/lib/createTeams";
+import { createTeams } from "@calcom/features/ee/organizations/lib/createTeams";
 
 import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
@@ -14,7 +14,7 @@ type CreateTeamsOptions = {
 };
 
 export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => {
-  return createTeamsHandlerFromFeatures({ ctx, input }, inviteMembersWithNoInviterPermissionCheck);
+  return createTeams({ ctx, input }, inviteMembersWithNoInviterPermissionCheck);
 };
 
 export default createTeamsHandler;

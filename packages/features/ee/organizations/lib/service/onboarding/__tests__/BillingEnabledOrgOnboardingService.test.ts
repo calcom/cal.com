@@ -5,9 +5,9 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import * as constants from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
-import { createTeamsHandler } from "../../../createTeams";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
+import { createTeams } from "../../../createTeams";
 import type { CreateOnboardingIntentInput, OnboardingUser } from "../../onboarding/types";
 import { BillingEnabledOrgOnboardingService } from "../BillingEnabledOrgOnboardingService";
 
@@ -26,10 +26,10 @@ vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.hand
 }));
 
 vi.mock("../../../createTeams", () => ({
-  createTeamsHandler: vi.fn(),
+  createTeams: vi.fn(),
 }));
 
-// Type for mock createTeamsHandler return value used in tests
+// Type for mock createTeams return value used in tests
 type MockCreateTeamsResult = {
   teams?: { id: number; name: string }[];
   duplicatedSlugs?: string[];
@@ -92,43 +92,47 @@ describe("BillingEnabledOrgOnboardingService", () => {
     await prismock.reset();
 
     mockPaymentService = {
-      createOrganizationOnboarding: vi.fn().mockImplementation(async (data: {
-        name: string;
-        slug: string;
-        orgOwnerEmail: string;
-        seats?: number | null;
-        pricePerSeat?: number | null;
-        billingPeriod?: string;
-        createdByUserId: number;
-        isPlatform?: boolean;
-        logo?: string | null;
-        bio?: string | null;
-        brandColor?: string | null;
-        bannerUrl?: string | null;
-      }) => {
-        // Actually create the record in prismock so it can be updated later
-        return await prismock.organizationOnboarding.create({
-          data: {
-            id: "onboarding-123",
-            name: data.name,
-            slug: data.slug,
-            orgOwnerEmail: data.orgOwnerEmail,
-            seats: data.seats ?? null,
-            pricePerSeat: data.pricePerSeat ?? null,
-            billingPeriod: data.billingPeriod ?? BillingPeriod.MONTHLY,
-            isComplete: false,
-            stripeCustomerId: null,
-            createdById: data.createdByUserId,
-            teams: [],
-            invitedMembers: [],
-            isPlatform: data.isPlatform ?? false,
-            logo: data.logo ?? null,
-            bio: data.bio ?? null,
-            brandColor: data.brandColor ?? null,
-            bannerUrl: data.bannerUrl ?? null,
-          },
-        });
-      }),
+      createOrganizationOnboarding: vi
+        .fn()
+        .mockImplementation(
+          async (data: {
+            name: string;
+            slug: string;
+            orgOwnerEmail: string;
+            seats?: number | null;
+            pricePerSeat?: number | null;
+            billingPeriod?: string;
+            createdByUserId: number;
+            isPlatform?: boolean;
+            logo?: string | null;
+            bio?: string | null;
+            brandColor?: string | null;
+            bannerUrl?: string | null;
+          }) => {
+            // Actually create the record in prismock so it can be updated later
+            return await prismock.organizationOnboarding.create({
+              data: {
+                id: "onboarding-123",
+                name: data.name,
+                slug: data.slug,
+                orgOwnerEmail: data.orgOwnerEmail,
+                seats: data.seats ?? null,
+                pricePerSeat: data.pricePerSeat ?? null,
+                billingPeriod: data.billingPeriod ?? BillingPeriod.MONTHLY,
+                isComplete: false,
+                stripeCustomerId: null,
+                createdById: data.createdByUserId,
+                teams: [],
+                invitedMembers: [],
+                isPlatform: data.isPlatform ?? false,
+                logo: data.logo ?? null,
+                bio: data.bio ?? null,
+                brandColor: data.brandColor ?? null,
+                bannerUrl: data.bannerUrl ?? null,
+              },
+            });
+          }
+        ),
       createPaymentIntent: vi.fn().mockResolvedValue({
         checkoutUrl: "https://stripe.com/checkout/session",
         organizationOnboarding: {},
@@ -619,7 +623,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
 
       expect(createDomain).toHaveBeenCalledWith(organization.slug);
       expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalled();
-      expect(createTeamsHandler).toHaveBeenCalled();
+      expect(createTeams).toHaveBeenCalled();
     });
 
     it("should reuse existing organization if organizationId is already set (idempotency)", async () => {
@@ -814,8 +818,8 @@ describe("BillingEnabledOrgOnboardingService", () => {
         ],
       };
 
-      // Setup: createTeamsHandler will be called and we need teams to exist for inviteMembers
-      vi.mocked(createTeamsHandler).mockImplementation(async (options) => {
+      // Setup: createTeams will be called and we need teams to exist for inviteMembers
+      vi.mocked(createTeams).mockImplementation(async (options) => {
         const marketing = await prismock.team.create({
           data: {
             name: "Marketing",
@@ -929,7 +933,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
         ],
       };
 
-      vi.mocked(createTeamsHandler).mockImplementation(async (options) => {
+      vi.mocked(createTeams).mockImplementation(async (options) => {
         const salesTeam = await prismock.team.create({
           data: {
             name: "Sales",
@@ -991,7 +995,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
         ],
       };
 
-      vi.mocked(createTeamsHandler).mockResolvedValue({
+      vi.mocked(createTeams).mockResolvedValue({
         teams: [{ id: 300, name: "Marketing" }],
       } as MockCreateTeamsResult);
 
