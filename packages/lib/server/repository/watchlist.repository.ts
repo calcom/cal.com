@@ -335,5 +335,4 @@ export class WatchlistRepository implements IWatchlistRepository {
 
     return { watchlistEntry, value: params.value };
   }
-
 }
