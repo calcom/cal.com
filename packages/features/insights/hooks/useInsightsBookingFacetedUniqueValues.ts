@@ -48,36 +48,38 @@ export const useInsightsBookingFacetedUniqueValues = ({
   );
 
   return useCallback(
-    (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
-      if (columnId === "status") {
-        return convertFacetedValuesToMap(
-          Object.keys(statusOrder).map((status) => ({
+    <TData>(_: Table<TData>, columnId: string) =>
+      (): Map<FacetedValue, number> => {
+        if (columnId === "status") {
+          const options = Object.keys(statusOrder).map((status) => ({
             value: status.toLowerCase(),
             label: bookingStatusToText(status as BookingStatus),
-          }))
-        );
-      } else if (columnId === "userId") {
-        return convertFacetedValuesToMap(
-          users?.map((user) => ({
-            label: user.name ?? user.email,
-            value: user.id,
-          })) ?? []
-        );
-      } else if (columnId === "eventTypeId") {
-        return convertFacetedValuesToMap(
-          eventTypes?.map((eventType) => ({
-            value: eventType.id,
-            label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
-          })) ?? []
-        );
-      } else if (columnId === "paid") {
-        return convertFacetedValuesToMap([
-          { value: "true", label: t("paid") },
-          { value: "false", label: t("free") },
-        ]);
-      }
-      return new Map<FacetedValue, number>();
-    },
+          }));
+          // "Rescheduled" is only used for filtering, it is not in the Enum
+          options.splice(3, 0, { value: "rescheduled", label: "Rescheduled" });
+          return convertFacetedValuesToMap(options);
+        } else if (columnId === "userId") {
+          return convertFacetedValuesToMap(
+            users?.map((user) => ({
+              label: user.name ?? user.email,
+              value: user.id,
+            })) ?? []
+          );
+        } else if (columnId === "eventTypeId") {
+          return convertFacetedValuesToMap(
+            eventTypes?.map((eventType) => ({
+              value: eventType.id,
+              label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
+            })) ?? []
+          );
+        } else if (columnId === "paid") {
+          return convertFacetedValuesToMap([
+            { value: "true", label: t("paid") },
+            { value: "false", label: t("free") },
+          ]);
+        }
+        return new Map<FacetedValue, number>();
+      },
     [users, eventTypes, t]
   );
 };
