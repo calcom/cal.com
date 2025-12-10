@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.9.11",
+  "version": "5.9.12",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -124,11 +124,11 @@
     "posthog-node": "^5.9.5",
     "qrcode": "^1.5.1",
     "raw-body": "^2.5.1",
-    "react": "^18.2.0",
+    "react": "18.2.0",
     "react-colorful": "^5.6.0",
     "react-date-picker": "^8.3.6",
     "react-digit-input": "^2.1.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "18.2.0",
     "react-easy-crop": "^3.5.2",
     "react-hook-form": "^7.43.3",
     "react-live-chat-loader": "^2.8.1",
