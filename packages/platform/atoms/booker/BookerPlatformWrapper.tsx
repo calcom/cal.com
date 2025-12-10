@@ -71,6 +71,7 @@ const BookerPlatformWrapperComponent = (
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
     defaultPhoneCountry,
+    rrHostSubsetIds,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -296,6 +297,7 @@ const BookerPlatformWrapperComponent = (
       ? {
           isTeamEvent: props.isTeamEvent,
           teamId: teamId,
+          rrHostSubsetIds: rrHostSubsetIds,
         }
       : {}),
     enabled:
@@ -444,6 +446,11 @@ const BookerPlatformWrapperComponent = (
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
+    ...(props.isTeamEvent
+      ? {
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
+      : {}),
   });
 
   const onOverlaySwitchStateChange = useCallback(
