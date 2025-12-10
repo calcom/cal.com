@@ -33,6 +33,7 @@ export type NotificationContext = {
 export interface NotificationPreference {
   emailEnabled: boolean;
   smsEnabled: boolean;
+  notificationType?: string;
 }
 
 export interface TeamNotificationPreference extends NotificationPreference {
