@@ -43,7 +43,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "conferencing", href: "/settings/my-account/conferencing", trackingMetadata: { section: "my_account", page: "conferencing" } },
         { name: "appearance", href: "/settings/my-account/appearance", trackingMetadata: { section: "my_account", page: "appearance" } },
         { name: "out_of_office", href: "/settings/my-account/out-of-office", trackingMetadata: { section: "my_account", page: "out_of_office" } },
-        { name: "push_notifications", href: "/settings/my-account/push-notifications", trackingMetadata: { section: "my_account", page: "push_notifications" } },
+        { name: "notifications", href: "/settings/my-account/notifications", trackingMetadata: { section: "my_account", page: "notifications" } },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],
