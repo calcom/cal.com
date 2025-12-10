@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { StringChangeSchema } from "../common/changeSchemas";
+import type { ActionSource } from "../common/actionSource";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
@@ -14,6 +15,7 @@ const fieldsSchemaV1 = z.object({
     cancellationReason: StringChangeSchema,
     cancelledBy: StringChangeSchema,
     status: StringChangeSchema,
+    source: z.enum(["API_V2", "WEBAPP"]),
 });
 
 export class CancelledAuditActionService

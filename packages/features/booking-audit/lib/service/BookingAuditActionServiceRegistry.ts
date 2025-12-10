@@ -15,6 +15,8 @@ import { AttendeeRemovedAuditActionService, type AttendeeRemovedAuditData, type 
 import { ReassignmentAuditActionService, type ReassignmentAuditData, type ReassignmentAuditDisplayData } from "../actions/ReassignmentAuditActionService";
 import { LocationChangedAuditActionService, type LocationChangedAuditData } from "../actions/LocationChangedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAuditData, type AttendeeNoShowUpdatedAuditDisplayData } from "../actions/AttendeeNoShowUpdatedAuditActionService";
+import { SeatBookedAuditActionService, type SeatBookedAuditData, type SeatBookedAuditDisplayData } from "../actions/SeatBookedAuditActionService";
+import { SeatRescheduledAuditActionService, type SeatRescheduledAuditData, type SeatRescheduledAuditDisplayData } from "../actions/SeatRescheduledAuditActionService";
 
 /**
  * Union type for all audit action data types
@@ -32,7 +34,9 @@ export type AuditActionData =
     | AttendeeRemovedAuditData
     | ReassignmentAuditData
     | LocationChangedAuditData
-    | AttendeeNoShowUpdatedAuditData;
+    | AttendeeNoShowUpdatedAuditData
+    | SeatBookedAuditData
+    | SeatRescheduledAuditData;
 
 
 /**
@@ -63,6 +67,8 @@ export class BookingAuditActionServiceRegistry {
             ["REASSIGNMENT", new ReassignmentAuditActionService(deps.userRepository)],
             ["LOCATION_CHANGED", new LocationChangedAuditActionService()],
             ["ATTENDEE_NO_SHOW_UPDATED", new AttendeeNoShowUpdatedAuditActionService()],
+            ["SEAT_BOOKED", new SeatBookedAuditActionService()],
+            ["SEAT_RESCHEDULED", new SeatRescheduledAuditActionService()],
         ];
         this.actionServices = new Map(services);
     }

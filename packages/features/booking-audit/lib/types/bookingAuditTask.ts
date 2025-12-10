@@ -19,6 +19,8 @@ export const BookingAuditActionSchema = z.enum([
     "REASSIGNMENT",
     "LOCATION_CHANGED",
     "ATTENDEE_NO_SHOW_UPDATED",
+    "SEAT_BOOKED",
+    "SEAT_RESCHEDULED",
 ]);
 
 export type BookingAuditAction = z.infer<typeof BookingAuditActionSchema>;

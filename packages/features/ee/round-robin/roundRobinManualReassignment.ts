@@ -240,6 +240,7 @@ export const roundRobinManualReassignment = async ({
       reassignmentType: "manual",
       userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
       title: { old: oldTitle, new: newBookingTitle },
+      source: "WEBAPP",
     };
 
     // Create audit log - always create an actor, fallback to guest if UUID not provided
@@ -255,7 +256,7 @@ export const roundRobinManualReassignment = async ({
         email: `fallback-${booking.uid}-${Date.now()}@guest.internal`,
       });
     }
-    await bookingEventHandlerService.onReassignment(booking.uid, actor, orgId, auditData);
+    await bookingEventHandlerService.onReassignment(booking.uid, actor, orgId, auditData, "WEBAPP");
 
     await AssignmentReasonRecorder.roundRobinReassignment({
       bookingId,

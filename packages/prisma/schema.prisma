@@ -2679,6 +2679,10 @@ enum BookingAuditAction {
 
   // Rescheduling
   RESCHEDULE_REQUESTED @map("reschedule_requested")
+
+  // Seat management
+  SEAT_BOOKED      @map("seat_booked")
+  SEAT_RESCHEDULED @map("seat_rescheduled")
 }
 
 enum AuditActorType {

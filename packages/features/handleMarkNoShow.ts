@@ -379,7 +379,9 @@ const handleMarkNoShow = async ({
               orgId ?? null,
               {
                 noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
-              }
+                source: "WEBAPP",
+              },
+              "WEBAPP"
             );
           }
         }
@@ -433,7 +435,9 @@ const handleMarkNoShow = async ({
                 old: bookingToUpdate.noShowHost,
                 new: true,
               },
-            }
+              source: "WEBAPP",
+            },
+            "WEBAPP"
           );
         }
       }

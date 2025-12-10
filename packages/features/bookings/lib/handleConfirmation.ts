@@ -324,6 +324,7 @@ export async function handleConfirmation(args: {
         old: booking.status,
         new: BookingStatus.ACCEPTED,
       },
+      source: "WEBAPP",
     };
     const actor = makeUserActor(user.uuid);
     const auditTeamId = await getTeamIdFromEventType({
@@ -339,7 +340,11 @@ export async function handleConfirmation(args: {
       updatedBooking.uid,
       actor,
       auditOrgId ?? null,
-      auditData
+      {
+        ...auditData,
+        source: "WEBAPP",
+      },
+      "WEBAPP"
     );
   }
 

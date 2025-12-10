@@ -18,6 +18,8 @@ import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActi
 import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
 import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import { SeatBookedAuditActionService } from "../actions/SeatBookedAuditActionService";
+import { SeatRescheduledAuditActionService } from "../actions/SeatRescheduledAuditActionService";
 import type { BookingAuditProducerService } from "./BookingAuditProducerService.interface";
 
 interface BookingAuditTaskerProducerServiceDeps {
@@ -217,6 +219,30 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         await this.queueTask({
             ...params,
             action: AttendeeNoShowUpdatedAuditActionService.TYPE,
+        });
+    }
+
+    async queueSeatBookedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof SeatBookedAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: SeatBookedAuditActionService.TYPE,
+        });
+    }
+
+    async queueSeatRescheduledAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
+    }): Promise<void> {
+        await this.queueTask({
+            ...params,
+            action: SeatRescheduledAuditActionService.TYPE,
         });
     }
 }

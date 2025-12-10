@@ -13,6 +13,8 @@ import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActi
 import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
 import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import { SeatBookedAuditActionService } from "../actions/SeatBookedAuditActionService";
+import { SeatRescheduledAuditActionService } from "../actions/SeatRescheduledAuditActionService";
 
 /**
  * BookingAuditProducerService Interface
@@ -110,6 +112,20 @@ export interface BookingAuditProducerService {
         actor: Actor;
         organizationId: number | null;
         data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>;
+    }): Promise<void>;
+
+    queueSeatBookedAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof SeatBookedAuditActionService.latestFieldsSchema>;
+    }): Promise<void>;
+
+    queueSeatRescheduledAudit(params: {
+        bookingUid: string;
+        actor: Actor;
+        organizationId: number | null;
+        data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 }
 

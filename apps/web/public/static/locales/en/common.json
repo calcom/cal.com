@@ -4115,6 +4115,8 @@
     "location_changed": "Location Changed",
     "location_changed_from_to": "Location changed from {{fromLocation}} to {{toLocation}}",
     "attendee_no_show_updated": "Attendee No-Show Updated",
+    "seat_booked": "Seat Booked",
+    "seat_rescheduled": "Seat Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
     "type": "Assignment Type",
     "assignmentType_manual": "Manual Assignment",
     "assignmentType_roundRobin": "Round Robin Assignment"

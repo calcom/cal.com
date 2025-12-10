@@ -59,7 +59,7 @@ const createMockAuditLog = (
   createdAt: overrides?.createdAt ?? new Date("2024-01-15T10:00:00Z"),
   updatedAt: overrides?.updatedAt ?? new Date("2024-01-15T10:00:00Z"),
   actorId: overrides?.actorId ?? "actor-1",
-  data: overrides?.data ?? { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" } },
+  data: overrides?.data ?? { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED", source: "WEBAPP" } },
   actor: {
     id: overrides?.actorId ?? "actor-1",
     type: overrides?.actorType ?? "USER" as const,
@@ -225,13 +225,13 @@ describe("BookingAuditViewerService - Integration Tests", () => {
             id: "log-1",
             action: "CREATED",
             timestamp: new Date("2024-01-15T10:00:00Z"),
-            data: { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" } }
+            data: { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED", source: "WEBAPP" } }
           }),
           createMockAuditLog({
             id: "log-2",
             action: "ACCEPTED",
             timestamp: new Date("2024-01-15T11:00:00Z"),
-            data: { version: 1, fields: { status: { old: "PENDING", new: "ACCEPTED" } } }
+            data: { version: 1, fields: { status: { old: "PENDING", new: "ACCEPTED" }, source: "WEBAPP" } }
           }),
           createMockAuditLog({
             id: "log-3",
@@ -242,7 +242,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               fields: {
                 status: { old: "ACCEPTED", new: "CANCELLED" },
                 cancellationReason: { old: null, new: "User requested" },
-                cancelledBy: { old: null, new: "user-123" }
+                cancelledBy: { old: null, new: "user-123" },
+                source: "WEBAPP"
               }
             }
           }),
@@ -502,6 +503,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               startTime: { old: "2024-01-15T10:00:00Z", new: "2024-01-16T10:00:00Z" },
               endTime: { old: "2024-01-15T11:00:00Z", new: "2024-01-16T11:00:00Z" },
               rescheduledToUid: { old: null, new: "new-booking-uid" },
+              source: "WEBAPP",
             },
           },
         });
@@ -561,6 +563,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               startTime: { old: "2024-01-15T10:00:00Z", new: "2024-01-16T10:00:00Z" },
               endTime: { old: "2024-01-15T11:00:00Z", new: "2024-01-16T11:00:00Z" },
               rescheduledToUid: { old: null, new: "different-booking-uid" },
+              source: "WEBAPP",
             },
           },
         });
@@ -659,6 +662,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               startTime: { old: "2024-01-15T10:00:00Z", new: "2024-01-16T10:00:00Z" },
               endTime: { old: "2024-01-15T11:00:00Z", new: "2024-01-16T11:00:00Z" },
               rescheduledToUid: { old: null, new: "new-booking-uid" },
+              source: "WEBAPP",
             },
           },
         });
@@ -676,6 +680,136 @@ describe("BookingAuditViewerService - Integration Tests", () => {
 
         expect(result.auditLogs[0].actionDisplayTitle).toHaveProperty("params");
         expect(result.auditLogs[0].data).toBeDefined();
+      });
+    });
+
+    describe("when handling seat audit actions", () => {
+      beforeEach(() => {
+        mockBookingRepository.findByUidIncludeEventType.mockResolvedValue(
+          createMockTeamBooking({ teamId: 100 })
+        );
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true);
+      });
+
+      it("should handle SEAT_BOOKED action with seat information", async () => {
+        const mockLog = createMockAuditLog({
+          id: "seat-booked-log",
+          action: "SEAT_BOOKED",
+          data: {
+            version: 1,
+            fields: {
+              seatReferenceUid: "seat-ref-123",
+              attendeeEmail: "attendee@example.com",
+              attendeeName: "Jane Attendee",
+              startTime: 1705315200000,
+              endTime: 1705318800000,
+              source: "WEBAPP",
+            },
+          },
+        });
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        mockUserRepository.findByUuid.mockResolvedValue(createMockUser());
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "America/New_York",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs).toHaveLength(1);
+        expect(result.auditLogs[0].action).toBe("SEAT_BOOKED");
+        expect(result.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.seat_booked");
+        expect(result.auditLogs[0].data).toBeDefined();
+      });
+
+      it("should handle SEAT_RESCHEDULED action with time changes", async () => {
+        const mockLog = createMockAuditLog({
+          id: "seat-rescheduled-log",
+          action: "SEAT_RESCHEDULED",
+          data: {
+            version: 1,
+            fields: {
+              seatReferenceUid: "seat-ref-123",
+              attendeeEmail: "attendee@example.com",
+              startTime: {
+                old: "2024-01-15T10:00:00Z",
+                new: "2024-01-16T10:00:00Z",
+              },
+              endTime: {
+                old: "2024-01-15T11:00:00Z",
+                new: "2024-01-16T11:00:00Z",
+              },
+              rescheduledToBookingUid: {
+                old: null,
+                new: "new-booking-uid",
+              },
+              source: "WEBAPP",
+            },
+          },
+        });
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        mockUserRepository.findByUuid.mockResolvedValue(createMockUser());
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "America/New_York",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs).toHaveLength(1);
+        expect(result.auditLogs[0].action).toBe("SEAT_RESCHEDULED");
+        expect(result.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.seat_rescheduled");
+        expect(result.auditLogs[0].actionDisplayTitle.params).toBeDefined();
+        expect(result.auditLogs[0].actionDisplayTitle.components).toBeDefined();
+        expect(result.auditLogs[0].data).toBeDefined();
+      });
+
+      it("should handle SEAT_RESCHEDULED action without moving to different booking", async () => {
+        const mockLog = createMockAuditLog({
+          id: "seat-rescheduled-same-booking",
+          action: "SEAT_RESCHEDULED",
+          data: {
+            version: 1,
+            fields: {
+              seatReferenceUid: "seat-ref-123",
+              attendeeEmail: "attendee@example.com",
+              startTime: {
+                old: "2024-01-15T10:00:00Z",
+                new: "2024-01-15T11:00:00Z",
+              },
+              endTime: {
+                old: "2024-01-15T11:00:00Z",
+                new: "2024-01-15T12:00:00Z",
+              },
+              rescheduledToBookingUid: {
+                old: null,
+                new: null,
+              },
+              source: "WEBAPP",
+            },
+          },
+        });
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        mockUserRepository.findByUuid.mockResolvedValue(createMockUser());
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(result.auditLogs).toHaveLength(1);
+        expect(result.auditLogs[0].action).toBe("SEAT_RESCHEDULED");
+        expect(result.auditLogs[0].actionDisplayTitle.components).toBeUndefined();
       });
     });
   });

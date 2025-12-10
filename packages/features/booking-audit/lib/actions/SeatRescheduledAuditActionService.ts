@@ -5,22 +5,24 @@ import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
 /**
- * Rescheduled Audit Action Service
- * Handles RESCHEDULED action with per-action versioning
+ * Seat Rescheduled Audit Action Service
+ * Handles SEAT_RESCHEDULED action with per-action versioning
  */
 
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
+    seatReferenceUid: z.string(),
+    attendeeEmail: z.string(),
     startTime: StringChangeSchema,
     endTime: StringChangeSchema,
-    rescheduledToUid: StringChangeSchema,
+    rescheduledToBookingUid: StringChangeSchema,
     source: z.enum(["API_V2", "WEBAPP"]),
 });
 
-export class RescheduledAuditActionService
+export class SeatRescheduledAuditActionService
     implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
     readonly VERSION = 1;
-    public static readonly TYPE = "RESCHEDULED" as const;
+    public static readonly TYPE = "SEAT_RESCHEDULED" as const;
     private static dataSchemaV1 = z.object({
         version: z.literal(1),
         fields: fieldsSchemaV1,
@@ -28,19 +30,19 @@ export class RescheduledAuditActionService
     private static fieldsSchemaV1 = fieldsSchemaV1;
     public static readonly latestFieldsSchema = fieldsSchemaV1;
     // Union of all versions
-    public static readonly storedDataSchema = RescheduledAuditActionService.dataSchemaV1;
+    public static readonly storedDataSchema = SeatRescheduledAuditActionService.dataSchemaV1;
     // Union of all versions
-    public static readonly storedFieldsSchema = RescheduledAuditActionService.fieldsSchemaV1;
+    public static readonly storedFieldsSchema = SeatRescheduledAuditActionService.fieldsSchemaV1;
     private helper: AuditActionServiceHelper<
-        typeof RescheduledAuditActionService.latestFieldsSchema,
-        typeof RescheduledAuditActionService.storedDataSchema
+        typeof SeatRescheduledAuditActionService.latestFieldsSchema,
+        typeof SeatRescheduledAuditActionService.storedDataSchema
     >;
 
     constructor() {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
-            latestFieldsSchema: RescheduledAuditActionService.latestFieldsSchema,
-            storedDataSchema: RescheduledAuditActionService.storedDataSchema,
+            latestFieldsSchema: SeatRescheduledAuditActionService.latestFieldsSchema,
+            storedDataSchema: SeatRescheduledAuditActionService.storedDataSchema,
         });
     }
 
@@ -69,7 +71,7 @@ export class RescheduledAuditActionService
         storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
         userTimeZone: string;
     }): Promise<TranslationWithParams> {
-        const rescheduledToUid = storedData.fields.rescheduledToUid.new;
+        const rescheduledToBookingUid = storedData.fields.rescheduledToBookingUid.new;
         const timeZone = userTimeZone;
 
         // Format dates in user timezone
@@ -81,41 +83,12 @@ export class RescheduledAuditActionService
             : "";
 
         return {
-            key: "booking_audit_action.rescheduled",
+            key: "booking_audit_action.seat_rescheduled",
             params: {
                 oldDate,
                 newDate,
             },
-            components: rescheduledToUid ? [{ type: "link", href: `/booking/${rescheduledToUid}/logs` }] : undefined,
-        };
-    }
-
-    getDisplayTitleForRescheduledFromLog({
-        fromRescheduleUid,
-        userTimeZone,
-        parsedData,
-    }: {
-        fromRescheduleUid: string;
-        userTimeZone: string;
-        parsedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-    }): TranslationWithParams {
-        const timeZone = userTimeZone;
-
-        // Format dates in user timezone
-        const oldDate = parsedData.fields.startTime.old
-            ? AuditActionServiceHelper.formatDateInTimeZone(parsedData.fields.startTime.old, timeZone)
-            : "";
-        const newDate = parsedData.fields.startTime.new
-            ? AuditActionServiceHelper.formatDateInTimeZone(parsedData.fields.startTime.new, timeZone)
-            : "";
-
-        return {
-            key: "booking_audit_action.rescheduled_from",
-            params: {
-                oldDate,
-                newDate,
-            },
-            components: [{ type: "link", href: `/booking/${fromRescheduleUid}/logs` }],
+            components: rescheduledToBookingUid ? [{ type: "link", href: `/booking/${rescheduledToBookingUid}/logs` }] : undefined,
         };
     }
 
@@ -125,11 +98,13 @@ export class RescheduledAuditActionService
     }: {
         storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
         userTimeZone: string;
-    }): RescheduledAuditDisplayData {
+    }): SeatRescheduledAuditDisplayData {
         const { fields } = storedData;
         const timeZone = userTimeZone;
 
         return {
+            seatReferenceUid: fields.seatReferenceUid,
+            attendeeEmail: fields.attendeeEmail,
             previousStartTime: fields.startTime.old
                 ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.old, timeZone)
                 : null,
@@ -142,37 +117,19 @@ export class RescheduledAuditActionService
             newEndTime: fields.endTime.new
                 ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.new, timeZone)
                 : null,
-            rescheduledToUid: fields.rescheduledToUid.new ?? null,
+            rescheduledToBookingUid: fields.rescheduledToBookingUid.new ?? null,
         };
-    }
-
-    /**
-     * Finds the rescheduled log that created a specific booking
-     * by matching the rescheduledToUid field with the target booking UID
-     * @param rescheduledLogs - Array of rescheduled audit logs to search through
-     * @param rescheduledToBookingUid - The UID of the booking that was created from the reschedule
-     * @returns The matching log or null if not found
-     */
-    getMatchingLog<T extends { data: unknown }>({
-        rescheduledLogs,
-        rescheduledToBookingUid,
-    }: {
-        rescheduledLogs: T[];
-        rescheduledToBookingUid: string;
-    }): T | null {
-        return rescheduledLogs.find((log) => {
-            const parsedData = this.parseStored(log.data);
-            return parsedData.fields.rescheduledToUid.new === rescheduledToBookingUid;
-        }) ?? null;
     }
 }
 
-export type RescheduledAuditData = z.infer<typeof fieldsSchemaV1>;
+export type SeatRescheduledAuditData = z.infer<typeof fieldsSchemaV1>;
 
-export type RescheduledAuditDisplayData = {
+export type SeatRescheduledAuditDisplayData = {
+    seatReferenceUid: string;
+    attendeeEmail: string;
     previousStartTime: string | null;
     newStartTime: string | null;
     previousEndTime: string | null;
     newEndTime: string | null;
-    rescheduledToUid: string | null;
+    rescheduledToBookingUid: string | null;
 };

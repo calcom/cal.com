@@ -810,73 +810,12 @@ Trigger.dev Queue
 
 ### Pending Tasks
 
-#### 1. Add audit log for spam-blocked bookings (Early Return Path)
-**Location**: `packages/features/bookings/lib/service/RegularBookingService.ts` (line ~1486)
+### 1. Improvements
+- ActionSource enum is being define din multiple places, it should be defined at a single place where the TYpe is defined for it.
+- source is being passed as argument and a proeprty to BookingEventHandlerService methods, it could be passed just as a property to the methods. Make it DRY
+- getActor is defined in handleSeats as well we could reuse the one defiend in RegularBookingService. We need to abstract it out to a separate file or something
 
-**Issue**: When spam check blocks a booking and returns a decoy response, no audit log is created.
-
-**Details**:
-- Spam-blocked bookings return early with `isShortCircuitedBooking: true`
-- These decoy bookings have `id: 0` and are never saved to the database
-- No audit trail exists for these blocked attempts
-
-**Considerations**:
-- Should we create audit logs for bookings that never actually exist in the database?
-- If yes, we need a special audit entry type (e.g., "BOOKING_BLOCKED_SPAM")
-- Actor would be the blocked user (email/phone)
-- Need to decide if this should be a security audit log vs booking audit log
-
-**Recommendation**: Consider creating a separate security/spam audit log system rather than using booking audit for non-existent bookings.
-
----
-
-#### 2. Add audit log for seats booking early return
-**Location**: `packages/features/bookings/lib/service/RegularBookingService.ts` (line ~1605)
-
-**Issue**: When `handleSeats()` returns a booking (adding a new attendee to an existing seated event), the early return at line 1605 bypasses `onBookingCreated()`.
-
-**Details**:
-- Happens when adding attendees to existing seated bookings
-- The function returns at line 1605 without calling `deps.bookingEventHandler.onBookingCreated()`
-- Result: No audit log is created for the new booking/seat
-
-**Solution**: 
-- Add `onBookingCreated()` call before the return statement at line 1605
-- Similar to the fix implemented for PENDING bookings (line 675)
-- Should capture the booking creation even when it's a seat addition
-
-**Priority**: High - This affects actual bookings that exist in the database
-
----
-
-#### 3. Add audit log for editLocation.handler.ts
-**Location**: `packages/trpc/server/routers/viewer/bookings/editLocation.handler.ts`
-
-**Status**: Pending implementation
-
----
-
-#### 4. API v2 Actor Requirements
-**Location**: `apps/api/v2/src/ee/bookings/`
-
-**Issue**: API v2 endpoints must correctly pass actor to booking event handlers.
-
-**Affected Endpoints**:
-- `handleCancelBooking` - Must pass user actor from authenticated user
-- `handleMarkNoShow` - Must pass user actor from authenticated user
-- `roundRobinReassignment` - Must pass `reassignedByUuid` from authenticated user
-- `roundRobinManualReassignment` - Uses `reassignedById` to look up user UUID internally
-
-**Requirements**:
-- All API v2 endpoints that trigger booking events must identify the authenticated user
-- The user's UUID must be passed to create proper audit actors
-- Never use system actor for user-initiated actions
-
-**Priority**: Medium - Affects audit trail accuracy for API v2 integrations
-
----
-
-#### 5. Fix type for migration result
+#### 2. Fix type for migration result
 **Location**: Action services with migration logic
 
 **Issue**: `const migrationResult = actionService.migrateToLatest(data);` - `migrationResult.data` has "any" type
@@ -885,57 +824,6 @@ Trigger.dev Queue
 
 ---
 
-#### 6. Store source (creationSource) for all booking audit actions
-**Location**: All booking event handlers and audit action services
-
-**Issue**: When a user performs any action on a booking (e.g., cancel, accept, reject, mark no-show, reschedule, etc.), we should track the source of the action (e.g., APIV2, web, etc.) in the audit log. Any action can be taken by a user from multiple places (API v1, API v2, web app).
-
-**Details**:
-- Bookings already have a `creationSource` field (`CreationSource` enum: `API_V1`, `API_V2`, `WEBAPP`)
-- This value should be copied to the audit action data when creating audit logs for ALL actions
-- Helps track where actions originated from (e.g., "User john took action from APIV2 or web")
-- Currently, we only know who performed the action (actor), but not where they performed it from
-
-**Affected Actions** (all booking audit actions):
-- `CREATED` - Booking creation
-- `CANCELLED` - Booking cancellation
-- `ACCEPTED` - Booking acceptance
-- `REJECTED` - Booking rejection
-- `RESCHEDULED` - Booking rescheduling
-- `RESCHEDULE_REQUESTED` - Reschedule request
-- `ATTENDEE_ADDED` - Attendee addition
-- `ATTENDEE_REMOVED` - Attendee removal
-- `REASSIGNMENT` - Booking reassignment
-- `LOCATION_CHANGED` - Location change
-- `HOST_NO_SHOW_UPDATED` - Host no-show update
-- `ATTENDEE_NO_SHOW_UPDATED` - Attendee no-show update
-
-**Affected Locations**:
-- All places where `BookingEventHandlerService` methods are called
-- All audit action service schemas in `packages/features/booking-audit/lib/actions/`
-- Event handlers in:
-  - `packages/features/handleMarkNoShow.ts`
-  - `packages/features/bookings/lib/handleCancelBooking.ts`
-  - `packages/features/bookings/lib/handleConfirmation.ts`
-  - `packages/trpc/server/routers/viewer/bookings/requestReschedule.handler.ts`
-  - `apps/api/v2/src/ee/bookings/` (all API v2 endpoints)
-  - And other locations where booking actions are triggered
-
-**Solution**:
-1. Fetch `creationSource` from the booking when creating audit logs (or pass it as a parameter)
-2. Add `source?: CreationSource` field to all audit action data schemas
-3. Update all action service schemas to include the optional `source` field
-4. Pass `creationSource` value to audit action data when calling event handlers
-5. Consider adding a helper function to fetch and include `creationSource` consistently
-
-**Migration Considerations**:
-- Existing audit records will not have `source` field (it will be `null`/`undefined`)
-- New schema versions may be needed for actions that already have data in production
-- The field should be optional to maintain backward compatibility
-
-**Priority**: Medium - Improves audit trail completeness by tracking action origins across all booking operations
-
----
 
 ### Completed Tasks
 

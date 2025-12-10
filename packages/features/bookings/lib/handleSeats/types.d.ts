@@ -4,6 +4,7 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
+import type { BookingEventHandlerService } from "../../onBookingEvents/BookingEventHandlerService";
 import type { Booking } from "../handleNewBooking/createBooking";
 import type { NewBookingEventType } from "../handleNewBooking/getEventTypesFromDB";
 import type { OriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
@@ -58,6 +59,8 @@ export type NewSeatedBookingObject = {
   rescheduledBy?: string;
   workflows: Workflow[];
   isDryRun?: boolean;
+  bookingEventHandler?: BookingEventHandlerService;
+  organizationId?: number | null;
 };
 
 export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };
@@ -79,12 +82,12 @@ export type SeatedBooking = Prisma.BookingGetPayload<{
 
 export type HandleSeatsResultBooking =
   | (Partial<Booking> & {
-      appsStatus?: AppsStatus[];
-      seatReferenceUid?: string;
-      paymentUid?: string;
-      message?: string;
-      paymentId?: number;
-    })
+    appsStatus?: AppsStatus[];
+    seatReferenceUid?: string;
+    paymentUid?: string;
+    message?: string;
+    paymentId?: number;
+  })
   | null;
 
 export type NewTimeSlotBooking = Prisma.BookingGetPayload<{

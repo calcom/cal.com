@@ -18,6 +18,7 @@ const fieldsSchemaV1 = z.object({
     reassignmentType: z.enum(["manual", "roundRobin"]),
     userPrimaryEmail: StringChangeSchema.optional(),
     title: StringChangeSchema.optional(),
+    source: z.enum(["API_V2", "WEBAPP"]),
 });
 
 export class ReassignmentAuditActionService

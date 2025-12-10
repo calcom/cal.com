@@ -13,6 +13,7 @@ import type { IAuditActionService, TranslationWithParams } from "./IAuditActionS
 const fieldsSchemaV1 = z.object({
     rejectionReason: StringChangeSchema,
     status: StringChangeSchema,
+    source: z.enum(["API_V2", "WEBAPP"]),
 });
 
 export class RejectedAuditActionService

@@ -14,6 +14,7 @@ const fieldsSchemaV1 = z.object({
     cancellationReason: StringChangeSchema,
     cancelledBy: StringChangeSchema,
     rescheduled: BooleanChangeSchema.optional(),
+    source: z.enum(["API_V2", "WEBAPP"]),
 });
 
 export class RescheduleRequestedAuditActionService

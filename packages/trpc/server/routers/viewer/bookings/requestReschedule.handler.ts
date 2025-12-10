@@ -137,12 +137,17 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       old: false, // We're rescheduling, so original was false
       new: true,
     },
+    source: "WEBAPP",
   };
   await bookingEventHandlerService.onRescheduleRequested(
     bookingToReschedule.uid,
     makeUserActor(user.uuid),
     auditOrgId ?? null,
-    auditData
+    {
+      ...auditData,
+      source: "WEBAPP",
+    },
+    "WEBAPP"
   );
 
   // delete scheduled jobs of previous booking

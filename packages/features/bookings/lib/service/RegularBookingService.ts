@@ -38,6 +38,7 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -1657,6 +1658,8 @@ async function handler(
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
       isDryRun,
+      bookingEventHandler: deps.bookingEventHandler,
+      organizationId: eventOrganizationId,
     });
 
     if (newBooking) {
@@ -2313,6 +2316,17 @@ async function handler(
     logger: tracingLogger,
   });
 
+  // Map CreationSource to ActionSource (API_V1 is deprecated and not supported for audit logs)
+  const getActionSource = (creationSource: CreationSource | null | undefined): ActionSource => {
+    if (creationSource === CreationSource.API_V2) {
+      return "API_V2";
+    }
+    // Default to WEBAPP for WEBAPP or any other/null values
+    return "WEBAPP";
+  };
+
+  const actionSource = getActionSource(input.bookingData.creationSource);
+
   if (originalRescheduledBooking) {
     const bookingRescheduledPayload: BookingRescheduledPayload = {
       ...bookingCreatedPayload,
@@ -2322,9 +2336,9 @@ async function handler(
         endTime: originalRescheduledBooking.endTime,
       },
     };
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, auditActor);
+    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, auditActor, actionSource);
   } else {
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor, actionSource);
   }
 
   const webhookData: EventPayloadType = {
