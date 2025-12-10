@@ -66,6 +66,7 @@ export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
   userId?: number;
+  userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
 
@@ -313,6 +314,7 @@ async function handler(input: CancelBookingInput) {
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
+    organizationId: ownerProfile?.organizationId ?? null,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };

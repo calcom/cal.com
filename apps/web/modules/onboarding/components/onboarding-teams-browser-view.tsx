@@ -108,11 +108,6 @@ export const OnboardingTeamsBrowserView = ({
               {/* Teams Info */}
               <div className="flex flex-col gap-2 px-4 pb-4 pt-12">
                 <h2 className="text-emphasis text-xl font-semibold leading-tight">{t("teams")}</h2>
-                <p className="text-subtle text-sm leading-normal">
-                  {hasValidTeams
-                    ? t("onboarding_teams_browser_view_subtitle")
-                    : t("onboarding_teams_browser_view_placeholder_subtitle")}
-                </p>
               </div>
             </div>
 

@@ -89,10 +89,12 @@ const handleMarkNoShow = async ({
   attendees,
   noShowHost,
   userId,
+  userUuid: _userUuid,
   locale,
   platformClientParams,
 }: TNoShowInputSchema & {
   userId?: number;
+  userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
 }) => {
