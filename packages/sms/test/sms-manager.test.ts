@@ -141,7 +141,7 @@ describe("SMSManager", () => {
       const result = await smsManager.sendSMSToAttendee(mockCalEvent.attendees[0], "test-booking-uid");
 
       expect(checkSMSRateLimit).toHaveBeenCalledWith({
-        identifier: "handleSendingSMS:user-1",
+        identifier: "handleSendingSMS:org-user-1",
         rateLimitingType: "sms",
       });
 
