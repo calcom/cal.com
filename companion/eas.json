@@ -7,8 +7,6 @@
     "base": {
       "node": "20.18.0",
       "env": {
-        "EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID": "",
-        "EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI": "",
         "EXPO_PUBLIC_CALCOM_BASE_URL": "https://app.cal.com"
       }
     },
@@ -45,16 +43,6 @@
     }
   },
   "submit": {
-    "production": {
-      "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
-      },
-      "android": {
-        "serviceAccountKeyPath": "",
-        "track": "internal"
-      }
-    }
+    "production": {}
   }
 }
