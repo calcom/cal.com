@@ -130,27 +130,14 @@ packages/lib/                # Shared utilities
 ### Good error handling
 
 ```typescript
-// Good - Use ErrorWithCode in services, repositories, utilities (non-tRPC files)
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
+// Good - Descriptive error with context
+throw new Error(`Unable to create booking: User ${userId} has no available time slots for ${date}`);
 
-throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
-// Or use the Factory pattern:
-throw ErrorWithCode.Factory.Forbidden("You don't have permission");
-
-// Good - Use TRPCError only in tRPC routers/procedures
-import { TRPCError } from "@trpc/server";
-
-throw new TRPCError({
-  code: "BAD_REQUEST",
-  message: `Unable to create booking: User ${userId} has no available time slots for ${date}`,
-});
-
-// Bad - Generic error without context
+// Bad - Generic error
 throw new Error("Booking failed");
 ```
 
-> **Note**: `packages/features/**` should NOT import from `trpc`. The tRPC middleware `errorConversionMiddleware` automatically converts `ErrorWithCode` to `TRPCError`.
+For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [Error Types in knowledge-base.md](agents/knowledge-base.md#error-types).
 
 ### Good Prisma query
 
