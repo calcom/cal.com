@@ -137,6 +137,7 @@ export function PolicyAcceptanceModal() {
               </p>
             </div>
             <Button
+              data-testid="policy-banner-close-button"
               onClick={handleClose}
               disabled={acceptMutation.isPending}
               color="minimal"

@@ -4,22 +4,20 @@ import type { PrismaClient } from "@calcom/prisma";
 import { PolicyType } from "@calcom/prisma/enums";
 
 interface LatestPolicyCache {
-  data: {
-    version: Date;
-    type: PolicyType;
-    description: string;
-    descriptionNonUS: string;
-    publishedAt: Date;
-  } | null;
+  data: PolicyItem | null;
   expiry: number;
 }
 
-export interface PolicyWithoutCount {
+export interface PolicyItem {
   version: Date;
   type: PolicyType;
   description: string;
   descriptionNonUS: string;
+}
+
+export interface PolicyAdminItem extends PolicyItem {
   publishedAt: Date;
+  createdById: number;
 }
 
 export class PolicyRepository {
@@ -35,11 +33,17 @@ export class PolicyRepository {
     }
   }
 
-  async getLatestPolicy(type: PolicyType) {
+  async getLatestPolicy(type: PolicyType): Promise<PolicyItem | null> {
     try {
-      const cached = PolicyRepository.latestPolicyCache.get(type);
-      if (cached && Date.now() < cached.expiry) {
-        return cached.data;
+      // Disable cache in E2E tests to avoid stale data
+      const isCacheEnabled = process.env.NEXT_PUBLIC_IS_E2E !== "1";
+
+      if (isCacheEnabled) {
+        console.log("fetching cached data for policy type: ", type);
+        const cached = PolicyRepository.latestPolicyCache.get(type);
+        if (cached && Date.now() < cached.expiry) {
+          return cached.data;
+        }
       }
 
       const policy = await this.prismaClient.policyVersion.findFirst({
@@ -50,11 +54,10 @@ export class PolicyRepository {
           type: true,
           description: true,
           descriptionNonUS: true,
-          publishedAt: true,
         },
       });
 
-      if (policy) {
+      if (policy && isCacheEnabled) {
         PolicyRepository.latestPolicyCache.set(type, {
           data: policy,
           expiry: Date.now() + 5 * 60 * 1000, // 5 minutes cache
@@ -153,6 +156,7 @@ export class PolicyRepository {
           description: true,
           descriptionNonUS: true,
           publishedAt: true,
+          createdById: true,
         },
       });
 
@@ -162,12 +166,13 @@ export class PolicyRepository {
         nextCursor = nextItem?.version;
       }
 
-      const policiesData: PolicyWithoutCount[] = policies.map((p) => ({
+      const policiesData: PolicyAdminItem[] = policies.map((p) => ({
         version: p.version,
         type: p.type,
         description: p.description,
         descriptionNonUS: p.descriptionNonUS,
         publishedAt: p.publishedAt,
+        createdById: p.createdById,
       }));
 
       return {
