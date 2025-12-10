@@ -4,10 +4,6 @@ export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./a
 export type { AvailabilitySettingsPlatformWrapperProps as AvailabilitySettingsProps } from "./availability/wrappers/AvailabilitySettingsPlatformWrapper";
 export type { AvailabilitySettingsScheduleType } from "./availability/AvailabilitySettings";
 export { BookerPlatformWrapper as Booker } from "./booker/BookerPlatformWrapper";
-export type {
-  BookerPlatformWrapperAtomPropsForIndividual as BookerPropsForIndividual,
-  BookerPlatformWrapperAtomPropsForTeam as BookerPropsForTeam,
-} from "./booker/types";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useAtomsContext } from "./hooks/useAtomsContext";
 export { useConnectedCalendars } from "./hooks/useConnectedCalendars";

@@ -15,10 +15,6 @@ import type { GetBookingType } from "../lib/get-booking";
 
 export type Timezone = (typeof IntlSupportedTimeZones)[number];
 
-/**
- * Entity configuration for organizational context.
- * The orgSlug is automatically resolved from event data in the Platform Booker.
- */
 export interface BookerEntityConfig {
   fromRedirectOfNonOrgLink?: boolean;
   considerUnpublished: boolean;
@@ -50,7 +46,6 @@ export interface BookerProps {
    */
   eventMetaChildren?: React.ReactNode;
 
-  /** Entity configuration - orgSlug is auto-resolved from event data in Platform Booker */
   entity: BookerEntityConfig;
 
   /**

@@ -43,7 +43,6 @@ export default function DynamicBooker() {
   return (
     <Booker
       username={["alice", "bob", "charlie"]}
-      eventSlug="30min"
       onCreateBookingSuccess={() => {
         console.log("Dynamic booking created!");
       }}
