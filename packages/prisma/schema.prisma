@@ -256,6 +256,7 @@ model EventType {
   hostGroups            HostGroup[]
 
   bookingRequiresAuthentication Boolean @default(false)
+  rrHostSubsetEnabled           Boolean @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt

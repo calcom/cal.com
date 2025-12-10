@@ -4523,11 +4523,11 @@ __metadata:
     posthog-node: ^5.9.5
     qrcode: ^1.5.1
     raw-body: ^2.5.1
-    react: ^18.2.0
+    react: 18.2.0
     react-colorful: ^5.6.0
     react-date-picker: ^8.3.6
     react-digit-input: ^2.1.0
-    react-dom: ^18.2.0
+    react-dom: 18.2.0
     react-easy-crop: ^3.5.2
     react-hook-form: ^7.43.3
     react-live-chat-loader: ^2.8.1
@@ -41582,7 +41582,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^18, react-dom@npm:^18.2.0":
+"react-dom@npm:18.2.0, react-dom@npm:^18, react-dom@npm:^18.2.0":
   version: 18.2.0
   resolution: "react-dom@npm:18.2.0"
   dependencies:
@@ -42135,19 +42135,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.2.0":
-  version: 19.2.0
-  resolution: "react@npm:19.2.0"
-  checksum: 33dd01bf699e1c5040eb249e0f552519adf7ee90b98c49d702a50bf23af6852ea46023a5f7f93966ab10acd7a45428fa0f193c686ecdaa7a75a03886e53ec3fe
-  languageName: node
-  linkType: hard
-
-"react@npm:^18, react@npm:^18.2.0":
+"react@npm:18.2.0, react@npm:^18, react@npm:^18.2.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
   dependencies:
     loose-envify: ^1.1.0
   checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
+  languageName: node
+  linkType: hard
+
+"react@npm:19.2.1":
+  version: 19.2.1
+  resolution: "react@npm:19.2.1"
+  checksum: 9b32ace5c532ed78bc5a907bfec77d966c8f117049d9bf06b627c4cebe5ef2c899f18ed283f8ed5b85346176b5ccc5328ab6fae0b389f2936a87575ce0e47670
   languageName: node
   linkType: hard
 

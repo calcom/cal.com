@@ -96,6 +96,7 @@ type Input = Pick<
   | "allowReschedulingPastBookings"
   | "allowReschedulingCancelledBookings"
   | "showOptimizedSlots"
+  | "rrHostSubsetEnabled"
 >;
 
 @Injectable()
@@ -111,8 +112,14 @@ export class OutputOrganizationsEventTypesService {
 
     const emailSettings = this.transformEmailSettings(metadata);
 
-    const { teamId, userId, parentId, assignAllTeamMembers, rescheduleWithSameRoundRobinHost } =
-      databaseEventType;
+    const {
+      teamId,
+      userId,
+      parentId,
+      assignAllTeamMembers,
+      rescheduleWithSameRoundRobinHost,
+      rrHostSubsetEnabled,
+    } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ownerId, users, ...rest } = this.outputEventTypesService.getResponseEventType(
       0,
@@ -147,6 +154,7 @@ export class OutputOrganizationsEventTypesService {
         theme: databaseEventType?.team?.theme,
       },
       rescheduleWithSameRoundRobinHost,
+      rrHostSubsetEnabled,
     };
   }
 
