@@ -732,22 +732,15 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
 
   return (
     <>
-      {booking.fromReschedule && (
-        <Section title={t("rescheduled_by")}>
-          {rescheduledBy && <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>}
-          <Link href={`/booking/${booking.fromReschedule}`}>
-            <div className="text-default flex items-center gap-1 text-sm underline">
-              {t("original_booking")}
-              <Icon name="external-link" className="h-4 w-4" />
-            </div>
-          </Link>
-        </Section>
-      )}
-      {!booking.fromReschedule && rescheduledBy && (
-        <Section title={t("rescheduled_by")}>
-          <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>
-        </Section>
-      )}
+      <Section title={t("rescheduled_by")}>
+        {rescheduledBy && <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>}
+        <Link href={`/booking/${booking.fromReschedule}`}>
+          <div className="text-default flex items-center gap-1 text-sm underline">
+            {t("original_booking")}
+            <Icon name="external-link" className="h-4 w-4" />
+          </div>
+        </Link>
+      </Section>
       {cancellationReason && (
         <Section title={t("reschedule_reason")}>
           <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
