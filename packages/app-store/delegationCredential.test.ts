@@ -105,6 +105,7 @@ const mockOrganization = {
   hideTeamProfileLink: false,
   rrResetInterval: null,
   rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+  autoOptInExperimentalFeatures: false,
 };
 
 // Credential Builders

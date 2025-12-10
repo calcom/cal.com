@@ -13,6 +13,7 @@ export enum Resource {
   Availability = "availability",
   OutOfOffice = "ooo",
   Watchlist = "watchlist",
+  Feature = "feature",
 }
 
 export enum CrudAction {
@@ -748,6 +749,40 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_delete_watchlist_entries",
       scope: [Scope.Organization],
       dependsOn: ["watchlist.read"],
+    },
+  },
+  [Resource.Feature]: {
+    _resource: {
+      i18nKey: "pbac_resource_feature",
+    },
+    [CrudAction.Create]: {
+      description: "Create feature flags",
+      category: "feature",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_features",
+      scope: [Scope.Organization],
+      dependsOn: ["feature.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View feature flags",
+      category: "feature",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_features",
+    },
+    [CrudAction.Update]: {
+      description: "Update feature flags",
+      category: "feature",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_features",
+      dependsOn: ["feature.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete feature flags",
+      category: "feature",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_features",
+      scope: [Scope.Organization],
+      dependsOn: ["feature.read"],
     },
   },
 };

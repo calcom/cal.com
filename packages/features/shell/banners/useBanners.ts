@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
+import { useFeatureOptInBanner } from "@calcom/features/feature-opt-in/hooks/useFeatureOptInBanner";
 import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 
@@ -11,6 +12,7 @@ import { type AllBannerProps } from "./LayoutBanner";
 const useBannersInternal = () => {
   const { data: getUserTopBanners, isPending } = trpc.viewer.me.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
+  const { featureToShow, dismissCurrentFeature, onOptInSuccess } = useFeatureOptInBanner();
 
   if (isPending || !userSession) return null;
 
@@ -22,7 +24,15 @@ const useBannersInternal = () => {
     impersonationBanner: userImpersonatedByUID ? userSession : null,
   };
 
-  const allBanners: AllBannerProps = Object.assign({}, getUserTopBanners, userSessionBanners);
+  const featureOptInBannerData = {
+    feature: featureToShow,
+    onDismiss: dismissCurrentFeature,
+    onOptIn: onOptInSuccess,
+  };
+
+  const allBanners: AllBannerProps = Object.assign({}, getUserTopBanners, userSessionBanners, {
+    featureOptInBanner: featureOptInBannerData,
+  });
 
   return allBanners;
 };

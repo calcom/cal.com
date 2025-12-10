@@ -6,6 +6,8 @@ import {
   type OrgUpgradeBannerProps,
 } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
+import { FeatureOptInBanner } from "@calcom/features/feature-opt-in/components/FeatureOptInBanner";
+import type { EligibleOptInFeature } from "@calcom/features/feature-opt-in/services/FeatureAccessService";
 import AdminPasswordBanner, {
   type AdminPasswordBannerProps,
 } from "@calcom/features/users/components/AdminPasswordBanner";
@@ -20,6 +22,16 @@ import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
 
+export type FeatureOptInBannerData = {
+  feature: EligibleOptInFeature | null;
+  onDismiss?: () => void;
+  onOptIn?: () => void;
+};
+
+type FeatureOptInBannerWrapperProps = {
+  data: FeatureOptInBannerData;
+};
+
 type BannerTypeProps = {
   teamUpgradeBanner: TeamsUpgradeBannerProps;
   orgUpgradeBanner: OrgUpgradeBannerProps;
@@ -28,6 +40,7 @@ type BannerTypeProps = {
   impersonationBanner: ImpersonatingBannerProps;
   calendarCredentialBanner: CalendarCredentialBannerProps;
   invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
+  featureOptInBanner: FeatureOptInBannerWrapperProps;
 };
 
 type BannerType = keyof BannerTypeProps;
@@ -48,6 +61,16 @@ export const BannerComponent: BannerComponent = {
   invalidAppCredentialBanners: (props: InvalidAppCredentialBannersProps) => (
     <InvalidAppCredentialBanners {...props} />
   ),
+  featureOptInBanner: (props: FeatureOptInBannerWrapperProps) => {
+    if (!props.data.feature) return <></>;
+    return (
+      <FeatureOptInBanner
+        feature={props.data.feature}
+        onDismiss={props.data.onDismiss}
+        onOptIn={props.data.onOptIn}
+      />
+    );
+  },
 };
 
 interface BannerContainerProps {
@@ -77,6 +100,9 @@ export const BannerContainer: React.FC<BannerContainerProps> = ({ banners }) => 
           const Banner = BannerComponent[key];
           return <Banner data={banners[key]} key={key} />;
         } else if (key === "invalidAppCredentialBanners") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "featureOptInBanner") {
           const Banner = BannerComponent[key];
           return <Banner data={banners[key]} key={key} />;
         }
