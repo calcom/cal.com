@@ -5,12 +5,12 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import * as constants from "@calcom/lib/constants";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
-import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
+import { CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
+import { createTeamsHandler } from "../../../createTeams";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { SelfHostedOrganizationOnboardingService } from "../SelfHostedOnboardingService";
-import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../types";
+import type { CreateOnboardingIntentInput, OnboardingUser, OrganizationOnboardingData } from "../types";
 
 vi.mock("../../OrganizationPaymentService");
 vi.mock("@calcom/lib/server/repository/organizationOnboarding");
@@ -32,9 +32,20 @@ vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.hand
   inviteMembersWithNoInviterPermissionCheck: vi.fn(),
 }));
 
-vi.mock("@calcom/trpc/server/routers/viewer/organizations/createTeams.handler", () => ({
+vi.mock("../../../createTeams", () => ({
   createTeamsHandler: vi.fn(),
 }));
+
+// Type for mock createTeamsHandler return value used in tests
+type MockCreateTeamsResult = {
+  teams?: { id: number; name: string }[];
+  duplicatedSlugs?: string[];
+};
+
+// Type for mock LicenseKeySingleton instance
+type MockLicenseKeyInstance = {
+  checkLicense: ReturnType<typeof vi.fn>;
+};
 
 vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
@@ -51,10 +62,10 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-const mockAdminUser = {
+const mockAdminUser: OnboardingUser = {
   id: 2,
   email: "admin@example.com",
-  role: UserPermissionRole.ADMIN,
+  role: "ADMIN",
   name: "Admin User",
 };
 
@@ -82,7 +93,9 @@ const mockInput: CreateOnboardingIntentInput = {
 
 describe("SelfHostedOrganizationOnboardingService", () => {
   let service: SelfHostedOrganizationOnboardingService;
-  let mockPaymentService: any;
+  let mockPaymentService: {
+    createOrganizationOnboarding: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     vi.resetAllMocks();
@@ -92,7 +105,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     // Mock license check
     vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
       checkLicense: vi.fn().mockResolvedValue(true),
-    } as any);
+    } as MockLicenseKeyInstance);
 
     mockPaymentService = {
       createOrganizationOnboarding: vi.fn().mockResolvedValue({
@@ -112,11 +125,13 @@ describe("SelfHostedOrganizationOnboardingService", () => {
       id: "onboarding-123",
       teams: [],
       invitedMembers: [],
-    } as any);
+    } as Partial<OrganizationOnboardingData> as OrganizationOnboardingData);
 
-    vi.mocked(OrganizationOnboardingRepository.markAsComplete).mockResolvedValue({} as any);
+    vi.mocked(OrganizationOnboardingRepository.markAsComplete).mockResolvedValue(
+      {} as OrganizationOnboardingData
+    );
 
-    service = new SelfHostedOrganizationOnboardingService(mockAdminUser as any, mockPaymentService);
+    service = new SelfHostedOrganizationOnboardingService(mockAdminUser, mockPaymentService);
   });
 
   describe("createOnboardingIntent", () => {
@@ -241,7 +256,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
       email: string;
       name?: string;
       username?: string;
-      metadata?: any;
+      metadata?: Record<string, unknown>;
       onboardingCompleted?: boolean;
       emailVerified?: Date | null;
     }) {
@@ -305,7 +320,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     it("should fail if the license is invalid", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(false),
-      } as any);
+      } as MockLicenseKeyInstance);
 
       await expect(service.createOrganization(mockOrganizationOnboarding)).rejects.toThrow(
         "Self hosted license not valid"
@@ -315,7 +330,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     it("should create an organization with a valid license", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
-      } as any);
+      } as MockLicenseKeyInstance);
 
       const existingUser = await createTestUser({
         email: mockOrganizationOnboarding.orgOwnerEmail,
@@ -337,7 +352,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     it("should create organization with existing user as owner", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
-      } as any);
+      } as MockLicenseKeyInstance);
 
       const existingUser = await createTestUser({
         email: mockOrganizationOnboarding.orgOwnerEmail,
@@ -361,7 +376,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     it("should throw error if organization with same slug exists", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
-      } as any);
+      } as MockLicenseKeyInstance);
 
       await createTestUser({
         email: mockOrganizationOnboarding.orgOwnerEmail,
@@ -386,7 +401,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     it("should create organization with slug set even if there is a team with same slug owned by orgOwner", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
-      } as any);
+      } as MockLicenseKeyInstance);
 
       const existingUser = await createTestUser({
         email: mockOrganizationOnboarding.orgOwnerEmail,
@@ -414,7 +429,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     it("should not create organization if there is a team with same slug not owned by orgOwner", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
-      } as any);
+      } as MockLicenseKeyInstance);
 
       await createTestUser({
         email: mockOrganizationOnboarding.orgOwnerEmail,
@@ -437,7 +452,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     it("should invite members with isDirectUserAction set to false", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
-      } as any);
+      } as MockLicenseKeyInstance);
 
       await createTestUser({
         email: mockOrganizationOnboarding.orgOwnerEmail,
@@ -464,7 +479,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
     it("should invite members to specific teams based on teamName", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
-      } as any);
+      } as MockLicenseKeyInstance);
 
       await createTestUser({
         email: "owner@example.com",
@@ -502,7 +517,7 @@ describe("SelfHostedOrganizationOnboardingService", () => {
             parentId: options.input.orgId,
           },
         });
-        return { teams: [marketing, engineering] } as any;
+        return { teams: [marketing, engineering] } as MockCreateTeamsResult;
       });
 
       const result = await service.createOrganization(onboardingWithTeamInvites);

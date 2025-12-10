@@ -4,11 +4,11 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import * as constants from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
-import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
-import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
+import { CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
+import { createTeamsHandler } from "../../../createTeams";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
-import type { CreateOnboardingIntentInput } from "../../onboarding/types";
+import type { CreateOnboardingIntentInput, OnboardingUser } from "../../onboarding/types";
 import { BillingEnabledOrgOnboardingService } from "../BillingEnabledOrgOnboardingService";
 
 vi.mock("../../OrganizationPaymentService");
@@ -25,9 +25,15 @@ vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.hand
   inviteMembersWithNoInviterPermissionCheck: vi.fn(),
 }));
 
-vi.mock("@calcom/trpc/server/routers/viewer/organizations/createTeams.handler", () => ({
+vi.mock("../../../createTeams", () => ({
   createTeamsHandler: vi.fn(),
 }));
+
+// Type for mock createTeamsHandler return value used in tests
+type MockCreateTeamsResult = {
+  teams?: { id: number; name: string }[];
+  duplicatedSlugs?: string[];
+};
 
 vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
@@ -44,10 +50,10 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-const mockUser = {
+const mockUser: OnboardingUser = {
   id: 1,
   email: "user@example.com",
-  role: UserPermissionRole.USER,
+  role: "USER",
   name: "Test User",
 };
 
@@ -75,7 +81,10 @@ const mockInput: CreateOnboardingIntentInput = {
 
 describe("BillingEnabledOrgOnboardingService", () => {
   let service: BillingEnabledOrgOnboardingService;
-  let mockPaymentService: any;
+  let mockPaymentService: {
+    createOrganizationOnboarding: ReturnType<typeof vi.fn>;
+    createPaymentIntent: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     vi.resetAllMocks();
@@ -83,7 +92,20 @@ describe("BillingEnabledOrgOnboardingService", () => {
     await prismock.reset();
 
     mockPaymentService = {
-      createOrganizationOnboarding: vi.fn().mockImplementation(async (data: any) => {
+      createOrganizationOnboarding: vi.fn().mockImplementation(async (data: {
+        name: string;
+        slug: string;
+        orgOwnerEmail: string;
+        seats?: number | null;
+        pricePerSeat?: number | null;
+        billingPeriod?: string;
+        createdByUserId: number;
+        isPlatform?: boolean;
+        logo?: string | null;
+        bio?: string | null;
+        brandColor?: string | null;
+        bannerUrl?: string | null;
+      }) => {
         // Actually create the record in prismock so it can be updated later
         return await prismock.organizationOnboarding.create({
           data: {
@@ -115,7 +137,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
       }),
     };
 
-    service = new BillingEnabledOrgOnboardingService(mockUser as any, mockPaymentService);
+    service = new BillingEnabledOrgOnboardingService(mockUser, mockPaymentService);
   });
 
   describe("createOnboardingIntent", () => {
@@ -401,10 +423,10 @@ describe("BillingEnabledOrgOnboardingService", () => {
     it("should immediately create organization when admin creates org for self", async () => {
       vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
 
-      const adminUser = {
+      const adminUser: OnboardingUser = {
         id: 1,
         email: "admin@example.com",
-        role: UserPermissionRole.ADMIN,
+        role: "ADMIN",
         name: "Admin User",
       };
 
@@ -424,7 +446,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
         },
       });
 
-      const adminService = new BillingEnabledOrgOnboardingService(adminUser as any, mockPaymentService);
+      const adminService = new BillingEnabledOrgOnboardingService(adminUser, mockPaymentService);
 
       const result = await adminService.createOnboardingIntent(adminInput);
 
@@ -439,10 +461,10 @@ describe("BillingEnabledOrgOnboardingService", () => {
     });
 
     it("should use checkout flow when admin creates org for someone else with no teams/invites (handover)", async () => {
-      const adminUser = {
+      const adminUser: OnboardingUser = {
         id: 1,
         email: "admin@example.com",
-        role: UserPermissionRole.ADMIN,
+        role: "ADMIN",
         name: "Admin User",
       };
 
@@ -453,7 +475,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
         invitedMembers: [],
       };
 
-      const adminService = new BillingEnabledOrgOnboardingService(adminUser as any, mockPaymentService);
+      const adminService = new BillingEnabledOrgOnboardingService(adminUser, mockPaymentService);
 
       const result = await adminService.createOnboardingIntent(handoverInput);
 
@@ -470,7 +492,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
       email: string;
       name?: string;
       username?: string;
-      metadata?: any;
+      metadata?: Record<string, unknown>;
       onboardingCompleted?: boolean;
       emailVerified?: Date | null;
     }) {
@@ -490,7 +512,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
       name: string;
       slug: string;
       isOrganization?: boolean;
-      metadata?: any;
+      metadata?: Record<string, unknown>;
     }) {
       return prismock.team.create({
         data: {
@@ -610,7 +632,8 @@ describe("BillingEnabledOrgOnboardingService", () => {
         slug: mockOrganizationOnboarding.slug,
       });
 
-      const existingUser = await createTestUser({
+      // User needs to exist for the test but we don't need to reference it
+      await createTestUser({
         email: mockOrganizationOnboarding.orgOwnerEmail,
         onboardingCompleted: true,
         emailVerified: new Date(),
@@ -807,7 +830,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
             parentId: options.input.orgId,
           },
         });
-        return { teams: [marketing, engineering] } as any;
+        return { teams: [marketing, engineering] } as MockCreateTeamsResult;
       });
 
       const result = await service.createOrganization(onboardingWithTeamInvites, {
@@ -914,7 +937,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
             parentId: options.input.orgId,
           },
         });
-        return { teams: [salesTeam] } as any;
+        return { teams: [salesTeam] } as MockCreateTeamsResult;
       });
 
       const result = await service.createOrganization(onboardingWithMixedInvites, {
@@ -970,7 +993,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
 
       vi.mocked(createTeamsHandler).mockResolvedValue({
         teams: [{ id: 300, name: "Marketing" }],
-      } as any);
+      } as MockCreateTeamsResult);
 
       const result = await service.createOrganization(onboardingWithNonMatchingTeam, {
         subscriptionId: "sub_123",
