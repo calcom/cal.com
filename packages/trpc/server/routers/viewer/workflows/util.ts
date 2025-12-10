@@ -21,57 +21,6 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 
 import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
 
-export const bookingSelect = {
-  userPrimaryEmail: true,
-  startTime: true,
-  endTime: true,
-  title: true,
-  uid: true,
-  metadata: true,
-  smsReminderNumber: true,
-  responses: true,
-  attendees: {
-    select: {
-      name: true,
-      email: true,
-      timeZone: true,
-      locale: true,
-    },
-  },
-  eventType: {
-    select: {
-      slug: true,
-      id: true,
-      schedulingType: true,
-      hideOrganizerEmail: true,
-      customReplyToEmail: true,
-      hosts: {
-        select: {
-          user: {
-            select: {
-              email: true,
-              destinationCalendar: {
-                select: {
-                  primaryEmail: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  user: {
-    select: {
-      name: true,
-      timeZone: true,
-      timeFormat: true,
-      locale: true,
-      email: true,
-    },
-  },
-};
-
 export function getSender(
   step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
 ) {
