@@ -3,6 +3,7 @@ import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { OAuth2Client } from "googleapis-common";
+import type { NextApiResponse } from "next";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -429,9 +430,11 @@ const mapIdentityProvider = (providerName: string) => {
 
 export const getOptions = ({
   getDubId,
+  res,
 }: {
   /** so we can extract the Dub cookie in both pages and app routers */
   getDubId: () => string | undefined;
+  res?: any;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -1153,6 +1156,21 @@ export const getOptions = ({
         username: string;
         createdDate: string;
       };
+
+      try {
+        const useSecureCookies = WEBAPP_URL?.startsWith("https://");
+
+        if (res && message?.user?.id) {
+          res.setHeader("Set-Cookie", [
+            `loggedInUserId=${message.user.id}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24 * 7}; SameSite=Lax${
+              useSecureCookies ? "; Secure" : ""
+            }`,
+          ]);
+        }
+      } catch (e) {
+        console.error("Error setting loggedInUserId cookie:", e);
+      }
+
       // check if the user was created in the last 10 minutes
       // this is a workaround – in the future once we move to use the Account model in the DB
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin

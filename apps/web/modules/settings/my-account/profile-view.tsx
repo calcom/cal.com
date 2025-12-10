@@ -854,14 +854,15 @@ const ProfileForm = ({
                       <img className="h-full w-full object-cover" src={value} alt="Header background" />
                     )}
                   </div>
+
                   <div className="flex gap-2">
                     <CustomBannerUploader
                       target="metadata.headerUrl"
                       id="header-upload"
                       buttonMsg={t("upload_image")}
-                      fieldName="Header"
-                      mimeType="image/svg+xml"
-                      height={600}
+                      fieldName="Banner"
+                      mimeType={["image/svg+xml", "image/png"]}
+                      height={320}
                       width={3200}
                       handleAvatarChange={(newHeaderUrl) => {
                         onChange(newHeaderUrl);

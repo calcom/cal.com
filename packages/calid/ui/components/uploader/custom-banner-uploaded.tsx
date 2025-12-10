@@ -31,7 +31,7 @@ type BannerUploaderProps = {
   disabled?: boolean;
   height?: number; // Now optional for dynamic height support
   width?: number; // Optional for dynamic width support
-  mimeType: string;
+  mimeType: string | string[];
 };
 
 function CropContainer({
@@ -297,7 +297,13 @@ export default function BannerUploader({
                 name={id}
                 placeholder={t("upload_image")}
                 className="text-default pointer-events-none absolute mt-4 opacity-0 "
-                accept={mimeType || "image/*"}
+                accept={
+                  mimeType
+                    ? typeof mimeType === "string"
+                      ? mimeType
+                      : mimeType.filter(Boolean).join(",")
+                    : "image/*"
+                }
               />
               {t("choose_a_file")}
             </label>
