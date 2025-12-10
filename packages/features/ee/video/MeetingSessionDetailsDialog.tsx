@@ -41,7 +41,7 @@ const MeetingSessionDetailsSkeleton = () => {
           </div>
           <div className="mt-4">
             <SkeletonText className="mb-2 h-5 w-20" />
-            <div className="space-y-2">
+            <div className="stack-y-2">
               {[...Array(2)].map((_, i) => (
                 <div key={i} className="border-subtle rounded border p-2 text-sm">
                   <div className="flex justify-between">
@@ -138,7 +138,7 @@ const MeetingSessionDetailsList = ({ roomName }: { roomName: string }) => {
           {session.participants && session.participants.length > 0 && (
             <div className="mt-4">
               <h4 className="mb-2 text-sm font-medium">{t("participants")}:</h4>
-              <div className="space-y-2">
+              <div className="stack-y-2">
                 {session.participants.map((participant: Participant) => (
                   <div key={participant.participant_id} className="border-subtle rounded border p-2 text-sm">
                     <div className="flex justify-between">

@@ -9,7 +9,16 @@ import { Logo } from "@calcom/ui/components/logo";
 
 import { useWelcomeToCalcomModal } from "../hooks/useWelcomeToCalcomModal";
 
-const features = ["unlimited_event_types", "workflows_feature", "and_more"];
+const features = [
+  "unlimited_calendars",
+  "unlimited_event_types",
+  "workflows_feature",
+  "integrate_with_favorite_apps",
+  "accept_payments_via_stripe",
+  "html_react_embed",
+  "cal_ai_phone_agent",
+  "cal_video",
+];
 
 export function WelcomeToCalcomModal() {
   const { t } = useLocale();
@@ -83,7 +92,7 @@ export function WelcomeToCalcomModal() {
           <div className="mb-2 flex flex-col gap-3">
             {features.map((feature) => (
               <div key={feature} className="flex items-start gap-2">
-                <Icon name="check" className="text-muted mt-0.5 h-4 w-4 flex-shrink-0" />
+                <Icon name="check" className="text-muted mt-0.5 h-4 w-4 shrink-0" />
                 <span className="text-default text-sm font-medium leading-tight">{t(feature)}</span>
               </div>
             ))}

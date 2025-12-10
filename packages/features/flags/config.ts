@@ -31,7 +31,9 @@ export type AppFlags = {
   "onboarding-v3": boolean;
   "booker-botid": boolean;
   "booking-calendar-view": boolean;
+  "booking-email-sms-tasker": boolean;
   "bookings-v3": boolean;
+  "booking-audit": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

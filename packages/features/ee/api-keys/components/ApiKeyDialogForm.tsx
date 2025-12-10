@@ -107,7 +107,7 @@ export default function ApiKeyDialogForm({
           </div>
           <div>
             <div className="flex">
-              <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
+              <code className="bg-subtle inline-flex items-center text-default w-full truncate rounded-md rounded-r-none pl-2 pr-2 font-mono">
                 {" "}
                 {apiKey}
               </code>
@@ -151,7 +151,7 @@ export default function ApiKeyDialogForm({
               setSuccessfulNewApiKeyModal(true);
             }
           }}
-          className="space-y-4">
+          className="stack-y-4">
           <div className="mb-4 mt-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
