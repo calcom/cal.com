@@ -306,9 +306,54 @@ import { Button } from "@calcom/ui/components/button";
 - **Tests**: Same as source file + `.test.ts` or `.spec.ts`
 - **Avoid**: Dot-suffixes like `.service.ts`, `.repository.ts` (except for tests, types, specs)
 
-## Repository Method Conventions
+## Repository + DTO Pattern and Method Conventions
 
-Repositories should follow consistent naming and design patterns to promote reusability and maintainability.
+We use a Repository + DTO pattern to isolate Prisma and the database from business logic. Repositories are the only layer that talks to Prisma and database models. All services, tRPC handlers, API controllers, workflows, and UI should depend on DTOs or domain types, not Prisma types.
+
+DTOs (Data Transfer Objects) are simple TypeScript types or interfaces that represent our domain data in an ORM-agnostic way and are returned from repositories.
+
+### Why this pattern?
+
+- **Prevent type leaks**: Prisma type changes stay inside repositories instead of breaking services, handlers, and UI across dozens of files.
+- **Enable safe refactors**: Business logic works against stable DTOs, so you can change storage details without touching higher layers.
+- **Keep ORM swappable**: If we ever change ORM, only repository implementations change; services and handlers stay the same.
+
+### What not to do: tight Prisma coupling in business logic
+
+Do not import Prisma types in business logic. Prisma types belong only in the data access layer.
+
+```typescript
+// ❌ Bad – business logic depends on Prisma
+import type { Webhook } from "@calcom/prisma/client";
+export function sendPayload(webhook: Webhook) { /* ... */ }
+
+// ✅ Good – business logic depends on DTO + repository
+export interface WebhookDTO { id: string; url: string; }
+export interface IWebhookRepository { findById(id: string): Promise<WebhookDTO | null>; }
+export async function sendPayload(repo: IWebhookRepository, id: string) {
+  const webhook = await repo.findById(id);
+  // ...
+}
+```
+
+### DTOs in repositories
+
+Repositories should expose DTOs from their public methods and keep Prisma types internal. Inside the repository, use `Prisma.*GetPayload` and map rows to DTOs. The public methods should only return DTOs, never Prisma models.
+
+```typescript
+// DTO – ORM-agnostic type exported from the repository module
+export interface BookingDTO {
+  id: string;
+  userId: number;
+  startTime: Date;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+}
+```
+
+### Prisma boundaries
+
+- **Allowed**: `packages/prisma`, repository implementations (`packages/features/**/repositories/*Repository.ts`), and low-level data access infrastructure.
+- **Not allowed**: `packages/features/**` business logic (non-repository), `packages/trpc/**` handlers, `apps/web/**`, `apps/api/v2/**` services/controllers, and workflow/webhook/service layers.
 
 ### Method Naming Rules
 

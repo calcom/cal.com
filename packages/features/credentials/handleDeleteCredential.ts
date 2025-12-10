@@ -277,39 +277,47 @@ const handleDeleteCredential = async ({
             },
           });
 
+          const unpaidBookingsIds = unpaidBookings.map((booking) => booking.id);
+          const unpaidBookingsPaymentIds = unpaidBookings.flatMap((booking) =>
+            booking.payment.map((payment) => payment.id)
+          );
+          await prisma.booking.updateMany({
+            where: {
+              id: {
+                in: unpaidBookingsIds,
+              },
+            },
+            data: {
+              status: BookingStatus.CANCELLED,
+              cancellationReason: "Payment method removed",
+            },
+          });
+          for (const paymentId of unpaidBookingsPaymentIds) {
+            await deletePayment(paymentId, credential);
+          }
+          await prisma.payment.deleteMany({
+            where: {
+              id: {
+                in: unpaidBookingsPaymentIds,
+              },
+            },
+          });
+          await prisma.attendee.deleteMany({
+            where: {
+              bookingId: {
+                in: unpaidBookingsIds,
+              },
+            },
+          });
+          await prisma.bookingReference.updateMany({
+            where: {
+              bookingId: {
+                in: unpaidBookingsIds,
+              },
+            },
+            data: { deleted: true },
+          });
           for (const booking of unpaidBookings) {
-            await prisma.booking.update({
-              where: {
-                id: booking.id,
-              },
-              data: {
-                status: BookingStatus.CANCELLED,
-                cancellationReason: "Payment method removed",
-              },
-            });
-
-            for (const payment of booking.payment) {
-              await deletePayment(payment.id, credential);
-              await prisma.payment.delete({
-                where: {
-                  id: payment.id,
-                },
-              });
-            }
-
-            await prisma.attendee.deleteMany({
-              where: {
-                bookingId: booking.id,
-              },
-            });
-
-            await prisma.bookingReference.updateMany({
-              where: {
-                bookingId: booking.id,
-              },
-              data: { deleted: true },
-            });
-
             const attendeesListPromises = booking.attendees.map(async (attendee) => {
               return {
                 name: attendee.name,
