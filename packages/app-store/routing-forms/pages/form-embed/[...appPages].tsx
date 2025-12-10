@@ -2,14 +2,17 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@calid/features/ui/components/dialog";
+import { Icon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { HorizontalTabs } from "@calid/features/ui/components/navigation";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { RefObject, Dispatch, SetStateAction } from "react";
 import { createRef, useRef, useState } from "react";
+import { useEffect } from "react";
 import type { ControlProps } from "react-select";
 import { components } from "react-select";
 import { Toaster } from "sonner";
@@ -53,8 +56,6 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Select, ColorPicker } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 
 import SingleForm from "../../components/SingleForm";
 import type { getServerSidePropsForSingleFormViewCalId as getServerSideProps } from "../../components/getServerSidePropsSingleFormCalId";
@@ -209,6 +210,7 @@ const ChooseEmbedTypesDialogContent = ({
   gotoState: Dispatch<
     SetStateAction<{
       embedType: EmbedType;
+      embedTabName?: string;
     }>
   >;
 }) => {
@@ -216,7 +218,7 @@ const ChooseEmbedTypesDialogContent = ({
 
   return (
     <div>
-      <div className="items-start justify-between gap-4 md:flex md:space-y-0">
+      <div className="flex flex-col gap-2 md:flex md:flex-row md:items-start md:justify-between">
         {types.map((embed, index) => (
           <Button
             type="button"
@@ -694,6 +696,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
   gotoState: Dispatch<
     SetStateAction<{
       embedType: EmbedType;
+      embedTabName?: string;
     }>
   >;
 }) => {
@@ -711,7 +714,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
     shallow
   );
 
-  embedType = embedType ?? "button"; // Default to inline if embedType is not provided
+  embedType = embedType ?? (types?.[0]?.type as EmbedType) ?? "inline"; // Default to the first option (inline fallback)
 
   const embedParams = useEmbedParams(noQueryParamMode);
   const eventId = embedParams.eventId;
@@ -731,12 +734,25 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
     _searchParams.set(a, b);
     return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
   };
+  const defaultTabName = tabs?.[0]?.href?.split("=")[1] ?? "embed-code";
+  const activeEmbedTabName = embedTabName ?? embedParams.embedTabName ?? defaultTabName;
+
+  useEffect(() => {
+    if (!embedTabName && !embedParams.embedTabName && defaultTabName) {
+      gotoState((prev) => ({
+        ...prev,
+        embedType: (embedType as EmbedType) ?? prev.embedType,
+        embedTabName: defaultTabName,
+      }));
+    }
+  }, [defaultTabName, embedParams.embedTabName, embedTabName, embedType, gotoState]);
+
   const parsedTabs = tabs.map((t) => {
     const { href, ...rest } = t;
     const tabName = href.split("=")[1];
     return {
       ...rest,
-      isActive: tabName === embedParams.embedTabName,
+      isActive: tabName === activeEmbedTabName,
       ...(noQueryParamMode
         ? {
             onClick: () => {
@@ -880,7 +896,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
         selection.removeAllRanges();
       }
 
-      showToast(t("code_copied"), "success");
+      triggerToast(t("code_copied"), "success");
     }
   };
 
@@ -933,7 +949,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
     //   ref={dialogContentRef}
     //   className="rounded-lg p-0.5 sm:max-w-[80rem]"
     //   type="creation">
-    <div className="flex grid w-full grid-cols-1 justify-between gap-12 sm:grid-cols-2 md:grid-cols-2">
+    <div className="flex grid w-full grid-cols-1 justify-between gap-8 sm:grid-cols-2 md:grid-cols-2">
       <div className="bg-muted dark:bg-default flex h-[65vh] w-full flex-col overflow-y-auto rounded-md  p-8">
         {/* <h3
           className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
@@ -1273,13 +1289,6 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
       <div className="flex flex-col gap-2">
         {embedType !== "email" && previewTab && (
           <div className="flex-1">
-            {/* <iframe
-              src={calLink}
-              ref={iframeRef}
-              className="h-full w-full rounded-md border"
-              title="Example Iframe"
-              frameBorder="0"
-              allowFullScreen> */}
             <previewTab.Component
               namespace={namespace}
               embedType={embedType}
@@ -1287,20 +1296,18 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
               previewState={previewState}
               ref={iframeRef}
             />
-            {/* </iframe> */}
           </div>
         )}
 
         <EmbedDialogProvider>
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="fab" data-testid="embed-dialog-trigger">
-                <Icon name="code" className="h-3 w-3" />
-                <span>Copy code</span>
+              <Button StartIcon="code" data-testid="embed-dialog-trigger" className="flex justify-center">
+                {t("copy_code")}
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogTitle>Embed Code</DialogTitle>
+            <DialogContent showCloseButton>
+              <DialogTitle>{t("embed")}</DialogTitle>
               <div className="flex w-full flex-col">
                 <HorizontalTabs
                   data-testid="embed-tabs"
@@ -1313,8 +1320,6 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
                 <>
                   <div className="flex h-full flex-col">
                     {tabs.map((tab) => {
-                      // const { gotoState } = useEmbedGoto(noQueryParamMode);
-
                       if (embedType !== "email") {
                         if (tab.name === "Preview") return null;
 
@@ -1322,15 +1327,14 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
                           <div
                             key={tab.href}
                             className={classNames(
-                              embedTabName === tab.href.split("=")[1]
+                              activeEmbedTabName === tab.href.split("=")[1] ||
+                                (!activeEmbedTabName && tab.href.split("=")[1] === defaultTabName)
                                 ? "flex-1"
-                                : "hidden" || (!embedTabName && tab.href.split("=")[1] === "embed-code")
+                                : "hidden"
                             )}>
                             {tab.type === "code" && (
                               <div className="flex flex-col gap-2">
-                                <div className="flex flex-row justify-between">
-                                  <span className="text-subtle flex py-2 text-base">{tab.name}</span>
-
+                                <div className="flex flex-row justify-end">
                                   <Button
                                     type="button"
                                     color="secondary"
@@ -1338,7 +1342,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
                                       if (embedType === "email") {
                                         handleCopyEmailText();
                                       } else {
-                                        const currentTabHref = embedTabName;
+                                        const currentTabHref = activeEmbedTabName;
                                         const currentTabName = tabs.find(
                                           (tab) => tab.href === `embedTabName=${currentTabHref}`
                                         )?.name;
@@ -1349,7 +1353,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
                                           return;
                                         }
                                         navigator.clipboard.writeText(currentTabCodeEl.value);
-                                        showToast(t("code_copied"), "success");
+                                        triggerToast(t("code_copied"), "success");
                                       }
                                     }}>
                                     <Icon name="clipboard" className="h-4 w-4" />
@@ -1405,10 +1409,6 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
                       );
                     })}
                   </div>
-                  {/* <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider> */}
-                  {/* <DialogClose /> */}
-
-                  {/* </DialogFooter> */}
                 </>
               </div>
             </DialogContent>
@@ -1440,13 +1440,12 @@ export const EmbedDialog = ({
   //   }
   // };
   // const { gotoState } = useEmbedGoto(noQueryParamMode);
-  const [currentEmbedType, setCurrentEmbedType] = useState<{ embedType: EmbedType }>({ embedType: "inline" });
-
-  // useEffect(() => {
-  //   gotoState({
-  //     embedType: types[0].embed.type as EmbedType,
-  //   });
-  // });
+  const [currentEmbedType, setCurrentEmbedType] = useState<{ embedType: EmbedType; embedTabName?: string }>(
+    () => ({
+      embedType: (types?.[0]?.type as EmbedType) ?? "inline",
+      embedTabName: tabs?.[0]?.href?.split("=")[1] ?? "embed-code",
+    })
+  );
 
   return (
     <div className="flex h-full w-full flex-col">

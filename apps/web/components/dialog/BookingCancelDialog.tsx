@@ -59,14 +59,11 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
   const currentUserEmail = session?.user?.email ?? undefined;
   const currentUserId = session?.user?.id;
 
-  // Determine if current user is the host
   const isHost = currentUserId && props.user?.id === currentUserId;
 
-  // Check if this is a recurring booking
   const recurringEvent = props.metadata?.recurringEvent;
   const isRecurringBooking = !!recurringEvent;
 
-  // Determine the cancellation scenario
   const isCancellingEntireSeries = isRecurringBooking && isTabRecurring;
   const isCancellingSingleInstance = isRecurringBooking && !isTabRecurring;
 
@@ -81,7 +78,6 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
 
   const telemetry = useTelemetry();
 
-  // Clear error and reset autoRefund when dialog opens
   useEffect(() => {
     if (isOpenDialog) {
       setError(null);
@@ -95,17 +91,15 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
 
     telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
-    // Prepare the cancel request body
     const cancelBody: any = {
       uid: props.uid,
       cancellationReason: cancelReason.trim() || undefined,
-      allRemainingBookings: isCancellingEntireSeries, // Cancel all if viewing series
+      allRemainingBookings: isCancellingEntireSeries,
       cancelledBy: currentUserEmail,
       internalNote: null,
       autoRefund: autoRefund,
     };
 
-    // If cancelling a single instance, add the cancelledDates array
     if (isCancellingSingleInstance) {
       cancelBody.cancelledDates = [new Date(props.startTime).toISOString()];
     }
@@ -152,7 +146,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
 
   // Render the "When" section based on booking type
   const renderWhenSection = () => {
-    console.log("isCancellingEntireSeries", isCancellingEntireSeries, recurringEvent); // --- IGNORE ---
+    // console.log("isCancellingEntireSeries", isCancellingEntireSeries, recurringEvent); // --- IGNORE ---
 
     if (isCancellingEntireSeries && recurringEvent) {
       // Case 1: Viewing recurring series - show recurrence summary

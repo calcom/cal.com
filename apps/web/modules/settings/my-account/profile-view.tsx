@@ -837,7 +837,6 @@ const ProfileForm = ({
           />
         </div>
 
-        {/* Header Background Section - Migrated from Appearance */}
         <div className="mt-6">
           <Controller
             control={formMethods.control}
@@ -846,11 +845,9 @@ const ProfileForm = ({
               const showRemoveHeaderButton = value !== null;
               return (
                 <div className="flex flex-col">
-                  <Label className="mb-2 font-semibold">{t("booking_page_header_background")}</Label>
-                  <span className="text-subtle mb-4 text-sm">
-                    {t("booking_page_header_background_description")}
-                  </span>
-                  <div className="bg-muted mb-4 aspect-[10/1] w-full overflow-hidden rounded-lg">
+                  <Label>{t("booking_page_banner")}</Label>
+                  <span className="text-subtle mb-4 text-sm">{t("booking_page_banner_description")}</span>
+                  <div className="bg-muted mb-4 flex h-60 w-full items-center justify-start overflow-hidden rounded-lg">
                     {!value ? (
                       <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                     ) : (

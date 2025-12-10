@@ -8,7 +8,7 @@ import type { VerticalTabItemProps } from "@calid/features/ui/components/navigat
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -421,7 +421,7 @@ function BookingsContent({ status }: BookingsProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row flex-wrap justify-between">
+      <div className="flex flex-row flex-wrap items-center justify-between">
         <HorizontalTabs
           tabs={tabs.map((tab) => ({
             ...tab,
@@ -429,7 +429,7 @@ function BookingsContent({ status }: BookingsProps) {
           }))}
         />
 
-        <div className="flex h-[32px] flex-row gap-4 overflow-auto ">
+        <div className="mb-2 flex h-[32px] flex-row gap-4 overflow-auto">
           <Button
             color="secondary"
             StartIcon="filter"
@@ -480,7 +480,7 @@ function BookingsContent({ status }: BookingsProps) {
                 }
                 LoaderView={<SkeletonLoader />}
                 EmptyView={
-                  <div className="w-full pt-2">
+                  <div className="w-full">
                     <BlankCard
                       Icon="calendar"
                       headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}

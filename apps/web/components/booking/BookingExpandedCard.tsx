@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -51,6 +52,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
     for (const key in bookingFields) {
       if (bookingFields[key]?.label && !defaultFields.includes(key)) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (responses[bookingFields[key].name] !== undefined) {
           customFields[bookingFields[key].label] = responses[bookingFields[key].name];
@@ -65,6 +67,15 @@ export function BookingExpandedCard(props: BookingItemProps) {
     parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data.meetingNote : undefined;
   const [displayNotes, setDisplayNotes] = useState<string>(meetingNote || "");
   const [editingNotes, setEditingNotes] = useState<string>(meetingNote || "");
+
+  const hasMeetingNotesContent = (html: string | null | undefined): boolean => {
+    if (!html) return false;
+    const stripped = html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, "")
+      .trim();
+    return stripped.length > 0;
+  };
   const [showAttendeeDetails, setShowAttendeeDetails] = useState<string | null>(null);
   const [dialogPosition, setDialogPosition] = useState<{ top: number; left: number } | null>(null);
   const spanRefs = useRef<{ [key: string]: HTMLSpanElement | null }>({});
@@ -142,15 +153,10 @@ export function BookingExpandedCard(props: BookingItemProps) {
         `Hi, I'm running late by 5 minutes. I'll be there soon.`
       );
 
-      // this opens the whatsapp web instead of defaulting to whatsapp app (linux doesn't support app)
-      // const whatsappLink = `https://web.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
-
       const whatsappLink = `https://api.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
       return whatsappLink;
     };
-    //Generating the whatsapp link
     const url = generateWhatsAppLink(phoneNumber);
-    // Open the popup window with the provided URL and options
     window.open(url, "_blank", options);
   };
 
@@ -189,8 +195,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
         <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 lg:gap-8">
           <div className="space-y-4">
             <div>
-              <div className="text-foreground text-sm font-medium">{t("duration")}</div>
-              <div className="text-muted-foreground text-sm">
+              <h3 className="text-default text-sm font-medium">{t("duration")}</h3>
+              <div className="text-default text-sm">
                 {endTime && startTime
                   ? `${Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000)} min`
                   : "-"}
@@ -198,32 +204,37 @@ export function BookingExpandedCard(props: BookingItemProps) {
             </div>
 
             <div>
-              <div className="text-foreground text-sm font-medium">{t("invitee_details")}</div>
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <div className="flex min-w-0 items-center gap-2 overflow-auto">
-                  <span>{firstAttendee?.name}</span>
-                  <span>•</span>
-                  <span>{firstAttendee?.timeZone}</span>
-                  <span>•</span>
-                  <span className="break-all">{firstAttendee?.email}</span>
+              <h3 className="text-default text-sm font-medium">{t("invitee_details")}</h3>
+              <div className="text-default flex flex-wrap items-center gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="inline">•</span>
+                  <span className="truncate sm:max-w-[200px]">{firstAttendee?.name}</span>
                 </div>
-                <Button
-                  StartIcon="copy"
-                  color="minimal"
-                  variant="icon"
-                  size="xs"
-                  onClick={() => {
-                    copyToClipboard(firstAttendee?.email || "");
-                    triggerToast(t("email_copied"), "success");
-                  }}
-                  aria-label="Copy email"
-                />
+                <div className="flex items-center gap-2">
+                  <span className="inline">•</span>
+                  <span className="break-words sm:max-w-[180px] sm:truncate">{firstAttendee?.timeZone}</span>
+                </div>
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="inline">•</span>
+                  <span className="break-all sm:max-w-[240px] sm:truncate">{firstAttendee?.email}</span>
+                  <Button
+                    StartIcon="copy"
+                    color="minimal"
+                    variant="icon"
+                    size="xs"
+                    onClick={() => {
+                      copyToClipboard(firstAttendee?.email || "");
+                      triggerToast(t("email_copied"), "success");
+                    }}
+                    aria-label="Copy email"
+                  />
+                </div>
               </div>
             </div>
 
             {attendeeList?.length > 1 && (
               <div>
-                <div className="text-default text-sm font-medium">{t("attendees")}</div>
+                <h3 className="text-default text-sm font-medium">{t("attendees")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {attendeeList.slice(1).map((attendee, index) => {
                     const idKey = `${id}-${index}`;
@@ -266,17 +277,18 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
             {additionalNotes && (
               <div>
-                <div className="text-foreground text-sm font-medium">{t("additional_notes")}</div>
-                <div className="text-muted-foreground text-sm">{additionalNotes}</div>
+                <h3 className="text-default text-sm font-medium">{t("additional_notes")}</h3>
+                <div className="text-default text-sm">{additionalNotes}</div>
               </div>
             )}
 
-            {displayNotes && (
+            {hasMeetingNotesContent(displayNotes) && (
               <div>
-                <div className="text-foreground text-sm font-medium">{t("meeting_notes")}</div>
+                <h3 className="text-default text-sm font-medium">{t("meeting_notes")}</h3>
                 <div
-                  className="text-muted-foreground prose prose-sm max-w-none text-sm"
-                  dangerouslySetInnerHTML={{ __html: displayNotes }}
+                  className="text-default prose prose-sm max-w-none text-sm"
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(displayNotes) }}
                 />
               </div>
             )}
@@ -285,8 +297,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
               <div className="mt-2 space-y-3">
                 {Object.entries(customFields).map(([label, value], index) => (
                   <div className="flex flex-col justify-between" key={index}>
-                    <div className="text-foreground text-sm font-medium">{label}</div>
-                    <div className="text-muted-foreground text-sm">
+                    <h3 className="text-default text-sm font-medium">{label}</h3>
+                    <div className="text-default text-sm">
                       {Array.isArray(value)
                         ? value.join(", ")
                         : typeof value === "boolean"
