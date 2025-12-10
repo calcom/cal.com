@@ -35,6 +35,7 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { INVALID_CLOUDFLARE_TOKEN_ERROR } from "@calcom/lib/server/checkCfTurnstileToken";
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -208,7 +209,6 @@ export default function Signup({
 
   useEffect(() => {
     if (redirectUrl) {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
@@ -310,7 +310,7 @@ export default function Signup({
         setTurnstileKey((k) => k + 1);
         formMethods.setValue("cfToken", undefined);
 
-        if (err.message === "Invalid cloudflare token") {
+        if (err.message === INVALID_CLOUDFLARE_TOKEN_ERROR) {
           return;
         }
 
@@ -573,7 +573,6 @@ export default function Signup({
                           org_slug: orgSlug,
                         });
 
-                        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                         localStorage.setItem("username", username);
                         const sp = new URLSearchParams();
                         // @NOTE: don't remove username query param as it's required right now for stripe payment page
@@ -603,9 +602,7 @@ export default function Signup({
                         !!formMethods.formState.errors.email ||
                         !formMethods.getValues("email") ||
                         !formMethods.getValues("password") ||
-                        (CLOUDFLARE_SITE_ID &&
-                          !process.env.NEXT_PUBLIC_IS_E2E &&
-                          !watch("cfToken")) ||
+                        (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watch("cfToken")) ||
                         isSubmitting ||
                         usernameTaken
                       }>
@@ -655,7 +652,6 @@ export default function Signup({
                         if (prepopulateFormValues?.username) {
                           // If username is present we save it in query params to check for premium
                           searchQueryParams.set("username", prepopulateFormValues.username);
-                          // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                           localStorage.setItem("username", prepopulateFormValues.username);
                         }
                         if (token) {
