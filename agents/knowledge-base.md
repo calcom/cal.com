@@ -229,9 +229,16 @@ Use `ErrorWithCode` for files that are not directly coupled to tRPC. The tRPC pa
 
 ```typescript
 // ✅ Good - Use ErrorWithCode in non-tRPC files (services, repositories, utilities)
-import { ErrorWithCode } from "@calcom/lib/errorWithCode";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
-throw new ErrorWithCode("Invalid booking time slot", "BAD_REQUEST");
+// Option 1: Using constructor with ErrorCode enum
+throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
+
+// Option 2: Using the Factory pattern for common HTTP errors
+throw ErrorWithCode.Factory.Forbidden("You don't have permission to view this");
+throw ErrorWithCode.Factory.NotFound("Resource not found");
+throw ErrorWithCode.Factory.BadRequest("Invalid input");
 
 // ✅ Good - Use TRPCError only in tRPC routers/procedures
 import { TRPCError } from "@trpc/server";
