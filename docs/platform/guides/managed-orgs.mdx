@@ -86,13 +86,10 @@ Response:
 }
 ```
 
-To fetch all OAuth clients of a managed organization make a GET request to `https://api.cal.com/v2/oauth-clients` by:
+Using the same `Authorization: Bearer <apiKey>` header, you can also:
 
-1. Setting `Authorization: Bearer <apiKey>` header where `<apiKey>` is the api key returned when creating a managed organization.
-
-To fetch a specific OAuth client of a managed organization make a GET request to `https://api.cal.com/v2/oauth-clients/:oAuthClientId` by:
-
-1. Setting `Authorization: Bearer <apiKey>` header where `<apiKey>` is the api key returned when creating a managed organization.
+- Fetch all OAuth clients: GET `https://api.cal.com/v2/oauth-clients`
+- Fetch a specific OAuth client: GET `https://api.cal.com/v2/oauth-clients/:oAuthClientId`
 
 ## **3. How to refresh api key of a managed organization**
 
