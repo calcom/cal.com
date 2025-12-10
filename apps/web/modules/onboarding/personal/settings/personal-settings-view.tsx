@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
@@ -20,8 +21,8 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
-import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
 import { useOnboardingStore } from "../../store/onboarding-store";
+import { useSubmitPersonalOnboarding } from "../../hooks/useSubmitPersonalOnboarding";
 
 type PersonalSettingsViewProps = {
   userEmail: string;
@@ -38,9 +39,20 @@ export const PersonalSettingsView = ({
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.get.useQuery();
   const { personalDetails, setPersonalDetails } = useOnboardingStore();
+  const { submitPersonalOnboarding, isSubmitting: isSubmittingOnboarding } = useSubmitPersonalOnboarding();
 
   const avatarRef = useRef<HTMLInputElement>(null);
   const [imageSrc, setImageSrc] = useState<string>("");
+
+  // Detect if the user is a platform user by checking the onBoardingRedirect URL
+  // Platform users come from /login?callbackUrl=...settings/platform/new
+  const [isPlatformUser, setIsPlatformUser] = useState(false);
+
+  useEffect(() => {
+    const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    const isPlatform = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
+    setIsPlatformUser(!!isPlatform);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -106,7 +118,12 @@ export const PersonalSettingsView = ({
       bio: data.bio || "",
     });
 
-    router.push("/onboarding/personal/calendar");
+    // Platform users skip the calendar step and complete onboarding directly
+    if (isPlatformUser) {
+      submitPersonalOnboarding();
+    } else {
+      router.push("/onboarding/personal/calendar");
+    }
   });
 
   if (!user) {
@@ -135,8 +152,8 @@ export const PersonalSettingsView = ({
                 form="personal-settings-form"
                 color="primary"
                 className="rounded-[10px]"
-                loading={mutation.isPending}
-                disabled={mutation.isPending || !form.formState.isValid}>
+                loading={mutation.isPending || isSubmittingOnboarding}
+                disabled={mutation.isPending || isSubmittingOnboarding || !form.formState.isValid}>
                 {t("continue")}
               </Button>
             </div>

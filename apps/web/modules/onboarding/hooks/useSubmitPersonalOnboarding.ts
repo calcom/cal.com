@@ -1,8 +1,9 @@
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { setShowWelcomeToCalcomModalFlag } from "@calcom/features/shell/hooks/useWelcomeToCalcomModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { sessionStorage } from "@calcom/lib/webstorage";
+import { localStorage, sessionStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -32,14 +33,25 @@ export const useSubmitPersonalOnboarding = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
+  // Detect if the user is a platform user by checking the onBoardingRedirect URL
+  // Platform users come from /login?callbackUrl=...settings/platform/new
+  const [isPlatformUser, setIsPlatformUser] = useState(false);
+
+  useEffect(() => {
+    const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    const isPlatform = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
+    setIsPlatformUser(!!isPlatform);
+  }, []);
+
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const createEventType = trpc.viewer.eventTypesHeavy.create.useMutation();
 
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       try {
-        // Create default event types if user has none
-        if (eventTypes?.length === 0) {
+        // Platform users don't need default event types - skip creation
+        // Create default event types if user has none (only for non-platform users)
+        if (!isPlatformUser && eventTypes?.length === 0) {
           await Promise.all(
             DEFAULT_EVENT_TYPES.map(async (event) => {
               return createEventType.mutateAsync({
@@ -56,6 +68,15 @@ export const useSubmitPersonalOnboarding = () => {
       }
 
       await utils.viewer.me.get.refetch();
+
+      // Platform users should always be redirected to the platform dashboard
+      if (isPlatformUser) {
+        const redirectUrl = localStorage.getItem("onBoardingRedirect");
+        localStorage.removeItem("onBoardingRedirect");
+        router.push(redirectUrl || "/settings/platform");
+        return;
+      }
+
       // Check if org modal flag is set - if so, don't show personal modal
       // Organization onboarding takes precedence
       const hasOrgModalFlag = sessionStorage.getItem(ORG_MODAL_STORAGE_KEY) === "true";
