@@ -182,6 +182,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   return (
     <Dialog
       open={openModal}
+      modal={false}
       onOpenChange={(open) => {
         if (!open) {
           closeModal();
@@ -189,6 +190,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       }}>
       <DialogContent
         enableOverflow
+        preventCloseOnOutsideClick
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
@@ -399,7 +401,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onChange={(e) => setSearchRedirectMember(e.target.value)}
                       value={searchRedirectMember}
                     />
-                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
+                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-2 pl-5">
                       {redirectToMemberListOptions
                         .filter((member) => member.value !== getValues("forUserId"))
                         .map((member) => (

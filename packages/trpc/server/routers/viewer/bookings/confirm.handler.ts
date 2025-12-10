@@ -40,7 +40,7 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 
 type ConfirmOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "uuid" | "email" | "username" | "role" | "destinationCalendar">;
   };
   input: TConfirmInputSchema;
 };
@@ -253,6 +253,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),
+    organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
   };
 
