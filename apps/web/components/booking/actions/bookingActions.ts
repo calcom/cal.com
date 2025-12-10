@@ -45,7 +45,7 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
   if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
     actions.push({
       id: "confirm",
-      bookingId: booking.id,
+      bookingUid: booking.uid,
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
       icon: "check" as const,
       disabled: false, // This would be controlled by mutation state in the component
@@ -63,18 +63,15 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
 }
 
 export function getCancelEventAction(context: BookingActionContext): ActionType {
-  const { booking, isTabRecurring, isRecurring, getSeatReferenceUid, t } = context;
-  const seatReferenceUid = getSeatReferenceUid();
+  const { booking, isTabRecurring, isRecurring, t } = context;
 
   return {
     id: "cancel",
     label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-    href: `/booking/${booking.uid}?cancel=true${
-      isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-    }${booking.seatsReferences.length && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
     icon: "circle-x",
     color: "destructive",
     disabled: isActionDisabled("cancel", context),
+    bookingUid: booking.uid,
   };
 }
 
@@ -108,6 +105,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     t,
   } = context;
   const seatReferenceUid = getSeatReferenceUid();
+
+  const isReassignableRoundRobin =
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1);
+  const isManagedChildEvent = booking.eventType.parentId != null;
+  const isReassignable = isReassignableRoundRobin || isManagedChildEvent;
 
   const actions: (ActionType | null)[] = [
     {
@@ -154,9 +157,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           icon: "user-plus",
           disabled: false,
         },
-    // Reassign if round robin with no or one host groups
-    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
+    isReassignable
       ? {
           id: "reassign",
           label: t("reassign"),

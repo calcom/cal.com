@@ -34,7 +34,7 @@ const ServerPage = async () => {
     return <TeamInviteEmailView userEmail={userEmail} />;
   }
 
-  return <TeamInviteView userEmail={userEmail} />;
+  return <TeamInviteEmailView userEmail={userEmail} />;
 };
 
 export default ServerPage;
