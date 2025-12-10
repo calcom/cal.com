@@ -17,6 +17,7 @@ import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { SYSTEM_PHONE_FIELDS } from "@calcom/lib/bookings/SystemField";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -553,6 +554,7 @@ export class InsightsBookingBaseService {
       return { data: csvData, total: totalCount };
     }
 
+    // 2. Get all bookings with their attendees, seat references, and phone data
     const bookings = await this.prisma.booking.findMany({
       where: {
         uid: {
@@ -591,7 +593,7 @@ export class InsightsBookingBaseService {
       },
     });
 
-    const systemPhoneFields = new Set(["attendeePhoneNumber", "smsReminderNumber", "aiAgentCallPhoneNumber"]);
+    // 3. Process bookings: extract phone data and build attendee map
     const phoneFieldsCache = new Map<number, { name: string; label: string }[]>();
     const allPhoneFieldLabels = new Set<string>();
     let maxAttendees = 0;
@@ -626,7 +628,7 @@ export class InsightsBookingBaseService {
           const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
           if (parsed.success) {
             phoneFields = parsed.data
-              .filter((field) => field.type === "phone" && !systemPhoneFields.has(field.name))
+              .filter((field) => field.type === "phone" && !SYSTEM_PHONE_FIELDS.has(field.name))
               .map((field) => ({ name: field.name, label: field.label || field.name }));
             phoneFieldsCache.set(eventTypeId, phoneFields);
             phoneFields.forEach((field) => allPhoneFieldLabels.add(field.label));
@@ -681,8 +683,11 @@ export class InsightsBookingBaseService {
         maxAttendees = formattedAttendees.length;
       }
 
+      // List all no-show guests (name and email)
+      const noShowGuests = noShowAttendees.length > 0 ? noShowAttendees.join("; ") : null;
+
       finalBookingMap.set(booking.uid, {
-        noShowGuests: noShowAttendees.length > 0 ? noShowAttendees.join("; ") : null,
+        noShowGuests,
         noShowGuestsCount,
         attendeeList: formattedAttendees,
         attendeePhoneNumbers,
@@ -690,6 +695,7 @@ export class InsightsBookingBaseService {
       });
     }
 
+    // 4. Combine booking data with attendee data and format for CSV
     const data = csvData.map((bookingTimeStatus) => {
       const dateAndTime = {
         createdAt: bookingTimeStatus.createdAt.toISOString(),
