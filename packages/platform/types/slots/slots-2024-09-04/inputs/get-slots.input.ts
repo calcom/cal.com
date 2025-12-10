@@ -9,7 +9,6 @@ import {
   IsArray,
   ArrayMinSize,
   IsEnum,
-  IsBoolean,
 } from "class-validator";
 
 import { SlotFormat } from "@calcom/platform-enums";
@@ -89,21 +88,6 @@ export class GetAvailableSlotsInput_2024_09_04 {
     example: "abc123def456",
   })
   bookingUidToReschedule?: string;
-
-  @Transform(({ value }) => {
-    if (value === "true") return true;
-    if (value === "false") return false;
-    return value;
-  })
-  @IsBoolean()
-  @IsOptional()
-  @ApiPropertyOptional({
-    type: Boolean,
-    description:
-      "When true, disables the 1-month backward adjustment for rolling window event types, returning slots only within the exact requested date range. Defaults to false.",
-    example: true,
-  })
-  disableRollingWindowAdjustment?: boolean;
 }
 
 export const ById_2024_09_04_type = "byEventTypeId";

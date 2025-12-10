@@ -68,7 +68,6 @@ export class SlotsInputService_2024_09_04 {
     const timeZone = query.timeZone;
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
     const rescheduleUid = query.bookingUidToReschedule || null;
-    const disableRollingWindowAdjustment = query.disableRollingWindowAdjustment;
 
     return {
       isTeamEvent,
@@ -81,7 +80,9 @@ export class SlotsInputService_2024_09_04 {
       timeZone,
       orgSlug,
       rescheduleUid,
-      disableRollingWindowAdjustment,
+      // Always disable rolling window adjustment for API calls since users explicitly provide startTime/endTime
+      // and expect slots within that exact date range
+      disableRollingWindowAdjustment: true,
     };
   }
 
