@@ -7,7 +7,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Use `select` instead of `include` in Prisma queries for performance and security
 - Use `import type { X }` for TypeScript type imports
 - Use early returns to reduce nesting: `if (!booking) return null;`
-- Use TRPCError with proper error codes for API errors
+- Use `ErrorWithCode` for errors in non-tRPC files (services, repositories, utilities); use `TRPCError` only in tRPC routers
 - Use conventional commits: `feat:`, `fix:`, `refactor:`
 - Create PRs in draft mode by default
 - Run `yarn type-check:ci --force` before concluding CI failures are unrelated to your changes
@@ -131,14 +131,13 @@ packages/lib/                # Shared utilities
 
 ```typescript
 // Good - Descriptive error with context
-throw new TRPCError({
-  code: "BAD_REQUEST",
-  message: `Unable to create booking: User ${userId} has no available time slots for ${date}`,
-});
+throw new Error(`Unable to create booking: User ${userId} has no available time slots for ${date}`);
 
 // Bad - Generic error
 throw new Error("Booking failed");
 ```
+
+For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [Error Types in knowledge-base.md](agents/knowledge-base.md#error-types).
 
 ### Good Prisma query
 
