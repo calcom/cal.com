@@ -22,6 +22,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const createEventOnLeadCheckForContact = getAppData("createEventOnLeadCheckForContact") ?? false;
 
   return (
     <AppCard
@@ -46,6 +47,22 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               checked={ignoreGuests}
               onCheckedChange={(checked) => {
                 setAppData("ignoreGuests", checked);
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-plus"
+            title={t("hubspot_create_event_on_contact")}
+            labelFor="create-event-on-contact">
+            <Switch
+              size="sm"
+              labelOnLeading
+              checked={createEventOnLeadCheckForContact}
+              onCheckedChange={(checked) => {
+                setAppData("createEventOnLeadCheckForContact", checked);
               }}
             />
           </Section.SubSectionHeader>

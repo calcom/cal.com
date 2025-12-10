@@ -4110,5 +4110,6 @@
   "timestamp": "Timestamp",
   "json": "JSON",
   "hubspot_ignore_guests": "Do not create new records for guests added to the booking",
+  "hubspot_create_event_on_contact": "Create event on contact, if it exists. Else fallback to lead",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

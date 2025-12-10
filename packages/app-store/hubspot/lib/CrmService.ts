@@ -237,7 +237,21 @@ export default class HubspotCalendarService implements CRM {
     await auth.getToken();
 
     const emailArray = Array.isArray(emails) ? emails : [emails];
+    const appOptions = this.getAppOptions();
 
+    if (appOptions.createEventOnLeadCheckForContact) {
+      const contacts = await this.searchContacts(emailArray);
+      if (contacts.length > 0) {
+        return contacts;
+      }
+      const leads = await this.searchLeads(emailArray);
+      return leads;
+    }
+
+    return await this.searchContacts(emailArray);
+  }
+
+  private async searchContacts(emailArray: string[]): Promise<Contact[]> {
     const publicObjectSearchRequest: PublicObjectSearchRequest = {
       filterGroups: emailArray.map((attendeeEmail) => ({
         filters: [
@@ -264,6 +278,41 @@ export default class HubspotCalendarService implements CRM {
         email: contact.properties.email,
       };
     });
+  }
+
+  private async searchLeads(emailArray: string[]): Promise<Contact[]> {
+    try {
+      const publicObjectSearchRequest: PublicObjectSearchRequest = {
+        filterGroups: emailArray.map((attendeeEmail) => ({
+          filters: [
+            {
+              value: attendeeEmail,
+              propertyName: "hs_lead_email",
+              operator: "EQ",
+            },
+          ],
+        })),
+        sorts: ["hs_object_id"],
+        properties: ["hs_object_id", "hs_lead_email"],
+        limit: 10,
+        after: 0,
+      };
+
+      const leads = await this.hubspotClient.crm.objects.searchApi
+        .doSearch("leads", publicObjectSearchRequest)
+        .then((apiResponse) => apiResponse.results);
+
+      return leads.map((lead) => {
+        return {
+          id: lead.id,
+          email: lead.properties.hs_lead_email || "",
+          recordType: "lead",
+        };
+      });
+    } catch (error) {
+      this.log.debug("searchLeads:error", { error });
+      return [];
+    }
   }
 
   async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
