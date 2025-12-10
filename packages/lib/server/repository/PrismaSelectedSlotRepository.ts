@@ -5,6 +5,13 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { ISelectedSlotRepository } from "./ISelectedSlotRepository";
 import type { TimeSlot } from "./ISelectedSlotRepository";
 
+export type ReservedSlot = {
+  eventTypeId: number;
+  slotUtcStart: Date;
+  slotUtcEnd: Date;
+  reservedSlotUid: string;
+};
+
 export class PrismaSelectedSlotRepository implements ISelectedSlotRepository {
   constructor(private prismaClient: PrismaClient) {}
 
