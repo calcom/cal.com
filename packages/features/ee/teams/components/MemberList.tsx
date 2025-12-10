@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-table";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
 import { signIn } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
@@ -726,7 +727,7 @@ function MemberListContent(props: Props) {
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                onClick={() => props.setShowMemberInvitationModal(true)}
+                onClick={() => { props.setShowMemberInvitationModal(true); posthog.capture("teams_add_new_members_button_clicked") }}
                 data-testid="new-member-button">
                 {t("add")}
               </DataTableToolbar.CTA>
@@ -829,6 +830,7 @@ function MemberListContent(props: Props) {
           state={state}
           currentMember={props.team.membership.role}
           teamId={props.team.id}
+          permissions={props.permissions}
         />
       )}
     </>

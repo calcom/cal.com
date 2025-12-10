@@ -22,6 +22,7 @@ import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type {
@@ -34,6 +35,8 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
+import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -42,6 +45,7 @@ import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/Workf
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -59,7 +63,7 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
-import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
+import { DEFAULT_GROUP_ID, ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -83,7 +87,6 @@ import {
   CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
@@ -95,7 +98,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { BookingRepository } from "../../repositories/BookingRepository";
-import { BookingActionMap, BookingEmailSmsHandler } from "../BookingEmailSmsHandler";
+import { BookingActionMap, BookingEmailSmsHandler, type BookingActionType } from "../BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "../getBookingDataSchema";
@@ -124,6 +127,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { makeGuestActor } from "../types/actor";
 
 const translator = short();
 
@@ -410,6 +414,48 @@ function formatAvailabilitySnapshot(data: {
   };
 }
 
+function buildBookingCreatedPayload({
+  booking,
+  organizerUserId,
+  hashedLink,
+  isDryRun,
+  organizationId,
+}: {
+  booking: {
+    id: number;
+    uid: string;
+    startTime: Date;
+    endTime: Date;
+    status: BookingStatus;
+    userId: number | null;
+  };
+  organizerUserId: number;
+  hashedLink: string | null;
+  isDryRun: boolean;
+  organizationId: number | null;
+}) {
+  return {
+    config: {
+      isDryRun,
+    },
+    bookingFormData: {
+      hashedLink,
+    },
+    booking: {
+      id: booking.id,
+      uid: booking.uid,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: booking.status,
+      userId: booking.userId,
+      user: {
+        id: organizerUserId,
+      },
+    },
+    organizationId,
+  };
+}
+
 export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
@@ -417,6 +463,8 @@ export interface IBookingServiceDependencies {
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
+  bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
+  featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
 }
 
@@ -480,6 +528,7 @@ async function handler(
     skipCalendarSyncTaskCreation = false,
     traceContext: passedTraceContext,
   } = input;
+  let bookingEmailsAndSmsTaskerAction: BookingActionType = BookingActionMap.requested;
 
   const traceContext = passedTraceContext
     ? passedTraceContext
@@ -529,6 +578,7 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
+    rrHostSubsetIds,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -575,7 +625,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "email_verification_required",
-        data: { traceId: traceContext.traceId },
       });
     }
 
@@ -585,7 +634,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "invalid_verification_code",
-        data: { traceId: traceContext.traceId },
       });
     }
   }
@@ -603,14 +651,12 @@ async function handler(
     throw new HttpError({
       statusCode: 404,
       message: "event_type_not_found",
-      data: { traceId: traceContext.traceId },
     });
 
   if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
     throw new HttpError({
       statusCode: 400,
       message: "recurring_event_seats_error",
-      data: { traceId: traceContext.traceId },
     });
   }
 
@@ -752,7 +798,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "Missing routingFormResponseId",
-        data: { traceId: traceContext.traceId },
       });
     }
     routingFormResponse = await deps.prismaClient.app_RoutingForms_FormResponse.findUnique({
@@ -784,6 +829,7 @@ async function handler(
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
     routingFormResponse,
+    rrHostSubsetIds: rrHostSubsetIds ?? undefined,
   });
 
   // We filter out users but ensure allHostUsers remain same.
@@ -1389,6 +1435,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withOrganization(organizerOrganizationId)
     .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
     .build();
 
@@ -1852,7 +1899,6 @@ async function handler(
       throw new HttpError({
         statusCode: 409,
         message: ErrorCode.BookingConflict,
-        data: { traceId: traceContext.traceId },
       });
     }
     throw err;
@@ -1946,7 +1992,7 @@ async function handler(
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    evt.description = eventType.description ?? evt.description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -2074,6 +2120,7 @@ async function handler(
           changedOrganizer,
         },
       });
+      bookingEmailsAndSmsTaskerAction = BookingActionMap.rescheduled;
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -2098,7 +2145,6 @@ async function handler(
       const error = {
         errorCode: "BookingCreatingMeetingFailed",
         message: "Booking failed",
-        data: { traceId: traceContext.traceId },
       };
 
       tracingLogger.error(
@@ -2199,6 +2245,7 @@ async function handler(
               customInputs,
             },
           });
+          bookingEmailsAndSmsTaskerAction = BookingActionMap.confirmed;
         }
       }
     }
@@ -2232,6 +2279,7 @@ async function handler(
         action: BookingActionMap.requested,
         data: { evt, attendees: attendeesList, eventType, additionalNotes },
       });
+      bookingEmailsAndSmsTaskerAction = BookingActionMap.requested;
     }
   }
 
@@ -2245,20 +2293,24 @@ async function handler(
       }
     : undefined;
 
-  const bookingFlowConfig = {
+  const bookingCreatedPayload = buildBookingCreatedPayload({
+    booking,
+    organizerUserId: organizerUser.id,
+    // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
+    hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
     isDryRun,
-  };
+    organizationId: eventOrganizationId,
+  });
 
-  const bookingCreatedPayload = {
-    config: bookingFlowConfig,
-    bookingFormData: {
-      // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
-      hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
-    },
+  const bookingRescheduledPayload: BookingRescheduledPayload = {
+    ...bookingCreatedPayload,
+    oldBooking: originalRescheduledBooking
+      ? {
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        }
+      : undefined,
   };
-
-  // Add more fields here when needed
-  const bookingRescheduledPayload = bookingCreatedPayload;
 
   const bookingEventHandler = deps.bookingEventHandler;
 
@@ -2266,7 +2318,9 @@ async function handler(
   if (originalRescheduledBooking) {
     await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
   } else {
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload);
+    // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
+    const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
   }
 
   const webhookData: EventPayloadType = {
@@ -2320,7 +2374,6 @@ async function handler(
       throw new HttpError({
         statusCode: 400,
         message: "Missing payment credentials",
-        data: { traceId: traceContext.traceId },
       });
     }
 
@@ -2607,6 +2660,37 @@ async function handler(
       },
       isTeamEventType,
     });
+
+    // Unused until we deploy to trigger.dev production
+    // for now we only enable for cal.com org and we keep our current email system
+    // cal.com org members will see emails in double while we test
+    if (ENABLE_ASYNC_TASKER && !noEmail) {
+      try {
+        if (orgId) {
+          const hasTeamFeature = await deps.featuresRepository.checkIfTeamHasFeature(
+            orgId,
+            "booking-email-sms-tasker"
+          );
+          if (hasTeamFeature) {
+            await deps.bookingEmailAndSmsTasker.send({
+              action: bookingEmailsAndSmsTaskerAction,
+              schedulingType: evtWithMetadata.eventType.schedulingType,
+              payload: {
+                bookingId: booking.id,
+                conferenceCredentialId,
+                platformClientId,
+                platformRescheduleUrl,
+                platformCancelUrl,
+                platformBookingUrl,
+                isRescheduledByBooker: reqBody.rescheduledBy === bookerEmail,
+              },
+            });
+          }
+        }
+      } catch (err) {
+        tracingLogger.error("bookingEmailAndSmsTasker error:", err);
+      }
+    }
   }
 
   // TODO: Refactor better so this booking object is not passed
