@@ -3801,7 +3801,7 @@ __metadata:
     ical.js: ^1.4.0
     ics: ^2.37.0
     jimp: ^0.16.1
-    lingo.dev: 0.117.6
+    lingo.dev: 0.117.14
     rrule: ^2.7.1
     sharp: 0.33.5
     sonner: ^1.7.4
@@ -9671,9 +9671,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lingo.dev/_compiler@npm:0.8.1":
-  version: 0.8.1
-  resolution: "@lingo.dev/_compiler@npm:0.8.1"
+"@lingo.dev/_compiler@npm:0.8.6":
+  version: 0.8.6
+  resolution: "@lingo.dev/_compiler@npm:0.8.6"
   dependencies:
     "@ai-sdk/anthropic": 1.2.11
     "@ai-sdk/google": 1.2.19
@@ -9684,8 +9684,8 @@ __metadata:
     "@babel/parser": 7.28.5
     "@babel/traverse": 7.28.5
     "@babel/types": 7.28.5
-    "@lingo.dev/_sdk": 0.13.0
-    "@lingo.dev/_spec": 0.44.0
+    "@lingo.dev/_sdk": 0.13.4
+    "@lingo.dev/_spec": 0.44.4
     "@openrouter/ai-sdk-provider": 0.7.1
     ai: 4.2.10
     dedent: 1.7.0
@@ -9699,51 +9699,51 @@ __metadata:
     posthog-node: 5.14.0
     unplugin: 2.3.11
     zod: 3.25.76
-  checksum: 2ede86f05bf0156ada45d7af4e12a94bb607a595db369ef671eef836ae932c1ffa215225cac2ae98df869dccaf03519eabef43f2782b21493d5adec75138c58e
+  checksum: a145a2e7598813b6d014436990078a7153fd053ad4ccc9d2a778dd8b6be30d6c749b580726ab1d1babec206a4b5b32b291dbad4142a3b587e952420ff8026684
   languageName: node
   linkType: hard
 
-"@lingo.dev/_locales@npm:0.3.0":
-  version: 0.3.0
-  resolution: "@lingo.dev/_locales@npm:0.3.0"
+"@lingo.dev/_locales@npm:0.3.1":
+  version: 0.3.1
+  resolution: "@lingo.dev/_locales@npm:0.3.1"
   dependencies:
     iso-639-3: 3.0.1
-  checksum: d13b1714523477c5d55278d8d7f2464216b5dd8a6d020be0f56d9c9a87f2cb02bdded9b8db860b87084a7bbe345b31c4bc05a0e91a30e87d582ac1782a4b3d5f
+  checksum: 6c50593d3db3955c578cd8f3123a5358dd5e4523d9becd379ea7a52fae352ba3b53e513c44fce3f1f9651580fee44bbdd5c21862a7ae6f43de2e0abdc69a3a93
   languageName: node
   linkType: hard
 
-"@lingo.dev/_react@npm:0.7.0":
-  version: 0.7.0
-  resolution: "@lingo.dev/_react@npm:0.7.0"
+"@lingo.dev/_react@npm:0.7.3":
+  version: 0.7.3
+  resolution: "@lingo.dev/_react@npm:0.7.3"
   dependencies:
     js-cookie: 3.0.5
     lodash: 4.17.21
   peerDependencies:
-    next: 15.2.4
-  checksum: 6c5e5b0d21f21122730c93a841f2c8cfcc7f3cc68c18ae76f59e49f55cd6bf54edd58c574b8c4c68fa51695f07aaf5cdceb726f2bf53105787bf967dbca5674c
+    next: 15.2.6
+  checksum: 342134dbcbc0d266557f75b52d8a325a22eb1977bb015639e3e8a3af8934e579181743c705f0761386d8e698659ebd00d066416a0464f6db02ab0f1379bf7cd3
   languageName: node
   linkType: hard
 
-"@lingo.dev/_sdk@npm:0.13.0":
-  version: 0.13.0
-  resolution: "@lingo.dev/_sdk@npm:0.13.0"
+"@lingo.dev/_sdk@npm:0.13.4":
+  version: 0.13.4
+  resolution: "@lingo.dev/_sdk@npm:0.13.4"
   dependencies:
-    "@lingo.dev/_spec": 0.44.0
+    "@lingo.dev/_spec": 0.44.4
     "@paralleldrive/cuid2": 2.2.2
     jsdom: 25.0.1
     zod: 3.25.76
-  checksum: f0b94b2995ae4c9fc6d85aa06a2e931b037cbfbc2ca857e5de2136b8c0038cadf826a65c4342dcbb0a81f7f94c28704103df45aefeb9bd9abfcc2ee55d9a411c
+  checksum: 5a30ea7d448dcf26cb92feaee0dd592c0bc1e802cb4ac89f9bcdcb272fd37bfd4744823d005124d222f2a91998788fc35cfbe4435ff41820799e96401326b859
   languageName: node
   linkType: hard
 
-"@lingo.dev/_spec@npm:0.44.0":
-  version: 0.44.0
-  resolution: "@lingo.dev/_spec@npm:0.44.0"
+"@lingo.dev/_spec@npm:0.44.4":
+  version: 0.44.4
+  resolution: "@lingo.dev/_spec@npm:0.44.4"
   dependencies:
-    "@lingo.dev/_locales": 0.3.0
+    "@lingo.dev/_locales": 0.3.1
     zod: 3.25.76
     zod-to-json-schema: 3.25.0
-  checksum: 15937158e92b529ecb1c22d4afde0cf59db2fb8743302f58eab09f7c832a75512cecbbe3d49247c8653b8961b39b851567d8cb242363f0e2838ffa283dd17112
+  checksum: 31cec814057c49b254331ff14968f798568364716d14d3ae1a5d7af24e9e1a0bf91b79b722415db3a2c6e31f9345d2e42c3590876c7042e7318ee3f6e5b0643c
   languageName: node
   linkType: hard
 
@@ -34773,9 +34773,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lingo.dev@npm:0.117.6":
-  version: 0.117.6
-  resolution: "lingo.dev@npm:0.117.6"
+"lingo.dev@npm:0.117.14":
+  version: 0.117.14
+  resolution: "lingo.dev@npm:0.117.14"
   dependencies:
     "@ai-sdk/anthropic": 1.2.11
     "@ai-sdk/google": 1.2.19
@@ -34791,11 +34791,11 @@ __metadata:
     "@gitbeaker/rest": 39.34.3
     "@inkjs/ui": 2.0.0
     "@inquirer/prompts": 7.8.0
-    "@lingo.dev/_compiler": 0.8.1
-    "@lingo.dev/_locales": 0.3.0
-    "@lingo.dev/_react": 0.7.0
-    "@lingo.dev/_sdk": 0.13.0
-    "@lingo.dev/_spec": 0.44.0
+    "@lingo.dev/_compiler": 0.8.6
+    "@lingo.dev/_locales": 0.3.1
+    "@lingo.dev/_react": 0.7.3
+    "@lingo.dev/_sdk": 0.13.4
+    "@lingo.dev/_spec": 0.44.4
     "@markdoc/markdoc": 0.5.4
     "@modelcontextprotocol/sdk": 1.22.0
     "@openrouter/ai-sdk-provider": 0.7.1
@@ -34856,7 +34856,7 @@ __metadata:
     plist: 3.1.0
     posthog-node: 5.14.0
     prettier: 3.6.2
-    react: 19.2.0
+    react: 19.2.1
     rehype-stringify: 10.0.1
     remark-disable-tokenizers: 1.1.1
     remark-frontmatter: 5.0.0
@@ -34878,7 +34878,7 @@ __metadata:
     zod: 3.25.76
   bin:
     lingo.dev: bin/cli.mjs
-  checksum: 0a72fc171115a8ff1f1ed4c08cbdd152691f0284e40d0d0ff66d50b422dfad6c449825b623765f399e599b6dd977bdad2fde2518c1919c19b8e5a5157f1d1c72
+  checksum: 137744e9cd0fa4a4dab79c37bb8502438b70723d25e829d92188a1a4092f0ad82680a28a1f550254fc6dc4bafc688a9c1d32612592927fe4952deea06c211760
   languageName: node
   linkType: hard
 

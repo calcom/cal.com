@@ -3271,6 +3271,19 @@
             }
           },
           {
+            "name": "rrHostSubsetIds",
+            "required": false,
+            "in": "query",
+            "description": "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
+            "example": [1, 2, 3],
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          {
             "name": "queueResponse",
             "required": false,
             "in": "query",
@@ -6810,6 +6823,19 @@
             "example": "abc123def456",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "rrHostSubsetIds",
+            "required": false,
+            "in": "query",
+            "description": "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
+            "example": [1, 2, 3],
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
             }
           },
           {
@@ -13319,6 +13345,19 @@
             }
           },
           {
+            "name": "rrHostSubsetIds",
+            "required": false,
+            "in": "query",
+            "description": "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
+            "example": [1, 2, 3],
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          {
             "name": "routingFormId",
             "required": true,
             "in": "path",
@@ -13841,7 +13880,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.\n      If no slots are available, the data object will be empty {}.",
+            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.\n      If no slots are available, the data field will be an empty object {}.",
             "content": {
               "application/json": {
                 "schema": {
@@ -14452,7 +14491,7 @@
       },
       "get": {
         "operationId": "TeamsEventTypesController_getTeamEventTypes",
-        "summary": "Get a team event type",
+        "summary": "Get team event types",
         "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
         "parameters": [
           {
@@ -19663,6 +19702,10 @@
           "rescheduleWithSameRoundRobinHost": {
             "type": "boolean",
             "description": "Rescheduled events will be assigned to the same host as initially scheduled."
+          },
+          "rrHostSubsetEnabled": {
+            "type": "boolean",
+            "description": "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type."
           }
         },
         "required": [
@@ -21676,6 +21719,10 @@
           "rescheduleWithSameRoundRobinHost": {
             "type": "boolean",
             "description": "Rescheduled events will be assigned to the same host as initially scheduled."
+          },
+          "rrHostSubsetEnabled": {
+            "type": "boolean",
+            "description": "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type."
           }
         },
         "required": ["lengthInMinutes", "title", "slug", "schedulingType"]
@@ -22139,6 +22186,10 @@
           "rescheduleWithSameRoundRobinHost": {
             "type": "boolean",
             "description": "Rescheduled events will be assigned to the same host as initially scheduled."
+          },
+          "rrHostSubsetEnabled": {
+            "type": "boolean",
+            "description": "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type."
           }
         }
       },
@@ -27951,6 +28002,14 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "rrHostSubsetIds": {
+            "description": "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+            "example": [1, 2, 3],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         },
         "required": ["start", "attendee"]
@@ -28074,6 +28133,14 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "rrHostSubsetIds": {
+            "description": "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+            "example": [1, 2, 3],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           },
           "instant": {
             "type": "boolean",
@@ -28202,6 +28269,14 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "rrHostSubsetIds": {
+            "description": "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+            "example": [1, 2, 3],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           },
           "recurrenceCount": {
             "type": "number",
@@ -29442,6 +29517,10 @@
             "example": "success",
             "enum": ["success", "error"]
           },
+          "message": {
+            "type": "string",
+            "example": "This endpoint will require authentication in a future release."
+          },
           "error": {
             "type": "object"
           },
@@ -29468,6 +29547,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "message": {
+            "type": "string",
+            "example": "This endpoint will require authentication in a future release."
           },
           "error": {
             "type": "object"

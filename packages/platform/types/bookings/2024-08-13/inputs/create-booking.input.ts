@@ -1,4 +1,10 @@
-import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import {
+  ApiExtraModels,
+  ApiHideProperty,
+  ApiProperty,
+  ApiPropertyOptional,
+  getSchemaPath,
+} from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
@@ -388,6 +394,18 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   @IsString()
   emailVerificationCode?: string;
+
+  @ApiPropertyOptional({
+    type: [Number],
+    description:
+      "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+    example: [1, 2, 3],
+  })
+  @ApiHideProperty()
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  rrHostSubsetIds?: number[];
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
