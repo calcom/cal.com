@@ -1,10 +1,9 @@
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
-
-import { isAuthorized } from "@calcom/features/ee/workflows/lib/workflowUtils";
 
 import type { TGetInputSchema } from "./get.schema";
 

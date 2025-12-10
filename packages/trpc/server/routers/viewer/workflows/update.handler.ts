@@ -1,6 +1,8 @@
+import { scheduleWorkflowNotifications } from "@calcom/ee/workflows/lib/scheduleWorkflowNotifications";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
@@ -18,8 +20,6 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
-
-import { isAuthorized, scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/workflowUtils";
 
 import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";

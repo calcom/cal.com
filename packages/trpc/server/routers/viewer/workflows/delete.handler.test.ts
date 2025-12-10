@@ -3,12 +3,11 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
-
-import { isAuthorized } from "@calcom/features/ee/workflows/lib/workflowUtils";
 
 import { deleteHandler } from "./delete.handler";
 import { removeSmsReminderFieldForEventTypes, removeAIAgentCallPhoneNumberFieldForEventTypes } from "./util";
@@ -27,7 +26,7 @@ vi.mock("@calcom/features/ee/workflows/repositories/WorkflowRepository", () => (
   },
 }));
 
-vi.mock("@calcom/features/ee/workflows/lib/workflowUtils", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/isAuthorized", () => ({
   isAuthorized: vi.fn(),
 }));
 

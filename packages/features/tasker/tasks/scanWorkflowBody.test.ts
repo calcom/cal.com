@@ -3,7 +3,7 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { lockUser, LockReason } from "@calcom/features/ee/api-keys/lib/autoLock";
-import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/workflowUtils";
+import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 
 import { scanWorkflowBody, iffyScanBody } from "./scanWorkflowBody";
 
@@ -15,7 +15,7 @@ vi.mock("@calcom/features/ee/api-keys/lib/autoLock", async (importActual) => {
   };
 });
 
-vi.mock("@calcom/features/ee/workflows/lib/workflowUtils", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications", () => ({
   scheduleWorkflowNotifications: vi.fn(),
 }));
 

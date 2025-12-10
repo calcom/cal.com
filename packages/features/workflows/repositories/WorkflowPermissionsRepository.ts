@@ -1,5 +1,5 @@
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import type { Workflow } from "@calcom/prisma/client";
-import { isAuthorized } from "@calcom/features/ee/workflows/lib/workflowUtils";
 
 export interface WorkflowPermissions {
   canView: boolean;

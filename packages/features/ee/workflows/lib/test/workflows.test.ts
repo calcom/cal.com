@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { scheduleBookingReminders } from "@calcom/features/ee/workflows/lib/scheduleBookingReminders";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import tasker from "@calcom/features/tasker";
 import * as rateLimitModule from "@calcom/lib/checkRateLimitAndThrowError";
@@ -28,8 +29,10 @@ import {
   WorkflowTriggerEvents,
   WorkflowActions,
 } from "@calcom/prisma/enums";
-import { scheduleBookingReminders } from "@calcom/features/ee/workflows/lib/workflowUtils";
-import { deleteRemindersOfActiveOnIds, bookingSelect } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import {
+  deleteRemindersOfActiveOnIds,
+  bookingSelect,
+} from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
