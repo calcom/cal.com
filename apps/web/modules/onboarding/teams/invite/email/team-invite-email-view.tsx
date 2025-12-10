@@ -125,6 +125,10 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     router.replace(gettingStartedPath);
   };
 
+  const handleSubmitClick = () => {
+    form.handleSubmit(handleContinue)();
+  };
+
   // Watch form values to pass to browser view for real-time updates
   const watchedInvites = form.watch("invites");
 
@@ -152,11 +156,12 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                     {t("onboarding_skip_for_now")}
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
                     color="primary"
                     className="rounded-[10px]"
                     disabled={!hasValidInvites || isSubmitting}
-                    loading={isSubmitting}>
+                    loading={isSubmitting}
+                    onClick={handleSubmitClick}>
                     {t("continue")}
                   </Button>
                 </div>
