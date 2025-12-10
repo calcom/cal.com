@@ -1,8 +1,3 @@
-import type { CreationSource } from "@calcom/prisma/enums";
-
-import { getOrgFullOrigin } from "../orgDomains";
-import { CreditService } from "../../../billing/credit-service";
-import stripe from "../../../payments/server/stripe";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
@@ -10,12 +5,17 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-const log = logger.getSubLogger({ prefix: ["organizations/createTeamsHandler"] });
+import { CreditService } from "../../billing/credit-service";
+import stripe from "../../payments/server/stripe";
+import { getOrgFullOrigin } from "./orgDomains";
+
+const log = logger.getSubLogger({ prefix: ["organizations/createTeams"] });
 
 export type CreateTeamsInput = {
   teamNames: string[];
@@ -51,7 +51,7 @@ type InviteMembersFunction = (data: {
   teamId: number;
 }) => Promise<unknown>;
 
-export const createTeamsHandler = async (
+export const createTeams = async (
   { ctx, input }: CreateTeamsOptions,
   inviteMembersWithNoInviterPermissionCheck: InviteMembersFunction
 ) => {
