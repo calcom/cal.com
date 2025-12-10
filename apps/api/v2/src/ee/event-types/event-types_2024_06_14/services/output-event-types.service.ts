@@ -94,6 +94,7 @@ type Input = Pick<
   | "bookingRequiresAuthentication"
   | "maxActiveBookingsPerBooker"
   | "maxActiveBookingPerBookerOfferReschedule"
+  | "maxRoundRobinHosts"
 >;
 
 @Injectable()
