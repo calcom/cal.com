@@ -13,7 +13,9 @@ import { Platform } from "react-native";
  *
  * For web builds, environment variables are loaded from:
  * - process.env (for Expo web bundler)
- * - import.meta.env (for Vite/WXT extension builds)
+ *
+ * Note: The browser extension (WXT/Vite) uses import.meta.env directly
+ * in wxt.config.ts and doesn't use this module.
  */
 
 interface EnvConfig {
@@ -27,7 +29,6 @@ interface EnvConfig {
  * Checks multiple sources in order of priority:
  * 1. expo-constants extra config (for native builds)
  * 2. process.env (for Expo web bundler)
- * 3. import.meta.env (for Vite/WXT builds)
  */
 function getEnvVar(key: string, defaultValue: string = ""): string {
   // For native platforms, use expo-constants
@@ -43,13 +44,8 @@ function getEnvVar(key: string, defaultValue: string = ""): string {
     const envKey = `EXPO_PUBLIC_${key}`;
 
     // Check process.env (Expo web bundler)
-    if (typeof process !== "undefined" && process.env && process.env[envKey]) {
+    if (typeof process !== "undefined" && process.env?.[envKey]) {
       return process.env[envKey] as string;
-    }
-
-    // Check import.meta.env (Vite/WXT builds)
-    if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env[envKey]) {
-      return import.meta.env[envKey] as string;
     }
   }
 
