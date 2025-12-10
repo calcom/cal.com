@@ -310,7 +310,7 @@ export default class HubspotCalendarService implements CRM {
         };
       });
     } catch (error) {
-      this.log.debug("searchLeads:error", { error });
+      this.log.error("searchLeads:error", { error });
       return [];
     }
   }
