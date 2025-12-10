@@ -1014,18 +1014,19 @@ export class UserRepository {
     };
   }
 
-  async findUnlockedUserForSession({ userId }: { userId: number }) {
-    const user = await this.prismaClient.user.findUnique({
-      where: {
-        id: userId,
-        // Locked users can't login
-        locked: false,
-      },
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        email: true,
+    async findUnlockedUserForSession({ userId }: { userId: number }) {
+      const user = await this.prismaClient.user.findUnique({
+        where: {
+          id: userId,
+          // Locked users can't login
+          locked: false,
+        },
+        select: {
+          id: true,
+          uuid: true,
+          username: true,
+          name: true,
+          email: true,
         emailVerified: true,
         bio: true,
         avatarUrl: true,
