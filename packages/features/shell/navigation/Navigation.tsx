@@ -235,13 +235,13 @@ const platformNavigationItems: NavigationItemType[] = [
 
 const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
-  const { hasTeamPlan } = useHasTeamPlan();
+  const { hasTeamPlan, isPending } = useHasTeamPlan();
   const navigationInsightsConfig = useMemo(
     () => ({
-      hasAccess: !!hasTeamPlan,
+      hasAccess: isPending || !!hasTeamPlan,
       upgradeHref: "/settings/teams/new",
     }),
-    [hasTeamPlan]
+    [hasTeamPlan, isPending]
   );
   return useMemo(() => {
     const items = !isPlatformNavigation
