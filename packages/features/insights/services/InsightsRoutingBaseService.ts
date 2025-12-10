@@ -3,7 +3,6 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import type { FilterValue, TextFilterValue, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
-import type { FilterType } from "@calcom/types/data-table";
 import {
   isMultiSelectFilterValue,
   isTextFilterValue,
@@ -11,12 +10,13 @@ import {
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { statusOrder } from "@calcom/features/insights/hooks/useInsightsRoutingFacetedUniqueValues";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import type { BookingStatus } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatusWithRescheduled, MembershipRole } from "@calcom/prisma/enums";
+import type { FilterType } from "@calcom/types/data-table";
 
 export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
@@ -61,7 +61,7 @@ export type InsightsRoutingTableItem = {
   formUserId: number;
   bookingUid: string | null;
   bookingId: number | null;
-  bookingStatus: BookingStatus | null;
+  bookingStatus: BookingStatusWithRescheduled | null;
   bookingStatusOrder: number | null;
   bookingCreatedAt: Date | null;
   bookingUserId: number | null;
@@ -176,7 +176,7 @@ export class InsightsRoutingBaseService {
     const caseStatements = dateRanges
       .map(
         (dateRange) => Prisma.sql`
-      WHEN "createdAt" >= ${dateRange.startDate}::timestamp AND "createdAt" <= ${dateRange.endDate}::timestamp THEN ${dateRange.formattedDate}
+      WHEN rfrd."createdAt" >= ${dateRange.startDate}::timestamp AND rfrd."createdAt" <= ${dateRange.endDate}::timestamp THEN ${dateRange.formattedDate}
     `
       )
       .reduce((acc, curr) => Prisma.sql`${acc} ${curr}`);
@@ -191,6 +191,7 @@ export class InsightsRoutingBaseService {
           "bookingUid",
           "bookingStatus"
         FROM "RoutingFormResponseDenormalized" rfrd
+        LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
         WHERE ${baseConditions}
       )
       SELECT
@@ -269,6 +270,7 @@ export class InsightsRoutingBaseService {
     const totalCountQuery = Prisma.sql`
       SELECT COUNT(*) as count
       FROM "RoutingFormResponseDenormalized" rfrd
+      LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
       WHERE ${baseConditions}
     `;
 
@@ -287,8 +289,8 @@ export class InsightsRoutingBaseService {
         rfrd."formUserId",
         rfrd."bookingUid",
         rfrd."bookingId",
-        UPPER(rfrd."bookingStatus"::text) as "bookingStatus",
-        rfrd."bookingStatusOrder",
+        CASE WHEN b."rescheduled" = true THEN 'RESCHEDULED' ELSE UPPER(rfrd."bookingStatus"::text) END as "bookingStatus",
+        CASE WHEN b."rescheduled" = true THEN 6 ELSE rfrd."bookingStatusOrder" END as "bookingStatusOrder",
         rfrd."bookingCreatedAt",
         rfrd."bookingUserId",
         rfrd."bookingUserName",
@@ -338,6 +340,7 @@ export class InsightsRoutingBaseService {
           WHERE f."responseId" = rfrd."id"
         ) as "fields"
       FROM "RoutingFormResponseDenormalized" rfrd
+      LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
       WHERE ${baseConditions}
       ${orderByClause}
       LIMIT ${limit}
@@ -367,6 +370,7 @@ export class InsightsRoutingBaseService {
     const totalQuery = Prisma.sql`
       SELECT COUNT(*) as count
       FROM "RoutingFormResponseDenormalized" rfrd
+      LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
       WHERE ${baseConditions}
     `;
 
@@ -376,6 +380,7 @@ export class InsightsRoutingBaseService {
     const totalWithoutBookingQuery = Prisma.sql`
       SELECT COUNT(*) as count
       FROM "RoutingFormResponseDenormalized" rfrd
+      LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
       WHERE (${baseConditions}) AND ("bookingUid" IS NULL)
     `;
 
@@ -455,13 +460,14 @@ export class InsightsRoutingBaseService {
         "bookingUserEmail" as email,
         "bookingUserAvatarUrl" as "avatarUrl"
       FROM "RoutingFormResponseDenormalized" rfrd
+      LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
       WHERE "bookingUid" IS NOT NULL
         AND "bookingUserId" IS NOT NULL
-        AND "createdAt" >= ${startDate}
-        AND "createdAt" <= ${endDate}
+        AND rfrd."createdAt" >= ${startDate}
+        AND rfrd."createdAt" <= ${endDate}
         AND ${baseConditions}
         AND ${searchCondition}
-      ORDER BY "bookingUserId", "createdAt" DESC
+      ORDER BY "bookingUserId", rfrd."createdAt" DESC
       ${limit ? Prisma.sql`LIMIT ${limit}` : Prisma.empty}
     `;
 
@@ -528,9 +534,10 @@ export class InsightsRoutingBaseService {
           date_trunc(${dayjsPeriod}, "createdAt") as period_start,
           COUNT(DISTINCT "bookingId")::integer as total
         FROM "RoutingFormResponseDenormalized" rfrd
+        LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
         WHERE "bookingUserId" IN (SELECT user_id FROM all_users)
-        AND "createdAt" >= (SELECT MIN(period_start) FROM paginated_periods)
-        AND "createdAt" < (
+        AND rfrd."createdAt" >= (SELECT MIN(period_start) FROM paginated_periods)
+        AND rfrd."createdAt" < (
           (SELECT MAX(period_start) FROM paginated_periods)
           + (CASE
               WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
@@ -566,9 +573,10 @@ export class InsightsRoutingBaseService {
         "bookingUserId" as "userId",
         COUNT(DISTINCT "bookingId")::integer as total_bookings
       FROM "RoutingFormResponseDenormalized" rfrd
+      LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
       WHERE "bookingUid" IS NOT NULL
-        AND "createdAt" >= ${startDate}
-        AND "createdAt" <= ${endDate}
+        AND rfrd."createdAt" >= ${startDate}
+        AND rfrd."createdAt" <= ${endDate}
         AND ${baseConditions}
       GROUP BY "bookingUserId"
       ORDER BY total_bookings ASC
@@ -710,14 +718,46 @@ export class InsightsRoutingBaseService {
     // Extract booking status order filter
     const bookingStatusOrder = filtersMap["bookingStatusOrder"];
     if (bookingStatusOrder && isMultiSelectFilterValue(bookingStatusOrder.value)) {
-      // Convert string values to numbers for integer column
-      const integerFilterValue = {
-        ...bookingStatusOrder.value,
-        data: bookingStatusOrder.value.data.map((order) => Number(order)),
-      };
-      const statusCondition = makeSqlCondition(integerFilterValue);
-      if (statusCondition) {
-        conditions.push(Prisma.sql`rfrd."bookingStatusOrder" ${statusCondition}`);
+      const selectedStatuses = bookingStatusOrder.value.data.map((order) => Number(order));
+      const hasRescheduled = selectedStatuses.includes(statusOrder["RESCHEDULED"]);
+      const hasCancelled = selectedStatuses.includes(statusOrder["CANCELLED"]);
+      const otherStatuses = selectedStatuses.filter(
+        (s) => s !== statusOrder["RESCHEDULED"] && s !== statusOrder["CANCELLED"]
+      );
+
+      const statusConditions: Prisma.Sql[] = [];
+
+      if (hasCancelled && hasRescheduled) {
+        statusConditions.push(Prisma.sql`rfrd."bookingStatusOrder" = 4`);
+      } else {
+        if (hasCancelled) {
+          // Cancelled bookings that are NOT rescheduled
+          statusConditions.push(
+            Prisma.sql`(rfrd."bookingStatusOrder" = 4 AND (b."rescheduled" IS NULL OR b."rescheduled" = false))`
+          );
+        }
+
+        if (hasRescheduled) {
+          statusConditions.push(Prisma.sql`b."rescheduled" = true`);
+        }
+      }
+
+      if (otherStatuses.length > 0) {
+        const otherStatusesCondition = makeSqlCondition({
+          ...bookingStatusOrder.value,
+          data: otherStatuses,
+        });
+        if (otherStatusesCondition) {
+          statusConditions.push(Prisma.sql`rfrd."bookingStatusOrder" ${otherStatusesCondition}`);
+        }
+      }
+
+      if (statusConditions.length > 0) {
+        const joinedStatusCondition = statusConditions.reduce((acc, condition, index) => {
+          if (index === 0) return condition;
+          return Prisma.sql`(${acc} OR ${condition})`;
+        });
+        conditions.push(Prisma.sql`(${joinedStatusCondition})`);
       }
     }
 
@@ -996,6 +1036,7 @@ export class InsightsRoutingBaseService {
           opt->>'id' as option_id,
           opt->>'label' as option_label
       FROM "RoutingFormResponseDenormalized" rfrd
+      LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
       JOIN "App_RoutingForms_Form" f ON rfrd."formId" = f.id,
       LATERAL jsonb_array_elements(f.fields) as field
       LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
@@ -1009,6 +1050,7 @@ export class InsightsRoutingBaseService {
           COALESCE(arr.value, f."valueString", f."valueNumber"::text) as selected_option,
           COUNT(DISTINCT rfrd.id) as response_count
       FROM "RoutingFormResponseDenormalized" rfrd
+      LEFT JOIN "Booking" b ON b.id = rfrd."bookingId"
       JOIN "RoutingFormResponseField" f ON rfrd.id = f."responseId"
       LEFT JOIN LATERAL unnest(f."valueStringArray") as arr(value) ON f."valueStringArray" != '{}'
       WHERE ${baseConditions}

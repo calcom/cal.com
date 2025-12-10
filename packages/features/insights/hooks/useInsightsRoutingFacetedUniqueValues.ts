@@ -2,18 +2,19 @@ import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, BookingStatusWithRescheduled } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 import { bookingStatusToText } from "../lib/bookingStatusToText";
 import type { HeaderRow } from "../lib/types";
 
-const statusOrder: Record<BookingStatus, number> = {
+export const statusOrder: Record<BookingStatusWithRescheduled, number> = {
   [BookingStatus.ACCEPTED]: 1,
   [BookingStatus.PENDING]: 2,
   [BookingStatus.AWAITING_HOST]: 3,
   [BookingStatus.CANCELLED]: 4,
   [BookingStatus.REJECTED]: 5,
+  RESCHEDULED: 6,
 };
 
 export const useInsightsRoutingFacetedUniqueValues = ({
@@ -77,12 +78,11 @@ export const useInsightsRoutingFacetedUniqueValues = ({
               }))
           );
         } else if (columnId === "bookingStatusOrder") {
-          return convertFacetedValuesToMap(
-            Object.keys(statusOrder).map((status) => ({
-              value: statusOrder[status as BookingStatus],
-              label: bookingStatusToText(status as BookingStatus),
-            }))
-          );
+          const options = Object.keys(statusOrder).map((status) => ({
+            value: statusOrder[status as BookingStatusWithRescheduled],
+            label: bookingStatusToText(status as BookingStatusWithRescheduled),
+          }));
+          return convertFacetedValuesToMap(options);
         } else if (columnId === "formId") {
           return convertFacetedValuesToMap(
             forms?.map((form) => ({
