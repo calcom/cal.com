@@ -1,16 +1,18 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
+import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
 import type { TranslationWithParams } from "../actions/IAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
     userRepository: UserRepository;
     bookingRepository: BookingRepository;
+    membershipRepository: MembershipRepository;
 }
 
 type EnrichedAuditLog = {
@@ -44,14 +46,20 @@ export class BookingAuditViewerService {
     private readonly bookingAuditRepository: IBookingAuditRepository;
     private readonly userRepository: UserRepository;
     private readonly bookingRepository: BookingRepository;
+    private readonly membershipRepository: MembershipRepository;
     private readonly rescheduledAuditActionService: RescheduledAuditActionService;
+    private readonly accessService: BookingAuditAccessService;
 
     constructor(private readonly deps: BookingAuditViewerServiceDeps) {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.userRepository = deps.userRepository;
         this.bookingRepository = deps.bookingRepository;
+        this.membershipRepository = deps.membershipRepository;
         this.rescheduledAuditActionService = new RescheduledAuditActionService();
-
+        this.accessService = new BookingAuditAccessService({
+            bookingRepository: this.bookingRepository,
+            membershipRepository: this.membershipRepository,
+        });
         this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository });
     }
 
@@ -63,28 +71,33 @@ export class BookingAuditViewerService {
      * fetches the last RESCHEDULED log from the previous booking and includes it
      * as the first log entry with "rescheduled from" context.
      */
-    async getAuditLogsForBooking(
-        bookingUid: string,
-        _userId: number,
-        _userEmail: string,
-        userTimeZone: string
-    ): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
-        await this.checkPermissions();
+    async getAuditLogsForBooking(params: {
+        bookingUid: string;
+        userId: number;
+        userEmail: string;
+        userTimeZone: string;
+        organizationId: number | null;
+    }): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
+        await this.accessService.assertPermissions({
+            bookingUid: params.bookingUid,
+            userId: params.userId,
+            organizationId: params.organizationId
+        });
 
-        const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
+        const auditLogs = await this.bookingAuditRepository.findAllForBooking(params.bookingUid);
 
         const enrichedAuditLogs = await Promise.all(
-            auditLogs.map((log) => this.enrichAuditLog(log, userTimeZone))
+            auditLogs.map((log) => this.enrichAuditLog(log, params.userTimeZone))
         );
 
-        const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
+        const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(params.bookingUid);
 
         // Check if this booking was created from a reschedule
         if (fromRescheduleUid) {
             const rescheduledFromLog = await this.buildRescheduledFromLog({
                 fromRescheduleUid,
-                currentBookingUid: bookingUid,
-                userTimeZone,
+                currentBookingUid: params.bookingUid,
+                userTimeZone: params.userTimeZone,
             });
             if (rescheduledFromLog) {
                 // Add the rescheduled log from the previous booking as the first entry
@@ -94,7 +107,7 @@ export class BookingAuditViewerService {
         }
 
         return {
-            bookingUid,
+            bookingUid: params.bookingUid,
             auditLogs: enrichedAuditLogs,
         };
     }
@@ -191,16 +204,6 @@ export class BookingAuditViewerService {
                 parsedData,
             }),
         };
-    }
-
-    /**
-     * Check if user has permission to view audit logs for a booking
-     */
-    private async checkPermissions(): Promise<void> {
-        // TODO: Implement permission check
-        if (IS_PRODUCTION) {
-            throw new Error("Permission check is not implemented for production environments");
-        }
     }
 
     /**

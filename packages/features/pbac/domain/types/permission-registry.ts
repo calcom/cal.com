@@ -33,6 +33,8 @@ export enum CustomAction {
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
+  ReadTeamAuditLogs = "readTeamAuditLogs",
+  ReadOrgAuditLogs = "readOrgAuditLogs",
   Impersonate = "impersonate",
   EditUsers = "editUsers",
 }
@@ -473,6 +475,22 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "booking",
       i18nKey: "pbac_action_read_recordings",
       descriptionI18nKey: "pbac_desc_view_booking_recordings",
+      dependsOn: ["booking.read"],
+    },
+    [CustomAction.ReadTeamAuditLogs]: {
+      description: "View team booking audit logs",
+      category: "booking",
+      i18nKey: "pbac_action_read_team_audit_logs",
+      descriptionI18nKey: "pbac_desc_view_team_audit_logs",
+      scope: [Scope.Team],
+      dependsOn: ["booking.read"],
+    },
+    [CustomAction.ReadOrgAuditLogs]: {
+      description: "View organization booking audit logs",
+      category: "booking",
+      i18nKey: "pbac_action_read_org_audit_logs",
+      descriptionI18nKey: "pbac_desc_view_org_audit_logs",
+      scope: [Scope.Organization],
       dependsOn: ["booking.read"],
     },
     [CrudAction.Update]: {
