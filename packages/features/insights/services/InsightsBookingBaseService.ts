@@ -17,7 +17,6 @@ import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -592,28 +591,10 @@ export class InsightsBookingBaseService {
       },
     });
 
-    // 2. Build cache of parsed bookingFields by eventTypeId
-    const bookingFieldsCache = new Map<number | null, Map<string, string>>();
-
-    bookings.forEach((booking) => {
-      const eventTypeId = booking.eventTypeId;
-      if (eventTypeId && !bookingFieldsCache.has(eventTypeId) && booking.eventType?.bookingFields) {
-        const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
-        if (parsed.success) {
-          const fieldLabelMap = new Map<string, string>();
-          parsed.data.forEach((field) => {
-            if (field.label) {
-              fieldLabelMap.set(field.name, field.label);
-            }
-          });
-          bookingFieldsCache.set(eventTypeId, fieldLabelMap);
-        }
-      }
-    });
-
-    // 3. Process bookings: calculate max attendees, collect custom response labels, and build final map
+    const systemPhoneFields = new Set(["attendeePhoneNumber", "smsReminderNumber", "aiAgentCallPhoneNumber"]);
+    const phoneFieldsCache = new Map<number, { name: string; label: string }[]>();
+    const allPhoneFieldLabels = new Set<string>();
     let maxAttendees = 0;
-    const allCustomResponseLabels = new Set<string>();
     const finalBookingMap = new Map<
       string,
       {
@@ -621,11 +602,38 @@ export class InsightsBookingBaseService {
         noShowGuestsCount: number;
         attendeeList: string[];
         attendeePhoneNumbers: (string | null)[];
-        customResponses: Record<string, string>;
+        phoneQuestionResponses: Record<string, string | null>;
       }
     >();
 
-    bookings.forEach((booking) => {
+    const extractPhoneValue = (value: unknown): string | null => {
+      if (typeof value === "string" && value.trim()) return value;
+      if (value && typeof value === "object" && "value" in value) {
+        const val = (value as { value: unknown }).value;
+        if (typeof val === "string" && val.trim()) return val;
+      }
+      return null;
+    };
+
+    for (const booking of bookings) {
+      const eventTypeId = booking.eventTypeId;
+      let phoneFields: { name: string; label: string }[] | null = null;
+
+      if (eventTypeId) {
+        if (phoneFieldsCache.has(eventTypeId)) {
+          phoneFields = phoneFieldsCache.get(eventTypeId) || null;
+        } else if (booking.eventType?.bookingFields) {
+          const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
+          if (parsed.success) {
+            phoneFields = parsed.data
+              .filter((field) => field.type === "phone" && !systemPhoneFields.has(field.name))
+              .map((field) => ({ name: field.name, label: field.label || field.name }));
+            phoneFieldsCache.set(eventTypeId, phoneFields);
+            phoneFields.forEach((field) => allPhoneFieldLabels.add(field.label));
+          }
+        }
+      }
+
       const attendeeList =
         booking.seatsReferences.length > 0
           ? booking.seatsReferences.map((ref) => ref.attendee)
@@ -636,60 +644,52 @@ export class InsightsBookingBaseService {
       const attendeePhoneNumbers: (string | null)[] = [];
       let noShowGuestsCount = 0;
 
-      attendeeList.forEach((attendee) => {
+      const phoneQuestionResponses: Record<string, string | null> = {};
+      let systemPhoneValue: string | null = null;
+
+      if (booking.responses && typeof booking.responses === "object") {
+        const responses = booking.responses as Record<string, unknown>;
+
+        systemPhoneValue =
+          extractPhoneValue(responses.attendeePhoneNumber) ||
+          extractPhoneValue(responses.smsReminderNumber) ||
+          null;
+
+        if (phoneFields) {
+          for (const field of phoneFields) {
+            phoneQuestionResponses[field.label] = extractPhoneValue(responses[field.name]);
+          }
+        }
+      }
+
+      const firstPhoneQuestionValue = Object.values(phoneQuestionResponses).find((v) => v !== null) || null;
+      const phoneFallback = systemPhoneValue || firstPhoneQuestionValue;
+
+      for (const attendee of attendeeList) {
         if (attendee) {
           const formatted = `${attendee.name} (${attendee.email})`;
           formattedAttendees.push(formatted);
-          attendeePhoneNumbers.push(attendee.phoneNumber || null);
+          attendeePhoneNumbers.push(attendee.phoneNumber || phoneFallback);
           if (attendee.noShow) {
             noShowAttendees.push(formatted);
             noShowGuestsCount++;
           }
         }
-      });
+      }
 
       if (formattedAttendees.length > maxAttendees) {
         maxAttendees = formattedAttendees.length;
       }
 
-      const noShowGuests = noShowAttendees.length > 0 ? noShowAttendees.join("; ") : null;
-
-      const customResponses: Record<string, string> = {};
-      if (booking.responses && typeof booking.responses === "object") {
-        const responses = booking.responses as Record<string, unknown>;
-        const fieldLabelMap = bookingFieldsCache.get(booking.eventTypeId);
-
-        Object.entries(responses).forEach(([fieldName, answer]) => {
-          if (!shouldShowFieldInCustomResponses(fieldName)) {
-            return;
-          }
-
-          // Skip null, undefined, empty arrays, and empty strings
-          if (
-            answer === null ||
-            answer === undefined ||
-            (Array.isArray(answer) && answer.length === 0) ||
-            (typeof answer === "string" && answer.trim() === "")
-          ) {
-            return;
-          }
-
-          const fieldLabel = fieldLabelMap?.get(fieldName) || fieldName;
-          customResponses[fieldLabel] = String(answer);
-          allCustomResponseLabels.add(fieldLabel);
-        });
-      }
-
       finalBookingMap.set(booking.uid, {
-        noShowGuests,
+        noShowGuests: noShowAttendees.length > 0 ? noShowAttendees.join("; ") : null,
         noShowGuestsCount,
         attendeeList: formattedAttendees,
         attendeePhoneNumbers,
-        customResponses,
+        phoneQuestionResponses,
       });
-    });
+    }
 
-    // 4. Combine booking data with attendee data and add ISO timestamp columns
     const data = csvData.map((bookingTimeStatus) => {
       const dateAndTime = {
         createdAt: bookingTimeStatus.createdAt.toISOString(),
@@ -705,7 +705,6 @@ export class InsightsBookingBaseService {
 
       const attendeeData = bookingTimeStatus.uid ? finalBookingMap.get(bookingTimeStatus.uid) : null;
 
-      // Build result object with all fields
       const result: Record<string, unknown> = {
         ...bookingTimeStatus,
         ...dateAndTime,
@@ -713,15 +712,13 @@ export class InsightsBookingBaseService {
         noShowGuestsCount: attendeeData?.noShowGuestsCount || 0,
       };
 
-      // Add attendee columns with phone numbers
       for (let i = 1; i <= maxAttendees; i++) {
         result[`attendee${i}`] = attendeeData?.attendeeList[i - 1] || null;
         result[`attendeePhone${i}`] = attendeeData?.attendeePhoneNumbers[i - 1] || null;
       }
 
-      // Add custom response columns
-      allCustomResponseLabels.forEach((label) => {
-        result[label] = attendeeData?.customResponses[label] || null;
+      allPhoneFieldLabels.forEach((label) => {
+        result[label] = attendeeData?.phoneQuestionResponses[label] || null;
       });
 
       return result;
