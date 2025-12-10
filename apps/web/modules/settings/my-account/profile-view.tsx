@@ -847,7 +847,7 @@ const ProfileForm = ({
                 <div className="flex flex-col">
                   <Label>{t("booking_page_banner")}</Label>
                   <span className="text-subtle mb-4 text-sm">{t("booking_page_banner_description")}</span>
-                  <div className="bg-muted mb-4 flex h-60 w-full items-center justify-start overflow-hidden rounded-lg">
+                  <div className="bg-muted mb-4 flex h-[10vw] w-full items-center justify-start overflow-hidden rounded-lg">
                     {!value ? (
                       <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                     ) : (
