@@ -32,6 +32,8 @@ export function useBookingListData({
    * - For "upcoming" status, filters out today's bookings (they're shown in separate "Today" section)
    */
   const flatData = useMemo<BookingRowData[]>(() => {
+    const todayDateString = dayjs().tz(userTimeZone).format("YYYY-MM-DD");
+
     // For recurring/unconfirmed/cancelled tabs: track recurring series to show only one representative booking per series
     // Key: recurringEventId, Value: array of all bookings in that series
     const shownBookings: Record<string, BookingOutput[]> = {};
@@ -59,10 +61,7 @@ export function useBookingListData({
         shownBookings[booking.recurringEventId] = [booking];
       } else if (status === "upcoming") {
         // For "upcoming" tab, exclude today's bookings (they're shown separately in the "Today" section)
-        return (
-          dayjs(booking.startTime).tz(userTimeZone).format("YYYY-MM-DD") !==
-          dayjs().tz(userTimeZone).format("YYYY-MM-DD")
-        );
+        return dayjs(booking.startTime).tz(userTimeZone).format("YYYY-MM-DD") !== todayDateString;
       }
       return true;
     };
@@ -79,11 +78,12 @@ export function useBookingListData({
 
   // Extract today's bookings for the "Today" section (only used in "upcoming" status)
   const bookingsToday = useMemo<BookingRowData[]>(() => {
+    const todayDateString = dayjs().tz(userTimeZone).format("YYYY-MM-DD");
+
     return (data?.bookings ?? [])
       .filter(
         (booking: BookingOutput) =>
-          dayjs(booking.startTime).tz(userTimeZone).format("YYYY-MM-DD") ===
-          dayjs().tz(userTimeZone).format("YYYY-MM-DD")
+          dayjs(booking.startTime).tz(userTimeZone).format("YYYY-MM-DD") === todayDateString
       )
       .map((booking) => ({
         type: "data" as const,
