@@ -3,7 +3,11 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
-import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
+import {
+  bookingMinimalSelect,
+  bookingAuthorizationCheckSelect,
+  bookingDetailsSelect,
+} from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 type ManagedEventReassignmentCreateParams = {
@@ -175,6 +179,150 @@ const buildWhereClauseForActiveBookings = ({
       }
     : {}),
 });
+
+const selectStatementToGetBookingForCalEventBuilder = {
+  uid: true,
+  title: true,
+  startTime: true,
+  endTime: true,
+  description: true,
+  customInputs: true,
+  responses: true,
+  metadata: true,
+  location: true,
+  iCalUID: true,
+  iCalSequence: true,
+  oneTimePassword: true,
+  attendees: {
+    select: {
+      name: true,
+      email: true,
+      timeZone: true,
+      locale: true,
+      phoneNumber: true,
+      bookingSeat: {
+        select: {
+          id: true,
+          referenceUid: true,
+          bookingId: true,
+          attendeeId: true,
+          data: true,
+          metadata: true,
+        },
+      },
+    },
+  },
+  user: {
+    // Organizer
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      username: true,
+      timeZone: true,
+      locale: true,
+      timeFormat: true,
+      destinationCalendar: true,
+      profiles: { select: { organizationId: true } },
+    },
+  },
+  // destination calendar of the Organizer
+  destinationCalendar: true,
+  eventType: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      hideCalendarNotes: true,
+      hideCalendarEventDetails: true,
+      hideOrganizerEmail: true,
+      schedulingType: true,
+      seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
+      customReplyToEmail: true,
+      disableRescheduling: true,
+      disableCancelling: true,
+      requiresConfirmation: true,
+      recurringEvent: true,
+      bookingFields: true,
+      metadata: true,
+      eventName: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          parentId: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  username: true,
+                  timeZone: true,
+                  locale: true,
+                  timeFormat: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      users: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          timeZone: true,
+          locale: true,
+          timeFormat: true,
+          destinationCalendar: true,
+        },
+      },
+      hosts: {
+        select: {
+          userId: true,
+          isFixed: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              username: true,
+              timeZone: true,
+              locale: true,
+              timeFormat: true,
+              destinationCalendar: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  references: {
+    where: {
+      deleted: null,
+    },
+    select: {
+      type: true,
+      meetingId: true,
+      meetingPassword: true,
+      meetingUrl: true,
+      uid: true,
+    },
+  },
+  seatsReferences: {
+    select: {
+      id: true,
+      referenceUid: true,
+      attendee: { select: { id: true, email: true, phoneNumber: true } },
+    },
+  },
+};
 
 export class BookingRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -353,6 +501,48 @@ export class BookingRepository {
             id: true,
           },
         },
+      },
+    });
+  }
+
+  async findByUidForAuthorizationCheck({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingAuthorizationCheckSelect,
+    });
+  }
+
+  async findByUidForDetails({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingDetailsSelect,
+    });
+  }
+
+  async findRescheduledToBooking({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findFirst({
+      where: {
+        fromReschedule: bookingUid,
+      },
+      select: {
+        uid: true,
+      },
+    });
+  }
+
+  async findPreviousBooking({ fromReschedule }: { fromReschedule: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: fromReschedule,
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        endTime: true,
       },
     });
   }
@@ -1239,6 +1429,19 @@ export class BookingRepository {
             metadata: true,
           },
         },
+        user: {
+          select: {
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
+          },
+        },
         payment: {
           select: {
             id: true,
@@ -1257,146 +1460,14 @@ export class BookingRepository {
   async getBookingForCalEventBuilder(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: { id: bookingId },
-      select: {
-        uid: true,
-        title: true,
-        startTime: true,
-        endTime: true,
-        description: true,
-        customInputs: true,
-        responses: true,
-        metadata: true,
-        location: true,
-        iCalUID: true,
-        iCalSequence: true,
-        oneTimePassword: true,
-        attendees: {
-          select: {
-            name: true,
-            email: true,
-            timeZone: true,
-            locale: true,
-            phoneNumber: true,
-            bookingSeat: {
-              select: {
-                id: true,
-                referenceUid: true,
-                bookingId: true,
-                attendeeId: true,
-                data: true,
-                metadata: true,
-              },
-            },
-          },
-        },
-        user: {
-          // Organizer
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            username: true,
-            timeZone: true,
-            locale: true,
-            timeFormat: true,
-            destinationCalendar: true,
-            profiles: { select: { organizationId: true } },
-          },
-        },
-        // destination calendar of the Organizer
-        destinationCalendar: true,
-        eventType: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            description: true,
-            hideCalendarNotes: true,
-            hideCalendarEventDetails: true,
-            hideOrganizerEmail: true,
-            schedulingType: true,
-            seatsPerTimeSlot: true,
-            seatsShowAttendees: true,
-            seatsShowAvailabilityCount: true,
-            customReplyToEmail: true,
-            disableRescheduling: true,
-            disableCancelling: true,
-            requiresConfirmation: true,
-            recurringEvent: true,
-            bookingFields: true,
-            metadata: true,
-            eventName: true,
-            team: {
-              select: {
-                id: true,
-                name: true,
-                parentId: true,
-                members: {
-                  select: {
-                    user: {
-                      select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        username: true,
-                        timeZone: true,
-                        locale: true,
-                        timeFormat: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            users: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-                timeZone: true,
-                locale: true,
-                timeFormat: true,
-                destinationCalendar: true,
-              },
-            },
-            hosts: {
-              select: {
-                userId: true,
-                isFixed: true,
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    username: true,
-                    timeZone: true,
-                    locale: true,
-                    timeFormat: true,
-                    destinationCalendar: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        references: {
-          select: {
-            type: true,
-            meetingId: true,
-            meetingPassword: true,
-            meetingUrl: true,
-            uid: true,
-          },
-        },
-        seatsReferences: {
-          select: {
-            id: true,
-            referenceUid: true,
-            attendee: { select: { id: true, email: true, phoneNumber: true } },
-          },
-        },
-      },
+      select: selectStatementToGetBookingForCalEventBuilder,
+    });
+  }
+
+  async getBookingForCalEventBuilderFromUid(bookingUid: string) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: selectStatementToGetBookingForCalEventBuilder,
     });
   }
   async findByIdIncludeDestinationCalendar(bookingId: number) {
@@ -1413,6 +1484,11 @@ export class BookingRepository {
           include: {
             destinationCalendar: true,
             credentials: true,
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
           },
         },
       },
@@ -1533,7 +1609,7 @@ export class BookingRepository {
       },
     });
   }
-  
+
   findByUidIncludeEventTypeAndReferences({ bookingUid }: { bookingUid: string }) {
     return this.prismaClient.booking.findUniqueOrThrow({
       where: {
@@ -1588,7 +1664,7 @@ export class BookingRepository {
       },
     });
   }
-  
+
   async updateBookingStatus({
     bookingId,
     status,
@@ -1618,7 +1694,6 @@ export class BookingRepository {
       },
     });
   }
-
 
   /**
    * Cancels a booking as part of the Managed Event reassignment flow.
@@ -1694,8 +1769,8 @@ export class BookingRepository {
         location,
         smsReminderNumber,
         responses: responses ?? undefined,
-        customInputs: customInputs as unknown as Prisma.InputJsonValue ?? undefined,
-        metadata: metadata as unknown as Prisma.InputJsonValue ?? undefined,
+        customInputs: (customInputs as unknown as Prisma.InputJsonValue) ?? undefined,
+        metadata: (metadata as unknown as Prisma.InputJsonValue) ?? undefined,
         idempotencyKey,
         iCalUID,
         iCalSequence,
