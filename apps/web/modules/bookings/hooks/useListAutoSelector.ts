@@ -16,11 +16,12 @@ export function useListAutoSelector(bookings: BookingsGetOutput["bookings"]) {
   const bookingsRef = useRef(bookings);
 
   useEffect(() => {
+    const hasBookingsChanged = bookings !== bookingsRef.current;
+    // Always track current bookings to avoid stale ref when pendingSelection is later set
+    bookingsRef.current = bookings;
+
     // Early return if no pending selection
     if (!pendingSelection) return;
-
-    const hasBookingsChanged = bookings !== bookingsRef.current;
-    bookingsRef.current = bookings;
 
     if (!hasBookingsChanged) return;
 
