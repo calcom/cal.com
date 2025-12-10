@@ -113,25 +113,28 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       }
     } else {
       // No invites, skip to personal settings
-      const gettingStartedPath = "/onboarding/personal/settings";
-      router.push(gettingStartedPath);
+      const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
+      router.replace(gettingStartedPath);
     }
   };
 
   const handleSkip = async () => {
     setTeamInvites([]);
     // Skip inviting members and go to personal settings
-    const gettingStartedPath = "/onboarding/personal/settings";
-    router.push(gettingStartedPath);
+    const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
+    router.replace(gettingStartedPath);
   };
 
-  const hasValidInvites = fields.some((_, index) => {
-    const email = form.watch(`invites.${index}.email`);
-    return email && email.trim().length > 0;
-  });
+  const handleSubmitClick = () => {
+    form.handleSubmit(handleContinue)();
+  };
 
   // Watch form values to pass to browser view for real-time updates
   const watchedInvites = form.watch("invites");
+
+  const hasValidInvites = watchedInvites.some((invite) => {
+    return invite.email && invite.email.trim().length > 0;
+  });
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
@@ -153,11 +156,12 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                     {t("onboarding_skip_for_now")}
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
                     color="primary"
                     className="rounded-[10px]"
                     disabled={!hasValidInvites || isSubmitting}
-                    loading={isSubmitting}>
+                    loading={isSubmitting}
+                    onClick={handleSubmitClick}>
                     {t("continue")}
                   </Button>
                 </div>

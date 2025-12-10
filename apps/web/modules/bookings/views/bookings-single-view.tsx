@@ -36,7 +36,6 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { RefundPolicy } from "@calcom/lib/payment/types";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
@@ -57,6 +56,7 @@ import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
@@ -384,6 +384,22 @@ export default function Success(props: PageProps) {
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
 
+  const paymentStatusMessage = usePaymentStatus({
+    bookingStatus: bookingInfo.status,
+    startTime: bookingInfo.startTime,
+    eventTypeTeamId: eventType?.teamId,
+    userId: eventType?.owner?.id,
+    payment: props.paymentStatus
+      ? {
+          success: props.paymentStatus.success,
+          refunded: props.paymentStatus.refunded,
+          paymentOption: props.paymentStatus.paymentOption,
+        }
+      : { success: false, refunded: false },
+    refundPolicy: eventType?.metadata?.apps?.stripe?.refundPolicy,
+    refundDaysCount: eventType?.metadata?.apps?.stripe?.refundDaysCount,
+  });
+
   const successPageHeadline = (() => {
     if (isAwaitingPayment && !isCancelled) {
       return props.paymentStatus?.paymentOption === "HOLD"
@@ -462,7 +478,8 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-cal-muted border-booker border-booker-width",
+                  !isBackgroundTransparent &&
+                    " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -519,47 +536,7 @@ export default function Success(props: PageProps) {
                       </div>
                       {props.paymentStatus &&
                         (bookingInfo.status === BookingStatus.CANCELLED ||
-                          bookingInfo.status === BookingStatus.REJECTED) && (
-                          <h4>
-                            {!props.paymentStatus.success &&
-                              !props.paymentStatus.refunded &&
-                              t("booking_with_payment_cancelled")}
-                            {props.paymentStatus.success &&
-                              !props.paymentStatus.refunded &&
-                              (() => {
-                                const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
-                                const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
-
-                                // Handle missing team or event type owner (same in processPaymentRefund.ts)
-                                if (!eventType?.teamId && !eventType?.owner) {
-                                  return t("booking_with_payment_cancelled_no_refund");
-                                }
-
-                                // Handle DAYS policy with expired refund window
-                                else if (refundPolicy === RefundPolicy.DAYS && refundDaysCount) {
-                                  const startTime = new Date(bookingInfo.startTime);
-                                  const cancelTime = new Date();
-                                  const daysDiff = Math.floor(
-                                    (cancelTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)
-                                  );
-
-                                  if (daysDiff > refundDaysCount) {
-                                    return t("booking_with_payment_cancelled_refund_window_expired");
-                                  }
-                                }
-                                // Handle NEVER policy
-                                else if (refundPolicy === RefundPolicy.NEVER) {
-                                  return t("booking_with_payment_cancelled_no_refund");
-                                }
-
-                                // Handle ALWAYS policy
-                                else {
-                                  return t("booking_with_payment_cancelled_already_paid");
-                                }
-                              })()}
-                            {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
-                          </h4>
-                        )}
+                          bookingInfo.status === BookingStatus.REJECTED) && <h4>{paymentStatusMessage}</h4>}
 
                       <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
                         {(isCancelled || reschedule) && cancellationReason && (
@@ -711,7 +688,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="whitespace-pre-line wrap-break-word">{bookingInfo.description}</p>
+                              <p className="wrap-break-word whitespace-pre-line">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -738,7 +715,7 @@ export default function Success(props: PageProps) {
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
                                   0 ? (
-                                    <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
+                                    <ul className="stack-y-1 list-disc p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
@@ -892,6 +869,7 @@ export default function Success(props: PageProps) {
                             currentUserEmail={currentUserEmail}
                             isHost={isHost}
                             internalNotePresets={props.internalNotePresets}
+                            renderContext="booking-single-view"
                           />
                         </>
                       ))}
@@ -1053,7 +1031,7 @@ export default function Success(props: PageProps) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-4 stack-y-1 text-center">
+                      <div className="stack-y-1 my-4 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
