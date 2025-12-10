@@ -3,11 +3,6 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import type { Workflow } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-/**
- * Check if a user is authorized to access a workflow.
- * For personal workflows (no teamId), checks if user owns the workflow.
- * For team workflows, uses PBAC (Permission-Based Access Control).
- */
 export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
   currentUserId: number,
