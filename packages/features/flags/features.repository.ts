@@ -14,9 +14,6 @@ interface CacheOptions {
  * Repository class for managing feature flags and feature access control.
  * Implements the IFeaturesRepository interface to provide feature flag functionality
  * for users, teams, and global application features.
- *
- * Note: For feature opt-in specific operations (setting user/team features, auto opt-in),
- * use FeatureOptInRepository instead.
  */
 export class FeaturesRepository implements IFeaturesRepository {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -119,9 +116,6 @@ export class FeaturesRepository implements IFeaturesRepository {
    * - Row with enabled=false → feature is explicitly disabled (blocks inheritance)
    * - No row → inherit from team/org level
    *
-   * Note: This method does NOT check auto opt-in. For full feature access checks
-   * including auto opt-in, use FeatureAccessService.checkIfUserHasFeature().
-   *
    * @param userId - The ID of the user to check
    * @param slug - The feature identifier to check
    * @returns Promise<boolean> - True if the user has access to the feature, false otherwise
@@ -163,9 +157,6 @@ export class FeaturesRepository implements IFeaturesRepository {
    * - Row with enabled=true → feature is enabled
    * - Row with enabled=false → feature is explicitly disabled
    * - No row → inherit from direct team memberships
-   *
-   * Note: This method does NOT check auto opt-in. For full feature access checks
-   * including auto opt-in, use FeatureAccessService.
    *
    * @param userId - The ID of the user to check
    * @param slug - The feature identifier to check
@@ -325,9 +316,6 @@ export class FeaturesRepository implements IFeaturesRepository {
    * Checks if a team or any of its ancestors has access to a specific feature.
    * Uses a recursive CTE raw SQL query for performance.
    * Uses tri-state semantics: only treats as enabled if TeamFeatures row exists AND enabled=true.
-   *
-   * Note: This method does NOT check auto opt-in. For full feature access checks
-   * including auto opt-in, use FeatureAccessService.
    *
    * @param teamId - The ID of the team to start the check from
    * @param featureId - The feature identifier to check
