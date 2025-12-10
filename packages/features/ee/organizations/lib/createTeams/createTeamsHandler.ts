@@ -1,8 +1,8 @@
 import type { CreationSource } from "@calcom/prisma/enums";
 
 import { getOrgFullOrigin } from "../orgDomains";
-import { CreditService } from "../../billing/credit-service";
-import stripe from "../../payments/server/stripe";
+import { CreditService } from "../../../billing/credit-service";
+import stripe from "../../../payments/server/stripe";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
