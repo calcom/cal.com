@@ -5,6 +5,7 @@ import { UserWithProfile, UsersRepository } from "@/modules/users/users.reposito
 import { Injectable } from "@nestjs/common";
 
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import type { Prisma } from "@calcom/prisma/client";
 
 export interface UpdateMeResult {
   updatedUser: UserWithProfile;
@@ -33,31 +34,18 @@ export class MeService {
     const newEmail = update.email;
     let sendEmailVerification = false;
 
-    let secondaryEmail:
-      | {
-          id: number;
-          emailVerified: Date | null;
-        }
-      | null
-      | undefined;
+    if (hasEmailBeenChanged && newEmail && !user.isPlatformManaged && emailVerification) {
+      const secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
 
-    if (hasEmailBeenChanged && newEmail) {
-      if (!user.isPlatformManaged) {
-        secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
+      if (!secondaryEmail?.emailVerified) {
+        update.metadata = {
+          ...(user.metadata as Prisma.JsonObject),
+          ...(update.metadata || {}),
+          emailChangeWaitingForVerification: newEmail.toLowerCase(),
+        };
 
-        if (emailVerification) {
-          if (!secondaryEmail?.emailVerified) {
-            const userMetadata = typeof user.metadata === "object" ? user.metadata : {};
-            update.metadata = {
-              ...userMetadata,
-              ...update.metadata,
-              emailChangeWaitingForVerification: newEmail.toLowerCase(),
-            };
-
-            delete update.email;
-            sendEmailVerification = true;
-          }
-        }
+        delete update.email;
+        sendEmailVerification = true;
       }
     }
 

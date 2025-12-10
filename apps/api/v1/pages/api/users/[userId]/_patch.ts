@@ -166,7 +166,7 @@ export async function patchHandler(req: NextApiRequest) {
     if (emailVerification) {
       if (!secondaryEmail?.emailVerified) {
         prismaData.metadata = {
-          ...(typeof currentUser.metadata === "object" && currentUser.metadata ? currentUser.metadata : {}),
+          ...(currentUser.metadata as Prisma.JsonObject),
           ...(typeof prismaData.metadata === "object" && prismaData.metadata ? prismaData.metadata : {}),
           emailChangeWaitingForVerification: newEmail.toLowerCase(),
         };
