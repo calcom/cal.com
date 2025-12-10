@@ -34,6 +34,7 @@ const getNavigationItems = (
   orgBranding: OrganizationBranding,
   navigationInsightsConfig: NavigationInsightsConfig
 ): NavigationItemType[] => [
+ 
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -45,38 +46,6 @@ const getNavigationItems = (
     icon: "calendar",
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
-    child: [
-      {
-        name: "upcoming",
-        href: "/bookings/upcoming",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/upcoming",
-      },
-      {
-        name: "unconfirmed",
-        href: "/bookings/unconfirmed",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/unconfirmed",
-      },
-      {
-        name: "recurring",
-        href: "/bookings/recurring",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/recurring",
-      },
-      {
-        name: "past",
-        href: "/bookings/past",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/past",
-      },
-      {
-        name: "cancelled",
-        href: "/bookings/cancelled",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/cancelled",
-      },
-    ],
   },
   {
     name: "availability",

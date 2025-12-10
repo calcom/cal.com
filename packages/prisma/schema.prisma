@@ -894,6 +894,7 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
+  @@index([fromReschedule])
 }
 
 model Tracking {
