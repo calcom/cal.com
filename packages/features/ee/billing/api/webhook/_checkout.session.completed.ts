@@ -45,6 +45,11 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
     return await handleCalAIPhoneNumberSubscription(session);
   }
 
+  if (session.metadata?.teamName || session.metadata?.teamSlug) {
+    log.info("Skipping team checkout session - handled via redirect flow", { sessionId: session.id });
+    return { success: true, message: "Team checkout handled via redirect" };
+  }
+
   // Handle credit purchases (existing logic)
   if (!session.amount_total) {
     throw new HttpCode(400, "Missing required payment details");
