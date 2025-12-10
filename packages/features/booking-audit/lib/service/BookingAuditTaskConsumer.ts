@@ -221,10 +221,6 @@ export class BookingAuditTaskConsumer {
                 );
                 return guestActor.id;
             }
-            default: {
-                const exhaustiveCheck: never = actor;
-                throw new Error(`Unhandled actor type: ${JSON.stringify(exhaustiveCheck)}`);
-            }
         }
     }
 
@@ -274,21 +270,11 @@ export class BookingAuditTaskConsumer {
             case "ACCEPTED":
             case "REJECTED":
             case "RESCHEDULED":
-
-            // Rescheduling
             case "RESCHEDULE_REQUESTED":
-
-            // Attendee management
             case "ATTENDEE_ADDED":
             case "ATTENDEE_REMOVED":
-
-            // Assignment/Reassignment
             case "REASSIGNMENT":
-
-            // Meeting details
             case "LOCATION_CHANGED":
-
-            // No-show tracking
             case "HOST_NO_SHOW_UPDATED":
             case "ATTENDEE_NO_SHOW_UPDATED":
                 return "RECORD_UPDATED";
@@ -297,8 +283,6 @@ export class BookingAuditTaskConsumer {
             case "PENDING":
             case "AWAITING_HOST":
                 throw new Error(`Action ${action} is not supported - it represents an initial booking state captured by CREATED`);
-            default:
-                throw new Error(`Unsupported action for record type mapping: ${action}`);
         }
     }
 
