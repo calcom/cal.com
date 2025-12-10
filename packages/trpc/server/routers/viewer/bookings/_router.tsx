@@ -6,9 +6,10 @@ import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
-import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
-import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZGetAuditLogsInputSchema } from "./getAuditLogs.schema";
+import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
+import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
+import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { bookingsProcedure } from "./util";
@@ -69,6 +70,15 @@ export const bookingsRouter = router({
         input,
       });
     }),
+
+  getBookingDetails: authedProcedure.input(ZGetBookingDetailsInputSchema).query(async ({ input, ctx }) => {
+    const { getBookingDetailsHandler } = await import("./getBookingDetails.handler");
+
+    return getBookingDetailsHandler({
+      ctx,
+      input,
+    });
+  }),
 
   find: publicProcedure.input(ZFindInputSchema).query(async ({ input, ctx }) => {
     const { getHandler } = await import("./find.handler");

@@ -35,7 +35,11 @@ type SubmenuItem = {
   enabledForSystemSegment?: boolean;
 };
 
-export function FilterSegmentSelect() {
+interface Props {
+  shortLabel?: boolean;
+}
+
+export function FilterSegmentSelect({ shortLabel }: Props = {}) {
   const { t } = useLocale();
   const session = useSession();
   const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
@@ -155,7 +159,7 @@ export function FilterSegmentSelect() {
             StartIcon="list-filter"
             EndIcon="chevron-down"
             data-testid="filter-segment-select">
-            {selectedSegment?.name || t("saved_filters")}
+            {selectedSegment?.name || (shortLabel ? t("saved") : t("saved_filters"))}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
