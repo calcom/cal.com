@@ -225,15 +225,30 @@ throw new Error("Booking failed");
 
 ### Error Types
 
+Use `ErrorWithCode` for files that are not directly coupled to tRPC. The tRPC package has a middleware called `errorConversionMiddleware` that automatically converts `ErrorWithCode` instances into `TRPCError` instances.
+
 ```typescript
-// ✅ Good - Use proper error classes
+// ✅ Good - Use ErrorWithCode in non-tRPC files (services, repositories, utilities)
+import { ErrorWithCode } from "@calcom/lib/errorWithCode";
+
+throw new ErrorWithCode("Invalid booking time slot", "BAD_REQUEST");
+
+// ✅ Good - Use TRPCError only in tRPC routers/procedures
 import { TRPCError } from "@trpc/server";
 
 throw new TRPCError({
   code: "BAD_REQUEST",
   message: "Invalid booking time slot",
 });
+
+// ❌ Bad - Using TRPCError in non-tRPC files
+import { TRPCError } from "@trpc/server";
+// Don't use TRPCError in services, repositories, or utility files
 ```
+
+### packages/features Import Restrictions
+
+Files in `packages/features/**` should NOT import from `trpc`. This keeps the features package decoupled from the tRPC layer, making the code more reusable and testable. Use `ErrorWithCode` for error handling in these files, and let the tRPC middleware handle the conversion.
 
 ## Basic Performance Guidelines
 
