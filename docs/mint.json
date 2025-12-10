@@ -225,6 +225,7 @@
             "platform/atoms/create-schedule",
             "platform/atoms/event-type",
             "platform/atoms/google-calendar-connect",
+            "platform/atoms/list-event-types",
             "platform/atoms/list-schedules",
             "platform/atoms/outlook-calendar-connect",
             "platform/atoms/payment-form",
