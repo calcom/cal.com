@@ -3261,7 +3261,11 @@
   "filter_operator_is_empty": "Is empty",
   "filter_operator_not_empty": "Not empty",
   "translate_description_button": "Auto translate title and description",
-  "translate_description_button_description": "Automatically translate titles and descriptions to the visitor’s browser language using AI.",
+  "translate_description_button_description": "Automatically translate titles and descriptions to the visitor's browser language using AI.",
+  "auto_translate_booking_title": "Auto translate booking title",
+  "auto_translate_booking_title_description": "Automatically translate the booking title to the visitor's browser language. Disable this to keep the original title.",
+  "auto_translate_instant_meeting_title": "Auto translate instant meeting title",
+  "auto_translate_instant_meeting_title_description": "Automatically translate the instant meeting booking title to the visitor's browser language. Disable this to keep the original English title.",
   "rr_distribution_method": "Distribution",
   "rr_distribution_method_description": "Allows for optimising distribution for maximum availability or to aim for a more balanced assignment.",
   "rr_distribution_method_availability_title": "Maximize availability",
@@ -4093,6 +4097,8 @@
   "booking_response": "Booking Response",
   "list_view": "List view",
   "calendar_view": "Calendar view",
+  "assignment_reason": "Assignment Reason",
+  "saved": "Saved",
   "booking_history": "Booking History",
   "booking_history_description": "View the history of actions performed on this booking",
   "audit_action": {
@@ -4105,5 +4111,6 @@
   "actor": "Actor",
   "timestamp": "Timestamp",
   "json": "JSON",
+  "hubspot_ignore_guests": "Do not create new records for guests added to the booking",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

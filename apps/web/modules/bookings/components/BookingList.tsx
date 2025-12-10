@@ -2,7 +2,7 @@
 
 import type { Table as ReactTable } from "@tanstack/react-table";
 
-import { DataTableWrapper, DataTableFilters, DataTableSegment } from "@calcom/features/data-table";
+import { DataTableWrapper } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
@@ -18,7 +18,7 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
   unconfirmed: "unconfirmed_bookings",
 };
 
-type BookingsListViewProps = {
+type BookingListViewProps = {
   status: BookingListingStatus;
   table: ReactTable<RowData>;
   isPending: boolean;
@@ -27,14 +27,14 @@ type BookingsListViewProps = {
   hasError?: boolean;
 };
 
-export function BookingsList({
+export function BookingList({
   status,
   table,
   isPending,
   totalRowCount,
   ErrorView,
   hasError,
-}: BookingsListViewProps) {
+}: BookingListViewProps) {
   const { t } = useLocale();
 
   return (
@@ -48,18 +48,7 @@ export function BookingsList({
       totalRowCount={totalRowCount}
       variant="compact"
       paginationMode="standard"
-      ToolbarLeft={
-        <>
-          <DataTableFilters.FilterBar table={table} />
-        </>
-      }
-      ToolbarRight={
-        <>
-          <DataTableFilters.ClearFiltersButton />
-          <DataTableSegment.SaveButton />
-          <DataTableSegment.Select />
-        </>
-      }
+      separatorClassName="py-4 pl-6 text-xs uppercase leading-4"
       LoaderView={<SkeletonLoader />}
       EmptyView={
         <div className="flex items-center justify-center pt-2 xl:pt-0">
