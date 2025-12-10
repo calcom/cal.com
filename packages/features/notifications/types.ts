@@ -5,6 +5,11 @@ export enum NotificationChannel {
   SMS = "SMS",
 }
 
+export enum NotificationCategory {
+  BOOKING = "booking",
+  WORKFLOW = "workflow",
+}
+
 export enum NotificationType {
   BOOKING_CREATED = "BOOKING_CREATED",
   BOOKING_CONFIRMED = "BOOKING_CONFIRMED",

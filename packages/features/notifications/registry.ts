@@ -1,5 +1,5 @@
 import type { NotificationContext } from "./types";
-import { NotificationChannel, NotificationType } from "./types";
+import { NotificationCategory, NotificationChannel, NotificationType } from "./types";
 
 export interface NotificationTypeConfig {
   type: NotificationType;
@@ -7,7 +7,7 @@ export interface NotificationTypeConfig {
   description?: string;
   supportedChannels: NotificationChannel[];
   displayOrder?: number;
-  category?: string;
+  category?: NotificationCategory;
 }
 
 export const NOTIFICATION_REGISTRY = {
@@ -17,7 +17,7 @@ export const NOTIFICATION_REGISTRY = {
     description: "Notifications when a new booking is created",
     supportedChannels: [NotificationChannel.EMAIL, NotificationChannel.SMS],
     displayOrder: 1,
-    category: "booking",
+    category: NotificationCategory.BOOKING,
   },
   [NotificationType.BOOKING_CONFIRMED]: {
     type: NotificationType.BOOKING_CONFIRMED,
@@ -25,7 +25,7 @@ export const NOTIFICATION_REGISTRY = {
     description: "Notifications when a booking is confirmed",
     supportedChannels: [NotificationChannel.EMAIL, NotificationChannel.SMS],
     displayOrder: 2,
-    category: "booking",
+    category: NotificationCategory.BOOKING,
   },
   [NotificationType.BOOKING_CANCELLED]: {
     type: NotificationType.BOOKING_CANCELLED,
@@ -33,7 +33,7 @@ export const NOTIFICATION_REGISTRY = {
     description: "Notifications when a booking is cancelled",
     supportedChannels: [NotificationChannel.EMAIL, NotificationChannel.SMS],
     displayOrder: 3,
-    category: "booking",
+    category: NotificationCategory.BOOKING,
   },
   [NotificationType.BOOKING_RESCHEDULED]: {
     type: NotificationType.BOOKING_RESCHEDULED,
@@ -41,7 +41,7 @@ export const NOTIFICATION_REGISTRY = {
     description: "Notifications when a booking is rescheduled",
     supportedChannels: [NotificationChannel.EMAIL, NotificationChannel.SMS],
     displayOrder: 4,
-    category: "booking",
+    category: NotificationCategory.BOOKING,
   },
   [NotificationType.BOOKING_REMINDER]: {
     type: NotificationType.BOOKING_REMINDER,
@@ -49,7 +49,7 @@ export const NOTIFICATION_REGISTRY = {
     description: "Reminder notifications for upcoming bookings",
     supportedChannels: [NotificationChannel.EMAIL, NotificationChannel.SMS],
     displayOrder: 5,
-    category: "booking",
+    category: NotificationCategory.BOOKING,
   },
   [NotificationType.WORKFLOW_EMAIL_REMINDER]: {
     type: NotificationType.WORKFLOW_EMAIL_REMINDER,
@@ -57,7 +57,7 @@ export const NOTIFICATION_REGISTRY = {
     description: "Email reminders sent through workflows",
     supportedChannels: [NotificationChannel.EMAIL],
     displayOrder: 6,
-    category: "workflow",
+    category: NotificationCategory.WORKFLOW,
   },
   [NotificationType.WORKFLOW_SMS_REMINDER]: {
     type: NotificationType.WORKFLOW_SMS_REMINDER,
@@ -65,7 +65,7 @@ export const NOTIFICATION_REGISTRY = {
     description: "SMS reminders sent through workflows",
     supportedChannels: [NotificationChannel.SMS],
     displayOrder: 7,
-    category: "workflow",
+    category: NotificationCategory.WORKFLOW,
   },
 } as const satisfies Record<NotificationType, NotificationTypeConfig>;
 
@@ -89,7 +89,7 @@ export function getAllNotificationTypesSorted(): NotificationTypeConfig[] {
   );
 }
 
-export function getNotificationTypesByCategory(category: string): NotificationTypeConfig[] {
+export function getNotificationTypesByCategory(category: NotificationCategory): NotificationTypeConfig[] {
   return getAllNotificationTypesSorted().filter((config) => config.category === category);
 }
 
