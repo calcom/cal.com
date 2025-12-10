@@ -1,0 +1,323 @@
+---
+title: "Booker Embed"
+---
+
+The Booker Embed atom lets you integrate your Cal.com booking page on your website. It's perfect for those who want to add their booking link to their own site, blog, or app. Attendees would directly see your booking link inside your own webpage like it's part of your website. You can also heavily customize the embed styling.
+
+Using the embed, the entire booking would happen on your website, making it a seamless end-user experience.
+
+Below code snippet can be used to render the Booker Embed atom
+
+```js
+import { BookerEmbed } from "@calcom/atoms";
+
+export default function BookerEmbedPage(props: BookerProps) {
+  return (
+    <>
+      <BookerEmbed
+        eventSlug={props.eventTypeSlug}
+        username={props.calUsername}
+        onCreateBookingSuccess={() => {
+          console.log("Booking created successfully!");
+        }}
+        defaultFormValues={{ name: " ", email: " " }}
+      />
+    </>
+  );
+}
+```
+
+For a demonstration of the Booker Embed atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/df1a317305eb4e38b592d32e570fc75c"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+It is also possible to change the booker layout into a week or column view, you just need to pass in the view prop the layout you want to use. The layouts are as follows: **MONTH_VIEW,** **WEEK_VIEW** and **COLUMN_VIEW**.
+
+Below code snippet can be used to render the Booker Embed atom with week view
+
+```js
+import { BookerEmbed } from "@calcom/atoms";
+
+export default function BookerEmbed(props: BookerProps) {
+  return (
+    <>
+      <BookerEmbed
+        view="WEEK_VIEW"
+        eventSlug={props.eventTypeSlug}
+        username={props.calUsername}
+        onCreateBookingSuccess={() => {
+          console.log("Booking created successfully!");
+        }}
+        defaultFormValues={{ name: " ", email: " " }}
+      />
+    </>
+  );
+}
+```
+
+For a demonstration of the Booker Embed atom along with week view, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/5d38ac86b40d4c6988967ffe313cc40d"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+For team events, you need to pass `isTeamEvent` and `teamId` prop to the booker along with the other necessary props. The `teamId` is the ID of the team that owns the event type.
+
+Here is an example of how to use the Booker Embed atom for a team event:
+
+```js
+import { BookerEmbed } from "@calcom/atoms";
+
+export default function BookerEmbed( props : BookerEmbedProps ) {
+  return (
+    <>
+      <BookerEmbed
+        eventSlug={props.eventTypeSlug}
+        isTeamEvent={true}
+        teamId={props.teamId}
+        onCreateBookingSuccess={() => {
+          console.log("Booking created successfully!");
+         }}
+      />
+    </>
+  )
+}
+```
+
+We offer all kinds of customizations to the Booker Embed atom via props and customClassNames.
+
+Below is a list of props that can be passed to the Booker Embed atom.
+
+<p></p>
+
+| Name                            | Required | Description                                                                                                                                                                                                                              |
+| :------------------------------ | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| username                        | Yes      | Username of the person whose schedule is to be displayed                                                                                                                                                                                 |
+| eventSlug                       | Yes      | Unique slug created for a particular event                                                                                                                                                                                               |
+| orgBannerUrl                    | No       | URL of the user's current organization                                                                                                                                                                                                   |
+| customClassNames                | No       | To pass in custom classnames from outside for styling the atom                                                                                                                                                                           |
+| month                           | No       | The exact month for displaying a user's availability; defaults to the current month                                                                                                                                                      |
+| selectedDate                    | No       | Default selected date for which the slot picker opens                                                                                                                                                                                    |
+| startTime                       | No       | Custom start time for the Booker that allows users to decide the first available date. Accepts JavaScript Date object or date string in format `YYYY-MM-DD` (e.g., `"2025-08-20"` or `new Date("2025-08-20")`)                           |
+| hideBranding                    | No       | For hiding any branding on the booker                                                                                                                                                                                                    |
+| isAway                          | No       | Sets the booker component to the away state                                                                                                                                                                                              |
+| allowsDynamicBooking            | No       | Boolean indicating if the booking is a dynamic booking                                                                                                                                                                                   |
+| bookingData                     | No       | Data for rescheduling a booking passed in via this prop                                                                                                                                                                                  |
+| defaultFormValues               | No       | Prefilled values for booking form fields like name, email, guests, notes, reschedule reason, etc.                                                                                                                                        |
+| isTeamEvent                     | No       | Boolean indicating if it is a team event                                                                                                                                                                                                 |
+| duration                        | No       | Refers to a multiple-duration event type; selects default if not passed                                                                                                                                                                  |
+| durationConfig                  | No       | Configures selectable options for a multi-duration event type                                                                                                                                                                            |
+| hashedLink                      | No       | Refers to the private link from event types page                                                                                                                                                                                         |
+| isInstantMeeting                | No       | Boolean indicating if the booking is an instant meeting                                                                                                                                                                                  |
+| bookingUid                      | No       | Unique ID generated during booking creation                                                                                                                                                                                              |
+| rescheduleUid                   | No       | Unique ID generated during booking creation, same as bookingUid                                                                                                                                                                          |
+| locationUrl                     | No       | Custom meeting link URL instead of a Cal.com link                                                                                                                                                                                        |
+| firstName                       | No       | First name of the attendee                                                                                                                                                                                                               |
+| lastName                        | No       | Last name of the attendee                                                                                                                                                                                                                |
+| guests                          | No       | Invite a guest to join a meeting                                                                                                                                                                                                         |
+| name                            | No       | Host name                                                                                                                                                                                                                                |
+| onCreateBookingSuccess          | No       | Callback function for successful booking creation                                                                                                                                                                                        |
+| onCreateBookingError            | No       | Callback function triggered on booking creation failure                                                                                                                                                                                  |
+| onCreateRecurringBookingSuccess | No       | Callback function for successful recurring booking creation                                                                                                                                                                              |
+| onCreateRecurringBookingError   | No       | Callback function triggered on recurring booking creation failure                                                                                                                                                                        |
+| onCreateInstantBookingSuccess   | No       | Callback function for successful instant booking creation                                                                                                                                                                                |
+| onCreateInstantBookingError     | No       | Callback function triggered on instant booking creation failure                                                                                                                                                                          |
+| onReserveSlotSuccess            | No       | Callback function for successful slot reservation                                                                                                                                                                                        |
+| onReserveSlotError              | No       | Callback function triggered on slot reservation failure                                                                                                                                                                                  |
+| onDeleteSlotSuccess             | No       | Callback function for successful slot deletion                                                                                                                                                                                           |
+| onDeleteSlotError               | No       | Callback function triggered on slot deletion failure                                                                                                                                                                                     |
+| view                            | No       | Specifies the layout of the booker atom into column, week, or month view                                                                                                                                                                 |
+| metadata                        | No       | Used to pass custom metadata values into the booker. Metadata should be an object eg: `{ bookingSource: "website", userRole: "admin" }`                                                                                                  |
+| bannerUrl                       | No       | Adds custom banner to the booker atom                                                                                                                                                                                                    |
+| onBookerStateChange             | No       | Callback function that is triggered when the state of the booker atom changes.                                                                                                                                                           |
+| allowUpdatingUrlParams          | No       | Boolean indicating if the URL parameters should be updated, defaults to false.                                                                                                                                                           |
+| confirmButtonDisabled           | No       | Boolean indicating if the submit button should be disabled, defaults to false.                                                                                                                                                           |
+| timeZones                       | No       | Array of valid IANA timezones to be used in the booker. Eg. ["Asia/Kolkata", "Europe/London"]                                                                                                                                            |
+| onTimeslotsLoaded               | No       | Callback function triggered once the available timeslots have been fetched.                                                                                                                                                              |
+| roundRobinHideOrgAndTeam        | No       | Boolean indicating if the organization and team should be hidden in the booker atom sidebar for round robin scheduling type, defaults to false.                                                                                          |
+| showNoAvailabilityDialog        | No       | Boolean indicating if the no availability dialog should be shown, defaults to true.                                                                                                                                                      |
+| silentlyHandleCalendarFailures  | No       | Boolean when true the booker still displays slots when the third party calendars credentials are invalid or expired, Booker may show stale availability when enabled                                                                     |
+| hideEventMetadata               | No       | Boolean that controls the visibility of the event metadata sidebar. When `true`, hides the left sidebar containing event details like title, description, duration, and host information. Defaults to `false`.                           |
+| defaultPhoneCountry             | No       | Sets the default country code for phone number inputs in the booking form. Accepts ISO 3166-1 alpha-2 country codes (e.g., `"us"`, `"gb"`, `"in"`, `"ee"`). When set, phone inputs will default to the specified country's dialing code. |
+
+<Note>
+  Required props vary by usage: <br />
+  1. Individual booking: `username` + `eventSlug` <br />
+  2. Team booking: `teamId` + `isTeamEvent` + `eventSlug`
+</Note>
+
+## Styling
+
+Booker Embed atom accepts custom styles via the `customClassNames` prop. This prop is an object that contains root level styles and nested objects for styling different parts of the booker component. Each nested object groups related styles for a specific section of the booker (e.g., eventMeta, datePicker, availableTimeSlots, etc).
+
+Here is an example booker with root level style `bookerContainer` and nested object `datePickerCustomClassNames` with `datePickerDatesActive` style:
+
+```js
+import { BookerEmbed } from "@calcom/atoms";
+
+export default function BookerEmbed( props : BookerEmbedProps ) {
+  return (
+    <>
+      <BookerEmbed
+        ...
+        customClassNames={{
+          bookerContainer: "bg-[#F5F2FE]! [&_button:!rounded-full] border-subtle border",
+          datePickerCustomClassNames: {
+            datePickerDatesActive: "bg-[#D7CEF5]!",
+          },
+        }}
+      />
+    </>
+  )
+}
+```
+
+Below is a list of **customClassNames** properties grouped by their parent objects:
+
+### Root Level Styles
+
+| Property        | Description                                  |
+| :-------------- | :------------------------------------------- |
+| bookerContainer | Adds styling to the whole of the booker atom |
+
+### Event Meta Styles (`eventMetaCustomClassNames`)
+
+| Property                | Description                                                       |
+| :---------------------- | :---------------------------------------------------------------- |
+| eventMetaContainer      | Styles the event meta component containing details about an event |
+| eventMetaTitle          | Adds styles to the event meta title                               |
+| eventMetaTimezoneSelect | Adds styles to the event meta timezone selector                   |
+
+### Date Picker Styles (`datePickerCustomClassNames`)
+
+| Property              | Description                                  |
+| :-------------------- | :------------------------------------------- |
+| datePickerContainer   | Adds styling to the date picker              |
+| datePickerTitle       | Styles the date picker title                 |
+| datePickerDays        | Adds styling to all days in the date picker  |
+| datePickerDate        | Adds styling to all dates in the date picker |
+| datePickerDatesActive | Styles only the dates with available slots   |
+| datePickerToggle      | Styles the left and right toggle buttons     |
+
+### Available Time Slots Styles (`availableTimeSlotsCustomClassNames`)
+
+| Property                           | Description                                        |
+| :--------------------------------- | :------------------------------------------------- |
+| availableTimeSlotsContainer        | Adds styling to the available time slots component |
+| availableTimeSlotsHeaderContainer  | Styles only the header container                   |
+| availableTimeSlotsTitle            | Adds styles to the title                           |
+| availableTimeSlotsTimeFormatToggle | Adds styles to the format toggle buttons           |
+| availableTimes                     | Styles all the available times container           |
+
+### Confirmation Step Styles (`confirmStep`)
+
+| Property      | Description                                   |
+| :------------ | :-------------------------------------------- |
+| confirmButton | Styles the confirm button in the booking form |
+| backButton    | Styles the back button in the booking form    |
+
+Here is an example with more custom styles:
+
+```js
+import { BookerEmbed } from "@calcom/atoms";
+
+export default function BookerEmbed( props : BookerEmbedProps ) {
+  return (
+    <>
+      <BookerEmbed
+        ...
+        customClassNames={{
+          bookerContainer: "bg-[#F5F2FE]! [&_button:!rounded-full] border-subtle border",
+          datePickerCustomClassNames: {
+            datePickerDatesActive: "bg-[#D7CEF5]!",
+          },
+          eventMetaCustomClassNames: {
+            eventMetaTitle: "text-[#7151DC]",
+          },
+          availableTimeSlotsCustomClassNames: {
+            availableTimeSlotsHeaderContainer: "bg-[#F5F2FE]!",
+            availableTimes: "bg-[#D7CEF5]!",
+          },
+          confirmStep: {
+            confirmButton: "bg-purple-700!",
+            backButton: "text-purple-700 hover:bg-purple-700! hover:text-white!"
+          }
+        }}
+      />
+    </>
+  )
+}
+```
+
+## Rescheduling a booking
+
+The Booker Embed atom also supports rescheduling a booking. To reschedule a booking, you need to pass in the `rescheduleUid` prop to the booker atom along with the other necessary props. This will allow the booker to display the reschedule form and handle the rescheduling process. The `rescheduleUid` is the booking uid you get when you create a booking.
+
+Here is an example of how to use the Booker Embed atom for rescheduling an individual event:
+
+```js
+import { BookerEmbed } from "@calcom/atoms";
+
+export default function BookerEmbed( props : BookerProps ) {
+  return (
+    <>
+      <BookerEmbed
+        eventSlug={props.eventTypeSlug}
+        username={props.calUsername}
+        // rescheduleUid is the booking uid you get when you create a booking
+        // it is only required when rescheduling a booking
+        rescheduleUid={props.rescheduleUid}
+        onCreateBookingSuccess={() => {
+          console.log("Booking rescheduled successfully!");
+         }}
+      />
+    </>
+  )
+}
+```
+
+For team events, you need to pass isTeamEvent and teamId prop to the booker along with the other necessary props. This will allow the booker to display the reschedule form and handle the rescheduling process. The `teamId` is the team ID you get when you create a team event.
+
+Here is an example of how to use the Booker Embed atom for rescheduling a team event:
+
+```js
+import { BookerEmbed } from "@calcom/atoms";
+
+export default function BookerEmbed( props : BookerEmbedProps ) {
+  return (
+    <>
+      <BookerEmbed
+        eventSlug={props.eventTypeSlug}
+        // rescheduleUid is the booking uid you get when you create a booking
+        // it is only required when rescheduling a booking
+        rescheduleUid={props.rescheduleUid}
+        isTeamEvent={true}
+        teamId={props.teamId}
+        onCreateBookingSuccess={() => {
+          console.log("Booking rescheduled successfully!");
+         }}
+      />
+    </>
+  )
+}
+```
