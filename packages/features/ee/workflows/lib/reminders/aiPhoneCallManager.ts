@@ -20,19 +20,26 @@ type timeUnitLowerCase = "day" | "hour" | "minute";
 function extractPhoneNumber(responses: BookingInfo["responses"]): string | undefined {
   if (!responses) return undefined;
 
-  // Priority 1: CAL_AI_AGENT_PHONE_NUMBER_FIELD first
   const aiAgentPhoneResponse = responses[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
+  
+  // Handle plain string format (how booking form actually stores it)
+  if (typeof aiAgentPhoneResponse === "string") {
+    return aiAgentPhoneResponse;
+  }
+  
+  // Handle object with value property (legacy/alternative format)
   if (aiAgentPhoneResponse && typeof aiAgentPhoneResponse === "object" && "value" in aiAgentPhoneResponse) {
     return aiAgentPhoneResponse.value as string;
   }
 
-  // Priority 2: attendeePhoneNumber as fallback
+  // Same for attendeePhoneNumber fallback...
   const attendeePhoneResponse = responses.attendeePhoneNumber;
-  if (
-    attendeePhoneResponse &&
-    typeof attendeePhoneResponse === "object" &&
-    "value" in attendeePhoneResponse
-  ) {
+  
+  if (typeof attendeePhoneResponse === "string") {
+    return attendeePhoneResponse;
+  }
+  
+  if (attendeePhoneResponse && typeof attendeePhoneResponse === "object" && "value" in attendeePhoneResponse) {
     return attendeePhoneResponse.value as string;
   }
 
