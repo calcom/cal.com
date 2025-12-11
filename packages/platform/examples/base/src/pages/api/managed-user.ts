@@ -20,7 +20,7 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
   });
 
   const managedUserResponse = await fetch(
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
+     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
     {
       method: "POST",
@@ -130,6 +130,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     managedUserResponseFour.user.id,
   ]);
 
+  await createManagedEventType(+organizationId, team.id, [
+    managedUserResponseOne.user.id,
+    managedUserResponseTwo.user.id,
+    managedUserResponseThree.user.id,
+    managedUserResponseFour.user.id,
+  ]);
+
   await createOrgMembershipAdmin(+organizationId, managedUserResponseFive.user.id);
 
   return res.status(200).json({
@@ -142,7 +149,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
 async function createTeam(orgId: number, name: string) {
   const response = await fetch(
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
+     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams`,
     {
       method: "POST",
@@ -150,7 +157,7 @@ async function createTeam(orgId: number, name: string) {
         "Content-Type": "application/json",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
+         
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
         origin: "http://localhost:4321",
       },
@@ -167,7 +174,7 @@ async function createTeam(orgId: number, name: string) {
 
 async function createOrgTeamMembershipMember(orgId: number, teamId: number, userId: number) {
   await fetch(
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
+     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams/${teamId}/memberships`,
     {
       method: "POST",
@@ -175,7 +182,7 @@ async function createOrgTeamMembershipMember(orgId: number, teamId: number, user
         "Content-Type": "application/json",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
+         
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
         origin: "http://localhost:4321",
       },
@@ -190,7 +197,7 @@ async function createOrgTeamMembershipMember(orgId: number, teamId: number, user
 
 async function createOrgMembershipAdmin(orgId: number, userId: number) {
   await fetch(
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
+     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/memberships`,
     {
       method: "POST",
@@ -198,7 +205,7 @@ async function createOrgMembershipAdmin(orgId: number, userId: number) {
         "Content-Type": "application/json",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
+         
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
         origin: "http://localhost:4321",
       },
@@ -213,7 +220,7 @@ async function createOrgMembershipAdmin(orgId: number, userId: number) {
 
 async function createCollectiveEventType(orgId: number, teamId: number, userIds: number[]) {
   await fetch(
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
+     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams/${teamId}/event-types`,
     {
       method: "POST",
@@ -221,7 +228,7 @@ async function createCollectiveEventType(orgId: number, teamId: number, userIds:
         "Content-Type": "application/json",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
+         
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
         origin: "http://localhost:4321",
       },
@@ -238,7 +245,7 @@ async function createCollectiveEventType(orgId: number, teamId: number, userIds:
 
 async function createRoundRobinEventType(orgId: number, teamId: number, userIds: number[]) {
   await fetch(
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
+     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams/${teamId}/event-types`,
     {
       method: "POST",
@@ -246,7 +253,7 @@ async function createRoundRobinEventType(orgId: number, teamId: number, userIds:
         "Content-Type": "application/json",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
+         
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
         origin: "http://localhost:4321",
       },
@@ -261,19 +268,44 @@ async function createRoundRobinEventType(orgId: number, teamId: number, userIds:
   );
 }
 
+async function createManagedEventType(orgId: number, teamId: number, userIds: number[]) {
+  await fetch(
+     
+    `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/organizations/${orgId}/teams/${teamId}/event-types`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // eslint-disable-next-line turbo/no-undeclared-env-vars
+        [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
+         
+        [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
+        origin: "http://localhost:4321",
+      },
+      body: JSON.stringify({
+        lengthInMinutes: 60,
+        title: "Platform example managed",
+        slug: "platform-example-managed",
+        schedulingType: "managed",
+        hosts: userIds.map((userId) => ({ userId })),
+      }),
+    }
+  );
+}
+
 async function createDefaultSchedule(accessToken: string) {
   const name = "Default Schedule";
   const timeZone = "Europe/London";
   const isDefault = true;
 
   const response = await fetch(
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
+     
     `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/schedules`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
+         
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
