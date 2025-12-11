@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+import { ActionSourceSchema } from "../common/actionSource";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
@@ -15,7 +16,7 @@ const fieldsSchemaV1 = z.object({
     startTime: z.number(),
     endTime: z.number(),
     status: z.nativeEnum(BookingStatus),
-    source: z.enum(["API_V2", "WEBAPP"]),
+    source: ActionSourceSchema,
 });
 
 export class CreatedAuditActionService implements IAuditActionService<

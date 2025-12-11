@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { ActionSourceSchema } from "../common/actionSource";
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
@@ -13,7 +14,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
     location: StringChangeSchema,
-    source: z.enum(["API_V2", "WEBAPP"]),
+    source: ActionSourceSchema,
 });
 
 export class LocationChangedAuditActionService
