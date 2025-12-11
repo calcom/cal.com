@@ -18,7 +18,7 @@ export type PageProps = {
 export function Logout(props: PageProps) {
   const [btnLoading, setBtnLoading] = useState<boolean>(false);
   const { status } = useSession();
-  if (status === "authenticated") signOut({ redirect: false });
+  // if (status === "authenticated") signOut({ redirect: false });
   const router = useRouter();
   useEffect(() => {
     if (props.query?.survey === "true") {
