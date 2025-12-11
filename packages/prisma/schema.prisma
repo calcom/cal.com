@@ -2685,6 +2685,13 @@ enum BookingAuditAction {
   SEAT_RESCHEDULED @map("seat_rescheduled")
 }
 
+enum BookingAuditSource {
+  API_V1  @map("api_v1")
+  API_V2  @map("api_v2")
+  WEBAPP  @map("webapp")
+  UNKNOWN @map("unknown")
+}
+
 enum AuditActorType {
   USER     @map("user") // Registered Cal.com user (stored here for audit retention even after user deletion)
   GUEST    @map("guest") // Non-registered user
@@ -2748,6 +2755,9 @@ model BookingAudit {
   // Database record timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Source of the action (API_V2 or WEBAPP)
+  source BookingAuditSource
 
   data Json?
 

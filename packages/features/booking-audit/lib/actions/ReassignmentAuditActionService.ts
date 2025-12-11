@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { ActionSourceSchema } from "../common/actionSource";
 import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
@@ -19,7 +18,6 @@ const fieldsSchemaV1 = z.object({
     reassignmentType: z.enum(["manual", "roundRobin"]),
     userPrimaryEmail: StringChangeSchema.optional(),
     title: StringChangeSchema.optional(),
-    source: ActionSourceSchema,
 });
 
 export class ReassignmentAuditActionService

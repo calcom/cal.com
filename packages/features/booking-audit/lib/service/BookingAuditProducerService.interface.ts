@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
+import type { ActionSource } from "../common/actionSource";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
@@ -34,6 +35,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -41,6 +43,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -48,6 +51,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -55,6 +59,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -62,6 +67,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -69,6 +75,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -76,6 +83,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -83,6 +91,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -90,6 +99,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -97,6 +107,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -104,6 +115,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -111,6 +123,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -118,6 +131,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof SeatBookedAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 
@@ -125,6 +139,7 @@ export interface BookingAuditProducerService {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
     }): Promise<void>;
 }

@@ -7,7 +7,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { getAuditActor } from "../types/actor";
+import { getPIIFreeBookingAuditActor } from "../types/actor";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
@@ -37,8 +37,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     isDryRun = false,
     bookingEventHandler,
     organizationId,
-    reqUserId,
+    userUuid,
     fullName,
+    auditActorRepository,
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
@@ -93,30 +94,33 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
   }
 
-  // Helper function to get audit actor
+  // Helper function to get audit actor with logging for guest actors
   const getAuditActorForSeats = async (): Promise<import("../types/actor").Actor> => {
-    // Look up userUuid from reqUserId if available
-    let userUuid: string | null = null;
-    if (reqUserId) {
-      const user = await prisma.user.findUnique({
-        where: { id: reqUserId },
-        select: { uuid: true },
+    if (!userUuid) {
+      loggerWithEventDetails.warn("Creating guest actor for seat booking - user not authenticated", {
+        email: bookerEmail,
+        name: fullName,
       });
-      userUuid = user?.uuid ?? null;
     }
-
-    return getAuditActor({
-      userUuid,
-      bookingId: seatedBooking.id,
-      email: bookerEmail,
-      name: fullName,
-      prisma,
+    return getPIIFreeBookingAuditActor({
+      userUuid: userUuid ?? null,
+      attendeeId: null,
+      guestActor: { email: bookerEmail, name: fullName },
+      auditActorRepository,
     });
   };
 
-  // Determine action source (WEBAPP or API_V2)
-  // For now, defaulting to WEBAPP - can be enhanced later if needed
-  const actionSource: "WEBAPP" | "API_V2" = "WEBAPP";
+  // Use actionSource from parameter, defaulting to UNKNOWN to avoid wrong attribution
+  const actionSource = newSeatedBookingObject.actionSource ?? "UNKNOWN";
+
+  if (actionSource === "UNKNOWN") {
+    loggerWithEventDetails.warn("Seat booking/reschedule called with unknown actionSource", {
+      eventTypeId: eventType.id,
+      rescheduleUid,
+      reqBookingUid,
+      bookerEmail,
+    });
+  }
 
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule
   if (rescheduleUid) {
@@ -142,11 +146,11 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
           ? new Date(resultBooking.endTime).toISOString()
           : seatedBooking.endTime.toISOString();
 
-        await bookingEventHandler.onSeatRescheduled(
-          seatedBooking.uid,
-          auditActor,
-          organizationId ?? null,
-          {
+        await bookingEventHandler.onSeatRescheduled({
+          bookingUid: seatedBooking.uid,
+          actor: auditActor,
+          organizationId: organizationId ?? null,
+          auditData: {
             seatReferenceUid,
             attendeeEmail: bookerEmail,
             startTime: {
@@ -161,9 +165,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
               old: null,
               new: movedToDifferentBooking ? (resultBooking.uid || null) : null,
             },
-            source: actionSource,
-          }
-        );
+          },
+          source: actionSource,
+        });
       }
     }
   } else {
@@ -174,18 +178,19 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       const auditActor = await getAuditActorForSeats();
       const seatReferenceUid = resultBooking.seatReferenceUid;
       if (seatReferenceUid) {
-        await bookingEventHandler.onSeatBooked(
-          seatedBooking.uid,
-          auditActor,
-          organizationId ?? null,
-          {
+        await bookingEventHandler.onSeatBooked({
+          bookingUid: seatedBooking.uid,
+          actor: auditActor,
+          organizationId: organizationId ?? null,
+          auditData: {
             seatReferenceUid,
             attendeeEmail: bookerEmail,
             attendeeName: fullName || bookerEmail,
             startTime: seatedBooking.startTime.getTime(),
             endTime: seatedBooking.endTime.getTime(),
-            source: actionSource,
-          }
+          },
+          source: actionSource,
+        }
         );
       }
     }

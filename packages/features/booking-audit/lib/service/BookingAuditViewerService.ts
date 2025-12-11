@@ -6,6 +6,7 @@ import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRe
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
 import type { TranslationWithParams } from "../actions/IAuditActionService";
+import type { ActionSource } from "../common/actionSource";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 
 interface BookingAuditViewerServiceDeps {
@@ -22,6 +23,7 @@ type EnrichedAuditLog = {
     action: BookingAuditAction;
     timestamp: string;
     createdAt: string;
+    source: ActionSource;
     data: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
@@ -140,6 +142,7 @@ export class BookingAuditViewerService {
             action: log.action,
             timestamp: log.timestamp.toISOString(),
             createdAt: log.createdAt.toISOString(),
+            source: log.source,
             data: displayData,
             actionDisplayTitle,
             displayFields,

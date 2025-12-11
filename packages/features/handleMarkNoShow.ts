@@ -1,8 +1,10 @@
 import { type TFunction } from "i18next";
 
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getAuditActor } from "@calcom/features/bookings/lib/types/actor";
+import { getPIIFreeBookingAuditActor } from "@calcom/features/bookings/lib/types/actor";
 import type { Actor } from "@calcom/features/bookings/lib/types/actor";
+import type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -95,6 +97,8 @@ const handleMarkNoShow = async ({
   userUuid,
   locale,
   platformClientParams,
+  auditActorRepository,
+  actionSource = "UNKNOWN",
 }: TNoShowInputSchema & {
   /**
    * @deprecated Use userUuid instead
@@ -103,13 +107,21 @@ const handleMarkNoShow = async ({
   userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
+  auditActorRepository: IAuditActorRepository;
+  actionSource?: ActionSource;
 }) => {
+  if (actionSource === "UNKNOWN") {
+    logger.warn("Mark no-show called with unknown actionSource", {
+      bookingUid,
+      userId,
+      userUuid,
+    });
+  }
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
 
   // Helper function to get the appropriate actor
-  const getActor = async (bookingId?: number): Promise<Actor> => {
-    // Use fallback email for guest actor if no userUuid
+  const getActor = async (): Promise<Actor> => {
     const fallbackEmail = `fallback-${bookingUid}-${Date.now()}@guest.internal`;
 
     if (!userUuid) {
@@ -118,11 +130,11 @@ const handleMarkNoShow = async ({
       });
     }
 
-    return getAuditActor({
+    return getPIIFreeBookingAuditActor({
       userUuid: userUuid ?? null,
-      bookingId,
-      email: fallbackEmail,
-      prisma,
+      attendeeId: null,
+      guestActor: { email: fallbackEmail },
+      auditActorRepository,
     });
   };
 
@@ -368,7 +380,7 @@ const handleMarkNoShow = async ({
         });
 
         if (bookingForAudit) {
-          const actor = await getActor(bookingForAudit.id);
+          const actor = await getActor();
           if (actor) {
             const bookingEventHandlerService = getBookingEventHandlerService();
             const orgId = await getOrgIdFromMemberOrTeamId({
@@ -380,15 +392,15 @@ const handleMarkNoShow = async ({
             const anyOldNoShow = oldAttendeeValues.some((a) => a.noShow);
             const anyNewNoShow = payload.attendees.some((a) => a.noShow);
 
-            await bookingEventHandlerService.onAttendeeNoShowUpdated(
+            await bookingEventHandlerService.onAttendeeNoShowUpdated({
               bookingUid,
               actor,
-              orgId ?? null,
-              {
+              organizationId: orgId ?? null,
+              auditData: {
                 noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
-                source: "WEBAPP",
-              }
-            );
+              },
+              source: actionSource,
+            });
           }
         }
       }
@@ -426,24 +438,24 @@ const handleMarkNoShow = async ({
         });
 
         if (bookingForAudit) {
-          const actor = await getActor(bookingForAudit.id);
+          const actor = await getActor();
           const bookingEventHandlerService = getBookingEventHandlerService();
           const orgId = await getOrgIdFromMemberOrTeamId({
             memberId: bookingForAudit.eventType?.userId ?? null,
             teamId: bookingForAudit.eventType?.teamId ?? null,
           });
-          await bookingEventHandlerService.onHostNoShowUpdated(
+          await bookingEventHandlerService.onHostNoShowUpdated({
             bookingUid,
             actor,
-            orgId ?? null,
-            {
+            organizationId: orgId ?? null,
+            auditData: {
               noShowHost: {
                 old: bookingToUpdate.noShowHost,
                 new: true,
               },
-              source: "WEBAPP",
-            }
-          );
+            },
+            source: actionSource,
+          });
         }
       }
 

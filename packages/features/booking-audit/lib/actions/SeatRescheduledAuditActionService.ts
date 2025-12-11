@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { ActionSourceSchema } from "../common/actionSource";
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
@@ -17,7 +16,6 @@ const fieldsSchemaV1 = z.object({
     startTime: StringChangeSchema,
     endTime: StringChangeSchema,
     rescheduledToBookingUid: StringChangeSchema,
-    source: ActionSourceSchema,
 });
 
 export class SeatRescheduledAuditActionService

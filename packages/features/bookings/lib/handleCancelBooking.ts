@@ -52,8 +52,9 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { makeUserActor, makeGuestActor } from "./types/actor";
-import type { Actor } from "./types/actor";
+import { getPIIFreeBookingAuditActor } from "./types/actor";
+import { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -74,6 +75,7 @@ export type CancelBookingInput = {
   userId?: number;
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
+  actionSource?: ActionSource;
 } & PlatformParams;
 
 async function handler(input: CancelBookingInput) {
@@ -486,27 +488,24 @@ async function handler(input: CancelBookingInput) {
     updatedBookings.push(updatedBooking);
 
     const bookingEventHandlerService = getBookingEventHandlerService();
-    let actorToUse: Actor;
-    if (userUuid) {
-      // User is authenticated - create user actor from UUID
-      actorToUse = makeUserActor(userUuid);
-    } else if (cancelledBy) {
-      // No user UUID but have cancelledBy email - create guest actor
-      actorToUse = makeGuestActor({ email: cancelledBy });
-    } else {
-      // No user UUID and no cancelledBy - create fallback guest actor with unique email
+    const auditActorRepository = getAuditActorRepository();
+    const fallbackEmail = cancelledBy || `fallback-${updatedBooking.uid}-${Date.now()}@guest.internal`;
+    if (!userUuid && !cancelledBy) {
       log.warn("No cancelledBy email available, creating fallback guest actor for audit", {
         bookingUid: updatedBooking.uid,
       });
-      actorToUse = makeGuestActor({
-        email: `fallback-${updatedBooking.uid}-${Date.now()}@guest.internal`,
-      });
     }
-    await bookingEventHandlerService.onBookingCancelled(
-      updatedBooking.uid,
-      actorToUse,
-      orgId ?? null,
-      {
+    const actorToUse = await getPIIFreeBookingAuditActor({
+      userUuid: userUuid ?? null,
+      attendeeId: null,
+      guestActor: { email: fallbackEmail },
+      auditActorRepository,
+    });
+    await bookingEventHandlerService.onBookingCancelled({
+      bookingUid: updatedBooking.uid,
+      actor: actorToUse,
+      organizationId: orgId ?? null,
+      auditData: {
         cancellationReason: {
           old: bookingToDelete.cancellationReason,
           new: cancellationReason ?? null,
@@ -519,9 +518,18 @@ async function handler(input: CancelBookingInput) {
           old: bookingToDelete.status,
           new: "CANCELLED",
         },
-        source: "WEBAPP",
-      }
-    );
+      },
+      source: (() => {
+        const source = input.actionSource ?? "UNKNOWN";
+        if (source === "UNKNOWN") {
+          log.warn("Booking cancellation with unknown actionSource", {
+            bookingUid: updatedBooking.uid,
+            userUuid: input.userUuid,
+          });
+        }
+        return source;
+      })(),
+    });
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {

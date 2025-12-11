@@ -6,6 +6,7 @@ import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.s
 
 import type { Actor } from "../../../bookings/lib/types/actor";
 import type { BookingAuditAction } from "../types/bookingAuditTask";
+import type { ActionSource } from "../common/actionSource";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
@@ -54,6 +55,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         actor: Actor;
         organizationId: number | null;
         action: string;
+        source: ActionSource;
         data: unknown;
     }): Promise<void> {
         // Skip queueing for non-organization bookings
@@ -71,6 +73,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
                 organizationId: params.organizationId,
                 timestamp: Date.now(),
                 action: params.action as BookingAuditAction,
+                source: params.source,
                 data: params.data,
             });
         } catch (error) {
@@ -82,6 +85,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -94,6 +98,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -106,6 +111,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -118,6 +124,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -130,6 +137,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -142,6 +150,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -154,6 +163,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -166,6 +176,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -178,6 +189,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -190,6 +202,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -202,6 +215,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -214,6 +228,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -226,6 +241,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof SeatBookedAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({
@@ -238,6 +254,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
+        source: ActionSource;
         data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
     }): Promise<void> {
         await this.queueTask({

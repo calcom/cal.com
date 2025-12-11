@@ -5,6 +5,7 @@ import { getBookingEventHandlerService } from "@calcom/features/bookings/di/Book
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -32,14 +33,23 @@ type AddGuestsOptions = {
   };
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
+  actionSource?: ActionSource;
 };
 
 type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
-export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
+export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true, actionSource = "UNKNOWN" }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
+
+  if (actionSource === "UNKNOWN") {
+    logger.warn("Add guests called with unknown actionSource", {
+      bookingId,
+      userId: user.id,
+      userUuid: user.uuid,
+    });
+  }
 
   const booking = await getBooking(bookingId);
 
@@ -80,18 +90,18 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
   // Create audit log for attendee addition
   const bookingEventHandlerService = getBookingEventHandlerService();
   const organizationId = booking.user?.profiles?.[0]?.organizationId ?? user.organizationId ?? null;
-  await bookingEventHandlerService.onAttendeeAdded(
-    booking.uid,
-    makeUserActor(user.uuid),
+  await bookingEventHandlerService.onAttendeeAdded({
+    bookingUid: booking.uid,
+    actor: makeUserActor(user.uuid),
     organizationId,
-    {
+    auditData: {
       attendees: {
         old: booking.attendees.map((a) => a.email),
         new: [...booking.attendees.map((a) => a.email), ...uniqueGuestEmails],
       },
-      source: "WEBAPP",
-    }
-  );
+    },
+    source: actionSource,
+  });
 
   return { message: "Guests added" };
 };

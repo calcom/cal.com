@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { ActorSchema } from "@calcom/features/bookings/lib/types/actor";
+import { ActionSourceSchema } from "../common/actionSource";
 
 /**
  * Supported booking audit actions
@@ -38,6 +39,7 @@ export const BookingAuditTaskBaseSchema = z.object({
     organizationId: z.number().nullable(),
     timestamp: z.number(),
     action: BookingAuditActionSchema,
+    source: ActionSourceSchema,
     data: z.unknown(),
 });
 

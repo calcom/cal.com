@@ -336,15 +336,13 @@ export async function handleConfirmation(args: {
     const auditTriggerForUser = !auditTeamId || (auditTeamId && booking.eventType?.parentId);
     const auditUserId = auditTriggerForUser ? booking.userId : null;
     const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
-    await bookingEventHandlerService.onBookingAccepted(
-      updatedBooking.uid,
+    await bookingEventHandlerService.onBookingAccepted({
+      bookingUid: updatedBooking.uid,
       actor,
-      auditOrgId ?? null,
-      {
-        ...auditData,
-        source: "WEBAPP",
-      }
-    );
+      organizationId: auditOrgId ?? null,
+      data: auditData,
+      source: "WEBAPP",
+    });
   }
 
   const teamId = await getTeamIdFromEventType({

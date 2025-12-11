@@ -1,7 +1,6 @@
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { z } from "zod";
 
-import { ActionSourceSchema } from "../common/actionSource";
 import { BookingStatusChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
@@ -14,7 +13,6 @@ import type { IAuditActionService, TranslationWithParams } from "./IAuditActionS
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
     status: BookingStatusChangeSchema,
-    source: ActionSourceSchema,
 });
 
 export class AcceptedAuditActionService

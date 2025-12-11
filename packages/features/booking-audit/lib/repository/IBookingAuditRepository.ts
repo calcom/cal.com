@@ -1,5 +1,6 @@
 import type { JsonValue } from "@calcom/types/Json";
 import type { AuditActorType } from "./IAuditActorRepository";
+import type { ActionSource } from "../common/actionSource";
 
 export type BookingAuditType = "RECORD_CREATED" | "RECORD_UPDATED" | "RECORD_DELETED"
 
@@ -18,6 +19,7 @@ export type BookingAuditCreateInput = {
     data: JsonValue;
     type: BookingAuditType;
     timestamp: Date;
+    source: ActionSource;
 }
 
 type BookingAudit = {
@@ -30,6 +32,7 @@ type BookingAudit = {
     createdAt: Date;
     updatedAt: Date;
     data: JsonValue;
+    source: ActionSource;
 }
 
 export type BookingAuditWithActor = BookingAudit & {

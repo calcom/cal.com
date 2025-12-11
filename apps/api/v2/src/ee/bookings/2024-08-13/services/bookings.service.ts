@@ -6,6 +6,7 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { getPagination } from "@/lib/pagination/pagination";
+import { PrismaAuditActorRepository } from "@/lib/repositories/prisma-audit-actor.repository";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
 import { RegularBookingService } from "@/lib/services/regular-booking.service";
@@ -114,7 +115,8 @@ export class BookingsService_2024_08_13 {
     private readonly regularBookingService: RegularBookingService,
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
-    private readonly eventTypeAccessService: EventTypeAccessService
+    private readonly eventTypeAccessService: EventTypeAccessService,
+    private readonly auditActorRepository: PrismaAuditActorRepository
   ) { }
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
@@ -891,6 +893,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
+      actionSource: "API_V2",
     });
 
     if (!res.onlyRemovedAttendee) {
@@ -949,6 +952,8 @@ export class BookingsService_2024_08_13 {
       userId: bookingOwnerId,
       userUuid,
       platformClientParams,
+      auditActorRepository: this.auditActorRepository,
+      actionSource: "API_V2",
     });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
@@ -1034,6 +1039,7 @@ export class BookingsService_2024_08_13 {
         platformClientParams,
         reassignedById: reassignedByUser.id,
         reassignedByUuid: reassignedByUser.uuid,
+        actionSource: "API_V2",
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -1102,6 +1108,7 @@ export class BookingsService_2024_08_13 {
         reassignedByUuid: reassignedByUser.uuid,
         emailsEnabled,
         platformClientParams,
+        actionSource: "API_V2",
       });
 
       return this.outputService.getOutputReassignedBooking(reassigned);

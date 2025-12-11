@@ -10,12 +10,14 @@ import {
 } from "@calcom/emails/email-manager";
 import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { makeGuestActor, makeUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { getPIIFreeBookingAuditActor } from "@calcom/features/bookings/lib/types/actor";
+import { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
@@ -60,6 +62,7 @@ export const roundRobinManualReassignment = async ({
   reassignedByUuid,
   emailsEnabled = true,
   platformClientParams,
+  actionSource = "UNKNOWN",
 }: {
   bookingId: number;
   newUserId: number;
@@ -74,10 +77,20 @@ export const roundRobinManualReassignment = async ({
   reassignedByUuid?: string;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  actionSource?: ActionSource;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
   });
+
+  if (actionSource === "UNKNOWN") {
+    roundRobinReassignLogger.warn("Round robin manual reassignment called with unknown actionSource", {
+      bookingId,
+      newUserId,
+      reassignedById,
+      reassignedByUuid,
+    });
+  }
 
   roundRobinReassignLogger.info(`User ${reassignedById} initiating manual reassignment to user ${newUserId}`);
 
@@ -240,23 +253,29 @@ export const roundRobinManualReassignment = async ({
       reassignmentType: "manual",
       userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
       title: { old: oldTitle, new: newBookingTitle },
-      source: "WEBAPP",
     };
 
     // Create audit log - always create an actor, fallback to guest if UUID not provided
-    let actor;
-    if (reassignedByUuid) {
-      actor = makeUserActor(reassignedByUuid);
-    } else {
+    const auditActorRepository = getAuditActorRepository();
+    const actor = await getPIIFreeBookingAuditActor({
+      userUuid: reassignedByUuid ?? null,
+      attendeeId: null,
+      guestActor: { email: `fallback-${booking.uid}-${Date.now()}@guest.internal` },
+      auditActorRepository,
+    });
+    if (!reassignedByUuid) {
       roundRobinReassignLogger.warn(
         `No reassignedByUuid provided, creating fallback guest actor for audit log`,
         { bookingId, bookingUid: booking.uid }
       );
-      actor = makeGuestActor({
-        email: `fallback-${booking.uid}-${Date.now()}@guest.internal`,
-      });
     }
-    await bookingEventHandlerService.onReassignment(booking.uid, actor, orgId, auditData);
+    await bookingEventHandlerService.onReassignment({
+      bookingUid: booking.uid,
+      actor,
+      organizationId: orgId,
+      auditData,
+      source: actionSource,
+    });
 
     await AssignmentReasonRecorder.roundRobinReassignment({
       bookingId,

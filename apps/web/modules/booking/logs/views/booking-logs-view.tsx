@@ -36,6 +36,7 @@ type AuditLog = {
     action: string;
     type: string;
     timestamp: string;
+    source: string;
     data: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
@@ -303,6 +304,10 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                             <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
                                                 <span className="font-medium text-emphasis min-w-[80px]">{t("actor")}</span>
                                                 <span className="text-default">{log.actor.displayName || log.actor.type}</span>
+                                            </div>
+                                            <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                                                <span className="font-medium text-emphasis min-w-[80px]">{t("source")}</span>
+                                                <span className="text-default">{log.source}</span>
                                             </div>
                                             <div className="flex items-start gap-2 py-2 px-3 border-b border-subtle">
                                                 <span className="font-medium text-emphasis min-w-[80px]">

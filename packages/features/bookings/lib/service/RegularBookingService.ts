@@ -1,5 +1,4 @@
 import short, { uuid } from "short-uuid";
-import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
@@ -129,8 +128,8 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
-import type { Actor } from "../types/actor";
-import { getAuditActor } from "../types/actor";
+import { getPIIFreeBookingAuditActor } from "../types/actor";
+import type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 
 const translator = short();
 
@@ -470,6 +469,7 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+  auditActorRepository: IAuditActorRepository;
 }
 
 /**
@@ -1623,6 +1623,26 @@ async function handler(
     };
   }
 
+  const getActionSource = (creationSource: CreationSource | null | undefined): ActionSource => {
+    if (creationSource === CreationSource.API_V1) {
+      return "API_V1";
+    }
+    if (creationSource === CreationSource.API_V2) {
+      return "API_V2";
+    }
+    if (creationSource === CreationSource.WEBAPP) {
+      return "WEBAPP";
+    }
+    // Unknown creationSource - log for tracking and fix
+    criticalLogger.warn("Unknown booking creationSource detected", {
+      eventTypeId: input.bookingData.eventTypeId,
+      rescheduleUid: input.bookingData.rescheduleUid,
+    });
+    return "UNKNOWN";
+  };
+
+  const actionSource = getActionSource(input.bookingData.creationSource);
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -1639,6 +1659,7 @@ async function handler(
       tAttendees,
       bookingSeat,
       reqUserId: input.userId,
+      userUuid,
       rescheduleReason,
       reqBodyUser: reqBody.user,
       noEmail,
@@ -1661,6 +1682,8 @@ async function handler(
       isDryRun,
       bookingEventHandler: deps.bookingEventHandler,
       organizationId: eventOrganizationId,
+      auditActorRepository: deps.auditActorRepository,
+      actionSource,
     });
 
     if (newBooking) {
@@ -2310,25 +2333,17 @@ async function handler(
 
   const bookingEventHandler = deps.bookingEventHandler;
 
-  const auditActor = await this.getAuditActor({
+  // Find attendee matching bookerEmail to get attendeeId
+  const bookerAttendeeId = booking?.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
+
+  const auditActor = await getPIIFreeBookingAuditActor({
     userUuid: userUuid ?? null,
-    userId: userId ?? null,
-    bookingId: booking.id,
-    bookerEmail,
-    logger: tracingLogger,
+    attendeeId: bookerAttendeeId ?? null,
+    guestActor: { email: bookerEmail },
+    auditActorRepository: deps.auditActorRepository,
   });
 
-  // Map CreationSource to ActionSource (API_V1 is deprecated and not supported for audit logs)
-  const getActionSource = (creationSource: CreationSource | null | undefined): ActionSource => {
-    if (creationSource === CreationSource.API_V2) {
-      return "API_V2";
-    }
-    // Default to WEBAPP for WEBAPP or any other/null values
-    return "WEBAPP";
-  };
-
-  const actionSource = getActionSource(input.bookingData.creationSource);
-
+  // Map CreationSource to ActionSource
   if (originalRescheduledBooking) {
     const bookingRescheduledPayload: BookingRescheduledPayload = {
       ...bookingCreatedPayload,
@@ -2338,26 +2353,34 @@ async function handler(
         endTime: originalRescheduledBooking.endTime,
       },
     };
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, auditActor, {
-      startTime: {
-        old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
-        new: bookingRescheduledPayload.booking.startTime.toISOString(),
-      },
-      endTime: {
-        old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
-        new: bookingRescheduledPayload.booking.endTime.toISOString(),
-      },
-      rescheduledToUid: {
-        old: null,
-        new: bookingRescheduledPayload.booking.uid,
+    await bookingEventHandler.onBookingRescheduled({
+      payload: bookingRescheduledPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: {
+          old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.startTime.toISOString(),
+        },
+        endTime: {
+          old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.endTime.toISOString(),
+        },
+        rescheduledToUid: {
+          old: null,
+          new: bookingRescheduledPayload.booking.uid,
+        },
       },
       source: actionSource,
     });
   } else {
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor, {
-      startTime: bookingCreatedPayload.booking.startTime.getTime(),
-      endTime: bookingCreatedPayload.booking.endTime.getTime(),
-      status: bookingCreatedPayload.booking.status,
+    await bookingEventHandler.onBookingCreated({
+      payload: bookingCreatedPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: bookingCreatedPayload.booking.startTime.getTime(),
+        endTime: bookingCreatedPayload.booking.endTime.getTime(),
+        status: bookingCreatedPayload.booking.status,
+      },
       source: actionSource,
     });
   }
@@ -2762,51 +2785,6 @@ async function handler(
 export class RegularBookingService implements IBookingService {
   constructor(private readonly deps: IBookingServiceDependencies) { }
 
-  /**
-   * Resolves the appropriate actor for audit logging based on available context.
-   * Uses the shared getAuditActor utility.
-   *
-   * @param params.userUuid - The user UUID if the booker is logged in (preferred)
-   * @param params.userId - The user ID if userUuid is not available (will be looked up)
-   * @param params.bookingId - The booking ID to find the attendee
-   * @param params.bookerEmail - The booker's email to identify the attendee
-   * @param params.logger - Logger instance for warnings
-   * @returns Actor - always returns an actor, falling back to guest actor if needed
-   */
-  async getAuditActor(params: {
-    userUuid?: string | null;
-    userId?: number | null;
-    bookingId: number;
-    bookerEmail: string;
-    logger: Logger<unknown>;
-  }): Promise<Actor> {
-    const { userUuid, userId, bookingId, bookerEmail, logger } = params;
-
-    // If userUuid is not provided but userId is, look it up
-    let resolvedUserUuid = userUuid;
-    if (!resolvedUserUuid && userId) {
-      const user = await this.deps.prismaClient.user.findUnique({
-        where: { id: userId },
-        select: { uuid: true },
-      });
-      if (user?.uuid) {
-        resolvedUserUuid = user.uuid;
-      } else {
-        // User not found - log warning and fall through to attendee actor
-        logger.warn("User not found for userId, falling back to attendee actor", {
-          userId,
-          bookingId,
-        });
-      }
-    }
-
-    return getAuditActor({
-      userUuid: resolvedUserUuid,
-      bookingId,
-      email: bookerEmail,
-      prisma: this.deps.prismaClient,
-    });
-  }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);

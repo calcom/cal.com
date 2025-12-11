@@ -10,6 +10,7 @@ import { BookingAuditTaskBaseSchema } from "../types/bookingAuditTask";
 import { BookingAuditActionServiceRegistry, type AuditActionData } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction } from "../repository/IBookingAuditRepository";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
+import type { ActionSource } from "../common/actionSource";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 interface BookingAuditTaskConsumerDeps {
@@ -24,6 +25,7 @@ type CreateBookingAuditInput = {
     actorId: string;
     type: BookingAuditType;
     action: BookingAuditAction;
+    source: ActionSource;
     data: JsonValue;
     timestamp: Date; // Required: actual time of the booking change (business event)
 };
@@ -102,7 +104,7 @@ export class BookingAuditTaskConsumer {
         }
 
         const validatedPayload = parseResult.data;
-        const { action, bookingUid, actor, organizationId, data, timestamp } = validatedPayload;
+        const { action, bookingUid, actor, organizationId, data, timestamp, source } = validatedPayload;
 
         // Skip processing for non-organization bookings
         if (organizationId === null) {
@@ -124,7 +126,7 @@ export class BookingAuditTaskConsumer {
         // Step 2: Validate and migrate data with action-specific schema
         const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload: validatedPayload, taskId });
 
-        await this.onBookingAction({ bookingUid, actor, action, data: dataInLatestFormat, timestamp });
+        await this.onBookingAction({ bookingUid, actor, action, source, data: dataInLatestFormat, timestamp });
     }
 
     /**
@@ -213,14 +215,6 @@ export class BookingAuditTaskConsumer {
                 }
                 return attendeeActor.id;
             }
-            case "guest": {
-                const guestActor = await this.auditActorRepository.createIfNotExistsGuestActor(
-                    actor.email ?? null,
-                    actor.name ?? null,
-                    actor.phone ?? null
-                );
-                return guestActor.id;
-            }
         }
     }
 
@@ -234,6 +228,7 @@ export class BookingAuditTaskConsumer {
             actorId: input.actorId,
             type: input.type,
             action: input.action,
+            source: input.source,
             timestamp: input.timestamp,
         }));
 
@@ -242,6 +237,7 @@ export class BookingAuditTaskConsumer {
             actorId: input.actorId,
             type: input.type,
             action: input.action,
+            source: input.source,
             timestamp: input.timestamp,
             data: input.data ?? null,
         });
@@ -292,10 +288,11 @@ export class BookingAuditTaskConsumer {
         bookingUid: string;
         actor: Actor;
         action: BookingAuditAction;
+        source: ActionSource;
         data: AuditActionData;
         timestamp: number;
     }): Promise<BookingAudit> {
-        const { bookingUid, actor, action, data, timestamp } = params;
+        const { bookingUid, actor, action, source, data, timestamp } = params;
         const actionService = this.actionServiceRegistry.getActionService(action);
         const versionedData = actionService.getVersionedData(data);
         const actorId = await this.resolveActorId(actor);
@@ -306,6 +303,7 @@ export class BookingAuditTaskConsumer {
             actorId,
             type: recordType,
             action,
+            source,
             data: versionedData,
             timestamp: new Date(timestamp),
         });

@@ -22,6 +22,7 @@ import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBook
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -50,6 +51,7 @@ export const roundRobinReassignment = async ({
   platformClientParams,
   reassignedById,
   reassignedByUuid,
+  actionSource = "UNKNOWN",
 }: {
   bookingId: number;
   orgId: number | null;
@@ -57,10 +59,19 @@ export const roundRobinReassignment = async ({
   platformClientParams?: PlatformClientParams;
   reassignedById: number;
   reassignedByUuid: string;
+  actionSource?: ActionSource;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
+
+  if (actionSource === "UNKNOWN") {
+    roundRobinReassignLogger.warn("Round robin reassignment called with unknown actionSource", {
+      bookingId,
+      reassignedById,
+      reassignedByUuid,
+    });
+  }
 
   roundRobinReassignLogger.info(`User ${reassignedById} initiating round robin reassignment`);
 
@@ -274,20 +285,20 @@ export const roundRobinReassignment = async ({
     });
 
     const bookingEventHandlerService = getBookingEventHandlerService();
-    await bookingEventHandlerService.onReassignment(
-      booking.uid,
-      makeUserActor(reassignedByUuid),
-      orgId,
-      {
+    await bookingEventHandlerService.onReassignment({
+      bookingUid: booking.uid,
+      actor: makeUserActor(reassignedByUuid),
+      organizationId: orgId,
+      auditData: {
         assignedToId: { old: oldUserId, new: reassignedRRHost.id },
         assignedById: { old: null, new: reassignedById },
         reassignmentReason: { old: null, new: "Round robin reassignment" },
-        source: "WEBAPP",
         reassignmentType: "roundRobin",
         userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
         title: { old: oldTitle, new: newBookingTitle },
-      }
-    );
+      },
+      source: actionSource,
+    });
   } else {
     const previousRRHostAttendee = booking.attendees.find(
       (attendee) => attendee.email === previousRRHost.email
