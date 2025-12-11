@@ -28,7 +28,9 @@ export const assignFeatureToTeamHandler = async ({ ctx, input }: AssignFeatureOp
       assignedBy: `user:${user.id}`,
       enabled: true,
     },
-    update: {},
+    update: {
+      enabled: true,
+    },
   });
 
   return { success: true };

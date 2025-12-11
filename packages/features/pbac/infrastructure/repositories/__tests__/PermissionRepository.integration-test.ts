@@ -343,6 +343,7 @@ describe("PermissionRepository - Integration Tests", () => {
           teamId: testTeamId,
           featureId: "pbac",
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -388,6 +389,7 @@ describe("PermissionRepository - Integration Tests", () => {
           teamId: testTeamId,
           featureId: "pbac",
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -484,6 +486,7 @@ describe("PermissionRepository - Integration Tests", () => {
           teamId: org.id,
           featureId: "pbac",
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -597,6 +600,7 @@ describe("PermissionRepository - Integration Tests", () => {
           teamId: testTeamId,
           featureId: "pbac",
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -642,6 +646,7 @@ describe("PermissionRepository - Integration Tests", () => {
           teamId: testTeamId,
           featureId: "pbac",
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -681,6 +686,7 @@ describe("PermissionRepository - Integration Tests", () => {
           teamId: testTeamId,
           featureId: "pbac",
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -746,8 +752,8 @@ describe("PermissionRepository - Integration Tests", () => {
       // Enable PBAC for both teams
       await prisma.teamFeatures.createMany({
         data: [
-          { teamId: team1.id, featureId: "pbac", assignedBy: "test" },
-          { teamId: team2.id, featureId: "pbac", assignedBy: "test" },
+          { teamId: team1.id, featureId: "pbac", assignedBy: "test", enabled: true },
+          { teamId: team2.id, featureId: "pbac", assignedBy: "test", enabled: true },
         ],
       });
 
@@ -848,6 +854,7 @@ describe("PermissionRepository - Integration Tests", () => {
           teamId: team1.id,
           featureId: "pbac",
           assignedBy: "test",
+          enabled: true,
         },
       });
 

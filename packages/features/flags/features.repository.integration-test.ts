@@ -175,6 +175,7 @@ describe("FeaturesRepository Integration Tests", () => {
           userId: testUser.id,
           featureId: testFeature,
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -261,6 +262,7 @@ describe("FeaturesRepository Integration Tests", () => {
           teamId: testTeam.id,
           featureId: testFeature,
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -343,6 +345,7 @@ describe("FeaturesRepository Integration Tests", () => {
           teamId: org.id,
           featureId: testFeature,
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -399,6 +402,7 @@ describe("FeaturesRepository Integration Tests", () => {
           teamId: testTeam.id,
           featureId: testFeature,
           assignedBy: "test",
+          enabled: true,
         },
       });
 
@@ -454,6 +458,7 @@ describe("FeaturesRepository Integration Tests", () => {
           teamId: parentTeam.id,
           featureId: testFeature,
           assignedBy: "test",
+          enabled: true,
         },
       });
 
