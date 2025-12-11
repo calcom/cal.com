@@ -45,9 +45,8 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
     return await handleCalAIPhoneNumberSubscription(session);
   }
 
-  if (session.metadata?.teamName || session.metadata?.teamSlug) {
-    log.info("Skipping team checkout session - handled via redirect flow", { sessionId: session.id });
-    return { success: true, message: "Team checkout handled via redirect" };
+  if (session.metadata?.type === CHECKOUT_SESSION_TYPES.TEAM_CREATION) {
+    return await handleTeamCreationCheckoutSessionComplete(session);
   }
 
   // Handle credit purchases (existing logic)
@@ -108,6 +107,17 @@ async function saveToCreditBalance({
       creditBalanceId,
     });
   }
+}
+
+async function handleTeamCreationCheckoutSessionComplete(
+  session: SWHMap["checkout.session.completed"]["data"]["object"]
+) {
+  log.info("Team creation checkout session completed - handled via redirect flow", {
+    sessionId: session.id,
+    teamName: session.metadata?.teamName,
+    teamSlug: session.metadata?.teamSlug,
+  });
+  return { success: true, message: "Team checkout handled via redirect" };
 }
 
 async function handleCalAIPhoneNumberSubscription(
