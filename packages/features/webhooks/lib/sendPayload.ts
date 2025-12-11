@@ -173,27 +173,12 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
   return JSON.stringify(body);
 }
 
-/**
- * Normalizes Handlebars template variables that contain spaces.
- * Converts {{identifier with spaces}} to {{[identifier with spaces]}} so Handlebars
- * can properly access object properties with spaces in their keys.
- */
-function normalizeTemplateVariablesWithSpaces(template: string): string {
-  // Match handlebars expressions like {{identifier with spaces}} that contain spaces
-  // but not already using bracket notation like {{[identifier]}}
-  return template.replace(/\{\{([^{}\]]+\s+[^{}\]]+)\}\}/g, (match, variable) => {
-    return `{{[${variable.trim()}]}}`;
-  });
-}
-
 function applyTemplate(
   template: string,
   data: WebhookDataType | Record<string, unknown>,
   contentType: ContentType
 ) {
-  // Normalize template variables with spaces before compilation
-  const normalizedTemplate = normalizeTemplateVariablesWithSpaces(template);
-  const compiled = compile(normalizedTemplate)(data).replace(/&quot;/g, '"');
+  const compiled = compile(template)(data).replace(/&quot;/g, '"');
 
   if (contentType === "application/json") {
     return JSON.stringify(jsonParse(compiled));
