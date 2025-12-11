@@ -109,15 +109,19 @@ const foldIcal = (ical: string): string => {
     .split("\r\n")
     .map((line) => {
       if (Buffer.byteLength(line, "utf8") <= 75) return line;
+
       let folded = "";
-      while (Buffer.byteLength(line, "utf8") > 75) {
-        // Find the correct split point that doesn't exceed 75 bytes
-        let splitIndex = 75;
-        while (splitIndex > 0 && Buffer.byteLength(line.substring(0, splitIndex), "utf8") > 75) {
+      let limit = 75;
+
+      while (Buffer.byteLength(line, "utf8") > limit) {
+        // Find the correct split point that doesn't exceed the current limit
+        let splitIndex = limit;
+        while (splitIndex > 0 && Buffer.byteLength(line.substring(0, splitIndex), "utf8") > limit) {
           splitIndex--;
         }
         folded += line.substring(0, splitIndex) + "\r\n ";
         line = line.substring(splitIndex);
+        limit = 74;
       }
       folded += line;
       return folded;
