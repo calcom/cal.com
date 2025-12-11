@@ -539,3 +539,17 @@ export type BookingWebhookEventDTO =
   | BookingPaymentInitiatedDTO
   | BookingRejectedDTO
   | BookingNoShowDTO;
+
+export interface WebhookGroup {
+  teamId?: number | null;
+  profile: {
+    slug: string | null;
+    name: string | null;
+    image?: string;
+  };
+  metadata?: {
+    canModify: boolean;
+    canDelete: boolean;
+  };
+  webhooks: WebhookSubscriber[];
+}

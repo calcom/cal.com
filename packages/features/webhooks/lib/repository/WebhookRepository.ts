@@ -4,13 +4,13 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Webhook } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
 
-import type { WebhookSubscriber } from "../dto/types";
+import type { WebhookSubscriber, WebhookGroup } from "../dto/types";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
+import { WebhookOutputMapper } from "../infrastructure/mappers/WebhookOutputMapper";
 import type { GetSubscribersOptions } from "./types";
 
 // Type for raw query results from the database
@@ -27,21 +27,9 @@ interface WebhookQueryResult {
   priority: number; // This field is added by the query and removed before returning
 }
 
-type WebhookGroup = {
-  teamId?: number | null;
-  profile: {
-    slug: string | null;
-    name: string | null;
-    image?: string;
-  };
-  metadata?: {
-    canModify: boolean;
-    canDelete: boolean;
-  };
-  webhooks: Webhook[];
-};
 
-const filterWebhooks = (webhook: Webhook) => {
+
+const filterWebhooks = (webhook: { appId: string | null }) => {
   const appIds = [
     "zapier",
     "make",
@@ -316,7 +304,19 @@ export class WebhookRepository implements IWebhookRepository {
         username: true,
         name: true,
         avatarUrl: true,
-        webhooks: true,
+        webhooks: {
+          select: {
+            id: true,
+            subscriberUrl: true,
+            payloadTemplate: true,
+            appId: true,
+            secret: true,
+            eventTriggers: true,
+            time: true,
+            timeUnit: true,
+            version: true,
+          },
+        },
         teams: {
           where: {
             accepted: true,
@@ -329,7 +329,19 @@ export class WebhookRepository implements IWebhookRepository {
                 name: true,
                 slug: true,
                 logoUrl: true,
-                webhooks: true,
+                webhooks: {
+                  select: {
+                    id: true,
+                    subscriberUrl: true,
+                    payloadTemplate: true,
+                    appId: true,
+                    secret: true,
+                    eventTriggers: true,
+                    time: true,
+                    timeUnit: true,
+                    version: true,
+                  },
+                },
               },
             },
           },
@@ -355,7 +367,7 @@ export class WebhookRepository implements IWebhookRepository {
         name: user.name,
         image: getUserAvatarUrl({ avatarUrl: user.avatarUrl }),
       },
-      webhooks: user.webhooks.filter(filterWebhooks),
+      webhooks: WebhookOutputMapper.toDomainList(user.webhooks.filter(filterWebhooks)),
       metadata: {
         canModify: true,
         canDelete: true,
@@ -403,7 +415,7 @@ export class WebhookRepository implements IWebhookRepository {
           slug: membership.team.slug || null,
           image: getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
         },
-        webhooks: membership.team.webhooks.filter(filterWebhooks),
+        webhooks: WebhookOutputMapper.toDomainList(membership.team.webhooks.filter(filterWebhooks)),
         metadata: {
           canModify: canUpdate,
           canDelete,
@@ -415,6 +427,17 @@ export class WebhookRepository implements IWebhookRepository {
     if (userRole === UserPermissionRole.ADMIN) {
       const platformWebhooks = await this.prisma.webhook.findMany({
         where: { platform: true },
+        select: {
+          id: true,
+          subscriberUrl: true,
+          payloadTemplate: true,
+          appId: true,
+          secret: true,
+          eventTriggers: true,
+          time: true,
+          timeUnit: true,
+          version: true,
+        },
       });
 
       webhookGroups.push({
@@ -424,7 +447,7 @@ export class WebhookRepository implements IWebhookRepository {
           name: "Platform",
           image: getPlaceholderAvatar(null, "Platform"),
         },
-        webhooks: platformWebhooks,
+        webhooks: WebhookOutputMapper.toDomainList(platformWebhooks),
         metadata: {
           canDelete: true,
           canModify: true,

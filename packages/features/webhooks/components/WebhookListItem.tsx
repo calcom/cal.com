@@ -126,10 +126,10 @@ export default function WebhookListItem(props: {
             defaultChecked={webhook.active}
             data-testid="webhook-switch"
             disabled={!props.permissions.canEditWebhook}
-            onCheckedChange={() =>
+            onCheckedChange={(checked) =>
               toggleWebhook.mutate({
                 id: webhook.id,
-                active: !webhook.active,
+                active: checked,
                 payloadTemplate: webhook.payloadTemplate,
                 eventTypeId: webhook.eventTypeId || undefined,
               })

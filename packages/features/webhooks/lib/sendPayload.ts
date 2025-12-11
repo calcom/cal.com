@@ -5,8 +5,26 @@ import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod"
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+
+// Domain types - decoupled from Prisma
+type WebhookForPayload = {
+  subscriberUrl: string;
+  appId: string | null;
+  payloadTemplate: string | null;
+};
+
+type PaymentData = {
+  id: number;
+  fee: number;
+  currency: string;
+  success: boolean;
+  refunded: boolean;
+  externalId: string;
+  data: unknown;
+  appId: string | null;
+  bookingId: number;
+};
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -92,7 +110,7 @@ export type EventPayloadType = CalendarEvent &
     paymentId?: number;
     rescheduledBy?: string;
     cancelledBy?: string;
-    paymentData?: Payment;
+    paymentData?: PaymentData;
   };
 
 export type WebhookPayloadType =
@@ -213,7 +231,7 @@ const sendPayload = async (
   secretKey: string | null,
   triggerEvent: string,
   createdAt: string,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  webhook: WebhookForPayload,
   data: WebhookPayloadType
 ) => {
   const { appId, payloadTemplate: template } = webhook;
@@ -286,7 +304,7 @@ export const createWebhookSignature = (params: { secret?: string | null; body: s
 
 const _sendPayload = async (
   secretKey: string | null,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  webhook: WebhookForPayload,
   body: string,
   contentType: "application/json" | "application/x-www-form-urlencoded"
 ) => {
