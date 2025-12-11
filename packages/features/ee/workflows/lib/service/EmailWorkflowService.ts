@@ -560,7 +560,7 @@ export class EmailWorkflowService {
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
-      ...(hideOrganizerEmail && {
+      ...(!hideOrganizerEmail && {
         replyTo: customReplyToEmail || organizer.email,
       }),
       attachments,
