@@ -43,13 +43,13 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   // Read teamId from query params and store it (from payment callback or redirect)
   useEffect(() => {
     const teamIdParam = searchParams?.get("teamId");
-    if (teamIdParam) {
-      const teamId = parseInt(teamIdParam, 10);
-      if (!isNaN(teamId)) {
-        setTeamId(teamId);
+    if (teamIdParam && !teamId) {
+      const parsedTeamId = parseInt(teamIdParam, 10);
+      if (!isNaN(parsedTeamId)) {
+        setTeamId(parsedTeamId);
       }
     }
-  }, [searchParams, setTeamId]);
+  }, [searchParams, setTeamId, teamId]);
 
   const formSchema = z.object({
     invites: z.array(
@@ -125,10 +125,6 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     router.replace(gettingStartedPath);
   };
 
-  const handleSubmitClick = () => {
-    form.handleSubmit(handleContinue)();
-  };
-
   // Watch form values to pass to browser view for real-time updates
   const watchedInvites = form.watch("invites");
 
@@ -156,12 +152,11 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                     {t("onboarding_skip_for_now")}
                   </Button>
                   <Button
-                    type="button"
+                    type="submit"
                     color="primary"
                     className="rounded-[10px]"
                     disabled={!hasValidInvites || isSubmitting}
-                    loading={isSubmitting}
-                    onClick={handleSubmitClick}>
+                    loading={isSubmitting}>
                     {t("continue")}
                   </Button>
                 </div>
