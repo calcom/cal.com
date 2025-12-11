@@ -28,7 +28,7 @@ export class FeaturesRepositoryFixture {
     });
   }
 
-  async updateFeatureForTeam(teamId: number, featureId: string, state, assignedBy = "test") {
+  async setTeamFeatureState(teamId: number, featureId: string, state, assignedBy = "test") {
     if (state === "enabled" || state === "disabled") {
       await this.prismaWriteClient.teamFeatures.upsert({
         where: {

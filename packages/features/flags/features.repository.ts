@@ -287,7 +287,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<void>
    * @throws Error if the feature enabling fails
    */
-  async updateFeatureForTeam(
+  async setTeamFeatureState(
     teamId: number,
     featureId: keyof AppFlags,
     state: FeatureState,

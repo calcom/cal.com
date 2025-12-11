@@ -67,7 +67,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
     });
 
     await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
-    await featuresRepositoryFixture.updateFeatureForTeam(pbacEnabledTeam.id, "pbac", "enabled");
+    await featuresRepositoryFixture.setTeamFeatureState(pbacEnabledTeam.id, "pbac", "enabled");
 
     // Create user + membership in org
     pbacOrgUserWithRolePermission = await userRepositoryFixture.create({

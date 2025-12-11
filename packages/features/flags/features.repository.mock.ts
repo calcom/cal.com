@@ -22,7 +22,7 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return [];
   }
 
-  async updateFeatureForTeam(
+  async setTeamFeatureState(
     _teamId: number,
     _featureId: keyof AppFlags,
     _state: FeatureState,
