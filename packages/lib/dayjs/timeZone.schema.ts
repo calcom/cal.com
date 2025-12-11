@@ -1,9 +1,6 @@
 import { z } from "zod";
 
 import { isSupportedTimeZone } from "./index";
-import logger from "../logger";
-
-const log = logger.getSubLogger({ prefix: ["timeZoneSchema"] });
 
 // Schema for validating IANA timezone strings compatible with Intl.DateTimeFormat
 // Browserstack and some automations return +00:00 as the timezone which isn't a valid IANA timezone
@@ -16,11 +13,7 @@ export const timeZoneSchema = z
       if (timeZone === "+00:00") {
         return true;
       }
-      const valid = isSupportedTimeZone(timeZone);
-      if (!valid) {
-        log.error(`Invalid timezone received: ${timeZone}`);
-      }
-      return valid;
+      return isSupportedTimeZone(timeZone);
     },
     { message: "Invalid timezone. Must be a valid IANA timezone string." }
   )
