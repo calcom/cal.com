@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { readonlyPrisma } from "@calcom/prisma";
 
-import { getEventTypeList } from "../utils";
+import { getEventTypeList } from "../getEventTypeList";
 
 vi.mock("@calcom/prisma", () => ({
   readonlyPrisma: {
