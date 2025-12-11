@@ -2909,21 +2909,20 @@ model IntegrationAttributeSync {
 
   enabled Boolean
 
-  attributeSyncRules AttributeSyncUserRule[]
+  attributeSyncRules AttributeSyncRule[]
+  syncFieldMappings  AttributeSyncFieldMapping[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model AttributeSyncUserRule {
+model AttributeSyncRule {
   id String @id @default(uuid())
 
   integrationAttributeSync   IntegrationAttributeSync? @relation(fields: [integrationAttributeSyncId], references: [id])
   integrationAttributeSyncId String?
 
   rule Json
-
-  syncFieldMappings AttributeSyncFieldMapping[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2935,9 +2934,9 @@ model AttributeSyncFieldMapping {
   attributeId          String
   attribute            Attribute @relation(fields: [attributeId], references: [id])
 
-  enabled                 Boolean
-  attributeSyncUserRule   AttributeSyncUserRule? @relation(fields: [attributeSyncUserRuleId], references: [id])
-  attributeSyncUserRuleId String?
+  enabled                    Boolean
+  integrationAttributeSyncId String?
+  integrationAttributeSync   IntegrationAttributeSync? @relation(fields: [integrationAttributeSyncId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
