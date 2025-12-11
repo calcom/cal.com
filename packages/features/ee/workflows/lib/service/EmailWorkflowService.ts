@@ -484,7 +484,7 @@ export class EmailWorkflowService {
         eventName: title,
         timeZone,
         location: location || "",
-        meetingUrl: meetingUrl,
+        meetingUrl: meetingUrl || "",
         otherPerson: attendeeName,
         name,
       });
