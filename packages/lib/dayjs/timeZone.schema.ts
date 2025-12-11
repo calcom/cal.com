@@ -10,18 +10,19 @@ const log = logger.getSubLogger({ prefix: ["timeZoneSchema"] });
 // @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/resolvedOptions#timezone
 export const timeZoneSchema = z
   .string()
-  .superRefine((timeZone, ctx) => {
-    // Allow +00:00 as a special case - it will be transformed to UTC
-    if (timeZone === "+00:00") {
-      log.warn("Received non-IANA timezone '+00:00', transforming to 'UTC'");
-      return;
-    }
-    if (!isSupportedTimeZone(timeZone)) {
-      log.error(`Invalid timezone received: ${timeZone}`);
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Invalid timezone. Must be a valid IANA timezone string.",
-      });
-    }
-  })
+  .refine(
+    (timeZone) => {
+      // Allow +00:00 as a special case - it will be transformed to UTC
+      if (timeZone === "+00:00") {
+        log.warn("Received non-IANA timezone '+00:00', will be transformed to 'UTC'");
+        return true;
+      }
+      const valid = isSupportedTimeZone(timeZone);
+      if (!valid) {
+        log.error(`Invalid timezone received: ${timeZone}`);
+      }
+      return valid;
+    },
+    { message: "Invalid timezone. Must be a valid IANA timezone string." }
+  )
   .transform((timeZone) => (timeZone === "+00:00" ? "UTC" : timeZone));
