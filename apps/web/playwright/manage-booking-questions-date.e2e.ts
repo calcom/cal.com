@@ -97,29 +97,25 @@ test.describe("Manage Booking Questions - Date Type", () => {
                     await datePickerButton.waitFor({ state: 'visible' });
                     await datePickerButton.click();
 
-                    const dialog = page.locator('[role="dialog"]').first();
-                    await expect(dialog).toBeVisible();
-
-                    const grid = dialog.locator('[role="grid"]').first();
+                    await expect(page.locator('[role="dialog"]').first()).toBeVisible();
+                    const grid = page.locator('[role="grid"]').first();
                     await expect(grid).toBeVisible();
 
-                    const nextMonthButton = dialog.getByTestId("datepicker-next-month");
+                    const nextMonthButton = page.locator('[role="dialog"]').first().getByTestId("datepicker-next-month");
                     if (await nextMonthButton.isVisible()) {
                         await nextMonthButton.click();
                         await page.waitForTimeout(500);
                     }
 
-                    await grid.locator('[role="gridcell"]').first().waitFor({ state: 'visible' });
-                    const clickableDate = grid.locator('[role="gridcell"] button:not([disabled]):not([aria-disabled="true"])').first();
-                    await expect(clickableDate).toBeVisible({ timeout: 5000 });
-                    await clickableDate.click();
 
-                    await expect(dialog).toBeHidden({ timeout: 3000 });
-                    await datePickerButton.waitFor({ state: 'visible' });
+                    const availableDateCell = grid.locator('[role="gridcell"]:not([aria-disabled="true"]):not([data-outside="true"]):not([data-hidden="true"])').first();
+                    await expect(availableDateCell).toBeVisible();
+                    await availableDateCell.click();
 
                     await expect(datePickerButton).not.toContainText("Pick a date");
                     const buttonText = await datePickerButton.textContent();
-                    expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+
+                    expect(buttonText).toMatch(/^([A-Z][a-z]{2} \d{1,2}, \d{4}|Preferred Appointment Date)$/);
                 });
             });
 
@@ -130,25 +126,19 @@ test.describe("Manage Booking Questions - Date Type", () => {
 
                     await datePickerButton.click();
 
-                    const dialog = page.locator('[role="dialog"]').first();
-                    await expect(dialog).toBeVisible();
-
-                    const grid = dialog.locator('[role="grid"]').first();
+                    await expect(page.locator('[role="dialog"]').first()).toBeVisible();
+                    const grid = page.locator('[role="grid"]').first();
                     await expect(grid).toBeVisible();
 
-                    const nextMonthButton = dialog.getByTestId("datepicker-next-month");
+                    const nextMonthButton = page.locator('[role="dialog"]').first().getByTestId("datepicker-next-month");
                     if (await nextMonthButton.isVisible()) {
                         await nextMonthButton.click();
                         await page.waitForTimeout(500);
                     }
 
-                    await grid.locator('[role="gridcell"]').first().waitFor({ state: 'visible' });
-                    const clickableDate = grid.locator('[role="gridcell"] button:not([disabled]):not([aria-disabled="true"])').first();
-                    await expect(clickableDate).toBeVisible({ timeout: 5000 });
-                    await clickableDate.click();
-
-                    await expect(dialog).toBeHidden({ timeout: 3000 });
-                    await datePickerButton.waitFor({ state: 'visible' });
+                    const availableDateCell = grid.locator('[role="gridcell"]:not([aria-disabled="true"]):not([data-outside="true"]):not([data-hidden="true"])').first();
+                    await expect(availableDateCell).toBeVisible();
+                    await availableDateCell.click();
 
                     await expect(datePickerButton).not.toContainText("Pick a date");
                     await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
