@@ -917,7 +917,7 @@ describe("FeaturesRepository Integration Tests", () => {
     });
   });
 
-  describe("updateFeatureForUser", () => {
+  describe("setUserFeatureState", () => {
     it("should create a new UserFeatures row with enabled=true when state is 'enabled'", async () => {
       await prisma.feature.create({
         data: {
@@ -927,7 +927,7 @@ describe("FeaturesRepository Integration Tests", () => {
         },
       });
 
-      await featuresRepository.updateFeatureForUser(testUser.id, testFeature, "enabled", "test-assigner");
+      await featuresRepository.setUserFeatureState(testUser.id, testFeature, "enabled", "test-assigner");
 
       const userFeature = await prisma.userFeatures.findFirst({
         where: {
@@ -950,7 +950,7 @@ describe("FeaturesRepository Integration Tests", () => {
         },
       });
 
-      await featuresRepository.updateFeatureForUser(testUser.id, testFeature, "disabled", "test-assigner");
+      await featuresRepository.setUserFeatureState(testUser.id, testFeature, "disabled", "test-assigner");
 
       const userFeature = await prisma.userFeatures.findFirst({
         where: {
@@ -984,7 +984,7 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       // Now enable the feature
-      await featuresRepository.updateFeatureForUser(testUser.id, testFeature, "enabled", "new-assigner");
+      await featuresRepository.setUserFeatureState(testUser.id, testFeature, "enabled", "new-assigner");
 
       const userFeature = await prisma.userFeatures.findFirst({
         where: {
@@ -1018,7 +1018,7 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       // Set to inherit (should delete)
-      await featuresRepository.updateFeatureForUser(testUser.id, testFeature, "inherit", "test-assigner");
+      await featuresRepository.setUserFeatureState(testUser.id, testFeature, "inherit", "test-assigner");
 
       const userFeature = await prisma.userFeatures.findFirst({
         where: {
