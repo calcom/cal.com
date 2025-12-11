@@ -282,7 +282,7 @@ export const sendGenericWebhookPayload = async ({
   secretKey: string | null;
   triggerEvent: string;
   createdAt: string;
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">;
+  webhook: WebhookForPayload;
   data: Record<string, unknown>;
   rootData?: Record<string, unknown>;
 }) => {

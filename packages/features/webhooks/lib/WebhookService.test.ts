@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
+import type { WebhookSubscriber } from "./dto/types";
 import { WebhookService } from "./WebhookService";
-import type { GetWebhooksReturnType } from "./getWebhooks";
 import getWebhooks from "./getWebhooks";
 
 vi.mock("./getWebhooks", () => ({
@@ -41,7 +41,7 @@ describe("WebhookService", () => {
   });
 
   it("should initialize with options and webhooks", async () => {
-    const mockWebhooks: GetWebhooksReturnType = [
+    const mockWebhooks: WebhookSubscriber[] = [
       {
         id: "webhookId",
         subscriberUrl: "url",
@@ -51,6 +51,7 @@ describe("WebhookService", () => {
         eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
         timeUnit: "MINUTE",
         time: 5,
+        version: "2021-10-20",
       },
     ];
     vi.mocked(getWebhooks).mockResolvedValue(mockWebhooks);
