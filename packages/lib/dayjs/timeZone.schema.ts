@@ -14,7 +14,6 @@ export const timeZoneSchema = z
     (timeZone) => {
       // Allow +00:00 as a special case - it will be transformed to UTC
       if (timeZone === "+00:00") {
-        log.warn("Received non-IANA timezone '+00:00', will be transformed to 'UTC'");
         return true;
       }
       const valid = isSupportedTimeZone(timeZone);
