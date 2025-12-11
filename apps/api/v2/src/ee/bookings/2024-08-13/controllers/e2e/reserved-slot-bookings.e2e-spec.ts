@@ -337,7 +337,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
         it("should reschedule a booking with reservedSlotUid from cookie and remove selected slot", async () => {
           // 1. Create initial booking
-          const initialStartTime = new Date("2040-05-25T09:30:00.000Z");
+          const initialStartTime = new Date("2040-05-21T09:30:00.000Z");
 
           const initialBookingData: CreateBookingInput_2024_08_13 = {
             start: initialStartTime.toISOString(),
@@ -361,8 +361,8 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
           // 2. Create reserved slot for rescheduling
           const reservedSlotUid = `reserved-slot-reschedule-${randomString()}`;
-          const newStartTime = new Date("2040-05-26T09:30:00.000Z");
-          const newEndTime = new Date("2040-05-26T10:30:00.000Z");
+          const newStartTime = new Date("2040-05-22T11:30:00.000Z");
+          const newEndTime = new Date("2040-05-22T12:30:00.000Z");
 
           await createReservedSlot(user.id, eventTypeId, reservedSlotUid, newStartTime, newEndTime);
 
@@ -395,7 +395,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
         it("should reschedule a booking with reservedSlotUid from request body and remove selected slot", async () => {
           // 1. Create initial booking
-          const initialStartTime = new Date("2040-05-27T09:30:00.000Z");
+          const initialStartTime = new Date("2040-05-21T09:30:00.000Z");
 
           const initialBookingData: CreateBookingInput_2024_08_13 = {
             start: initialStartTime.toISOString(),
@@ -418,8 +418,8 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
           // 2. Create reserved slot for rescheduling
           const reservedSlotUid = `reserved-slot-reschedule-body-${randomString()}`;
-          const newStartTime = new Date("2040-05-28T09:30:00.000Z");
-          const newEndTime = new Date("2040-05-28T10:30:00.000Z");
+          const newStartTime = new Date("2040-05-22T11:30:00.000Z");
+          const newEndTime = new Date("2040-05-22T12:30:00.000Z");
 
           await createReservedSlot(user.id, eventTypeId, reservedSlotUid, newStartTime, newEndTime);
 
@@ -452,7 +452,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
         it("should fail when rescheduling with reservedSlotUid that is not first in line", async () => {
           // 1. Create initial booking
-          const initialStartTime = new Date("2040-05-29T09:30:00.000Z");
+          const initialStartTime = new Date("2040-05-21T09:30:00.000Z");
 
           const initialBookingData: CreateBookingInput_2024_08_13 = {
             start: initialStartTime.toISOString(),
@@ -476,8 +476,8 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
           // 2. Create two reserved slots for rescheduling
           const firstReservedSlotUid = `reserved-slot-reschedule-first-${randomString()}`;
           const secondReservedSlotUid = `reserved-slot-reschedule-second-${randomString()}`;
-          const newStartTime = new Date("2040-05-30T09:30:00.000Z");
-          const newEndTime = new Date("2040-05-30T10:30:00.000Z");
+          const newStartTime = new Date("2040-05-22T11:30:00.000Z");
+          const newEndTime = new Date("2040-05-22T12:30:00.000Z");
 
           await createReservedSlot(user.id, eventTypeId, firstReservedSlotUid, newStartTime, newEndTime);
 
