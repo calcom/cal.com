@@ -40,8 +40,11 @@ export class FeaturesRepositoryFixture {
         teamId,
         featureId,
         assignedBy,
+        enabled: true,
       },
-      update: {},
+      update: {
+        enabled: true,
+      },
     });
   }
 
