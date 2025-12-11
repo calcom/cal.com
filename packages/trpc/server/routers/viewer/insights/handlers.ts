@@ -22,7 +22,7 @@ import type {
   routedToPerPeriodCsvInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { RoutingEventsInsights } from "@calcom/features/insights/server/routing-events";
-import { getEventTypeList } from "@calcom/features/insights/server/utils";
+import { getEventTypeList } from "@calcom/features/insights/server/getEventTypeList";
 import { VirtualQueuesInsights } from "@calcom/features/insights/server/virtual-queues";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
