@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
@@ -140,12 +141,25 @@ export const paymentLinkPaidHandler = async ({ event, step }) => {
     return { success: false, message: "Payment not found" };
   }
 
-  // Step 2: Process payment if not already successful
+  // Process payment if not already successful
   if (!payment.success) {
-    await step.run("process-payment", async () => {
-      await handlePaymentSuccess(payment.id, payment.bookingId, { paymentId });
-      log.info(`Successfully processed payment: ${paymentId}`);
-    });
+    await step.run(
+      "process-payment",
+      async () => {
+        await handlePaymentSuccess(payment.id, payment.bookingId, { paymentId });
+        log.info(`Successfully processed payment: ${paymentId}`);
+      },
+      {
+        retries: {
+          custom: (err: any) => {
+            if (err instanceof HttpCode && err.statusCode === 200) {
+              return false;
+            }
+            return true;
+          },
+        },
+      }
+    );
 
     return {
       success: true,
