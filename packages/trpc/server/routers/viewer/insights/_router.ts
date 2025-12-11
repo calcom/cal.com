@@ -1,6 +1,17 @@
 import { z } from "zod";
 
 import {
+  bookingRepositoryBaseInputSchema,
+  insightsRoutingServiceInputSchema,
+  insightsRoutingServicePaginatedInputSchema,
+  routingRepositoryBaseInputSchema,
+  routedToPerPeriodInputSchema,
+  routedToPerPeriodCsvInputSchema,
+} from "@calcom/features/insights/server/raw-data.schema";
+
+import authedProcedure from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
+import {
   bookingKPIStatsHandler,
   eventTrendsHandler,
   popularEventsHandler,
@@ -33,18 +44,7 @@ import {
   recentNoShowGuestsHandler,
   noShowHostsOverTimeHandler,
   csatOverTimeHandler,
-} from "@calcom/features/insights/server/handlers";
-import {
-  bookingRepositoryBaseInputSchema,
-  insightsRoutingServiceInputSchema,
-  insightsRoutingServicePaginatedInputSchema,
-  routingRepositoryBaseInputSchema,
-  routedToPerPeriodInputSchema,
-  routedToPerPeriodCsvInputSchema,
-} from "@calcom/features/insights/server/raw-data.schema";
-
-import authedProcedure from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
+} from "./handlers";
 import { userBelongsToTeamProcedure } from "./procedures/userBelongsToTeam";
 
 export const insightsRouter = router({
