@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { NonRetriableError } from "inngest";
 
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -143,24 +144,20 @@ export const paymentLinkPaidHandler = async ({ event, step }) => {
 
   // Process payment if not already successful
   if (!payment.success) {
-    await step.run(
-      "process-payment",
-      async () => {
+    await step.run("process-payment", async () => {
+      try {
         await handlePaymentSuccess(payment.id, payment.bookingId, { paymentId });
         log.info(`Successfully processed payment: ${paymentId}`);
-      },
-      {
-        retries: {
-          custom: (err: any) => {
-            if (err instanceof HttpCode && err.statusCode === 200) {
-              return false;
-            }
-            return true;
-          },
-        },
+      } catch (error) {
+        // If it's a 200 status code, treat it as success (throw NonRetriableError)
+        if (error instanceof HttpCode && error.statusCode === 200) {
+          throw new NonRetriableError(
+            `Error - eventTypesAndBookingsToBeInserted: ${error instanceof Error ? error.message : error}`
+          );
+        }
+        throw error;
       }
-    );
-
+    });
     return {
       success: true,
       message: `Payment ${paymentId} processed successfully`,
