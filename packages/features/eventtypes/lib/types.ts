@@ -262,7 +262,7 @@ const calVideoSettingsSchema = z
 
 export const createEventTypeInput = z
   .object({
-    title: z.string().min(1),
+    title: z.string().trim().min(1),
     slug: eventTypeSlug,
     description: z.string().nullish(),
     length: z.number().int(),
