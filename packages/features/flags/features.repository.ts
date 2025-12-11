@@ -69,12 +69,12 @@ export class FeaturesRepository implements IFeaturesRepository {
     const result = await this.prismaClient.teamFeatures.findMany({
       where: {
         teamId,
+        enabled: true,
       },
-      include: {
+      select: {
         feature: {
           select: {
             slug: true,
-            enabled: true,
           },
         },
       },
@@ -133,6 +133,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           userId,
           featureId: slug,
         },
+        select: { enabled: true },
       });
 
       // If user has an explicit setting, use it
