@@ -35,13 +35,25 @@ type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfir
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  // using offset actually because cursor pagination requires a unique column
-  // for orderBy, but we don't use a unique column in our orderBy
+  // Support both offset-based (list) and cursor-based pagination (calendar)
+  // Cursor is just the offset as a string (fake cursor pagination)
   const take = input.limit;
-  const skip = input.offset;
+  let skip = input.offset;
+
+  // If cursor is provided, parse it to get the offset
+  if (input.cursor) {
+    const parsedCursor = parseInt(input.cursor, 10);
+    if (!isNaN(parsedCursor) && parsedCursor >= 0) {
+      skip = parsedCursor;
+    }
+  }
+
   const { prisma, user } = ctx;
   const defaultStatus = "upcoming";
-  const bookingListingByStatus = [input.filters.status || defaultStatus];
+
+  const bookingListingByStatus = input.filters.statuses?.length
+    ? input.filters.statuses
+    : [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, totalCount } = await getAllUserBookings({
     ctx: {
@@ -55,10 +67,16 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     filters: input.filters,
   });
 
+  // Generate next cursor for infinite query support
+  const nextOffset = skip + take;
+  const hasMore = nextOffset < totalCount;
+  const nextCursor = hasMore ? nextOffset.toString() : undefined;
+
   return {
     bookings,
     recurringInfo,
     totalCount,
+    nextCursor,
   };
 };
 
@@ -478,7 +496,11 @@ export async function getBookings({
           "Booking.paid",
           "Booking.fromReschedule",
           "Booking.rescheduled",
+          "Booking.rescheduledBy",
+          "Booking.cancelledBy",
           "Booking.isRecorded",
+          "Booking.cancellationReason",
+          "Booking.rejectionReason",
           jsonObjectFrom(
             eb
               .selectFrom("App_RoutingForms_FormResponse")
@@ -508,6 +530,7 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.teamId",
                 "EventType.parentId",
                 eb
                   .cast<SchedulingType | null>(
@@ -563,13 +586,27 @@ export async function getBookings({
           jsonArrayFrom(
             eb
               .selectFrom("Payment")
-              .select(["Payment.paymentOption", "Payment.amount", "Payment.currency", "Payment.success"])
+              .select([
+                "Payment.paymentOption",
+                "Payment.amount",
+                "Payment.currency",
+                "Payment.success",
+                "Payment.appId",
+                "Payment.refunded",
+              ])
               .whereRef("Payment.bookingId", "=", "Booking.id")
           ).as("payment"),
           jsonObjectFrom(
             eb
               .selectFrom("users")
-              .select(["users.id", "users.name", "users.email"])
+              .select([
+                "users.id",
+                "users.name",
+                "users.email",
+                "users.avatarUrl",
+                "users.username",
+                "users.timeZone",
+              ])
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
           jsonArrayFrom(
@@ -750,7 +787,76 @@ export async function getBookings({
       };
     })
   );
-  return { bookings, recurringInfo, totalCount };
+
+  // Enrich attendees with user data
+  const enrichedBookings = await enrichAttendeesWithUserData(bookings, kysely);
+
+  return { bookings: enrichedBookings, recurringInfo, totalCount };
+}
+
+type EnrichedUserData = {
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+  username: string | null;
+};
+
+/**
+ * Enriches booking attendees with user data by performing a left outer join
+ * between attendees and users tables on email addresses.
+ *
+ * @param bookings - Array of bookings with attendees to enrich
+ * @param kysely - Kysely database client instance
+ * @returns Bookings with attendees enriched with user data (name, email, avatarUrl, username)
+ */
+async function enrichAttendeesWithUserData<
+  TBooking extends { attendees: ReadonlyArray<{ id: number; email: string }> }
+>(
+  bookings: TBooking[],
+  kysely: Kysely<DB>
+): Promise<
+  Array<
+    Omit<TBooking, "attendees"> & {
+      attendees: Array<TBooking["attendees"][number] & { user: EnrichedUserData | null }>;
+    }
+  >
+> {
+  // Extract all unique attendee emails from bookings
+  const allAttendees = bookings.flatMap((booking) => booking.attendees);
+  const uniqueAttendeeIds = Array.from(new Set(allAttendees.map((attendee) => attendee.id)));
+
+  // Query attendees with left join to users table
+  const enrichedAttendees =
+    uniqueAttendeeIds.length > 0
+      ? await kysely
+          .selectFrom("Attendee")
+          .leftJoin("users", "users.email", "Attendee.email")
+          .select(["Attendee.id", "users.name", "Attendee.email", "users.avatarUrl", "users.username"])
+          .where("Attendee.id", "in", uniqueAttendeeIds)
+          .execute()
+      : [];
+
+  // Create a lookup map for O(1) access by attendee ID
+  const attendeeUserDataMap = new Map<number, EnrichedUserData>(
+    enrichedAttendees.map((enriched) => [
+      enriched.id,
+      {
+        name: enriched.name,
+        email: enriched.email,
+        avatarUrl: enriched.avatarUrl,
+        username: enriched.username,
+      },
+    ])
+  );
+
+  // Map over bookings and enrich each attendee with user data
+  return bookings.map((booking) => ({
+    ...booking,
+    attendees: booking.attendees.map((attendee) => ({
+      ...attendee,
+      user: attendeeUserDataMap.get(attendee.id) || null,
+    })),
+  }));
 }
 
 async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: number[]) {
