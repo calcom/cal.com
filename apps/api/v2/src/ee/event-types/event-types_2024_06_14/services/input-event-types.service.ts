@@ -229,10 +229,16 @@ export class InputEventTypesService_2024_06_14 {
 
     const metadata: EventTypeMetadata = {
       ...metadataTransformed,
-      bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
-      requiresConfirmationThreshold:
-        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-      multipleDuration: lengthInMinutesOptions,
+      ...(bookerLayouts !== undefined
+        ? { bookerLayouts: this.transformInputBookerLayouts(bookerLayouts) }
+        : {}),
+      ...(confirmationPolicy !== undefined
+        ? {
+            requiresConfirmationThreshold:
+              confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+          }
+        : {}),
+      ...(lengthInMinutesOptions !== undefined ? { multipleDuration: lengthInMinutesOptions } : {}),
     };
 
     const eventType = {
