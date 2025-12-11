@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
+import imageCompression from "browser-image-compression";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -107,6 +108,41 @@ function CropContainer({
   );
 }
 
+async function compressPNGLossless(dataUrl: string): Promise<string> {
+  // Convert data URL to Blob
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  
+  // Create a File object from the blob
+  const file = new File([blob], 'image.png', { type: 'image/png' });
+  
+  // Compress with maximum quality (lossless for PNG)
+  const options = {
+    maxSizeMB: 0.7, // Large enough to not trigger lossy compression
+    maxWidthOrHeight: 10000, // Don't resize
+    useWebWorker: true,
+    fileType: 'image/png',
+    initialQuality: 1, // Maximum quality
+    alwaysKeepResolution: true,
+    preserveExif: false, // Remove EXIF to reduce size
+  };
+  
+  try {
+    const compressedFile = await imageCompression(file, options);
+    
+    // Convert back to data URL
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(compressedFile);
+    });
+  } catch (error) {
+    console.warn('PNG compression failed, using original:', error);
+    return dataUrl;
+  }
+}
+
 async function getCroppedImg(
   imageSrc: string,
   pixelCrop: Area,
@@ -145,12 +181,11 @@ async function getCroppedImg(
     canvas.height
   );
 
-  // Detect and preserve original format
-  const originalFormat = imageSrc.match(/data:image\/(\w+)/)?.[1] || 'png';
-  const mimeType = `image/${originalFormat}`;
-  const quality = originalFormat === 'jpeg' || originalFormat === 'jpg' ? 0.9 : undefined;
-
-  return canvas.toDataURL(mimeType, quality);
+  // Always output as PNG
+  const pngDataUrl = canvas.toDataURL('image/png');
+  
+  // Compress the PNG losslessly
+  return await compressPNGLossless(pngDataUrl);
 }
 
 export default function BannerUploader({
