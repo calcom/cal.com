@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("app/api/defaultResponderForAppDir", () => ({
   defaultResponderForAppDir:
     (handler: (req: NextRequest) => Promise<Response>) =>
-    (req: NextRequest) =>
+    (req: NextRequest, _context: { params: Promise<Record<string, string>> }) =>
       handler(req),
 }));
 
@@ -86,7 +86,7 @@ describe("verify-booking-token route", () => {
         "https://app.example.com/api/verify-booking-token?action=reject&token=test-token&bookingUid=abc123&userId=42";
       const req = createMockRequest(baseUrl, "GET");
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -102,7 +102,7 @@ describe("verify-booking-token route", () => {
         "https://app.example.com/api/verify-booking-token?token=test-token&bookingUid=abc123&userId=42";
       const req = createMockRequest(baseUrl, "GET");
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -118,7 +118,7 @@ describe("verify-booking-token route", () => {
         "https://app.example.com/api/verify-booking-token?action=accept&bookingUid=abc123&userId=42";
       const req = createMockRequest(baseUrl, "GET");
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -134,7 +134,7 @@ describe("verify-booking-token route", () => {
         "https://custom-domain.example.org/api/verify-booking-token?action=reject&token=t&bookingUid=booking-uid&userId=1";
       const req = createMockRequest(baseUrl, "GET");
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -148,7 +148,7 @@ describe("verify-booking-token route", () => {
       const baseUrl = "https://app.example.com/api/verify-booking-token?token=test-token&userId=42";
       const req = createMockRequest(baseUrl, "GET");
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -165,7 +165,7 @@ describe("verify-booking-token route", () => {
         "https://app.example.com/api/verify-booking-token?token=test-token&bookingUid=abc123&userId=42";
       const req = createMockRequest(baseUrl, "POST");
 
-      const res = await POST(req);
+      const res = await POST(req, { params: Promise.resolve({}) });
 
       expect(res.status).toBe(303);
 
@@ -183,7 +183,7 @@ describe("verify-booking-token route", () => {
         "https://self-hosted.company.com/api/verify-booking-token?bookingUid=uid123&token=t&userId=1";
       const req = createMockRequest(baseUrl, "POST");
 
-      const res = await POST(req);
+      const res = await POST(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -208,7 +208,7 @@ describe("verify-booking-token route", () => {
         const baseUrl = `${origin}/api/verify-booking-token?action=reject&token=t&bookingUid=test-uid&userId=1`;
         const req = createMockRequest(baseUrl, "GET");
 
-        const res = await GET(req);
+        const res = await GET(req, { params: Promise.resolve({}) });
         const location = res.headers.get("location");
 
         expect(location).toBeTruthy();

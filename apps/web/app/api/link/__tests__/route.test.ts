@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("app/api/defaultResponderForAppDir", () => ({
   defaultResponderForAppDir:
     (handler: (req: NextRequest) => Promise<Response>) =>
-    (req: NextRequest) =>
+    (req: NextRequest, _context: { params: Promise<Record<string, string>> }) =>
       handler(req),
 }));
 
@@ -96,7 +96,7 @@ describe("link route", () => {
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -110,7 +110,7 @@ describe("link route", () => {
       const baseUrl = "https://custom-domain.company.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -124,7 +124,7 @@ describe("link route", () => {
       const baseUrl = "https://calcom.internal.company.net/api/link?action=reject&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -147,7 +147,7 @@ describe("link route", () => {
         const baseUrl = `${origin}/api/link?action=accept&token=encrypted-token`;
         const req = createMockRequest(baseUrl);
 
-        const res = await GET(req);
+        const res = await GET(req, { params: Promise.resolve({}) });
         const location = res.headers.get("location");
 
         expect(location).toBeTruthy();
@@ -172,7 +172,7 @@ describe("link route", () => {
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
@@ -195,7 +195,7 @@ describe("link route", () => {
       const baseUrl = "https://self-hosted.company.org/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
