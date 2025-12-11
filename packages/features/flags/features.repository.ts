@@ -171,6 +171,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           userId,
           featureId: slug,
         },
+        select: { enabled: true },
       });
 
       // If user has an explicit setting, use it
@@ -332,6 +333,7 @@ export class FeaturesRepository implements IFeaturesRepository {
             featureId,
           },
         },
+        select: { enabled: true },
       });
       if (teamFeature) return teamFeature.enabled;
 
