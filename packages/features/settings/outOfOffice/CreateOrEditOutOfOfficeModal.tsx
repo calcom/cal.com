@@ -164,6 +164,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const watchedTeamUserId = watch("toTeamUserId");
   const watchForUserId = watch("forUserId");
   const watchedDateRange = watch("dateRange");
+  const watchedNotes = watch("notes");
+
+  const hasValidNotes = Boolean(watchedNotes?.trim());
 
   // Fetch user's holiday settings to show warning if OOO dates overlap with holidays
   const { data: holidaySettings } = trpc.viewer.holidays.getUserSettings.useQuery({});
@@ -218,8 +221,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             if (!data.dateRange.endDate) {
               showToast(t("end_date_not_selected"), "error");
             } else {
+              const trimmedNotes = data.notes?.trim() || undefined;
+              const showNotePublicly = trimmedNotes ? data.showNotePublicly : false;
+
               createOrEditOutOfOfficeEntry.mutate({
                 ...data,
+                notes: trimmedNotes,
+                showNotePublicly,
                 startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
                 endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
               });
@@ -388,7 +396,12 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 placeholder={t("additional_notes")}
                 {...register("notes")}
                 onChange={(e) => {
-                  setValue("notes", e?.target.value);
+                  const newValue = e?.target.value;
+                  setValue("notes", newValue);
+                  // Reset showNotePublicly if notes becomes empty/whitespace
+                  if (!newValue?.trim()) {
+                    setValue("showNotePublicly", false);
+                  }
                 }}
               />
               <Controller
@@ -401,8 +414,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       data-testid="show-note-publicly-checkbox"
                       checked={value ?? false}
                       onCheckedChange={onChange}
+                      disabled={!hasValidNotes}
                     />
-                    <label htmlFor="show-note-publicly" className="text-emphasis ml-2 cursor-pointer text-sm">
+                    <label
+                      htmlFor="show-note-publicly"
+                      className={`ml-2 text-sm ${
+                        hasValidNotes ? "text-emphasis cursor-pointer" : "text-muted cursor-not-allowed"
+                      }`}>
                       {t("show_note_publicly_description")}
                     </label>
                   </div>
