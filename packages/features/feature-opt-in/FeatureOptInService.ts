@@ -1,7 +1,6 @@
 import type { AppFlags } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import type { IFeatureOptInRepository } from "./FeatureOptInRepositoryInterface";
 import { OPT_IN_FEATURES } from "./config";
 import type { FeatureState } from "./types";
 
@@ -36,10 +35,7 @@ function computeEffectiveState(globalEnabled: boolean, teamState: FeatureState, 
  * Computes effective states based on global, team, and user settings.
  */
 export class FeatureOptInService {
-  constructor(
-    private featureOptInRepository: IFeatureOptInRepository,
-    private featuresRepository: FeaturesRepository
-  ) {}
+  constructor(private featuresRepository: FeaturesRepository) {}
 
   /**
    * Get feature status for a user including effective state computation.
@@ -65,13 +61,13 @@ export class FeatureOptInService {
     const globalEnabled = globalFeature?.enabled ?? false;
 
     // Get user state
-    const userRow = await this.featureOptInRepository.getUserFeatureState({ userId, featureId });
+    const userRow = await this.featuresRepository.getUserFeatureState({ userId, featureId });
     const userState = toFeatureState(userRow);
 
     // Get team state
     let teamRow: { enabled: boolean } | null = null;
     if (teamId !== null) {
-      teamRow = await this.featureOptInRepository.getTeamFeatureState({ teamId, featureId });
+      teamRow = await this.featuresRepository.getTeamFeatureState({ teamId, featureId });
     }
     const teamState = toFeatureState(teamRow);
     const effectiveEnabled = computeEffectiveState(globalEnabled, userState, teamState);
@@ -112,12 +108,16 @@ export class FeatureOptInService {
     const globalEnabled = globalFeature?.enabled ?? false;
 
     // Get team state
-    const teamRow = await this.featureOptInRepository.getTeamFeatureState({ teamId, featureId });
+    const teamRow = await this.featuresRepository.getTeamFeatureState({ teamId, featureId });
     const teamState = toFeatureState(teamRow);
+
+    // Compute effective enabled: global must be enabled and team must be explicitly enabled
+    const effectiveEnabled = globalEnabled && teamState === "enabled";
 
     return {
       globalEnabled,
       teamState,
+      effectiveEnabled,
     };
   }
 
@@ -131,5 +131,43 @@ export class FeatureOptInService {
         OPT_IN_FEATURES.map((config) => this.getFeatureStatusForTeam({ teamId, featureId: config.slug }))
       )
     ).filter((item) => item.globalEnabled);
+  }
+
+  /**
+   * Set user's feature state.
+   * Delegates to FeaturesRepository.updateFeatureForUser.
+   */
+  async setUserFeatureState(input: {
+    userId: number;
+    featureId: string;
+    state: FeatureState;
+    assignedBy: number;
+  }) {
+    const { userId, featureId, state, assignedBy } = input;
+    await this.featuresRepository.updateFeatureForUser(
+      userId,
+      featureId as keyof AppFlags,
+      state,
+      String(assignedBy)
+    );
+  }
+
+  /**
+   * Set team's feature state.
+   * Delegates to FeaturesRepository.updateFeatureForTeam.
+   */
+  async setTeamFeatureState(input: {
+    teamId: number;
+    featureId: string;
+    state: FeatureState;
+    assignedBy: number;
+  }) {
+    const { teamId, featureId, state, assignedBy } = input;
+    await this.featuresRepository.updateFeatureForTeam(
+      teamId,
+      featureId as keyof AppFlags,
+      state,
+      String(assignedBy)
+    );
   }
 }
