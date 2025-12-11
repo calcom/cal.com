@@ -277,6 +277,8 @@ export class FeaturesRepository implements IFeaturesRepository {
     }
   }
 
+  // TODO: implement updateFeatureForUser
+
   /**
    * Updates a feature status for a specific team.
    * Uses tri-state semantics: creates/updates a row with enabled=true.
