@@ -15,8 +15,10 @@ import {
   routedToPerPeriodCsvInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -30,148 +32,6 @@ const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
   isAll: z.boolean().optional(),
 });
-
-type BuildBaseWhereConditionCtxType = {
-  userIsOwnerAdminOfParentTeam: boolean;
-  userOrganizationId: number | null;
-  insightsDb: PrismaClient;
-};
-
-interface BuildBaseWhereConditionType {
-  teamId?: number | null;
-  eventTypeId?: number;
-  memberUserId?: number;
-  userId?: number;
-  isAll?: boolean;
-  ctx: BuildBaseWhereConditionCtxType;
-}
-
-export const buildBaseWhereCondition = async ({
-  teamId,
-  eventTypeId,
-  memberUserId,
-  userId,
-  isAll,
-  ctx,
-}: BuildBaseWhereConditionType): Promise<{
-  whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput;
-}> => {
-  const conditions: Prisma.BookingTimeStatusDenormalizedWhereInput[] = [];
-
-  // EventType Filter
-  if (eventTypeId) {
-    conditions.push({
-      OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
-    });
-  }
-
-  // User/Member filter
-  if (memberUserId) {
-    conditions.push({ userId: memberUserId });
-  }
-
-  if (userId) {
-    conditions.push({
-      teamId: null,
-      userId: userId,
-    });
-  }
-
-  // organization-wide queries condition
-  if (isAll && ctx.userIsOwnerAdminOfParentTeam && ctx.userOrganizationId) {
-    const teamsFromOrg = await ctx.insightsDb.team.findMany({
-      where: {
-        parentId: ctx.userOrganizationId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    const teamIds = [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)];
-    const usersFromOrg =
-      teamsFromOrg.length > 0
-        ? await ctx.insightsDb.membership.findMany({
-            where: {
-              team: {
-                id: {
-                  in: teamIds,
-                },
-              },
-              accepted: true,
-            },
-            select: {
-              userId: true,
-            },
-          })
-        : [];
-
-    conditions.push({
-      OR: [
-        {
-          teamId: {
-            in: teamIds,
-          },
-          isTeamBooking: true,
-        },
-        ...(usersFromOrg.length > 0
-          ? [
-              {
-                userId: {
-                  in: usersFromOrg.map((u) => u.userId),
-                },
-                isTeamBooking: false,
-              },
-            ]
-          : []),
-      ],
-    });
-  }
-
-  // Team-specific queries condition
-  if (!isAll && teamId) {
-    const usersFromTeam = await ctx.insightsDb.membership.findMany({
-      where: {
-        teamId: teamId,
-        accepted: true,
-      },
-      select: {
-        userId: true,
-      },
-    });
-    const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
-
-    conditions.push({
-      OR: [
-        {
-          teamId,
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: userIdsFromTeam,
-          },
-          isTeamBooking: false,
-        },
-      ],
-    });
-  }
-
-  let whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput = {};
-
-  if (conditions.length === 1) {
-    whereCondition = conditions[0];
-  } else if (conditions.length > 1) {
-    whereCondition = { AND: conditions };
-  }
-
-  return {
-    whereCondition:
-      Object.keys(whereCondition).length === 0
-        ? { id: -1 } // Ensure no data is returned for invalid parameters
-        : whereCondition,
-  };
-};
 
 const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRawInput }) => {
   const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
@@ -213,17 +73,8 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
       }
     }
 
-    const membershipOrg = await ctx.insightsDb.membership.findFirst({
-      where: {
-        userId: ctx.user.id,
-        teamId: ctx.user.organizationId,
-        accepted: true,
-        role: {
-          in: ["OWNER", "ADMIN"],
-        },
-      },
-    });
-    if (!membershipOrg) {
+    const hasOrgAccess = await checkInsightsPermission(ctx.user.id, ctx.user.organizationId);
+    if (!hasOrgAccess) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     isOwnerAdminOfParentTeam = true;
@@ -246,6 +97,16 @@ const userSelect = {
   username: true,
   avatarUrl: true,
 };
+
+async function checkInsightsPermission(userId: number, teamId: number): Promise<boolean> {
+  const permissionCheckService = new PermissionCheckService();
+  return await permissionCheckService.checkPermission({
+    userId,
+    teamId,
+    permission: "insights.read",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+}
 
 const emptyResponseBookingKPIStats = {
   empty: true,
@@ -651,7 +512,21 @@ export const insightsRouter = router({
       return result;
     }
 
-    // Look if user it's admin/owner in multiple teams
+    // Get all team IDs where user has insights.read permission in a single optimized query
+    // This properly handles both PBAC permissions and traditional role-based access
+    const permissionCheckService = new PermissionCheckService();
+    const teamIdsWithAccess = await permissionCheckService.getTeamIdsWithPermission({
+      userId: user.id,
+      permission: "insights.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+
+    if (teamIdsWithAccess.length === 0) {
+      return [];
+    }
+
+    // Fetch only teams where user has both membership AND insights access
+    // This avoids fetching unnecessary team data by filtering at the database level
     const belongsToTeams = await ctx.insightsDb.membership.findMany({
       where: {
         team: {
@@ -659,14 +534,7 @@ export const insightsRouter = router({
         },
         accepted: true,
         userId: user.id,
-        OR: [
-          {
-            role: "ADMIN",
-          },
-          {
-            role: "OWNER",
-          },
-        ],
+        teamId: { in: teamIdsWithAccess },
       },
       include: {
         team: {
@@ -681,13 +549,7 @@ export const insightsRouter = router({
       },
     });
 
-    if (belongsToTeams.length === 0) {
-      return [];
-    }
-
-    const result: IResultTeamList[] = belongsToTeams.map((membership) => {
-      return { ...membership.team };
-    });
+    const result: IResultTeamList[] = belongsToTeams.map((membership) => ({ ...membership.team }));
 
     return result;
   }),

@@ -1,6 +1,6 @@
- 
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -107,10 +107,14 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...(typeof resultBooking.metadata === "object" && resultBooking.metadata),
       ...reqBodyMetadata,
     };
+    // For seated events, use the phone number from the specific attendee being added
+    const attendeePhoneNumber = invitee[0]?.phoneNumber || smsReminderNumber || null;
     try {
+      const creditService = new CreditService();
+
       await WorkflowService.scheduleWorkflowsForNewBooking({
         workflows: workflows,
-        smsReminderNumber: smsReminderNumber || null,
+        smsReminderNumber: attendeePhoneNumber,
         calendarEvent: {
           ...evt,
           uid: seatedBooking.uid,
@@ -130,6 +134,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isConfirmedByDefault: !evt.requiresConfirmation,
         isRescheduleEvent: !!rescheduleUid,
         isNormalBookingOrFirstRecurringSlot: true,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
@@ -151,7 +156,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       metadata,
       eventTypeId,
       status: "ACCEPTED",
-      smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
+      smsReminderNumber: attendeePhoneNumber || undefined,
       rescheduledBy,
     };
 
