@@ -40,7 +40,10 @@ export class BusyTimesService {
     rescheduleUid?: string | null;
     duration?: number | null;
     currentBookings?:
-      | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+      | (Pick<
+          Booking,
+          "id" | "uid" | "userId" | "startTime" | "endTime" | "title" | "status" | "rescheduled"
+        > & {
           eventType: Pick<
             EventType,
             "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"

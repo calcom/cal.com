@@ -578,12 +578,32 @@ export class BookingRepository {
     seatedEvent?: boolean;
     userIdAndEmailMap: Map<number, string>;
   }) {
+    // For individual (non-seated) events, we need to block former slots when rescheduling
+    // This means including CANCELLED bookings that have rescheduled=true
+    const statusFilter = seatedEvent
+      ? {
+          status: {
+            in: [BookingStatus.ACCEPTED],
+          },
+        }
+      : {
+          OR: [
+            {
+              status: {
+                in: [BookingStatus.ACCEPTED],
+              },
+            },
+            {
+              status: BookingStatus.CANCELLED,
+              rescheduled: true,
+            },
+          ],
+        };
+
     const sharedQuery = {
       startTime: { lte: endDate },
       endTime: { gte: startDate },
-      status: {
-        in: [BookingStatus.ACCEPTED],
-      },
+      ...statusFilter,
     };
 
     const bookingsSelect = {
@@ -593,6 +613,8 @@ export class BookingRepository {
       startTime: true,
       endTime: true,
       title: true,
+      status: true,
+      rescheduled: true,
       attendees: true,
       eventType: {
         select: {
