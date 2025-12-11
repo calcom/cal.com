@@ -9,23 +9,34 @@ export interface IntegrationAttributeSync {
   integration: AttributeSyncIntegrations;
   credentialId?: number;
   enabled: boolean;
-  attributeSyncRules: AttributeSyncUserRule[];
+  attributeSyncRules: AttributeSyncRule[];
+  syncFieldMappings: AttributeSyncFieldMapping[];
 }
 
-export interface AttributeSyncUserRule {
+export interface AttributeSyncRule {
   id: string;
   rule: IAttributeSyncRule;
-  syncFieldMappings: AttributeSyncFieldMapping[];
 }
 
 export interface AttributeSyncFieldMapping {
   id: string;
   integrationFieldName: string;
-  attributeId: number;
-
+  attributeId: string;
   enabled: boolean;
 }
 
 export interface IIntegrationAttributeSyncRepository {
-  getIntegrationAttributeSyncs(organizationId: number): Promise<IntegrationAttributeSync[]>;
+  getByOrganizationId(organizationId: number): IntegrationAttributeSync[];
+  getById(id: string): IntegrationAttributeSync;
+  getSyncFieldMappings(integrationAttributeSyncId: string): Promise<AttributeSyncFieldMapping[]>;
+  updateTransactionWithRuleAndMappings(
+    params: IIntegrationAttributeSyncUpdateParams
+  ): Promise<IntegrationAttributeSync>;
+  delete(id: string): Promise<void>;
+}
+
+export interface IIntegrationAttributeSyncUpdateParams {
+  integrationAttributeSync: IntegrationAttributeSync;
+  attributeSyncRule: AttributeSyncRule;
+  syncFieldMappings: AttributeSyncFieldMapping;
 }
