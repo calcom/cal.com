@@ -1,4 +1,3 @@
-import { formatInTimeZone } from "date-fns-tz";
 import { NonRetriableError } from "inngest";
 import type { createStepTools } from "inngest/components/InngestStepTools";
 import type { Logger } from "inngest/middleware/logger";
@@ -43,7 +42,7 @@ export const exportHandler = async ({ ctx, input }: ExportOptions) => {
   const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
 
   await inngestClient.send({
-    name: `export-bookings-${key}`,
+    name: `core/export-bookings-${key}`,
     data: {
       user: { id, name, email, timeFormat, timeZone },
       filters: input.filters,

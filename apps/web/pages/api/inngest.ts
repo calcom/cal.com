@@ -1,6 +1,7 @@
 import { Inngest } from "inngest";
 import { serve } from "inngest/next";
 
+import { appRevokedHandler, paymentLinkPaidHandler } from "@calcom/app-store/razorpay/lib/webhookHandlers";
 import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import { handleBookingExportEvent } from "@calcom/trpc/server/routers/viewer/bookings/export.handler";
@@ -50,8 +51,8 @@ const handleCalendlyImportFn = inngestClient.createFunction(
 );
 
 const handleBookingExportFn = inngestClient.createFunction(
-  { id: `export-bookings-${key}`, retries: 2 },
-  { event: `export-bookings-${key}` },
+  { id: `core-export-bookings-${key}`, retries: 2 },
+  { event: `core/export-bookings-${key}` },
   async ({ event, step, logger }) => {
     await handleBookingExportEvent({
       user: event.data.user,
@@ -96,8 +97,36 @@ const handleCancelWhatsappReminder = inngestClient.createFunction(
   cancelWhatsappReminder
 );
 
+const handleRazorpayAppRevoked = inngestClient.createFunction(
+  {
+    id: `razorpay-app-revoked-${key}`,
+    name: "Handle Razorpay App Revoked",
+    retries: 3,
+  },
+  { event: `razorpay/app.revoked-${key}` },
+  appRevokedHandler
+);
+// Inngest function for handling PAYMENT_LINK_PAID event
+const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
+  {
+    id: `razorpay-payment-link-paid-${key}`,
+    name: "Handle Razorpay Payment Link Paid",
+    retries: 3,
+  },
+  { event: `razorpay/payment-link.paid-${key}` },
+  paymentLinkPaidHandler
+);
+
 export default serve({
   client: inngestClient,
-  functions: [ handleCalendlyImportFn, handleBookingExportFn, handleWhatsAppTemplateSyncFn, handleWhatsappReminderScheduled, handleCancelWhatsappReminder],
+  functions: [
+    handleCalendlyImportFn,
+    handleBookingExportFn,
+    handleWhatsAppTemplateSyncFn,
+    handleWhatsappReminderScheduled,
+    handleCancelWhatsappReminder,
+    handleRazorpayPaymentLinkPaid,
+    handleRazorpayAppRevoked,
+  ],
   signingKey: process.env.INNGEST_SIGNING_KEY || "",
 });

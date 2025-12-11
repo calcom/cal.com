@@ -1,17 +1,13 @@
-import type { Prisma } from "@prisma/client";
+// packages/app-store/razorpay/api/webhook.ts
 import { buffer } from "micro";
-//WEBHOOK EVENTS ASSOCIATED EXAMPLE PAYLOADS : https://razorpay.com/docs/webhooks/payloads/payments/
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { default as Razorpay, WebhookEvents } from "@calcom/app-store/razorpay/lib/Razorpay";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { IS_PRODUCTION, INNGEST_ID } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
-import { prisma } from "@calcom/prisma";
+import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 export const config = {
   api: {
@@ -21,138 +17,18 @@ export const config = {
 
 const log = logger.getSubLogger({ prefix: [`[razorpay/api/webhook]`] });
 
-async function detachAppFromEvents(where: Prisma.EventTypeWhereInput) {
-  try {
-    //detaching razorpay from eventtypes, if any
-    const eventTypes = await prisma.eventType.findMany({
-      where,
-    });
-
-    // Iterate over each EventType record
-    for (const eventType of eventTypes) {
-      try {
-        const metadata = isPrismaObjOrUndefined(eventType.metadata);
-
-        if (metadata?.apps && isPrismaObjOrUndefined(metadata?.apps)?.razorpay) {
-          delete isPrismaObjOrUndefined(metadata.apps)?.razorpay;
-
-          await prisma.eventType.update({
-            where: {
-              id: eventType.id,
-            },
-            data: {
-              metadata: metadata,
-            },
-          });
-        }
-      } catch (error) {
-        log.error(`Failed to detach app from event type ${eventType.id}:`, error);
-        // Continue processing other event types
-      }
-    }
-  } catch (error) {
-    log.error("Failed to fetch event types:", error);
-    throw error;
-  }
-}
-
-async function handleAppRevoked(accountId: string) {
-  const credential = await prisma.credential.findFirst({
-    where: {
-      key: {
-        path: ["account_id"],
-        equals: accountId,
-      },
-      appId: "razorpay",
-    },
-  });
-
-  if (!credential) {
-    log.warn(`No credentials found for account_id: ${accountId}`);
-    // Safe to return - credential might already be deleted
-    return;
-  }
-
-  const userId = credential.userId;
-  const calIdTeamId = credential.calIdTeamId;
-
-  // Detach app from user events - non-critical, continue on failure
-  if (userId) {
-    try {
-      await detachAppFromEvents({
-        metadata: {
-          not: undefined,
-        },
-        userId: userId,
-      });
-    } catch (error) {
-      log.error(`Failed to detach app from user ${userId} events:`, error);
-      // Continue with credential deletion
-    }
-  }
-
-  // Detach app from team events - non-critical, continue on failure
-  if (calIdTeamId) {
-    try {
-      await detachAppFromEvents({
-        metadata: {
-          not: undefined,
-        },
-        calIdTeamId,
-      });
-    } catch (error) {
-      log.error(`Failed to detach app from team ${calIdTeamId} events:`, error);
-      // Continue with credential deletion
-    }
-  }
-
-  // Critical: credential deletion - throw on failure
-  await prisma.credential.delete({
-    where: {
-      id: credential.id,
-    },
-  });
-  log.info(`Successfully deleted credential for account_id: ${accountId}`);
-}
-
-async function handlePaymentLinkPaid({
-  paymentId,
-  paymentLinkId,
-}: {
-  paymentId?: string;
-  paymentLinkId?: string;
-}) {
-  if (!paymentId || !paymentLinkId) {
-    log.warn("Missing paymentId or paymentLinkId in payment link paid event");
-    // Safe to return - malformed webhook data from Razorpay
-    return;
-  }
-
-  const payment = await prisma.payment.findUnique({
-    where: { externalId: paymentLinkId },
-    select: { id: true, bookingId: true, success: true },
-  });
-
-  if (!payment) {
-    log.warn(`Payment not found for paymentLinkId: ${paymentLinkId}`);
-    // Safe to return - payment could have been raised from a different source other than Cal ID
-    return;
-  }
-
-  if (!payment.success) {
-    // Critical: payment processing - throw on failure for retry
-    await handlePaymentSuccess(payment.id, payment.bookingId, { paymentId });
-    log.info(`Successfully processed payment: ${paymentId}`);
-  } else {
-    log.info(`Payment ${paymentId} already marked as successful`);
-  }
-}
+const verifyWebhookSchema = z
+  .object({
+    body: z.string().min(1),
+    signature: z.string().min(1),
+  })
+  .passthrough();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    log.info("Received webhook event");
+    log.info("Received Razorpay webhook event");
 
-    // Safe to return 200 - wrong method
+    // Validate method
     if (req.method !== "POST") {
       log.warn(`Invalid method: ${req.method}`);
       return res.status(200).json({
@@ -161,13 +37,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Parse raw body - critical, but can happen due to network issues
+    // Parse raw body
     let rawBody: string;
     try {
       rawBody = (await buffer(req)).toString("utf8");
     } catch (error) {
       log.error("Failed to parse request body:", error);
-      // Safe to return 200 - likely a malformed request
       return res.status(200).json({
         received: true,
         message: "Failed to parse body",
@@ -184,20 +59,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!parsedVerifyWebhook.success) {
       log.error("Razorpay webhook malformed:", parsedVerifyWebhook.error);
-      // Safe to return 200 - invalid payload structure
       return res.status(200).json({
         received: true,
         message: "Malformed webhook data",
       });
     }
 
-    // Verify webhook signature - critical security check
+    // Verify webhook signature - CRITICAL security check
     let isValid: boolean;
     try {
       isValid = Razorpay.verifyWebhook(parsedVerifyWebhook.data);
     } catch (error) {
       log.error("Failed to verify webhook signature:", error);
-      // Throw error - signature verification failure is critical
       return res.status(200).json({
         received: true,
         message: "Signature verification failed",
@@ -206,7 +79,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!isValid) {
       log.error("Razorpay webhook signature mismatch");
-      // Throw error - invalid signature is a security issue
       return res.status(200).json({
         received: true,
         message: "Invalid signature",
@@ -219,7 +91,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       parsedBody = JSON.parse(rawBody);
     } catch (error) {
       log.error("Failed to parse JSON body:", error);
-      // Safe to return 200 - malformed JSON from Razorpay
       return res.status(200).json({
         received: true,
         message: "Invalid JSON",
@@ -230,68 +101,91 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!event) {
       log.warn("No event type in webhook payload");
-      // Safe to return 200 - missing event type in payload
       return res.status(200).json({
         received: true,
         message: "No event to process",
       });
     }
 
-    log.info(`Processing webhook event: ${event}`);
+    log.info(`Received webhook event: ${event}`);
 
-    // Handle different event types
-    switch (event) {
-      case WebhookEvents.APP_REVOKED:
-        if (!account_id) {
-          log.warn("APP_REVOKED event missing account_id");
-          // Safe to return 200 - invalid event data
+    // Send event to Inngest for async processing
+    try {
+      const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
+
+      switch (event) {
+        case WebhookEvents.APP_REVOKED:
+          if (!account_id) {
+            log.warn("APP_REVOKED event missing account_id");
+            return res.status(200).json({
+              received: true,
+              message: "Missing account_id",
+            });
+          }
+
+          await inngestClient.send({
+            name: `razorpay/app.revoked-${key}`,
+            data: {
+              accountId: account_id,
+              rawEvent: parsedBody,
+            },
+          });
+
+          log.info(`Sent APP_REVOKED event to Inngest for account: ${account_id}`);
+          break;
+
+        case WebhookEvents.PAYMENT_LINK_PAID:
+          const paymentId = parsedBody.payload?.payment?.entity?.id;
+          const paymentLinkId = parsedBody.payload?.payment_link?.entity?.id;
+
+          if (!paymentId || !paymentLinkId) {
+            log.warn("PAYMENT_LINK_PAID event missing required data");
+            return res.status(200).json({
+              received: true,
+              message: "Missing payment data",
+            });
+          }
+
+          await inngestClient.send({
+            name: `razorpay/payment-link.paid-${key}`,
+            data: {
+              paymentId,
+              paymentLinkId,
+              rawEvent: parsedBody,
+            },
+          });
+
+          log.info(`Sent PAYMENT_LINK_PAID event to Inngest: ${paymentId}`);
+          break;
+
+        default:
+          log.info(`Unhandled webhook event type: ${event}`);
           return res.status(200).json({
             received: true,
-            message: "Missing account_id",
+            message: "Event type not handled",
           });
-        }
-        await handleAppRevoked(account_id);
-        break;
+      }
 
-      case WebhookEvents.PAYMENT_LINK_PAID:
-        await handlePaymentLinkPaid({
-          paymentId: parsedBody.payload?.payment?.entity?.id,
-          paymentLinkId: parsedBody.payload?.payment_link?.entity?.id,
-        });
-        break;
-
-      default:
-        log.info(`Unhandled webhook event type: ${event}`);
-        // Safe to return 200 - unknown event types are normal
-        return res.status(200).json({
-          received: true,
-          message: "Event type not handled",
-        });
+      // Immediate success response - event queued for processing
+      return res.status(200).json({
+        received: true,
+        message: "Webhook received and queued for processing",
+      });
+    } catch (inngestError) {
+      // If Inngest send fails, log but still acknowledge webhook
+      log.error("Failed to send event to Inngest:", inngestError);
+      return res.status(200).json({
+        received: true,
+        message: "Webhook received but queuing failed",
+      });
     }
-
-    // Success response
-    log.info(`Successfully processed webhook event: ${event}`);
-    return res.status(200).json({
-      received: true,
-      message: "Webhook processed successfully",
-    });
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Webhook Error: ${err.message}`, {
       stack: err.stack,
     });
 
-    // Determine if error is safe to acknowledge or needs retry
-    if (err instanceof HttpCode) {
-      // Security/validation errors - return error status for Razorpay to stop retrying
-      return res.status(err.statusCode).json({
-        message: err.message,
-        stack: IS_PRODUCTION ? undefined : err.stack,
-      });
-    }
-
-    // Database/processing errors - return 200 to prevent webhook disabling
-    // These need manual investigation but shouldn't disable the webhook
+    // Always return 200 to prevent webhook disabling
     return res.status(200).json({
       received: true,
       message: "Webhook received but processing failed",
@@ -299,10 +193,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
-
-const verifyWebhookSchema = z
-  .object({
-    body: z.string().min(1),
-    signature: z.string().min(1),
-  })
-  .passthrough();
