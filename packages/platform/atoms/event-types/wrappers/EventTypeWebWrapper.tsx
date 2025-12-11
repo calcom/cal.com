@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -321,32 +321,6 @@ const EventTypeWeb = ({
     },
   });
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const Components = [
-        EventSetupTab,
-        EventAvailabilityTab,
-        EventTeamAssignmentTab,
-        EventLimitsTab,
-        EventAdvancedTab,
-        EventInstantTab,
-        EventRecurringTab,
-        EventAppsTab,
-        EventWorkflowsTab,
-        EventWebhooksTab,
-      ];
-
-      Components.forEach((C) => {
-        // how to preload with app dir?
-        // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
-        C.render?.preload();
-      });
-    }, 300);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, []);
 
   const onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
