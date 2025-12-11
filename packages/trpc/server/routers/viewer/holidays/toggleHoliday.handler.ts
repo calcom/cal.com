@@ -26,7 +26,7 @@ export async function toggleHolidayHandler({ ctx, input }: ToggleHolidayOptions)
     return await holidayService.toggleHoliday(ctx.user.id, input.holidayId, input.enabled);
   } catch (error) {
     throw new TRPCError({
-      code: "BAD_REQUEST",
+      code: "INTERNAL_SERVER_ERROR",
       message: error instanceof Error ? error.message : "Failed to toggle holiday",
     });
   }
