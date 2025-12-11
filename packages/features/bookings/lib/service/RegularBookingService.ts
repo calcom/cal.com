@@ -579,6 +579,7 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
+    rrHostSubsetIds,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -829,6 +830,7 @@ async function handler(
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
     routingFormResponse,
+    rrHostSubsetIds: rrHostSubsetIds ?? undefined,
   });
 
   // We filter out users but ensure allHostUsers remain same.
@@ -2001,7 +2003,7 @@ async function handler(
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    evt.description = eventType.description ?? evt.description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;

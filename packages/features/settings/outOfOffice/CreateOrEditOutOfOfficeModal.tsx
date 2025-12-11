@@ -15,7 +15,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
+import { DateRangePicker, TextArea, Input, Checkbox } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
@@ -30,6 +30,7 @@ export type BookingRedirectForm = {
   toTeamUserId: number | null;
   reasonId: number;
   notes?: string;
+  showNotePublicly?: boolean;
   uuid?: string | null;
   forUserId: number | null;
   forUserName?: string;
@@ -156,6 +157,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           toTeamUserId: null,
           reasonId: 1,
           forUserId: null,
+          showNotePublicly: false,
         },
   });
 
@@ -200,7 +202,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   return (
     <Dialog
       open={openModal}
-      modal={false}
       onOpenChange={(open) => {
         if (!open) {
           closeModal();
@@ -208,7 +209,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       }}>
       <DialogContent
         enableOverflow
-        preventCloseOnOutsideClick
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
@@ -381,15 +381,32 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
             {/* Notes input */}
             <div className="mt-4">
-              <p className="text-emphasis block text-sm font-medium">{t("notes")}</p>
+              <p className="text-emphasis text-sm font-medium">{t("notes")}</p>
               <TextArea
                 data-testid="notes_input"
-                className="border-subtle mt-1 h-10 w-full rounded-lg border px-2"
+                className="border-subtle mt-2 h-10 w-full rounded-lg border px-2"
                 placeholder={t("additional_notes")}
                 {...register("notes")}
                 onChange={(e) => {
                   setValue("notes", e?.target.value);
                 }}
+              />
+              <Controller
+                control={control}
+                name="showNotePublicly"
+                render={({ field: { value, onChange } }) => (
+                  <div className="mt-2 flex items-center">
+                    <Checkbox
+                      id="show-note-publicly"
+                      data-testid="show-note-publicly-checkbox"
+                      checked={value ?? false}
+                      onCheckedChange={onChange}
+                    />
+                    <label htmlFor="show-note-publicly" className="text-emphasis ml-2 cursor-pointer text-sm">
+                      {t("show_note_publicly_description")}
+                    </label>
+                  </div>
+                )}
               />
             </div>
 
@@ -425,7 +442,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onChange={(e) => setSearchRedirectMember(e.target.value)}
                       value={searchRedirectMember}
                     />
-                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-2 pl-5">
+                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
                       {redirectToMemberListOptions
                         .filter((member) => member.value !== getValues("forUserId"))
                         .map((member) => (

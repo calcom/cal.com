@@ -13,13 +13,25 @@ interface IOutOfOfficeInSlotsProps {
   toUser?: IOutOfOfficeData["anyDate"]["toUser"];
   emoji?: string;
   reason?: string;
+  notes?: string | null;
+  showNotePublicly?: boolean;
   borderDashed?: boolean;
   className?: string;
 }
 
 export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
   const { t } = useLocale();
-  const { fromUser, toUser, emoji = "🏝️", reason, borderDashed = true, date, className } = props;
+  const {
+    fromUser,
+    toUser,
+    emoji = "🏝️",
+    reason,
+    borderDashed = true,
+    date,
+    className,
+    notes,
+    showNotePublicly,
+  } = props;
   const searchParams = useCompatSearchParams();
 
   const router = useRouter();
@@ -27,10 +39,9 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
   // Check if this is a holiday (no fromUser but has reason)
   const isHoliday = !fromUser && reason;
 
-  // For regular OOO, require both fromUser and toUser
+  // For regular OOO, require fromUser (toUser is optional for redirect)
   // For holidays, we just need the reason
-  if (!isHoliday && (!fromUser || !toUser)) return null;
-
+  if (!isHoliday && !fromUser) return null;
   return (
     <div className={classNames("relative h-full pb-5", className)}>
       <div
@@ -41,7 +52,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
         <div className="bg-emphasis flex h-14 w-14 flex-col items-center justify-center rounded-full">
           <span className="m-auto text-center text-lg">{emoji}</span>
         </div>
-        <div className="stack-y-2 text-center">
+        <div className="stack-y-2 max-h-[300px] w-full overflow-y-auto text-center">
           {isHoliday ? (
             <>
               <p className="mt-2 text-base font-bold">{reason}</p>
@@ -52,6 +63,12 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
               <p className="mt-2 text-base font-bold">
                 {t("ooo_user_is_ooo", { displayName: fromUser?.displayName })}
               </p>
+
+              {notes && showNotePublicly && (
+                <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm italic">
+                  {notes}
+                </p>
+              )}
 
               {fromUser?.displayName && toUser?.displayName && (
                 <p className="text-center text-sm">
