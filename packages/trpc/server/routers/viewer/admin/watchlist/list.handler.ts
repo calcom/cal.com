@@ -20,5 +20,3 @@ export const listWatchlistEntriesHandler = async ({ input }: ListWatchlistEntrie
     filters: input.filters,
   });
 };
-
-export default listWatchlistEntriesHandler;

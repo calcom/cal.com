@@ -47,5 +47,3 @@ export const dismissReportHandler = async ({ input }: DismissReportOptions) => {
     });
   }
 };
-
-export default dismissReportHandler;

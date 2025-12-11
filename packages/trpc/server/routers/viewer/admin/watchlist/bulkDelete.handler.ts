@@ -47,5 +47,3 @@ export const bulkDeleteWatchlistEntriesHandler = async ({
     });
   }
 };
-
-export default bulkDeleteWatchlistEntriesHandler;

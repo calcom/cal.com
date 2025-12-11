@@ -52,5 +52,3 @@ export const deleteWatchlistEntryHandler = async ({ ctx, input }: DeleteWatchlis
     });
   }
 };
-
-export default deleteWatchlistEntryHandler;

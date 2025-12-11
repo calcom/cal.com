@@ -62,5 +62,3 @@ export const createWatchlistEntryHandler = async ({ ctx, input }: CreateWatchlis
     throw error;
   }
 };
-
-export default createWatchlistEntryHandler;

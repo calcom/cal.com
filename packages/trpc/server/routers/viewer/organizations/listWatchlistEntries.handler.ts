@@ -58,5 +58,3 @@ export const listWatchlistEntriesHandler = async ({ ctx, input }: ListWatchlistE
     });
   }
 };
-
-export default listWatchlistEntriesHandler;

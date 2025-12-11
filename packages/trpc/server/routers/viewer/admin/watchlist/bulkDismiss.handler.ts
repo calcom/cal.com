@@ -42,5 +42,3 @@ export const bulkDismissReportsHandler = async ({ input }: BulkDismissReportsOpt
     });
   }
 };
-
-export default bulkDismissReportsHandler;

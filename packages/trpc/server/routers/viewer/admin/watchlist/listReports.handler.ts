@@ -20,5 +20,3 @@ export const listReportsHandler = async ({ input }: ListReportsOptions) => {
     filters: input.filters,
   });
 };
-
-export default listReportsHandler;

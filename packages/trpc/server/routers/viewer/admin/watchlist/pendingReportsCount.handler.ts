@@ -4,5 +4,3 @@ export const pendingReportsCountHandler = async () => {
   const service = getAdminWatchlistQueryService();
   return await service.getPendingReportsCount();
 };
-
-export default pendingReportsCountHandler;

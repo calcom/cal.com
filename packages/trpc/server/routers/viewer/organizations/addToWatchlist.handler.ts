@@ -66,5 +66,3 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
     throw error;
   }
 };
-
-export default addToWatchlistHandler;

@@ -60,5 +60,3 @@ export const getWatchlistEntryDetailsHandler = async ({ ctx, input }: GetWatchli
     });
   }
 };
-
-export default getWatchlistEntryDetailsHandler;
