@@ -16,13 +16,126 @@ import {
 import type {
   bookingRepositoryBaseInputSchema,
   routingRepositoryBaseInputSchema,
+  insightsRoutingServiceInputSchema,
+  insightsRoutingServicePaginatedInputSchema,
+  routedToPerPeriodInputSchema,
+  routedToPerPeriodCsvInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { RoutingEventsInsights } from "@calcom/features/insights/server/routing-events";
 import { getEventTypeList } from "@calcom/features/insights/server/utils";
 import { VirtualQueuesInsights } from "@calcom/features/insights/server/virtual-queues";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
+
+import type { TrpcSessionUser } from "../../../types";
+
+// Type definitions for handler options
+type InsightsUser = NonNullable<TrpcSessionUser> & {
+  isOwnerAdminOfParentTeam?: boolean;
+  weekStart: string;
+  timeZone: string;
+};
+
+type InsightsContext = {
+  user: InsightsUser;
+  prisma: PrismaClient;
+  insightsDb: PrismaClient;
+};
+
+type BookingBaseOptions = {
+  ctx: InsightsContext;
+  input: z.infer<typeof bookingRepositoryBaseInputSchema>;
+};
+
+type RoutingBaseOptions = {
+  ctx: InsightsContext;
+  input: z.infer<typeof routingRepositoryBaseInputSchema>;
+};
+
+type RoutingServiceOptions = {
+  ctx: InsightsContext;
+  input: z.infer<typeof insightsRoutingServiceInputSchema>;
+};
+
+type RoutingServicePaginatedOptions = {
+  ctx: InsightsContext;
+  input: z.infer<typeof insightsRoutingServicePaginatedInputSchema>;
+};
+
+type RoutedToPerPeriodOptions = {
+  ctx: InsightsContext;
+  input: z.infer<typeof routedToPerPeriodInputSchema>;
+};
+
+type RoutedToPerPeriodCsvOptions = {
+  ctx: InsightsContext;
+  input: z.infer<typeof routedToPerPeriodCsvInputSchema>;
+};
+
+type TeamListForUserOptions = {
+  ctx: InsightsContext;
+};
+
+type UserListOptions = {
+  ctx: InsightsContext;
+  input: {
+    teamId?: number;
+    isAll: boolean | null;
+  };
+};
+
+type EventTypeListOptions = {
+  ctx: InsightsContext;
+  input: {
+    teamId?: number | null;
+    userId?: number | null;
+    isAll?: boolean;
+  };
+};
+
+type GetRoutingFormsForFiltersOptions = {
+  ctx: InsightsContext;
+  input: {
+    userId?: number;
+    teamId?: number;
+    isAll: boolean;
+  };
+};
+
+type GetRoutingFormFieldOptions = {
+  ctx: InsightsContext;
+  input: {
+    userId?: number;
+    teamId?: number;
+    isAll: boolean;
+    routingFormId?: string;
+  };
+};
+
+type RoutingFormResponsesHeadersOptions = {
+  ctx: InsightsContext;
+  input: {
+    userId?: number;
+    teamId?: number | null;
+    isAll: boolean;
+    routingFormId?: string | null;
+  };
+};
+
+type GetUserRelevantTeamRoutingFormsOptions = {
+  ctx: InsightsContext;
+};
+
+type RawDataOptions = {
+  ctx: InsightsContext;
+  input: z.infer<typeof bookingRepositoryBaseInputSchema> & {
+    limit?: number;
+    offset?: number;
+  };
+};
 
 const userSelect = {
   id: true,
@@ -113,7 +226,7 @@ function createInsightsRoutingService(
 }
 
 // Handler implementations
-export const bookingKPIStatsHandler = async ({ ctx, input }: any) => {
+export const bookingKPIStatsHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const currentPeriodService = createInsightsBookingService(ctx, input);
 
   // Get current period stats
@@ -208,7 +321,7 @@ export const bookingKPIStatsHandler = async ({ ctx, input }: any) => {
   };
 };
 
-export const eventTrendsHandler = async ({ ctx, input }: any) => {
+export const eventTrendsHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const { columnFilters, timeZone } = input;
   const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
 
@@ -233,7 +346,7 @@ export const eventTrendsHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const popularEventsHandler = async ({ input, ctx }: any) => {
+export const popularEventsHandler = async ({ input, ctx }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
   try {
@@ -243,7 +356,7 @@ export const popularEventsHandler = async ({ input, ctx }: any) => {
   }
 };
 
-export const averageEventDurationHandler = async ({ ctx, input }: any) => {
+export const averageEventDurationHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const { columnFilters, timeZone } = input;
   const { startDate, endDate, dateTarget } = extractDateRangeFromColumnFilters(columnFilters);
 
@@ -303,7 +416,7 @@ export const averageEventDurationHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const membersWithMostCancelledBookingsHandler = async ({ input, ctx }: any) => {
+export const membersWithMostCancelledBookingsHandler = async ({ input, ctx }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
   try {
@@ -316,7 +429,7 @@ export const membersWithMostCancelledBookingsHandler = async ({ input, ctx }: an
   }
 };
 
-export const membersWithMostCompletedBookingsHandler = async ({ input, ctx }: any) => {
+export const membersWithMostCompletedBookingsHandler = async ({ input, ctx }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
   try {
@@ -330,7 +443,7 @@ export const membersWithMostCompletedBookingsHandler = async ({ input, ctx }: an
   }
 };
 
-export const membersWithLeastCompletedBookingsHandler = async ({ input, ctx }: any) => {
+export const membersWithLeastCompletedBookingsHandler = async ({ input, ctx }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
   try {
@@ -344,7 +457,7 @@ export const membersWithLeastCompletedBookingsHandler = async ({ input, ctx }: a
   }
 };
 
-export const membersWithMostBookingsHandler = async ({ input, ctx }: any) => {
+export const membersWithMostBookingsHandler = async ({ input, ctx }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
   try {
@@ -354,7 +467,7 @@ export const membersWithMostBookingsHandler = async ({ input, ctx }: any) => {
   }
 };
 
-export const membersWithLeastBookingsHandler = async ({ input, ctx }: any) => {
+export const membersWithLeastBookingsHandler = async ({ input, ctx }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
   try {
@@ -364,7 +477,7 @@ export const membersWithLeastBookingsHandler = async ({ input, ctx }: any) => {
   }
 };
 
-export const teamListForUserHandler = async ({ ctx }: any) => {
+export const teamListForUserHandler = async ({ ctx }: TeamListForUserOptions) => {
   const user = ctx.user;
 
   // Fetch user data
@@ -411,9 +524,6 @@ export const teamListForUserHandler = async ({ ctx }: any) => {
 
   // Get all team IDs where user has insights.read permission in a single optimized query
   // This properly handles both PBAC permissions and traditional role-based access
-  const { PermissionCheckService } = await import("@calcom/features/pbac/services/permission-check.service");
-  const { MembershipRole } = await import("@calcom/prisma/enums");
-
   const permissionCheckService = new PermissionCheckService();
   const teamIdsWithAccess = await permissionCheckService.getTeamIdsWithPermission({
     userId: user.id,
@@ -454,7 +564,7 @@ export const teamListForUserHandler = async ({ ctx }: any) => {
   return result;
 };
 
-export const userListHandler = async ({ ctx, input }: any) => {
+export const userListHandler = async ({ ctx, input }: UserListOptions) => {
   const user = ctx.user;
   const { teamId, isAll } = input;
 
@@ -516,7 +626,7 @@ export const userListHandler = async ({ ctx, input }: any) => {
   return usersInTeam.map((membership) => membership.user);
 };
 
-export const eventTypeListHandler = async ({ ctx, input }: any) => {
+export const eventTypeListHandler = async ({ ctx, input }: EventTypeListOptions) => {
   const { prisma, user } = ctx;
   const { teamId, userId, isAll } = input;
 
@@ -535,12 +645,12 @@ export const eventTypeListHandler = async ({ ctx, input }: any) => {
   return eventTypeList;
 };
 
-export const recentRatingsHandler = async ({ ctx, input }: any) => {
+export const recentRatingsHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
   return await insightsBookingService.getRecentRatingsStats();
 };
 
-export const membersWithMostNoShowHandler = async ({ input, ctx }: any) => {
+export const membersWithMostNoShowHandler = async ({ input, ctx }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
   try {
@@ -550,17 +660,17 @@ export const membersWithMostNoShowHandler = async ({ input, ctx }: any) => {
   }
 };
 
-export const membersWithHighestRatingsHandler = async ({ ctx, input }: any) => {
+export const membersWithHighestRatingsHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
   return await insightsBookingService.getMembersRatingStats("DESC");
 };
 
-export const membersWithLowestRatingsHandler = async ({ ctx, input }: any) => {
+export const membersWithLowestRatingsHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
   return await insightsBookingService.getMembersRatingStats("ASC");
 };
 
-export const rawDataHandler = async ({ ctx, input }: any) => {
+export const rawDataHandler = async ({ ctx, input }: RawDataOptions) => {
   const { limit, offset, timeZone } = input;
 
   const insightsBookingService = createInsightsBookingService(ctx, input);
@@ -576,7 +686,7 @@ export const rawDataHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const getRoutingFormsForFiltersHandler = async ({ ctx, input }: any) => {
+export const getRoutingFormsForFiltersHandler = async ({ ctx, input }: GetRoutingFormsForFiltersOptions) => {
   const { teamId, isAll } = input;
   return await RoutingEventsInsights.getRoutingFormsForFilters({
     userId: ctx.user.id,
@@ -586,12 +696,12 @@ export const getRoutingFormsForFiltersHandler = async ({ ctx, input }: any) => {
   });
 };
 
-export const routingFormsByStatusHandler = async ({ ctx, input }: any) => {
+export const routingFormsByStatusHandler = async ({ ctx, input }: RoutingServiceOptions) => {
   const insightsRoutingService = createInsightsRoutingService(ctx, input);
   return await insightsRoutingService.getRoutingFormStats();
 };
 
-export const routingFormResponsesHandler = async ({ ctx, input }: any) => {
+export const routingFormResponsesHandler = async ({ ctx, input }: RoutingServicePaginatedOptions) => {
   const insightsRoutingService = createInsightsRoutingService(ctx, input);
   return await insightsRoutingService.getTableData({
     sorting: input.sorting,
@@ -600,7 +710,7 @@ export const routingFormResponsesHandler = async ({ ctx, input }: any) => {
   });
 };
 
-export const routingFormResponsesForDownloadHandler = async ({ ctx, input }: any) => {
+export const routingFormResponsesForDownloadHandler = async ({ ctx, input }: RoutingServicePaginatedOptions) => {
   const headersPromise = RoutingEventsInsights.getRoutingFormHeaders({
     userId: ctx.user.id,
     teamId: input.selectedTeamId,
@@ -625,7 +735,7 @@ export const routingFormResponsesForDownloadHandler = async ({ ctx, input }: any
   });
 };
 
-export const getRoutingFormFieldOptionsHandler = async ({ input, ctx }: any) => {
+export const getRoutingFormFieldOptionsHandler = async ({ input, ctx }: GetRoutingFormFieldOptions) => {
   const options = await RoutingEventsInsights.getRoutingFormFieldOptions({
     ...input,
     userId: ctx.user.id,
@@ -634,7 +744,7 @@ export const getRoutingFormFieldOptionsHandler = async ({ input, ctx }: any) => 
   return options;
 };
 
-export const failedBookingsByFieldHandler = async ({ ctx, input }: any) => {
+export const failedBookingsByFieldHandler = async ({ ctx, input }: RoutingServiceOptions) => {
   const insightsRoutingService = createInsightsRoutingService(ctx, input);
   try {
     return await insightsRoutingService.getFailedBookingsByFieldData();
@@ -643,7 +753,7 @@ export const failedBookingsByFieldHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const routingFormResponsesHeadersHandler = async ({ ctx, input }: any) => {
+export const routingFormResponsesHeadersHandler = async ({ ctx, input }: RoutingFormResponsesHeadersOptions) => {
   const headers = await RoutingEventsInsights.getRoutingFormHeaders({
     userId: ctx.user.id,
     teamId: input.teamId ?? null,
@@ -655,7 +765,7 @@ export const routingFormResponsesHeadersHandler = async ({ ctx, input }: any) =>
   return headers || [];
 };
 
-export const routedToPerPeriodHandler = async ({ ctx, input }: any) => {
+export const routedToPerPeriodHandler = async ({ ctx, input }: RoutedToPerPeriodOptions) => {
   const { period, limit, searchQuery, ...rest } = input;
 
   try {
@@ -670,7 +780,7 @@ export const routedToPerPeriodHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const routedToPerPeriodCsvHandler = async ({ ctx, input }: any) => {
+export const routedToPerPeriodCsvHandler = async ({ ctx, input }: RoutedToPerPeriodCsvOptions) => {
   const { period, searchQuery, ...rest } = input;
   try {
     const insightsRoutingService = createInsightsRoutingService(ctx, rest);
@@ -691,7 +801,7 @@ export const routedToPerPeriodCsvHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const getUserRelevantTeamRoutingFormsHandler = async ({ ctx }: any) => {
+export const getUserRelevantTeamRoutingFormsHandler = async ({ ctx }: GetUserRelevantTeamRoutingFormsOptions) => {
   try {
     const routingForms = await VirtualQueuesInsights.getUserRelevantTeamRoutingForms({
       userId: ctx.user.id,
@@ -703,7 +813,7 @@ export const getUserRelevantTeamRoutingFormsHandler = async ({ ctx }: any) => {
   }
 };
 
-export const getRoutingFunnelDataHandler = async ({ ctx, input }: any) => {
+export const getRoutingFunnelDataHandler = async ({ ctx, input }: RoutingBaseOptions) => {
   const timeView = getTimeView(input.startDate, input.endDate);
   const dateRanges = getDateRanges({
     startDate: input.startDate,
@@ -720,7 +830,7 @@ export const getRoutingFunnelDataHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const bookingsByHourStatsHandler = async ({ ctx, input }: any) => {
+export const bookingsByHourStatsHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const { timeZone } = input;
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
@@ -733,7 +843,7 @@ export const bookingsByHourStatsHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const recentNoShowGuestsHandler = async ({ ctx, input }: any) => {
+export const recentNoShowGuestsHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const insightsBookingService = createInsightsBookingService(ctx, input);
 
   try {
@@ -743,7 +853,7 @@ export const recentNoShowGuestsHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const noShowHostsOverTimeHandler = async ({ ctx, input }: any) => {
+export const noShowHostsOverTimeHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const { columnFilters, timeZone } = input;
   const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
 
@@ -768,7 +878,7 @@ export const noShowHostsOverTimeHandler = async ({ ctx, input }: any) => {
   }
 };
 
-export const csatOverTimeHandler = async ({ ctx, input }: any) => {
+export const csatOverTimeHandler = async ({ ctx, input }: BookingBaseOptions) => {
   const { columnFilters, timeZone } = input;
   const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
 
