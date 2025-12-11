@@ -1,10 +1,10 @@
-import { getOrganizationWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { getAdminWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
 import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
-import type { TGetWatchlistEntryDetailsInputSchema } from "./getWatchlistEntryDetails.schema";
+import type { TrpcSessionUser } from "../../../../types";
+import type { TGetWatchlistEntryDetailsInputSchema } from "./getDetails.schema";
 
 type GetWatchlistEntryDetailsOptions = {
   ctx: {
@@ -13,23 +13,11 @@ type GetWatchlistEntryDetailsOptions = {
   input: TGetWatchlistEntryDetailsInputSchema;
 };
 
-export const getWatchlistEntryDetailsHandler = async ({ ctx, input }: GetWatchlistEntryDetailsOptions) => {
-  const { user } = ctx;
-
-  const organizationId = user.profile?.organizationId || user.organizationId;
-  if (!organizationId) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You must be part of an organization to view blocklist",
-    });
-  }
-
-  const service = getOrganizationWatchlistQueryService();
+export const getWatchlistEntryDetailsHandler = async ({ input }: GetWatchlistEntryDetailsOptions) => {
+  const service = getAdminWatchlistQueryService();
 
   try {
     return await service.getWatchlistEntryDetails({
-      organizationId,
-      userId: user.id,
       entryId: input.id,
     });
   } catch (error) {

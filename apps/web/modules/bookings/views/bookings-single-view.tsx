@@ -38,6 +38,7 @@ import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
@@ -571,8 +572,14 @@ export default function Success(props: PageProps) {
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
-                        <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? (typeof bookingInfo.title === 'string' ? bookingInfo.title : eventName) : eventName}
+                        <div
+                          className="wrap-break-word col-span-2 mb-6 last:mb-0"
+                          data-testid="booking-title">
+                          {isRoundRobin
+                            ? typeof bookingInfo.title === "string"
+                              ? bookingInfo.title
+                              : eventName
+                            : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
@@ -1209,6 +1216,12 @@ function RecurringBookings({
   if (!duration) return null;
 
   if (recurringBookingsSorted && allRemainingBookings) {
+    const shiftFlags = getTimeShiftFlags({
+      dates: recurringBookingsSorted,
+      timezone: tz,
+    });
+    const displayFlags = getFirstShiftFlags(shiftFlags);
+
     return (
       <>
         {eventType.recurringEvent?.count && (
@@ -1243,6 +1256,14 @@ function RecurringBookings({
               <span className="text-bookinglight">
                 ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
               </span>
+              {displayFlags[idx] && (
+                <>
+                  {" "}
+                  <Badge variant="orange" size="sm">
+                    {t("time_shift")}
+                  </Badge>
+                </>
+              )}
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -1274,6 +1295,14 @@ function RecurringBookings({
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
                     </span>
+                    {displayFlags[idx + 4] && (
+                      <>
+                        {" "}
+                        <Badge variant="orange" size="sm">
+                          {t("time_shift")}
+                        </Badge>
+                      </>
+                    )}
                   </div>
                 ))}
             </CollapsibleContent>

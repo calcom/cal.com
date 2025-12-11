@@ -1,18 +1,27 @@
 import { createContainer } from "@evyweb/ioctopus";
 
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { moduleLoader as loggerModuleLoader } from "@calcom/features/di/shared/services/logger.service";
 import { taskerServiceModule } from "@calcom/features/di/shared/services/tasker.service";
 import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   createWatchlistFeature,
   type WatchlistFeature,
 } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
 import type { IGlobalWatchlistRepository } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
 import type { IOrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
+import { AdminWatchlistOperationsService } from "@calcom/features/watchlist/lib/service/AdminWatchlistOperationsService";
+import { AdminWatchlistQueryService } from "@calcom/features/watchlist/lib/service/AdminWatchlistQueryService";
 import type { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/GlobalBlockingService";
 import type { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
+import { OrganizationWatchlistOperationsService } from "@calcom/features/watchlist/lib/service/OrganizationWatchlistOperationsService";
+import { OrganizationWatchlistQueryService } from "@calcom/features/watchlist/lib/service/OrganizationWatchlistQueryService";
 import type { WatchlistAuditService } from "@calcom/features/watchlist/lib/service/WatchlistAuditService";
 import type { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
+import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
+import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
+import { prisma } from "@calcom/prisma";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
 import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
@@ -63,4 +72,54 @@ export function getOrganizationWatchlistRepository() {
 
 export async function getWatchlistFeature(): Promise<WatchlistFeature> {
   return createWatchlistFeature(watchlistContainer);
+}
+
+export function getAdminWatchlistOperationsService(): AdminWatchlistOperationsService {
+  const watchlistRepo = new WatchlistRepository(prisma);
+  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+
+  return new AdminWatchlistOperationsService({
+    watchlistRepo,
+    bookingReportRepo,
+  });
+}
+
+export function getOrganizationWatchlistOperationsService(
+  organizationId: number
+): OrganizationWatchlistOperationsService {
+  const watchlistRepo = new WatchlistRepository(prisma);
+  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const permissionCheckService = new PermissionCheckService();
+
+  return new OrganizationWatchlistOperationsService({
+    watchlistRepo,
+    bookingReportRepo,
+    permissionCheckService,
+    organizationId,
+  });
+}
+
+export function getAdminWatchlistQueryService(): AdminWatchlistQueryService {
+  const watchlistRepo = new WatchlistRepository(prisma);
+  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const userRepo = new UserRepository(prisma);
+
+  return new AdminWatchlistQueryService({
+    watchlistRepo,
+    bookingReportRepo,
+    userRepo,
+    prisma,
+  });
+}
+
+export function getOrganizationWatchlistQueryService(): OrganizationWatchlistQueryService {
+  const watchlistRepo = new WatchlistRepository(prisma);
+  const userRepo = new UserRepository(prisma);
+  const permissionCheckService = new PermissionCheckService();
+
+  return new OrganizationWatchlistQueryService({
+    watchlistRepo,
+    userRepo,
+    permissionCheckService,
+  });
 }
