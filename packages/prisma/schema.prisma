@@ -1698,7 +1698,7 @@ model UserFeatures {
   userId     Int
   feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
   featureId  String
-  enabled    Boolean  @default(true)
+  enabled    Boolean
   assignedAt DateTime @default(now())
   assignedBy String
   updatedAt  DateTime @updatedAt
@@ -1712,7 +1712,7 @@ model TeamFeatures {
   teamId     Int
   feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
   featureId  String
-  enabled    Boolean  @default(true)
+  enabled    Boolean
   assignedAt DateTime @default(now())
   assignedBy String
   updatedAt  DateTime @updatedAt
