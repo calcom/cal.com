@@ -201,7 +201,7 @@ const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
   const { hasPaidPlan, isPending } = useHasPaidPlan();
   return useMemo(() => {
-    const hasInsightsAccess = isPending || !!hasPaidPlan;
+    const hasInsightsAccess = !isPending && !!hasPaidPlan;
     const items = !isPlatformNavigation
       ? getNavigationItems(orgBranding, hasInsightsAccess)
       : platformNavigationItems;
