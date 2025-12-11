@@ -10,10 +10,26 @@ export interface IFeaturesRepository {
   checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   checkIfTeamHasFeature(teamId: number, slug: keyof AppFlags): Promise<boolean>;
   getTeamsWithFeatureEnabled(slug: keyof AppFlags): Promise<number[]>;
+  setUserFeatureState(
+    userId: number,
+    featureId: keyof AppFlags,
+    state: FeatureState,
+    assignedBy: string
+  ): Promise<void>;
   setTeamFeatureState(
     teamId: number,
     featureId: keyof AppFlags,
     state: FeatureState,
     assignedBy: string
   ): Promise<void>;
+  /**
+   * Get user's feature state.
+   * @returns Row with enabled value, or null if no row exists (inherit)
+   */
+  getUserFeatureState(input: { userId: number; featureId: string }): Promise<{ enabled: boolean } | null>;
+  /**
+   * Get team's feature state.
+   * @returns Row with enabled value, or null if no row exists (inherit)
+   */
+  getTeamFeatureState(input: { teamId: number; featureId: string }): Promise<{ enabled: boolean } | null>;
 }

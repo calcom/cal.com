@@ -132,28 +132,4 @@ export class FeatureOptInService {
       )
     ).filter((item) => item.globalEnabled);
   }
-
-  /**
-   * Set user's feature state.
-   */
-  async setUserFeatureState(input: {
-    userId: number;
-    featureId: keyof AppFlags;
-    state: FeatureState;
-    assignedBy: number;
-  }): Promise<void> {
-    await this.featureOptInRepository.setUserFeatureState(input);
-  }
-
-  /**
-   * Set team's feature state.
-   */
-  async setTeamFeatureState(input: {
-    teamId: number;
-    featureId: keyof AppFlags;
-    state: FeatureState;
-    assignedBy: number;
-  }): Promise<void> {
-    await this.featureOptInRepository.setTeamFeatureState(input);
-  }
 }
