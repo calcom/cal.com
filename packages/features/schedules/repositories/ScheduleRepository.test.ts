@@ -1,9 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { HostRepository } from "@calcom/lib/server/repository/host";
 import { PrismaClient } from "@calcom/prisma";
 
-import { getDefaultScheduleId, hasDefaultSchedule, setupDefaultSchedule } from "./util";
+import { ScheduleRepository } from "./ScheduleRepository";
 
 vi.mock("@calcom/prisma", () => {
   const mockPrisma = {
@@ -14,9 +13,6 @@ vi.mock("@calcom/prisma", () => {
     schedule: {
       findFirst: vi.fn(),
     },
-    host: {
-      updateMany: vi.fn(),
-    },
   };
   return {
     __esModule: true,
@@ -25,14 +21,34 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-describe("Availability Utils", () => {
+vi.mock("@calcom/lib/hasEditPermissionForUser", () => ({
+  hasReadPermissionsForUserId: vi.fn().mockResolvedValue(true),
+}));
+
+describe("ScheduleRepository", () => {
   let prisma: PrismaClient;
-  let hostRepo: HostRepository;
+  let scheduleRepository: ScheduleRepository;
 
   beforeEach(() => {
     prisma = new PrismaClient();
-    hostRepo = new HostRepository(prisma);
+    scheduleRepository = new ScheduleRepository(prisma);
     vi.clearAllMocks();
+  });
+
+  describe("constructor", () => {
+    it("should throw error if prismaClient is not provided", () => {
+      expect(() => new ScheduleRepository(null as any)).toThrow(
+        "PrismaClient is required for ScheduleRepository"
+      );
+      expect(() => new ScheduleRepository(undefined as any)).toThrow(
+        "PrismaClient is required for ScheduleRepository"
+      );
+    });
+
+    it("should create instance successfully with valid prismaClient", () => {
+      const repo = new ScheduleRepository(prisma);
+      expect(repo).toBeInstanceOf(ScheduleRepository);
+    });
   });
 
   describe("getDefaultScheduleId", () => {
@@ -44,7 +60,7 @@ describe("Availability Utils", () => {
         defaultScheduleId,
       });
 
-      const result = await getDefaultScheduleId(userId, prisma);
+      const result = await scheduleRepository.getDefaultScheduleId(userId);
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: userId },
@@ -65,7 +81,7 @@ describe("Availability Utils", () => {
         id: scheduleId,
       });
 
-      const result = await getDefaultScheduleId(userId, prisma);
+      const result = await scheduleRepository.getDefaultScheduleId(userId);
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: userId },
@@ -87,7 +103,9 @@ describe("Availability Utils", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.schedule.findFirst as any).mockResolvedValue(null);
 
-      await expect(getDefaultScheduleId(userId, prisma)).rejects.toThrow("No schedules found for user");
+      await expect(scheduleRepository.getDefaultScheduleId(userId)).rejects.toThrow(
+        "No schedules found for user"
+      );
     });
   });
 
@@ -95,7 +113,7 @@ describe("Availability Utils", () => {
     it("should return true if user has defaultScheduleId", async () => {
       const user = { id: 1, defaultScheduleId: 123 };
 
-      const result = await hasDefaultSchedule(user, prisma);
+      const result = await scheduleRepository.hasDefaultSchedule(user);
 
       expect(result).toBe(true);
     });
@@ -107,7 +125,7 @@ describe("Availability Utils", () => {
         id: 456,
       });
 
-      const result = await hasDefaultSchedule(user, prisma);
+      const result = await scheduleRepository.hasDefaultSchedule(user);
 
       expect(prisma.schedule.findFirst).toHaveBeenCalledWith({
         where: { userId: user.id },
@@ -120,7 +138,7 @@ describe("Availability Utils", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.schedule.findFirst as any).mockResolvedValue(null);
 
-      const result = await hasDefaultSchedule(user, prisma);
+      const result = await scheduleRepository.hasDefaultSchedule(user);
 
       expect(prisma.schedule.findFirst).toHaveBeenCalledWith({
         where: { userId: user.id },
@@ -137,59 +155,13 @@ describe("Availability Utils", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.user.update as any).mockResolvedValue(updatedUser);
 
-      const result = await setupDefaultSchedule(userId, scheduleId, prisma);
+      const result = await scheduleRepository.setupDefaultSchedule(userId, scheduleId);
 
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: { defaultScheduleId: scheduleId },
       });
       expect(result).toEqual(updatedUser);
-    });
-  });
-
-  describe("updateHostsWithNewDefaultSchedule", () => {
-    it("should update hosts with new scheduleId", async () => {
-      const userId = 1;
-      const oldScheduleId = 123;
-      const newScheduleId = 456;
-      const updateResult = { count: 2 }; // 2 hosts updated
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prisma.host.updateMany as any).mockResolvedValue(updateResult);
-
-      const result = await hostRepo.updateHostsSchedule(userId, oldScheduleId, newScheduleId);
-
-      expect(prisma.host.updateMany).toHaveBeenCalledWith({
-        where: {
-          userId,
-          scheduleId: oldScheduleId,
-        },
-        data: {
-          scheduleId: newScheduleId,
-        },
-      });
-      expect(result).toEqual(updateResult);
-    });
-
-    it("should handle case with no hosts to update", async () => {
-      const userId = 1;
-      const oldScheduleId = 123;
-      const newScheduleId = 456;
-      const updateResult = { count: 0 }; // No hosts updated
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prisma.host.updateMany as any).mockResolvedValue(updateResult);
-
-      const result = await hostRepo.updateHostsSchedule(userId, oldScheduleId, newScheduleId);
-
-      expect(prisma.host.updateMany).toHaveBeenCalledWith({
-        where: {
-          userId,
-          scheduleId: oldScheduleId,
-        },
-        data: {
-          scheduleId: newScheduleId,
-        },
-      });
-      expect(result).toEqual(updateResult);
     });
   });
 });
