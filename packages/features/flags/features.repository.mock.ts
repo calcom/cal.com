@@ -1,4 +1,4 @@
-import type { AppFlags } from "./config";
+import type { AppFlags, FeatureState } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 export class MockFeaturesRepository implements IFeaturesRepository {
@@ -22,9 +22,10 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return [];
   }
 
-  async enableFeatureForTeam(
+  async updateFeatureForTeam(
     _teamId: number,
     _featureId: keyof AppFlags,
+    _state: FeatureState,
     _assignedBy: string
   ): Promise<void> {
     // Mock implementation - do nothing

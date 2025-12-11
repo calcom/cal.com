@@ -1,4 +1,4 @@
-import type { AppFlags } from "./config";
+import type { AppFlags, FeatureState } from "./config";
 
 /**
  * Interface for the core FeaturesRepository.
@@ -10,5 +10,10 @@ export interface IFeaturesRepository {
   checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
   checkIfTeamHasFeature(teamId: number, slug: keyof AppFlags): Promise<boolean>;
   getTeamsWithFeatureEnabled(slug: keyof AppFlags): Promise<number[]>;
-  enableFeatureForTeam(teamId: number, featureId: keyof AppFlags, assignedBy: string): Promise<void>;
+  updateFeatureForTeam(
+    teamId: number,
+    featureId: keyof AppFlags,
+    state: FeatureState,
+    assignedBy: string
+  ): Promise<void>;
 }

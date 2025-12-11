@@ -28,24 +28,33 @@ export class FeaturesRepositoryFixture {
     });
   }
 
-  async enableFeatureForTeam(teamId: number, featureId: string, assignedBy = "test") {
-    await this.prismaWriteClient.teamFeatures.upsert({
-      where: {
-        teamId_featureId: {
+  async updateFeatureForTeam(teamId: number, featureId: string, state, assignedBy = "test") {
+    if (state === "enabled" || state === "disabled") {
+      await this.prismaWriteClient.teamFeatures.upsert({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+        create: {
+          teamId,
+          featureId,
+          assignedBy,
+          enabled: state === "enabled",
+        },
+        update: {
+          enabled: state === "enabled",
+        },
+      });
+    } else if (state === "inherit") {
+      await this.prismaWriteClient.teamFeatures.deleteMany({
+        where: {
           teamId,
           featureId,
         },
-      },
-      create: {
-        teamId,
-        featureId,
-        assignedBy,
-        enabled: true,
-      },
-      update: {
-        enabled: true,
-      },
-    });
+      });
+    }
   }
 
   async disableFeatureForTeam(teamId: number, featureSlug: string) {

@@ -3,7 +3,7 @@ import { captureException } from "@sentry/nextjs";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import type { AppFlags, TeamFeatures } from "./config";
+import type { AppFlags, FeatureState, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 interface CacheOptions {
@@ -65,7 +65,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @param teamId - The ID of the team to get features for
    * @returns Promise<{ [slug: string]: boolean } | null>
    */
-  public async getTeamFeatures(teamId: number) {
+  public async getEnabledTeamFeatures(teamId: number) {
     const result = await this.prismaClient.teamFeatures.findMany({
       where: {
         teamId,
@@ -278,34 +278,49 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
-   * Enables a feature for a specific team.
+   * Updates a feature status for a specific team.
    * Uses tri-state semantics: creates/updates a row with enabled=true.
    * @param teamId - The ID of the team to enable the feature for
    * @param featureId - The feature identifier to enable
+   * @param state - 'enabled' | 'disabled' | 'inherit'
    * @param assignedBy - The user or what assigned the feature
    * @returns Promise<void>
    * @throws Error if the feature enabling fails
    */
-  async enableFeatureForTeam(teamId: number, featureId: keyof AppFlags, assignedBy: string): Promise<void> {
+  async updateFeatureForTeam(
+    teamId: number,
+    featureId: keyof AppFlags,
+    state: FeatureState,
+    assignedBy: string
+  ): Promise<void> {
     try {
-      await this.prismaClient.teamFeatures.upsert({
-        where: {
-          teamId_featureId: {
+      if (state === "enabled" || state === "disabled") {
+        await this.prismaClient.teamFeatures.upsert({
+          where: {
+            teamId_featureId: {
+              teamId,
+              featureId,
+            },
+          },
+          create: {
+            teamId,
+            featureId,
+            enabled: state === "enabled",
+            assignedBy,
+          },
+          update: {
+            enabled: state === "enabled",
+            assignedBy,
+          },
+        });
+      } else if (state === "inherit") {
+        await this.prismaClient.teamFeatures.deleteMany({
+          where: {
             teamId,
             featureId,
           },
-        },
-        create: {
-          teamId,
-          featureId,
-          enabled: true,
-          assignedBy,
-        },
-        update: {
-          enabled: true,
-          assignedBy,
-        },
-      });
+        });
+      }
       // Clear cache when features are modified
       this.clearCache();
     } catch (err) {

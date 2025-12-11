@@ -631,7 +631,7 @@ describe("FeaturesRepository Integration Tests", () => {
     });
   });
 
-  describe("enableFeatureForTeam", () => {
+  describe("updateFeatureForTeam", () => {
     it("should create a new TeamFeatures row with enabled=true", async () => {
       await prisma.feature.create({
         data: {
@@ -641,7 +641,7 @@ describe("FeaturesRepository Integration Tests", () => {
         },
       });
 
-      await featuresRepository.enableFeatureForTeam(testTeam.id, testFeature, "test-assigner");
+      await featuresRepository.updateFeatureForTeam(testTeam.id, testFeature, "test-assigner", "enabled");
 
       const teamFeature = await prisma.teamFeatures.findUnique({
         where: {
@@ -677,7 +677,7 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       // Now enable the feature
-      await featuresRepository.enableFeatureForTeam(testTeam.id, testFeature, "new-assigner");
+      await featuresRepository.updateFeatureForTeam(testTeam.id, testFeature, "new-assigner", "enabled");
 
       const teamFeature = await prisma.teamFeatures.findUnique({
         where: {
