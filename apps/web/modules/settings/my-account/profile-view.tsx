@@ -589,6 +589,37 @@ const ProfileForm = ({
     onSubmit(getUpdatedFormValues(values));
   };
 
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+
+  const updateBannerMutation = trpc.viewer.me.calid_updateProfile.useMutation({
+    onSuccess: async (res) => {
+      setUploadingBanner(false);
+      utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
+      triggerToast(t("settings_updated_successfully"), "success");
+    },
+    onError: () => {
+      setUploadingBanner(false);
+      triggerToast(t("error_updating_settings"), "error");
+    },
+  });
+
+  const handleBannerUpdate = async (newHeaderUrl: string | null) => {
+      setUploadingBanner(true);
+    updateBannerMutation.mutate({
+      username: user.username || "",
+      avatarUrl: user.avatarUrl,
+      name: user.name || "",
+      email: user.email || "",
+      bio: user.bio || "",
+      secondaryEmails: [],
+      metadata: {
+        ...isPrismaObjOrUndefined(user.metadata),
+        headerUrl: newHeaderUrl,
+      },
+    });
+  };
+
   const {
     fields: secondaryEmailFields,
     remove: deleteSecondaryEmail,
@@ -680,265 +711,278 @@ const ProfileForm = ({
   const hasPhoneNumber = phoneNumber && phoneNumber.trim() !== "";
 
   return (
-    <Form form={formMethods} onSubmit={handleFormSubmit}>
-      <div className="border-default rounded-md border px-4 py-6 sm:px-6">
-        <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
-        <div className="flex items-center">
-          <FormField
-            control={formMethods.control}
-            name="avatarUrl"
-            render={({ field: { value, onChange } }) => {
-              const showRemoveAvatarButton = value !== null;
-              return (
-                <>
-                  <Avatar
-                    data-testid="profile-upload-avatar"
-                    imageSrc={getUserAvatarUrl({ avatarUrl: value })}
-                    size="lg"
-                    alt={user.name || "Nameless User"}
-                  />
-                  <div className="ms-4">
-                    <div className="flex gap-2">
-                      <ImageUploader
-                        target="avatar"
-                        id="avatar-upload"
-                        buttonMsg={t("upload_avatar")}
-                        handleAvatarChange={(newAvatar) => {
-                          onChange(newAvatar);
-                        }}
-                        buttonSize="lg"
-                        imageSrc={getUserAvatarUrl({ avatarUrl: value })}
-                        triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
-                      />
-
-                      {showRemoveAvatarButton && (
-                        <Button
-                          color="destructive"
-                          onClick={() => {
-                            onChange(null);
-                          }}>
-                          {t("remove")}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </>
-              );
-            }}
-          />
-        </div>
-        {/* {extraField} */}
-
-        <div className="mt-6">
-          <UsernameAvailabilityField
-            control={formMethods.control}
-            onSuccessMutation={async () => {
-              triggerToast(t("settings_updated_successfully"), "success");
-              await utils.viewer.me.invalidate();
-              revalidateSettingsProfile();
-            }}
-            onErrorMutation={() => {
-              triggerToast(t("error_updating_settings"), "error");
-            }}
-          />
-        </div>
-
-        <div className="mt-6">
-          <TextField label={t("full_name")} {...formMethods.register("name")} />
-        </div>
-        <div className="mt-6">
-          <Label>{t("email")}</Label>
-          <div className="-mt-2 flex flex-wrap items-start gap-2">
-            <div className={secondaryEmailFields.length > 1 ? "grid w-full" : "flex-1"}>
-              {secondaryEmailFields.map((field, index) => (
-                <CustomEmailTextField
-                  key={field.itemId}
-                  formMethods={formMethods}
-                  formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
-                  errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
-                  emailVerified={Boolean(field.emailVerified)}
-                  emailPrimary={field.emailPrimary}
-                  dataTestId={`profile-form-email-${index}`}
-                  handleChangePrimary={() => {
-                    const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
-                      ...secondaryField,
-                      emailPrimary: cIndex === index,
-                    }));
-                    updateAllSecondaryEmailFields(fields);
-                  }}
-                  handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
-                  handleItemDelete={() => deleteSecondaryEmail(index)}
-                />
-              ))}
-            </div>
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              size="lg"
-              className="mt-2 h-[40px]"
-              onClick={() => handleAddSecondaryEmail()}
-              data-testid="add-secondary-email">
-              {t("add_email")}
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <PhoneNumberField
-            getValue={phoneFieldHelpers.getValue}
-            setValue={phoneFieldHelpers.setValue}
-            getValues={formMethods.getValues}
-            defaultValues={defaultValues}
-            isRequired={false}
-            allowDelete={true}
-            hasExistingNumber={!!defaultValues.metadata.phoneNumber}
-            isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
-            errorMessage={formMethods.formState.errors.metadata?.phoneNumber?.message}
-            onDeleteNumber={handleDeleteNumber}
-            fieldName="metadata.phoneNumber"
-          />
-        </div>
-
-        {hasPhoneNumber && (
-          <div className="mt-4">
+    <div>
+      <Form form={formMethods} onSubmit={handleFormSubmit}>
+        <div className="border-default rounded-md border px-4 py-6 sm:px-6">
+          <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+          <div className="flex items-center">
             <FormField
               control={formMethods.control}
-              name="metadata.usePhoneForWhatsApp"
-              render={({ field: { value, onChange } }) => (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={value ?? false}
-                    onCheckedChange={(checked) => onChange(!!checked)}
-                    id="usePhoneForWhatsApp"
-                  />
-                  <label
-                    htmlFor="usePhoneForWhatsApp"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    {t("use_this_phone_number_for_whatsapp") || "Use this phone number for WhatsApp?"}
-                  </label>
-                </div>
-              )}
+              name="avatarUrl"
+              render={({ field: { value, onChange } }) => {
+                const showRemoveAvatarButton = value !== null;
+                return (
+                  <>
+                    <Avatar
+                      data-testid="profile-upload-avatar"
+                      imageSrc={getUserAvatarUrl({ avatarUrl: value })}
+                      size="lg"
+                      alt={user.name || "Nameless User"}
+                    />
+                    <div className="ms-4">
+                      <div className="flex gap-2">
+                        <ImageUploader
+                          target="avatar"
+                          id="avatar-upload"
+                          buttonMsg={t("upload_avatar")}
+                          handleAvatarChange={(newAvatar) => {
+                            onChange(newAvatar);
+                          }}
+                          buttonSize="lg"
+                          imageSrc={getUserAvatarUrl({ avatarUrl: value })}
+                          triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
+                        />
+
+                        {showRemoveAvatarButton && (
+                          <Button
+                            color="destructive"
+                            onClick={() => {
+                              onChange(null);
+                            }}>
+                            {t("remove")}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                );
+              }}
             />
           </div>
-        )}
+          {/* {extraField} */}
 
-        <div className="mt-6">
-          <Label>{t("about")}</Label>
-          <Editor
-            getText={getText}
-            setText={(value: string) => {
-              formMethods.setValue("bio", turndown(value), { shouldDirty: true });
-            }}
-            excludedToolbarItems={["blockType"]}
-            disableLists
-            firstRender={firstRender}
-            setFirstRender={setFirstRender}
-            height="120px"
-          />
-        </div>
+          <div className="mt-6">
+            <UsernameAvailabilityField
+              control={formMethods.control}
+              onSuccessMutation={async () => {
+                triggerToast(t("settings_updated_successfully"), "success");
+                await utils.viewer.me.invalidate();
+                revalidateSettingsProfile();
+              }}
+              onErrorMutation={() => {
+                triggerToast(t("error_updating_settings"), "error");
+              }}
+            />
+          </div>
 
-        <div className="mt-6">
-          <Controller
-            control={formMethods.control}
-            name="metadata.headerUrl"
-            render={({ field: { value, onChange } }) => {
-              const showRemoveHeaderButton = value !== null;
-              return (
-                <div className="flex flex-col">
-                  <Label>{t("booking_page_banner")}</Label>
-                  <span className="text-subtle mb-4 text-sm">{t("booking_page_banner_description")}</span>
-                  <div className="bg-muted mb-4 flex aspect-[10/1] w-full items-center justify-start overflow-hidden rounded-lg">
-                    {!value ? (
-                      <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
-                    ) : (
-                      <img className="h-full w-full object-cover" src={value} alt="Header background" />
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <CustomBannerUploader
-                      target="metadata.headerUrl"
-                      id="header-upload"
-                      buttonMsg={t("upload_image")}
-                      fieldName="Banner"
-                      mimeType={["image/svg+xml", "image/png"]}
-                      height={320}
-                      width={3200}
-                      handleAvatarChange={(newHeaderUrl) => {
-                        onChange(newHeaderUrl);
-                        formMethods.setValue("metadata.headerUrl", newHeaderUrl, { shouldDirty: true });
-                      }}
-                      imageSrc={getPlaceholderHeader(value, value) ?? undefined}
-                      triggerButtonColor={showRemoveHeaderButton ? "secondary" : "primary"}
-                    />
-                    {showRemoveHeaderButton && (
-                      <Button
-                        color="secondary"
-                        onClick={() => {
-                          onChange(null);
-                          formMethods.setValue("metadata.headerUrl", null, { shouldDirty: true });
-                        }}>
-                        {t("remove")}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            }}
-          />
-        </div>
-
-        {usersAttributes && usersAttributes?.length > 0 && (
-          <div className="mt-6 flex flex-col">
-            <Label>{t("attributes")}</Label>
-            <div className="flex flex-col space-y-4">
-              {usersAttributes.map((attribute, index) => (
-                <>
-                  <DisplayInfo
-                    key={index}
-                    label={attribute.name}
-                    labelClassname="font-normal text-sm text-subtle"
-                    valueClassname="text-emphasis inline-flex items-center gap-1 font-normal text-sm leading-5"
-                    value={
-                      ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
-                        ? attribute.options[0].value
-                        : attribute.options.map((option) => option.value)
-                    }
+          <div className="mt-6">
+            <TextField label={t("full_name")} {...formMethods.register("name")} />
+          </div>
+          <div className="mt-6">
+            <Label>{t("email")}</Label>
+            <div className="-mt-2 flex flex-wrap items-start gap-2">
+              <div className={secondaryEmailFields.length > 1 ? "grid w-full" : "flex-1"}>
+                {secondaryEmailFields.map((field, index) => (
+                  <CustomEmailTextField
+                    key={field.itemId}
+                    formMethods={formMethods}
+                    formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+                    errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                    emailVerified={Boolean(field.emailVerified)}
+                    emailPrimary={field.emailPrimary}
+                    dataTestId={`profile-form-email-${index}`}
+                    handleChangePrimary={() => {
+                      const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                        ...secondaryField,
+                        emailPrimary: cIndex === index,
+                      }));
+                      updateAllSecondaryEmailFields(fields);
+                    }}
+                    handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+                    handleItemDelete={() => deleteSecondaryEmail(index)}
                   />
-                </>
-              ))}
+                ))}
+              </div>
+              <Button
+                color="secondary"
+                StartIcon="plus"
+                size="lg"
+                className="mt-2 h-[40px]"
+                onClick={() => handleAddSecondaryEmail()}
+                data-testid="add-secondary-email">
+                {t("add_email")}
+              </Button>
             </div>
           </div>
-        )}
-        {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
-        so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
-        {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
+
           <div className="mt-6">
-            <Label>Connected accounts</Label>
-            <div className="flex items-center">
-              <span className="text-default text-sm capitalize">{user.identityProvider.toLowerCase()}</span>
-              {user.identityProviderEmail && (
-                <span className="text-default ml-2 text-sm">{user.identityProviderEmail}</span>
-              )}
-              <div className="flex flex-1 justify-end">
-                <Button color="destructive" onClick={onDisconnect}>
-                  {t("disconnect")}
-                </Button>
+            <PhoneNumberField
+              getValue={phoneFieldHelpers.getValue}
+              setValue={phoneFieldHelpers.setValue}
+              getValues={formMethods.getValues}
+              defaultValues={defaultValues}
+              isRequired={false}
+              allowDelete={true}
+              hasExistingNumber={!!defaultValues.metadata.phoneNumber}
+              isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+              errorMessage={formMethods.formState.errors.metadata?.phoneNumber?.message}
+              onDeleteNumber={handleDeleteNumber}
+              fieldName="metadata.phoneNumber"
+            />
+          </div>
+
+          {hasPhoneNumber && (
+            <div className="mt-4">
+              <FormField
+                control={formMethods.control}
+                name="metadata.usePhoneForWhatsApp"
+                render={({ field: { value, onChange } }) => (
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={value ?? false}
+                      onCheckedChange={(checked) => onChange(!!checked)}
+                      id="usePhoneForWhatsApp"
+                    />
+                    <label
+                      htmlFor="usePhoneForWhatsApp"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      {t("use_this_phone_number_for_whatsapp") || "Use this phone number for WhatsApp?"}
+                    </label>
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          <div className="mt-6">
+            <Label>{t("about")}</Label>
+            <Editor
+              getText={getText}
+              setText={(value: string) => {
+                formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+              }}
+              excludedToolbarItems={["blockType"]}
+              disableLists
+              firstRender={firstRender}
+              setFirstRender={setFirstRender}
+              height="120px"
+            />
+          </div>
+
+          {usersAttributes && usersAttributes?.length > 0 && (
+            <div className="mt-6 flex flex-col">
+              <Label>{t("attributes")}</Label>
+              <div className="flex flex-col space-y-4">
+                {usersAttributes.map((attribute, index) => (
+                  <>
+                    <DisplayInfo
+                      key={index}
+                      label={attribute.name}
+                      labelClassname="font-normal text-sm text-subtle"
+                      valueClassname="text-emphasis inline-flex items-center gap-1 font-normal text-sm leading-5"
+                      value={
+                        ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
+                          ? attribute.options[0].value
+                          : attribute.options.map((option) => option.value)
+                      }
+                    />
+                  </>
+                ))}
               </div>
             </div>
-          </div>
-        )}
-        <Button
-          loading={isPending}
-          disabled={isDisabled}
-          color="primary"
-          className="mt-4"
-          type="submit"
-          data-testid="profile-submit-button">
-          {t("update")}
-        </Button>
+          )}
+          {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
+        so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
+          {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
+            <div className="mt-6">
+              <Label>Connected accounts</Label>
+              <div className="flex items-center">
+                <span className="text-default text-sm capitalize">{user.identityProvider.toLowerCase()}</span>
+                {user.identityProviderEmail && (
+                  <span className="text-default ml-2 text-sm">{user.identityProviderEmail}</span>
+                )}
+                <div className="flex flex-1 justify-end">
+                  <Button color="destructive" onClick={onDisconnect}>
+                    {t("disconnect")}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          <Button
+            loading={isPending}
+            disabled={isDisabled}
+            color="primary"
+            className="mt-4"
+            type="submit"
+            data-testid="profile-submit-button">
+            {t("update")}
+          </Button>
+        </div>
+      </Form>
+      <div className="border-default mt-6 rounded-md border px-4 py-6 sm:px-6">
+        <BannerUploaderForm
+          banner={(isPrismaObjOrUndefined(user.metadata)?.headerUrl as string | null) ?? null}
+          handleFormSubmit={handleBannerUpdate}
+          uploadingBanner={uploadingBanner}
+        />
       </div>
-    </Form>
+    </div>
+  );
+};
+
+const BannerUploaderForm = ({
+  banner,
+  handleFormSubmit,
+uploadingBanner
+}: {
+  banner: string | null;
+  handleFormSubmit: (newHeaderUrl: string | null) => {} | Promise;
+uploadingBanner: boolean;
+}) => {
+  const { t } = useLocale();
+
+  const showRemoveHeaderButton = banner !== null;
+
+  return (
+    <div className="flex flex-col">
+      <Label>{t("booking_page_banner")}</Label>
+      <span className="text-subtle mb-4 text-sm">{t("booking_page_banner_description")}</span>
+      <div className="bg-muted mb-4 flex aspect-[10/1] w-full items-center justify-start overflow-hidden rounded-lg">
+        {!banner ? (
+          <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
+        ) : (
+          <img className="h-full w-full object-cover" src={banner} alt="Header background" />
+        )}
+      </div>
+
+      <div className="flex gap-2">
+        <CustomBannerUploader
+          target="metadata.headerUrl"
+          id="header-upload"
+          buttonMsg={t("upload_image")}
+          uploading={uploadingBanner}
+          fieldName="Banner"
+          mimeType={["image/svg+xml", "image/png"]}
+          height={320}
+          width={3200}
+          handleAvatarChange={async (newHeaderUrl) => {
+            await handleFormSubmit(newHeaderUrl);
+          }}
+          imageSrc={getPlaceholderHeader(banner, banner) ?? undefined}
+          triggerButtonColor={showRemoveHeaderButton ? "secondary" : "primary"}
+        />
+        {showRemoveHeaderButton && (
+          <Button
+            color="secondary"
+            onClick={() => {
+              handleFormSubmit(null);
+            }}>
+            {t("remove")}
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
 

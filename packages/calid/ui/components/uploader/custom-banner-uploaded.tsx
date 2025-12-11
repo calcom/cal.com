@@ -23,10 +23,11 @@ import { createImage, Slider, type Area } from "./common";
 type BannerUploaderProps = {
   id: string;
   buttonMsg: string;
-  handleAvatarChange: (imageSrc: string) => void;
+  handleAvatarChange: (imageSrc: string) => void | Promise<void>;
   imageSrc?: string;
   target: string;
   fieldName: string;
+  uploading: boolean | null;
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
@@ -180,6 +181,7 @@ async function getCroppedImg(
 
 export default function BannerUploader({
   target,
+  uploading,
   fieldName,
   id,
   mimeType,
@@ -236,7 +238,12 @@ export default function BannerUploader({
 
       const croppedImage = await getCroppedImg(selectedImage, croppedAreaPixels, finalHeight, finalWidth);
 
-      handleAvatarChange(croppedImage);
+      if (handleAvatarChange instanceof Promise) {
+        await handleAvatarChange(croppedImage);
+      } else {
+        handleAvatarChange(croppedImage);
+      }
+
       setIsDialogOpen(false);
       setSelectedImage(null);
       setIsProcessing(false);
@@ -296,6 +303,7 @@ export default function BannerUploader({
       <DialogTrigger asChild>
         <Button
           color={triggerButtonColor ?? "secondary"}
+          loading={uploading}
           type="button"
           disabled={disabled}
           data-testid={`open-upload-${target}-dialog`}
