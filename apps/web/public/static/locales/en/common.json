@@ -2994,6 +2994,7 @@
   "ooo_slots_returning": "<0>{{displayName}}</0> can take their meetings while they are away.",
   "ooo_slots_book_with": "Book {{displayName}}",
   "ooo_select_reason": "Select reason",
+  "show_note_publicly_description": "Show note on public booking page",
   "create_an_out_of_office": "Go Out of Office",
   "edit_an_out_of_office": "Edit Out of Office Entry",
   "submit_feedback": "Submit Feedback",
