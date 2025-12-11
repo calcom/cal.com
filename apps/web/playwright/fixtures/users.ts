@@ -592,6 +592,9 @@ export const createUsersFixture = (
     },
     deleteAll: async () => {
       const ids = store.users.map((u) => u.id);
+      const trackedEmails = store.trackedEmails.map((e) => e.email);
+      const teamIds = store.teams.map((org) => org.id);
+
       if (emails) {
         const emailMessageIds: string[] = [];
         for (const user of store.trackedEmails.concat(store.users.map((u) => ({ email: u.email })))) {
@@ -607,11 +610,22 @@ export const createUsersFixture = (
         }
       }
 
-      await prisma.user.deleteMany({ where: { id: { in: ids } } });
-      // Delete all users that were tracked by email(if they were created)
-      await prisma.user.deleteMany({ where: { email: { in: store.trackedEmails.map((e) => e.email) } } });
-      await prisma.team.deleteMany({ where: { id: { in: store.teams.map((org) => org.id) } } });
-      await prisma.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
+      // Run clean-up in a single transaction to avoid lock ordering deadlocks
+      await prisma.$transaction(async (tx) => {
+        if (ids.length > 0) {
+          await tx.secondaryEmail.deleteMany({ where: { userId: { in: ids } } });
+          await tx.user.deleteMany({ where: { id: { in: ids } } });
+        }
+
+        if (trackedEmails.length > 0) {
+          await tx.user.deleteMany({ where: { email: { in: trackedEmails } } });
+        }
+
+        if (teamIds.length > 0) {
+          await tx.team.deleteMany({ where: { id: { in: teamIds } } });
+        }
+      });
+
       store.users = [];
       store.teams = [];
       store.trackedEmails = [];

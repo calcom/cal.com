@@ -400,7 +400,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
   if (userId) {
     await checkRateLimitAndThrowError({
       rateLimitingType: "core",
-      identifier: `ai-phone-call:${userId}`,
+      identifier: `executeAIPhoneCall:${userId}`,
     });
   }
 

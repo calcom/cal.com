@@ -7,7 +7,6 @@ Cal.config.forwardQueryParams = true;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const callback = function (e: any) {
   const detail = e.detail;
-  console.log("Event: ", e.type, detail);
 };
 
 // @ts-expect-error  window.calOrigin is set in index.html
@@ -693,22 +692,22 @@ Cal("on", {
   callback: bookingSuccessfulV2Callback,
 });
 
-const availabilityLoadedCallback = (e: EmbedEvent<"availabilityLoaded">) => {
+const bookerReadyCallback = (e: EmbedEvent<"bookerReady">) => {
   const data = e.detail.data;
-  console.log("availabilityLoaded", {
+  console.log("bookerReady", {
     eventId: data.eventId,
     eventSlug: data.eventSlug,
   });
 
   Cal("off", {
-    action: "availabilityLoaded",
-    callback: availabilityLoadedCallback,
+    action: "bookerReady",
+    callback: bookerReadyCallback,
   });
 };
 
 Cal("on", {
-  action: "availabilityLoaded",
-  callback: availabilityLoadedCallback,
+  action: "bookerReady",
+  callback: bookerReadyCallback,
 });
 
 if (only === "all" || only === "ns:skeletonDemo") {

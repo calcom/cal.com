@@ -48,20 +48,7 @@ import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-na
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
-const teamProfileFormSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  slug: z
-    .string()
-    .regex(regex, {
-      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
-    })
-    .min(1, { message: "Url cannot be left empty" }),
-  logo: z.string().nullable(),
-  bio: z.string(),
-});
 
-type FormValues = z.infer<typeof teamProfileFormSchema>;
 
 const SkeletonLoader = () => {
   return (
@@ -184,7 +171,6 @@ const ProfileView = () => {
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
                   className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}
                 />
               </>
@@ -267,6 +253,24 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
   const { t } = useLocale();
   const router = useRouter();
 
+  const teamProfileFormSchema = z.object({
+  id: z.number(),
+  name: z
+    .string()
+    .trim()
+    .min(1,t("must_enter_team_name")),
+  slug: z
+    .string()
+    .regex(regex, {
+      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
+    })
+    .min(1, t("team_url_required")),
+  logo: z.string().nullable(),
+  bio: z.string(),
+});
+
+type FormValues = z.infer<typeof teamProfileFormSchema>;
+
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
@@ -333,7 +337,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
     try {
       await navigator.clipboard.writeText(value);
       showToast(t("team_id_copied"), "success");
-    } catch (error) {
+    } catch {
       showToast(t("error_copying_to_clipboard"), "error");
     }
   };

@@ -43,13 +43,13 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   // Read teamId from query params and store it (from payment callback or redirect)
   useEffect(() => {
     const teamIdParam = searchParams?.get("teamId");
-    if (teamIdParam) {
-      const teamId = parseInt(teamIdParam, 10);
-      if (!isNaN(teamId)) {
-        setTeamId(teamId);
+    if (teamIdParam && !teamId) {
+      const parsedTeamId = parseInt(teamIdParam, 10);
+      if (!isNaN(parsedTeamId)) {
+        setTeamId(parsedTeamId);
       }
     }
-  }, [searchParams, setTeamId]);
+  }, [searchParams, setTeamId, teamId]);
 
   const formSchema = z.object({
     invites: z.array(
@@ -79,6 +79,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     const teamIdParam = searchParams?.get("teamId");
     const parsedTeamId = !teamId ? parseInt(teamIdParam || "", 10) : teamId;
     if (!parsedTeamId) {
+      console.log("Team ID is missing. Please go back and create your team first.");
       showToast(
         t("team_id_missing") || "Team ID is missing. Please go back and create your team first.",
         "error"
@@ -113,6 +114,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       }
     } else {
       // No invites, skip to personal settings
+      console.log("No invites, skipping to personal settings");
       const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
       router.replace(gettingStartedPath);
     }
@@ -125,13 +127,12 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     router.replace(gettingStartedPath);
   };
 
-  const hasValidInvites = fields.some((_, index) => {
-    const email = form.watch(`invites.${index}.email`);
-    return email && email.trim().length > 0;
-  });
-
   // Watch form values to pass to browser view for real-time updates
   const watchedInvites = form.watch("invites");
+
+  const hasValidInvites = watchedInvites.some((invite) => {
+    return invite.email && invite.email.trim().length > 0;
+  });
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>

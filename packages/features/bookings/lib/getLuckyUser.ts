@@ -916,6 +916,11 @@ export class LuckyUserService implements ILuckyUserService {
       weight?: number | null;
     }
   >(getLuckyUserParams: GetLuckyUserParams<T>) {
+    // Early return if only one available user to avoid unnecessary data fetching
+    if (getLuckyUserParams.availableUsers.length === 1) {
+      return getLuckyUserParams.availableUsers[0];
+    }
+
     const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
 
     const { luckyUser } = this.getLuckyUser_requiresDataToBePreFetched({

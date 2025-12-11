@@ -56,7 +56,7 @@ export const sendEmailVerification = async ({
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: hashEmail(email),
+    identifier: `sendEmailVerification:${hashEmail(email)}`,
   });
 
   await prisma.verificationToken.create({
