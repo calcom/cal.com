@@ -5,7 +5,7 @@ import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import type { GetWebhooksReturnType } from "@calcom/features/webhooks/lib/getWebhooks";
+import type { WebhookSubscriber } from "@calcom/features/webhooks/lib/dto/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import {
@@ -101,7 +101,7 @@ describe("_onFormSubmission", () => {
 
   describe("Webhooks", () => {
     it("should call FORM_SUBMITTED webhooks", async () => {
-      const mockWebhook: GetWebhooksReturnType[number] = {
+      const mockWebhook: WebhookSubscriber = {
         id: "wh-1",
         secret: "secret",
         subscriberUrl: "https://example.com/webhook",
