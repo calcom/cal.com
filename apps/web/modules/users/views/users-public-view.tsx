@@ -90,8 +90,7 @@ export function UserPage(props: PageProps) {
             {!isBioEmpty && (
               <>
                 <div
-                  className="text-default break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                   
+                  className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />
               </>
@@ -116,7 +115,7 @@ export function UserPage(props: PageProps) {
                     eventType: type,
                   });
                 }}
-                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0"
+                className="bg-default border-subtle dark:bg-cal-muted dark:hover:bg-subtle hover:bg-cal-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0"
                 data-testid="event-type-link">
                 <Icon
                   name="arrow-right"

@@ -16,14 +16,6 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const preserveBookingsQueryParams = ({
-  prevPathname,
-  nextPathname,
-}: {
-  prevPathname: string | null;
-  nextPathname: string;
-}) => Boolean(prevPathname?.startsWith("/bookings/")) && nextPathname.startsWith("/bookings/");
-
 const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
   {
     name: "event_types_page_title",
@@ -36,38 +28,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "calendar",
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
-    child: [
-      {
-        name: "upcoming",
-        href: "/bookings/upcoming",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/upcoming",
-      },
-      {
-        name: "unconfirmed",
-        href: "/bookings/unconfirmed",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/unconfirmed",
-      },
-      {
-        name: "recurring",
-        href: "/bookings/recurring",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/recurring",
-      },
-      {
-        name: "past",
-        href: "/bookings/past",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/past",
-      },
-      {
-        name: "cancelled",
-        href: "/bookings/cancelled",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/cancelled",
-      },
-    ],
   },
   {
     name: "availability",
@@ -272,7 +232,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-cal-muted/40 border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
