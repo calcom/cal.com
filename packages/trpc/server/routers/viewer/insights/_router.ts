@@ -34,7 +34,6 @@ import {
   noShowHostsOverTimeHandler,
   csatOverTimeHandler,
 } from "@calcom/features/insights/server/handlers";
-import { userBelongsToTeamProcedure } from "@calcom/features/insights/server/procedures";
 import {
   bookingRepositoryBaseInputSchema,
   insightsRoutingServiceInputSchema,
@@ -46,6 +45,7 @@ import {
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { userBelongsToTeamProcedure } from "./procedures/userBelongsToTeam";
 
 export const insightsRouter = router({
   bookingKPIStats: userBelongsToTeamProcedure
