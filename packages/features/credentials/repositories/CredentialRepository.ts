@@ -302,7 +302,7 @@ export class CredentialRepository {
           in: slugs,
         },
       },
-      select: safeCredentialSelect,
+      select: { ...safeCredentialSelect, team: { select: { name: true } } },
     });
   }
 }
