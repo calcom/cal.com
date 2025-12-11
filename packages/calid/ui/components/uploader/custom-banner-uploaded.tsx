@@ -1,8 +1,8 @@
 "use client";
 
+import imageCompression from "browser-image-compression";
 import React, { useCallback, useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
-import imageCompression from "browser-image-compression";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -112,24 +112,24 @@ async function compressPNGLossless(dataUrl: string): Promise<string> {
   // Convert data URL to Blob
   const response = await fetch(dataUrl);
   const blob = await response.blob();
-  
+
   // Create a File object from the blob
-  const file = new File([blob], 'image.png', { type: 'image/png' });
-  
+  const file = new File([blob], "image.png", { type: "image/png" });
+
   // Compress with maximum quality (lossless for PNG)
   const options = {
     maxSizeMB: 0.7, // Large enough to not trigger lossy compression
     maxWidthOrHeight: 10000, // Don't resize
     useWebWorker: true,
-    fileType: 'image/png',
+    fileType: "image/png",
     initialQuality: 1, // Maximum quality
     alwaysKeepResolution: true,
     preserveExif: false, // Remove EXIF to reduce size
   };
-  
+
   try {
     const compressedFile = await imageCompression(file, options);
-    
+
     // Convert back to data URL
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -138,7 +138,7 @@ async function compressPNGLossless(dataUrl: string): Promise<string> {
       reader.readAsDataURL(compressedFile);
     });
   } catch (error) {
-    console.warn('PNG compression failed, using original:', error);
+    console.warn("PNG compression failed, using original:", error);
     return dataUrl;
   }
 }
@@ -152,7 +152,7 @@ async function getCroppedImg(
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  
+
   if (!ctx) {
     throw new Error("Failed to get canvas context");
   }
@@ -169,21 +169,11 @@ async function getCroppedImg(
   canvas.height = outputHeight ?? cropHeight;
 
   // Draw the cropped portion
-  ctx.drawImage(
-    image,
-    cropX,
-    cropY,
-    cropWidth,
-    cropHeight,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
+  ctx.drawImage(image, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 
   // Always output as PNG
-  const pngDataUrl = canvas.toDataURL('image/png');
-  
+  const pngDataUrl = canvas.toDataURL("image/png");
+
   // Compress the PNG losslessly
   return await compressPNGLossless(pngDataUrl);
 }
@@ -206,6 +196,7 @@ export default function BannerUploader({
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const onInputFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
@@ -229,6 +220,8 @@ export default function BannerUploader({
     try {
       if (!croppedAreaPixels || !selectedImage) return;
 
+      setIsProcessing(true);
+
       let finalWidth = width;
       let finalHeight = height;
 
@@ -241,23 +234,22 @@ export default function BannerUploader({
         finalWidth = Math.round(height * cropAspect);
       }
 
-      const croppedImage = await getCroppedImg(
-        selectedImage,
-        croppedAreaPixels,
-        finalHeight,
-        finalWidth
-      );
+      const croppedImage = await getCroppedImg(selectedImage, croppedAreaPixels, finalHeight, finalWidth);
 
       handleAvatarChange(croppedImage);
       setIsDialogOpen(false);
       setSelectedImage(null);
+      setIsProcessing(false);
     } catch (e) {
       console.error("Error cropping image:", e);
       triggerToast(t("error_updating_settings"), "error");
+      setIsProcessing(false);
     }
   }, [selectedImage, croppedAreaPixels, height, width, handleAvatarChange, t]);
 
   const handleDialogClose = (open: boolean) => {
+    if (isProcessing) return; // Prevent closing while processing
+
     setIsDialogOpen(open);
     if (!open) {
       setSelectedImage(null);
@@ -352,6 +344,7 @@ export default function BannerUploader({
                       : mimeType.filter(Boolean).join(",")
                     : "image/*"
                 }
+                disabled={isProcessing}
               />
               {selectedImage ? t("change_file") || "Change file" : t("choose_a_file")}
             </label>
@@ -366,7 +359,8 @@ export default function BannerUploader({
             data-testid="upload-avatar"
             color="primary"
             onClick={showCroppedImage}
-            disabled={!selectedImage || !croppedAreaPixels}>
+            loading={isProcessing}
+            disabled={!selectedImage || !croppedAreaPixels || isProcessing}>
             {t("save")}
           </Button>
         </DialogFooter>
