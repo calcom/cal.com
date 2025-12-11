@@ -11,7 +11,8 @@ import type { HostNoShowUpdatedAuditData } from "@calcom/features/booking-audit/
 import type { AttendeeNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeNoShowUpdatedAuditActionService";
 import type { SeatBookedAuditData } from "@calcom/features/booking-audit/lib/actions/SeatBookedAuditActionService";
 import type { SeatRescheduledAuditData } from "@calcom/features/booking-audit/lib/actions/SeatRescheduledAuditActionService";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
+import type { CreatedAuditData } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionService";
+import type { RescheduledAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduledAuditActionService";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -33,7 +34,7 @@ export class BookingEventHandlerService {
     this.bookingAuditProducerService = deps.bookingAuditProducerService;
   }
 
-  async onBookingCreated(payload: BookingCreatedPayload, actor: Actor, source: ActionSource) {
+  async onBookingCreated(payload: BookingCreatedPayload, actor: Actor, data: CreatedAuditData) {
     this.log.debug("onBookingCreated", safeStringify(payload));
     if (payload.config.isDryRun) {
       return;
@@ -43,16 +44,11 @@ export class BookingEventHandlerService {
       bookingUid: payload.booking.uid,
       actor,
       organizationId: payload.organizationId,
-      data: {
-        startTime: payload.booking.startTime.getTime(),
-        endTime: payload.booking.endTime.getTime(),
-        status: payload.booking.status,
-        source,
-      },
+      data,
     });
   }
 
-  async onBookingRescheduled(payload: BookingRescheduledPayload, actor: Actor, source: ActionSource) {
+  async onBookingRescheduled(payload: BookingRescheduledPayload, actor: Actor, data: RescheduledAuditData) {
     this.log.debug("onBookingRescheduled", safeStringify(payload));
     await this.onBookingCreatedOrRescheduled(payload);
 
@@ -61,21 +57,7 @@ export class BookingEventHandlerService {
       bookingUid: payload.oldBooking.uid,
       actor,
       organizationId: payload.organizationId,
-      data: {
-        startTime: {
-          old: payload.oldBooking?.startTime.toISOString() ?? null,
-          new: payload.booking.startTime.toISOString(),
-        },
-        endTime: {
-          old: payload.oldBooking?.endTime.toISOString() ?? null,
-          new: payload.booking.endTime.toISOString(),
-        },
-        rescheduledToUid: {
-          old: null,
-          new: payload.booking.uid,
-        },
-        source,
-      },
+      data,
     });
   }
 
@@ -108,127 +90,97 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingAccepted(bookingUid: string, actor: Actor, organizationId: number | null, data: AcceptedAuditData, source: ActionSource) {
+  async onBookingAccepted(bookingUid: string, actor: Actor, organizationId: number | null, data: AcceptedAuditData) {
     await this.bookingAuditProducerService.queueAcceptedAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onBookingCancelled(bookingUid: string, actor: Actor, organizationId: number | null, data: CancelledAuditData, source: ActionSource) {
+  async onBookingCancelled(bookingUid: string, actor: Actor, organizationId: number | null, data: CancelledAuditData) {
     await this.bookingAuditProducerService.queueCancelledAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onRescheduleRequested(bookingUid: string, actor: Actor, organizationId: number | null, data: RescheduleRequestedAuditData, source: ActionSource) {
+  async onRescheduleRequested(bookingUid: string, actor: Actor, organizationId: number | null, data: RescheduleRequestedAuditData) {
     await this.bookingAuditProducerService.queueRescheduleRequestedAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onAttendeeAdded(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeAddedAuditData, source: ActionSource) {
+  async onAttendeeAdded(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeAddedAuditData) {
     await this.bookingAuditProducerService.queueAttendeeAddedAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onHostNoShowUpdated(bookingUid: string, actor: Actor, organizationId: number | null, data: HostNoShowUpdatedAuditData, source: ActionSource) {
+  async onHostNoShowUpdated(bookingUid: string, actor: Actor, organizationId: number | null, data: HostNoShowUpdatedAuditData) {
     await this.bookingAuditProducerService.queueHostNoShowUpdatedAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onBookingRejected(bookingUid: string, actor: Actor, organizationId: number | null, data: RejectedAuditData, source: ActionSource) {
+  async onBookingRejected(bookingUid: string, actor: Actor, organizationId: number | null, data: RejectedAuditData) {
     await this.bookingAuditProducerService.queueRejectedAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onAttendeeRemoved(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeRemovedAuditData, source: ActionSource) {
+  async onAttendeeRemoved(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeRemovedAuditData) {
     await this.bookingAuditProducerService.queueAttendeeRemovedAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onReassignment(bookingUid: string, actor: Actor, organizationId: number | null, data: ReassignmentAuditData, source: ActionSource) {
+  async onReassignment(bookingUid: string, actor: Actor, organizationId: number | null, data: ReassignmentAuditData) {
     await this.bookingAuditProducerService.queueReassignmentAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onLocationChanged(bookingUid: string, actor: Actor, organizationId: number | null, data: LocationChangedAuditData, source: ActionSource) {
+  async onLocationChanged(bookingUid: string, actor: Actor, organizationId: number | null, data: LocationChangedAuditData) {
     await this.bookingAuditProducerService.queueLocationChangedAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onAttendeeNoShowUpdated(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeNoShowUpdatedAuditData, source: ActionSource) {
+  async onAttendeeNoShowUpdated(bookingUid: string, actor: Actor, organizationId: number | null, data: AttendeeNoShowUpdatedAuditData) {
     await this.bookingAuditProducerService.queueAttendeeNoShowUpdatedAudit({
       bookingUid,
       actor,
       organizationId,
-      data: {
-        ...data,
-        source,
-      },
+      data,
     });
   }
 
-  async onSeatBooked(bookingUid: string, actor: Actor, organizationId: number | null, data: SeatBookedAuditData, source: ActionSource) {
+  async onSeatBooked(bookingUid: string, actor: Actor, organizationId: number | null, data: SeatBookedAuditData) {
     await this.bookingAuditProducerService.queueSeatBookedAudit({
       bookingUid,
       actor,
@@ -237,7 +189,7 @@ export class BookingEventHandlerService {
     });
   }
 
-  async onSeatRescheduled(bookingUid: string, actor: Actor, organizationId: number | null, data: SeatRescheduledAuditData, source: ActionSource) {
+  async onSeatRescheduled(bookingUid: string, actor: Actor, organizationId: number | null, data: SeatRescheduledAuditData) {
     await this.bookingAuditProducerService.queueSeatRescheduledAudit({
       bookingUid,
       actor,

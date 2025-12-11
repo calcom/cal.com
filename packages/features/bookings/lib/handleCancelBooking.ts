@@ -520,8 +520,7 @@ async function handler(input: CancelBookingInput) {
           new: "CANCELLED",
         },
         source: "WEBAPP",
-      },
-      "WEBAPP"
+      }
     );
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {

@@ -286,8 +286,7 @@ export const roundRobinReassignment = async ({
         reassignmentType: "roundRobin",
         userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
         title: { old: oldTitle, new: newBookingTitle },
-      },
-      "WEBAPP"
+      }
     );
   } else {
     const previousRRHostAttendee = booking.attendees.find(

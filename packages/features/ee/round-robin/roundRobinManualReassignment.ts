@@ -256,7 +256,7 @@ export const roundRobinManualReassignment = async ({
         email: `fallback-${booking.uid}-${Date.now()}@guest.internal`,
       });
     }
-    await bookingEventHandlerService.onReassignment(booking.uid, actor, orgId, auditData, "WEBAPP");
+    await bookingEventHandlerService.onReassignment(booking.uid, actor, orgId, auditData);
 
     await AssignmentReasonRecorder.roundRobinReassignment({
       bookingId,

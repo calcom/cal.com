@@ -90,8 +90,7 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
         new: [...booking.attendees.map((a) => a.email), ...uniqueGuestEmails],
       },
       source: "WEBAPP",
-    },
-    "WEBAPP"
+    }
   );
 
   return { message: "Guests added" };

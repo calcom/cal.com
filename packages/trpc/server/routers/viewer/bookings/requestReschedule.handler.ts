@@ -146,8 +146,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     {
       ...auditData,
       source: "WEBAPP",
-    },
-    "WEBAPP"
+    }
   );
 
   // delete scheduled jobs of previous booking

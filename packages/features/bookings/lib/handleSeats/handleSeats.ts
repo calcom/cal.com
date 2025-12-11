@@ -7,7 +7,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { makeAttendeeActor, makeGuestActor, makeUserActor } from "../types/actor";
+import { getAuditActor } from "../types/actor";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
@@ -94,32 +94,24 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   }
 
   // Helper function to get audit actor
-  const getAuditActor = async (): Promise<import("../types/actor").Actor> => {
+  const getAuditActorForSeats = async (): Promise<import("../types/actor").Actor> => {
+    // Look up userUuid from reqUserId if available
+    let userUuid: string | null = null;
     if (reqUserId) {
       const user = await prisma.user.findUnique({
         where: { id: reqUserId },
         select: { uuid: true },
       });
-      if (user?.uuid) {
-        return makeUserActor(user.uuid);
-      }
+      userUuid = user?.uuid ?? null;
     }
 
-    // Try to find attendee by email in the booking
-    const attendee = await prisma.attendee.findFirst({
-      where: {
-        bookingId: seatedBooking.id,
-        email: bookerEmail,
-      },
-      select: { id: true },
+    return getAuditActor({
+      userUuid,
+      bookingId: seatedBooking.id,
+      email: bookerEmail,
+      name: fullName,
+      prisma,
     });
-
-    if (attendee) {
-      return makeAttendeeActor(attendee.id);
-    }
-
-    // Fallback to guest actor
-    return makeGuestActor({ email: bookerEmail, name: fullName });
   };
 
   // Determine action source (WEBAPP or API_V2)
@@ -138,7 +130,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
     // Log SEAT_RESCHEDULED audit event
     if (bookingEventHandler && resultBooking && originalRescheduledBooking) {
-      const auditActor = await getAuditActor();
+      const auditActor = await getAuditActorForSeats();
       const seatReferenceUid = resultBooking.seatReferenceUid;
       if (seatReferenceUid) {
         // Determine if seat moved to a different booking (different time slot)
@@ -170,8 +162,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
               new: movedToDifferentBooking ? (resultBooking.uid || null) : null,
             },
             source: actionSource,
-          },
-          actionSource
+          }
         );
       }
     }
@@ -180,7 +171,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
     // Log SEAT_BOOKED audit event
     if (bookingEventHandler && resultBooking) {
-      const auditActor = await getAuditActor();
+      const auditActor = await getAuditActorForSeats();
       const seatReferenceUid = resultBooking.seatReferenceUid;
       if (seatReferenceUid) {
         await bookingEventHandler.onSeatBooked(
@@ -194,8 +185,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
             startTime: seatedBooking.startTime.getTime(),
             endTime: seatedBooking.endTime.getTime(),
             source: actionSource,
-          },
-          actionSource
+          }
         );
       }
     }

@@ -327,8 +327,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
         new: newLocationInEvtFormat,
       },
       source: "WEBAPP",
-    },
-    "WEBAPP"
+    }
   );
 
   return { message: "Location updated" };

@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { makeGuestActor, makeUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { getAuditActor } from "@calcom/features/bookings/lib/types/actor";
 import type { Actor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -108,15 +108,22 @@ const handleMarkNoShow = async ({
   const t = await getTranslation(locale ?? "en", "common");
 
   // Helper function to get the appropriate actor
-  const getActor = (): Actor => {
-    if (userUuid) {
-      return makeUserActor(userUuid);
+  const getActor = async (bookingId?: number): Promise<Actor> => {
+    // Use fallback email for guest actor if no userUuid
+    const fallbackEmail = `fallback-${bookingUid}-${Date.now()}@guest.internal`;
+
+    if (!userUuid) {
+      logger.warn("No actor identifier available for mark no-show audit, creating fallback guest actor", {
+        bookingUid,
+      });
     }
-    // Fallback: create guest actor with unique email when no identifier available
-    logger.warn("No actor identifier available for mark no-show audit, creating fallback guest actor", {
-      bookingUid,
+
+    return getAuditActor({
+      userUuid: userUuid ?? null,
+      bookingId,
+      email: fallbackEmail,
+      prisma,
     });
-    return makeGuestActor({ email: `fallback-${bookingUid}-${Date.now()}@guest.internal` });
   };
 
   try {
@@ -361,7 +368,7 @@ const handleMarkNoShow = async ({
         });
 
         if (bookingForAudit) {
-          const actor = getActor();
+          const actor = await getActor(bookingForAudit.id);
           if (actor) {
             const bookingEventHandlerService = getBookingEventHandlerService();
             const orgId = await getOrgIdFromMemberOrTeamId({
@@ -380,8 +387,7 @@ const handleMarkNoShow = async ({
               {
                 noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
                 source: "WEBAPP",
-              },
-              "WEBAPP"
+              }
             );
           }
         }
@@ -420,7 +426,7 @@ const handleMarkNoShow = async ({
         });
 
         if (bookingForAudit) {
-          const actor = getActor();
+          const actor = await getActor(bookingForAudit.id);
           const bookingEventHandlerService = getBookingEventHandlerService();
           const orgId = await getOrgIdFromMemberOrTeamId({
             memberId: bookingForAudit.eventType?.userId ?? null,
@@ -436,8 +442,7 @@ const handleMarkNoShow = async ({
                 new: true,
               },
               source: "WEBAPP",
-            },
-            "WEBAPP"
+            }
           );
         }
       }

@@ -130,7 +130,7 @@ import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import type { Actor } from "../types/actor";
-import { makeAttendeeActor, makeGuestActor, makeUserActor } from "../types/actor";
+import { getAuditActor } from "../types/actor";
 
 const translator = short();
 
@@ -520,6 +520,7 @@ async function handler(
   const {
     bookingData: rawBookingData,
     userId,
+    userUuid,
     platformClientId,
     platformCancelUrl,
     platformBookingUrl,
@@ -2310,6 +2311,7 @@ async function handler(
   const bookingEventHandler = deps.bookingEventHandler;
 
   const auditActor = await this.getAuditActor({
+    userUuid: userUuid ?? null,
     userId: userId ?? null,
     bookingId: booking.id,
     bookerEmail,
@@ -2336,9 +2338,28 @@ async function handler(
         endTime: originalRescheduledBooking.endTime,
       },
     };
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, auditActor, actionSource);
+    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, auditActor, {
+      startTime: {
+        old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
+        new: bookingRescheduledPayload.booking.startTime.toISOString(),
+      },
+      endTime: {
+        old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
+        new: bookingRescheduledPayload.booking.endTime.toISOString(),
+      },
+      rescheduledToUid: {
+        old: null,
+        new: bookingRescheduledPayload.booking.uid,
+      },
+      source: actionSource,
+    });
   } else {
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor, actionSource);
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor, {
+      startTime: bookingCreatedPayload.booking.startTime.getTime(),
+      endTime: bookingCreatedPayload.booking.endTime.getTime(),
+      status: bookingCreatedPayload.booking.status,
+      source: actionSource,
+    });
   }
 
   const webhookData: EventPayloadType = {
@@ -2743,57 +2764,48 @@ export class RegularBookingService implements IBookingService {
 
   /**
    * Resolves the appropriate actor for audit logging based on available context.
-   * Priority: UserActor (if userId provided and user found) > AttendeeActor > GuestActor (fallback)
+   * Uses the shared getAuditActor utility.
    *
-   * @param params.userId - The user ID if the booker is logged in
+   * @param params.userUuid - The user UUID if the booker is logged in (preferred)
+   * @param params.userId - The user ID if userUuid is not available (will be looked up)
    * @param params.bookingId - The booking ID to find the attendee
    * @param params.bookerEmail - The booker's email to identify the attendee
+   * @param params.logger - Logger instance for warnings
    * @returns Actor - always returns an actor, falling back to guest actor if needed
    */
   async getAuditActor(params: {
-    userId: number | null;
+    userUuid?: string | null;
+    userId?: number | null;
     bookingId: number;
     bookerEmail: string;
     logger: Logger<unknown>;
   }): Promise<Actor> {
-    const { userId, bookingId, bookerEmail, logger } = params;
+    const { userUuid, userId, bookingId, bookerEmail, logger } = params;
 
-    // If user is logged in, try to create a UserActor
-    if (userId) {
+    // If userUuid is not provided but userId is, look it up
+    let resolvedUserUuid = userUuid;
+    if (!resolvedUserUuid && userId) {
       const user = await this.deps.prismaClient.user.findUnique({
         where: { id: userId },
         select: { uuid: true },
       });
       if (user?.uuid) {
-        return makeUserActor(user.uuid);
+        resolvedUserUuid = user.uuid;
+      } else {
+        // User not found - log warning and fall through to attendee actor
+        logger.warn("User not found for userId, falling back to attendee actor", {
+          userId,
+          bookingId,
+        });
       }
-      // User not found - log warning and fall through to attendee actor
-      logger.warn("User not found for userId, falling back to attendee actor", {
-        userId,
-        bookingId,
-      });
     }
 
-    // Fallback: Create AttendeeActor using the booker's attendee record
-    const bookerAttendee = await this.deps.prismaClient.attendee.findFirst({
-      where: {
-        bookingId,
-        email: bookerEmail,
-      },
-      select: {
-        id: true,
-      },
+    return getAuditActor({
+      userUuid: resolvedUserUuid,
+      bookingId,
+      email: bookerEmail,
+      prisma: this.deps.prismaClient,
     });
-
-    if (!bookerAttendee) {
-      logger.warn("Booker attendee not found after booking creation, creating guest actor for audit", {
-        bookingId,
-        bookerEmail,
-      });
-      return makeGuestActor({ email: bookerEmail });
-    }
-
-    return makeAttendeeActor(bookerAttendee.id);
   }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {

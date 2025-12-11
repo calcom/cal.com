@@ -343,8 +343,7 @@ export async function handleConfirmation(args: {
       {
         ...auditData,
         source: "WEBAPP",
-      },
-      "WEBAPP"
+      }
     );
   }
 
