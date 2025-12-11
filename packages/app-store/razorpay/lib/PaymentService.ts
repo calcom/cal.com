@@ -1,4 +1,5 @@
 import type { Booking, BookingSeat, Payment, PaymentOption, Prisma } from "@prisma/client";
+import { AxiosError } from "axios";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
