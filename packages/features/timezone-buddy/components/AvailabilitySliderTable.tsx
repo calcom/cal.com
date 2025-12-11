@@ -3,14 +3,15 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import { DataTable, DataTableToolbar } from "@calcom/features/data-table/components";
 import { useDataTable } from "@calcom/features/data-table/hooks";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import type { DateRange } from "@calcom/lib/date-ranges";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -51,7 +52,7 @@ function UpgradeTeamTip() {
       background="/tips/teams"
       features={[]}
       buttons={
-        <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+        <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
           <ButtonGroup>
             <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
               {t("create_team")}
@@ -68,8 +69,10 @@ function UpgradeTeamTip() {
 }
 
 export function AvailabilitySliderTable(props: { isOrg: boolean }) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider>
+    <DataTableProvider tableIdentifier={pathname}>
       <AvailabilitySliderTableContent {...props} />
     </DataTableProvider>
   );
@@ -81,10 +84,6 @@ function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
   const { searchTerm } = useDataTable();
-
-  const tbStore = createTimezoneBuddyStore({
-    browsingDate: browsingDate.toDate(),
-  });
 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
@@ -112,7 +111,7 @@ function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
         cell: ({ row }) => {
           const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
-            <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
+            <div className="max-w-64 flex shrink-0 items-center gap-2 overflow-hidden">
               <UserAvatar
                 size="sm"
                 user={{

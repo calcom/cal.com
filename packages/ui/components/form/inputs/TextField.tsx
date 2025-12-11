@@ -25,6 +25,7 @@ export const inputStyles = cva(
 
     // States
     "hover:border-emphasis",
+    "focus:border-emphasis",
     "focus:ring-0",
     "focus:shadow-outline-gray-focused",
 
@@ -37,7 +38,7 @@ export const inputStyles = cva(
     "shadow-outline-gray-rested",
 
     // Transitions
-    "transition",
+    "transition-all",
   ],
   {
     variants: {
@@ -69,16 +70,23 @@ type AddonProps = {
   children: React.ReactNode;
   className?: string;
   error?: boolean;
-  onClickAddon?: () => void;
+  onClickAddon?: (e: React.MouseEvent<HTMLDivElement>) => void;
   size?: "sm" | "md";
   position?: "start" | "end";
 };
 
-const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
+const Addon = ({
+  children,
+  className,
+  error,
+  onClickAddon,
+  size: _size = "md",
+  position: _position = "start",
+}: AddonProps) => (
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
-      "flex flex-shrink-0 items-center justify-center whitespace-nowrap",
+      "flex shrink-0 items-center justify-center whitespace-nowrap",
       onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
@@ -118,7 +126,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     readOnly,
     showAsteriskIndicator,
     onClickAddon,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     t: __t,
     dataTestid,
     size,
@@ -126,6 +134,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   } = props;
 
   const [inputValue, setInputValue] = useState<string>("");
+
+  const handleFocusInput = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.parentElement?.querySelector("input")?.focus();
+  };
 
   return (
     <div className={classNames(containerClassName)}>
@@ -147,12 +159,16 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           className={classNames(
             inputStyles({ size }),
             "group relative mb-1 flex min-w-0 items-center gap-1",
-            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
+            "focus-within:shadow-outline-gray-focused focus-within:border-emphasis",
             "[&:has(:disabled)]:bg-subtle [&:has(:disabled)]:hover:border-default [&:has(:disabled)]:cursor-not-allowed",
             inputIsFullWidth && "w-full"
           )}>
           {addOnLeading && (
-            <Addon size={size ?? "md"} position="start" className={classNames(addOnClassname)}>
+            <Addon
+              size={size ?? "md"}
+              position="start"
+              className={classNames(addOnClassname)}
+              onClickAddon={handleFocusInput}>
               {addOnLeading}
             </Addon>
           )}
@@ -173,7 +189,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             {...(type == "search" && {
               onChange: (e) => {
                 setInputValue(e.target.value);
-                props.onChange && props.onChange(e);
+                props.onChange?.(e);
               },
               value: inputValue,
             })}
@@ -184,7 +200,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             <Addon
               size={size ?? "md"}
               position="end"
-              onClickAddon={onClickAddon}
+              onClickAddon={(e) => {
+                handleFocusInput(e);
+                onClickAddon?.(e);
+              }}
               className={classNames(addOnClassname)}>
               {addOnSuffix}
             </Addon>
@@ -195,7 +214,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
-                props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
+                props.onChange?.(e as unknown as React.ChangeEvent<HTMLInputElement>);
               }}
             />
           )}

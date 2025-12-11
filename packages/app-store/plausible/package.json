@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "description": "Simple, privacy-friendly Google Analytics alternative.",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

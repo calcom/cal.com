@@ -5,13 +5,11 @@ import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
-import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { getTeamMemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -33,7 +31,7 @@ const getCachedTeamRoles = unstable_cache(
     try {
       const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
       return await roleManager.getTeamRoles(teamId);
-    } catch (error) {
+    } catch {
       // PBAC not enabled or error occurred, return empty array
       return [];
     }
@@ -49,7 +47,7 @@ const getCachedTeamAttributes = unstable_cache(
 
     try {
       return await attributeRepo.findAllByOrgIdWithOptions({ orgId: organizationId });
-    } catch (error) {
+    } catch {
       return [];
     }
   },
@@ -79,58 +77,14 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const organizationId = team.parentId || teamId;
 
   // Load PBAC roles and attributes if available
-  const [roles, attributes] = await Promise.all([
+  const [roles, attributes, memberPermissions] = await Promise.all([
     getCachedTeamRoles(teamId, organizationId),
     getCachedTeamAttributes(organizationId),
+    getTeamMemberPermissions({
+      userId: session.user.id,
+      team,
+    }),
   ]);
-
-  const fallbackRolesCanListMembers: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
-
-  // If the team is not private we allow members to list other members
-  if (!team.isPrivate) {
-    fallbackRolesCanListMembers.push(MembershipRole.MEMBER);
-  }
-
-  // Get specific PBAC permissions for team member actions
-  const permissions = await getSpecificPermissions({
-    userId: session.user.id,
-    teamId: teamId,
-    resource: Resource.Team,
-    userRole: team.membership.role,
-    actions: [
-      CustomAction.Invite,
-      CustomAction.ChangeMemberRole,
-      CustomAction.Remove,
-      CustomAction.ListMembers,
-      CustomAction.Impersonate,
-    ],
-    fallbackRoles: {
-      [CustomAction.Invite]: {
-        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      },
-      [CustomAction.ChangeMemberRole]: {
-        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      },
-      [CustomAction.Remove]: {
-        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      },
-      [CustomAction.ListMembers]: {
-        roles: fallbackRolesCanListMembers,
-      },
-      [CustomAction.Impersonate]: {
-        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      },
-    },
-  });
-
-  // Map specific permissions to member actions
-  const memberPermissions = {
-    canListMembers: permissions[CustomAction.ListMembers],
-    canInvite: permissions[CustomAction.Invite],
-    canChangeMemberRole: permissions[CustomAction.ChangeMemberRole],
-    canRemove: permissions[CustomAction.Remove],
-    canImpersonate: permissions[CustomAction.Impersonate],
-  };
 
   const facetedTeamValues = {
     roles,

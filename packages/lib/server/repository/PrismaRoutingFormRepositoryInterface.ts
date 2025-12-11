@@ -56,6 +56,8 @@ export type RoutingFormWithUserTeamAndOrg = {
     username: string | null;
     email: string;
     movedToProfileId: number | null;
+    timeFormat: number | null;
+    locale: string | null;
   };
   team: {
     metadata: any;

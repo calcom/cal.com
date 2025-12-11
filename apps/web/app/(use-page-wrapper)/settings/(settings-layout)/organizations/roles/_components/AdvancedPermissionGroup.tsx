@@ -22,6 +22,7 @@ interface AdvancedPermissionGroupProps {
   onChange: (permissions: string[]) => void;
   disabled?: boolean;
   scope?: Scope;
+  isPrivate?: boolean;
 }
 
 const INTERNAL_DATAACCESS_KEY = "_resource";
@@ -32,10 +33,11 @@ export function AdvancedPermissionGroup({
   onChange,
   disabled,
   scope = Scope.Organization,
+  isPrivate = false,
 }: AdvancedPermissionGroupProps) {
   const { t } = useLocale();
   const { toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions(scope);
-  const scopedRegistry = getPermissionsForScope(scope);
+  const scopedRegistry = getPermissionsForScope(scope, isPrivate);
   const resourceConfig = scopedRegistry[resource];
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -85,7 +87,7 @@ export function AdvancedPermissionGroup({
   };
 
   return (
-    <div className="bg-muted border-subtle mb-2 rounded-xl border">
+    <div className="bg-cal-muted border-subtle mb-2 rounded-xl border">
       <button
         type="button"
         className="flex cursor-pointer items-center justify-between gap-1.5 p-4"

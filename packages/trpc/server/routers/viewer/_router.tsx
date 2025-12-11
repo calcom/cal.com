@@ -2,7 +2,7 @@ import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
-import { router, mergeRouters } from "../../trpc";
+import { router } from "../../trpc";
 import app_RoutingForms from "../apps/routing-forms/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
@@ -53,12 +53,8 @@ export const viewerRouter = router({
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
   credentials: credentialsRouter,
-  eventTypes: mergeRouters(
-    eventTypesRouter,
-    router({
-      heavy: heavyEventTypesRouter,
-    })
-  ),
+  eventTypes: eventTypesRouter,
+  eventTypesHeavy: heavyEventTypesRouter,
   availability: availabilityRouter,
   teams: viewerTeamsRouter,
   timezones: timezonesRouter,

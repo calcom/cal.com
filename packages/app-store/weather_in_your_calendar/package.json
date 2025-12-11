@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "description": "Get the local weather forecast with icons in your calendar\r\r",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

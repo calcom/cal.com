@@ -3,10 +3,10 @@ import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
+import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
-import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -35,13 +35,25 @@ type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfir
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  // using offset actually because cursor pagination requires a unique column
-  // for orderBy, but we don't use a unique column in our orderBy
+  // Support both offset-based (list) and cursor-based pagination (calendar)
+  // Cursor is just the offset as a string (fake cursor pagination)
   const take = input.limit;
-  const skip = input.offset;
+  let skip = input.offset;
+
+  // If cursor is provided, parse it to get the offset
+  if (input.cursor) {
+    const parsedCursor = parseInt(input.cursor, 10);
+    if (!isNaN(parsedCursor) && parsedCursor >= 0) {
+      skip = parsedCursor;
+    }
+  }
+
   const { prisma, user } = ctx;
   const defaultStatus = "upcoming";
-  const bookingListingByStatus = [input.filters.status || defaultStatus];
+
+  const bookingListingByStatus = input.filters.statuses?.length
+    ? input.filters.statuses
+    : [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, totalCount } = await getAllUserBookings({
     ctx: {
@@ -55,10 +67,16 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     filters: input.filters,
   });
 
+  // Generate next cursor for infinite query support
+  const nextOffset = skip + take;
+  const hasMore = nextOffset < totalCount;
+  const nextCursor = hasMore ? nextOffset.toString() : undefined;
+
   return {
     bookings,
     recurringInfo,
     totalCount,
+    nextCursor,
   };
 };
 
@@ -251,7 +269,7 @@ export async function getBookings({
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -264,10 +282,11 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee"],
       });
+    }
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -281,11 +300,12 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
+    }
 
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
+    if (eventTypeIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -298,11 +318,12 @@ export async function getBookings({
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
         tables: ["Booking", "EventType"],
       });
+    }
 
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    userIdsWhereUserIsAdminOrOwner?.length &&
+    if (userIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -314,6 +335,7 @@ export async function getBookings({
           .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
         tables: ["Booking"],
       });
+    }
   }
 
   const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
@@ -474,7 +496,11 @@ export async function getBookings({
           "Booking.paid",
           "Booking.fromReschedule",
           "Booking.rescheduled",
+          "Booking.rescheduledBy",
+          "Booking.cancelledBy",
           "Booking.isRecorded",
+          "Booking.cancellationReason",
+          "Booking.rejectionReason",
           jsonObjectFrom(
             eb
               .selectFrom("App_RoutingForms_FormResponse")
@@ -494,6 +520,8 @@ export async function getBookings({
                 "EventType.currency",
                 "EventType.metadata",
                 "EventType.disableGuests",
+                "EventType.bookingFields",
+                "EventType.seatsPerTimeSlot",
                 "EventType.seatsShowAttendees",
                 "EventType.seatsShowAvailabilityCount",
                 "EventType.eventTypeColor",
@@ -502,6 +530,8 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.teamId",
+                "EventType.parentId",
                 eb
                   .cast<SchedulingType | null>(
                     eb
@@ -556,13 +586,27 @@ export async function getBookings({
           jsonArrayFrom(
             eb
               .selectFrom("Payment")
-              .select(["Payment.paymentOption", "Payment.amount", "Payment.currency", "Payment.success"])
+              .select([
+                "Payment.paymentOption",
+                "Payment.amount",
+                "Payment.currency",
+                "Payment.success",
+                "Payment.appId",
+                "Payment.refunded",
+              ])
               .whereRef("Payment.bookingId", "=", "Booking.id")
           ).as("payment"),
           jsonObjectFrom(
             eb
               .selectFrom("users")
-              .select(["users.id", "users.name", "users.email"])
+              .select([
+                "users.id",
+                "users.name",
+                "users.email",
+                "users.avatarUrl",
+                "users.username",
+                "users.timeZone",
+              ])
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
           jsonArrayFrom(
@@ -590,6 +634,18 @@ export async function getBookings({
               .orderBy("AssignmentReason.createdAt", "desc")
               .limit(1)
           ).as("assignmentReason"),
+          jsonObjectFrom(
+            eb
+              .selectFrom("BookingReport")
+              .select([
+                "BookingReport.id",
+                "BookingReport.reportedById",
+                "BookingReport.reason",
+                "BookingReport.description",
+                "BookingReport.createdAt",
+              ])
+              .whereRef("BookingReport.bookingUid", "=", "Booking.uid")
+          ).as("report"),
         ])
         .orderBy(orderBy.key, orderBy.order)
         .execute()
@@ -688,6 +744,7 @@ export async function getBookings({
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
     });
   };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
@@ -730,7 +787,76 @@ export async function getBookings({
       };
     })
   );
-  return { bookings, recurringInfo, totalCount };
+
+  // Enrich attendees with user data
+  const enrichedBookings = await enrichAttendeesWithUserData(bookings, kysely);
+
+  return { bookings: enrichedBookings, recurringInfo, totalCount };
+}
+
+type EnrichedUserData = {
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+  username: string | null;
+};
+
+/**
+ * Enriches booking attendees with user data by performing a left outer join
+ * between attendees and users tables on email addresses.
+ *
+ * @param bookings - Array of bookings with attendees to enrich
+ * @param kysely - Kysely database client instance
+ * @returns Bookings with attendees enriched with user data (name, email, avatarUrl, username)
+ */
+async function enrichAttendeesWithUserData<
+  TBooking extends { attendees: ReadonlyArray<{ id: number; email: string }> }
+>(
+  bookings: TBooking[],
+  kysely: Kysely<DB>
+): Promise<
+  Array<
+    Omit<TBooking, "attendees"> & {
+      attendees: Array<TBooking["attendees"][number] & { user: EnrichedUserData | null }>;
+    }
+  >
+> {
+  // Extract all unique attendee emails from bookings
+  const allAttendees = bookings.flatMap((booking) => booking.attendees);
+  const uniqueAttendeeIds = Array.from(new Set(allAttendees.map((attendee) => attendee.id)));
+
+  // Query attendees with left join to users table
+  const enrichedAttendees =
+    uniqueAttendeeIds.length > 0
+      ? await kysely
+          .selectFrom("Attendee")
+          .leftJoin("users", "users.email", "Attendee.email")
+          .select(["Attendee.id", "users.name", "Attendee.email", "users.avatarUrl", "users.username"])
+          .where("Attendee.id", "in", uniqueAttendeeIds)
+          .execute()
+      : [];
+
+  // Create a lookup map for O(1) access by attendee ID
+  const attendeeUserDataMap = new Map<number, EnrichedUserData>(
+    enrichedAttendees.map((enriched) => [
+      enriched.id,
+      {
+        name: enriched.name,
+        email: enriched.email,
+        avatarUrl: enriched.avatarUrl,
+        username: enriched.username,
+      },
+    ])
+  );
+
+  // Map over bookings and enrich each attendee with user data
+  return bookings.map((booking) => ({
+    ...booking,
+    attendees: booking.attendees.map((attendee) => ({
+      ...attendee,
+      user: attendeeUserDataMap.get(attendee.id) || null,
+    })),
+  }));
 }
 
 async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: number[]) {

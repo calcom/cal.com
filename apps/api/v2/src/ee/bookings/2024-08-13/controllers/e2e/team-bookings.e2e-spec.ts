@@ -64,10 +64,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     let team1EventTypeId: number;
     let team2EventTypeId: number;
+    let team2RREventTypeId: number;
     let phoneOnlyEventTypeId: number;
+    let collectiveEventWithoutHostsId: number;
+    let roundRobinEventWithoutHostsId: number;
 
     const team1EventTypeSlug = `team-bookings-event-type-${randomString()}`;
     const team2EventTypeSlug = `team-bookings-event-type-${randomString()}`;
+    const team2RREventTypeSlug = `team-bookings-rr-event-type-${randomString()}`;
     const phoneOnlyEventTypeSlug = `team-bookings-event-type-${randomString()}`;
 
     let phoneBasedBooking: BookingOutput_2024_08_13;
@@ -223,6 +227,28 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       team1EventTypeId = team1EventType.id;
 
+      const team1CollectiveEventTypeWithoutHosts = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: team1.id },
+        },
+        title: `team-bookings-2024-08-13-collective-event-type-without-hosts-${randomString()}`,
+        slug: `team-bookings-2024-08-13-collective-event-type-without-hosts-${randomString()}`,
+        length: 60,
+      });
+      collectiveEventWithoutHostsId = team1CollectiveEventTypeWithoutHosts.id;
+
+      const team1RoundRobinEventTypeWithoutHosts = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team1.id },
+        },
+        title: `team-bookings-2024-08-13-round-robin-event-type-without-hosts-${randomString()}`,
+        slug: `team-bookings-2024-08-13-round-robin-event-type-without-hosts-${randomString()}`,
+        length: 60,
+      });
+      roundRobinEventWithoutHostsId = team1RoundRobinEventTypeWithoutHosts.id;
+
       const phoneOnlyEventType = await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "ROUND_ROBIN",
         team: {
@@ -315,6 +341,50 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       team2EventTypeId = team2EventType.id;
 
+      const team2RREventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team2.id },
+        },
+        title: `team-bookings-2024-08-13-event-type-rr-${randomString()}`,
+        slug: team2RREventTypeSlug,
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+        rrHostSubsetEnabled: true,
+      });
+
+      team2RREventTypeId = team2RREventType.id;
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser2.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: team2RREventType.id,
+          },
+        },
+      });
+
+      await hostsRepositoryFixture.create({
+        isFixed: true,
+        user: {
+          connect: {
+            id: teamUser.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: team2RREventType.id,
+          },
+        },
+      });
+
       await hostsRepositoryFixture.create({
         isFixed: true,
         user: {
@@ -361,6 +431,52 @@ describe("Bookings Endpoints 2024-08-13", () => {
       bootstrap(app as NestExpressApplication);
 
       await app.init();
+    });
+
+    describe("cant book event types without hosts", () => {
+      it("should fail to book a collective event type without hosts", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+          eventTypeId: collectiveEventWithoutHostsId,
+          attendee: {
+            name: "alice",
+            timeZone: "Europe/Madrid",
+            email: "alice@gmail.com",
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(response.status).toBe(422);
+        expect(response.body.error.message).toBe(
+          `Can't book this team event type because it has no hosts. Please, add at least 1 host to event type with id=${collectiveEventWithoutHostsId} belonging to team with id=${team1.id} and try again.`
+        );
+      });
+
+      it("should fail to book a round robin event type without hosts", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+          eventTypeId: roundRobinEventWithoutHostsId,
+          attendee: {
+            name: "alice",
+            timeZone: "Europe/Madrid",
+            email: "alice@gmail.com",
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(response.status).toBe(422);
+        expect(response.body.error.message).toBe(
+          `Can't book this team event type because it has no hosts. Please, add at least 1 host to event type with id=${roundRobinEventWithoutHostsId} belonging to team with id=${team1.id} and try again.`
+        );
+      });
     });
 
     describe("create team bookings", () => {
@@ -533,6 +649,163 @@ describe("Bookings Endpoints 2024-08-13", () => {
             }
           });
       });
+
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser2 as host ", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
+          eventTypeId: team2RREventTypeId,
+          attendee: {
+            name: "bob2",
+            email: "bob2@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          rrHostSubsetIds: [teamUser2.id],
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser2.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(team2RREventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser as host ", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
+          eventTypeId: team2RREventTypeId,
+          attendee: {
+            name: "bob",
+            email: "bob@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          rrHostSubsetIds: [teamUser.id],
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(team2RREventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser and teamUser2 as host ", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString(),
+          eventTypeId: team2RREventTypeId,
+          attendee: {
+            name: "bob",
+            email: "bob@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          rrHostSubsetIds: [teamUser.id, teamUser2.id],
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(team2RREventTypeId);
+              expect(data.attendees.length).toEqual(2);
+              expect(data.attendees.find((a) => a.email === body.attendee.email)).toBeDefined();
+              expect(data.attendees.find((a) => a.email === teamUser2.email)).toBeDefined();
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
     });
 
     describe("get team bookings", () => {
@@ -569,7 +842,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(1);
+            expect(data.length).toEqual(3);
             expect(data[0].eventTypeId).toEqual(team2EventTypeId);
           });
       });
@@ -614,7 +887,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(3);
+            expect(data.length).toEqual(5);
             expect(data.find((booking) => booking.eventTypeId === team1EventTypeId)).toBeDefined();
             expect(data.find((booking) => booking.eventTypeId === team2EventTypeId)).toBeDefined();
           });
@@ -765,8 +1038,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       return client;
     }
 
-    function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
-      return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+    function responseDataIsBooking(data: unknown): data is BookingOutput_2024_08_13 {
+      return !Array.isArray(data) && typeof data === "object" && data !== null && data && "id" in data;
     }
 
     afterAll(async () => {
@@ -775,6 +1048,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await userRepositoryFixture.deleteByEmail(teamUser.email);
       await userRepositoryFixture.deleteByEmail(teamUserEmail2);
       await bookingsRepositoryFixture.deleteAllBookings(teamUser.id, teamUser.email);
+      await bookingsRepositoryFixture.deleteAllBookings(teamUser2.id, teamUser2.email);
       await app.close();
     });
   });

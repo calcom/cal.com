@@ -1,8 +1,9 @@
 import type { TFunction } from "i18next";
 
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import type { CreditUsageType } from "@calcom/prisma/enums";
 
-import { renderEmail } from "..";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export default class CreditBalanceLowWarningEmail extends BaseEmail {
@@ -17,20 +18,24 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
     name: string;
   };
   balance: number;
+  creditFor?: CreditUsageType;
 
   constructor({
     user,
     balance,
     team,
+    creditFor,
   }: {
     user: { id: number; name: string | null; email: string; t: TFunction };
     balance: number;
     team?: { id: number; name: string | null };
+    creditFor?: CreditUsageType;
   }) {
     super();
     this.user = { ...user, name: user.name || "" };
     this.team = team ? { ...team, name: team.name || "" } : undefined;
     this.balance = balance;
+    this.creditFor = creditFor;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -44,6 +49,7 @@ export default class CreditBalanceLowWarningEmail extends BaseEmail {
         balance: this.balance,
         team: this.team,
         user: this.user,
+        creditFor: this.creditFor,
       }),
       text: this.getTextBody(),
     };

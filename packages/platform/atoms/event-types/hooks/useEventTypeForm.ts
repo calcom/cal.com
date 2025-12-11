@@ -118,6 +118,7 @@ export const useEventTypeForm = ({
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
+      autoTranslateInstantMeetingTitleEnabled: eventType.autoTranslateInstantMeetingTitleEnabled ?? true,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
@@ -184,6 +185,7 @@ export const useEventTypeForm = ({
               enableAutomaticRecordingForOrganizer: z.boolean().nullable(),
               disableTranscriptionForGuests: z.boolean().nullable(),
               disableTranscriptionForOrganizer: z.boolean().nullable(),
+              requireEmailForGuests: z.boolean().nullable(),
             })
             .optional()
             .nullable(),

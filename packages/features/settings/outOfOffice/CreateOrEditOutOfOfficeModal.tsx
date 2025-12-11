@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -14,7 +14,7 @@ import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
+import { DateRangePicker, TextArea, Input, Checkbox } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
@@ -29,6 +29,7 @@ export type BookingRedirectForm = {
   toTeamUserId: number | null;
   reasonId: number;
   notes?: string;
+  showNotePublicly?: boolean;
   uuid?: string | null;
   forUserId: number | null;
   forUserName?: string;
@@ -67,7 +68,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     value: number;
     label: string;
     avatarUrl: string | null;
-  }[] = !!currentlyEditingOutOfOfficeEntry
+  }[] = currentlyEditingOutOfOfficeEntry
     ? [
         {
           value: currentlyEditingOutOfOfficeEntry.forUserId || -1,
@@ -155,6 +156,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           toTeamUserId: null,
           reasonId: 1,
           forUserId: null,
+          showNotePublicly: false,
         },
   });
 
@@ -236,7 +238,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                     />
                     <div
                       className={`scroll-bar bg-default mt-2 flex ${
-                        !!currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
+                        currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
                       } flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1`}>
                       {oooMemberListOptions.map((member) => (
                         <label
@@ -336,19 +338,36 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
             {/* Notes input */}
             <div className="mt-4">
-              <p className="text-emphasis block text-sm font-medium">{t("notes")}</p>
+              <p className="text-emphasis text-sm font-medium">{t("notes")}</p>
               <TextArea
                 data-testid="notes_input"
-                className="border-subtle mt-1 h-10 w-full rounded-lg border px-2"
+                className="border-subtle mt-2 h-10 w-full rounded-lg border px-2"
                 placeholder={t("additional_notes")}
                 {...register("notes")}
                 onChange={(e) => {
                   setValue("notes", e?.target.value);
                 }}
               />
+              <Controller
+                control={control}
+                name="showNotePublicly"
+                render={({ field: { value, onChange } }) => (
+                  <div className="mt-2 flex items-center">
+                    <Checkbox
+                      id="show-note-publicly"
+                      data-testid="show-note-publicly-checkbox"
+                      checked={value ?? false}
+                      onCheckedChange={onChange}
+                    />
+                    <label htmlFor="show-note-publicly" className="text-emphasis ml-2 cursor-pointer text-sm">
+                      {t("show_note_publicly_description")}
+                    </label>
+                  </div>
+                )}
+              />
             </div>
 
-            <div className="bg-muted my-4 rounded-xl p-5">
+            <div className="bg-cal-muted my-4 rounded-xl p-5">
               <div className="flex flex-row">
                 <Switch
                   disabled={!hasTeamPlan}

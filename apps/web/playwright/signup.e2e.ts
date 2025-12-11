@@ -21,7 +21,7 @@ test.describe("Signup Main Page Test", async () => {
     await preventFlakyTest(page);
   });
 
-  test("Continue with email button must exist / work", async ({ page }) => {
+  test("Continue with Email button must exist / work", async ({ page }) => {
     const button = page.getByTestId("continue-with-email-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
@@ -209,7 +209,7 @@ test.describe("Email Signup Flow Test", async () => {
       data: {
         identifier: userToCreate.email,
         token,
-        expires: new Date(new Date().setHours(168)), // +1 week
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
         team: {
           create: {
             name: "Rick's Team",
@@ -294,10 +294,6 @@ test.describe("Email Signup Flow Test", async () => {
       emails,
       userEmail: userToCreate.email,
     });
-
-    // We need to wait for emails to be sent
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(5000);
 
     expect(receivedEmails?.total).toBe(1);
 

@@ -1,24 +1,10 @@
-// eslint-disable-next-line no-restricted-imports
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
-import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
-import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import type { IRedisService } from "@calcom/features/redis/IRedisService";
-import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
-import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
-import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
-import { buildDateRanges } from "@calcom/lib/date-ranges";
-import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-import type { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
-import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
-import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
+import { getAggregatedAvailability } from "@calcom/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability";
 import type {
   CurrentSeats,
   EventType,
@@ -26,13 +12,33 @@ import type {
   UserAvailabilityService,
   IFromUser,
   IToUser,
-} from "@calcom/lib/getUserAvailability";
+} from "@calcom/features/availability/lib/getUserAvailability";
+import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
+import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
+import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
+import getSlots from "@calcom/features/schedules/lib/slots";
+import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
-import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
@@ -44,15 +50,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
-import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
-import type { TeamRepository } from "@calcom/lib/server/repository/team";
-import type { UserRepository } from "@calcom/lib/server/repository/user";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
-import getSlots from "@calcom/lib/slots";
 import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -60,7 +59,6 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { TRPCError } from "@trpc/server";
 
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-import type { NoSlotsNotificationService } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
@@ -84,6 +82,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   troubleshooter?: any;
 }
 
@@ -100,7 +99,6 @@ export interface IAvailableSlotsService {
   bookingRepo: BookingRepository;
   eventTypeRepo: EventTypeRepository;
   routingFormResponseRepo: RoutingFormResponseRepository;
-  cacheService: CacheService;
   checkBookingLimitsService: CheckBookingLimitsService;
   userAvailabilityService: UserAvailabilityService;
   busyTimesService: BusyTimesService;
@@ -253,7 +251,6 @@ export class AvailableSlotsService {
     );
     const eventTypeId =
       input.eventTypeId ||
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       (await this.getEventTypeId({
         slug: usernameList?.[0],
         eventTypeSlug: eventTypeSlug,
@@ -462,7 +459,7 @@ export class AvailableSlotsService {
                   rescheduleUid,
                   timeZone,
                 });
-              } catch (_) {
+              } catch {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -663,7 +660,7 @@ export class AvailableSlotsService {
                 includeManagedEvents,
                 timeZone,
               });
-            } catch (_) {
+            } catch {
               limitManager.addBusyTime(periodStart, unit, timeZone);
               if (
                 periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -825,6 +822,7 @@ export class AvailableSlotsService {
     let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
     if (eventType && (bookingLimits || durationLimits)) {
       const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
+      const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
       busyTimesFromLimitsMap = await this.getBusyTimesFromLimitsForUsers(
         usersForLimits,
         bookingLimits,
@@ -833,7 +831,7 @@ export class AvailableSlotsService {
         endTime,
         typeof input.duration === "number" ? input.duration : undefined,
         eventType,
-        usersWithCredentials[0]?.timeZone || "UTC",
+        eventTimeZone,
         input.rescheduleUid || undefined
       );
     }
@@ -847,6 +845,7 @@ export class AvailableSlotsService {
     let teamBookingLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
     if (teamForBookingLimits && teamBookingLimits) {
       const usersForTeamLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
+      const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
       teamBookingLimitsMap = await this.getBusyTimesFromTeamLimitsForUsers(
         usersForTeamLimits,
         teamBookingLimits,
@@ -854,7 +853,7 @@ export class AvailableSlotsService {
         endTime,
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
-        usersWithCredentials[0]?.timeZone || "UTC",
+        eventTimeZone,
         input.rescheduleUid || undefined
       );
     }
@@ -962,7 +961,6 @@ export class AvailableSlotsService {
       _enableTroubleshooter: enableTroubleshooter = false,
       _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
       _silentCalendarFailures: silentCalendarFailures = false,
-      _shouldServeCache,
       routingFormResponseId,
       queuedFormResponseId,
     } = input;
@@ -983,10 +981,7 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const shouldServeCache = await this.dependencies.cacheService.getShouldServeCache(
-      _shouldServeCache,
-      eventType.team?.id
-    );
+    const shouldServeCache = false;
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1047,6 +1042,7 @@ export class AvailableSlotsService {
         routedTeamMemberIds,
         contactOwnerEmail,
         routingFormResponse,
+        rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
       });
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];

@@ -5,7 +5,7 @@ import { isValidPermissionString } from "@calcom/features/pbac/domain/types/perm
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { RoleType, MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
@@ -19,7 +19,7 @@ const permissionStringSchema = z.custom<PermissionString>((val) => {
 // Schema for creating/updating roles
 const roleInputSchema = z.object({
   teamId: z.number(),
-  name: z.string().min(1),
+  name: z.string().min(1).max(50),
   description: z.string().optional(),
   color: z.string().optional(),
   permissions: z.array(permissionStringSchema),
@@ -173,6 +173,7 @@ export const permissionsRouter = router({
     .input(
       z.object({
         teamId: z.number(),
+        includeSystemRolesOnly: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -183,8 +184,16 @@ export const permissionsRouter = router({
       const featureRepo = new FeaturesRepository(prisma);
       const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
 
+      // If PBAC is not enabled but caller wants system roles only (for preview), allow it
+      if (!teamHasPBACFeature && input.includeSystemRolesOnly) {
+        const roleService = new RoleService();
+        const allRoles = await roleService.getTeamRoles(input.teamId);
+        // Filter to only return system roles for preview
+        return allRoles.filter((role) => role.type === "SYSTEM");
+      }
+
       if (!teamHasPBACFeature) {
-        throw new Error("PBAC is not enabled for this team");
+        return [];
       }
 
       // Check if user has permission to view roles
@@ -203,4 +212,45 @@ export const permissionsRouter = router({
       const roleService = new RoleService();
       return roleService.getTeamRoles(input.teamId);
     }),
+
+  enablePbac: authedProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Check for organization ID
+    const orgId = ctx.user.organizationId;
+    if (!orgId) {
+      throw new Error("No organization found for user");
+    }
+
+    // Check if user is ADMIN or OWNER of the organization
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId: ctx.user.id,
+        teamId: orgId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new Error("You must be an ADMIN or OWNER to enable PBAC for this organization");
+    }
+
+    // Check if PBAC is already enabled for this org
+    const featureRepo = new FeaturesRepository(prisma);
+    const pbacAlreadyEnabled = await featureRepo.checkIfTeamHasFeature(orgId, "pbac");
+
+    if (pbacAlreadyEnabled) {
+      return { success: true, message: "PBAC is already enabled for this organization" };
+    }
+
+    // Enable PBAC feature for the organization
+    await featureRepo.enableFeatureForTeam(orgId, "pbac", "opt-in by user: " + ctx.user.id);
+
+    return { success: true, message: "PBAC enabled successfully" };
+  }),
 });

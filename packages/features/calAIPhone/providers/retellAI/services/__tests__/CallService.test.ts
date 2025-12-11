@@ -36,7 +36,10 @@ describe("CallService", () => {
       updateToolsFromAgentId: vi.fn().mockResolvedValue(undefined),
     };
 
-    service = new CallService(mocks.mockRetellRepository, mocks.mockAgentRepository);
+    service = new CallService({
+      retellRepository: mocks.mockRetellRepository,
+      agentRepository: mocks.mockAgentRepository,
+    });
     service.setRetellAIService(mockRetellAIService);
   });
 
@@ -204,7 +207,7 @@ describe("CallService", () => {
 
       expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:1",
+        identifier: "createTestCall:1",
       });
     });
 
@@ -221,7 +224,7 @@ describe("CallService", () => {
 
       expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:42",
+        identifier: "createTestCall:42",
       });
     });
 

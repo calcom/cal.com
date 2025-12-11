@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "description": "The world's fastest calendar, beautifully designed for a remote world\r",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

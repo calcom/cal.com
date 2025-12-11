@@ -3,6 +3,7 @@ import { useMemo, useEffect } from "react";
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
@@ -31,6 +32,7 @@ export const LargeCalendar = ({
   const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
+  const { timezone } = useBookerTime();
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
@@ -43,8 +45,7 @@ export const LargeCalendar = ({
 
   // HACK: force rerender when overlay events change
   // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  useEffect(() => {}, [displayOverlay]);
+  useEffect(() => { }, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
     if (!overlayEvents || !displayOverlay) return [];
@@ -56,6 +57,7 @@ export const LargeCalendar = ({
         title: "Busy",
         options: {
           status: "ACCEPTED",
+          borderOnly: true,
         },
       } as CalendarEvent;
     });
@@ -75,6 +77,7 @@ export const LargeCalendar = ({
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}
         hideHeader
+        timezone={timezone}
       />
     </div>
   );
