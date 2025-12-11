@@ -204,7 +204,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
           await createReservedSlot(user.id, eventTypeId, reservedSlotUid, startTime, endTime);
 
-          const bookingData: CreateBookingInput_2024_08_13 & { reservedSlotUid: string } = {
+          const bookingData: CreateBookingInput_2024_08_13 = {
             start: startTime.toISOString(),
             eventTypeId,
             attendee: {
@@ -243,7 +243,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
           await createReservedSlot(user.id, eventTypeId, secondReservedSlotUid, startTime, endTime);
 
-          const bookingData: CreateBookingInput_2024_08_13 & { reservedSlotUid: string } = {
+          const bookingData: CreateBookingInput_2024_08_13 = {
             start: startTime.toISOString(),
             eventTypeId,
             attendee: {
@@ -305,7 +305,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
             isSeat: false,
           });
 
-          const bookingData: CreateBookingInput_2024_08_13 & { reservedSlotUid: string } = {
+          const bookingData: CreateBookingInput_2024_08_13 = {
             start: startTime.toISOString(),
             eventTypeId,
             attendee: {
@@ -424,7 +424,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
           await createReservedSlot(user.id, eventTypeId, reservedSlotUid, newStartTime, newEndTime);
 
           // 3. Reschedule booking
-          const rescheduleData: RescheduleBookingInput_2024_08_13 & { reservedSlotUid: string } = {
+          const rescheduleData: RescheduleBookingInput_2024_08_13 = {
             start: newStartTime.toISOString(),
             reschedulingReason: "Rescheduling with body",
             reservedSlotUid,
@@ -486,7 +486,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
           await createReservedSlot(user.id, eventTypeId, secondReservedSlotUid, newStartTime, newEndTime);
 
           // 3. Attempt to reschedule using the second reserved slot
-          const rescheduleData: RescheduleBookingInput_2024_08_13 & { reservedSlotUid: string } = {
+          const rescheduleData: RescheduleBookingInput_2024_08_13 = {
             start: newStartTime.toISOString(),
             reschedulingReason: "Rescheduling fail test",
             reservedSlotUid: secondReservedSlotUid,
@@ -585,7 +585,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
           await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime, endTime);
 
-          const bookingData: CreateBookingInput_2024_08_13 & { reservedSlotUid: string } = {
+          const bookingData: CreateBookingInput_2024_08_13 = {
             start: startTime.toISOString(),
             eventTypeId: recurringEventTypeId,
             attendee: {
@@ -624,7 +624,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
           await createReservedSlot(user.id, recurringEventTypeId, secondReservedSlotUid, startTime, endTime);
 
-          const bookingData: CreateBookingInput_2024_08_13 & { reservedSlotUid: string } = {
+          const bookingData: CreateBookingInput_2024_08_13 = {
             start: startTime.toISOString(),
             eventTypeId: recurringEventTypeId,
             attendee: {

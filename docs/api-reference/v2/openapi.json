@@ -27956,7 +27956,6 @@
             "type": "string",
             "description": "Reserved slot uid for the booking. If passed will prevent double bookings by checking that someone else has not reserved the same slot. If there is another reserved slot for the same time we will check if it is not expired and which one was reserved first. If the other reserved slot is expired we will allow the booking to proceed. If there are no reserved slots for the same time we will allow the booking to proceed. Right now only enabled for non-team (round robin, collective) and non-seated bookings aka 1 on 1 bookings and recurring bookings. Instant bookings don't support reserved slot uid because for them slots are not reserved.",
             "example": "430a2525-08e4-456d-a6b7-95ec2b0d22fb"
-          },
           }
         },
         "required": ["start", "attendee"]
@@ -28085,7 +28084,7 @@
             "type": "string",
             "description": "Reserved slot uid for the booking. If passed will prevent double bookings by checking that someone else has not reserved the same slot. If there is another reserved slot for the same time we will check if it is not expired and which one was reserved first. If the other reserved slot is expired we will allow the booking to proceed. If there are no reserved slots for the same time we will allow the booking to proceed. Right now only enabled for non-team (round robin, collective) and non-seated bookings aka 1 on 1 bookings and recurring bookings. Instant bookings don't support reserved slot uid because for them slots are not reserved.",
             "example": "430a2525-08e4-456d-a6b7-95ec2b0d22fb"
-        },
+          },
           "instant": {
             "type": "boolean",
             "description": "Flag indicating if the booking is an instant booking. Only available for team events.",
@@ -28218,7 +28217,7 @@
             "type": "string",
             "description": "Reserved slot uid for the booking. If passed will prevent double bookings by checking that someone else has not reserved the same slot. If there is another reserved slot for the same time we will check if it is not expired and which one was reserved first. If the other reserved slot is expired we will allow the booking to proceed. If there are no reserved slots for the same time we will allow the booking to proceed. Right now only enabled for non-team (round robin, collective) and non-seated bookings aka 1 on 1 bookings and recurring bookings. Instant bookings don't support reserved slot uid because for them slots are not reserved.",
             "example": "430a2525-08e4-456d-a6b7-95ec2b0d22fb"
-        },
+          },
           "recurrenceCount": {
             "type": "number",
             "description": "The number of recurrences. If not provided then event type recurrence count will be used. Can't be more than\n    event type recurrence count",
@@ -29557,6 +29556,11 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "reservedSlotUid": {
+            "type": "string",
+            "description": "Reserved slot uid for the rescheduled booking. If passed will prevent double bookings by checking that someone else has not reserved the same slot. If there is another reserved slot for the same time we will check if it is not expired and which one was reserved first. If the other reserved slot is expired we will allow the booking to proceed. If there are no reserved slots for the same time we will allow the booking to proceed.",
+            "example": "430a2525-08e4-456d-a6b7-95ec2b0d22fb"
           }
         },
         "required": ["start"]
