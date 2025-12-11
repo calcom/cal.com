@@ -4097,6 +4097,8 @@
   "booking_response": "Booking Response",
   "list_view": "List view",
   "calendar_view": "Calendar view",
+  "assignment_reason": "Assignment Reason",
+  "saved": "Saved",
   "booking_history": "Booking History",
   "booking_history_description": "View the history of actions performed on this booking",
   "audit_action": {
