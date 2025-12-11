@@ -18,6 +18,16 @@ vi.mock("@calcom/features/bookings/Booker/store", () => ({
   }),
 }));
 
+vi.mock("@calcom/features/bookings/Booker/BookerStoreProvider", () => ({
+  useBookerStoreContext: vi.fn((selector) => {
+    const state = {
+      bookingData: null,
+      formValues: {},
+    };
+    return selector(state);
+  }),
+}));
+
 vi.mock("@calcom/features/bookings/lib/getBookingResponsesSchema", () => ({
   getBookingResponsesPartialSchema: vi.fn(() => ({
     parseAsync: vi.fn((data) => Promise.resolve(data)),
