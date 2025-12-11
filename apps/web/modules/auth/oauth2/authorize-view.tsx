@@ -124,7 +124,13 @@ export default function Authorize() {
 
   // Don't show UI for trusted clients, they'll auto-authorize
   if (client.isTrusted && selectedAccount) {
-    return null;
+    return (
+      <div className="flex justify-center pt-32">
+        <div className="flex items-center space-x-3">
+          <span className="text-lg font-medium text-gray-700">Authorizing...</span>
+        </div>
+      </div>
+    );
   }
 
   return (
