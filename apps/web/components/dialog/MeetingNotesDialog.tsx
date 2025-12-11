@@ -53,7 +53,9 @@ export const MeetingNotesDialog = (props: IMeetingNotesDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogTrigger>
-        <Button className="min-w-40 justify-center" color="secondary">{t("meeting_notes")}</Button>
+        <Button className="min-w-40 justify-center" color="secondary">
+          {t("meeting_notes")}
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -62,10 +64,8 @@ export const MeetingNotesDialog = (props: IMeetingNotesDialog) => {
         </DialogHeader>
         <Tiptap onChange={(e) => setNotes(e)} content={notes} />
         <DialogFooter>
-          <DialogClose className="flex flex-row gap-2">
-            <Button color="secondary">{t("close")}</Button>
-            <Button onClick={handleMeetingNoteSave}>{t("save")}</Button>
-          </DialogClose>
+          <DialogClose />
+          <Button onClick={handleMeetingNoteSave}>{t("save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -117,8 +117,8 @@ const Toolbar = ({ editor }: ToolbarProps) => {
   }
   return (
     <div
-      className="flex w-full flex-wrap items-start justify-between gap-5 rounded-tl-md
-    rounded-tr-md border border-default px-4 py-3">
+      className="border-default flex w-full flex-wrap items-start justify-between gap-5
+    rounded-tl-md rounded-tr-md border px-4 py-3">
       <div className="flex w-full flex-wrap items-center justify-start gap-3 md:gap-5 ">
         <button
           onClick={(e) => {

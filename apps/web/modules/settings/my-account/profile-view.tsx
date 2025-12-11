@@ -837,7 +837,6 @@ const ProfileForm = ({
           />
         </div>
 
-        {/* Header Background Section - Migrated from Appearance */}
         <div className="mt-6">
           <Controller
             control={formMethods.control}
@@ -846,10 +845,8 @@ const ProfileForm = ({
               const showRemoveHeaderButton = value !== null;
               return (
                 <div className="flex flex-col">
-                  <Label className="mb-2 font-semibold">{t("booking_page_header_background")}</Label>
-                  <span className="text-subtle mb-4 text-sm">
-                    {t("booking_page_header_background_description")}
-                  </span>
+                  <Label>{t("booking_page_banner")}</Label>
+                  <span className="text-subtle mb-4 text-sm">{t("booking_page_banner_description")}</span>
                   <div className="bg-muted mb-4 flex h-60 w-full items-center justify-start overflow-hidden rounded-lg">
                     {!value ? (
                       <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
@@ -857,14 +854,15 @@ const ProfileForm = ({
                       <img className="h-full w-full object-cover" src={value} alt="Header background" />
                     )}
                   </div>
+
                   <div className="flex gap-2">
                     <CustomBannerUploader
                       target="metadata.headerUrl"
                       id="header-upload"
                       buttonMsg={t("upload_image")}
-                      fieldName="Header"
-                      mimeType="image/svg+xml"
-                      height={600}
+                      fieldName="Banner"
+                      mimeType={["image/svg+xml", "image/png"]}
+                      height={320}
                       width={3200}
                       handleAvatarChange={(newHeaderUrl) => {
                         onChange(newHeaderUrl);

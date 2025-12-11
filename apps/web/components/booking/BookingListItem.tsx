@@ -1,5 +1,4 @@
 import { Button } from "@calid/features/ui/components/button";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -30,6 +29,7 @@ import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -682,15 +682,15 @@ export default function BookingListItem(booking: BookingItemProps) {
                     <div
                       title={title}
                       className={classNames(
-                        "text-emphasis flex w-full items-center gap-2 align-top text-base font-semibold leading-6"
+                        "text-emphasis flex w-full flex-wrap items-baseline gap-x-2 gap-y-1 align-top text-base font-semibold leading-6"
                       )}>
                       <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
-                      <span className="align-center text-subtle text-xs font-medium">with</span>
-                      <span className="align-center !decoration-none text-default text-sm font-medium">
+                      <span className="text-subtle text-xs font-medium">with</span>
+                      <span className="!decoration-none text-default text-sm font-medium">
                         {attendeeList[0]?.name}
                       </span>
                       {attendeeList.length > 1 && (
-                        <span className="align-center text-default text-sm font-medium">
+                        <span className="text-default text-sm font-medium">
                           + {attendeeList.length - 1} more
                         </span>
                       )}

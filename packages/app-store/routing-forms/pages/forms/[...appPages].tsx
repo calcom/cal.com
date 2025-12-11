@@ -272,7 +272,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       <FormAction
                                         routingForm={form}
                                         action="copyLink"
-                                        color="secondary"
+                                        color="minimal"
                                         variant="icon"
                                         size="xs">
                                         <Icon name="link" className="h-3 w-3" />
@@ -285,7 +285,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                         action="preview"
                                         routingForm={form}
                                         target="_blank"
-                                        color="secondary"
+                                        color="minimal"
                                         variant="icon"
                                         size="xs">
                                         <Icon name="external-link" className="h-3 w-3" />
@@ -297,7 +297,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       <FormAction
                                         routingForm={form}
                                         action="embed"
-                                        color="secondary"
+                                        color="minimal"
                                         variant="icon"
                                         size="xs">
                                         <Icon name="code" className="h-3 w-3" />

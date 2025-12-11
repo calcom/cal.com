@@ -188,13 +188,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       </div>
       <div className="absolute right-0 mr-4 flex max-w-44 flex-wrap justify-end gap-1">
         {appAdded > 0 ? <Badge variant="success">{t("installed", { count: appAdded })}</Badge> : null}
-        {app.isTemplate && (
-          <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>
-        )}
+        {app.isTemplate && <Badge variant="secondary">{t("template")}</Badge>}
         {(app.isDefault || (!app.isDefault && app.isGlobal)) && (
-          <span className="bg-subtle text-emphasis flex items-center rounded-md px-2 py-1 text-sm font-normal">
-            {t("default")}
-          </span>
+          <Badge variant="secondary">{t("default")}</Badge>
         )}
       </div>
     </div>

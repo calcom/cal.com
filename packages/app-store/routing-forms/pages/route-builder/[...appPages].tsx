@@ -164,7 +164,7 @@ const buildEventsData = ({
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
     // For CalId forms, use calIdTeamId instead of teamId
     const formTeamId = form.calIdTeamId ?? form.teamId ?? null;
-    
+
     const eventTypeValidInContext = areTheySiblingEntities({
       entity1: {
         teamId: group.teamId ?? null,
@@ -203,7 +203,6 @@ const buildEventsData = ({
         eventTypeAppMetadata,
         isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       });
-      
     });
   });
 
@@ -769,7 +768,7 @@ const Route = ({
                             }}
                             placeholder="event-url"
                           />
-                          <div className="mt-2 ">
+                          <div className="mt-2">
                             <p className="text-subtle text-xs">
                               {fieldIdentifiers.length
                                 ? t("field_identifiers_as_variables_with_example", {
@@ -1371,11 +1370,13 @@ function Page({
       { enabled: !!values.teamId }
     );
 
-  const { data: eventTypesByGroup, isLoading: areEventsLoading, error: eventsError } =
-    trpc.viewer.eventTypes.calid_getByViewer.useQuery({
-      forRoutingForms: true,
-    });
-
+  const {
+    data: eventTypesByGroup,
+    isLoading: areEventsLoading,
+    error: eventsError,
+  } = trpc.viewer.eventTypes.calid_getByViewer.useQuery({
+    forRoutingForms: true,
+  });
 
   // If hookForm hasn't been initialized, don't render anything
   // This is important here because some states get initialized which aren't reset when the hookForm is reset with the form values and they don't get the updated values
