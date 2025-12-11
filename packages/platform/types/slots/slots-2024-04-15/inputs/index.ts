@@ -218,12 +218,12 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @IsArray()
   @IsNumber({}, { each: true })
   @IsOptional()
-  @ApiPropertyOptional({
+  /* @ApiPropertyOptional({
     type: [Number],
     description:
       "For round robin event types, filter available slots to only consider the specified subset of host user IDs. This allows you to get availability for specific hosts within a round robin event type.",
     example: [1, 2, 3],
-  })
+  }) */
   @ApiHideProperty()
   rrHostSubsetIds?: number[];
 }
