@@ -8,14 +8,34 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "serial" });
 
 test.describe("Policy Acceptance Modal", () => {
-  test.beforeEach(async () => {
-    // Clean up all policy data before each test to avoid stale data from previous runs
-    await prisma.userPolicyAcceptance.deleteMany({});
-    await prisma.policyVersion.deleteMany({});
-  });
+  // Track user IDs created in this test suite for cleanup
+  const createdUserIds: number[] = [];
 
   test.afterEach(async ({ users }) => {
+    // Clean up policies created by users in this test
+    for (const userId of createdUserIds) {
+      await prisma.userPolicyAcceptance.deleteMany({
+        where: { userId },
+      });
+      await prisma.policyVersion.deleteMany({
+        where: { createdById: userId },
+      });
+    }
+    createdUserIds.length = 0;
     await users.deleteAll();
+  });
+
+  test.afterAll(async () => {
+    // Final cleanup to ensure no policies from this test suite remain
+    // This runs after all tests complete, even if they fail
+    for (const userId of createdUserIds) {
+      await prisma.userPolicyAcceptance.deleteMany({
+        where: { userId },
+      });
+      await prisma.policyVersion.deleteMany({
+        where: { createdById: userId },
+      });
+    }
   });
 
   test.skip("should show blocking modal for non-US users when policy is not accepted", async ({
@@ -173,6 +193,7 @@ test.describe("Policy Acceptance Modal", () => {
     users,
   }) => {
     const user = await users.create();
+    createdUserIds.push(user.id);
 
     await prisma.policyVersion.create({
       data: {
