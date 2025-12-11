@@ -147,24 +147,19 @@ const createBookingDetailsSheetStore = (initialBookings: BookingOutput[] = []) =
     navigatePrevious: async () => {
       const state = get();
 
-      console.log("[Store] navigatePrevious called, current index:", state.getCurrentIndex());
-
       // Try navigating within current array first
       if (state.hasPreviousInArray()) {
         const prevIndex = state.getCurrentIndex() - 1;
-        console.log("[Store] Navigating to previous in array, index:", prevIndex);
         set({ selectedBookingUid: state.bookings[prevIndex].uid });
         return;
       }
 
       // Need to navigate to previous period
       if (!state.capabilities?.canNavigateToPreviousPeriod()) {
-        console.log("[Store] Cannot navigate to previous period");
         return;
       }
 
       // Set pending selection to "last" and mark as transitioning
-      console.log("[Store] Setting pendingSelection to 'last' and requesting previous period");
       set({ isTransitioning: true, pendingSelection: "last" });
       // Trigger page/week change synchronously - the parent component will handle the data fetch
       state.capabilities.requestPreviousPeriod();

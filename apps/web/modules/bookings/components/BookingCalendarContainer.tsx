@@ -20,8 +20,6 @@ import { useCalendarAutoSelector } from "~/bookings/hooks/useCalendarAutoSelecto
 import { useCalendarNavigationCapabilities } from "~/bookings/hooks/useCalendarNavigationCapabilities";
 import { useCurrentWeekStart } from "~/bookings/hooks/useCurrentWeekStart";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
-import { useNearestFutureBooking } from "~/bookings/hooks/useNearestFutureBooking";
-import { useNearestPastBooking } from "~/bookings/hooks/useNearestPastBooking";
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import { getWeekStart } from "../lib/weekUtils";
@@ -221,26 +219,13 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
 
   const bookings = useMemo(() => data?.bookings ?? [], [data?.bookings]);
 
-  // Probe queries for navigation - find nearest bookings in each direction
-  const futureProbe = useNearestFutureBooking({
-    currentWeekStart,
-    filters: { statuses: STATUSES, userIds },
-  });
-
-  const pastProbe = useNearestPastBooking({
-    currentWeekStart,
-    filters: { statuses: STATUSES, userIds },
-  });
-
   // Create navigation capabilities for calendar view
+  // This hook handles probe queries and prefetching internally
   const capabilities = useCalendarNavigationCapabilities({
     currentWeekStart,
     setCurrentWeekStart,
     userWeekStart,
-    nextBookingDate: futureProbe.nearestBooking?.startTime?.toString() ?? null,
-    prevBookingDate: pastProbe.nearestBooking?.startTime?.toString() ?? null,
-    hasFutureBooking: !!futureProbe.nearestBooking,
-    hasPastBooking: !!pastProbe.nearestBooking,
+    filters: { statuses: STATUSES, userIds },
   });
 
   return (

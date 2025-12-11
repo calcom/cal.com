@@ -1,22 +1,24 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { trpc } from "@calcom/trpc/react";
 
 import { getWeekStart } from "../lib/weekUtils";
 import type { NavigationCapabilities } from "../store/bookingDetailsSheetStore";
+import type { BookingListingStatus } from "../types";
+import { useNearestFutureBooking } from "./useNearestFutureBooking";
+import { useNearestPastBooking } from "./useNearestPastBooking";
 
 interface UseCalendarNavigationCapabilitiesProps {
-  currentWeekStart: dayjs.Dayjs;
-  setCurrentWeekStart: (date: dayjs.Dayjs) => void;
+  currentWeekStart: Dayjs;
+  setCurrentWeekStart: (date: Dayjs) => void;
   userWeekStart: number;
-  /** Start time of the nearest future booking (from probe query) */
-  nextBookingDate: string | null;
-  /** Start time of the nearest past booking (from probe query) */
-  prevBookingDate: string | null;
-  /** Whether there is a future booking within the probe window */
-  hasFutureBooking: boolean;
-  /** Whether there is a past booking within the probe window */
-  hasPastBooking: boolean;
+  /** Filters to use for probe queries and prefetching */
+  filters: {
+    statuses: BookingListingStatus[];
+    userIds?: number[];
+  };
 }
 
 /**
@@ -24,18 +26,78 @@ interface UseCalendarNavigationCapabilitiesProps {
  * Provides week-based navigation logic for the booking details sheet.
  *
  * This hook:
- * - Uses probe query results to determine if navigation is possible
+ * - Uses probe queries to find nearest bookings in each direction
  * - Jumps directly to the week containing the nearest booking (not just adjacent week)
  * - Disables navigation buttons when no bookings exist in that direction
+ * - Prefetches booking data for the target weeks to improve navigation performance
  */
 export function useCalendarNavigationCapabilities({
+  currentWeekStart,
   setCurrentWeekStart,
   userWeekStart,
-  nextBookingDate,
-  prevBookingDate,
-  hasFutureBooking,
-  hasPastBooking,
+  filters,
 }: UseCalendarNavigationCapabilitiesProps): NavigationCapabilities {
+  const trpcUtils = trpc.useUtils();
+
+  // Probe queries for navigation - find nearest bookings in each direction
+  const { nearestBooking: nearestFutureBooking } = useNearestFutureBooking({
+    currentWeekStart,
+    filters,
+  });
+
+  const { nearestBooking: nearestPastBooking } = useNearestPastBooking({
+    currentWeekStart,
+    filters,
+  });
+
+  const hasFutureBooking = !!nearestFutureBooking;
+  const hasPastBooking = !!nearestPastBooking;
+  const nextBookingDate = nearestFutureBooking?.startTime?.toString() ?? null;
+  const prevBookingDate = nearestPastBooking?.startTime?.toString() ?? null;
+
+  // Calculate target week starts for prefetching
+  const nextWeekStart = useMemo(() => {
+    if (!nextBookingDate) return null;
+    return getWeekStart(dayjs(nextBookingDate), userWeekStart);
+  }, [nextBookingDate, userWeekStart]);
+
+  const prevWeekStart = useMemo(() => {
+    if (!prevBookingDate) return null;
+    return getWeekStart(dayjs(prevBookingDate), userWeekStart);
+  }, [prevBookingDate, userWeekStart]);
+
+  // Prefetch bookings for the next week with bookings
+  // Uses prefetchInfinite to match the useInfiniteQuery used in BookingCalendarContainer
+  useEffect(() => {
+    if (!nextWeekStart) return;
+
+    trpcUtils.viewer.bookings.get.prefetchInfinite({
+      limit: 100,
+      filters: {
+        statuses: filters.statuses,
+        userIds: filters.userIds,
+        afterStartDate: nextWeekStart.startOf("day").toISOString(),
+        beforeEndDate: nextWeekStart.add(6, "day").endOf("day").toISOString(),
+      },
+    });
+  }, [nextWeekStart, filters.statuses, filters.userIds, trpcUtils]);
+
+  // Prefetch bookings for the previous week with bookings
+  // Uses prefetchInfinite to match the useInfiniteQuery used in BookingCalendarContainer
+  useEffect(() => {
+    if (!prevWeekStart) return;
+
+    trpcUtils.viewer.bookings.get.prefetchInfinite({
+      limit: 100,
+      filters: {
+        statuses: filters.statuses,
+        userIds: filters.userIds,
+        afterStartDate: prevWeekStart.startOf("day").toISOString(),
+        beforeEndDate: prevWeekStart.add(6, "day").endOf("day").toISOString(),
+      },
+    });
+  }, [prevWeekStart, filters.statuses, filters.userIds, trpcUtils]);
+
   const canNavigateToNextPeriod = useCallback(() => hasFutureBooking, [hasFutureBooking]);
 
   const canNavigateToPreviousPeriod = useCallback(() => hasPastBooking, [hasPastBooking]);
