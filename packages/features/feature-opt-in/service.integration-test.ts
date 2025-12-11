@@ -1,12 +1,12 @@
 import { describe, expect, beforeAll, afterAll, beforeEach, it } from "vitest";
 
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 
 import { FeatureOptInService } from "./FeatureOptInService";
-import { PrismaFeatureOptInRepository } from "./PrismaFeatureOptInRepository";
 
-const featureOptInRepository = new PrismaFeatureOptInRepository(prisma);
-const service = new FeatureOptInService(featureOptInRepository);
+const featuresRepository = new FeaturesRepository(prisma);
+const service = new FeatureOptInService(featuresRepository);
 
 describe("FeatureOptInService Integration Tests", () => {
   let testUser: { id: number };

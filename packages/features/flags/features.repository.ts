@@ -277,7 +277,61 @@ export class FeaturesRepository implements IFeaturesRepository {
     }
   }
 
-  // TODO: implement updateFeatureForUser
+  /**
+   * Updates a feature status for a specific user.
+   * Uses tri-state semantics:
+   * - 'enabled': creates/updates a row with enabled=true
+   * - 'disabled': creates/updates a row with enabled=false
+   * - 'inherit': deletes the row to inherit from team/org level
+   *
+   * @param userId - The ID of the user to update the feature for
+   * @param featureId - The feature identifier to update
+   * @param state - 'enabled' | 'disabled' | 'inherit'
+   * @param assignedBy - The user or what assigned the feature
+   * @returns Promise<void>
+   * @throws Error if the feature update fails
+   */
+  async updateFeatureForUser(
+    userId: number,
+    featureId: keyof AppFlags,
+    state: FeatureState,
+    assignedBy: string
+  ): Promise<void> {
+    try {
+      if (state === "enabled" || state === "disabled") {
+        await this.prismaClient.userFeatures.upsert({
+          where: {
+            userId_featureId: {
+              userId,
+              featureId,
+            },
+          },
+          create: {
+            userId,
+            featureId,
+            enabled: state === "enabled",
+            assignedBy,
+          },
+          update: {
+            enabled: state === "enabled",
+            assignedBy,
+          },
+        });
+      } else if (state === "inherit") {
+        await this.prismaClient.userFeatures.deleteMany({
+          where: {
+            userId,
+            featureId,
+          },
+        });
+      }
+      // Clear cache when features are modified
+      this.clearCache();
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 
   /**
    * Updates a feature status for a specific team.
@@ -413,6 +467,77 @@ export class FeaturesRepository implements IFeaturesRepository {
       });
 
       return rows.map((r) => r.teamId);
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Get user's feature state.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → feature is enabled
+   * - Row with enabled=false → feature is explicitly disabled
+   * - No row → inherit from team/org level
+   *
+   * @param input - Object containing userId and featureId
+   * @returns Row with enabled value, or null if no row exists (inherit)
+   */
+  async getUserFeatureState(input: {
+    userId: number;
+    featureId: string;
+  }): Promise<{ enabled: boolean } | null> {
+    const { userId, featureId } = input;
+
+    try {
+      /**
+       * findUnique was failing in prismock tests, so I'm using findFirst instead
+       * FIXME refactor when upgrading prismock
+       * https://github.com/morintd/prismock/issues/592
+       */
+      const userFeature = await this.prismaClient.userFeatures.findFirst({
+        where: {
+          userId,
+          featureId,
+        },
+        select: { enabled: true },
+      });
+
+      return userFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Get team's feature state.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → feature is enabled
+   * - Row with enabled=false → feature is explicitly disabled
+   * - No row → inherit from parent team/org level
+   *
+   * @param input - Object containing teamId and featureId
+   * @returns Row with enabled value, or null if no row exists (inherit)
+   */
+  async getTeamFeatureState(input: {
+    teamId: number;
+    featureId: string;
+  }): Promise<{ enabled: boolean } | null> {
+    const { teamId, featureId } = input;
+
+    try {
+      const teamFeature = await this.prismaClient.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+        select: { enabled: true },
+      });
+
+      return teamFeature;
     } catch (err) {
       captureException(err);
       throw err;

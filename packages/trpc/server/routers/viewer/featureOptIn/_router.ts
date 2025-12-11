@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { FeatureOptInService } from "@calcom/features/feature-opt-in/FeatureOptInService";
-import { PrismaFeatureOptInRepository } from "@calcom/features/feature-opt-in/PrismaFeatureOptInRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -16,9 +15,8 @@ import { router } from "../../../trpc";
 const featureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
 
 function createFeatureOptInService() {
-  const featureOptInRepository = new PrismaFeatureOptInRepository(prisma);
   const featuresRepository = new FeaturesRepository(prisma);
-  return new FeatureOptInService(featureOptInRepository, featuresRepository);
+  return new FeatureOptInService(featuresRepository);
 }
 
 export const featureOptInRouter = router({
