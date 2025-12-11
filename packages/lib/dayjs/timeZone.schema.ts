@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 import { isSupportedTimeZone } from "./index";
+import logger from "../logger";
+
+const log = logger.getSubLogger({ prefix: ["timeZoneSchema"] });
 
 // Schema for validating IANA timezone strings compatible with Intl.DateTimeFormat
 // Browserstack and some automations return +00:00 as the timezone which isn't a valid IANA timezone
@@ -9,8 +12,12 @@ export const timeZoneSchema = z
   .string()
   .superRefine((timeZone, ctx) => {
     // Allow +00:00 as a special case - it will be transformed to UTC
-    if (timeZone === "+00:00") return;
+    if (timeZone === "+00:00") {
+      log.warn("Received non-IANA timezone '+00:00', transforming to 'UTC'");
+      return;
+    }
     if (!isSupportedTimeZone(timeZone)) {
+      log.error(`Invalid timezone received: ${timeZone}`);
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Invalid timezone. Must be a valid IANA timezone string.",
