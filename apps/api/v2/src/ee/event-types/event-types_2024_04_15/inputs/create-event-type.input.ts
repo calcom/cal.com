@@ -1,6 +1,6 @@
 import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
 import { ApiProperty as DocsProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   IsString,
   IsNumber,
@@ -11,6 +11,8 @@ import {
   IsArray,
   IsInt,
 } from "class-validator";
+
+import { slugify } from "@calcom/platform-libraries";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_SLUG_EXAMPLE = "cooking-class";
@@ -28,6 +30,7 @@ export class CreateEventTypeInput_2024_04_15 {
 
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
+  @Transform(({ value }) => (typeof value === "string" ? slugify(value) : value))
   slug!: string;
 
   @IsString()

@@ -20,6 +20,7 @@ import {
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
+import { slugify } from "@calcom/platform-libraries";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
@@ -158,6 +159,7 @@ class BaseUpdateEventTypeInput {
   @IsOptional()
   @IsString()
   @DocsPropertyOptional({ example: CREATE_EVENT_SLUG_EXAMPLE })
+  @Transform(({ value }) => (typeof value === "string" ? slugify(value) : value))
   slug?: string;
 
   @IsOptional()
@@ -560,10 +562,10 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
 
   @IsBoolean()
   @IsOptional()
-  @DocsPropertyOptional({
+  /* @DocsPropertyOptional({
     description:
       "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
-  })
+  }) */
   @ApiHideProperty()
   rrHostSubsetEnabled?: boolean;
 }
