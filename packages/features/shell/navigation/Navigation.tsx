@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
-import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import {
   useOrgBranding,
   type OrganizationBranding,
@@ -25,14 +25,9 @@ const preserveBookingsQueryParams = ({
   nextPathname: string;
 }) => Boolean(prevPathname?.startsWith("/bookings/")) && nextPathname.startsWith("/bookings/");
 
-type NavigationInsightsConfig = {
-  hasAccess: boolean;
-  upgradeHref: string;
-};
-
 const getNavigationItems = (
   orgBranding: OrganizationBranding,
-  navigationInsightsConfig: NavigationInsightsConfig
+  hasInsightsAccess: boolean
 ): NavigationItemType[] => [
  
   {
@@ -120,11 +115,11 @@ const getNavigationItems = (
   },
   {
     name: "insights",
-    href: navigationInsightsConfig.hasAccess ? "/insights" : navigationInsightsConfig.upgradeHref,
+    href: "/insights",
     icon: "chart-bar",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
-    child: navigationInsightsConfig.hasAccess
+    child: hasInsightsAccess
       ? [
           {
             name: "bookings",
@@ -204,17 +199,11 @@ const platformNavigationItems: NavigationItemType[] = [
 
 const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
-  const { hasTeamPlan, isPending } = useHasTeamPlan();
-  const navigationInsightsConfig = useMemo(
-    () => ({
-      hasAccess: isPending || !!hasTeamPlan,
-      upgradeHref: "/insights",
-    }),
-    [hasTeamPlan, isPending]
-  );
+  const { hasPaidPlan, isPending } = useHasPaidPlan();
   return useMemo(() => {
+    const hasInsightsAccess = isPending || !!hasPaidPlan;
     const items = !isPlatformNavigation
-      ? getNavigationItems(orgBranding, navigationInsightsConfig)
+      ? getNavigationItems(orgBranding, hasInsightsAccess)
       : platformNavigationItems;
 
     const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
@@ -226,7 +215,7 @@ const useNavigationItems = (isPlatformNavigation = false) => {
     );
 
     return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
-  }, [isPlatformNavigation, navigationInsightsConfig, orgBranding]);
+  }, [hasPaidPlan, isPending, isPlatformNavigation, orgBranding]);
 };
 
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
