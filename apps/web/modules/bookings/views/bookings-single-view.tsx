@@ -36,7 +36,6 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { RefundPolicy } from "@calcom/lib/payment/types";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
@@ -57,6 +56,7 @@ import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
@@ -279,14 +279,6 @@ export default function Success(props: PageProps) {
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
-  // const telemetry = useTelemetry();
-  /*  useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
-    }
-  }, [telemetry]); */
-
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE));
     setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
@@ -392,6 +384,22 @@ export default function Success(props: PageProps) {
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
 
+  const paymentStatusMessage = usePaymentStatus({
+    bookingStatus: bookingInfo.status,
+    startTime: bookingInfo.startTime,
+    eventTypeTeamId: eventType?.teamId,
+    userId: eventType?.owner?.id,
+    payment: props.paymentStatus
+      ? {
+          success: props.paymentStatus.success,
+          refunded: props.paymentStatus.refunded,
+          paymentOption: props.paymentStatus.paymentOption,
+        }
+      : { success: false, refunded: false },
+    refundPolicy: eventType?.metadata?.apps?.stripe?.refundPolicy,
+    refundDaysCount: eventType?.metadata?.apps?.stripe?.refundDaysCount,
+  });
+
   const successPageHeadline = (() => {
     if (isAwaitingPayment && !isCancelled) {
       return props.paymentStatus?.paymentOption === "HOLD"
@@ -470,7 +478,8 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
+                  !isBackgroundTransparent &&
+                    " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -498,7 +507,7 @@ export default function Success(props: PageProps) {
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
-                            ? "bg-success"
+                            ? "bg-cal-success"
                             : "",
                           !giphyImage && isReschedulable && (needsConfirmation || isAwaitingPayment)
                             ? "bg-subtle"
@@ -527,47 +536,7 @@ export default function Success(props: PageProps) {
                       </div>
                       {props.paymentStatus &&
                         (bookingInfo.status === BookingStatus.CANCELLED ||
-                          bookingInfo.status === BookingStatus.REJECTED) && (
-                          <h4>
-                            {!props.paymentStatus.success &&
-                              !props.paymentStatus.refunded &&
-                              t("booking_with_payment_cancelled")}
-                            {props.paymentStatus.success &&
-                              !props.paymentStatus.refunded &&
-                              (() => {
-                                const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
-                                const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
-
-                                // Handle missing team or event type owner (same in processPaymentRefund.ts)
-                                if (!eventType?.teamId && !eventType?.owner) {
-                                  return t("booking_with_payment_cancelled_no_refund");
-                                }
-
-                                // Handle DAYS policy with expired refund window
-                                else if (refundPolicy === RefundPolicy.DAYS && refundDaysCount) {
-                                  const startTime = new Date(bookingInfo.startTime);
-                                  const cancelTime = new Date();
-                                  const daysDiff = Math.floor(
-                                    (cancelTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)
-                                  );
-
-                                  if (daysDiff > refundDaysCount) {
-                                    return t("booking_with_payment_cancelled_refund_window_expired");
-                                  }
-                                }
-                                // Handle NEVER policy
-                                else if (refundPolicy === RefundPolicy.NEVER) {
-                                  return t("booking_with_payment_cancelled_no_refund");
-                                }
-
-                                // Handle ALWAYS policy
-                                else {
-                                  return t("booking_with_payment_cancelled_already_paid");
-                                }
-                              })()}
-                            {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
-                          </h4>
-                        )}
+                          bookingInfo.status === BookingStatus.REJECTED) && <h4>{paymentStatusMessage}</h4>}
 
                       <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
                         {(isCancelled || reschedule) && cancellationReason && (
@@ -576,7 +545,7 @@ export default function Success(props: PageProps) {
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{cancellationReason}</p>
+                              <p className="wrap-break-word">{cancellationReason}</p>
                             </div>
                           </>
                         )}
@@ -586,7 +555,7 @@ export default function Success(props: PageProps) {
                             <>
                               <div className="font-medium">{t("cancelled_by")}</div>
                               <div className="col-span-2 mb-6 last:mb-0">
-                                <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                                <p className="wrap-break-word">{bookingInfo?.cancelledBy}</p>
                               </div>
                             </>
                           )}
@@ -594,44 +563,20 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{previousBooking?.rescheduledBy}</p>
+                              <p className="wrap-break-word">{previousBooking?.rescheduledBy}</p>
                               <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
                                 {t("original_booking")}
                               </Link>
                             </div>
                           </>
                         )}
-                        {props.recurringBookings && props.recurringBookings.length > 0 && (() => {
-                          const pendingCount = props.recurringBookings.filter(
-                            (booking) => booking.status === BookingStatus.PENDING
-                          ).length;
-                          
-                          if (pendingCount > 0) {
-                            return (
-                              <div className="col-span-3 mb-6">
-                                <Alert
-                                  severity="warning"
-                                  title={
-                                    pendingCount === 1
-                                      ? t("recurring_event_conflict_single")
-                                      : t("recurring_event_conflict_multiple", { count: pendingCount })
-                                  }
-                                  actions={
-                                    <Link
-                                      href="/bookings/recurring"
-                                      className="text-sm font-medium underline hover:no-underline">
-                                      {t("resolve_now")}
-                                    </Link>
-                                  }
-                                />
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? bookingInfo.title : eventName}
+                          {isRoundRobin
+                            ? typeof bookingInfo.title === "string"
+                              ? bookingInfo.title
+                              : eventName
+                            : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
@@ -747,7 +692,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="whitespace-pre-line break-words">{bookingInfo.description}</p>
+                              <p className="wrap-break-word whitespace-pre-line">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -774,7 +719,7 @@ export default function Success(props: PageProps) {
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
                                   0 ? (
-                                    <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+                                    <ul className="stack-y-1 list-disc p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
@@ -819,7 +764,7 @@ export default function Success(props: PageProps) {
                                 }}
                               />
                               <p
-                                className="text-default break-words"
+                                className="text-default wrap-break-word"
                                 data-testid="field-response"
                                 data-fob-field={field.name}>
                                 {field.type === "boolean"
@@ -928,6 +873,7 @@ export default function Success(props: PageProps) {
                             currentUserEmail={currentUserEmail}
                             isHost={isHost}
                             internalNotePresets={props.internalNotePresets}
+                            renderContext="booking-single-view"
                           />
                         </>
                       ))}
@@ -1089,7 +1035,7 @@ export default function Success(props: PageProps) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-4 space-y-1 text-center">
+                      <div className="stack-y-1 my-4 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
@@ -1188,16 +1134,9 @@ const DisplayLocation = ({
     <p className={className}>{locationToDisplay}</p>
   );
 
-type RecurringBookingWithStatus = {
-  startTime: string;
-  status: BookingStatus;
-};
-
-type RecurringBookingsData = RecurringBookingWithStatus[] | null;
-
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];
-  recurringBookings: RecurringBookingsData;
+  recurringBookings: PageProps["recurringBookings"];
   date: dayjs.Dayjs;
   duration: number | undefined;
   is24h: boolean;
@@ -1222,7 +1161,7 @@ function RecurringBookings({
     i18n: { language },
   } = useLocale();
   const recurringBookingsSorted = recurringBookings
-    ? recurringBookings.sort((a: RecurringBookingWithStatus, b: RecurringBookingWithStatus) => (dayjs(a.startTime).isAfter(dayjs(b.startTime)) ? 1 : -1))
+    ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
   if (!duration) return null;
@@ -1240,45 +1179,30 @@ function RecurringBookings({
           </span>
         )}
         {eventType.recurringEvent?.count &&
-          recurringBookingsSorted.slice(0, 4).map((booking, idx: number) => {
-            const dateStr = typeof booking === "string" ? booking : booking.startTime;
-            const bookingStatus = typeof booking === "string" ? null : booking.status;
-            const isPending = bookingStatus === BookingStatus.PENDING;
-
-            return (
-              <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
-                  </div>
-                  {isPending && (
-                    <Badge variant="orange" className="text-xs">
-                      {t("pending")}
-                    </Badge>
-                  )}
-                </div>
-                <br />
-                {formatToLocalizedTime({
-                  date: dayjs(dateStr),
-                  locale: language,
-                  timeStyle: undefined,
-                  hour12: !is24h,
-                  timeZone: tz,
-                })}{" "}
-                -{" "}
-                {formatToLocalizedTime({
-                  date: dayjs(dateStr).add(duration, "m"),
-                  locale: language,
-                  timeStyle: undefined,
-                  hour12: !is24h,
-                  timeZone: tz,
-                })}{" "}
-                <span className="text-bookinglight">
-                  ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
-                </span>
-              </div>
-            );
-          })}
+          recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
+            <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
+              {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
+              <br />
+              {formatToLocalizedTime({
+                date: dayjs(dateStr),
+                locale: language,
+                timeStyle: undefined,
+                hour12: !is24h,
+                timeZone: tz,
+              })}{" "}
+              -{" "}
+              {formatToLocalizedTime({
+                date: dayjs(dateStr).add(duration, "m"),
+                locale: language,
+                timeStyle: undefined,
+                hour12: !is24h,
+                timeZone: tz,
+              })}{" "}
+              <span className="text-bookinglight">
+                ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
+              </span>
+            </div>
+          ))}
         {recurringBookingsSorted.length > 4 && (
           <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
             <CollapsibleTrigger
@@ -1288,39 +1212,28 @@ function RecurringBookings({
             </CollapsibleTrigger>
             <CollapsibleContent>
               {eventType.recurringEvent?.count &&
-                recurringBookingsSorted.slice(4).map((booking, idx: number) => {
-                  const dateStr = typeof booking === "string" ? booking : booking.startTime;
-                  const bookingStatus = typeof booking === "string" ? null : booking.status;
-                  const isPending = bookingStatus === BookingStatus.PENDING;
-
-                  return (
-                    <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                      {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
-                      {isPending && (
-                        <Badge variant="orange" className="text-xs">
-                          {t("pending")}
-                        </Badge>
-                      )}
-                      <br />
-                      {formatToLocalizedTime({
-                        date: dayjs(dateStr),
-                        locale: language,
-                        hour12: !is24h,
-                        timeZone: tz,
-                      })}{" "}
-                      -{" "}
-                      {formatToLocalizedTime({
-                        date: dayjs(dateStr).add(duration, "m"),
-                        locale: language,
-                        hour12: !is24h,
-                        timeZone: tz,
-                      })}{" "}
-                      <span className="text-bookinglight">
-                        ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
-                      </span>
-                    </div>
-                  );
-                })}
+                recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
+                  <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
+                    {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
+                    <br />
+                    {formatToLocalizedTime({
+                      date: dayjs(dateStr),
+                      locale: language,
+                      hour12: !is24h,
+                      timeZone: tz,
+                    })}{" "}
+                    -{" "}
+                    {formatToLocalizedTime({
+                      date: dayjs(dateStr).add(duration, "m"),
+                      locale: language,
+                      hour12: !is24h,
+                      timeZone: tz,
+                    })}{" "}
+                    <span className="text-bookinglight">
+                      ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
+                    </span>
+                  </div>
+                ))}
             </CollapsibleContent>
           </Collapsible>
         )}
