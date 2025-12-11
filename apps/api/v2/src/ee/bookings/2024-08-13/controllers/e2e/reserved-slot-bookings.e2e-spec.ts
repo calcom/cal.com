@@ -116,11 +116,11 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
     }
 
     describe("POST /v2/bookings", () => {
-      afterEach(async () => {
-        await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
-      });
-
       describe("normal event type", () => {
+        afterEach(async () => {
+          await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+        });
+
         it("should create booking with reservedSlotUid from cookie and remove selected slot", async () => {
           const reservedSlotUid = `reserved-slot-${randomString()}`;
           const startTime = new Date("2040-05-21T09:30:00.000Z");
@@ -516,6 +516,10 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
       });
 
       describe("recurring event type", () => {
+        afterEach(async () => {
+          await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+        });
+
         let recurringEventTypeId: number;
         const recurringEventTypeSlug = `recurring-reserved-slot-20240813-event-type-${randomString()}`;
 
