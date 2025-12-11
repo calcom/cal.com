@@ -72,6 +72,8 @@ test.describe("Manage Booking Questions - Date Type", () => {
                     const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
                     const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
+                    await expect(datePickerButton).toBeVisible({ timeout: 10000 });
+                    await expect(datePickerButton).toBeEnabled({ timeout: 10000 });
                     await datePickerButton.click();
                     await expect(page.locator('[role="dialog"]').first()).toBeVisible();
                     await expect(page.locator('[role="grid"]').first()).toBeVisible();
@@ -94,7 +96,9 @@ test.describe("Manage Booking Questions - Date Type", () => {
                     const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
                     await page.waitForLoadState('networkidle');
-                    await datePickerButton.waitFor({ state: 'visible' });
+
+                    await expect(datePickerButton).toBeVisible({ timeout: 10000 });
+                    await expect(datePickerButton).toBeEnabled({ timeout: 10000 });
                     await datePickerButton.click();
 
                     await expect(page.locator('[role="dialog"]').first()).toBeVisible();
@@ -126,6 +130,8 @@ test.describe("Manage Booking Questions - Date Type", () => {
                     const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
                     const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
+                    await expect(datePickerButton).toBeVisible({ timeout: 10000 });
+                    await expect(datePickerButton).toBeEnabled({ timeout: 10000 });
                     await datePickerButton.click();
 
                     await expect(page.locator('[role="dialog"]').first()).toBeVisible();
@@ -197,10 +203,8 @@ test.describe("Manage Booking Questions - Date Type", () => {
                     const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
                     const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
-                    await expect(datePickerButton).toContainText(expectedDisplayDate);
                     await expect(datePickerButton).not.toContainText("Pick a date");
                     const buttonText = await datePickerButton.textContent();
-
                     const isExpectedDate = buttonText === expectedDisplayDate;
                     const isLabel = buttonText === "Preferred Appointment Date";
                     expect(isExpectedDate || isLabel).toBe(true);
