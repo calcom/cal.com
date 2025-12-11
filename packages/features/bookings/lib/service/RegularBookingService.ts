@@ -892,7 +892,7 @@ async function handler(
 
   // Check for holiday conflicts before availability check
   if (!skipAvailabilityCheck) {
-    const userIdsToCheck = [...new Set(users.map((user) => user.id))];
+    const userIdsToCheck = Array.from(new Set(users.map((user) => user.id)));
     await ensureNoHolidayConflict({
       userIds: userIdsToCheck,
       startTime: new Date(reqBody.start),
