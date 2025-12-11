@@ -17,7 +17,7 @@ import type {
   routingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { RoutingEventsInsights } from "@calcom/features/insights/server/routing-events";
-import { getEventTypeList } from "@calcom/features/insights/server/trpc-router";
+import { getEventTypeList } from "@calcom/features/insights/server/utils";
 import { VirtualQueuesInsights } from "@calcom/features/insights/server/virtual-queues";
 import type { PrismaClient } from "@calcom/prisma";
 
