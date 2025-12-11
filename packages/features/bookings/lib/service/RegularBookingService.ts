@@ -2758,7 +2758,18 @@ export class RegularBookingService implements IBookingService {
       eventTypeId: input.bookingData.eventTypeId,
       eventTypeSlug: input.bookingData.eventTypeSlug,
     });
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps, eventType);
+
+    const reservedSlot = this.getReservedSlotIfNotTeamOrSeatedEvent(input, eventType);
+    if (reservedSlot) {
+      await this.checkReservedSlotIsEarliest(reservedSlot);
+    }
+
+    const res = await handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps, eventType);
+
+    if (reservedSlot) {
+      await this.deleteReservedSlot(reservedSlot);
+    }
+    return res;
   }
 
   private getReservedSlotIfNotTeamOrSeatedEvent(

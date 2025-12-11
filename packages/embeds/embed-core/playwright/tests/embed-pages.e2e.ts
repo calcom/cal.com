@@ -1,6 +1,5 @@
 import { expect } from "@playwright/test";
 
- 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
 import "../../src/types";
@@ -171,6 +170,86 @@ test.describe("Embed Pages", () => {
       expect(typeof bookingRequestBody.reservedSlotUid).toBe("string");
       if (bookingRequestBody.reservedSlotUid) {
         expect(bookingRequestBody.reservedSlotUid.length).toBeGreaterThan(0);
+      } else {
+        throw new Error("reservedSlotUid is not set");
+      }
+    });
+
+    test("embed booker sends reservedSlotUid in request body when rescheduling", async ({
+      page,
+      users,
+      bookings,
+      prisma,
+    }) => {
+      const pro = await users.create();
+      const [eventType] = pro.eventTypes;
+      const booking = await bookings.create(pro.id, pro.username, eventType.id);
+
+      let bookingRequestBody: { reservedSlotUid: string | null } = { reservedSlotUid: null };
+      let reservedSlotUidFromReserve: string | null = null;
+      let reservedSlotUidFromBooking: string | null = null;
+
+      page.on("request", (request) => {
+        if (request.url().includes("/api/book/event") && request.method() === "POST") {
+          const body = request.postDataJSON();
+          bookingRequestBody = body;
+          reservedSlotUidFromBooking = body?.reservedSlotUid ?? null;
+        }
+      });
+
+      await page.evaluate(() => {
+        window.name = "cal-embed=";
+      });
+
+      await page.goto(`http://localhost:3000/reschedule/${booking.uid}/embed`);
+
+      await page.waitForSelector('[data-testid="booker-container"]');
+
+      await page.click('[data-testid="incrementMonth"]');
+      await page.waitForSelector('[data-testid="day"][data-disabled="false"]');
+      await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+
+      await page.waitForSelector('[data-testid="time"]');
+
+      const reserveRespPromise = page.waitForResponse(
+        (response) => response.url().includes("slots/reserveSlot") && response.request().method() === "POST"
+      );
+
+      await page.locator('[data-testid="time"]').nth(0).click();
+
+      const reserveResp = await reserveRespPromise;
+      const reserveJson = await reserveResp.json();
+      const uidFromReserve =
+        reserveJson?.result?.data?.json?.uid ??
+        (Array.isArray(reserveJson) ? reserveJson[0]?.result?.data?.json?.uid : undefined);
+      if (!uidFromReserve) {
+        throw new Error("reserveSlot response did not contain a uid");
+      }
+      reservedSlotUidFromReserve = uidFromReserve;
+
+      const preSelectedSlot = await prisma.selectedSlots.findFirst({ where: { uid: uidFromReserve } });
+      expect(preSelectedSlot).not.toBeNull();
+
+      const responsePromise = page.waitForResponse(
+        (response) => response.url().includes("/api/book/event") && response.request().method() === "POST"
+      );
+
+      await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+      await responsePromise;
+
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+      expect(bookingRequestBody).toBeTruthy();
+      expect(bookingRequestBody).toHaveProperty("reservedSlotUid");
+      expect(typeof bookingRequestBody.reservedSlotUid).toBe("string");
+      if (bookingRequestBody.reservedSlotUid) {
+        expect(bookingRequestBody.reservedSlotUid.length).toBeGreaterThan(0);
+        expect(reservedSlotUidFromBooking).toEqual(reservedSlotUidFromReserve);
+        const selectedSlot = await prisma.selectedSlots.findFirst({
+          where: { uid: bookingRequestBody.reservedSlotUid as string },
+        });
+        expect(selectedSlot).toBeNull();
       } else {
         throw new Error("reservedSlotUid is not set");
       }
