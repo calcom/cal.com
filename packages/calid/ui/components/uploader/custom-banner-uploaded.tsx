@@ -9,15 +9,15 @@ import { Button } from "../button";
 import type { ButtonColor } from "../button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogTrigger,
+  DialogClose,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../dialog";
 import { triggerToast } from "../toast";
-import { useFileReader, createImage, Slider, type FileEvent, type Area } from "./common";
+import { createImage, Slider, type Area } from "./common";
 
 type BannerUploaderProps = {
   id: string;
@@ -29,8 +29,8 @@ type BannerUploaderProps = {
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
-  height?: number; // Now optional for dynamic height support
-  width?: number; // Optional for dynamic width support
+  height?: number;
+  width?: number;
   mimeType: string | string[];
 };
 
@@ -41,13 +41,12 @@ function CropContainer({
 }: {
   imageSrc: string;
   onCropComplete: (croppedAreaPixels: Area) => void;
-  aspect?: number; // Optional aspect ratio
+  aspect?: number;
 }) {
   const { t } = useLocale();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [containerStyle, setContainerStyle] = useState({ width: "40rem", height: "13rem" });
-  const [cropSize, setCropSize] = useState<{ width: number; height: number } | undefined>(undefined);
+  const [containerStyle, setContainerStyle] = useState({ width: "600px", height: "400px" });
 
   const handleZoomSliderChange = (value: number) => {
     setZoom(value);
@@ -58,38 +57,21 @@ function CropContainer({
       const img = await createImage(imageSrc);
       const imgAspect = img.naturalWidth / img.naturalHeight;
 
-      // Calculate container dimensions to fit within dialog
-      // Dialog content width is approximately 45rem (720px) with padding
-      const maxWidth = 600; // Conservative width to account for dialog padding
-      const maxHeight = 400; // ~25rem
+      const maxWidth = 600;
+      const maxHeight = 400;
 
       let containerWidth = maxWidth;
       let containerHeight = maxWidth / imgAspect;
 
-      // If calculated height exceeds max, constrain by height instead
       if (containerHeight > maxHeight) {
         containerHeight = maxHeight;
         containerWidth = maxHeight * imgAspect;
-      }
-
-      // Ensure width doesn't exceed max even after height constraint
-      if (containerWidth > maxWidth) {
-        containerWidth = maxWidth;
-        containerHeight = maxWidth / imgAspect;
       }
 
       setContainerStyle({
         width: `${containerWidth}px`,
         height: `${containerHeight}px`,
       });
-
-      // When no aspect ratio is set, make crop size match container so entire image is selectable
-      if (!aspect) {
-        setCropSize({
-          width: containerWidth,
-          height: containerHeight,
-        });
-      }
     };
 
     loadImageDimensions();
@@ -97,17 +79,16 @@ function CropContainer({
 
   return (
     <div className="flex w-full max-w-full flex-col items-center justify-center px-4">
-      <div className="relative max-w-full" style={containerStyle}>
+      <div className="relative max-w-full bg-gray-100" style={containerStyle}>
         <Cropper
           image={imageSrc}
           crop={crop}
           zoom={zoom}
           aspect={aspect}
-          cropSize={cropSize}
           onCropChange={setCrop}
           onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}
-          minZoom={0.1}
+          minZoom={0.5}
           maxZoom={3}
           restrictPosition={false}
           showGrid={true}
@@ -116,7 +97,7 @@ function CropContainer({
       </div>
       <Slider
         value={zoom}
-        min={0.1}
+        min={0.5}
         max={3}
         step={0.01}
         label={t("slide_zoom_drag_instructions")}
@@ -124,6 +105,52 @@ function CropContainer({
       />
     </div>
   );
+}
+
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: Area,
+  outputHeight?: number,
+  outputWidth?: number
+): Promise<string> {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  
+  if (!ctx) {
+    throw new Error("Failed to get canvas context");
+  }
+
+  // pixelCrop is already in image's natural dimensions from react-easy-crop
+  // No scaling needed - use the coordinates directly
+  const cropX = pixelCrop.x;
+  const cropY = pixelCrop.y;
+  const cropWidth = pixelCrop.width;
+  const cropHeight = pixelCrop.height;
+
+  // Set output dimensions
+  canvas.width = outputWidth ?? cropWidth;
+  canvas.height = outputHeight ?? cropHeight;
+
+  // Draw the cropped portion
+  ctx.drawImage(
+    image,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  // Detect and preserve original format
+  const originalFormat = imageSrc.match(/data:image\/(\w+)/)?.[1] || 'png';
+  const mimeType = `image/${originalFormat}`;
+  const quality = originalFormat === 'jpeg' || originalFormat === 'jpg' ? 0.9 : undefined;
+
+  return canvas.toDataURL(mimeType, quality);
 }
 
 export default function BannerUploader({
@@ -143,114 +170,102 @@ export default function BannerUploader({
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const [{ result }, setFile] = useFileReader({
-    method: "readAsDataURL",
-  });
+  const onInputFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
 
-  const onInputFile = async (e: FileEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) {
+    const file = e.target.files[0];
+    const limit = 1 * 1000000; // 1MB
+
+    if (file.size > limit) {
+      triggerToast(t("image_size_limit_exceed_1mb"), "error");
       return;
     }
 
-    const limit = 5 * 1000000; // max limit 5mb
-    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
-    if (file.size > limit) {
-      triggerToast(t("image_size_limit_exceed"), "error");
-    } else {
-      console.log("__file", file);
-      setFile(file);
+  const showCroppedImage = useCallback(async () => {
+    try {
+      if (!croppedAreaPixels || !selectedImage) return;
+
+      let finalWidth = width;
+      let finalHeight = height;
+
+      // Calculate missing dimension based on crop aspect ratio
+      if (width !== undefined && height === undefined) {
+        const cropAspect = croppedAreaPixels.width / croppedAreaPixels.height;
+        finalHeight = Math.round(width / cropAspect);
+      } else if (height !== undefined && width === undefined) {
+        const cropAspect = croppedAreaPixels.width / croppedAreaPixels.height;
+        finalWidth = Math.round(height * cropAspect);
+      }
+
+      const croppedImage = await getCroppedImg(
+        selectedImage,
+        croppedAreaPixels,
+        finalHeight,
+        finalWidth
+      );
+
+      handleAvatarChange(croppedImage);
+      setIsDialogOpen(false);
+      setSelectedImage(null);
+    } catch (e) {
+      console.error("Error cropping image:", e);
+      triggerToast(t("error_updating_settings"), "error");
+    }
+  }, [selectedImage, croppedAreaPixels, height, width, handleAvatarChange, t]);
+
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setSelectedImage(null);
+      setCroppedAreaPixels(null);
     }
   };
 
-  const showCroppedImage = useCallback(
-    async (croppedAreaPixels: Area | null) => {
-      try {
-        if (!croppedAreaPixels) return;
-
-        // Calculate final dimensions based on what's provided
-        let finalWidth = width;
-        let finalHeight = height;
-
-        // If one dimension is missing, calculate it from the crop area to maintain aspect ratio
-        if (width !== undefined && height === undefined) {
-          // Fixed width, calculate height from crop aspect ratio
-          const cropAspect = croppedAreaPixels.width / croppedAreaPixels.height;
-          finalHeight = Math.round(width / cropAspect);
-        } else if (height !== undefined && width === undefined) {
-          // Fixed height, calculate width from crop aspect ratio
-          const cropAspect = croppedAreaPixels.width / croppedAreaPixels.height;
-          finalWidth = Math.round(height * cropAspect);
-        }
-
-        const croppedImage = await getCroppedImg(
-          result as string /* result is always string when using readAsDataUrl */,
-          croppedAreaPixels,
-          finalHeight,
-          finalWidth
-        );
-        handleAvatarChange(croppedImage);
-        setIsDialogOpen(false);
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    [result, height, width, handleAvatarChange]
-  );
-
   useEffect(() => {
-    const checkDimensions = async () => {
-      const image = await createImage(
-        result as string /* result is always string when using readAsDataUrl */
-      );
+    if (!selectedImage) return;
 
-      // Check dimensions based on what's specified
+    const checkDimensions = async () => {
+      const image = await createImage(selectedImage);
       const hasWidth = width !== undefined;
       const hasHeight = height !== undefined;
 
       if (hasWidth && hasHeight) {
-        // Fixed width + fixed height
-        if (image.naturalWidth !== width || image.naturalHeight !== height) {
+        if (image.naturalWidth < width || image.naturalHeight < height) {
           triggerToast(t("org_banner_instructions", { height, width }), "warning");
         }
       } else if (hasWidth && !hasHeight) {
-        // Fixed width + dynamic height
-        if (image.naturalWidth !== width) {
+        if (image.naturalWidth < width) {
           triggerToast(
             t("banner_width_requirement", { width }) || `Image must be ${width}px in width`,
             "warning"
           );
         }
       } else if (!hasWidth && hasHeight) {
-        // Dynamic width + fixed height
-        if (image.naturalHeight !== height) {
+        if (image.naturalHeight < height) {
           triggerToast(
             t("banner_height_requirement", { height }) || `Image must be ${height}px in height`,
             "warning"
           );
         }
       }
-      // If both are undefined, no validation (fully dynamic)
     };
-    if (result) {
-      checkDimensions();
-    }
-  }, [result, height, width, t]);
 
-  // Calculate aspect ratio only if both width and height are provided
+    checkDimensions();
+  }, [selectedImage, height, width, t]);
+
   const aspectRatio = width && height ? width / height : undefined;
 
   return (
-    <Dialog
-      open={isDialogOpen}
-      onOpenChange={(opened) => {
-        setIsDialogOpen(opened);
-        // unset file on close
-        if (!opened) {
-          setFile(null);
-        }
-      }}>
+    <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
       <DialogTrigger asChild>
         <Button
           color={triggerButtonColor ?? "secondary"}
@@ -271,22 +286,20 @@ export default function BannerUploader({
         </DialogHeader>
         <div className="mb-4 overflow-hidden">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
-            {!result && (
+            {selectedImage ? (
+              <CropContainer
+                aspect={aspectRatio}
+                imageSrc={selectedImage}
+                onCropComplete={setCroppedAreaPixels}
+              />
+            ) : (
               <div className="bg-muted flex h-60 w-full items-center justify-center">
                 {!imageSrc ? (
                   <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                 ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img className="h-full w-auto object-contain" src={imageSrc} alt={target} />
                 )}
               </div>
-            )}
-            {result && (
-              <CropContainer
-                aspect={aspectRatio}
-                imageSrc={result as string}
-                onCropComplete={setCroppedAreaPixels}
-              />
             )}
             <label
               data-testid="open-upload-image-filechooser"
@@ -296,7 +309,7 @@ export default function BannerUploader({
                 type="file"
                 name={id}
                 placeholder={t("upload_image")}
-                className="text-default pointer-events-none absolute mt-4 opacity-0 "
+                className="text-default pointer-events-none absolute mt-4 opacity-0"
                 accept={
                   mimeType
                     ? typeof mimeType === "string"
@@ -305,7 +318,7 @@ export default function BannerUploader({
                     : "image/*"
                 }
               />
-              {t("choose_a_file")}
+              {selectedImage ? t("change_file") || "Change file" : t("choose_a_file")}
             </label>
             {uploadInstruction && (
               <p className="text-muted mt-4 text-center text-sm">({uploadInstruction})</p>
@@ -317,51 +330,12 @@ export default function BannerUploader({
           <Button
             data-testid="upload-avatar"
             color="primary"
-            onClick={() => showCroppedImage(croppedAreaPixels)}>
+            onClick={showCroppedImage}
+            disabled={!selectedImage || !croppedAreaPixels}>
             {t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
-
-async function getCroppedImg(
-  imageSrc: string,
-  pixelCrop: Area,
-  height?: number,
-  width?: number
-): Promise<string> {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Context is null, this should never happen.");
-
-  // Detect original image format from data URL
-  const originalFormat =
-    imageSrc.startsWith("data:image/jpeg") || imageSrc.startsWith("data:image/jpg")
-      ? "image/jpeg"
-      : "image/png";
-
-  // Determine final canvas dimensions
-  // If both are provided, use them directly
-  // If both are undefined, use the crop area dimensions
-  // If only one is provided, it should have been calculated in showCroppedImage
-  canvas.width = width !== undefined ? width : pixelCrop.width;
-  canvas.height = height !== undefined ? height : pixelCrop.height;
-
-  ctx.drawImage(
-    image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-  // Use original format with quality setting for JPEG
-  return canvas.toDataURL(originalFormat, originalFormat === "image/jpeg" ? 0.6 : undefined);
 }
