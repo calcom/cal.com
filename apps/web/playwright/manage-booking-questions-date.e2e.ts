@@ -63,7 +63,7 @@ test.describe("Manage Booking Questions - Date Type", () => {
 
                     const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
                     await expect(datePickerButton).toBeVisible();
-                    await expect(datePickerButton).toContainText("Pick a date");
+                    await expect(datePickerButton).toContainText("Preferred Appointment Date");
                 });
             });
 
