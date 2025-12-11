@@ -8,6 +8,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowMethods, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { BookingInfo, ScheduleEmailReminderAction, FormSubmissionData } from "../types";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
@@ -128,7 +129,23 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
   const bookingSeatRepository = new BookingSeatRepository(prisma);
   const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
   const mailData = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
-    evt,
+    bookingUid: evt.uid ?? "",
+    recurringEvent: evt.eventType?.recurringEvent ?? null,
+    customReplyToEmail: evt.eventType?.customReplyToEmail ?? "",
+    responses: evt.responses,
+    metaVideoCallUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl ?? evt.videoCallData?.url,
+    eventTypeSlug: args.evt.eventType?.slug ?? "",
+    attendees: args.evt.attendees ?? [],
+    organizer: args.evt.organizer,
+    location: args.evt.location,
+    title: args.evt.title,
+    hideOrganizerEmail: args.evt.hideOrganizerEmail,
+    startTime: args.evt.startTime,
+    endTime: args.evt.endTime,
+    additionalNotes: args.evt.additionalNotes,
+    bookerUrl: args.evt.bookerUrl,
+    cancellationReason: args.evt.cancellationReason ?? "",
+    rescheduleReason: args.evt.rescheduleReason ?? "",
     sendTo,
     seatReferenceUid,
     hideBranding,

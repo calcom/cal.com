@@ -1,14 +1,15 @@
 import type { EventStatus } from "ics";
 
 import dayjs from "@calcom/dayjs";
-import generateIcsString from "@calcom/emails/lib/generateIcsString";
+import generateIcsString, { ICSCalendarEvent } from "@calcom/emails/lib/generateIcsString";
 import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
-import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
+import type { WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -16,7 +17,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { SchedulingType, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import { Person, RecurringEvent, TeamMember } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
 import { isEmailAction } from "../actionHelperFunctions";
@@ -29,13 +30,11 @@ import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
 import type {
   FormSubmissionData,
-  WorkflowContextData,
   AttendeeInBookingInfo,
   BookingInfo,
   ScheduleEmailReminderAction,
 } from "../types";
 import { WorkflowService } from "./WorkflowService";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 
 export class EmailWorkflowService {
   constructor(
@@ -47,7 +46,34 @@ export class EmailWorkflowService {
     evt,
     workflowReminderId,
   }: {
-    evt: CalendarEvent;
+    evt: {
+      uid?: string | null;
+      type?: string;
+      startTime: string;
+      endTime: string;
+      organizer: Person;
+      attendees: AttendeeInBookingInfo[];
+      location?: string | null;
+      schedulingType?: SchedulingType | null;
+      team?: {
+        name: string;
+        members: TeamMember[];
+        id: number;
+      };
+      responses?: BookingInfo["responses"];
+      customReplyToEmail?: string | null;
+      bookerUrl?: string;
+      title: BookingInfo["title"];
+      hideOrganizerEmail?: BookingInfo["hideOrganizerEmail"];
+      iCalUID?: string | null;
+      iCalSequence?: number | null;
+      recurringEvent?: RecurringEvent | null;
+      cancellationReason?: string | null;
+      rescheduleReason?: string | null;
+      hideCalendarEventDetails?: boolean;
+      additionalNotes?: string | null;
+      metadata?: BookingInfo["metadata"];
+    };
     workflowReminderId: number;
   }) {
     const workflowReminder = await this.workflowReminderRepository.findByIdIncludeStepAndWorkflow(
@@ -92,17 +118,47 @@ export class EmailWorkflowService {
     });
 
     const emailWorkflowContentParams = await this.generateParametersToBuildEmailWorkflowContent({
-      evt,
+      isFormTrigger: !evt,
+      bookerUrl: evt?.bookerUrl,
+      bookingUid: evt?.uid || undefined,
+      organizerEmail: evt.organizer?.email || "",
+      teamMemberEmails: evt.team?.members?.map((member) => member.email) || [],
+      attendeeEmails: evt.attendees?.map((attendee) => attendee.email) || [],
+      schedulingType: evt?.schedulingType,
+      workflowUserId: workflow.userId,
+      sendToEmail: workflowReminder.workflowStep.sendTo || undefined,
+      formData: undefined,
       workflowStep: workflowReminder.workflowStep as WorkflowStep & { action: ScheduleEmailReminderAction },
-      workflow: workflowReminder.workflowStep.workflow,
       emailAttendeeSendToOverride,
-      commonScheduleFunctionParams,
       hideBranding,
     });
 
     const emailWorkflowContent = await this.generateEmailPayloadForEvtWorkflow({
       ...emailWorkflowContentParams,
-      evt: evt as BookingInfo,
+      eventTypeSlug: evt.type || undefined,
+      team: evt.team,
+      responses: evt.responses,
+      metaVideoCallUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+      location: evt.location,
+      customReplyToEmail: evt.customReplyToEmail,
+      cancellationReason: evt.cancellationReason ?? "",
+      rescheduleReason: evt.rescheduleReason ?? "",
+      hideOrganizerEmail: evt.hideOrganizerEmail,
+      hideCalendarEventDetails: evt.hideCalendarEventDetails,
+      recurringEvent: evt.recurringEvent,
+      attendees: evt.attendees,
+      bookerUrl: evt.bookerUrl || WEBSITE_URL,
+      additionalNotes: evt.additionalNotes,
+      iCalSequence: evt.iCalSequence,
+      iCalUID: evt.iCalUID,
+      title: evt.title,
+      startTime: evt.startTime,
+      endTime: evt.endTime,
+      organizer: evt.organizer,
+      meetingUrl:
+        getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+      bookingUid: evt.uid ?? "",
+      triggerEvent: commonScheduleFunctionParams.triggerEvent,
       action: workflowReminder.workflowStep.action as ScheduleEmailReminderAction,
       template: workflowReminder.workflowStep.template,
       includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
@@ -136,20 +192,35 @@ export class EmailWorkflowService {
   }
 
   async generateParametersToBuildEmailWorkflowContent({
-    evt,
-    workflowStep,
-    workflow,
+    attendeeEmails,
+    bookerUrl,
+    bookingUid,
     emailAttendeeSendToOverride,
     formData,
-    commonScheduleFunctionParams,
     hideBranding,
+    isFormTrigger = false,
+    organizerEmail,
+    schedulingType,
+    sendToEmail,
+    teamMemberEmails,
+    workflowStep,
+    workflowUserId,
   }: {
-    evt?: CalendarEvent;
-    workflowStep: WorkflowStep;
-    workflow: Pick<Workflow, "userId">;
+    isFormTrigger: boolean;
+    bookerUrl?: string;
+    bookingUid?: string;
+    sendToEmail?: string;
+    organizerEmail: string;
+    teamMemberEmails: string[];
+    attendeeEmails: string[];
+    schedulingType?: SchedulingType | null;
+    workflowStep: Pick<
+      WorkflowStep,
+      "id" | "action" | "reminderBody" | "emailSubject" | "sender" | "includeCalendarEvent" | "verifiedAt"
+    >;
+    workflowUserId: number | null;
     emailAttendeeSendToOverride?: string | null;
     formData?: FormSubmissionData;
-    commonScheduleFunctionParams: ReturnType<typeof WorkflowService.generateCommonScheduleFunctionParams>;
     hideBranding?: boolean;
   }) {
     if (!workflowStep.verifiedAt) {
@@ -157,39 +228,36 @@ export class EmailWorkflowService {
     }
 
     if (!isEmailAction(workflowStep.action)) {
-      throw new Error(`Non-email workflow step passed for booking ${evt?.uid}`);
+      throw new Error(`Non-email workflow step passed for booking ${bookingUid}`);
     }
     let sendTo: string[] = [];
 
     switch (workflowStep.action) {
       case WorkflowActions.EMAIL_ADDRESS:
-        sendTo = [workflowStep.sendTo || ""];
+        sendTo = [sendToEmail || ""];
         break;
       case WorkflowActions.EMAIL_HOST: {
-        if (!evt) {
+        if (isFormTrigger) {
           throw new Error("EMAIL_HOST is not supported for form triggers");
         }
-        sendTo = [evt.organizer?.email || ""];
+        sendTo = [organizerEmail || ""];
 
-        const schedulingType = evt.schedulingType;
         const isTeamEvent =
           schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
-        if (isTeamEvent && evt.team?.members) {
-          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
+        if (isTeamEvent && teamMemberEmails.length > 0) {
+          sendTo = sendTo.concat(teamMemberEmails);
         }
         break;
       }
       case WorkflowActions.EMAIL_ATTENDEE:
-        if (evt) {
-          const attendees = emailAttendeeSendToOverride
-            ? [emailAttendeeSendToOverride]
-            : evt.attendees?.map((attendee) => attendee.email);
+        if (!isFormTrigger) {
+          const attendees = emailAttendeeSendToOverride ? [emailAttendeeSendToOverride] : attendeeEmails;
 
           const limitGuestsDate = new Date("2025-01-13");
 
-          if (workflow.userId) {
+          if (workflowUserId) {
             const userRepository = new UserRepository(prisma);
-            const user = await userRepository.findById({ id: workflow.userId });
+            const user = await userRepository.findById({ id: workflowUserId });
             if (user?.createdDate && user.createdDate > limitGuestsDate) {
               sendTo = attendees.slice(0, 1);
             } else {
@@ -209,19 +277,15 @@ export class EmailWorkflowService {
     }
 
     // Only check for bookerUrl when evt is provided (not for form submissions)
-    if (evt && typeof evt.bookerUrl !== "string") {
+    if (!isFormTrigger && typeof bookerUrl !== "string") {
       throw new Error("bookerUrl not a part of the evt");
     }
 
-    if (!evt && !formData) {
+    if (isFormTrigger && !formData) {
       throw new Error("Either evt or formData must be provided");
     }
 
-    const contextData: WorkflowContextData = evt
-      ? { evt: evt as BookingInfo }
-      : { formData: formData as FormSubmissionData };
     return {
-      ...commonScheduleFunctionParams,
       action: workflowStep.action,
       sendTo,
       emailSubject: workflowStep.emailSubject || "",
@@ -229,13 +293,33 @@ export class EmailWorkflowService {
       sender: workflowStep.sender || SENDER_NAME,
       hideBranding,
       includeCalendarEvent: workflowStep.includeCalendarEvent,
-      ...contextData,
       verifiedAt: workflowStep.verifiedAt,
     } as const;
   }
 
   async generateEmailPayloadForEvtWorkflow({
-    evt,
+    attendees,
+    additionalNotes,
+    metaVideoCallUrl,
+    team,
+    responses,
+    location,
+    eventTypeSlug,
+    customReplyToEmail,
+    cancellationReason,
+    rescheduleReason,
+    hideOrganizerEmail,
+    hideCalendarEventDetails,
+    recurringEvent,
+    iCalSequence,
+    iCalUID,
+    title,
+    bookingUid,
+    meetingUrl,
+    startTime,
+    endTime,
+    organizer,
+    bookerUrl = WEBSITE_URL,
     sendTo,
     seatReferenceUid,
     hideBranding,
@@ -247,7 +331,32 @@ export class EmailWorkflowService {
     includeCalendarEvent,
     triggerEvent,
   }: {
-    evt: BookingInfo;
+    eventTypeSlug?: string;
+    team?: {
+      name: string;
+      members: TeamMember[];
+      id: number;
+    };
+    responses?: BookingInfo["responses"];
+    metaVideoCallUrl?: string;
+    location?: string | null;
+    cancellationReason?: string;
+    rescheduleReason?: string;
+    customReplyToEmail?: string | null;
+    title: BookingInfo["title"];
+    hideOrganizerEmail?: BookingInfo["hideOrganizerEmail"];
+    hideCalendarEventDetails?: boolean;
+    iCalUID?: string | null;
+    iCalSequence?: number | null;
+    recurringEvent?: RecurringEvent | null;
+    additionalNotes?: string | null;
+    attendees: BookingInfo["attendees"];
+    bookerUrl: string;
+    startTime: BookingInfo["startTime"];
+    organizer: BookingInfo["organizer"];
+    endTime: BookingInfo["endTime"];
+    meetingUrl?: string;
+    bookingUid?: string;
     sendTo: string[];
     seatReferenceUid?: string;
     hideBranding?: boolean;
@@ -260,9 +369,8 @@ export class EmailWorkflowService {
     triggerEvent: WorkflowTriggerEvents;
   }) {
     const log = logger.getSubLogger({
-      prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${evt?.uid}`],
+      prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${bookingUid || "N/A"}`],
     });
-    const { startTime, endTime } = evt;
 
     let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;
     let name = "";
@@ -272,26 +380,24 @@ export class EmailWorkflowService {
     switch (action) {
       case WorkflowActions.EMAIL_ADDRESS:
         name = "";
-        attendeeToBeUsedInMail = evt.attendees[0];
-        attendeeName = evt.attendees[0].name;
-        timeZone = evt.organizer.timeZone;
+        attendeeToBeUsedInMail = attendees[0];
+        attendeeName = attendees[0].name;
+        timeZone = organizer.timeZone;
         break;
       case WorkflowActions.EMAIL_HOST:
-        attendeeToBeUsedInMail = evt.attendees[0];
-        name = evt.organizer.name;
+        attendeeToBeUsedInMail = attendees[0];
+        name = organizer.name;
         attendeeName = attendeeToBeUsedInMail.name;
-        timeZone = evt.organizer.timeZone;
+        timeZone = organizer.timeZone;
         break;
       case WorkflowActions.EMAIL_ATTENDEE: {
         // check if first attendee of sendTo is present in the attendees list, if not take the evt attendee
-        const attendeeEmailToBeUsedInMailFromEvt = evt.attendees.find(
-          (attendee) => attendee.email === sendTo[0]
-        );
+        const attendeeEmailToBeUsedInMailFromEvt = attendees.find((attendee) => attendee.email === sendTo[0]);
         attendeeToBeUsedInMail = attendeeEmailToBeUsedInMailFromEvt
           ? attendeeEmailToBeUsedInMailFromEvt
-          : evt.attendees[0];
+          : attendees[0];
         name = attendeeToBeUsedInMail.name;
-        attendeeName = evt.organizer.name;
+        attendeeName = organizer.name;
         timeZone = attendeeToBeUsedInMail.timeZone;
         break;
       }
@@ -305,21 +411,19 @@ export class EmailWorkflowService {
       emailSubject,
       emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
     };
-    const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
     if (emailBody) {
       const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
       const recipientEmail = getWorkflowRecipientEmail({
         action,
         attendeeEmail: attendeeToBeUsedInMail.email,
-        organizerEmail: evt.organizer.email,
+        organizerEmail: organizer.email,
         sendToEmail: sendTo[0],
       });
-      const meetingUrl =
-        getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+
       const variables: VariablesType = {
-        eventName: evt.title || "",
-        organizerName: evt.organizer.name,
+        eventName: title || "",
+        organizerName: organizer.name,
         attendeeName: attendeeToBeUsedInMail.name,
         attendeeFirstName: attendeeToBeUsedInMail.firstName,
         attendeeLastName: attendeeToBeUsedInMail.lastName,
@@ -327,15 +431,15 @@ export class EmailWorkflowService {
         eventDate: dayjs(startTime).tz(timeZone),
         eventEndTime: dayjs(endTime).tz(timeZone),
         timeZone: timeZone,
-        location: evt.location,
-        additionalNotes: evt.additionalNotes,
-        responses: transformBookingResponsesToVariableFormat(evt.responses),
+        location: location,
+        additionalNotes: additionalNotes,
+        responses: transformBookingResponsesToVariableFormat(responses),
         meetingUrl,
-        cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
+        cancelLink: `${bookerUrl}/booking/${bookingUid}?cancel=true${
           recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
         }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
-        cancelReason: evt.cancellationReason,
-        rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
+        cancelReason: cancellationReason,
+        rescheduleLink: `${bookerUrl}/reschedule/${bookingUid}${
           recipientEmail
             ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}${
                 isEmailAttendeeAction && seatReferenceUid
@@ -347,59 +451,58 @@ export class EmailWorkflowService {
             : ""
         }`,
 
-        rescheduleReason: evt.rescheduleReason,
-        ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
-        noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
-        attendeeTimezone: evt.attendees[0].timeZone,
-        eventTimeInAttendeeTimezone: dayjs(startTime).tz(evt.attendees[0].timeZone),
-        eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(evt.attendees[0].timeZone),
+        rescheduleReason: rescheduleReason,
+        ratingUrl: `${bookerUrl}/booking/${bookingUid}?rating`,
+        noShowUrl: `${bookerUrl}/booking/${bookingUid}?noShow=true`,
+        attendeeTimezone: attendees[0].timeZone,
+        eventTimeInAttendeeTimezone: dayjs(startTime).tz(attendees[0].timeZone),
+        eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendees[0].timeZone),
       };
 
       const locale = isEmailAttendeeAction
         ? attendeeToBeUsedInMail.language?.locale
-        : evt.organizer.language.locale;
+        : organizer.language.locale;
 
-      const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
+      const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, organizer.timeFormat);
       emailContent.emailSubject = emailSubjectTemplate.text;
       emailContent.emailBody = customTemplate(
         emailBody,
         variables,
         locale,
-        evt.organizer.timeFormat,
+        organizer.timeFormat,
         hideBranding
       ).html;
     } else if (template === WorkflowTemplates.REMINDER) {
       emailContent = emailReminderTemplate({
         isEditingMode: false,
-        locale: evt.organizer.language.locale,
-        t: await getTranslation(evt.organizer.language.locale || "en", "common"),
+        locale: organizer.language.locale,
+        t: await getTranslation(organizer.language.locale || "en", "common"),
         action,
-        timeFormat: evt.organizer.timeFormat,
+        timeFormat: organizer.timeFormat,
         startTime,
         endTime,
-        eventName: evt.title,
+        eventName: title,
         timeZone,
-        location: evt.location || "",
-        meetingUrl:
-          evt.videoCallData?.url || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
+        location: location || "",
+        meetingUrl: meetingUrl,
         otherPerson: attendeeName,
         name,
       });
     } else if (template === WorkflowTemplates.RATING) {
       emailContent = emailRatingTemplate({
         isEditingMode: true,
-        locale: evt.organizer.language.locale,
+        locale: organizer.language.locale,
         action,
-        t: await getTranslation(evt.organizer.language.locale || "en", "common"),
-        timeFormat: evt.organizer.timeFormat,
+        t: await getTranslation(organizer.language.locale || "en", "common"),
+        timeFormat: organizer.timeFormat,
         startTime,
         endTime,
-        eventName: evt.title,
+        eventName: title,
         timeZone,
-        organizer: evt.organizer.name,
+        organizer: organizer.name,
         name,
-        ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
-        noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
+        ratingUrl: `${bookerUrl}/booking/${bookingUid}?rating`,
+        noShowUrl: `${bookerUrl}/booking/${bookingUid}?noShow=true`,
       });
     }
 
@@ -409,10 +512,10 @@ export class EmailWorkflowService {
     const status: EventStatus =
       triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ? "CANCELLED" : "CONFIRMED";
 
-    const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
+    const organizerT = await getTranslation(organizer.language.locale || "en", "common");
 
     const processedAttendees = await Promise.all(
-      evt.attendees.map(async (attendee) => {
+      attendees.map(async (attendee) => {
         const attendeeT = await getTranslation(attendee.language.locale || "en", "common");
         return {
           ...attendee,
@@ -423,12 +526,21 @@ export class EmailWorkflowService {
     );
 
     const emailEvent = {
-      ...evt,
-      type: evt.eventType?.slug || "",
-      organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
+      type: eventTypeSlug || "",
+      organizer: { ...organizer, language: { ...organizer.language, translate: organizerT } },
       attendees: processedAttendees,
-      location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
-    };
+      location: metaVideoCallUrl || location,
+      startTime,
+      endTime,
+      title,
+      uid: bookingUid || "",
+      hideOrganizerEmail,
+      team,
+      iCalUID,
+      iCalSequence,
+      recurringEvent,
+      hideCalendarEventDetails,
+    } satisfies ICSCalendarEvent;
 
     const attachments = includeCalendarEvent
       ? [
@@ -448,8 +560,8 @@ export class EmailWorkflowService {
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
-      ...(!evt.hideOrganizerEmail && {
-        replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email,
+      ...(hideOrganizerEmail && {
+        replyTo: customReplyToEmail || organizer.email,
       }),
       attachments,
       sender,

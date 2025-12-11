@@ -152,15 +152,29 @@ const processWorkflowStep = async (
     const bookingSeatRepository = new BookingSeatRepository(prisma);
     const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
     const emailParams = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
-      evt,
-      workflowStep: step,
-      workflow,
+      attendeeEmails: evt?.attendees?.map((attendee) => attendee.email) || [],
+      bookerUrl: evt ? evt.bookerUrl : "",
+      bookingUid: evt?.uid ?? "",
       emailAttendeeSendToOverride,
       formData,
-      commonScheduleFunctionParams: scheduleFunctionParams,
       hideBranding,
+      isFormTrigger: !evt,
+      organizerEmail: evt?.organizer?.email || "",
+      schedulingType: evt?.eventType?.schedulingType || null,
+      sendToEmail: step.sendTo ?? "",
+      teamMemberEmails: evt?.team?.members.map((member) => member.email) as string[],
+      workflowStep: step,
+      workflowUserId: workflow.userId,
     });
-    await scheduleEmailReminder(emailParams);
+
+    if (evt) {
+      await scheduleEmailReminder({ ...emailParams, ...scheduleFunctionParams, evt });
+    } else {
+      if (!formData) {
+        throw new Error("Form data is required for scheduling email reminders without an event");
+      }
+      await scheduleEmailReminder({ ...emailParams, ...scheduleFunctionParams, formData, evt });
+    }
   } else if (isWhatsappAction(step.action)) {
     if (!evt) {
       // Whatsapp action not not yet supported for form triggers
