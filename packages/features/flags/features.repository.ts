@@ -291,7 +291,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<void>
    * @throws Error if the feature update fails
    */
-  async updateFeatureForUser(
+  async setUserFeatureState(
     userId: number,
     featureId: keyof AppFlags,
     state: FeatureState,

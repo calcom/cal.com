@@ -135,7 +135,7 @@ export class FeatureOptInService {
 
   /**
    * Set user's feature state.
-   * Delegates to FeaturesRepository.updateFeatureForUser.
+   * Delegates to FeaturesRepository.setUserFeatureState.
    */
   async setUserFeatureState(input: {
     userId: number;
@@ -144,7 +144,7 @@ export class FeatureOptInService {
     assignedBy: number;
   }) {
     const { userId, featureId, state, assignedBy } = input;
-    await this.featuresRepository.updateFeatureForUser(
+    await this.featuresRepository.setUserFeatureState(
       userId,
       featureId as keyof AppFlags,
       state,
@@ -154,7 +154,7 @@ export class FeatureOptInService {
 
   /**
    * Set team's feature state.
-   * Delegates to FeaturesRepository.updateFeatureForTeam.
+   * Delegates to FeaturesRepository.setTeamFeatureState.
    */
   async setTeamFeatureState(input: {
     teamId: number;
@@ -163,7 +163,7 @@ export class FeatureOptInService {
     assignedBy: number;
   }) {
     const { teamId, featureId, state, assignedBy } = input;
-    await this.featuresRepository.updateFeatureForTeam(
+    await this.featuresRepository.setTeamFeatureState(
       teamId,
       featureId as keyof AppFlags,
       state,
