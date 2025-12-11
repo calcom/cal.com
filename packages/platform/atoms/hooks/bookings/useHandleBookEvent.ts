@@ -76,7 +76,11 @@ export const useHandleBookEvent = ({
     const callbacks = inputTimeSlot && !isPlatform ? { onError: handleError } : undefined;
     if (timeslot) {
       // Clears form values stored in store, so old values won't stick around.
-      setFormValues({});
+      // For instant meetings, we preserve form values so they can be restored
+      // if the instant meeting fails and user clicks "Schedule Instead".
+      if (!isInstantMeeting) {
+        setFormValues({});
+      }
       bookingForm.clearErrors();
 
       // It shouldn't be possible that this method is fired without having event data,
@@ -130,7 +134,11 @@ export const useHandleBookEvent = ({
         handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
       }
       // Clears form values stored in store, so old values won't stick around.
-      setFormValues({});
+      // For instant meetings, we preserve form values so they can be restored
+      // if the instant meeting fails and user clicks "Schedule Instead".
+      if (!isInstantMeeting) {
+        setFormValues({});
+      }
       bookingForm.clearErrors();
     }
   };
