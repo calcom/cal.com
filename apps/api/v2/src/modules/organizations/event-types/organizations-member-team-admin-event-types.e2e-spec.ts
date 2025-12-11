@@ -448,6 +448,8 @@ describe("Organizations Event Types Endpoints", () => {
 
           const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
           expect(responseTeamEvent).toBeDefined();
+          expect(responseTeamEvent?.hosts).toBeDefined();
+          expect(responseTeamEvent?.hosts).toHaveLength(2);
           expect(responseTeamEvent?.hosts).toEqual(
             expect.arrayContaining([
               expect.objectContaining({

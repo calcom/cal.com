@@ -19356,6 +19356,42 @@
         },
         "required": ["status", "data"]
       },
+      "TeamEventTypeResponseHost": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "Which user is the host of this event"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Only relevant for round robin event types. If true then the user must attend round robin event always."
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["lowest", "low", "medium", "high", "highest"]
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "username": {
+            "type": "string",
+            "example": "john-doe"
+          },
+          "avatarUrl": {
+            "type": "object",
+            "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "object",
+            "description": "The schedule ID for this host, if they have a custom schedule for this event type",
+            "nullable": true
+          }
+        },
+        "required": ["userId", "name", "username"]
+      },
       "EventTypeTeam": {
         "type": "object",
         "properties": {
@@ -19678,7 +19714,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
             }
           },
           "assignAllTeamMembers": {
