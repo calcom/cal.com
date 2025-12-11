@@ -7,18 +7,21 @@ import {
   extractDateRangeFromColumnFilters,
   replaceDateRangeColumnFilter,
 } from "@calcom/features/insights/lib/bookingUtils";
+import {
+  getTimeView,
+  getDateRanges,
+  type GetDateRangesParams,
+} from "@calcom/features/insights/server/insightsDateUtils";
 import type {
   bookingRepositoryBaseInputSchema,
   routingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { RoutingEventsInsights } from "@calcom/features/insights/server/routing-events";
+import { getEventTypeList } from "@calcom/features/insights/server/trpc-router";
+import { VirtualQueuesInsights } from "@calcom/features/insights/server/virtual-queues";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
-
-import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
-import { RoutingEventsInsights } from "./routing-events";
-import { getEventTypeList } from "./trpc-router";
-import { VirtualQueuesInsights } from "./virtual-queues";
 
 const userSelect = {
   id: true,
