@@ -75,25 +75,30 @@ const _ensureNoHolidayConflict = async ({
   startTime: Date;
   loggerWithEventDetails?: Logger<unknown>;
 }): Promise<void> => {
-  // Check all users in parallel
-  const results = await Promise.all(userIds.map((userId) => _checkHolidayConflict({ userId, startTime })));
+  // Check all users in parallel, log conflicts as they are detected
+  const results = await Promise.all(
+    userIds.map(async (userId) => {
+      const result = await _checkHolidayConflict({ userId, startTime });
 
-  // Find the first conflict
-  const conflictIndex = results.findIndex((result) => result.hasConflict);
-  if (conflictIndex !== -1) {
-    const result = results[conflictIndex];
-    const userId = userIds[conflictIndex];
+      if (result.hasConflict) {
+        loggerWithEventDetails?.error(
+          `Booking rejected: Date ${startTime.toISOString()} falls on holiday "${
+            result.holidayName
+          }" for user ${userId}`
+        );
+      }
 
-    loggerWithEventDetails?.error(
-      `Booking rejected: Date ${startTime.toISOString()} falls on holiday "${
-        result.holidayName
-      }" for user ${userId}`
-    );
+      return result;
+    })
+  );
 
+  // After all checks complete, throw if any conflict was found
+  const conflict = results.find((result) => result.hasConflict);
+  if (conflict) {
     throw new HttpError({
       statusCode: 400,
       message: ErrorCode.BookingOnHoliday,
-      data: { holidayName: result.holidayName },
+      data: { holidayName: conflict.holidayName },
     });
   }
 };
