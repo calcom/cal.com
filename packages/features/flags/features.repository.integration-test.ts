@@ -136,6 +136,31 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(result).toBe(false);
     });
 
+    it("should return false when no UserFeatures row and no TeamFeatures row exist (tri-state inheritance)", async () => {
+      // Create the feature globally
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      // User is a member of a team
+      await prisma.membership.create({
+        data: {
+          teamId: testTeam.id,
+          userId: testUser.id,
+          role: "MEMBER",
+          accepted: true,
+        },
+      });
+
+      // No UserFeatures row, no TeamFeatures row - should return false
+      const result = await featuresRepository.checkIfUserHasFeature(testUser.id, testFeature);
+      expect(result).toBe(false);
+    });
+
     it("should return true when user has feature directly assigned", async () => {
       await prisma.feature.create({
         data: {
