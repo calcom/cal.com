@@ -42266,10 +42266,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.2.1":
-  version: 19.2.1
-  resolution: "react@npm:19.2.1"
-  checksum: 9b32ace5c532ed78bc5a907bfec77d966c8f117049d9bf06b627c4cebe5ef2c899f18ed283f8ed5b85346176b5ccc5328ab6fae0b389f2936a87575ce0e47670
+"react@npm:19.2.2":
+  version: 19.2.2
+  resolution: "react@npm:19.2.2"
+  checksum: c0e99ec3f533c625db0dfccc4bf3683192c1a6ca3f829a27b667d5dea6164175ee3c84d6d3413fab0a867f026204b6a83ea13cf59cc357e9ae2f3da2864d4611
   languageName: node
   linkType: hard
 
