@@ -137,16 +137,16 @@ describe("Booking Actions", () => {
 
       expect(actions).toHaveLength(2);
       expect(actions[0]).toEqual({
-        id: "reject",
-        label: "reject",
-        icon: "ban",
+        id: "confirm",
+        bookingUid: "booking-123",
+        label: "confirm",
+        icon: "check",
         disabled: false,
       });
       expect(actions[1]).toEqual({
-        id: "confirm",
-        bookingId: 1,
-        label: "confirm",
-        icon: "check",
+        id: "reject",
+        label: "reject",
+        icon: "ban",
         disabled: false,
       });
     });
@@ -167,8 +167,8 @@ describe("Booking Actions", () => {
       });
       const actions = getPendingActions(context);
 
-      expect(actions[0].label).toBe("reject_all");
-      expect(actions[1].label).toBe("confirm_all");
+      expect(actions[0].label).toBe("confirm_all");
+      expect(actions[1].label).toBe("reject_all");
     });
   });
 
@@ -180,10 +180,10 @@ describe("Booking Actions", () => {
       expect(action).toEqual({
         id: "cancel",
         label: "cancel_event",
-        href: "/booking/booking-123?cancel=true",
         icon: "circle-x",
         color: "destructive",
         disabled: false,
+        bookingUid: "booking-123",
       });
     });
 
@@ -212,7 +212,6 @@ describe("Booking Actions", () => {
       });
       const action = getCancelEventAction(context);
 
-      expect(action.href).toContain("allRemainingBookings=true");
       expect(action.label).toBe("cancel_all_remaining");
     });
   });
@@ -394,7 +393,16 @@ describe("Booking Actions", () => {
           ...createMockContext().booking,
           status: BookingStatus.ACCEPTED,
           paid: true,
-          payment: [{ paymentOption: "HOLD", amount: 1000, currency: "usd", success: true }],
+          payment: [
+            {
+              paymentOption: "HOLD",
+              amount: 1000,
+              currency: "usd",
+              success: true,
+              appId: null,
+              refunded: false,
+            },
+          ],
         },
       });
       const actions = getAfterEventActions(context);

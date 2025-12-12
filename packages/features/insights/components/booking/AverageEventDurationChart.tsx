@@ -8,7 +8,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
   AVERAGE: "#3b82f6",
@@ -69,7 +68,7 @@ export const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.averageEventDuration.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -80,45 +79,42 @@ export const AverageEventDurationChart = () => {
     }
   );
 
-  if (isPending) return <LoadingInsight />;
-
-  if (!isSuccess || !data) return null;
-  const isNoData = data.every((item) => item["Average"] === 0);
   return (
-    <ChartCard title={t("average_event_duration")}>
-      {isNoData && (
-        <div className="text-default flex h-60 text-center">
-          <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>
-        </div>
-      )}
-      {data && data.length > 0 && !isNoData && (
-        <div className="mt-4 h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="Date" className="text-xs" axisLine={false} tickLine={false} />
-              <YAxis
-                allowDecimals={false}
-                className="text-xs opacity-50"
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={formatDuration}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Line
-                type="linear"
-                dataKey="Average"
-                name={t("average_event_duration")}
-                stroke={COLOR.AVERAGE}
-                strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-                animationDuration={1000}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+    <ChartCard title={t("average_event_duration")} isPending={isPending} isError={isError}>
+      {isSuccess && data ? (
+        data.every((item) => item["Average"] === 0) ? (
+          <div className="text-default flex h-60 text-center">
+            <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>
+          </div>
+        ) : (
+          <div className="mt-4 h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="Date" className="text-xs" axisLine={false} tickLine={false} />
+                <YAxis
+                  allowDecimals={false}
+                  className="text-xs opacity-50"
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={formatDuration}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Line
+                  type="linear"
+                  dataKey="Average"
+                  name={t("average_event_duration")}
+                  stroke={COLOR.AVERAGE}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                  animationDuration={1000}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )
+      ) : null}
     </ChartCard>
   );
 };

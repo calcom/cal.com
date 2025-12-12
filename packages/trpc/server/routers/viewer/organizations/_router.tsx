@@ -1,3 +1,4 @@
+import type { NextApiRequest } from "next";
 import { createPhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 
@@ -77,9 +78,9 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./checkIfOrgNeedsUpgrade.handler");
     return handler(opts);
   }),
-  publish: authedProcedure.mutation(async (opts) => {
+  publish: authedProcedure.mutation(async ({ ctx }) => {
     const { default: handler } = await import("./publish.handler");
-    return handler(opts);
+    return handler({ ctx: { ...ctx, req: ctx.req as NextApiRequest } });
   }),
   setPassword: authedProcedure.input(ZSetPasswordSchema).mutation(async (opts) => {
     const { default: handler } = await import("./setPassword.handler");
@@ -173,25 +174,25 @@ export const viewerOrganizationsRouter = router({
   listWatchlistEntries: authedOrgAdminProcedure
     .input(ZListWatchlistEntriesInputSchema)
     .query(async (opts) => {
-      const { default: handler } = await import("./listWatchlistEntries.handler");
+      const { listWatchlistEntriesHandler: handler } = await import("./listWatchlistEntries.handler");
       return handler(opts);
     }),
   createWatchlistEntry: authedOrgAdminProcedure
     .input(ZCreateWatchlistEntryInputSchema)
     .mutation(async (opts) => {
-      const { default: handler } = await import("./createWatchlistEntry.handler");
+      const { createWatchlistEntryHandler: handler } = await import("./createWatchlistEntry.handler");
       return handler(opts);
     }),
   deleteWatchlistEntry: authedOrgAdminProcedure
     .input(ZDeleteWatchlistEntryInputSchema)
     .mutation(async (opts) => {
-      const { default: handler } = await import("./deleteWatchlistEntry.handler");
+      const { deleteWatchlistEntryHandler: handler } = await import("./deleteWatchlistEntry.handler");
       return handler(opts);
     }),
   getWatchlistEntryDetails: authedOrgAdminProcedure
     .input(ZGetWatchlistEntryDetailsInputSchema)
     .query(async (opts) => {
-      const { default: handler } = await import("./getWatchlistEntryDetails.handler");
+      const { getWatchlistEntryDetailsHandler: handler } = await import("./getWatchlistEntryDetails.handler");
       return handler(opts);
     }),
   listBookingReports: authedOrgAdminProcedure
@@ -203,7 +204,7 @@ export const viewerOrganizationsRouter = router({
   addToWatchlist: authedOrgAdminProcedure
     .input(ZAddToWatchlistInputSchema)
     .mutation(async (opts) => {
-      const { default: handler } = await import("./addToWatchlist.handler");
+      const { addToWatchlistHandler: handler } = await import("./addToWatchlist.handler");
       return handler(opts);
     }),
   dismissBookingReport: authedOrgAdminProcedure
