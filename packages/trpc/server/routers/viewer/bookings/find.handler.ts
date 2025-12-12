@@ -10,6 +10,12 @@ type GetOptions = {
 export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
   const { bookingUid } = input;
 
+  if (!bookingUid) {
+    return {
+      booking: null,
+    };
+  }
+
   const bookingRepository = getBookingRepository();
   const booking = await bookingRepository.findByUidBasic({ bookingUid });
 
