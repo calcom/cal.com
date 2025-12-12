@@ -1,0 +1,31 @@
+name: weighted-approvals
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  issue_comment:
+    types: [created, edited, deleted]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  checks: write
+
+jobs:
+  weighted_approvals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Weighted approvals check
+        uses: sean-brydon/weighted-approvals@v0.1.0
+        with:
+          # For team membership checks, prefer a PAT with read:org:
+          #   WEIGHTED_APPROVALS_TOKEN
+          token: ${{ secrets.WEIGHTED_APPROVALS_TOKEN || secrets.GITHUB_TOKEN }}
+          config_path: .github/weighted-approvals.yml
+          check_name: weighted-approvals
+          label_prefix: "wa:+"
+          comment_directive_prefix: "ma:"
+          comment_trusted_author_associations: "OWNER,MEMBER,COLLABORATOR"
