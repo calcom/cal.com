@@ -192,7 +192,7 @@
     "slug": "jelly"
   },
   {
-    "name": "Jitsi Video",
+    "name": "Jitsi Meet",
     "slug": "jitsi"
   },
   {
@@ -248,7 +248,7 @@
     "slug": "office365-calendar"
   },
   {
-    "name": "Microsoft 365/Teams (Requires work/school account)",
+    "name": "MS Teams (Requires work/school account)",
     "slug": "msteams"
   },
   {
@@ -408,7 +408,7 @@
     "slug": "whereby"
   },
   {
-    "name": "wipemycalother",
+    "name": "Wipe my cal",
     "slug": "wipe-my-cal"
   },
   {

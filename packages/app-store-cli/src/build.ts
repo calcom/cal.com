@@ -466,13 +466,14 @@ function generateFiles() {
     if (fs.existsSync(configPath)) {
       const rawConfig = fs.readFileSync(configPath, "utf8");
       const parsedConfig = JSON.parse(rawConfig);
-      appName = parsedConfig.name || appDirs[i].name;
+      appName = parsedConfig.title || parsedConfig.name || appDirs[i].name;
       appSlug = parsedConfig.slug || appDirs[i].name;
     } else if (fs.existsSync(metadataPath)) {
       const content = fs.readFileSync(metadataPath, "utf8");
       const nameMatch = content.match(/name:\s*["']([^"']+)["']/);
+      const titleMatch = content.match(/title:\s*["']([^"']+)["']/);
       const slugMatch = content.match(/slug:\s*["']([^"']+)["']/);
-      appName = nameMatch?.[1] || appDirs[i].name;
+      appName = titleMatch?.[1] || nameMatch?.[1] || appDirs[i].name;
       appSlug = slugMatch?.[1] || appDirs[i].name;
     }
 
