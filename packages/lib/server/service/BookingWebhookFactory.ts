@@ -44,6 +44,10 @@ interface BaseWebhookPayload {
   iCalUID: string | null;
   smsReminderNumber?: string;
   cancelledBy: string | null;
+
+  /** ⭐ NEW FIELDS ADDED */
+  acceptToken?: string | null;
+  rejectToken?: string | null;
 }
 
 interface CancelledEventPayload extends BaseWebhookPayload {
@@ -89,6 +93,10 @@ export class BookingWebhookFactory {
       destinationCalendar,
       smsReminderNumber,
       iCalUID,
+
+      /** NEW FIELDS */
+      acceptToken,
+      rejectToken,
     } = params;
 
     const basePayload = {
@@ -104,6 +112,11 @@ export class BookingWebhookFactory {
       organizer,
       attendees,
       uid,
+
+      /** ⭐ NEW FIELDS SENT IN WEBHOOK */
+      acceptToken,
+      rejectToken,
+
       location,
       destinationCalendar: this.getDestinationCalendar(params),
       iCalUID,
