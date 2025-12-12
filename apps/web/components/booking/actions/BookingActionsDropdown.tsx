@@ -456,6 +456,7 @@ export function BookingActionsDropdown({
           guestEmail={booking.attendees[0]?.email ?? ""}
           hostEmail={booking.user?.email ?? ""}
           hostName={booking.user?.name ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
         />
       )}
       {booking.paid && booking.payment[0] && (

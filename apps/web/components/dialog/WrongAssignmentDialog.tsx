@@ -1,7 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import AddMembersWithSwitch, {
+  mapUserToValue,
+} from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
+import type { FormValues as EventTypeFormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -18,6 +23,7 @@ interface IWrongAssignmentDialog {
   guestEmail: string;
   hostEmail: string;
   hostName: string | null;
+  teamId: number | null;
 }
 
 interface FormValues {
@@ -25,17 +31,106 @@ interface FormValues {
   additionalNotes: string;
 }
 
+// Wrapper component that provides AddMembersWithSwitch with its own FormContext
+const TeamMemberSelector = ({
+  teamId,
+  teamMembers,
+  onMemberSelect,
+}: {
+  teamId: number;
+  teamMembers: TeamMember[];
+  onMemberSelect: (email: string) => void;
+}) => {
+  const { t } = useLocale();
+  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState(false);
+  const [selectedHosts, setSelectedHosts] = useState<Host[]>([]);
+
+  // Create a minimal form context for AddMembersWithSwitch
+  const innerForm = useForm<EventTypeFormValues>({
+    defaultValues: {
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      hosts: [],
+      assignAllTeamMembers: false,
+    },
+  });
+
+  const handleHostsChange = (hosts: Host[]) => {
+    setSelectedHosts(hosts);
+    // When a host is selected, find their email and call onMemberSelect
+    if (hosts.length > 0) {
+      const lastHost = hosts[hosts.length - 1];
+      const member = teamMembers.find((m) => m.value === String(lastHost.userId));
+      if (member) {
+        onMemberSelect(member.email);
+      }
+    } else {
+      onMemberSelect("");
+    }
+  };
+
+  return (
+    <FormProvider {...innerForm}>
+      <AddMembersWithSwitch
+        teamId={teamId}
+        groupId={null}
+        teamMembers={teamMembers}
+        value={selectedHosts}
+        onChange={handleHostsChange}
+        assignAllTeamMembers={assignAllTeamMembers}
+        setAssignAllTeamMembers={setAssignAllTeamMembers}
+        automaticAddAllEnabled={false}
+        isFixed={false}
+        isSegmentApplicable={false}
+        placeholder={t("select_team_member")}
+        onActive={() => {}}
+      />
+    </FormProvider>
+  );
+};
+
 export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingUid, routingReason, guestEmail, hostEmail, hostName } = props;
+  const {
+    isOpenDialog,
+    setIsOpenDialog,
+    bookingUid,
+    routingReason,
+    guestEmail,
+    hostEmail,
+    hostName,
+    teamId,
+  } = props;
 
-  const { control, handleSubmit } = useForm<FormValues>({
+  const { control, handleSubmit, setValue } = useForm<FormValues>({
     defaultValues: {
       correctAssignee: "",
       additionalNotes: "",
     },
   });
+
+  // Fetch team members when teamId is available
+  const { data: teamMembersData } = trpc.viewer.teams.listMembers.useQuery(
+    { teamId: teamId!, limit: 100 },
+    { enabled: !!teamId && isOpenDialog }
+  );
+
+  // Transform team members to the format expected by AddMembersWithSwitch
+  const teamMembers: TeamMember[] =
+    teamMembersData?.members.map((member) =>
+      mapUserToValue(
+        {
+          id: member.id,
+          name: member.name,
+          username: member.username,
+          avatar: member.avatarUrl ?? "",
+          email: member.email,
+          defaultScheduleId: null,
+        },
+        t("pending")
+      )
+    ) ?? [];
 
   const { mutate: reportWrongAssignment, isPending } =
     trpc.viewer.bookings.reportWrongAssignment.useMutation({
@@ -55,6 +150,10 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
       correctAssignee: data.correctAssignee || undefined,
       additionalNotes: data.additionalNotes || undefined,
     });
+  };
+
+  const handleMemberSelect = (email: string) => {
+    setValue("correctAssignee", email);
   };
 
   return (
@@ -93,18 +192,26 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
                   {t("who_should_have_received_it")}{" "}
                   <span className="text-subtle font-normal">({t("optional")})</span>
                 </Label>
-                <Controller
-                  name="correctAssignee"
-                  control={control}
-                  render={({ field }) => (
-                    <input
-                      {...field}
-                      type="email"
-                      placeholder={t("enter_email")}
-                      className="border-default bg-default text-emphasis placeholder:text-muted focus:border-emphasis focus:ring-emphasis block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1"
-                    />
-                  )}
-                />
+                {teamId && teamMembers.length > 0 ? (
+                  <TeamMemberSelector
+                    teamId={teamId}
+                    teamMembers={teamMembers}
+                    onMemberSelect={handleMemberSelect}
+                  />
+                ) : (
+                  <Controller
+                    name="correctAssignee"
+                    control={control}
+                    render={({ field }) => (
+                      <input
+                        {...field}
+                        type="email"
+                        placeholder={t("enter_email")}
+                        className="border-default bg-default text-emphasis placeholder:text-muted focus:border-emphasis focus:ring-emphasis block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1"
+                      />
+                    )}
+                  />
+                )}
               </div>
 
               <div className="mb-4">
