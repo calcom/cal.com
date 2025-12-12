@@ -537,7 +537,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
       const remaining = getInstantCooldownRemainingMs(eventTypeId);
       if (remaining > 0) {
-        showToast(t("please_try_again_later_or_book_another_slot"), "error");
+        showToast(
+          t("please_try_again_later_or_book_another_slot", { remaining: Math.ceil(remaining / 60000) }),
+          "error"
+        );
         return;
       }
       createInstantBookingMutation.mutate(variables);
