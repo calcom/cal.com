@@ -50,9 +50,13 @@ export function Header() {
   };
 
   const handleCopyPublicPageLink = async () => {
-    if (publicPageUrl) {
+    if (!publicPageUrl) return;
+    try {
       await Clipboard.setStringAsync(publicPageUrl);
       Alert.alert("Link Copied!", "Your public page link has been copied to clipboard.");
+    } catch (error) {
+      console.error("Failed to copy public page link:", error);
+      Alert.alert("Error", "Failed to copy link. Please try again.");
     }
   };
 

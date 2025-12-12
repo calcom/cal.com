@@ -50,6 +50,13 @@ export const createQueryPersister = (): Persister => {
 
         const client = JSON.parse(serialized) as PersistedClient;
 
+        // Validate timestamp exists and is a valid number
+        if (typeof client.timestamp !== "number" || isNaN(client.timestamp)) {
+          console.warn("[QueryPersister] Invalid or missing timestamp, discarding cache");
+          await storage.removeItem(storageKey);
+          return undefined;
+        }
+
         // Check if the persisted cache has expired
         const persistedAt = client.timestamp;
         const now = Date.now();
@@ -113,6 +120,12 @@ export const getCacheMetadata = async (): Promise<{
     }
 
     const client = JSON.parse(serialized) as PersistedClient;
+
+    // Validate timestamp exists and is a valid number
+    if (typeof client.timestamp !== "number" || isNaN(client.timestamp)) {
+      return { exists: true, isExpired: true }; // Treat invalid timestamp as expired
+    }
+
     const now = Date.now();
     const age = now - client.timestamp;
 

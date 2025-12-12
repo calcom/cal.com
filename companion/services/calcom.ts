@@ -885,33 +885,21 @@ export class CalComAPIService {
     try {
       const sanitizedUpdates = this.sanitizePayload(updates as Record<string, any>);
 
-      const url = `${API_BASE_URL}/event-types/${eventTypeId}`;
-      const response = await fetch(url, {
-        method: "PATCH",
-        headers: {
-          Authorization: this.getAuthHeader(),
-          "Content-Type": "application/json",
-          "cal-api-version": "2024-06-14",
+      const response = await this.makeRequest<{ status: string; data: EventType }>(
+        `/event-types/${eventTypeId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-06-14",
+          },
+          body: JSON.stringify(sanitizedUpdates),
         },
-        body: JSON.stringify(sanitizedUpdates),
-      });
+        "2024-06-14"
+      );
 
-      if (!response.ok) {
-        const errorBody = await response.text();
-        let errorMessage = response.statusText;
-        try {
-          const errorJson = JSON.parse(errorBody);
-          errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
-        } catch {
-          errorMessage = errorBody || response.statusText;
-        }
-        throw new Error(`API Error: ${errorMessage}`);
-      }
-
-      const result = await response.json();
-
-      if (result && result.data) {
-        return result.data;
+      if (response && response.data) {
+        return response.data;
       }
 
       throw new Error("Invalid response from update event type API");

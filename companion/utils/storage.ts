@@ -49,7 +49,7 @@ export const secureStorage = {
           if (chrome.runtime.lastError) {
             reject(new Error(chrome.runtime.lastError.message));
           } else {
-            resolve((result[key] as string) || null);
+            resolve((result[key] as string) ?? null);
           }
         });
       });
@@ -130,7 +130,7 @@ export const generalStorage: StorageAdapter = {
           if (chrome.runtime.lastError) {
             reject(new Error(chrome.runtime.lastError.message));
           } else {
-            resolve((result[key] as string) || null);
+            resolve((result[key] as string) ?? null);
           }
         });
       });

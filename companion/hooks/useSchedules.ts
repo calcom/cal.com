@@ -14,6 +14,17 @@ import { CalComAPIService, Schedule } from "../services/calcom";
 import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
 
 /**
+ * Sort schedules: default first, then alphabetically by name
+ */
+function sortSchedules(schedules: Schedule[]): Schedule[] {
+  return schedules.sort((a, b) => {
+    if (a.isDefault && !b.isDefault) return -1;
+    if (!a.isDefault && b.isDefault) return 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+/**
  * Schedule creation input type
  */
 export interface CreateScheduleInput {
@@ -69,12 +80,7 @@ export function useSchedules() {
     queryKey: queryKeys.schedules.lists(),
     queryFn: async () => {
       const schedules = await CalComAPIService.getSchedules();
-      // Sort schedules: default first, then by name
-      return schedules.sort((a, b) => {
-        if (a.isDefault && !b.isDefault) return -1;
-        if (!a.isDefault && b.isDefault) return 1;
-        return a.name.localeCompare(b.name);
-      });
+      return sortSchedules(schedules);
     },
     staleTime: CACHE_CONFIG.schedules.staleTime,
     // Keep previous data while fetching new data (smoother UX)
@@ -295,12 +301,7 @@ export function usePrefetchSchedules() {
       queryKey: queryKeys.schedules.lists(),
       queryFn: async () => {
         const schedules = await CalComAPIService.getSchedules();
-        // Sort schedules: default first, then by name (must match useSchedules)
-        return schedules.sort((a, b) => {
-          if (a.isDefault && !b.isDefault) return -1;
-          if (!a.isDefault && b.isDefault) return 1;
-          return a.name.localeCompare(b.name);
-        });
+        return sortSchedules(schedules);
       },
       staleTime: CACHE_CONFIG.schedules.staleTime,
     });
