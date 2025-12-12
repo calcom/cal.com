@@ -90,6 +90,8 @@ export const DI_TOKENS = {
         HASHED_LINK_REPOSITORY_MODULE: Symbol("HashedLinkRepositoryModule"),
         CAL_VIDEO_SETTINGS_REPOSITORY: Symbol("CalVideoSettingsRepository"),
         CAL_VIDEO_SETTINGS_REPOSITORY_MODULE: Symbol("CalVideoSettingsRepositoryModule"),
+        ORG_MEMBERSHIP_REPOSITORY: Symbol("OrgMembershipRepository"),
+        ORG_MEMBERSHIP_REPOSITORY_MODULE: Symbol("OrgMembershipRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens

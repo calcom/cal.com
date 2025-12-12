@@ -15,6 +15,8 @@ import type { IAttributeRepository } from "@calcom/lib/server/repository/IAttrib
 import type { IApiKeyRepository } from "@calcom/lib/server/repository/IApiKeyRepository";
 import type { IHashedLinkRepository } from "@calcom/lib/server/repository/IHashedLinkRepository";
 import type { ICalVideoSettingsRepository } from "@calcom/lib/server/repository/ICalVideoSettingsRepository";
+import type { IAssignmentReasonRepository } from "@calcom/lib/server/repository/IAssignmentReasonRepository";
+import type { IOrgMembershipRepository } from "@calcom/lib/server/repository/IOrgMembershipRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -49,6 +51,8 @@ import { attributeRepositoryModuleLoader } from "../modules/Attribute";
 import { apiKeyRepositoryModuleLoader } from "../modules/ApiKey";
 import { hashedLinkRepositoryModuleLoader } from "../modules/HashedLink";
 import { calVideoSettingsRepositoryModuleLoader } from "../modules/CalVideoSettings";
+import { assignmentReasonRepositoryModuleLoader } from "../modules/AssignmentReason";
+import { orgMembershipRepositoryModuleLoader } from "../modules/OrgMembership";
 
 const repositoryContainer = createContainer();
 
@@ -77,6 +81,8 @@ repositoryContainer.load(attributeRepositoryModuleLoader());
 repositoryContainer.load(apiKeyRepositoryModuleLoader());
 repositoryContainer.load(hashedLinkRepositoryModuleLoader());
 repositoryContainer.load(calVideoSettingsRepositoryModuleLoader());
+repositoryContainer.load(assignmentReasonRepositoryModuleLoader());
+repositoryContainer.load(orgMembershipRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -172,4 +178,12 @@ export function getHashedLinkRepository(): IHashedLinkRepository {
 
 export function getCalVideoSettingsRepository(): ICalVideoSettingsRepository {
   return repositoryContainer.get<ICalVideoSettingsRepository>(DI_TOKENS.CAL_VIDEO_SETTINGS_REPOSITORY);
+}
+
+export function getAssignmentReasonRepository(): IAssignmentReasonRepository {
+  return repositoryContainer.get<IAssignmentReasonRepository>(DI_TOKENS.ASSIGNMENT_REASON_REPOSITORY);
+}
+
+export function getOrgMembershipRepository(): IOrgMembershipRepository {
+  return repositoryContainer.get<IOrgMembershipRepository>(DI_TOKENS.ORG_MEMBERSHIP_REPOSITORY);
 }
