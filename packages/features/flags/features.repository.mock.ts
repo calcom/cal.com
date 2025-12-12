@@ -40,13 +40,27 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     // Mock implementation - do nothing
   }
 
-  async getUserFeatureState(_input: { userId: number; featureId: string }): Promise<FeatureState> {
-    // Mock implementation - return inherit
-    return "inherit";
+  async getUserFeatureStates(_input: {
+    userId: number;
+    featureIds: string[];
+  }): Promise<Record<string, FeatureState>> {
+    // Mock implementation - return inherit for all features
+    const result: Record<string, FeatureState> = {};
+    for (const featureId of _input.featureIds) {
+      result[featureId] = "inherit";
+    }
+    return result;
   }
 
-  async getTeamFeatureState(_input: { teamId: number; featureId: string }): Promise<FeatureState> {
-    // Mock implementation - return inherit
-    return "inherit";
+  async getTeamFeatureStates(_input: {
+    teamId: number;
+    featureIds: string[];
+  }): Promise<Record<string, FeatureState>> {
+    // Mock implementation - return inherit for all features
+    const result: Record<string, FeatureState> = {};
+    for (const featureId of _input.featureIds) {
+      result[featureId] = "inherit";
+    }
+    return result;
   }
 }

@@ -23,13 +23,13 @@ export interface IFeaturesRepository {
     assignedBy: string
   ): Promise<void>;
   /**
-   * Get user's feature state.
-   * @returns 'enabled' | 'disabled' | 'inherit'
+   * Get user's feature states for multiple features.
+   * @returns Record<featureId, 'enabled' | 'disabled' | 'inherit'>
    */
-  getUserFeatureState(input: { userId: number; featureId: string }): Promise<FeatureState>;
+  getUserFeatureStates(input: { userId: number; featureIds: string[] }): Promise<Record<string, FeatureState>>;
   /**
-   * Get team's feature state.
-   * @returns 'enabled' | 'disabled' | 'inherit'
+   * Get team's feature states for multiple features.
+   * @returns Record<featureId, 'enabled' | 'disabled' | 'inherit'>
    */
-  getTeamFeatureState(input: { teamId: number; featureId: string }): Promise<FeatureState>;
+  getTeamFeatureStates(input: { teamId: number; featureIds: string[] }): Promise<Record<string, FeatureState>>;
 }
