@@ -1898,4 +1898,342 @@ export class BookingRepository {
       },
     });
   }
+
+  async findByUidBasic({ bookingUid }: { bookingUid: string }) {
+    return this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        id: true,
+        uid: true,
+        startTime: true,
+        endTime: true,
+        description: true,
+        status: true,
+        paid: true,
+        eventTypeId: true,
+      },
+    });
+  }
+
+  async findAcceptedByIdForInstantBooking({ bookingId }: { bookingId: number }) {
+    return this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        id: true,
+        uid: true,
+        location: true,
+        metadata: true,
+        startTime: true,
+        status: true,
+        endTime: true,
+        description: true,
+        eventTypeId: true,
+      },
+    });
+  }
+
+  async countSeatReferencesByReferenceUid({ referenceUid }: { referenceUid: string }) {
+    const bookingSeat = await this.prismaClient.bookingSeat.findUnique({
+      where: {
+        referenceUid,
+      },
+      select: {
+        booking: {
+          select: {
+            _count: {
+              select: {
+                seatsReferences: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!bookingSeat) {
+      return null;
+    }
+
+    return bookingSeat.booking._count.seatsReferences;
+  }
+
+  private bookingWithFullContextInclude = {
+    attendees: true,
+    eventType: {
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            parentId: true,
+          },
+        },
+      },
+    },
+    destinationCalendar: true,
+    references: true,
+    user: {
+      include: {
+        destinationCalendar: true,
+        credentials: true,
+        profiles: {
+          select: {
+            organizationId: true,
+          },
+        },
+      },
+    },
+  } as const;
+
+  async findByIdForAdminIncludeFullContext({
+    bookingId,
+    adminUserId,
+  }: {
+    bookingId: number;
+    adminUserId: number;
+  }) {
+    return this.prismaClient.booking.findFirst({
+      where: {
+        id: bookingId,
+        eventType: {
+          team: {
+            members: {
+              some: {
+                userId: adminUserId,
+                role: {
+                  in: ["ADMIN", "OWNER"],
+                },
+              },
+            },
+          },
+        },
+      },
+      include: this.bookingWithFullContextInclude,
+    });
+  }
+
+  async findByIdForOrganizerOrCollectiveMemberIncludeFullContext({
+    bookingId,
+    userId,
+  }: {
+    bookingId: number;
+    userId: number;
+  }) {
+    return this.prismaClient.booking.findFirst({
+      where: {
+        id: bookingId,
+        AND: [
+          {
+            OR: [
+              { userId },
+              {
+                eventType: {
+                  schedulingType: "COLLECTIVE",
+                  users: {
+                    some: {
+                      id: userId,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      include: this.bookingWithFullContextInclude,
+    });
+  }
+
+  async findByIdForConfirmation({ bookingId }: { bookingId: number }) {
+    return this.prismaClient.booking.findUniqueOrThrow({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        title: true,
+        description: true,
+        customInputs: true,
+        startTime: true,
+        endTime: true,
+        attendees: true,
+        eventTypeId: true,
+        responses: true,
+        metadata: true,
+        userPrimaryEmail: true,
+        eventType: {
+          select: {
+            id: true,
+            owner: true,
+            teamId: true,
+            recurringEvent: true,
+            title: true,
+            slug: true,
+            requiresConfirmation: true,
+            currency: true,
+            length: true,
+            description: true,
+            price: true,
+            bookingFields: true,
+            hideOrganizerEmail: true,
+            hideCalendarNotes: true,
+            hideCalendarEventDetails: true,
+            disableGuests: true,
+            customReplyToEmail: true,
+            metadata: true,
+            locations: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+              },
+            },
+            workflows: {
+              select: {
+                workflow: {
+                  select: {
+                    id: true,
+                    userId: true,
+                    teamId: true,
+                    name: true,
+                    trigger: true,
+                    time: true,
+                    timeUnit: true,
+                    activeOn: true,
+                    steps: {
+                      select: {
+                        id: true,
+                        stepNumber: true,
+                        action: true,
+                        workflowId: true,
+                        sendTo: true,
+                        reminderBody: true,
+                        emailSubject: true,
+                        template: true,
+                        numberRequired: true,
+                        sender: true,
+                        numberVerificationPending: true,
+                        includeCalendarEvent: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            customInputs: true,
+            parentId: true,
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
+          },
+        },
+        location: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            timeZone: true,
+            timeFormat: true,
+            name: true,
+            destinationCalendar: true,
+            locale: true,
+          },
+        },
+        id: true,
+        uid: true,
+        payment: true,
+        destinationCalendar: true,
+        paid: true,
+        recurringEventId: true,
+        status: true,
+        smsReminderNumber: true,
+      },
+    });
+  }
+
+  async updateStatusToAccepted({ bookingId }: { bookingId: number }) {
+    return this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        status: BookingStatus.ACCEPTED,
+      },
+    });
+  }
+
+  async findRecurringEventBookingExists({
+    recurringEventId,
+    bookingId,
+  }: {
+    recurringEventId: string;
+    bookingId: number;
+  }) {
+    return this.prismaClient.booking.findFirst({
+      where: {
+        recurringEventId,
+        id: bookingId,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async countByRecurringEventId({ recurringEventId }: { recurringEventId: string }) {
+    const result = await this.prismaClient.booking.groupBy({
+      where: {
+        recurringEventId,
+      },
+      by: ["recurringEventId"],
+      _count: true,
+    });
+    return result[0]?._count ?? 0;
+  }
+
+  async rejectAllPendingByRecurringEventId({
+    recurringEventId,
+    rejectionReason,
+  }: {
+    recurringEventId: string;
+    rejectionReason?: string;
+  }) {
+    return this.prismaClient.booking.updateMany({
+      where: {
+        recurringEventId,
+        status: BookingStatus.PENDING,
+      },
+      data: {
+        status: BookingStatus.REJECTED,
+        rejectionReason,
+      },
+    });
+  }
+
+  async rejectById({
+    bookingId,
+    rejectionReason,
+  }: {
+    bookingId: number;
+    rejectionReason?: string;
+  }) {
+    return this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        status: BookingStatus.REJECTED,
+        rejectionReason,
+      },
+    });
+  }
 }

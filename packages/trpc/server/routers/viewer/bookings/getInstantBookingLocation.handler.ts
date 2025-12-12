@@ -1,36 +1,18 @@
-import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { prisma } from "@calcom/prisma";
 
 import type { TInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 
 type GetOptions = {
-  ctx: {
-    prisma: PrismaClient;
-  };
+  ctx: Record<string, unknown>;
   input: TInstantBookingInputSchema;
 };
 
-export const getHandler = async ({ ctx, input }: GetOptions) => {
-  const { prisma } = ctx;
+export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
   const { bookingId } = input;
 
-  const booking = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-      status: BookingStatus.ACCEPTED,
-    },
-    select: {
-      id: true,
-      uid: true,
-      location: true,
-      metadata: true,
-      startTime: true,
-      status: true,
-      endTime: true,
-      description: true,
-      eventTypeId: true,
-    },
-  });
+  const bookingRepository = new BookingRepository(prisma);
+  const booking = await bookingRepository.findAcceptedByIdForInstantBooking({ bookingId });
 
   // Don't leak anything private from the booking
   return {
