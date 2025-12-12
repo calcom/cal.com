@@ -1,9 +1,14 @@
-import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { createModule } from "@evyweb/ioctopus";
 
-import { createModule } from "../di";
+import { kyselyRead, kyselyWrite } from "@calcom/kysely";
+import { KyselyRoutingFormResponseRepository } from "@calcom/lib/server/repository/KyselyRoutingFormResponseRepository";
 
-export const routingFormResponseRepositoryModule = createModule();
-routingFormResponseRepositoryModule
-  .bind(DI_TOKENS.ROUTING_FORM_RESPONSE_REPOSITORY)
-  .toClass(RoutingFormResponseRepository, [DI_TOKENS.PRISMA_CLIENT]);
+import { DI_TOKENS } from "../tokens";
+
+export const routingFormResponseRepositoryModuleLoader = () => {
+  const module = createModule();
+  module
+    .bind(DI_TOKENS.ROUTING_FORM_RESPONSE_REPOSITORY)
+    .toInstance(new KyselyRoutingFormResponseRepository(kyselyRead, kyselyWrite));
+  return module;
+};
