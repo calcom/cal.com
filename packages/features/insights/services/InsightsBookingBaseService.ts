@@ -17,7 +17,7 @@ import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { SYSTEM_PHONE_FIELDS } from "@calcom/lib/bookings/SystemField";
+import { SYSTEM_PHONE_FIELDS, SystemField } from "@calcom/lib/bookings/SystemField";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -593,9 +593,15 @@ export class InsightsBookingBaseService {
       },
     });
 
-    // 3. Process bookings: extract phone data and build attendee map
+    // 3. Process bookings: extract booking question data and build attendee map
+    // Cache for phone-only fields (used for seated events)
     const phoneFieldsCache = new Map<number, { name: string; label: string }[]>();
-    const allPhoneFieldLabels = new Set<string>();
+    // Cache for all booking fields with phone field names tracked (used for non-seated events)
+    const allFieldsCache = new Map<
+      number,
+      { fields: { name: string; label: string }[]; phoneFieldNames: Set<string> }
+    >();
+    const allBookingQuestionLabels = new Set<string>();
     let maxAttendees = 0;
     const finalBookingMap = new Map<
       string,
@@ -604,34 +610,72 @@ export class InsightsBookingBaseService {
         noShowGuestsCount: number;
         attendeeList: string[];
         attendeePhoneNumbers: (string | null)[];
-        phoneQuestionResponses: Record<string, string | null>;
+        bookingQuestionResponses: Record<string, string | null>;
       }
     >();
 
-    const extractPhoneValue = (value: unknown): string | null => {
+    const extractFieldValue = (value: unknown): string | null => {
       if (typeof value === "string" && value.trim()) return value;
+      if (typeof value === "number" || typeof value === "boolean") return String(value);
+      if (Array.isArray(value)) {
+        const filtered = value.filter((v) => v != null && v !== "");
+        return filtered.length > 0 ? filtered.join(", ") : null;
+      }
       if (value && typeof value === "object" && "value" in value) {
         const val = (value as { value: unknown }).value;
-        if (typeof val === "string" && val.trim()) return val;
+        return extractFieldValue(val);
       }
       return null;
     };
 
+    const isSystemField = (fieldName: string) => SystemField.safeParse(fieldName).success;
+
     for (const booking of bookings) {
       const eventTypeId = booking.eventTypeId;
-      let phoneFields: { name: string; label: string }[] | null = null;
+      const isSeatedEvent = booking.seatsReferences.length > 0;
+      let bookingFields: { name: string; label: string }[] | null = null;
+      let phoneFieldNames: Set<string> | null = null;
 
       if (eventTypeId) {
-        if (phoneFieldsCache.has(eventTypeId)) {
-          phoneFields = phoneFieldsCache.get(eventTypeId) || null;
-        } else if (booking.eventType?.bookingFields) {
-          const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
-          if (parsed.success) {
-            phoneFields = parsed.data
-              .filter((field) => field.type === "phone" && !SYSTEM_PHONE_FIELDS.has(field.name))
-              .map((field) => ({ name: field.name, label: field.label || field.name }));
-            phoneFieldsCache.set(eventTypeId, phoneFields);
-            phoneFields.forEach((field) => allPhoneFieldLabels.add(field.label));
+        if (isSeatedEvent) {
+          // For seated events: use phone-only cache
+          const cached = phoneFieldsCache.get(eventTypeId);
+          if (cached !== undefined) {
+            bookingFields = cached;
+          } else if (booking.eventType?.bookingFields) {
+            const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
+            if (parsed.success) {
+              // Only include phone type fields (excluding system phone fields)
+              bookingFields = parsed.data
+                .filter((field) => field.type === "phone" && !SYSTEM_PHONE_FIELDS.has(field.name))
+                .map((field) => ({ name: field.name, label: field.label || field.name }));
+              phoneFieldsCache.set(eventTypeId, bookingFields);
+              bookingFields.forEach((field) => allBookingQuestionLabels.add(field.label));
+            }
+          }
+        } else {
+          // For non-seated events: use all-fields cache with phone tracking
+          const cached = allFieldsCache.get(eventTypeId);
+          if (cached !== undefined) {
+            bookingFields = cached.fields;
+            phoneFieldNames = cached.phoneFieldNames;
+          } else if (booking.eventType?.bookingFields) {
+            const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
+            if (parsed.success) {
+              // Include all booking question fields (excluding system fields), track phone fields
+              const phoneNames = new Set<string>();
+              bookingFields = parsed.data
+                .filter((field) => !isSystemField(field.name))
+                .map((field) => {
+                  if (field.type === "phone") {
+                    phoneNames.add(field.name);
+                  }
+                  return { name: field.name, label: field.label || field.name };
+                });
+              phoneFieldNames = phoneNames;
+              allFieldsCache.set(eventTypeId, { fields: bookingFields, phoneFieldNames: phoneNames });
+              bookingFields.forEach((field) => allBookingQuestionLabels.add(field.label));
+            }
           }
         }
       }
@@ -646,26 +690,33 @@ export class InsightsBookingBaseService {
       const attendeePhoneNumbers: (string | null)[] = [];
       let noShowGuestsCount = 0;
 
-      const phoneQuestionResponses: Record<string, string | null> = {};
+      const bookingQuestionResponses: Record<string, string | null> = {};
       let systemPhoneValue: string | null = null;
+      let firstCustomPhoneValue: string | null = null;
 
       if (booking.responses && typeof booking.responses === "object") {
         const responses = booking.responses as Record<string, unknown>;
 
         systemPhoneValue =
-          extractPhoneValue(responses.attendeePhoneNumber) ||
-          extractPhoneValue(responses.smsReminderNumber) ||
+          extractFieldValue(responses.attendeePhoneNumber) ||
+          extractFieldValue(responses.smsReminderNumber) ||
           null;
 
-        if (phoneFields) {
-          for (const field of phoneFields) {
-            phoneQuestionResponses[field.label] = extractPhoneValue(responses[field.name]);
+        if (bookingFields) {
+          for (const field of bookingFields) {
+            const value = extractFieldValue(responses[field.name]);
+            bookingQuestionResponses[field.label] = value;
+            // Track first phone field value for fallback (seated events have all phone fields, non-seated uses phoneFieldNames)
+            if (firstCustomPhoneValue === null && value !== null) {
+              if (isSeatedEvent || phoneFieldNames?.has(field.name)) {
+                firstCustomPhoneValue = value;
+              }
+            }
           }
         }
       }
 
-      const firstPhoneQuestionValue = Object.values(phoneQuestionResponses).find((v) => v !== null) || null;
-      const phoneFallback = systemPhoneValue || firstPhoneQuestionValue;
+      const phoneFallback = systemPhoneValue || firstCustomPhoneValue;
 
       for (const attendee of attendeeList) {
         if (attendee) {
@@ -691,7 +742,7 @@ export class InsightsBookingBaseService {
         noShowGuestsCount,
         attendeeList: formattedAttendees,
         attendeePhoneNumbers,
-        phoneQuestionResponses,
+        bookingQuestionResponses,
       });
     }
 
@@ -723,8 +774,8 @@ export class InsightsBookingBaseService {
         result[`attendeePhone${i}`] = attendeeData?.attendeePhoneNumbers[i - 1] || null;
       }
 
-      allPhoneFieldLabels.forEach((label) => {
-        result[label] = attendeeData?.phoneQuestionResponses[label] || null;
+      allBookingQuestionLabels.forEach((label) => {
+        result[label] = attendeeData?.bookingQuestionResponses[label] || null;
       });
 
       return result;
