@@ -367,4 +367,23 @@ export class FeaturesRepository implements IFeaturesRepository {
       throw err;
     }
   }
+
+  async getTeamsWithFeatureEnabled(slug: keyof AppFlags): Promise<number[]> {
+    try {
+      // If globally disabled, treat as effectively disabled everywhere
+      const isGloballyEnabled = await this.checkIfFeatureIsEnabledGlobally(slug);
+      if (!isGloballyEnabled) return [];
+
+      const rows = await this.prismaClient.teamFeatures.findMany({
+        where: { featureId: slug },
+        select: { teamId: true },
+        orderBy: { teamId: "asc" },
+      });
+
+      return rows.map((r) => r.teamId);
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }
