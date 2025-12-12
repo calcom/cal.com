@@ -3,7 +3,11 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
-import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
+import {
+  bookingMinimalSelect,
+  bookingAuthorizationCheckSelect,
+  bookingDetailsSelect,
+} from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 type ManagedEventReassignmentCreateParams = {
@@ -497,6 +501,48 @@ export class BookingRepository {
             id: true,
           },
         },
+      },
+    });
+  }
+
+  async findByUidForAuthorizationCheck({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingAuthorizationCheckSelect,
+    });
+  }
+
+  async findByUidForDetails({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingDetailsSelect,
+    });
+  }
+
+  async findRescheduledToBooking({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findFirst({
+      where: {
+        fromReschedule: bookingUid,
+      },
+      select: {
+        uid: true,
+      },
+    });
+  }
+
+  async findPreviousBooking({ fromReschedule }: { fromReschedule: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: fromReschedule,
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        endTime: true,
       },
     });
   }
@@ -1087,6 +1133,14 @@ export class BookingRepository {
             },
           },
         },
+        eventType: {
+          select: {
+            id: true,
+            minimumRescheduleNotice: true,
+            disableRescheduling: true,
+            userId: true,
+          },
+        },
         destinationCalendar: true,
         payment: true,
         references: true,
@@ -1383,6 +1437,19 @@ export class BookingRepository {
             metadata: true,
           },
         },
+        user: {
+          select: {
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
+          },
+        },
         payment: {
           select: {
             id: true,
@@ -1425,6 +1492,11 @@ export class BookingRepository {
           include: {
             destinationCalendar: true,
             credentials: true,
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
           },
         },
       },
@@ -1545,7 +1617,7 @@ export class BookingRepository {
       },
     });
   }
-  
+
   findByUidIncludeEventTypeAndReferences({ bookingUid }: { bookingUid: string }) {
     return this.prismaClient.booking.findUniqueOrThrow({
       where: {
@@ -1600,7 +1672,7 @@ export class BookingRepository {
       },
     });
   }
-  
+
   async updateBookingStatus({
     bookingId,
     status,
@@ -1630,7 +1702,6 @@ export class BookingRepository {
       },
     });
   }
-
 
   /**
    * Cancels a booking as part of the Managed Event reassignment flow.
@@ -1706,8 +1777,8 @@ export class BookingRepository {
         location,
         smsReminderNumber,
         responses: responses ?? undefined,
-        customInputs: customInputs as unknown as Prisma.InputJsonValue ?? undefined,
-        metadata: metadata as unknown as Prisma.InputJsonValue ?? undefined,
+        customInputs: (customInputs as unknown as Prisma.InputJsonValue) ?? undefined,
+        metadata: (metadata as unknown as Prisma.InputJsonValue) ?? undefined,
         idempotencyKey,
         iCalUID,
         iCalSequence,

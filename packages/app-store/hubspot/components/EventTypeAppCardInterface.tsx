@@ -1,14 +1,27 @@
 import { usePathname } from "next/navigation";
 
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Section } from "@calcom/ui/components/section";
+import { Switch } from "@calcom/ui/components/form";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
+import type { appDataSchema } from "../zod";
+
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  onAppInstallSuccess,
+}) {
   const pathname = usePathname();
-
+  const { t } = useLocale();
+  const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
+
+  const ignoreGuests = getAppData("ignoreGuests") ?? false;
 
   return (
     <AppCard
@@ -20,8 +33,25 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         updateEnabled(e);
       }}
       switchChecked={enabled}
-      hideAppCardOptions
-    />
+      hideSettingsIcon>
+      <Section.Content>
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="user-plus"
+            title={t("hubspot_ignore_guests")}
+            labelFor="ignore-guests">
+            <Switch
+              size="sm"
+              labelOnLeading
+              checked={ignoreGuests}
+              onCheckedChange={(checked) => {
+                setAppData("ignoreGuests", checked);
+              }}
+            />
+          </Section.SubSectionHeader>
+        </Section.SubSection>
+      </Section.Content>
+    </AppCard>
   );
 };
 
