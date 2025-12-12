@@ -16,9 +16,13 @@ type PrismaWebhookFull = {
   eventTriggers: WebhookTriggerEvents[];
   eventTypeId: number | null;
   teamId: number | null;
+  userId: number | null;
   time: number | null;
   timeUnit: TimeUnit | null;
   version: string;
+  createdAt: Date;
+  platform: boolean;
+  platformOAuthClientId: string | null;
 };
 
 /**
@@ -51,9 +55,13 @@ export class WebhookOutputMapper {
       eventTriggers: prismaWebhook.eventTriggers,
       eventTypeId: prismaWebhook.eventTypeId,
       teamId: prismaWebhook.teamId,
+      userId: prismaWebhook.userId,
       time: prismaWebhook.time ?? undefined,
       timeUnit: prismaWebhook.timeUnit ?? undefined,
       version: prismaWebhook.version as WebhookVersion,
+      createdAt: prismaWebhook.createdAt,
+      platform: prismaWebhook.platform,
+      platformOAuthClientId: prismaWebhook.platformOAuthClientId,
     };
   }
 

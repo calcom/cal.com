@@ -91,9 +91,13 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
       eventTriggers: true,
       eventTypeId: true,
       teamId: true,
+      userId: true,
       time: true,
       timeUnit: true,
       version: true,
+      createdAt: true,
+      platform: true,
+      platformOAuthClientId: true,
     },
   });
 
