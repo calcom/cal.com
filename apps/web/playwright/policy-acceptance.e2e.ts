@@ -8,37 +8,17 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "serial" });
 
 test.describe("Policy Acceptance Modal", () => {
-  // Track user IDs created in this test suite for cleanup
-  const createdUserIds: number[] = [];
+  test.beforeEach(async ({ features }) => {
+    features.set("policy-acceptance-modal", true);
+    console.log("features: ", features.get("policy-acceptance-modal"));
+  })
 
   test.afterEach(async ({ users }) => {
-    // Clean up policies created by users in this test
-    for (const userId of createdUserIds) {
-      await prisma.userPolicyAcceptance.deleteMany({
-        where: { userId },
-      });
-      await prisma.policyVersion.deleteMany({
-        where: { createdById: userId },
-      });
-    }
-    createdUserIds.length = 0;
+    // Clean up all users and their associated policies
     await users.deleteAll();
   });
 
-  test.afterAll(async () => {
-    // Final cleanup to ensure no policies from this test suite remain
-    // This runs after all tests complete, even if they fail
-    for (const userId of createdUserIds) {
-      await prisma.userPolicyAcceptance.deleteMany({
-        where: { userId },
-      });
-      await prisma.policyVersion.deleteMany({
-        where: { createdById: userId },
-      });
-    }
-  });
-
-  test.skip("should show blocking modal for non-US users when policy is not accepted", async ({
+  test("should show blocking modal for non-US users when policy is not accepted", async ({
     page,
     users,
   }) => {
@@ -115,7 +95,7 @@ test.describe("Policy Acceptance Modal", () => {
     });
   });
 
-  test.skip("should not show modal when user has already accepted the policy", async ({ page, users }) => {
+  test("should not show modal when user has already accepted the policy", async ({ page, users }) => {
     const user = await users.create();
 
     const policyVersion = await prisma.policyVersion.create({
@@ -155,7 +135,7 @@ test.describe("Policy Acceptance Modal", () => {
     });
   });
 
-  test.skip("should not show modal when feature flag is disabled", async ({ page, users, features }) => {
+  test("should not show modal when feature flag is disabled", async ({ page, users, features }) => {
     // Disable the global feature flag
     await features.set("policy-acceptance-modal", false);
 
@@ -193,7 +173,6 @@ test.describe("Policy Acceptance Modal", () => {
     users,
   }) => {
     const user = await users.create();
-    createdUserIds.push(user.id);
 
     await prisma.policyVersion.create({
       data: {
@@ -237,7 +216,7 @@ test.describe("Policy Acceptance Modal", () => {
     });
   });
 
-  test.skip("should accept policy when US user dismisses banner", async ({ page, users }) => {
+  test("should accept policy when US user dismisses banner", async ({ page, users }) => {
     const user = await users.create();
 
     const policyVersion = await prisma.policyVersion.create({
@@ -291,7 +270,7 @@ test.describe("Policy Acceptance Modal", () => {
     });
   });
 
-  test.skip("should not show banner again after US user dismisses it", async ({ page, users }) => {
+  test("should not show banner again after US user dismisses it", async ({ page, users }) => {
     const user = await users.create();
 
     await prisma.policyVersion.create({
@@ -337,7 +316,7 @@ test.describe("Policy Acceptance Modal", () => {
     });
   });
 
-  test.skip("should show new banner when a new policy version is published for US users", async ({
+  test("should show new banner when a new policy version is published for US users", async ({
     page,
     users,
   }) => {
@@ -347,7 +326,7 @@ test.describe("Policy Acceptance Modal", () => {
     await prisma.policyVersion.create({
       data: {
         type: PolicyType.PRIVACY_POLICY,
-        version: new Date("2024-01-01T00:00:00.000Z"),
+        version: new Date(),
         description: "First version - US users.",
         descriptionNonUS: "First version - we made some changes.",
         publishedAt: new Date(),
@@ -379,7 +358,7 @@ test.describe("Policy Acceptance Modal", () => {
     const policyVersion2 = await prisma.policyVersion.create({
       data: {
         type: PolicyType.PRIVACY_POLICY,
-        version: new Date("2024-02-01T00:00:00.000Z"),
+        version: new Date(),
         description: "Second version - US users.",
         descriptionNonUS: "Second version - we made important changes.",
         publishedAt: new Date(),
@@ -424,7 +403,7 @@ test.describe("Policy Acceptance Modal", () => {
     });
   });
 
-  test.skip("should show modal only once per session after dismissal", async ({ page, users }) => {
+  test("should show modal only once per session after dismissal", async ({ page, users }) => {
     const user = await users.create();
 
     await prisma.policyVersion.create({
@@ -467,14 +446,14 @@ test.describe("Policy Acceptance Modal", () => {
     });
   });
 
-  test.skip("should show new modal when a new policy version is published", async ({ page, users }) => {
+  test("should show new modal when a new policy version is published", async ({ page, users }) => {
     const user = await users.create();
 
     // Create first policy version
     await prisma.policyVersion.create({
       data: {
         type: PolicyType.PRIVACY_POLICY,
-        version: new Date("2024-01-01T00:00:00.000Z"),
+        version: new Date(),
         description: "First version - US users.",
         descriptionNonUS: "First version - we made some changes.",
         publishedAt: new Date(),
@@ -505,7 +484,7 @@ test.describe("Policy Acceptance Modal", () => {
     const policyVersion2 = await prisma.policyVersion.create({
       data: {
         type: PolicyType.PRIVACY_POLICY,
-        version: new Date("2024-02-01T00:00:00.000Z"),
+        version: new Date(),
         description: "Second version - US users.",
         descriptionNonUS: "Second version - we made important changes.",
         publishedAt: new Date(),
@@ -552,48 +531,4 @@ test.describe("Policy Acceptance Modal", () => {
     });
   });
 
-  test.skip("should invalidate /me query after accepting policy", async ({ page, users }) => {
-    const user = await users.create();
-
-    await prisma.policyVersion.create({
-      data: {
-        type: PolicyType.PRIVACY_POLICY,
-        version: new Date(),
-        description: "We have updated our privacy policy for US users.",
-        descriptionNonUS: "We have updated our privacy policy.",
-        publishedAt: new Date(),
-        createdById: user.id,
-      },
-    });
-
-    await user.apiLogin();
-    await page.goto("/event-types");
-
-    // Wait for the modal to be visible
-    const modal = page.getByTestId("policy-acceptance-modal");
-    await expect(modal).toBeVisible();
-
-    // Set up a network listener to verify /me is called after acceptance
-    const meRequestPromise = page.waitForRequest(
-      (request) => request.url().includes("/api/trpc/") && request.url().includes("me") && request.method() === "GET"
-    );
-
-    // Accept the policy
-    const acceptButton = page.getByTestId("policy-accept-button");
-    await acceptButton.click();
-
-    // Wait for the /me query to be invalidated and refetched
-    await meRequestPromise;
-
-    // Wait for the modal to disappear
-    await expect(modal).not.toBeVisible();
-
-    // Clean up
-    await prisma.userPolicyAcceptance.deleteMany({
-      where: { userId: user.id },
-    });
-    await prisma.policyVersion.deleteMany({
-      where: { createdById: user.id },
-    });
-  });
 });

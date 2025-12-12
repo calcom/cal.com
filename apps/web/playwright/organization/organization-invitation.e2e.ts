@@ -474,6 +474,8 @@ async function signupFromInviteLink({
 
   await inviteLinkPage.locator("input[name=email]").fill(email);
   await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+  const checkbox = inviteLinkPage.getByTestId("signup-cookie-content-checkbox");
+  await checkbox.check();
   await inviteLinkPage.locator("button[type=submit]").click();
   await inviteLinkPage.waitForURL("/getting-started");
   return { email };
