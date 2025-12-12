@@ -41,19 +41,33 @@ export class FeatureOptInService {
     const globalFeature = allFeatures.find((f) => f.slug === featureId);
     const globalEnabled = globalFeature?.enabled ?? false;
 
-    // Get org state
+    // Get org state - use batch method with single feature
     let orgState: FeatureState = "inherit";
     if (orgId !== null) {
-      orgState = await this.featuresRepository.getTeamFeatureState({ teamId: orgId, featureId });
+      const orgStates = await this.featuresRepository.getTeamFeatureStates({
+        teamId: orgId,
+        featureIds: [featureId],
+      });
+      orgState = orgStates[featureId];
     }
 
-    // Get team states
+    // Get team states - query each team for the single feature
     const teamStates = await Promise.all(
-      teamIds.map((teamId) => this.featuresRepository.getTeamFeatureState({ teamId, featureId }))
+      teamIds.map(async (teamId) => {
+        const states = await this.featuresRepository.getTeamFeatureStates({
+          teamId,
+          featureIds: [featureId],
+        });
+        return states[featureId];
+      })
     );
 
-    // Get user state
-    const userState = await this.featuresRepository.getUserFeatureState({ userId, featureId });
+    // Get user state - use batch method with single feature
+    const userStates = await this.featuresRepository.getUserFeatureStates({
+      userId,
+      featureIds: [featureId],
+    });
+    const userState = userStates[featureId];
 
     // Compute effective state
     const effectiveEnabled = computeEffectiveStateAcrossTeams({
@@ -99,22 +113,24 @@ export class FeatureOptInService {
 
     const allFeatures = await this.featuresRepository.getAllFeatures();
 
-    const results = await Promise.all(
-      OPT_IN_FEATURES.map(async (config) => {
-        const globalFeature = allFeatures.find((f) => f.slug === config.slug);
-        const globalEnabled = globalFeature?.enabled ?? false;
-        const teamState = await this.featuresRepository.getTeamFeatureState({
-          teamId,
-          featureId: config.slug,
-        });
+    // Get all team feature states in a single query
+    const featureIds = OPT_IN_FEATURES.map((config) => config.slug);
+    const teamStates = await this.featuresRepository.getTeamFeatureStates({
+      teamId,
+      featureIds,
+    });
 
-        return {
-          slug: config.slug,
-          globalEnabled,
-          teamState,
-        };
-      })
-    );
+    const results = OPT_IN_FEATURES.map((config) => {
+      const globalFeature = allFeatures.find((f) => f.slug === config.slug);
+      const globalEnabled = globalFeature?.enabled ?? false;
+      const teamState = teamStates[config.slug];
+
+      return {
+        slug: config.slug,
+        globalEnabled,
+        teamState,
+      };
+    });
 
     return results.filter((item) => item.globalEnabled);
   }
