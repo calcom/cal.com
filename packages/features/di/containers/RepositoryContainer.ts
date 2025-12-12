@@ -1,5 +1,7 @@
 import { createContainer } from "@calcom/features/di/di";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import type { IBookingReferenceRepository } from "@calcom/lib/server/repository/IBookingReferenceRepository";
+import type { IDestinationCalendarRepository } from "@calcom/lib/server/repository/IDestinationCalendarRepository";
 import type { IHostRepository } from "@calcom/lib/server/repository/IHostRepository";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/ISelectedCalendarRepository";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
@@ -9,14 +11,18 @@ import type { ICredentialRepository } from "../../credentials/repositories/ICred
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
 import type { IMembershipRepository } from "../../membership/repositories/IMembershipRepository";
+import type { IOAuthClientRepository } from "../../oauth/repositories/IOAuthClientRepository";
 import type { IProfileRepository } from "../../profile/repositories/IProfileRepository";
 import type { IScheduleRepository } from "../../schedules/repositories/IScheduleRepository";
 import type { IUserRepository } from "../../users/repositories/IUserRepository";
 import { moduleLoader as bookingRepositoryModuleLoader } from "../modules/Booking";
+import { moduleLoader as bookingReferenceRepositoryModuleLoader } from "../modules/BookingReference";
 import { moduleLoader as credentialRepositoryModuleLoader } from "../modules/Credential";
+import { moduleLoader as destinationCalendarRepositoryModuleLoader } from "../modules/DestinationCalendar";
 import { moduleLoader as eventTypeRepositoryModuleLoader } from "../modules/EventType";
 import { moduleLoader as hostRepositoryModuleLoader } from "../modules/Host";
 import { moduleLoader as membershipRepositoryModuleLoader } from "../modules/Membership";
+import { moduleLoader as oauthClientRepositoryModuleLoader } from "../modules/OAuthClient";
 import { moduleLoader as profileRepositoryModuleLoader } from "../modules/Profile";
 import { scheduleRepositoryModuleLoader } from "../modules/Schedule";
 import { selectedCalendarRepositoryModuleLoader } from "../modules/SelectedCalendar";
@@ -38,6 +44,9 @@ eventTypeRepositoryModuleLoader.loadModule(repositoryContainer);
 profileRepositoryModuleLoader.loadModule(repositoryContainer);
 credentialRepositoryModuleLoader.loadModule(repositoryContainer);
 hostRepositoryModuleLoader.loadModule(repositoryContainer);
+oauthClientRepositoryModuleLoader.loadModule(repositoryContainer);
+bookingReferenceRepositoryModuleLoader.loadModule(repositoryContainer);
+destinationCalendarRepositoryModuleLoader.loadModule(repositoryContainer);
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -81,4 +90,16 @@ export function getCredentialRepository(): ICredentialRepository {
 
 export function getHostRepository(): IHostRepository {
   return repositoryContainer.get<IHostRepository>(DI_TOKENS.HOST_REPOSITORY);
+}
+
+export function getOAuthClientRepository(): IOAuthClientRepository {
+  return repositoryContainer.get<IOAuthClientRepository>(DI_TOKENS.OAUTH_CLIENT_REPOSITORY);
+}
+
+export function getBookingReferenceRepository(): IBookingReferenceRepository {
+  return repositoryContainer.get<IBookingReferenceRepository>(DI_TOKENS.BOOKING_REFERENCE_REPOSITORY);
+}
+
+export function getDestinationCalendarRepository(): IDestinationCalendarRepository {
+  return repositoryContainer.get<IDestinationCalendarRepository>(DI_TOKENS.DESTINATION_CALENDAR_REPOSITORY);
 }
