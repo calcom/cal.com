@@ -8,6 +8,8 @@ import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
 import type { ITravelScheduleRepository } from "@calcom/lib/server/repository/ITravelScheduleRepository";
 import type { IVerificationTokenRepository } from "@calcom/lib/server/repository/IVerificationTokenRepository";
+import type { IWorkflowRelationsRepository } from "@calcom/lib/server/repository/IWorkflowRelationsRepository";
+import type { IWorkflowStepRepository } from "@calcom/lib/server/repository/IWorkflowStepRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -35,6 +37,8 @@ import { moduleLoader as teamRepositoryModuleLoader } from "../modules/Team";
 import { moduleLoader as travelScheduleRepositoryModuleLoader } from "../modules/TravelSchedule";
 import { moduleLoader as userRepositoryModuleLoader } from "../modules/User";
 import { moduleLoader as verificationTokenRepositoryModuleLoader } from "../modules/VerificationToken";
+import { workflowRelationsRepositoryModuleLoader } from "../modules/WorkflowRelations";
+import { workflowStepRepositoryModuleLoader } from "../modules/WorkflowStep";
 
 const repositoryContainer = createContainer();
 
@@ -56,6 +60,8 @@ destinationCalendarRepositoryModuleLoader.loadModule(repositoryContainer);
 oooRepositoryModuleLoader.loadModule(repositoryContainer);
 travelScheduleRepositoryModuleLoader.loadModule(repositoryContainer);
 verificationTokenRepositoryModuleLoader.loadModule(repositoryContainer);
+repositoryContainer.load(workflowRelationsRepositoryModuleLoader());
+repositoryContainer.load(workflowStepRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -123,4 +129,12 @@ export function getTravelScheduleRepository(): ITravelScheduleRepository {
 
 export function getVerificationTokenRepository(): IVerificationTokenRepository {
   return repositoryContainer.get<IVerificationTokenRepository>(DI_TOKENS.VERIFICATION_TOKEN_REPOSITORY);
+}
+
+export function getWorkflowRelationsRepository(): IWorkflowRelationsRepository {
+  return repositoryContainer.get<IWorkflowRelationsRepository>(DI_TOKENS.WORKFLOW_RELATIONS_REPOSITORY);
+}
+
+export function getWorkflowStepRepository(): IWorkflowStepRepository {
+  return repositoryContainer.get<IWorkflowStepRepository>(DI_TOKENS.WORKFLOW_STEP_REPOSITORY);
 }

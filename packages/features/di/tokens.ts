@@ -80,6 +80,10 @@ export const DI_TOKENS = {
         TRAVEL_SCHEDULE_REPOSITORY_MODULE: Symbol("TravelScheduleRepositoryModule"),
         VERIFICATION_TOKEN_REPOSITORY: Symbol("VerificationTokenRepository"),
         VERIFICATION_TOKEN_REPOSITORY_MODULE: Symbol("VerificationTokenRepositoryModule"),
+        WORKFLOW_RELATIONS_REPOSITORY: Symbol("WorkflowRelationsRepository"),
+        WORKFLOW_RELATIONS_REPOSITORY_MODULE: Symbol("WorkflowRelationsRepositoryModule"),
+        WORKFLOW_STEP_REPOSITORY: Symbol("WorkflowStepRepository"),
+        WORKFLOW_STEP_REPOSITORY_MODULE: Symbol("WorkflowStepRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens
