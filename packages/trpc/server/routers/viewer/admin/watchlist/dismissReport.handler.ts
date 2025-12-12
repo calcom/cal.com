@@ -1,5 +1,5 @@
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { prisma } from "@calcom/prisma";
+import { getAdminWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,35 +14,36 @@ type DismissReportOptions = {
 };
 
 export const dismissReportHandler = async ({ input }: DismissReportOptions) => {
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const service = getAdminWatchlistOperationsService();
 
-  // Validate report exists (no org filtering - admin can access any report)
-  const reports = await bookingReportRepo.findReportsByIds({
-    reportIds: [input.reportId],
-  });
+  try {
+    return await service.dismissReport({
+      reportId: input.reportId,
+    });
+  } catch (error) {
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.NOT_FOUND:
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: error.message,
+          });
+        case WatchlistErrorCode.VALIDATION_ERROR:
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
+    }
 
-  if (reports.length === 0) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Report not found",
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to dismiss report",
     });
   }
-
-  const report = reports[0];
-
-  if (report.watchlistId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Cannot dismiss a report that has already been added to the blocklist",
-    });
-  }
-
-  await bookingReportRepo.updateReportStatus({
-    reportId: input.reportId,
-    status: "DISMISSED",
-  });
-
-  return { success: true };
 };
-
-export default dismissReportHandler;

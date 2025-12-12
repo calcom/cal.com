@@ -1,5 +1,5 @@
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { prisma } from "@calcom/prisma";
+import { getAdminWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,56 +14,31 @@ type BulkDismissReportsOptions = {
 };
 
 export const bulkDismissReportsHandler = async ({ input }: BulkDismissReportsOptions) => {
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const service = getAdminWatchlistOperationsService();
 
-  const reports = await bookingReportRepo.findReportsByIds({
-    reportIds: input.reportIds,
-  });
-
-  const reportMap = new Map(reports.map((r) => [r.id, r]));
-  const validReportIds: string[] = [];
-  const failed: Array<{ id: string; reason: string }> = [];
-
-  for (const reportId of input.reportIds) {
-    const report = reportMap.get(reportId);
-
-    if (!report) {
-      failed.push({ id: reportId, reason: "Report not found" });
-      continue;
-    }
-
-    if (report.watchlistId) {
-      failed.push({ id: reportId, reason: "Already added to blocklist" });
-      continue;
-    }
-
-    validReportIds.push(reportId);
-  }
-
-  let successCount = 0;
-  if (validReportIds.length > 0) {
-    const result = await bookingReportRepo.bulkUpdateReportStatus({
-      reportIds: validReportIds,
-      status: "DISMISSED",
+  try {
+    return await service.bulkDismissReports({
+      reportIds: input.reportIds,
     });
-    successCount = result.updated;
-  }
+  } catch (error) {
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.BULK_DELETE_PARTIAL_FAILURE:
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
+    }
 
-  if (successCount === 0 && failed.length > 0) {
     throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Failed to dismiss all reports: ${failed[0].reason}`,
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to dismiss reports",
     });
   }
-
-  return {
-    success: successCount,
-    failed: failed.length,
-    message:
-      failed.length === 0
-        ? "All reports dismissed successfully"
-        : `Dismissed ${successCount} reports, ${failed.length} failed`,
-  };
 };
-
-export default bulkDismissReportsHandler;

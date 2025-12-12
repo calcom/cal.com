@@ -15,7 +15,7 @@ export interface WatchlistEntry {
 
 export interface WatchlistAuditEntry {
   id: string;
-  watchlistId: string;
+  watchlistId: string | null;
   type: WatchlistType;
   value: string;
   description: string | null;
@@ -56,10 +56,11 @@ export interface FindAllEntriesInput {
 
 export interface IWatchlistRepository {
   createEntry(params: CreateWatchlistInput): Promise<WatchlistEntry>;
+  createEntryIfNotExists(params: CreateWatchlistInput): Promise<WatchlistEntry>;
   checkExists(params: CheckWatchlistInput): Promise<WatchlistEntry | null>;
-  findAllEntries(params: FindAllEntriesInput): Promise<{
+  findAllEntriesWithLatestAudit(params: FindAllEntriesInput): Promise<{
     rows: (WatchlistEntry & {
-      audits?: { changedByUserId: number | null }[];
+      latestAudit: { changedByUserId: number | null } | null;
     })[];
     meta: { totalRowCount: number };
   }>;

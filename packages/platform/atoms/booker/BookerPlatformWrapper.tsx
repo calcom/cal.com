@@ -70,6 +70,8 @@ const BookerPlatformWrapperComponent = (
     showNoAvailabilityDialog,
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
+    defaultPhoneCountry,
+    rrHostSubsetIds,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -185,6 +187,7 @@ const BookerPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams,
+    defaultPhoneCountry,
   });
   useInitializeBookerStoreContext({
     ...props,
@@ -201,6 +204,7 @@ const BookerPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams,
+    defaultPhoneCountry,
   });
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
@@ -293,6 +297,7 @@ const BookerPlatformWrapperComponent = (
       ? {
           isTeamEvent: props.isTeamEvent,
           teamId: teamId,
+          rrHostSubsetIds: rrHostSubsetIds,
         }
       : {}),
     enabled:
@@ -300,7 +305,7 @@ const BookerPlatformWrapperComponent = (
       Boolean(month) &&
       Boolean(timezone) &&
       !event?.isPending &&
-      Boolean(event?.data?.id),
+      event?.data?.id != null,
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
@@ -441,6 +446,11 @@ const BookerPlatformWrapperComponent = (
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
+    ...(props.isTeamEvent
+      ? {
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
+      : {}),
   });
 
   const onOverlaySwitchStateChange = useCallback(

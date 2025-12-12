@@ -95,5 +95,10 @@ export interface IBookingReportRepository {
     organizationId?: number;
   }): Promise<{ updated: number }>;
 
+  bulkLinkWatchlistWithStatus(params: {
+    links: Array<{ reportId: string; watchlistId: string }>;
+    status: BookingReportStatus;
+  }): Promise<void>;
+
   countPendingReports(params: { organizationId: number }): Promise<number>;
 }

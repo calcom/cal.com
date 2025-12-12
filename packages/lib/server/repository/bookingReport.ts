@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
+import type { BookingReportStatus } from "@calcom/prisma/enums";
 import type { Prisma } from "@calcom/prisma/generated/prisma/client";
 
 import type {
@@ -212,7 +213,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
 
   async updateReportStatus(params: {
     reportId: string;
-    status: "PENDING" | "DISMISSED" | "BLOCKED";
+    status: BookingReportStatus;
     organizationId?: number;
   }): Promise<void> {
     const where: Prisma.BookingReportWhereInput = {
@@ -231,7 +232,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
 
   async bulkUpdateReportStatus(params: {
     reportIds: string[];
-    status: "PENDING" | "DISMISSED" | "BLOCKED";
+    status: BookingReportStatus;
     organizationId?: number;
   }): Promise<{ updated: number }> {
     const where: Prisma.BookingReportWhereInput = {
@@ -248,6 +249,29 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     });
 
     return { updated: result.count };
+  }
+
+  async bulkLinkWatchlistWithStatus(params: {
+    links: Array<{ reportId: string; watchlistId: string }>;
+    status: BookingReportStatus;
+  }): Promise<void> {
+    if (params.links.length === 0) return;
+
+    const groupedByWatchlist = new Map<string, string[]>();
+    for (const link of params.links) {
+      const reportIds = groupedByWatchlist.get(link.watchlistId) || [];
+      reportIds.push(link.reportId);
+      groupedByWatchlist.set(link.watchlistId, reportIds);
+    }
+
+    await Promise.all(
+      Array.from(groupedByWatchlist.entries()).map(([watchlistId, reportIds]) =>
+        this.prismaClient.bookingReport.updateMany({
+          where: { id: { in: reportIds } },
+          data: { watchlistId, status: params.status },
+        })
+      )
+    );
   }
 
   async countPendingReports(params: { organizationId: number }): Promise<number> {

@@ -1,12 +1,13 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
-import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
+import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -39,13 +40,12 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 
 type ConfirmOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "uuid" | "email" | "username" | "role" | "destinationCalendar">;
   };
   input: TConfirmInputSchema;
 };
 
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
-  const { user } = ctx;
   const {
     bookingId,
     recurringEventId,
@@ -139,12 +139,17 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     },
   });
 
+  const user = booking.user;
+  if (!user) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Booking must have an organizer" });
+  }
+
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
-    loggedInUserId: user.id,
+    loggedInUserId: ctx.user.id,
     teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
-    userRole: user.role,
+    userRole: ctx.user.role,
   });
 
   // Do not move this before authorization check.
@@ -248,6 +253,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),
+    organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
+    additionalNotes: booking.description,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -389,6 +396,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
     try {
+      const creditService = new CreditService();
+
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
@@ -402,6 +411,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         },
         hideBranding: !!booking.eventType?.owner?.hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     } catch (error) {
       // Silently fail

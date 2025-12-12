@@ -1,6 +1,5 @@
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import { prisma } from "@calcom/prisma";
+import { getAdminWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -15,44 +14,37 @@ type GetWatchlistEntryDetailsOptions = {
 };
 
 export const getWatchlistEntryDetailsHandler = async ({ input }: GetWatchlistEntryDetailsOptions) => {
-  const watchlistRepo = new WatchlistRepository(prisma);
-  const userRepo = new UserRepository(prisma);
+  const service = getAdminWatchlistQueryService();
 
-  const result = await watchlistRepo.findEntryWithAuditAndReports(input.id);
+  try {
+    return await service.getWatchlistEntryDetails({
+      entryId: input.id,
+    });
+  } catch (error) {
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.NOT_FOUND:
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: error.message,
+          });
+        case WatchlistErrorCode.UNAUTHORIZED:
+        case WatchlistErrorCode.PERMISSION_DENIED:
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
+    }
 
-  if (!result.entry) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Blocklist entry not found",
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to get blocklist entry details",
     });
   }
-
-  if (!result.entry.isGlobal || result.entry.organizationId !== null) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You can only view system blocklist entries",
-    });
-  }
-
-  const userIds = result.auditHistory
-    .map((audit) => audit.changedByUserId)
-    .filter((id): id is number => id !== null && id !== undefined);
-
-  const uniqueUserIds = Array.from(new Set(userIds));
-
-  const users = uniqueUserIds.length > 0 ? await userRepo.findUsersByIds(uniqueUserIds) : [];
-
-  const userMap = new Map(users.map((u) => [u.id, u]));
-
-  const auditHistoryWithUsers = result.auditHistory.map((audit) => ({
-    ...audit,
-    changedByUser: audit.changedByUserId ? userMap.get(audit.changedByUserId) : undefined,
-  }));
-
-  return {
-    entry: result.entry,
-    auditHistory: auditHistoryWithUsers,
-  };
 };
-
-export default getWatchlistEntryDetailsHandler;

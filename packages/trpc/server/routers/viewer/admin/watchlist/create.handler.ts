@@ -1,7 +1,5 @@
-import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import { prisma } from "@calcom/prisma";
-import { WatchlistAction } from "@calcom/prisma/enums";
+import { getAdminWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -17,47 +15,33 @@ type CreateWatchlistEntryOptions = {
 
 export const createWatchlistEntryHandler = async ({ ctx, input }: CreateWatchlistEntryOptions) => {
   const { user } = ctx;
-
-  const watchlistRepo = new WatchlistRepository(prisma);
-
-  if (input.type === "EMAIL" && !emailRegex.test(input.value)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Invalid email address format",
-    });
-  }
-
-  if (input.type === "DOMAIN" && !domainRegex.test(input.value)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Invalid domain format (e.g., example.com)",
-    });
-  }
+  const service = getAdminWatchlistOperationsService();
 
   try {
-    const entry = await watchlistRepo.createEntry({
+    return await service.createWatchlistEntry({
       type: input.type,
-      value: input.value.toLowerCase(),
-      organizationId: null,
-      action: WatchlistAction.BLOCK,
+      value: input.value,
       description: input.description,
       userId: user.id,
-      isGlobal: true,
     });
-
-    return {
-      success: true,
-      entry,
-    };
   } catch (error) {
-    if (error instanceof Error && error.message.includes("already exists")) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This entry already exists in the system blocklist",
-      });
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.INVALID_EMAIL:
+        case WatchlistErrorCode.INVALID_DOMAIN:
+        case WatchlistErrorCode.DUPLICATE_ENTRY:
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
     }
+
     throw error;
   }
 };
-
-export default createWatchlistEntryHandler;

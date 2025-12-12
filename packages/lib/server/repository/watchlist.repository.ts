@@ -15,17 +15,6 @@ export class WatchlistRepository implements IWatchlistRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
   async createEntry(params: CreateWatchlistInput): Promise<WatchlistEntry> {
-    const existing = await this.checkExists({
-      type: params.type,
-      value: params.value,
-      organizationId: params.organizationId,
-      isGlobal: params.isGlobal,
-    });
-
-    if (existing) {
-      throw new Error("Watchlist entry already exists for this organization");
-    }
-
     const watchlist = await this.prismaClient.$transaction(async (tx) => {
       const created = await tx.watchlist.create({
         data: {
@@ -54,6 +43,21 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
 
     return watchlist;
+  }
+
+  async createEntryIfNotExists(params: CreateWatchlistInput): Promise<WatchlistEntry> {
+    const existing = await this.checkExists({
+      type: params.type,
+      value: params.value,
+      organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.createEntry(params);
   }
 
   async checkExists(params: CheckWatchlistInput): Promise<WatchlistEntry | null> {
@@ -88,17 +92,13 @@ export class WatchlistRepository implements IWatchlistRepository {
     return null;
   }
 
-  async findAllEntries(params: FindAllEntriesInput): Promise<{
-    rows: (WatchlistEntry & { audits?: { changedByUserId: number | null }[] })[];
+  async findAllEntriesWithLatestAudit(params: FindAllEntriesInput): Promise<{
+    rows: (WatchlistEntry & { latestAudit: { changedByUserId: number | null } | null })[];
     meta: { totalRowCount: number };
   }> {
     const where = {
-      ...(params.organizationId !== undefined && {
-        organizationId: params.organizationId,
-      }),
-      ...(params.isGlobal !== undefined && {
-        isGlobal: params.isGlobal,
-      }),
+      organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
       ...(params.searchTerm && {
         value: {
           contains: params.searchTerm,
@@ -113,7 +113,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       }),
     };
 
-    const [rows, totalRowCount] = await Promise.all([
+    const [entries, totalRowCount] = await Promise.all([
       this.prismaClient.watchlist.findMany({
         where,
         take: params.limit,
@@ -144,6 +144,12 @@ export class WatchlistRepository implements IWatchlistRepository {
       }),
       this.prismaClient.watchlist.count({ where }),
     ]);
+
+    const rows = entries.map((entry) => ({
+      ...entry,
+      latestAudit: entry.audits[0] ?? null,
+      audits: undefined,
+    }));
 
     return {
       rows,
@@ -318,92 +324,16 @@ export class WatchlistRepository implements IWatchlistRepository {
     userId: number;
     description?: string;
   }): Promise<{ watchlistEntry: WatchlistEntry; value: string }> {
-    const existing = await this.checkExists({
+    const watchlistEntry = await this.createEntryIfNotExists({
       type: params.type,
       value: params.value,
       organizationId: params.organizationId,
       isGlobal: params.isGlobal,
+      action: WatchlistAction.BLOCK,
+      description: params.description,
+      userId: params.userId,
     });
-
-    const watchlistEntry =
-      existing ??
-      (await this.createEntry({
-        type: params.type,
-        value: params.value,
-        organizationId: params.organizationId,
-        isGlobal: params.isGlobal,
-        action: WatchlistAction.BLOCK,
-        description: params.description,
-        userId: params.userId,
-      }));
 
     return { watchlistEntry, value: params.value };
-  }
-
-  async addReportsToWatchlist(params: {
-    reportIds: string[];
-    type: CreateWatchlistInput["type"];
-    normalizedValues: Map<string, string>;
-    organizationId: number | null;
-    isGlobal: boolean;
-    userId: number;
-    description?: string;
-    bookingReportRepo: IBookingReportRepository;
-  }): Promise<{
-    success: number;
-    skipped: number;
-    results: Array<{ reportId: string; watchlistId: string; value: string }>;
-  }> {
-    const reports = await params.bookingReportRepo.findReportsByIds({
-      reportIds: params.reportIds,
-      organizationId: params.isGlobal ? undefined : params.organizationId ?? undefined,
-    });
-
-    const reportsToAdd = reports.filter((r) => !r.watchlistId);
-
-    if (reportsToAdd.length === 0) {
-      return { success: 0, skipped: reports.length, results: [] };
-    }
-
-    const results = await Promise.all(
-      reportsToAdd.map(async (report) => {
-        const normalizedValue = params.normalizedValues.get(report.id);
-        if (!normalizedValue) {
-          throw new Error(`Normalized value not found for report ${report.id}`);
-        }
-
-        const { watchlistEntry, value } = await this.createEntryFromReport({
-          type: params.type,
-          value: normalizedValue,
-          organizationId: params.organizationId,
-          isGlobal: params.isGlobal,
-          userId: params.userId,
-          description: params.description,
-        });
-
-        await params.bookingReportRepo.linkWatchlistToReport({
-          reportId: report.id,
-          watchlistId: watchlistEntry.id,
-        });
-
-        await params.bookingReportRepo.updateReportStatus({
-          reportId: report.id,
-          status: "BLOCKED",
-          organizationId: params.isGlobal ? undefined : params.organizationId ?? undefined,
-        });
-
-        return {
-          reportId: report.id,
-          watchlistId: watchlistEntry.id,
-          value,
-        };
-      })
-    );
-
-    return {
-      success: reportsToAdd.length,
-      skipped: reports.length - reportsToAdd.length,
-      results,
-    };
   }
 }

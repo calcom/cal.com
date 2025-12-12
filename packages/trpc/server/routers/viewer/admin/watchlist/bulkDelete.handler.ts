@@ -1,5 +1,5 @@
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import { prisma } from "@calcom/prisma";
+import { getAdminWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,54 +18,32 @@ export const bulkDeleteWatchlistEntriesHandler = async ({
   input,
 }: BulkDeleteWatchlistEntriesOptions) => {
   const { user } = ctx;
-  const watchlistRepo = new WatchlistRepository(prisma);
+  const service = getAdminWatchlistOperationsService();
 
-  const entries = await watchlistRepo.findEntriesByIds(input.ids);
-
-  const entryMap = new Map(entries.map((e) => [e.id, e]));
-  const validIds: string[] = [];
-  const failed: Array<{ id: string; reason: string }> = [];
-
-  for (const id of input.ids) {
-    const entry = entryMap.get(id);
-
-    if (!entry) {
-      failed.push({ id, reason: "Entry not found" });
-      continue;
-    }
-
-    if (!entry.isGlobal || entry.organizationId !== null) {
-      failed.push({ id, reason: "Can only delete system blocklist entries" });
-      continue;
-    }
-
-    validIds.push(id);
-  }
-
-  let successCount = 0;
-  if (validIds.length > 0) {
-    const result = await watchlistRepo.bulkDeleteEntries({
-      ids: validIds,
+  try {
+    return await service.bulkDeleteWatchlistEntries({
+      entryIds: input.ids,
       userId: user.id,
     });
-    successCount = result.deleted;
-  }
+  } catch (error) {
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.BULK_DELETE_PARTIAL_FAILURE:
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
+    }
 
-  if (successCount === 0 && failed.length > 0) {
     throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Failed to delete all entries: ${failed[0].reason}`,
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to delete system blocklist entries",
     });
   }
-
-  return {
-    success: successCount,
-    failed: failed.length,
-    message:
-      failed.length === 0
-        ? "All entries deleted successfully"
-        : `Deleted ${successCount} entries, ${failed.length} failed`,
-  };
 };
-
-export default bulkDeleteWatchlistEntriesHandler;

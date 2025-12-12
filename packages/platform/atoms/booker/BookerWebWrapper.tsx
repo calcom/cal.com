@@ -1,15 +1,17 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useCallback, useEffect } from "react";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useMemo, useCallback, useEffect, useRef } from "react";
 import React from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import {
+  sdkActionManager,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
+import { useBookerEmbedEvents } from "@calcom/embed-core/src/embed-iframe/react-hooks";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import {
@@ -37,6 +39,7 @@ export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
+
 const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -47,11 +50,11 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   });
   const event = props.eventData
     ? {
-        data: props.eventData,
-        isSuccess: true,
-        isError: false,
-        isPending: false,
-      }
+      data: props.eventData,
+      isSuccess: true,
+      isError: false,
+      isPending: false,
+    }
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
@@ -163,6 +166,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
     useApiV2: props.useApiV2,
+    ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
   });
   const bookings = useBookings({
     event,
@@ -170,6 +174,12 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     bookingForm: bookerForm.bookingForm,
     metadata: metadata ?? {},
     teamMemberEmail: props.teamMemberEmail,
+  });
+
+  useBookerEmbedEvents({
+    eventId: event.data?.id,
+    eventSlug: event.data?.slug,
+    schedule,
   });
 
   const verifyCode = useVerifyCode({
@@ -185,20 +195,17 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   // Toggle query param for overlay calendar
   const onOverlaySwitchStateChange = useCallback(
     (state: boolean) => {
-      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
+      const url = new URL(window.location.href);
       if (state) {
-        current.set("overlayCalendar", "true");
+        url.searchParams.set("overlayCalendar", "true");
         localStorage.setItem("overlayCalendarSwitchDefault", "true");
       } else {
-        current.delete("overlayCalendar");
+        url.searchParams.delete("overlayCalendar");
         localStorage.removeItem("overlayCalendarSwitchDefault");
       }
-      // cast to string
-      const value = current.toString();
-      const query = value ? `?${value}` : "";
-      router.push(`${pathname}${query}`);
+      router.push(`${url.pathname}${url.search}`);
     },
-    [searchParams, pathname, router]
+    [router]
   );
   useBrandColors({
     brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
@@ -208,15 +215,14 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const areInstantMeetingParametersSet = Boolean(
     event.data?.instantMeetingParameters &&
-      searchParams &&
-      event.data.instantMeetingParameters?.every?.((param) =>
-        Array.from(searchParams.values()).includes(param)
-      )
+    searchParams &&
+    event.data.instantMeetingParameters?.every?.((param) =>
+      Array.from(searchParams.values()).includes(param)
+    )
   );
 
   useEffect(() => {
     if (hasSession) onOverlaySwitchStateChange(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession]);
 
   return (

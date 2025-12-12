@@ -1,5 +1,4 @@
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { prisma } from "@calcom/prisma";
+import { getAdminWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import type { TrpcSessionUser } from "../../../../types";
 import type { TListReportsInputSchema } from "./listReports.schema";
@@ -12,17 +11,12 @@ type ListReportsOptions = {
 };
 
 export const listReportsHandler = async ({ input }: ListReportsOptions) => {
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const service = getAdminWatchlistQueryService();
 
-  // Get ALL reports system-wide (no organizationId filter)
-  const result = await bookingReportRepo.findAllReportedBookings({
-    skip: input.offset,
-    take: input.limit,
+  return await service.listBookingReports({
+    limit: input.limit,
+    offset: input.offset,
     searchTerm: input.searchTerm,
     filters: input.filters,
   });
-
-  return result;
 };
-
-export default listReportsHandler;
