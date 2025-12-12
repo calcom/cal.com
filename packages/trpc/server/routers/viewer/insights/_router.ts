@@ -27,11 +27,11 @@ import { VirtualQueuesInsights } from "@calcom/features/insights/server/virtual-
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
+import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import authedProcedure from "../../../procedures/authedProcedure";
-import { router } from "../../../trpc";
 import { userBelongsToTeamProcedure } from "./procedures/userBelongsToTeam";
 
 const userSelect = {
