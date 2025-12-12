@@ -70,6 +70,10 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
             startsWith: oldOrgUrlPrefix,
           },
         },
+        select: {
+          id: true,
+          toUrl: true,
+        },
       });
 
       for (const redirect of redirectsToUpdate) {
