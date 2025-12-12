@@ -118,6 +118,7 @@ const getEventTypesFromDBSelect = {
     },
   },
   locations: true,
+  calVideoSettings: true,
   timeZone: true,
   schedule: {
     select: {

@@ -50,6 +50,7 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     guestsThatDidntJoinTheCall,
     originalRescheduledBooking,
     participants,
+    isAutomaticTrackingOnly,
   } = result;
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
@@ -58,35 +59,49 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
 
   if (requireEmailForGuests) {
     if (guestsThatDidntJoinTheCall.length > 0) {
-      await Promise.all([
-        sendWebhookPayload(
-          webhook,
-          WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-          booking,
-          maxStartTime,
-          participants,
-          originalRescheduledBooking
-        ),
+      const promises = [
         markGuestAsNoshowInBooking({
           bookingId: booking.id,
           hostsThatJoinedTheCall,
           guestsThatDidntJoinTheCall,
         }),
-      ]);
+      ];
+
+      // Skip webhook for automatic tracking mode
+      if (!isAutomaticTrackingOnly) {
+        promises.push(
+          sendWebhookPayload(
+            webhook,
+            WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+            booking,
+            maxStartTime,
+            participants,
+            originalRescheduledBooking
+          )
+        );
+      }
+
+      await Promise.all(promises);
     }
   } else {
     if (!didGuestJoinTheCall) {
-      await Promise.all([
-        sendWebhookPayload(
-          webhook,
-          WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-          booking,
-          maxStartTime,
-          participants,
-          originalRescheduledBooking
-        ),
-        markGuestAsNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall }),
-      ]);
+      const promises = [markGuestAsNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall })];
+
+      // Skip webhook for automatic tracking mode
+      if (!isAutomaticTrackingOnly) {
+        promises.push(
+          sendWebhookPayload(
+            webhook,
+            WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+            booking,
+            maxStartTime,
+            participants,
+            originalRescheduledBooking
+          )
+        );
+      }
+
+      await Promise.all(promises);
     }
   }
 }

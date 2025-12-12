@@ -52,6 +52,7 @@ export type TTriggerNoShowPayloadSchema = z.infer<typeof triggerNoShowPayloadSch
 
 export const ZSendNoShowWebhookPayloadSchema = commonSchema.extend({
   webhook: ZWebhook,
+  isAutomaticTrackingOnly: z.boolean().optional(),
 });
 
 export type TSendNoShowWebhookPayloadSchema = z.infer<typeof ZSendNoShowWebhookPayloadSchema>;

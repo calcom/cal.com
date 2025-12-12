@@ -142,8 +142,11 @@ export const prepareNoShowTrigger = async (
   guestsThatDidntJoinTheCall: { email: string; name: string }[];
   originalRescheduledBooking?: OriginalRescheduledBooking;
   participants: ParticipantsWithEmail;
+  isAutomaticTrackingOnly?: boolean;
 } | void> => {
-  const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
+  const { bookingId, webhook, isAutomaticTrackingOnly } = ZSendNoShowWebhookPayloadSchema.parse(
+    JSON.parse(payload)
+  );
 
   const booking = await getBooking(bookingId);
   let originalRescheduledBooking = null;
@@ -238,5 +241,6 @@ export const prepareNoShowTrigger = async (
     guestsThatDidntJoinTheCall,
     originalRescheduledBooking,
     participants: participantsWithEmail,
+    isAutomaticTrackingOnly,
   };
 };

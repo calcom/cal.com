@@ -91,6 +91,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           customReplyToEmail: true,
           metadata: true,
           locations: true,
+          calVideoSettings: {
+            select: {
+              enableAutomaticNoShowTrackingForHosts: true,
+              enableAutomaticNoShowTrackingForGuests: true,
+            },
+          },
           team: {
             select: {
               id: true,
@@ -313,7 +319,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId,
       prisma,
       bookingId,
-      booking,
+      booking: {
+        ...booking,
+        eventType: booking.eventType
+          ? {
+              ...booking.eventType,
+              calVideoSettings: booking.eventType.calVideoSettings ?? null,
+            }
+          : null,
+      },
       emailsEnabled,
       platformClientParams,
     });
