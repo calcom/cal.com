@@ -56,7 +56,7 @@ export const useBookerLayout = (
       layout !== _layout
     ) {
       const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
-      validLayout && setLayout(validLayout);
+      if (validLayout) setLayout(validLayout);
     }
   }, [bookerLayouts, setLayout, _layout, isEmbed, isMobile]);
 
@@ -76,7 +76,12 @@ export const useBookerLayout = (
 
   const shouldShowFormInDialog = shouldShowFormInDialogMap[layout];
 
-  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+  const hideEventTypeDetailsParam = getQueryParam("hideEventTypeDetails");
+  const hideEventTypeDetails = isEmbed
+    ? embedUiConfig.hideEventTypeDetails
+    : typeof hideEventTypeDetailsParam === "string"
+    ? hideEventTypeDetailsParam === "true"
+    : false;
 
   return {
     shouldShowFormInDialog,
