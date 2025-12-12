@@ -799,6 +799,8 @@
   "wrong_assignment_reported": "Wrong assignment reported successfully",
   "routing_reason": "Routing Reason",
   "no_routing_reason": "No routing reason available",
+  "who_booked_it": "Who booked it?",
+  "who_received_it": "Who received it?",
   "who_should_have_received_it": "Who should have received it?",
   "wrong_assignment_notes_placeholder": "Any additional context about why this assignment was incorrect...",
   "did_you_know": "Did you know?",

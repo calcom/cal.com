@@ -7,6 +7,7 @@ import AddMembersWithSwitch, {
   mapUserToValue,
 } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import type { FormValues as EventTypeFormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
@@ -14,6 +15,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Label } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface IWrongAssignmentDialog {
@@ -93,6 +95,7 @@ const TeamMemberSelector = ({
 export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const { copyToClipboard, isCopied } = useCopy();
   const {
     isOpenDialog,
     setIsOpenDialog,
@@ -181,12 +184,24 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
                 </div>
 
                 <div>
-                  <Label className="text-emphasis mb-1 block text-sm font-medium">{t("guest")}</Label>
-                  <p className="text-default bg-muted rounded-md px-3 py-2 text-sm">{guestEmail}</p>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">
+                    {t("who_booked_it")}
+                  </Label>
+                  <div className="text-default bg-muted flex items-center justify-between rounded-md px-3 py-2 text-sm">
+                    <span>{guestEmail}</span>
+                    <button
+                      type="button"
+                      className="text-subtle hover:text-emphasis ml-2"
+                      onClick={() => copyToClipboard(guestEmail)}>
+                      <Icon name={isCopied ? "check" : "copy"} className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div>
-                  <Label className="text-emphasis mb-1 block text-sm font-medium">{t("host")}</Label>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">
+                    {t("who_received_it")}
+                  </Label>
                   <p className="text-default bg-muted rounded-md px-3 py-2 text-sm">
                     {hostName ? `${hostName} (${hostEmail})` : hostEmail}
                   </p>
