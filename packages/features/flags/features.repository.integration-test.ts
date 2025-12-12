@@ -692,6 +692,136 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(teamFeature?.enabled).toBe(true);
       expect(teamFeature?.assignedBy).toBe("new-assigner");
     });
+
+    it("should create a new TeamFeatures row with enabled=false", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      await featuresRepository.setTeamFeatureState(testTeam.id, testFeature, "disabled", "test-assigner");
+
+      const teamFeature = await prisma.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId: testTeam.id,
+            featureId: testFeature,
+          },
+        },
+      });
+
+      expect(teamFeature).not.toBeNull();
+      expect(teamFeature?.enabled).toBe(false);
+      expect(teamFeature?.assignedBy).toBe("test-assigner");
+    });
+
+    it("should update existing TeamFeatures row to enabled=false", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      // Create with enabled=true first
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "original-assigner",
+        },
+      });
+
+      // Now disable the feature
+      await featuresRepository.setTeamFeatureState(testTeam.id, testFeature, "disabled", "new-assigner");
+
+      const teamFeature = await prisma.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId: testTeam.id,
+            featureId: testFeature,
+          },
+        },
+      });
+
+      expect(teamFeature).not.toBeNull();
+      expect(teamFeature?.enabled).toBe(false);
+      expect(teamFeature?.assignedBy).toBe("new-assigner");
+    });
+
+    it("should delete TeamFeatures row when state is inherit", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      // Create a TeamFeatures row first
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "original-assigner",
+        },
+      });
+
+      // Verify the row exists
+      const beforeDelete = await prisma.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId: testTeam.id,
+            featureId: testFeature,
+          },
+        },
+      });
+      expect(beforeDelete).not.toBeNull();
+
+      // Now set to inherit - should delete the row
+      await featuresRepository.setTeamFeatureState(testTeam.id, testFeature, "inherit", "test-assigner");
+
+      const teamFeature = await prisma.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId: testTeam.id,
+            featureId: testFeature,
+          },
+        },
+      });
+
+      expect(teamFeature).toBeNull();
+    });
+
+    it("should handle inherit state when no TeamFeatures row exists", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      // Call inherit without any existing row - should not throw
+      await featuresRepository.setTeamFeatureState(testTeam.id, testFeature, "inherit", "test-assigner");
+
+      const teamFeature = await prisma.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId: testTeam.id,
+            featureId: testFeature,
+          },
+        },
+      });
+
+      expect(teamFeature).toBeNull();
+    });
   });
 
   describe("getTeamsWithFeatureEnabled", () => {
