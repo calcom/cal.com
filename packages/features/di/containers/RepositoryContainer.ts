@@ -7,11 +7,13 @@ import type { IBookingRepository } from "../../bookings/repositories/IBookingRep
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
 import type { IMembershipRepository } from "../../membership/repositories/IMembershipRepository";
+import type { IProfileRepository } from "../../profile/repositories/IProfileRepository";
 import type { IScheduleRepository } from "../../schedules/repositories/IScheduleRepository";
 import type { IUserRepository } from "../../users/repositories/IUserRepository";
 import { moduleLoader as bookingRepositoryModuleLoader } from "../modules/Booking";
 import { moduleLoader as eventTypeRepositoryModuleLoader } from "../modules/EventType";
 import { moduleLoader as membershipRepositoryModuleLoader } from "../modules/Membership";
+import { moduleLoader as profileRepositoryModuleLoader } from "../modules/Profile";
 import { scheduleRepositoryModuleLoader } from "../modules/Schedule";
 import { selectedCalendarRepositoryModuleLoader } from "../modules/SelectedCalendar";
 import { selectedSlotsRepositoryModuleLoader } from "../modules/SelectedSlots";
@@ -29,6 +31,7 @@ userRepositoryModuleLoader.loadModule(repositoryContainer);
 teamRepositoryModuleLoader.loadModule(repositoryContainer);
 membershipRepositoryModuleLoader.loadModule(repositoryContainer);
 eventTypeRepositoryModuleLoader.loadModule(repositoryContainer);
+profileRepositoryModuleLoader.loadModule(repositoryContainer);
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -60,4 +63,8 @@ export function getMembershipRepository(): IMembershipRepository {
 
 export function getEventTypeRepository(): IEventTypeRepository {
   return repositoryContainer.get<IEventTypeRepository>(DI_TOKENS.EVENT_TYPE_REPOSITORY);
+}
+
+export function getProfileRepository(): IProfileRepository {
+  return repositoryContainer.get<IProfileRepository>(DI_TOKENS.PROFILE_REPOSITORY);
 }
