@@ -641,7 +641,7 @@ describe("FeaturesRepository Integration Tests", () => {
         },
       });
 
-      await featuresRepository.setTeamFeatureState(testTeam.id, testFeature, "test-assigner", "enabled");
+      await featuresRepository.setTeamFeatureState(testTeam.id, testFeature, "enabled", "test-assigner");
 
       const teamFeature = await prisma.teamFeatures.findUnique({
         where: {
@@ -677,7 +677,7 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       // Now enable the feature
-      await featuresRepository.setTeamFeatureState(testTeam.id, testFeature, "new-assigner", "enabled");
+      await featuresRepository.setTeamFeatureState(testTeam.id, testFeature, "enabled", "new-assigner");
 
       const teamFeature = await prisma.teamFeatures.findUnique({
         where: {
