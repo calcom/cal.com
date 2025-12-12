@@ -1431,8 +1431,39 @@ export class AvailableSlotsService {
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
+    // Filter slots to only include dates within the requested range.
+    // This is necessary because buildDateRanges uses a ±1 day buffer when checking
+    // if date overrides should be included (to handle timezone edge cases), which can
+    // cause slots from adjacent days to leak into the response.
+    const _filterSlotsByRequestedDateRange = () => {
+      const inputStartTime = dayjs(input.startTime).tz(input.timeZone);
+      const inputEndTime = dayjs(input.endTime).tz(input.timeZone);
+
+      const allowedDates = new Set<string>();
+      for (
+        let d = inputStartTime.startOf("day");
+        !d.isAfter(inputEndTime, "day");
+        d = d.add(1, "day")
+      ) {
+        allowedDates.add(formatter.format(d.toDate()));
+      }
+
+      const filtered: typeof withinBoundsSlotsMappedToDate = {};
+      for (const [date, slots] of Object.entries(withinBoundsSlotsMappedToDate)) {
+        if (allowedDates.has(date)) {
+          filtered[date] = slots;
+        }
+      }
+      return filtered;
+    };
+    const filterSlotsByRequestedDateRange = withReporting(
+      _filterSlotsByRequestedDateRange.bind(this),
+      "filterSlotsByRequestedDateRange"
+    );
+    const filteredSlotsMappedToDate = filterSlotsByRequestedDateRange();
+
     // We only want to run this on single targeted events and not dynamic
-    if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
+    if (!Object.keys(filteredSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
         await this.dependencies.noSlotsNotificationService.handleNotificationWhenNoSlots({
           eventDetails: {
@@ -1474,7 +1505,7 @@ export class AvailableSlotsService {
       : null;
 
     return {
-      slots: withinBoundsSlotsMappedToDate,
+      slots: filteredSlotsMappedToDate,
       ...troubleshooterData,
     };
   }
