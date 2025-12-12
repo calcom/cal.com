@@ -5,10 +5,12 @@ import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISel
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
+import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
 import type { IMembershipRepository } from "../../membership/repositories/IMembershipRepository";
 import type { IScheduleRepository } from "../../schedules/repositories/IScheduleRepository";
 import type { IUserRepository } from "../../users/repositories/IUserRepository";
 import { moduleLoader as bookingRepositoryModuleLoader } from "../modules/Booking";
+import { moduleLoader as eventTypeRepositoryModuleLoader } from "../modules/EventType";
 import { moduleLoader as membershipRepositoryModuleLoader } from "../modules/Membership";
 import { scheduleRepositoryModuleLoader } from "../modules/Schedule";
 import { selectedCalendarRepositoryModuleLoader } from "../modules/SelectedCalendar";
@@ -26,6 +28,7 @@ bookingRepositoryModuleLoader.loadModule(repositoryContainer);
 userRepositoryModuleLoader.loadModule(repositoryContainer);
 teamRepositoryModuleLoader.loadModule(repositoryContainer);
 membershipRepositoryModuleLoader.loadModule(repositoryContainer);
+eventTypeRepositoryModuleLoader.loadModule(repositoryContainer);
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -53,4 +56,8 @@ export function getTeamRepository(): ITeamRepository {
 
 export function getMembershipRepository(): IMembershipRepository {
   return repositoryContainer.get<IMembershipRepository>(DI_TOKENS.MEMBERSHIP_REPOSITORY);
+}
+
+export function getEventTypeRepository(): IEventTypeRepository {
+  return repositoryContainer.get<IEventTypeRepository>(DI_TOKENS.EVENT_TYPE_REPOSITORY);
 }
