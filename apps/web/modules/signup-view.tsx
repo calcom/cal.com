@@ -557,7 +557,8 @@ export default function Signup({
                         !formMethods.getValues("email") ||
                         !formMethods.getValues("username") ||
                         premiumUsername ||
-                        isSubmitting
+                        isSubmitting ||
+                        !acceptedPolicyAndCookies
                       }
                       onClick={() => {
                         const username = formMethods.getValues("username");
@@ -604,7 +605,8 @@ export default function Signup({
                         !formMethods.getValues("password") ||
                         (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watch("cfToken")) ||
                         isSubmitting ||
-                        usernameTaken
+                        usernameTaken ||
+                        !acceptedPolicyAndCookies
                       }>
                       {premiumUsername && !usernameTaken
                         ? `${t("get_started")} (${getPremiumPlanPriceValue()})`

@@ -73,6 +73,9 @@ test.describe("Email Signup Flow Test", async () => {
       await page.locator('input[name="email"]').fill("pro@example.com");
       await page.locator('input[name="password"]').fill("Password99!");
 
+      // Check the cookie consent checkbox
+      await page.getByTestId("signup-cookie-content-checkbox").check();
+
       // Submit form
       const submitButton = page.getByTestId("signup-submit-button");
       await submitButton.click();
@@ -103,6 +106,9 @@ test.describe("Email Signup Flow Test", async () => {
       await page.locator('input[name="username"]').fill("randomuserwhodoesntexist");
       await page.locator('input[name="email"]').fill(user.email);
       await page.locator('input[name="password"]').fill("Password99!");
+
+      // Check the cookie consent checkbox
+      await page.getByTestId("signup-cookie-content-checkbox").check();
 
       // Submit form
       const submitButton = page.getByTestId("signup-submit-button");
@@ -137,6 +143,9 @@ test.describe("Email Signup Flow Test", async () => {
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
+    // Check the cookie consent checkbox
+    await page.getByTestId("signup-cookie-content-checkbox").check();
+
     // Submit form
     const submitButton = page.getByTestId("signup-submit-button");
     await submitButton.click();
@@ -170,6 +179,9 @@ test.describe("Email Signup Flow Test", async () => {
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
+    // Check the cookie consent checkbox
+    await page.getByTestId("signup-cookie-content-checkbox").check();
+
     // Submit form
     const submitButton = page.getByTestId("signup-submit-button");
     await submitButton.click();
@@ -182,7 +194,7 @@ test.describe("Email Signup Flow Test", async () => {
     // Verify that the username is the same as the one provided and isn't accidentally changed to email derived username - That happens only for organization member signup
     expect(dbUser?.username).toBe(userToCreate.username);
   });
-  test("Signup fields prefilled with query params", async ({ page, users }) => {
+  test("Signup fields prefilled with query params", async ({ page }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
     await preventFlakyTest(page);
@@ -281,6 +293,9 @@ test.describe("Email Signup Flow Test", async () => {
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
+    // Check the cookie consent checkbox
+    await page.getByTestId("signup-cookie-content-checkbox").check();
+
     // Submit form
     const submitButton = page.getByTestId("signup-submit-button");
     await submitButton.click();
@@ -347,6 +362,8 @@ test.describe("Email Signup Flow Test", async () => {
       await expect(page.getByTestId("signup-submit-button")).toBeVisible();
       // Check required fields
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+      // Check the cookie consent checkbox
+      await newPage.getByTestId("signup-cookie-content-checkbox").check();
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
       await newPage.close();
@@ -354,7 +371,7 @@ test.describe("Email Signup Flow Test", async () => {
     });
   });
 
-  test("Checkbox for cookie consent does not need to be checked", async ({ page, users }) => {
+  test("Checkbox for cookie consent must be checked", async ({ page }) => {
     await page.goto("/signup");
     await preventFlakyTest(page);
 
@@ -369,11 +386,15 @@ test.describe("Email Signup Flow Test", async () => {
     const submitButton = page.getByTestId("signup-submit-button");
     const checkbox = page.getByTestId("signup-cookie-content-checkbox");
 
+    // Submit button should be disabled when checkbox is not checked
+    await expect(submitButton).toBeDisabled();
+
+    // Check the checkbox
     await checkbox.check();
     await expect(submitButton).toBeEnabled();
 
-    // the cookie consent checkbox does not need to be checked for user to proceed
+    // Uncheck the checkbox - button should be disabled again
     await checkbox.uncheck();
-    await expect(submitButton).toBeEnabled();
+    await expect(submitButton).toBeDisabled();
   });
 });
