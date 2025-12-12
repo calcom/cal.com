@@ -84,6 +84,8 @@ export const DI_TOKENS = {
         WORKFLOW_RELATIONS_REPOSITORY_MODULE: Symbol("WorkflowRelationsRepositoryModule"),
         WORKFLOW_STEP_REPOSITORY: Symbol("WorkflowStepRepository"),
         WORKFLOW_STEP_REPOSITORY_MODULE: Symbol("WorkflowStepRepositoryModule"),
+        API_KEY_REPOSITORY: Symbol("ApiKeyRepository"),
+        API_KEY_REPOSITORY_MODULE: Symbol("ApiKeyRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens

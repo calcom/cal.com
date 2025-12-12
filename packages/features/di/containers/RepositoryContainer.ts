@@ -11,6 +11,8 @@ import type { IVerificationTokenRepository } from "@calcom/lib/server/repository
 import type { IWorkflowRelationsRepository } from "@calcom/lib/server/repository/IWorkflowRelationsRepository";
 import type { IWorkflowStepRepository } from "@calcom/lib/server/repository/IWorkflowStepRepository";
 import type { IRoutingFormResponseRepository } from "@calcom/lib/server/repository/IRoutingFormResponseRepository";
+import type { IAttributeRepository } from "@calcom/lib/server/repository/IAttributeRepository";
+import type { IApiKeyRepository } from "@calcom/lib/server/repository/IApiKeyRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -41,6 +43,8 @@ import { moduleLoader as verificationTokenRepositoryModuleLoader } from "../modu
 import { workflowRelationsRepositoryModuleLoader } from "../modules/WorkflowRelations";
 import { workflowStepRepositoryModuleLoader } from "../modules/WorkflowStep";
 import { routingFormResponseRepositoryModuleLoader } from "../modules/RoutingFormResponse";
+import { attributeRepositoryModuleLoader } from "../modules/Attribute";
+import { apiKeyRepositoryModuleLoader } from "../modules/ApiKey";
 
 const repositoryContainer = createContainer();
 
@@ -65,6 +69,8 @@ verificationTokenRepositoryModuleLoader.loadModule(repositoryContainer);
 repositoryContainer.load(workflowRelationsRepositoryModuleLoader());
 repositoryContainer.load(workflowStepRepositoryModuleLoader());
 repositoryContainer.load(routingFormResponseRepositoryModuleLoader());
+repositoryContainer.load(attributeRepositoryModuleLoader());
+repositoryContainer.load(apiKeyRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -144,4 +150,12 @@ export function getWorkflowStepRepository(): IWorkflowStepRepository {
 
 export function getRoutingFormResponseRepository(): IRoutingFormResponseRepository {
   return repositoryContainer.get<IRoutingFormResponseRepository>(DI_TOKENS.ROUTING_FORM_RESPONSE_REPOSITORY);
+}
+
+export function getAttributeRepository(): IAttributeRepository {
+  return repositoryContainer.get<IAttributeRepository>(DI_TOKENS.ATTRIBUTE_REPOSITORY);
+}
+
+export function getApiKeyRepository(): IApiKeyRepository {
+  return repositoryContainer.get<IApiKeyRepository>(DI_TOKENS.API_KEY_REPOSITORY);
 }

@@ -1,21 +1,14 @@
-import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { createModule } from "@evyweb/ioctopus";
 
-import { createModule, bindModuleToClassOnToken, type ModuleLoader } from "../di";
+import { kyselyRead, kyselyWrite } from "@calcom/kysely";
+import { KyselyAttributeRepository } from "@calcom/lib/server/repository/KyselyAttributeRepository";
 
-export const attributeRepositoryModule = createModule();
-const token = DI_TOKENS.ATTRIBUTE_REPOSITORY;
-const moduleToken = DI_TOKENS.ATTRIBUTE_REPOSITORY_MODULE;
-const loadModule = bindModuleToClassOnToken({
-  module: attributeRepositoryModule,
-  moduleToken,
-  token,
-  classs: PrismaAttributeRepository,
-  dep: prismaModuleLoader,
-});
+import { DI_TOKENS } from "../tokens";
 
-export const moduleLoader: ModuleLoader = {
-  token,
-  loadModule,
+export const attributeRepositoryModuleLoader = () => {
+  const module = createModule();
+  module
+    .bind(DI_TOKENS.ATTRIBUTE_REPOSITORY)
+    .toInstance(new KyselyAttributeRepository(kyselyRead, kyselyWrite));
+  return module;
 };
