@@ -4,7 +4,6 @@ import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
-import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
@@ -56,6 +55,7 @@ export const EventMeta = ({
   children,
   selectedTimeslot,
   roundRobinHideOrgAndTeam,
+  hideEventTypeDetails = false,
 }: {
   event?: Pick<
     BookerEvent,
@@ -94,6 +94,7 @@ export const EventMeta = ({
   children?: React.ReactNode;
   selectedTimeslot: string | null;
   roundRobinHideOrgAndTeam?: boolean;
+  hideEventTypeDetails?: boolean;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
@@ -107,9 +108,6 @@ export const EventMeta = ({
     shallow
   );
   const { i18n, t } = useLocale();
-  const embedUiConfig = useEmbedUiConfig();
-  const isEmbed = useIsEmbed();
-  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
   const [TimezoneSelect] = useMemo(
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
@@ -178,7 +176,7 @@ export const EventMeta = ({
           {(event.description || translatedDescription) && (
             <EventMetaBlock
               data-testid="event-meta-description"
-              contentClassName="mb-8 wrap-break-word max-w-full max-h-[180px] scroll-bar pr-4">
+              contentClassName="mb-8 wrap-break-word max-w-full max-h-[180px] scroll-bar pr-4 overflow-y-auto">
               <div
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{

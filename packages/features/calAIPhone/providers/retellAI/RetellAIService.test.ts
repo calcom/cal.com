@@ -930,7 +930,7 @@ describe("RetellAIService", () => {
 
       expect(vi.mocked(checkRateLimitAndThrowError)).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:1",
+        identifier: "createTestCall:1",
       });
       expect(result).toEqual({
         callId: "call-123",
