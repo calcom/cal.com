@@ -9,6 +9,8 @@ import type { User } from "@calcom/prisma/client";
 
 import type {
   ScheduleBasicDto,
+  ScheduleCreateInputDto,
+  ScheduleCreatedDto,
   ScheduleForBuildDateRangesDto,
   ScheduleForOwnershipCheckDto,
   UserDefaultScheduleDto,
@@ -277,5 +279,42 @@ export class ScheduleRepository implements IScheduleRepository {
         userId,
       },
     });
+  }
+
+  async create(input: ScheduleCreateInputDto): Promise<ScheduleCreatedDto> {
+    const { name, userId, timeZone, availability } = input;
+
+    const schedule = await this.prismaClient.schedule.create({
+      data: {
+        name,
+        userId,
+        timeZone: timeZone ?? null,
+        availability: availability
+          ? {
+              createMany: {
+                data: availability.map((a) => ({
+                  days: a.days,
+                  startTime: a.startTime,
+                  endTime: a.endTime,
+                  date: a.date ?? null,
+                })),
+              },
+            }
+          : undefined,
+      },
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        timeZone: true,
+      },
+    });
+
+    return {
+      id: schedule.id,
+      userId: schedule.userId,
+      name: schedule.name,
+      timeZone: schedule.timeZone,
+    };
   }
 }

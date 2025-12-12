@@ -55,3 +55,24 @@ export type ScheduleBasicDto = {
 export type UserDefaultScheduleDto = {
   defaultScheduleId: number | null;
 };
+
+export type AvailabilityCreateInputDto = {
+  days: number[];
+  startTime: Date;
+  endTime: Date;
+  date?: Date | null;
+};
+
+export type ScheduleCreateInputDto = {
+  name: string;
+  userId: number;
+  timeZone?: string | null;
+  availability?: AvailabilityCreateInputDto[];
+};
+
+export type ScheduleCreatedDto = {
+  id: number;
+  userId: number;
+  name: string;
+  timeZone: string | null;
+};

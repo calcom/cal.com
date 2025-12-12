@@ -5,6 +5,8 @@ import type { KyselyDb } from "@calcom/kysely/repository";
 import type {
   AvailabilityDto,
   ScheduleBasicDto,
+  ScheduleCreateInputDto,
+  ScheduleCreatedDto,
   ScheduleForBuildDateRangesDto,
   ScheduleForOwnershipCheckDto,
   UserDefaultScheduleDto,
@@ -201,5 +203,41 @@ export class KyselyScheduleRepository implements IScheduleRepository {
       .executeTakeFirst();
 
     return result?.count ?? 0;
+  }
+
+  async create(input: ScheduleCreateInputDto): Promise<ScheduleCreatedDto> {
+    const { name, userId, timeZone, availability } = input;
+
+    const schedule = await this.writeDb
+      .insertInto("Schedule")
+      .values({
+        name,
+        userId,
+        timeZone: timeZone ?? null,
+      })
+      .returning(["id", "userId", "name", "timeZone"])
+      .executeTakeFirstOrThrow();
+
+    if (availability && availability.length > 0) {
+      await this.writeDb
+        .insertInto("Availability")
+        .values(
+          availability.map((a) => ({
+            scheduleId: schedule.id,
+            days: a.days,
+            startTime: a.startTime,
+            endTime: a.endTime,
+            date: a.date ?? null,
+          }))
+        )
+        .execute();
+    }
+
+    return {
+      id: schedule.id,
+      userId: schedule.userId,
+      name: schedule.name,
+      timeZone: schedule.timeZone,
+    };
   }
 }

@@ -2,6 +2,8 @@ import type { User } from "@calcom/prisma/client";
 
 import type {
   ScheduleBasicDto,
+  ScheduleCreateInputDto,
+  ScheduleCreatedDto,
   ScheduleForBuildDateRangesDto,
   ScheduleForOwnershipCheckDto,
   UserDefaultScheduleDto,
@@ -21,6 +23,15 @@ export interface IScheduleRepository {
   setupDefaultSchedule(userId: number, scheduleId: number): Promise<UserDefaultScheduleDto>;
 
   countByUserId(userId: number): Promise<number>;
+
+  create(input: ScheduleCreateInputDto): Promise<ScheduleCreatedDto>;
 }
 
-export type { ScheduleBasicDto, ScheduleForBuildDateRangesDto, ScheduleForOwnershipCheckDto, UserDefaultScheduleDto };
+export type {
+  ScheduleBasicDto,
+  ScheduleCreateInputDto,
+  ScheduleCreatedDto,
+  ScheduleForBuildDateRangesDto,
+  ScheduleForOwnershipCheckDto,
+  UserDefaultScheduleDto,
+};
