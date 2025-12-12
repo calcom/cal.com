@@ -42,14 +42,8 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
     throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
   }
 
-  const teamId = booking.eventType?.teamId;
-
-  if (!teamId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "This booking is not associated with a team",
-    });
-  }
+  const teamId = booking.eventType?.teamId || null;
+  const bookingUserId = booking.user?.id || null;
 
   const assignmentReason = booking.assignmentReason?.[0];
   const guestEmail = booking.attendees[0]?.email || "";
@@ -92,6 +86,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
 
   try {
     const webhooks = await getWebhooks({
+      userId: bookingUserId,
       teamId,
       triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
     });
@@ -113,6 +108,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
 
     log.info(`Wrong assignment report sent for booking ${bookingUid}`, {
       teamId,
+      userId: bookingUserId,
       webhookCount: webhooks.length,
     });
   } catch (error) {
