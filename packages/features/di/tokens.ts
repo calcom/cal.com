@@ -92,6 +92,10 @@ export const DI_TOKENS = {
         CAL_VIDEO_SETTINGS_REPOSITORY_MODULE: Symbol("CalVideoSettingsRepositoryModule"),
         ORG_MEMBERSHIP_REPOSITORY: Symbol("OrgMembershipRepository"),
         ORG_MEMBERSHIP_REPOSITORY_MODULE: Symbol("OrgMembershipRepositoryModule"),
+        APP_REPOSITORY: Symbol("AppRepository"),
+        APP_REPOSITORY_MODULE: Symbol("AppRepositoryModule"),
+        ROUTING_FORM_REPOSITORY: Symbol("RoutingFormRepository"),
+        ROUTING_FORM_REPOSITORY_MODULE: Symbol("RoutingFormRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens

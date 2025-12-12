@@ -17,6 +17,8 @@ import type { IHashedLinkRepository } from "@calcom/lib/server/repository/IHashe
 import type { ICalVideoSettingsRepository } from "@calcom/lib/server/repository/ICalVideoSettingsRepository";
 import type { IAssignmentReasonRepository } from "@calcom/lib/server/repository/IAssignmentReasonRepository";
 import type { IOrgMembershipRepository } from "@calcom/lib/server/repository/IOrgMembershipRepository";
+import type { IAppRepository } from "@calcom/lib/server/repository/IAppRepository";
+import type { IRoutingFormRepository } from "@calcom/lib/server/repository/IRoutingFormRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -53,6 +55,8 @@ import { hashedLinkRepositoryModuleLoader } from "../modules/HashedLink";
 import { calVideoSettingsRepositoryModuleLoader } from "../modules/CalVideoSettings";
 import { assignmentReasonRepositoryModuleLoader } from "../modules/AssignmentReason";
 import { orgMembershipRepositoryModuleLoader } from "../modules/OrgMembership";
+import { appRepositoryModuleLoader } from "../modules/App";
+import { routingFormRepositoryModuleLoader } from "../modules/RoutingForm";
 
 const repositoryContainer = createContainer();
 
@@ -83,6 +87,8 @@ repositoryContainer.load(hashedLinkRepositoryModuleLoader());
 repositoryContainer.load(calVideoSettingsRepositoryModuleLoader());
 repositoryContainer.load(assignmentReasonRepositoryModuleLoader());
 repositoryContainer.load(orgMembershipRepositoryModuleLoader());
+repositoryContainer.load(appRepositoryModuleLoader());
+repositoryContainer.load(routingFormRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -186,4 +192,12 @@ export function getAssignmentReasonRepository(): IAssignmentReasonRepository {
 
 export function getOrgMembershipRepository(): IOrgMembershipRepository {
   return repositoryContainer.get<IOrgMembershipRepository>(DI_TOKENS.ORG_MEMBERSHIP_REPOSITORY);
+}
+
+export function getAppRepository(): IAppRepository {
+  return repositoryContainer.get<IAppRepository>(DI_TOKENS.APP_REPOSITORY);
+}
+
+export function getRoutingFormRepository(): IRoutingFormRepository {
+  return repositoryContainer.get<IRoutingFormRepository>(DI_TOKENS.ROUTING_FORM_REPOSITORY);
 }
