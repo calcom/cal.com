@@ -38,7 +38,6 @@ import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
-import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
@@ -571,6 +570,36 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {props.recurringBookings &&
+                          props.recurringBookings.length > 0 &&
+                          (() => {
+                            const pendingCount = props.recurringBookings.filter(
+                              (booking) => booking.status === BookingStatus.PENDING
+                            ).length;
+
+                            if (pendingCount > 0) {
+                              return (
+                                <div className="col-span-3 mb-6">
+                                  <Alert
+                                    severity="warning"
+                                    title={
+                                      pendingCount === 1
+                                        ? t("recurring_event_conflict_single")
+                                        : t("recurring_event_conflict_multiple", { count: pendingCount })
+                                    }
+                                    actions={
+                                      <Link
+                                        href="/bookings/recurring"
+                                        className="text-sm font-medium underline hover:no-underline">
+                                        {t("resolve_now")}
+                                      </Link>
+                                    }
+                                  />
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         <div className="font-medium">{t("what")}</div>
                         <div
                           className="wrap-break-word col-span-2 mb-6 last:mb-0"
@@ -1137,9 +1166,16 @@ const DisplayLocation = ({
     <p className={className}>{locationToDisplay}</p>
   );
 
+type RecurringBookingWithStatus = {
+  startTime: string;
+  status: BookingStatus;
+};
+
+type RecurringBookingsData = RecurringBookingWithStatus[] | null;
+
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];
-  recurringBookings: PageProps["recurringBookings"];
+  recurringBookings: RecurringBookingsData;
   date: dayjs.Dayjs;
   duration: number | undefined;
   is24h: boolean;
@@ -1170,12 +1206,6 @@ function RecurringBookings({
   if (!duration) return null;
 
   if (recurringBookingsSorted && allRemainingBookings) {
-    const shiftFlags = getTimeShiftFlags({
-      dates: recurringBookingsSorted,
-      timezone: tz,
-    });
-    const displayFlags = getFirstShiftFlags(shiftFlags);
-
     return (
       <>
         {eventType.recurringEvent?.count && (
@@ -1188,38 +1218,45 @@ function RecurringBookings({
           </span>
         )}
         {eventType.recurringEvent?.count &&
-          recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
-            <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
-              <br />
-              {formatToLocalizedTime({
-                date: dayjs(dateStr),
-                locale: language,
-                timeStyle: undefined,
-                hour12: !is24h,
-                timeZone: tz,
-              })}{" "}
-              -{" "}
-              {formatToLocalizedTime({
-                date: dayjs(dateStr).add(duration, "m"),
-                locale: language,
-                timeStyle: undefined,
-                hour12: !is24h,
-                timeZone: tz,
-              })}{" "}
-              <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
-              </span>
-              {displayFlags[idx] && (
-                <>
-                  {" "}
-                  <Badge variant="orange" size="sm">
-                    {t("time_shift")}
-                  </Badge>
-                </>
-              )}
-            </div>
-          ))}
+          recurringBookingsSorted.slice(0, 4).map((booking, idx: number) => {
+            const dateStr = typeof booking === "string" ? booking : booking.startTime;
+            const bookingStatus = typeof booking === "string" ? null : booking.status;
+            const isPending = bookingStatus === BookingStatus.PENDING;
+
+            return (
+              <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+                  </div>
+                  {isPending && (
+                    <Badge variant="orange" className="text-xs">
+                      {t("pending")}
+                    </Badge>
+                  )}
+                </div>
+                <br />
+                {formatToLocalizedTime({
+                  date: dayjs(dateStr),
+                  locale: language,
+                  timeStyle: undefined,
+                  hour12: !is24h,
+                  timeZone: tz,
+                })}{" "}
+                -{" "}
+                {formatToLocalizedTime({
+                  date: dayjs(dateStr).add(duration, "m"),
+                  locale: language,
+                  timeStyle: undefined,
+                  hour12: !is24h,
+                  timeZone: tz,
+                })}{" "}
+                <span className="text-bookinglight">
+                  ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                </span>
+              </div>
+            );
+          })}
         {recurringBookingsSorted.length > 4 && (
           <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
             <CollapsibleTrigger
@@ -1229,36 +1266,39 @@ function RecurringBookings({
             </CollapsibleTrigger>
             <CollapsibleContent>
               {eventType.recurringEvent?.count &&
-                recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
-                  <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
-                    <br />
-                    {formatToLocalizedTime({
-                      date: dayjs(dateStr),
-                      locale: language,
-                      hour12: !is24h,
-                      timeZone: tz,
-                    })}{" "}
-                    -{" "}
-                    {formatToLocalizedTime({
-                      date: dayjs(dateStr).add(duration, "m"),
-                      locale: language,
-                      hour12: !is24h,
-                      timeZone: tz,
-                    })}{" "}
-                    <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
-                    </span>
-                    {displayFlags[idx + 4] && (
-                      <>
-                        {" "}
-                        <Badge variant="orange" size="sm">
-                          {t("time_shift")}
+                recurringBookingsSorted.slice(4).map((booking, idx: number) => {
+                  const dateStr = typeof booking === "string" ? booking : booking.startTime;
+                  const bookingStatus = typeof booking === "string" ? null : booking.status;
+                  const isPending = bookingStatus === BookingStatus.PENDING;
+
+                  return (
+                    <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
+                      {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+                      {isPending && (
+                        <Badge variant="orange" className="text-xs">
+                          {t("pending")}
                         </Badge>
-                      </>
-                    )}
-                  </div>
-                ))}
+                      )}
+                      <br />
+                      {formatToLocalizedTime({
+                        date: dayjs(dateStr),
+                        locale: language,
+                        hour12: !is24h,
+                        timeZone: tz,
+                      })}{" "}
+                      -{" "}
+                      {formatToLocalizedTime({
+                        date: dayjs(dateStr).add(duration, "m"),
+                        locale: language,
+                        hour12: !is24h,
+                        timeZone: tz,
+                      })}{" "}
+                      <span className="text-bookinglight">
+                        ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                      </span>
+                    </div>
+                  );
+                })}
             </CollapsibleContent>
           </Collapsible>
         )}
