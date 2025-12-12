@@ -1,108 +1,122 @@
 import type { AppFlags } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import { computeEffectiveState } from "./computeEffectiveState";
+import { computeEffectiveStateAcrossTeams } from "./computeEffectiveState";
 import { OPT_IN_FEATURES } from "./config";
 import type { FeatureState } from "./types";
 
 /**
  * Service class for managing feature opt-in logic.
- * Computes effective states based on global, team, and user settings.
+ * Computes effective states based on global, org, team, and user settings.
  */
 export class FeatureOptInService {
   constructor(private featuresRepository: FeaturesRepository) {}
 
   /**
-   * Resolve feature state for a user including effective state computation.
+   * Core method: Resolve feature state for a user across all their teams.
    *
    * Precedence rules:
-   * - Global disabled → effectiveEnabled = false
-   * - Team explicitly disabled (enabled=false) → effectiveEnabled = false
-   * - User explicitly enabled → effectiveEnabled = true
-   * - User inherits → use team state (enabled or inherit)
+   * 1. Global disabled → false (stop)
+   * 2. Org explicitly disabled → false (stop)
+   * 3. Org explicitly enabled → allowed at org level, continue to teams
+   * 4. Org inherits (or no org) → check teams
+   * 5. All teams explicitly disabled → false (stop)
+   * 6. At least one team enabled OR inherits → allowed at team level, continue to user
+   * 7. User explicitly disabled → false
+   * 8. User explicitly enabled OR inherits → true
    */
-  async resolveFeatureStateForUser({
+  async resolveFeatureStateAcrossTeams({
     userId,
-    teamId,
+    orgId,
+    teamIds,
     featureId,
   }: {
     userId: number;
-    teamId: number | null;
+    orgId: number | null;
+    teamIds: number[];
     featureId: keyof AppFlags;
   }) {
-    // Get global feature state (uses cached getAllFeatures from FeaturesRepository)
+    // Get global feature state
     const allFeatures = await this.featuresRepository.getAllFeatures();
     const globalFeature = allFeatures.find((f) => f.slug === featureId);
     const globalEnabled = globalFeature?.enabled ?? false;
+
+    // Get org state
+    let orgState: FeatureState = "inherit";
+    if (orgId !== null) {
+      orgState = await this.featuresRepository.getTeamFeatureState({ teamId: orgId, featureId });
+    }
+
+    // Get team states
+    const teamStates = await Promise.all(
+      teamIds.map((teamId) => this.featuresRepository.getTeamFeatureState({ teamId, featureId }))
+    );
 
     // Get user state
     const userState = await this.featuresRepository.getUserFeatureState({ userId, featureId });
 
-    // Get team state
-    let teamState: FeatureState = "inherit";
-    if (teamId !== null) {
-      teamState = await this.featuresRepository.getTeamFeatureState({ teamId, featureId });
-    }
-    const effectiveEnabled = computeEffectiveState({ globalEnabled, teamState, userState });
-
-    return {
+    // Compute effective state
+    const effectiveEnabled = computeEffectiveStateAcrossTeams({
       globalEnabled,
+      orgState,
+      teamStates,
       userState,
-      teamState,
-      effectiveEnabled,
-    };
-  }
-
-  /**
-   * List all opt-in features with their states for a user.
-   * Only returns features that are in the allowlist.
-   */
-  async listFeaturesForUser(input: { userId: number; teamId: number | null }) {
-    const { userId, teamId } = input;
-
-    return (
-      await Promise.all(
-        OPT_IN_FEATURES.map((config) =>
-          this.resolveFeatureStateForUser({ userId, teamId, featureId: config.slug })
-        )
-      )
-    ).filter((item) => item.globalEnabled);
-  }
-
-  /**
-   * Resolve feature state for a team (without user-level override).
-   */
-  async resolveFeatureStateForTeam(input: { teamId: number; featureId: keyof AppFlags }) {
-    const { teamId, featureId } = input;
-
-    // Get global feature state (uses cached getAllFeatures from FeaturesRepository)
-    const allFeatures = await this.featuresRepository.getAllFeatures();
-    const globalFeature = allFeatures.find((f) => f.slug === featureId);
-    const globalEnabled = globalFeature?.enabled ?? false;
-
-    // Get team state
-    const teamState = await this.featuresRepository.getTeamFeatureState({ teamId, featureId });
-
-    // Compute effective enabled: global must be enabled and team must be explicitly enabled
-    const effectiveEnabled = globalEnabled && teamState === "enabled";
+    });
 
     return {
       globalEnabled,
-      teamState,
+      orgState,
+      teamStates,
+      userState,
       effectiveEnabled,
     };
   }
 
   /**
-   * List all opt-in features with their states for a team.
-   * Only returns features that are in the allowlist.
+   * List all opt-in features with their states for a user across teams.
+   * Only returns features that are in the allowlist and globally enabled.
    */
-  async listFeaturesForTeam({ teamId }: { teamId: number }) {
-    return (
-      await Promise.all(
-        OPT_IN_FEATURES.map((config) => this.resolveFeatureStateForTeam({ teamId, featureId: config.slug }))
-      )
-    ).filter((item) => item.globalEnabled);
+  async listFeaturesForUser(input: { userId: number; orgId: number | null; teamIds: number[] }) {
+    const { userId, orgId, teamIds } = input;
+
+    const results = await Promise.all(
+      OPT_IN_FEATURES.map(async (config) => ({
+        slug: config.slug,
+        ...(await this.resolveFeatureStateAcrossTeams({ userId, orgId, teamIds, featureId: config.slug })),
+      }))
+    );
+
+    return results.filter((item) => item.globalEnabled);
+  }
+
+  /**
+   * List all opt-in features with their raw states for a team.
+   * Used for team admin settings page to configure feature opt-in.
+   * Only returns features that are in the allowlist and globally enabled.
+   */
+  async listFeaturesForTeam(input: { teamId: number }) {
+    const { teamId } = input;
+
+    const allFeatures = await this.featuresRepository.getAllFeatures();
+
+    const results = await Promise.all(
+      OPT_IN_FEATURES.map(async (config) => {
+        const globalFeature = allFeatures.find((f) => f.slug === config.slug);
+        const globalEnabled = globalFeature?.enabled ?? false;
+        const teamState = await this.featuresRepository.getTeamFeatureState({
+          teamId,
+          featureId: config.slug,
+        });
+
+        return {
+          slug: config.slug,
+          globalEnabled,
+          teamState,
+        };
+      })
+    );
+
+    return results.filter((item) => item.globalEnabled);
   }
 
   /**
@@ -111,17 +125,12 @@ export class FeatureOptInService {
    */
   async setUserFeatureState(input: {
     userId: number;
-    featureId: string;
+    featureId: keyof AppFlags;
     state: FeatureState;
     assignedBy: number;
   }) {
     const { userId, featureId, state, assignedBy } = input;
-    await this.featuresRepository.setUserFeatureState(
-      userId,
-      featureId as keyof AppFlags,
-      state,
-      String(assignedBy)
-    );
+    await this.featuresRepository.setUserFeatureState(userId, featureId, state, String(assignedBy));
   }
 
   /**

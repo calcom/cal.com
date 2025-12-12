@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { FeatureOptInService } from "@calcom/features/feature-opt-in/FeatureOptInService";
+import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -14,26 +15,63 @@ import { router } from "../../../trpc";
 
 const featureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
 
-function createFeatureOptInService() {
-  const featuresRepository = new FeaturesRepository(prisma);
-  return new FeatureOptInService(featuresRepository);
+const featuresRepository = new FeaturesRepository(prisma);
+const featureOptInService = new FeatureOptInService(featuresRepository);
+
+/**
+ * Helper to get user's org and team IDs from their memberships.
+ * Returns orgId (if user belongs to an org) and teamIds (non-org teams).
+ */
+async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
+  const memberships = await MembershipRepository.findAllByUserId({
+    userId,
+    filters: { accepted: true },
+  });
+
+  let orgId: number | null = null;
+  const teamIds: number[] = [];
+
+  for (const membership of memberships) {
+    if (membership.team.parentId === null) {
+      // This could be an org or a standalone team
+      // Check if any other team has this as parent (making it an org)
+      const isOrg = memberships.some((m) => m.team.parentId === membership.teamId);
+      if (isOrg) {
+        orgId = membership.teamId;
+      } else {
+        teamIds.push(membership.teamId);
+      }
+    } else {
+      // Team with a parent (under an org)
+      teamIds.push(membership.teamId);
+      // The parent is the org
+      if (orgId === null) {
+        orgId = membership.team.parentId;
+      }
+    }
+  }
+
+  return { orgId, teamIds };
 }
 
 export const featureOptInRouter = router({
   /**
-   * Get all opt-in features with states for current user's settings page.
+   * Get all opt-in features with states for current user.
+   * This considers all teams/orgs the user belongs to.
    */
   listForUser: authedProcedure.query(async ({ ctx }) => {
-    const service = createFeatureOptInService();
+    const { orgId, teamIds } = await getUserOrgAndTeamIds(ctx.user.id);
 
-    // Get user's primary team ID if they have one
-    const membership = await MembershipRepository.findFirstAcceptedMembershipByUserId(ctx.user.id);
-
-    return service.listFeaturesForUser({ userId: ctx.user.id, teamId: membership?.teamId ?? null });
+    return featureOptInService.listFeaturesForUser({
+      userId: ctx.user.id,
+      orgId,
+      teamIds,
+    });
   }),
 
   /**
-   * Get all opt-in features with states for team settings page.
+   * Get all opt-in features with states for a team settings page.
+   * Used by team admins to configure feature opt-in for their team.
    */
   listForTeam: authedProcedure
     .input(
@@ -42,48 +80,57 @@ export const featureOptInRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      // Verify user is a member of the team
-      const membershipRepository = new MembershipRepository(prisma);
-      const isMember = await membershipRepository.hasMembership({
+      const permissionCheckService = new PermissionCheckService();
+      const hasPermission = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: input.teamId,
+        permission: "team.read",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
 
-      if (!isMember) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team." });
+      if (!hasPermission) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view team feature settings.",
+        });
       }
 
-      const service = createFeatureOptInService();
-
-      return service.listFeaturesForTeam({ teamId: input.teamId });
+      return featureOptInService.listFeaturesForTeam({ teamId: input.teamId });
     }),
 
   /**
    * Get all opt-in features with states for organization settings page.
-   * Organizations are teams with isOrganization=true, so we reuse team logic.
+   * Used by org admins to configure feature opt-in for their organization.
+   * Uses the organization from the current user's context.
    */
-  listForOrganization: authedProcedure
-    .input(
-      z.object({
-        organizationId: z.number(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      // Verify user is a member of the organization
-      const membershipRepository = new MembershipRepository(prisma);
-      const isMember = await membershipRepository.hasMembership({
-        userId: ctx.user.id,
-        teamId: input.organizationId,
+  listForOrganization: authedProcedure.query(async ({ ctx }) => {
+    const organizationId = ctx.user.organizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "You are not a member of any organization.",
       });
+    }
 
-      if (!isMember) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this organization." });
-      }
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId: ctx.user.id,
+      teamId: organizationId,
+      permission: "organization.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
 
-      const service = createFeatureOptInService();
+    if (!hasPermission) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You do not have permission to view organization feature settings.",
+      });
+    }
 
-      return service.listFeaturesForTeam({ teamId: input.organizationId });
-    }),
+    // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
+    return featureOptInService.listFeaturesForTeam({ teamId: organizationId });
+  }),
 
   /**
    * Set user's feature state.
@@ -96,11 +143,9 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const service = createFeatureOptInService();
-
-      await service.setUserFeatureState({
+      await featureOptInService.setUserFeatureState({
         userId: ctx.user.id,
-        featureId: input.featureId,
+        featureId: input.featureId as keyof AppFlags,
         state: input.state,
         assignedBy: ctx.user.id,
       });
@@ -135,11 +180,9 @@ export const featureOptInRouter = router({
         });
       }
 
-      const service = createFeatureOptInService();
-
-      await service.setTeamFeatureState({
+      await featureOptInService.setTeamFeatureState({
         teamId: input.teamId,
-        featureId: input.featureId,
+        featureId: input.featureId as keyof AppFlags,
         state: input.state,
         assignedBy: ctx.user.id,
       });
@@ -149,20 +192,29 @@ export const featureOptInRouter = router({
 
   /**
    * Set organization's feature state (requires org admin).
+   * Uses the organization from the current user's context.
    */
   setOrganizationState: authedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
         featureId: z.string(),
         state: featureStateSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.user.organizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You are not a member of any organization.",
+        });
+      }
+
       const permissionCheckService = new PermissionCheckService();
       const hasPermission = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
-        teamId: input.organizationId,
+        teamId: organizationId,
         permission: "organization.update",
         fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
@@ -174,12 +226,10 @@ export const featureOptInRouter = router({
         });
       }
 
-      const service = createFeatureOptInService();
-
       // Organizations use the same TeamFeatures table
-      await service.setTeamFeatureState({
-        teamId: input.organizationId,
-        featureId: input.featureId,
+      await featureOptInService.setTeamFeatureState({
+        teamId: organizationId,
+        featureId: input.featureId as keyof AppFlags,
         state: input.state,
         assignedBy: ctx.user.id,
       });
