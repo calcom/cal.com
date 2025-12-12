@@ -1,7 +1,6 @@
-import { KyselyScheduleRepository } from "@calcom/features/schedules/repositories/KyselyScheduleRepository";
+import { getScheduleRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import logger from "@calcom/lib/logger";
-import { kyselyRead, kyselyWrite } from "@calcom/kysely";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -49,7 +48,7 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
     });
   }
 
-  const scheduleRepository = new KyselyScheduleRepository(kyselyRead, kyselyWrite);
+  const scheduleRepository = getScheduleRepository();
   const defaultScheduleId = await scheduleRepository.getDefaultScheduleId(input.userId);
 
   return {

@@ -3,8 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { KyselyScheduleRepository } from "@calcom/features/schedules/repositories/KyselyScheduleRepository";
-import { kyselyRead, kyselyWrite } from "@calcom/kysely";
+import { getScheduleRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import prisma from "@calcom/prisma";
 
 const travelScheduleSelect = {
@@ -41,7 +40,7 @@ async function postHandler(request: NextRequest) {
       },
     });
 
-    const scheduleRepository = new KyselyScheduleRepository(kyselyRead, kyselyWrite);
+    const scheduleRepository = getScheduleRepository();
     const defaultScheduleId = await scheduleRepository.getDefaultScheduleId(user.id);
 
     if (!user.defaultScheduleId) {

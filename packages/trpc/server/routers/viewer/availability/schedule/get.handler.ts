@@ -1,5 +1,4 @@
-import { KyselyScheduleRepository } from "@calcom/features/schedules/repositories/KyselyScheduleRepository";
-import { kyselyRead, kyselyWrite } from "@calcom/kysely";
+import { getScheduleRepository } from "@calcom/features/di/containers/RepositoryContainer";
 
 import type { TrpcSessionUser } from "../../../../types";
 import type { TGetInputSchema } from "./get.schema";
@@ -12,7 +11,7 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  const scheduleRepo = new KyselyScheduleRepository(kyselyRead, kyselyWrite);
+  const scheduleRepo = getScheduleRepository();
   return await scheduleRepo.findDetailedScheduleById({
     scheduleId: input.scheduleId,
     isManagedEventType: input.isManagedEventType,
