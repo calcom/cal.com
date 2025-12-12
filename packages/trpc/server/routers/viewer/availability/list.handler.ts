@@ -1,4 +1,5 @@
-import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import { KyselyScheduleRepository } from "@calcom/features/schedules/repositories/KyselyScheduleRepository";
+import { kyselyRead, kyselyWrite } from "@calcom/kysely";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -37,7 +38,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
 
   let defaultScheduleId: number | null;
   try {
-    const scheduleRepository = new ScheduleRepository(prisma);
+    const scheduleRepository = new KyselyScheduleRepository(kyselyRead, kyselyWrite);
     defaultScheduleId = await scheduleRepository.getDefaultScheduleId(user.id);
 
     if (!user.defaultScheduleId) {

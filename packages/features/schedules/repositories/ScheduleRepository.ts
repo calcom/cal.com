@@ -8,6 +8,9 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 
 import type {
+  DetailedScheduleDto,
+  FindDetailedScheduleByIdInputDto,
+  FindManyDetailedScheduleByUserIdInputDto,
   ScheduleBasicDto,
   ScheduleCreateInputDto,
   ScheduleCreatedDto,
@@ -17,9 +20,7 @@ import type {
 } from "./dto/ScheduleDto";
 import type { IScheduleRepository } from "./IScheduleRepository";
 
-export type FindDetailedScheduleByIdReturnType = Awaited<
-  ReturnType<ScheduleRepository["findDetailedScheduleById"]>
->;
+export type FindDetailedScheduleByIdReturnType = DetailedScheduleDto;
 
 export class ScheduleRepository implements IScheduleRepository {
   // when instantiating, prismaClient injection is required
@@ -93,19 +94,8 @@ export class ScheduleRepository implements IScheduleRepository {
     return schedule;
   }
 
-  async findDetailedScheduleById({
-    isManagedEventType,
-    scheduleId,
-    userId,
-    defaultScheduleId,
-    timeZone: userTimeZone,
-  }: {
-    timeZone: string;
-    userId: number;
-    defaultScheduleId: number | null;
-    scheduleId?: number;
-    isManagedEventType?: boolean;
-  }) {
+  async findDetailedScheduleById(input: FindDetailedScheduleByIdInputDto): Promise<DetailedScheduleDto> {
+    const { isManagedEventType, scheduleId, userId, defaultScheduleId, timeZone: userTimeZone } = input;
     const schedule = await this.prismaClient.schedule.findUnique({
       where: {
         id: scheduleId || (await this.getDefaultScheduleId(userId)),
@@ -154,19 +144,10 @@ export class ScheduleRepository implements IScheduleRepository {
     };
   }
 
-  async findManyDetailedScheduleByUserId({
-    isManagedEventType,
-    userId,
-    defaultScheduleId,
-
-    timeZone: userTimeZone,
-  }: {
-    timeZone: string;
-    userId: number;
-    defaultScheduleId: number | null;
-
-    isManagedEventType?: boolean;
-  }) {
+  async findManyDetailedScheduleByUserId(
+    input: FindManyDetailedScheduleByUserIdInputDto
+  ): Promise<DetailedScheduleDto[]> {
+    const { isManagedEventType, userId, defaultScheduleId, timeZone: userTimeZone } = input;
     const schedules = await this.prismaClient.schedule.findMany({
       where: {
         userId: userId,

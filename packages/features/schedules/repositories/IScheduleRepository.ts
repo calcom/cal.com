@@ -1,6 +1,9 @@
 import type { User } from "@calcom/prisma/client";
 
 import type {
+  DetailedScheduleDto,
+  FindDetailedScheduleByIdInputDto,
+  FindManyDetailedScheduleByUserIdInputDto,
   ScheduleBasicDto,
   ScheduleCreateInputDto,
   ScheduleCreatedDto,
@@ -16,6 +19,10 @@ export interface IScheduleRepository {
 
   findById(args: { id: number }): Promise<ScheduleBasicDto | null>;
 
+  findDetailedScheduleById(input: FindDetailedScheduleByIdInputDto): Promise<DetailedScheduleDto>;
+
+  findManyDetailedScheduleByUserId(input: FindManyDetailedScheduleByUserIdInputDto): Promise<DetailedScheduleDto[]>;
+
   getDefaultScheduleId(userId: number): Promise<number>;
 
   hasDefaultSchedule(user: Partial<User>): Promise<boolean>;
@@ -28,6 +35,9 @@ export interface IScheduleRepository {
 }
 
 export type {
+  DetailedScheduleDto,
+  FindDetailedScheduleByIdInputDto,
+  FindManyDetailedScheduleByUserIdInputDto,
   ScheduleBasicDto,
   ScheduleCreateInputDto,
   ScheduleCreatedDto,

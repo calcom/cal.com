@@ -7,8 +7,9 @@ import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyE
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
-import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import { KyselyScheduleRepository } from "@calcom/features/schedules/repositories/KyselyScheduleRepository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { kyselyRead, kyselyWrite } from "@calcom/kysely";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
@@ -263,7 +264,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
     // on timezone change update timezone of default schedule
-    const scheduleRepository = new ScheduleRepository(prisma);
+    const scheduleRepository = new KyselyScheduleRepository(kyselyRead, kyselyWrite);
     const defaultScheduleId = await scheduleRepository.getDefaultScheduleId(user.id);
 
     if (!user.defaultScheduleId) {

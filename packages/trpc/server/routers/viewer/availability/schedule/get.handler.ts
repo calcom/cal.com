@@ -1,5 +1,5 @@
-import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
-import { prisma } from "@calcom/prisma";
+import { KyselyScheduleRepository } from "@calcom/features/schedules/repositories/KyselyScheduleRepository";
+import { kyselyRead, kyselyWrite } from "@calcom/kysely";
 
 import type { TrpcSessionUser } from "../../../../types";
 import type { TGetInputSchema } from "./get.schema";
@@ -12,7 +12,7 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  const scheduleRepo = new ScheduleRepository(prisma);
+  const scheduleRepo = new KyselyScheduleRepository(kyselyRead, kyselyWrite);
   return await scheduleRepo.findDetailedScheduleById({
     scheduleId: input.scheduleId,
     isManagedEventType: input.isManagedEventType,

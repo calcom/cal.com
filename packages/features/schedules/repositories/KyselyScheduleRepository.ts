@@ -1,9 +1,18 @@
+import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
+import {
+  transformAvailabilityForAtom,
+  transformDateOverridesForAtom,
+  transformWorkingHoursForAtom,
+} from "@calcom/lib/schedules/transformers";
 import type { User } from "@calcom/prisma/client";
 
 import type { KyselyDb } from "@calcom/kysely/repository";
 
 import type {
   AvailabilityDto,
+  DetailedScheduleDto,
+  FindDetailedScheduleByIdInputDto,
+  FindManyDetailedScheduleByUserIdInputDto,
   ScheduleBasicDto,
   ScheduleCreateInputDto,
   ScheduleCreatedDto,
@@ -239,5 +248,146 @@ export class KyselyScheduleRepository implements IScheduleRepository {
       name: schedule.name,
       timeZone: schedule.timeZone,
     };
+  }
+
+  async findDetailedScheduleById(input: FindDetailedScheduleByIdInputDto): Promise<DetailedScheduleDto> {
+    const { isManagedEventType, scheduleId, userId, defaultScheduleId, timeZone: userTimeZone } = input;
+
+    const resolvedScheduleId = scheduleId || (await this.getDefaultScheduleId(userId));
+
+    const schedule = await this.readDb
+      .selectFrom("Schedule")
+      .select(["id", "userId", "name", "timeZone"])
+      .where("id", "=", resolvedScheduleId)
+      .executeTakeFirst();
+
+    if (!schedule) {
+      throw new Error("Schedule not found");
+    }
+
+    const availability = await this.readDb
+      .selectFrom("Availability")
+      .select(["id", "userId", "eventTypeId", "days", "startTime", "endTime", "date", "scheduleId"])
+      .where("scheduleId", "=", schedule.id)
+      .execute();
+
+    const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({ memberId: schedule.userId, userId });
+    const isCurrentUserOwner = schedule.userId === userId;
+
+    if (!isCurrentUserPartOfTeam && !isCurrentUserOwner) {
+      throw new Error("UNAUTHORIZED");
+    }
+
+    const timeZone = schedule.timeZone || userTimeZone;
+    const schedulesCount = await this.countByUserId(userId);
+
+    const scheduleWithAvailability = {
+      ...schedule,
+      availability: availability.map((a) => ({
+        days: a.days,
+        startTime: a.startTime,
+        endTime: a.endTime,
+        date: a.date,
+      })),
+    };
+
+    return {
+      id: schedule.id,
+      name: schedule.name,
+      isManaged: schedule.userId !== userId,
+      workingHours: transformWorkingHoursForAtom(scheduleWithAvailability),
+      schedule: availability.map((a): AvailabilityDto => ({
+        id: a.id,
+        userId: a.userId,
+        eventTypeId: a.eventTypeId,
+        days: a.days,
+        startTime: a.startTime,
+        endTime: a.endTime,
+        date: a.date,
+        scheduleId: a.scheduleId,
+      })),
+      availability: transformAvailabilityForAtom(scheduleWithAvailability),
+      timeZone,
+      dateOverrides: transformDateOverridesForAtom(scheduleWithAvailability, timeZone),
+      isDefault: !scheduleId || defaultScheduleId === schedule.id,
+      isLastSchedule: schedulesCount <= 1,
+      readOnly: schedule.userId !== userId && !isManagedEventType,
+      userId: schedule.userId,
+    };
+  }
+
+  async findManyDetailedScheduleByUserId(
+    input: FindManyDetailedScheduleByUserIdInputDto
+  ): Promise<DetailedScheduleDto[]> {
+    const { isManagedEventType, userId, defaultScheduleId, timeZone: userTimeZone } = input;
+
+    const schedules = await this.readDb
+      .selectFrom("Schedule")
+      .select(["id", "userId", "name", "timeZone"])
+      .where("userId", "=", userId)
+      .execute();
+
+    if (!schedules?.length) {
+      throw new Error("Schedules not found");
+    }
+
+    const isCurrentUserPartOfTeam = await hasReadPermissionsForUserId({
+      memberId: schedules[0].userId,
+      userId,
+    });
+
+    const result: DetailedScheduleDto[] = [];
+
+    for (const schedule of schedules) {
+      const isCurrentUserOwner = schedule.userId === userId;
+
+      if (!isCurrentUserPartOfTeam && !isCurrentUserOwner) {
+        throw new Error("UNAUTHORIZED");
+      }
+
+      const availability = await this.readDb
+        .selectFrom("Availability")
+        .select(["id", "userId", "eventTypeId", "days", "startTime", "endTime", "date", "scheduleId"])
+        .where("scheduleId", "=", schedule.id)
+        .execute();
+
+      const timeZone = schedule.timeZone || userTimeZone;
+
+      const scheduleWithAvailability = {
+        ...schedule,
+        availability: availability.map((a) => ({
+          days: a.days,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          date: a.date,
+        })),
+      };
+
+      result.push({
+        id: schedule.id,
+        name: schedule.name,
+        isManaged: schedule.userId !== userId,
+        workingHours: transformWorkingHoursForAtom(scheduleWithAvailability),
+        schedule: availability.map((a): AvailabilityDto => ({
+          id: a.id,
+          userId: a.userId,
+          eventTypeId: a.eventTypeId,
+          days: a.days,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          date: a.date,
+          scheduleId: a.scheduleId,
+        })),
+        availability: transformAvailabilityForAtom(scheduleWithAvailability),
+        timeZone,
+        isDefault: schedule.id === defaultScheduleId,
+        dateOverrides: transformDateOverridesForAtom(scheduleWithAvailability, timeZone),
+        readOnly: schedule.userId !== userId && !isManagedEventType,
+        isLastSchedule: schedules.length <= 1,
+        userId: schedule.userId,
+      });
+    }
+
+    return result;
   }
 }

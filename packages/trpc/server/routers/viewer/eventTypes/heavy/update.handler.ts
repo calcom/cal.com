@@ -12,8 +12,9 @@ import {
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import { KyselyScheduleRepository } from "@calcom/features/schedules/repositories/KyselyScheduleRepository";
 import tasker from "@calcom/features/tasker";
+import { kyselyRead, kyselyWrite } from "@calcom/kysely";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -376,7 +377,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (restrictionScheduleId) {
     // Verify that the user owns the restriction schedule or is a team member
-    const scheduleRepo = new ScheduleRepository(ctx.prisma);
+    const scheduleRepo = new KyselyScheduleRepository(kyselyRead, kyselyWrite);
     const restrictionSchedule = await scheduleRepo.findByIdForOwnershipCheck({
       scheduleId: restrictionScheduleId,
     });

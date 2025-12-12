@@ -76,3 +76,35 @@ export type ScheduleCreatedDto = {
   name: string;
   timeZone: string | null;
 };
+
+// Input DTOs for detailed schedule queries
+export type FindDetailedScheduleByIdInputDto = {
+  timeZone: string;
+  userId: number;
+  defaultScheduleId: number | null;
+  scheduleId?: number;
+  isManagedEventType?: boolean;
+};
+
+export type FindManyDetailedScheduleByUserIdInputDto = {
+  timeZone: string;
+  userId: number;
+  defaultScheduleId: number | null;
+  isManagedEventType?: boolean;
+};
+
+// Output DTO for detailed schedule (used by atoms)
+export type DetailedScheduleDto = {
+  id: number;
+  name: string;
+  isManaged: boolean;
+  workingHours: ReturnType<typeof import("@calcom/lib/availability").getWorkingHours>;
+  schedule: AvailabilityDto[];
+  availability: Array<Array<{ start: Date; end: Date }>>;
+  timeZone: string;
+  dateOverrides: Array<{ ranges: Array<{ start: Date; end: Date }> }>;
+  isDefault: boolean;
+  isLastSchedule: boolean;
+  readOnly: boolean;
+  userId: number;
+};

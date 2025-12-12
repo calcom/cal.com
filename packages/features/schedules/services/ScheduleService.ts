@@ -2,11 +2,12 @@ import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { HttpError } from "@calcom/lib/http-error";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
+import { kyselyRead, kyselyWrite } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { ScheduleRepository } from "../repositories/ScheduleRepository";
+import { KyselyScheduleRepository } from "../repositories/KyselyScheduleRepository";
 
 interface IUpdateScheduleOptions {
   input: TUpdateInputSchema;
@@ -65,7 +66,7 @@ export class ScheduleService {
 
     let updatedUser;
     if (input.isDefault) {
-      const scheduleRepo = new ScheduleRepository(this.prisma);
+      const scheduleRepo = new KyselyScheduleRepository(kyselyRead, kyselyWrite);
 
       const setupDefault = await scheduleRepo.setupDefaultSchedule(user.id, input.scheduleId);
       updatedUser = setupDefault;
