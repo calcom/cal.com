@@ -529,6 +529,7 @@ export class InputBookingsService_2024_08_13 {
       bodyTransformed.eventTypeId
     );
 
+    const reservedSlotUid = getReservedSlotUidFromRequest(request);
     const newRequest = { ...request };
     let userId: number | undefined = undefined;
 
@@ -551,7 +552,12 @@ export class InputBookingsService_2024_08_13 {
 
     const location = await this.getRescheduleBookingLocation(bookingUid);
     if (oAuthClientParams) {
-      Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
+      Object.assign(newRequest, {
+        userId,
+        ...oAuthClientParams,
+        platformBookingLocation: location,
+        reservedSlotUid,
+      });
       newRequest.body = {
         ...bodyTransformed,
         rescheduledBy: request.body.rescheduledBy,
@@ -559,7 +565,7 @@ export class InputBookingsService_2024_08_13 {
         creationSource: CreationSource.API_V2,
       };
     } else {
-      Object.assign(newRequest, { userId, platformBookingLocation: location });
+      Object.assign(newRequest, { userId, platformBookingLocation: location, reservedSlotUid });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: false,
