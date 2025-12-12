@@ -1,5 +1,4 @@
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { prisma } from "@calcom/prisma";
+import { getBookingRepository } from "@calcom/features/di/containers/Booking";
 
 import type { TGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 
@@ -9,7 +8,7 @@ type GetBookingAttendeesOptions = {
 };
 
 export const getBookingAttendeesHandler = async ({ ctx: _ctx, input }: GetBookingAttendeesOptions) => {
-  const bookingRepository = new BookingRepository(prisma);
+  const bookingRepository = getBookingRepository();
   const count = await bookingRepository.countSeatReferencesByReferenceUid({
     referenceUid: input.seatReferenceUid,
   });

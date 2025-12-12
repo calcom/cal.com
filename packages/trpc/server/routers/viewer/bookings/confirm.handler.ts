@@ -7,7 +7,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getBookingRepository } from "@calcom/features/di/containers/Booking";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -54,7 +54,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     platformClientParams,
   } = input;
 
-  const bookingRepository = new BookingRepository(prisma);
+  const bookingRepository = getBookingRepository();
   const booking = await bookingRepository.findByIdForConfirmation({ bookingId });
 
   const user = booking.user;

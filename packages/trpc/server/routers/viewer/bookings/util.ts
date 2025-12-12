@@ -1,5 +1,4 @@
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { prisma } from "@calcom/prisma";
+import { getBookingRepository } from "@calcom/features/di/containers/Booking";
 import type {
   Booking,
   EventType,
@@ -22,7 +21,7 @@ export const bookingsProcedure = authedProcedure
     const { bookingId } = input;
     const loggedInUser = ctx.user;
 
-    const bookingRepository = new BookingRepository(prisma);
+    const bookingRepository = getBookingRepository();
 
     const bookingByBeingAdmin = await bookingRepository.findByIdForAdminIncludeFullContext({
       bookingId,

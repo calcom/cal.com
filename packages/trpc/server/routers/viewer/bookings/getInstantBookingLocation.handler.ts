@@ -1,5 +1,4 @@
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { prisma } from "@calcom/prisma";
+import { getBookingRepository } from "@calcom/features/di/containers/Booking";
 
 import type { TInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 
@@ -11,7 +10,7 @@ type GetOptions = {
 export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
   const { bookingId } = input;
 
-  const bookingRepository = new BookingRepository(prisma);
+  const bookingRepository = getBookingRepository();
   const booking = await bookingRepository.findAcceptedByIdForInstantBooking({ bookingId });
 
   // Don't leak anything private from the booking
