@@ -1224,4 +1224,135 @@ describe("FeaturesRepository Integration Tests", () => {
       });
     });
   });
+
+  describe("getFeatureStateForTeams", () => {
+    it("should return empty object for empty teamIds array", async () => {
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [],
+        featureId: testFeature,
+      });
+
+      expect(result).toEqual({});
+    });
+
+    it("should return inherit (missing key) when team has no feature row", async () => {
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id],
+        featureId: testFeature,
+      });
+
+      // Teams without explicit state are not in the result (caller should default to 'inherit')
+      expect(result[testTeam.id]).toBeUndefined();
+    });
+
+    it("should return 'enabled' when team has feature enabled", async () => {
+      await prisma.feature.create({
+        data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+      });
+
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id],
+        featureId: testFeature,
+      });
+
+      expect(result[testTeam.id]).toBe("enabled");
+    });
+
+    it("should return 'disabled' when team has feature disabled", async () => {
+      await prisma.feature.create({
+        data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+      });
+
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: false,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id],
+        featureId: testFeature,
+      });
+
+      expect(result[testTeam.id]).toBe("disabled");
+    });
+
+    it("should return states for multiple teams in a single query", async () => {
+      const secondTeam = await prisma.team.create({
+        data: { name: "Second Test Team", slug: "second-test-team" },
+      });
+
+      await prisma.feature.create({
+        data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+      });
+
+      await prisma.teamFeatures.createMany({
+        data: [
+          { teamId: testTeam.id, featureId: testFeature, enabled: true, assignedBy: "test" },
+          { teamId: secondTeam.id, featureId: testFeature, enabled: false, assignedBy: "test" },
+        ],
+      });
+
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id, secondTeam.id],
+        featureId: testFeature,
+      });
+
+      expect(result[testTeam.id]).toBe("enabled");
+      expect(result[secondTeam.id]).toBe("disabled");
+
+      // Clean up
+      await prisma.teamFeatures.deleteMany({
+        where: { teamId: secondTeam.id },
+      });
+      await prisma.team.delete({
+        where: { id: secondTeam.id },
+      });
+    });
+
+    it("should only return teams with explicit state, not all requested teams", async () => {
+      const secondTeam = await prisma.team.create({
+        data: { name: "Second Test Team", slug: "second-test-team-2" },
+      });
+
+      await prisma.feature.create({
+        data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+      });
+
+      // Only set feature for testTeam, not secondTeam
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id, secondTeam.id],
+        featureId: testFeature,
+      });
+
+      expect(result[testTeam.id]).toBe("enabled");
+      expect(result[secondTeam.id]).toBeUndefined(); // Not in result, caller defaults to 'inherit'
+
+      // Clean up
+      await prisma.team.delete({
+        where: { id: secondTeam.id },
+      });
+    });
+  });
 });
