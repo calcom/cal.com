@@ -355,10 +355,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     res.redirect(
-      `${
-        getSafeRedirectUrl(state?.onErrorReturnTo) ??
-        getInstalledAppPath({ variant: "messaging", slug: "whatsapp-business" })
-      }?error=${errorMessage}`
+      `${getInstalledAppPath({ variant: "messaging", slug: "whatsapp-business" })}?error=${errorMessage}`
     );
     return;
   }
