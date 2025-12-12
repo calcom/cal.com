@@ -1,3 +1,4 @@
+import { isWithinMinimumRescheduleNotice } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
 
@@ -122,8 +123,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           ? `?seatReferenceUid=${seatReferenceUid}`
           : ""
       }`,
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+      disabled: isActionDisabled("reschedule", {
+        ...context,
+        booking,
+        isBookingInPast,
+        isDisabledRescheduling,
+      }),
     },
     {
       id: "reschedule_request",
@@ -131,9 +136,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
-        isDisabledRescheduling ||
-        booking.seatsReferences.length > 0,
+        isActionDisabled("reschedule_request", {
+          ...context,
+          booking,
+          isBookingInPast,
+          isDisabledRescheduling,
+        }) || booking.seatsReferences.length > 0,
     },
     isBookingFromRoutingForm
       ? {
@@ -229,12 +237,29 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling } = context;
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isAttendee } = context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
-      return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
+      // Only apply minimum reschedule notice restriction if user is NOT the organizer
+      // If user is an attendee (or not authenticated), apply the restriction
+      const isUserOrganizer =
+        !isAttendee &&
+        booking.loggedInUser?.userId &&
+        booking.user?.id &&
+        booking.loggedInUser.userId === booking.user.id;
+      const isWithinMinimumNotice =
+        !isUserOrganizer &&
+        isWithinMinimumRescheduleNotice(
+          new Date(booking.startTime),
+          booking.eventType.minimumRescheduleNotice ?? null
+        );
+      return (
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
+        isDisabledRescheduling ||
+        isWithinMinimumNotice
+      );
     case "cancel":
       return isDisabledCancelling || isBookingInPast;
     case "view_recordings":

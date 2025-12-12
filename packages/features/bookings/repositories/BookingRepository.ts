@@ -1133,6 +1133,14 @@ export class BookingRepository {
             },
           },
         },
+        eventType: {
+          select: {
+            id: true,
+            minimumRescheduleNotice: true,
+            disableRescheduling: true,
+            userId: true,
+          },
+        },
         destinationCalendar: true,
         payment: true,
         references: true,

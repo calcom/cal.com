@@ -24,6 +24,7 @@ import {
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
+import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
@@ -52,6 +53,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -385,6 +387,15 @@ export default function Success(props: PageProps) {
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
 
+  // Check if reschedule should be disabled due to minimum reschedule notice
+  // Use server-side computed isHost prop instead of client-side computation
+  const isWithinMinimumRescheduleNotice = isHost
+    ? false // Organizers can always reschedule
+    : isWithinMinimumRescheduleNoticeUtil(
+        bookingInfo?.startTime ?? null,
+        eventType?.minimumRescheduleNotice ?? null
+      );
+  const isRescheduleDisabled = !canReschedule || isWithinMinimumRescheduleNotice;
   const paymentStatusMessage = usePaymentStatus({
     bookingStatus: bookingInfo.status,
     startTime: bookingInfo.startTime,
@@ -489,7 +500,7 @@ export default function Success(props: PageProps) {
                 {!isFeedbackMode && (
                   <>
                     <div
-                      className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
+                      className={classNames(isRoundRobin && "relative mx-auto h-24 min-h-24 w-32 min-w-32")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
@@ -539,7 +550,7 @@ export default function Success(props: PageProps) {
                         (bookingInfo.status === BookingStatus.CANCELLED ||
                           bookingInfo.status === BookingStatus.REJECTED) && <h4>{paymentStatusMessage}</h4>}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left sm:gap-x-0 rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -810,47 +821,56 @@ export default function Success(props: PageProps) {
                       canCancelOrReschedule &&
                       (!isCancellationMode ? (
                         <>
-                          <hr className="border-subtle mb-8" />
-                          <div className="text-center last:pb-0">
-                            <span className="text-emphasis ltr:mr-2 rtl:ml-2">
-                              {t("need_to_make_a_change")}
-                            </span>
-
+                          {/* Only show section if there's at least one actionable option */}
+                          {((!props.recurringBookings &&
+                            (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                            canReschedule) ||
+                            (!isBookingInPast && canCancel)) && (
                             <>
-                              {!props.recurringBookings &&
-                                (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
-                                canReschedule && (
-                                  <span className="text-default inline">
-                                    <span className="underline" data-testid="reschedule-link">
-                                      <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                          currentUserEmail
-                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                            : ""
-                                        }`}
-                                        legacyBehavior>
-                                        {t("reschedule")}
-                                      </Link>
-                                    </span>
-                                    {!isBookingInPast && canCancel && (
-                                      <span className="mx-2">{t("or_lowercase")}</span>
-                                    )}
-                                  </span>
-                                )}
+                              <hr className="border-subtle mb-8" />
+                              <div className="text-center last:pb-0">
+                                <span className="text-emphasis ltr:mr-2 rtl:ml-2">
+                                  {t("need_to_make_a_change")}
+                                </span>
 
-                              {!isBookingInPast && canCancel && (
-                                <button
-                                  data-testid="cancel"
-                                  className={classNames(
-                                    "text-default underline",
-                                    props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                <>
+                                  {!props.recurringBookings &&
+                                    (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                                    canReschedule &&
+                                    !isRescheduleDisabled && (
+                                      <span className="text-default inline">
+                                        <span className="underline" data-testid="reschedule-link">
+                                          <Link
+                                            href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                              currentUserEmail
+                                                ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                                : ""
+                                            }`}
+                                            legacyBehavior>
+                                            {t("reschedule")}
+                                          </Link>
+                                        </span>
+                                        {!isBookingInPast && canCancel && (
+                                          <span className="mx-2">{t("or_lowercase")}</span>
+                                        )}
+                                      </span>
+                                    )}
+
+                                  {!isBookingInPast && canCancel && (
+                                    <button
+                                      data-testid="cancel"
+                                      className={classNames(
+                                        "text-default underline",
+                                        props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                      )}
+                                      onClick={() => setIsCancellationMode(true)}>
+                                      {t("cancel")}
+                                    </button>
                                   )}
-                                  onClick={() => setIsCancellationMode(true)}>
-                                  {t("cancel")}
-                                </button>
-                              )}
+                                </>
+                              </div>
                             </>
-                          </div>
+                          )}
                         </>
                       ) : (
                         <>
@@ -1067,7 +1087,7 @@ export default function Success(props: PageProps) {
               </div>
               {isGmail && !isFeedbackMode && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle ltr:text-left rtl:text-right"
                   severity="warning"
                   message={
                     <div>
