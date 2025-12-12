@@ -950,16 +950,29 @@ export const fieldTypeEnum = z.enum([
 export type FieldType = z.infer<typeof fieldTypeEnum>;
 
 export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
-  const allDomains = val.split(",").map((dom) => dom.trim());
+  // Allow empty input: field is optional at the form level but may come through as empty string
+  if (val.trim() === "") return;
 
-  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/i;
+  const allDomains = val
+    .split(",")
+    .map((dom) => dom.trim())
+    .filter(Boolean);
 
-  /*
-  Valid patterns - [ example, example.anything, anyone@example.anything ]
-  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
-*/
+  // If user entered only separators/commas, treat as invalid input
+  if (allDomains.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter valid domain or email",
+    });
+    return;
+  }
 
-  const isValid = !allDomains.some((domain) => !regex.test(domain));
+  // Accept forms: domain-only, `@domain`, or `local@domain`
+  // - Domain labels: alnum, hyphens allowed internally, no leading/trailing hyphen
+  // - Require at least one dot and end with an alpha TLD of length ≥2
+  const EMAIL_OR_DOMAIN_PATTERN = /^(?:[a-z0-9._+'-]+@|@)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i;
+
+  const isValid = allDomains.every((entry) => EMAIL_OR_DOMAIN_PATTERN.test(entry));
 
   if (!isValid) {
     ctx.addIssue({
