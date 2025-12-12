@@ -2,156 +2,165 @@
 #
 # Notes:
 # - Team keys are org/team_slug (usually lowercase slugs).
-# - To satisfy required_by.teams, the action must be able to check team membership.
-#   That typically requires a token with read:org (use a PAT via secrets.WEIGHTED_APPROVALS_TOKEN).
-+
-+weights:
-+  # Default for unlisted approvers (still must satisfy required_by.teams when present)
-+  default: 1
-+  precedence: max
-+
-+  teams:
-+    # Update these to match your actual GitHub team slugs.
-+    calcom/foundation: 1
-+    calcom/api: 1
-+    calcom/consumer: 1
-+    calcom/platform: 1
-+
-+rules:
-+  # Default: any PR needs at least one approval.
-+  - paths: ["**"]
-+    required_total: 1
-+
-+  # /**/package.json @calcom/Foundation
-+  - paths: ["**/package.json"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /apps/api/**/* @calcom/API
-+  - paths: ["/apps/api/**"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/api: 1
-+
-+  # /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
-+  - paths: ["/apps/web/**/layout.tsx"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/consumer: 1
-+        calcom/foundation: 1
-+
-+  # /apps/web/lib/* @calcom/Foundation
-+  - paths:
-+      - "/apps/web/lib/csp.ts"
-+      - "/apps/web/lib/buildNonce.ts"
-+      - "/apps/web/lib/booking.ts"
-+      - "/apps/web/lib/handleOrgRedirect.ts"
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  - paths:
-+      - "/apps/web/lib/daily-webhook/**"
-+      - "/apps/web/lib/core/**"
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /apps/web/middleware.ts @calcom/Foundation
-+  - paths: ["/apps/web/middleware.ts"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /deploy/**/* @calcom/Foundation
-+  - paths: ["/deploy/**"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /packages/app-store/* @calcom/Foundation
-+  - paths:
-+      - "/packages/app-store/applecalendar/**"
-+      - "/packages/app-store/caldavcalendar/**"
-+      - "/packages/app-store/exchange2013calendar/**"
-+      - "/packages/app-store/exchange2016calendar/**"
-+      - "/packages/app-store/exchangecalendar/**"
-+      - "/packages/app-store/feishucalendar/**"
-+      - "/packages/app-store/googlecalendar/**"
-+      - "/packages/app-store/ics-feedcalendar/**"
-+      - "/packages/app-store/larkcalendar/**"
-+      - "/packages/app-store/office365calendar/**"
-+      - "/packages/app-store/zohocalendar/**"
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /packages/embeds/**/* @calcom/Foundation
-+  - paths: ["/packages/embeds/**"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /packages/features/* @calcom/Foundation
-+  - paths:
-+      - "/packages/features/auth/lib/next-auth-options.ts"
-+      - "/packages/features/bookings/lib/**"
-+      - "/packages/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability.ts"
-+      - "/packages/features/availability/lib/getUserAvailability.ts"
-+      - "/packages/features/bookings/lib/getLuckyUser.ts"
-+      - "/packages/features/schedules/lib/slots.ts"
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /packages/platform/atoms/**/*WebWrapper.tsx @calcom/Consumer
-+  - paths: ["/packages/platform/atoms/**/*WebWrapper.tsx"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/consumer: 1
-+
-+  # /packages/platform/**/* @calcom/Platform @calcom/Foundation
-+  - paths: ["/packages/platform/**"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/platform: 1
-+        calcom/foundation: 1
-+
-+  # /packages/prisma/**/* @calcom/Foundation
-+  - paths: ["/packages/prisma/**"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /packages/trpc/... @calcom/Foundation
-+  - paths:
-+      - "/packages/trpc/server/routers/viewer/bookings/confirm.handler.ts"
-+      - "/packages/trpc/server/routers/viewer/bookings/get.handler.ts"
-+      - "/packages/trpc/server/routers/viewer/slots/**"
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/foundation: 1
-+
-+  # /packages/ui/**/* @calcom/Consumer @calcom/Foundation
-+  - paths: ["/packages/ui/**"]
-+    required_total: 1
-+    required_by:
-+      teams:
-+        calcom/consumer: 1
-+        calcom/foundation: 1
-+YAML
+# - allowed.teams specifies which teams can approve (either team can approve).
+#   To check team membership, the action typically requires a token with read:org
+#   (use a PAT via secrets.WEIGHTED_APPROVALS_TOKEN).
+#
+# Patterns you can reuse to build more examples:
+#
+# Single team ownership → required_total: 1, required_by.teams: { team: 1 }
+#
+# Two-team shared ownership → required_total: 1, required_by.teams: { teamA: 1, teamB: 1 }
+#
+# If you want "either team can approve" → omit required_by.teams and optionally set allowed.teams: [teamA, teamB]
+
+weights:
+  # Default for unlisted approvers (still must satisfy allowed.teams when present)
+  default: 1
+  precedence: max
+
+  teams:
+    # Update these to match your actual GitHub team slugs.
+    calcom/foundation: 1
+    calcom/api: 1
+    calcom/consumer: 1
+    calcom/platform: 1
+
+rules:
+  # Default: any PR needs at least one approval.
+  - paths: ["**"]
+    required_total: 1
+
+  # /**/package.json @calcom/Foundation
+  - paths: ["**/package.json"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /apps/api/**/* @calcom/API
+  - paths: ["/apps/api/**"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/api
+
+  # /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
+  - paths: ["/apps/web/**/layout.tsx"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/consumer
+        - calcom/foundation
+
+  # /apps/web/lib/* @calcom/Foundation
+  - paths:
+      - "/apps/web/lib/csp.ts"
+      - "/apps/web/lib/buildNonce.ts"
+      - "/apps/web/lib/booking.ts"
+      - "/apps/web/lib/handleOrgRedirect.ts"
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  - paths:
+      - "/apps/web/lib/daily-webhook/**"
+      - "/apps/web/lib/core/**"
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /apps/web/middleware.ts @calcom/Foundation
+  - paths: ["/apps/web/middleware.ts"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /deploy/**/* @calcom/Foundation
+  - paths: ["/deploy/**"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /packages/app-store/* @calcom/Foundation
+  - paths:
+      - "/packages/app-store/applecalendar/**"
+      - "/packages/app-store/caldavcalendar/**"
+      - "/packages/app-store/exchange2013calendar/**"
+      - "/packages/app-store/exchange2016calendar/**"
+      - "/packages/app-store/exchangecalendar/**"
+      - "/packages/app-store/feishucalendar/**"
+      - "/packages/app-store/googlecalendar/**"
+      - "/packages/app-store/ics-feedcalendar/**"
+      - "/packages/app-store/larkcalendar/**"
+      - "/packages/app-store/office365calendar/**"
+      - "/packages/app-store/zohocalendar/**"
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /packages/embeds/**/* @calcom/Foundation
+  - paths: ["/packages/embeds/**"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /packages/features/* @calcom/Foundation
+  - paths:
+      - "/packages/features/auth/lib/next-auth-options.ts"
+      - "/packages/features/bookings/lib/**"
+      - "/packages/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability.ts"
+      - "/packages/features/availability/lib/getUserAvailability.ts"
+      - "/packages/features/bookings/lib/getLuckyUser.ts"
+      - "/packages/features/schedules/lib/slots.ts"
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /packages/platform/atoms/**/*WebWrapper.tsx @calcom/Consumer
+  - paths: ["/packages/platform/atoms/**/*WebWrapper.tsx"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/consumer
+        - calcom/foundation
+
+  # /packages/platform/**/* @calcom/Platform @calcom/Foundation
+  - paths: ["/packages/platform/**"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/platform
+        - calcom/foundation
+
+  # /packages/prisma/**/* @calcom/Foundation
+  - paths: ["/packages/prisma/**"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /packages/trpc/... @calcom/Foundation
+  - paths:
+      - "/packages/trpc/server/routers/viewer/bookings/confirm.handler.ts"
+      - "/packages/trpc/server/routers/viewer/bookings/get.handler.ts"
+      - "/packages/trpc/server/routers/viewer/slots/**"
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/foundation
+
+  # /packages/ui/**/* @calcom/Consumer @calcom/Foundation
+  - paths: ["/packages/ui/**"]
+    required_total: 1
+    allowed:
+      teams:
+        - calcom/consumer
+        - calcom/foundation
