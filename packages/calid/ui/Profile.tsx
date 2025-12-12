@@ -10,6 +10,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { AnimatePresence, motion } from "framer-motion";
+import { signOut } from "next-auth/react";
 import { useState } from "react";
 
 import { SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
@@ -138,7 +139,7 @@ export const Profile = ({ small }: ProfileProps) => {
           <Icon name="settings" className="mr-2 h-4 w-4" />
           {t("settings")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => (window.location.href = "/auth/logout")} color="destructive">
+        <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/auth/logout" })} color="destructive">
           <Icon name="log-out" className=" mr-2 h-4 w-4" />
           {t("sign_out")}
         </DropdownMenuItem>

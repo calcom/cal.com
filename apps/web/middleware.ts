@@ -108,7 +108,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     },
   });
 
+  // Middleware doesn't execute on re-render, so safe to clear cookies for logout here.
   if (url.pathname.startsWith("/auth/logout")) {
+    // Don't remove secure cookies as that's not clean way to remove next auth sessions.
     res.cookies.delete("next-auth.session-token");
   }
 

@@ -1,6 +1,7 @@
-import ImpersonatingBanner, {
-  type ImpersonatingBannerProps,
-} from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+import ImpersonationBanner, {
+  type ImpersonationBannerProps,
+} from "@calid/features/modules/impersonation/components/ImpersonationBanner";
+
 import {
   OrgUpgradeBanner,
   type OrgUpgradeBannerProps,
@@ -25,7 +26,7 @@ type BannerTypeProps = {
   orgUpgradeBanner: OrgUpgradeBannerProps;
   verifyEmailBanner: VerifyEmailBannerProps;
   adminPasswordBanner: AdminPasswordBannerProps;
-  impersonationBanner: ImpersonatingBannerProps;
+  impersonationBanner: ImpersonationBannerProps;
   calendarCredentialBanner: CalendarCredentialBannerProps;
   invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
 };
@@ -43,7 +44,7 @@ export const BannerComponent: BannerComponent = {
   orgUpgradeBanner: (props: OrgUpgradeBannerProps) => <OrgUpgradeBanner {...props} />,
   verifyEmailBanner: (props: VerifyEmailBannerProps) => <VerifyEmailBanner {...props} />,
   adminPasswordBanner: (props: AdminPasswordBannerProps) => <AdminPasswordBanner {...props} />,
-  impersonationBanner: (props: ImpersonatingBannerProps) => <ImpersonatingBanner {...props} />,
+  impersonationBanner: (props: ImpersonationBannerProps) => <ImpersonationBanner {...props} />,
   calendarCredentialBanner: (props: CalendarCredentialBannerProps) => <CalendarCredentialBanner {...props} />,
   invalidAppCredentialBanners: (props: InvalidAppCredentialBannersProps) => (
     <InvalidAppCredentialBanners {...props} />
