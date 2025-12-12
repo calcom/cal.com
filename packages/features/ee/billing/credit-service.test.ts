@@ -5,7 +5,7 @@ import * as EmailManager from "@calcom/emails/billing-email-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
+import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { CreditType } from "@calcom/prisma/enums";
 
 import { CreditService } from "./credit-service";
