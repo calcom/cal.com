@@ -1,9 +1,11 @@
 import { createContainer } from "@calcom/features/di/di";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import type { IHostRepository } from "@calcom/lib/server/repository/IHostRepository";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/ISelectedCalendarRepository";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
+import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
 import type { IMembershipRepository } from "../../membership/repositories/IMembershipRepository";
@@ -11,7 +13,9 @@ import type { IProfileRepository } from "../../profile/repositories/IProfileRepo
 import type { IScheduleRepository } from "../../schedules/repositories/IScheduleRepository";
 import type { IUserRepository } from "../../users/repositories/IUserRepository";
 import { moduleLoader as bookingRepositoryModuleLoader } from "../modules/Booking";
+import { moduleLoader as credentialRepositoryModuleLoader } from "../modules/Credential";
 import { moduleLoader as eventTypeRepositoryModuleLoader } from "../modules/EventType";
+import { moduleLoader as hostRepositoryModuleLoader } from "../modules/Host";
 import { moduleLoader as membershipRepositoryModuleLoader } from "../modules/Membership";
 import { moduleLoader as profileRepositoryModuleLoader } from "../modules/Profile";
 import { scheduleRepositoryModuleLoader } from "../modules/Schedule";
@@ -32,6 +36,8 @@ teamRepositoryModuleLoader.loadModule(repositoryContainer);
 membershipRepositoryModuleLoader.loadModule(repositoryContainer);
 eventTypeRepositoryModuleLoader.loadModule(repositoryContainer);
 profileRepositoryModuleLoader.loadModule(repositoryContainer);
+credentialRepositoryModuleLoader.loadModule(repositoryContainer);
+hostRepositoryModuleLoader.loadModule(repositoryContainer);
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -67,4 +73,12 @@ export function getEventTypeRepository(): IEventTypeRepository {
 
 export function getProfileRepository(): IProfileRepository {
   return repositoryContainer.get<IProfileRepository>(DI_TOKENS.PROFILE_REPOSITORY);
+}
+
+export function getCredentialRepository(): ICredentialRepository {
+  return repositoryContainer.get<ICredentialRepository>(DI_TOKENS.CREDENTIAL_REPOSITORY);
+}
+
+export function getHostRepository(): IHostRepository {
+  return repositoryContainer.get<IHostRepository>(DI_TOKENS.HOST_REPOSITORY);
 }

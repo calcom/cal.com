@@ -1,22 +1,25 @@
-import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { KyselyCredentialRepository } from "@calcom/features/credentials/repositories/KyselyCredentialRepository";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
-import { createModule, bindModuleToClassOnToken, type ModuleLoader } from "../di";
+import { type Container, createModule } from "../di";
+import { moduleLoader as kyselyModuleLoader } from "./Kysely";
 
 export const credentialRepositoryModule = createModule();
 const token = DI_TOKENS.CREDENTIAL_REPOSITORY;
 const moduleToken = DI_TOKENS.CREDENTIAL_REPOSITORY_MODULE;
-const loadModule = bindModuleToClassOnToken({
-  module: credentialRepositoryModule,
-  moduleToken,
-  token,
-  classs: CredentialRepository,
-  dep: prismaModuleLoader,
-});
 
-export const moduleLoader: ModuleLoader = {
+// Kysely implementation uses read/write database instances for read replica support
+credentialRepositoryModule
+  .bind(token)
+  .toClass(KyselyCredentialRepository, [DI_TOKENS.KYSELY_READ_DB, DI_TOKENS.KYSELY_WRITE_DB]);
+
+export const moduleLoader = {
   token,
-  loadModule,
+  loadModule: function (container: Container) {
+    // Load Kysely module first (dependency)
+    kyselyModuleLoader.loadModule(container);
+    // Then load credential repository module
+    container.load(moduleToken, credentialRepositoryModule);
+  },
 };
 
