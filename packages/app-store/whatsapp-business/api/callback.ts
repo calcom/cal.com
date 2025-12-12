@@ -1,6 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import {
+  WEBAPP_URL,
+  WEBAPP_URL_FOR_OAUTH,
+  META_WHATSAPP_BUSINESS_APP_ID,
+  META_WHATSAPP_BUSINESS_APP_SECRET,
+} from "@calcom/lib/constants";
 import { META_API_VERSION } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
@@ -122,6 +127,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     const longLivedTokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
 
+    const developerToken = `${META_WHATSAPP_BUSINESS_APP_ID}|${META_WHATSAPP_BUSINESS_APP_SECRET}`;
+
     longLivedTokenUrl.searchParams.append("grant_type", "fb_exchange_token");
     longLivedTokenUrl.searchParams.append("client_id", client_id);
     longLivedTokenUrl.searchParams.append("client_secret", client_secret);
@@ -173,7 +180,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const wabaResponse = await fetch(
-      `https://graph.facebook.com/${META_API_VERSION}/debug_token?input_token=${longLivedTokenData.access_token}&access_token=${longLivedTokenData.access_token}`
+      `https://graph.facebook.com/${META_API_VERSION}/debug_token?input_token=${longLivedTokenData.access_token}&access_token=${developerToken}`
     );
 
     const wabaData = await wabaResponse.json();
