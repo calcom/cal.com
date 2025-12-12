@@ -1,3 +1,4 @@
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { HttpError } from "@calcom/lib/http-error";
@@ -57,6 +58,32 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
       where: { id },
       data,
     });
+
+    // Update all TempOrgRedirect records that point to the old org URL to use the new org URL
+    if (restInput.slug && existingOrg.slug && restInput.slug !== existingOrg.slug) {
+      const oldOrgUrlPrefix = getOrgFullOrigin(existingOrg.slug);
+      const newOrgUrlPrefix = getOrgFullOrigin(restInput.slug);
+
+      const redirectsToUpdate = await tx.tempOrgRedirect.findMany({
+        where: {
+          toUrl: {
+            startsWith: oldOrgUrlPrefix,
+          },
+        },
+      });
+
+      for (const redirect of redirectsToUpdate) {
+        const newToUrl = redirect.toUrl.replace(oldOrgUrlPrefix, newOrgUrlPrefix);
+        await tx.tempOrgRedirect.update({
+          where: {
+            id: redirect.id,
+          },
+          data: {
+            toUrl: newToUrl,
+          },
+        });
+      }
+    }
 
     if (organizationSettings || existingOrg.organizationSettings) {
       await tx.organizationSettings.update({
