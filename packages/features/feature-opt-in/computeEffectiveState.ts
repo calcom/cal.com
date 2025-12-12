@@ -7,11 +7,14 @@ import type { FeatureState } from "./types";
  * 1. Global disabled → false (stop)
  * 2. Org explicitly disabled → false (stop)
  * 3. Org explicitly enabled → allowed at org level, continue to teams
- * 4. Org inherits (or no org) → check teams
+ * 4. Org inherits (or no org) → check teams (only explicitly enabled teams count)
  * 5. All teams explicitly disabled → false (stop)
- * 6. At least one team enabled OR inherits → allowed at team level, continue to user
+ * 6. At least one team enabled, OR inherits from an enabled org → allowed at team level, continue to user
  * 7. User explicitly disabled → false
  * 8. User explicitly enabled OR inherits → true
+ *
+ * Note: "inherit" all the way up the chain (global enabled, org inherit, team inherit, user inherit)
+ * results in the feature being disabled. At least one level must explicitly enable the feature.
  */
 export function computeEffectiveStateAcrossTeams({
   globalEnabled,
