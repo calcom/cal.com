@@ -9,6 +9,7 @@ import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/
 import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
 import { RegularBookingModule } from "@/lib/modules/regular-booking.module";
+import { PrismaAuditActorRepository } from "@/lib/repositories/prisma-audit-actor.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -59,6 +60,7 @@ import { Module } from "@nestjs/common";
     SelectedCalendarsRepository,
     PrismaEventTypeRepository,
     PrismaTeamRepository,
+    PrismaAuditActorRepository,
   ],
   controllers: [BookingsController_2024_04_15],
 })

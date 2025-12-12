@@ -1,3 +1,4 @@
+import { PrismaAuditActorRepository } from "@/lib/repositories/prisma-audit-actor.repository";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
@@ -23,7 +24,8 @@ export class RegularBookingService extends BaseRegularBookingService {
     userRepository: PrismaUserRepository,
     bookingEmailAndSmsTasker: BookingEmailAndSmsTasker,
     featuresRepository: PrismaFeaturesRepository,
-    bookingEventHandler: BookingEventHandlerService
+    bookingEventHandler: BookingEventHandlerService,
+    auditActorRepository: PrismaAuditActorRepository
   ) {
     super({
       checkBookingAndDurationLimitsService,
@@ -35,6 +37,7 @@ export class RegularBookingService extends BaseRegularBookingService {
       bookingEmailAndSmsTasker,
       featuresRepository,
       bookingEventHandler,
+      auditActorRepository,
     });
   }
 }

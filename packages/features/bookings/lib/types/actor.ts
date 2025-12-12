@@ -1,15 +1,9 @@
 import { z } from "zod";
+import type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 
 const UserActorSchema = z.object({
   identifiedBy: z.literal("user"),
   userUuid: z.string(),
-});
-
-const GuestActorSchema = z.object({
-  identifiedBy: z.literal("guest"),
-  email: z.string().optional(),
-  name: z.string().optional(),
-  phone: z.string().optional(),
 });
 
 const AttendeeActorSchema = z.object({
@@ -25,13 +19,11 @@ const ActorByIdSchema = z.object({
 export const ActorSchema = z.discriminatedUnion("identifiedBy", [
   ActorByIdSchema,
   UserActorSchema,
-  GuestActorSchema,
   AttendeeActorSchema,
 ]);
 
 export type Actor = z.infer<typeof ActorSchema>;
 type UserActor = z.infer<typeof UserActorSchema>;
-type GuestActor = z.infer<typeof GuestActorSchema>;
 type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
 
@@ -56,21 +48,6 @@ export function makeSystemActor(): ActorById {
   };
 }
 
-/**
- * Creates an Actor representing a Guest (non-registered attendee)
- */
-export function makeGuestActor(params: {
-  email: string;
-  name?: string;
-  phone?: string;
-}): GuestActor {
-  return {
-    identifiedBy: "guest",
-    email: params.email,
-    name: params.name,
-    phone: params.phone,
-  };
-}
 
 /**
  * Creates an Actor by existing actor ID
@@ -94,3 +71,46 @@ export function makeAttendeeActor(attendeeId: number): AttendeeActor {
 
 // System actor ID constant
 export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
+
+/**
+ * Producer-side actor resolution - creates PII-free actors for queueing
+ * 
+ * For guests: Creates AuditActor record in DB upfront, returns ActorById
+ * For users/attendees: Returns ID-only actors
+ * 
+ * Callers must provide userUuid (not userId) - if user is known, userUuid must be available
+ * Callers must provide attendeeId if they want AttendeeActor - no automatic lookup
+ * 
+ * @param params.userUuid - User UUID (required, nullable)
+ * @param params.attendeeId - Attendee ID (required, nullable)
+ * @param params.guestActor - Guest actor info with email and optional name (required, nullable)
+ * @param params.auditActorRepository - Repository for creating guest actors
+ * @returns Actor with no PII (only IDs)
+ */
+export async function getPIIFreeBookingAuditActor(params: {
+  userUuid: string | null;
+  attendeeId: number | null;
+  guestActor: { email: string; name?: string } | null;
+  auditActorRepository: IAuditActorRepository;
+}): Promise<Actor> {
+  const { userUuid, attendeeId, guestActor, auditActorRepository } = params;
+
+  if (userUuid) {
+    return makeUserActor(userUuid);
+  }
+
+  if (attendeeId) {
+    return makeAttendeeActor(attendeeId);
+  }
+
+  if (!guestActor) {
+    throw new Error("At least one of userUuid, attendeeId, or guestActor must be provided");
+  }
+
+  const createdGuestActor = await auditActorRepository.createIfNotExistsGuestActor({
+    email: guestActor.email,
+    name: guestActor.name ?? null,
+    phone: null,
+  });
+  return makeActorById(createdGuestActor.id);
+}

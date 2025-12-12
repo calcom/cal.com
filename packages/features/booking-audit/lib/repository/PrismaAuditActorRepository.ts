@@ -37,7 +37,8 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         });
     }
 
-    async createIfNotExistsGuestActor(email: string | null, name: string | null, phone: string | null) {
+    async createIfNotExistsGuestActor(params: { email: string | null; name: string | null; phone: string | null }) {
+        const { email, name, phone } = params;
         const normalizedEmail = email && email.trim() !== "" ? email : null;
         const normalizedName = name && name.trim() !== "" ? name : null;
         const normalizedPhone = phone && phone.trim() !== "" ? phone : null;

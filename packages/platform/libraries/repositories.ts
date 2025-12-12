@@ -10,3 +10,5 @@ export { UserRepository as PrismaUserRepository } from "@calcom/features/users/r
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 export { MembershipRepository as PrismaMembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 export { HostRepository as PrismaHostRepository } from "@calcom/lib/server/repository/host";
+export type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
+export { PrismaAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/PrismaAuditActorRepository";

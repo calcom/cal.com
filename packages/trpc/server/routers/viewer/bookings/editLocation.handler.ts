@@ -317,18 +317,18 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
 
   // Create audit log for location change
   const bookingEventHandlerService = getBookingEventHandlerService();
-  await bookingEventHandlerService.onLocationChanged(
-    booking.uid,
-    makeUserActor(ctx.user.uuid),
+  await bookingEventHandlerService.onLocationChanged({
+    bookingUid: booking.uid,
+    actor: makeUserActor(ctx.user.uuid),
     organizationId,
-    {
+    auditData: {
       location: {
         old: oldLocation,
         new: newLocationInEvtFormat,
       },
-      source: "WEBAPP",
-    }
-  );
+    },
+    source: "WEBAPP",
+  });
 
   return { message: "Location updated" };
 }

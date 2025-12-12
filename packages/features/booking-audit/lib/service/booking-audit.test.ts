@@ -233,18 +233,10 @@ describe("Booking Audit Integration", () => {
       expect(auditLog.action).toBe("CREATED");
       expect(auditLog.type).toBe("RECORD_CREATED");
 
-      // Verify audit data matches (getDisplayJson returns formatted display data)
-      // Format is "yyyy-MM-dd HH:mm:ss" in the user's timezone (UTC in this test)
-      const displayData = auditLog.data as any;
-      expect(displayData.startTime).toBeDefined();
-      expect(typeof displayData.startTime).toBe("string");
-      // Verify format matches "yyyy-MM-dd HH:mm:ss" pattern
-      expect(displayData.startTime).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
-
-      expect(displayData.endTime).toBeDefined();
-      expect(typeof displayData.endTime).toBe("string");
-      expect(displayData.endTime).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
-
+      // Verify audit data matches (getDisplayJson returns fields only, not versioned wrapper)
+      const displayData = auditLog.data
+      expect(displayData.startTime).toBe(booking!.startTime.toISOString());
+      expect(displayData.endTime).toBe(booking!.endTime.toISOString());
       expect(displayData.status).toBe(booking!.status);
     });
 

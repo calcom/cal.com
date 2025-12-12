@@ -14,7 +14,7 @@ export interface IAuditActorRepository {
   findByUserUuid(userUuid: string): Promise<AuditActor | null>;
   findSystemActorOrThrow(): Promise<AuditActor>;
   createIfNotExistsUserActor(params: { userUuid: string }): Promise<AuditActor>;
-  createIfNotExistsGuestActor(email: string | null, name: string | null, phone: string | null): Promise<AuditActor>;
+  createIfNotExistsGuestActor(params: { email: string | null; name: string | null; phone: string | null }): Promise<AuditActor>;
   findByAttendeeId(attendeeId: number): Promise<AuditActor | null>;
 }
 

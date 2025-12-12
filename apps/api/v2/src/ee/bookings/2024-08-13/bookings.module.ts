@@ -21,6 +21,7 @@ import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_0
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { PrismaAuditActorRepository } from "@/lib/repositories/prisma-audit-actor.repository";
 import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
 import { RegularBookingModule } from "@/lib/modules/regular-booking.module";
@@ -100,6 +101,7 @@ import { Module } from "@nestjs/common";
     CalVideoService,
     CalVideoOutputService,
     BookingPbacGuard,
+    PrismaAuditActorRepository,
   ],
   controllers: [BookingsController_2024_08_13, BookingGuestsController_2024_08_13],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],
