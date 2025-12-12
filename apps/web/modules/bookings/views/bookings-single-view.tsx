@@ -14,7 +14,6 @@ import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -570,36 +569,6 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {props.recurringBookings &&
-                          props.recurringBookings.length > 0 &&
-                          (() => {
-                            const pendingCount = props.recurringBookings.filter(
-                              (booking) => booking.status === BookingStatus.PENDING
-                            ).length;
-
-                            if (pendingCount > 0) {
-                              return (
-                                <div className="col-span-3 mb-6">
-                                  <Alert
-                                    severity="warning"
-                                    title={
-                                      pendingCount === 1
-                                        ? t("recurring_event_conflict_single")
-                                        : t("recurring_event_conflict_multiple", { count: pendingCount })
-                                    }
-                                    actions={
-                                      <Link
-                                        href="/bookings/recurring"
-                                        className="text-sm font-medium underline hover:no-underline">
-                                        {t("resolve_now")}
-                                      </Link>
-                                    }
-                                  />
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
                         <div className="font-medium">{t("what")}</div>
                         <div
                           className="wrap-break-word col-span-2 mb-6 last:mb-0"
@@ -1200,7 +1169,7 @@ function RecurringBookings({
     i18n: { language },
   } = useLocale();
   const recurringBookingsSorted = recurringBookings
-    ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
+    ? [...recurringBookings].sort((a, b) => dayjs(a.startTime).valueOf() - dayjs(b.startTime).valueOf())
     : null;
 
   if (!duration) return null;
