@@ -1032,16 +1032,16 @@ describe("FeaturesRepository Integration Tests", () => {
   });
 
   describe("getUserFeatureState", () => {
-    it("should return null when user has no feature row (inherit)", async () => {
+    it("should return 'inherit' when user has no feature row", async () => {
       const result = await featuresRepository.getUserFeatureState({
         userId: testUser.id,
         featureId: testFeature,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe("inherit");
     });
 
-    it("should return { enabled: true } when user has feature enabled", async () => {
+    it("should return 'enabled' when user has feature enabled", async () => {
       await prisma.feature.create({
         data: {
           slug: testFeature,
@@ -1064,11 +1064,10 @@ describe("FeaturesRepository Integration Tests", () => {
         featureId: testFeature,
       });
 
-      expect(result).not.toBeNull();
-      expect(result?.enabled).toBe(true);
+      expect(result).toBe("enabled");
     });
 
-    it("should return { enabled: false } when user has feature disabled", async () => {
+    it("should return 'disabled' when user has feature disabled", async () => {
       await prisma.feature.create({
         data: {
           slug: testFeature,
@@ -1091,22 +1090,21 @@ describe("FeaturesRepository Integration Tests", () => {
         featureId: testFeature,
       });
 
-      expect(result).not.toBeNull();
-      expect(result?.enabled).toBe(false);
+      expect(result).toBe("disabled");
     });
   });
 
   describe("getTeamFeatureState", () => {
-    it("should return null when team has no feature row (inherit)", async () => {
+    it("should return 'inherit' when team has no feature row", async () => {
       const result = await featuresRepository.getTeamFeatureState({
         teamId: testTeam.id,
         featureId: testFeature,
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe("inherit");
     });
 
-    it("should return { enabled: true } when team has feature enabled", async () => {
+    it("should return 'enabled' when team has feature enabled", async () => {
       await prisma.feature.create({
         data: {
           slug: testFeature,
@@ -1129,11 +1127,10 @@ describe("FeaturesRepository Integration Tests", () => {
         featureId: testFeature,
       });
 
-      expect(result).not.toBeNull();
-      expect(result?.enabled).toBe(true);
+      expect(result).toBe("enabled");
     });
 
-    it("should return { enabled: false } when team has feature disabled", async () => {
+    it("should return 'disabled' when team has feature disabled", async () => {
       await prisma.feature.create({
         data: {
           slug: testFeature,
@@ -1156,8 +1153,7 @@ describe("FeaturesRepository Integration Tests", () => {
         featureId: testFeature,
       });
 
-      expect(result).not.toBeNull();
-      expect(result?.enabled).toBe(false);
+      expect(result).toBe("disabled");
     });
   });
 });
