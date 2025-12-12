@@ -560,4 +560,48 @@ export class FeaturesRepository implements IFeaturesRepository {
       throw err;
     }
   }
+
+  /**
+   * Get a single feature's state across multiple teams.
+   * Optimized for querying many teams for one feature.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → 'enabled'
+   * - Row with enabled=false → 'disabled'
+   * - No row → 'inherit' from parent team/org level
+   *
+   * @param input - Object containing teamIds array and featureId
+   * @returns Record<teamId, 'enabled' | 'disabled' | 'inherit'>
+   */
+  async getFeatureStateForTeams(input: {
+    teamIds: number[];
+    featureId: string;
+  }): Promise<Record<number, FeatureState>> {
+    const { teamIds, featureId } = input;
+
+    if (teamIds.length === 0) {
+      return {};
+    }
+
+    try {
+      // Query all team features in a single call
+      const teamFeatures = await this.prismaClient.teamFeatures.findMany({
+        where: {
+          teamId: { in: teamIds },
+          featureId,
+        },
+        select: { teamId: true, enabled: true },
+      });
+
+      // Build result map - teams not in the result will default to 'inherit'
+      const result: Record<number, FeatureState> = {};
+      for (const teamFeature of teamFeatures) {
+        result[teamFeature.teamId] = teamFeature.enabled ? "enabled" : "disabled";
+      }
+
+      return result;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }

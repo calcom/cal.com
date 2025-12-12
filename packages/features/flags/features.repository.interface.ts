@@ -32,4 +32,10 @@ export interface IFeaturesRepository {
    * @returns Record<featureId, 'enabled' | 'disabled' | 'inherit'>
    */
   getTeamFeatureStates(input: { teamId: number; featureIds: string[] }): Promise<Record<string, FeatureState>>;
+  /**
+   * Get a single feature's state across multiple teams.
+   * Optimized for querying many teams for one feature.
+   * @returns Record<teamId, 'enabled' | 'disabled' | 'inherit'>
+   */
+  getFeatureStateForTeams(input: { teamIds: number[]; featureId: string }): Promise<Record<number, FeatureState>>;
 }

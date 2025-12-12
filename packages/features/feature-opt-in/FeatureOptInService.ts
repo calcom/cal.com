@@ -51,16 +51,12 @@ export class FeatureOptInService {
       orgState = orgStates[featureId];
     }
 
-    // Get team states - query each team for the single feature
-    const teamStates = await Promise.all(
-      teamIds.map(async (teamId) => {
-        const states = await this.featuresRepository.getTeamFeatureStates({
-          teamId,
-          featureIds: [featureId],
-        });
-        return states[featureId];
-      })
-    );
+    // Get team states - query all teams for the single feature in one call
+    const teamStatesByTeam = await this.featuresRepository.getFeatureStateForTeams({
+      teamIds,
+      featureId,
+    });
+    const teamStates = teamIds.map((teamId) => teamStatesByTeam[teamId] ?? "inherit");
 
     // Get user state - use batch method with single feature
     const userStates = await this.featuresRepository.getUserFeatureStates({

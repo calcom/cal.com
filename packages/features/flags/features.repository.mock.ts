@@ -63,4 +63,12 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     }
     return result;
   }
+
+  async getFeatureStateForTeams(_input: {
+    teamIds: number[];
+    featureId: string;
+  }): Promise<Record<number, FeatureState>> {
+    // Mock implementation - return empty (all teams inherit)
+    return {};
+  }
 }
