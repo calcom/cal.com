@@ -1214,7 +1214,7 @@ export class AvailableSlotsService {
       eventType.team?.id
     );
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
-      const restrictionSchedule = await this.dependencies.scheduleRepo.findScheduleByIdForBuildDateRanges({
+      const restrictionSchedule = await this.dependencies.scheduleRepo.findByIdForBuildDateRanges({
         scheduleId: eventType.restrictionScheduleId,
       });
       if (restrictionSchedule) {

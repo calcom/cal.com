@@ -7,11 +7,19 @@ import {
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 
+import type {
+  ScheduleBasicDto,
+  ScheduleForBuildDateRangesDto,
+  ScheduleForOwnershipCheckDto,
+  UserDefaultScheduleDto,
+} from "./dto/ScheduleDto";
+import type { IScheduleRepository } from "./IScheduleRepository";
+
 export type FindDetailedScheduleByIdReturnType = Awaited<
   ReturnType<ScheduleRepository["findDetailedScheduleById"]>
 >;
 
-export class ScheduleRepository {
+export class ScheduleRepository implements IScheduleRepository {
   // when instantiating, prismaClient injection is required
   constructor(private readonly prismaClient: PrismaClient) {
     if (!prismaClient) {
@@ -19,7 +27,7 @@ export class ScheduleRepository {
     }
   }
 
-  async findScheduleByIdForBuildDateRanges({ scheduleId }: { scheduleId: number }) {
+  async findByIdForBuildDateRanges({ scheduleId }: { scheduleId: number }): Promise<ScheduleForBuildDateRangesDto | null> {
     const schedule = await this.prismaClient.schedule.findUnique({
       where: { id: scheduleId },
       select: {
@@ -54,7 +62,7 @@ export class ScheduleRepository {
     return schedule;
   }
 
-  async findScheduleByIdForOwnershipCheck({ scheduleId }: { scheduleId: number }) {
+  async findByIdForOwnershipCheck({ scheduleId }: { scheduleId: number }): Promise<ScheduleForOwnershipCheckDto | null> {
     const schedule = await this.prismaClient.schedule.findUnique({
       where: {
         id: scheduleId,
@@ -66,7 +74,7 @@ export class ScheduleRepository {
     return schedule;
   }
 
-  async findScheduleById({ id }: { id: number }) {
+  async findById({ id }: { id: number }): Promise<ScheduleBasicDto | null> {
     const schedule = await this.prismaClient.schedule.findUnique({
       where: {
         id,
@@ -248,13 +256,25 @@ export class ScheduleRepository {
     return !!user.defaultScheduleId || !!defaultSchedule;
   }
 
-  async setupDefaultSchedule(userId: number, scheduleId: number) {
-    return this.prismaClient.user.update({
+  async setupDefaultSchedule(userId: number, scheduleId: number): Promise<UserDefaultScheduleDto> {
+    const user = await this.prismaClient.user.update({
       where: {
         id: userId,
       },
       data: {
         defaultScheduleId: scheduleId,
+      },
+      select: {
+        defaultScheduleId: true,
+      },
+    });
+    return { defaultScheduleId: user.defaultScheduleId };
+  }
+
+  async countByUserId(userId: number): Promise<number> {
+    return this.prismaClient.schedule.count({
+      where: {
+        userId,
       },
     });
   }

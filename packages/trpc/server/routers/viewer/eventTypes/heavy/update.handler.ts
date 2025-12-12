@@ -377,7 +377,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (restrictionScheduleId) {
     // Verify that the user owns the restriction schedule or is a team member
     const scheduleRepo = new ScheduleRepository(ctx.prisma);
-    const restrictionSchedule = await scheduleRepo.findScheduleByIdForOwnershipCheck({
+    const restrictionSchedule = await scheduleRepo.findByIdForOwnershipCheck({
       scheduleId: restrictionScheduleId,
     });
     // If the user doesn't own the schedule, check if they're a team member
