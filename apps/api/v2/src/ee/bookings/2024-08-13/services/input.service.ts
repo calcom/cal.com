@@ -188,6 +188,7 @@ export class InputBookingsService_2024_08_13 {
         location,
       },
       ...this.getRoutingFormData(inputBooking.routing),
+      rrHostSubsetIds: inputBooking.rrHostSubsetIds,
     };
   }
 
@@ -484,6 +485,7 @@ export class InputBookingsService_2024_08_13 {
         },
         schedulingType: eventType.schedulingType,
         ...this.getRoutingFormData(inputBooking.routing),
+        rrHostSubsetIds: inputBooking.rrHostSubsetIds,
       });
 
       switch (timeBetween) {
@@ -544,12 +546,18 @@ export class InputBookingsService_2024_08_13 {
       Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
       newRequest.body = {
         ...bodyTransformed,
+        rescheduledBy: request.body.rescheduledBy,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
         creationSource: CreationSource.API_V2,
       };
     } else {
       Object.assign(newRequest, { userId, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
+      newRequest.body = {
+        ...bodyTransformed,
+        noEmail: false,
+        creationSource: CreationSource.API_V2,
+        rescheduledBy: request.body.rescheduledBy,
+      };
     }
 
     return newRequest as unknown as BookingRequest;

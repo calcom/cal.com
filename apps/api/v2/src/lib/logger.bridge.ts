@@ -1,11 +1,12 @@
 import { Injectable, Logger as NestLogger, Scope } from "@nestjs/common";
+import type { Logger as TsLogger } from "tslog";
 
 // 1. Define an interface for the settings
 interface IMyLoggerSettings {
   minLevel: number; // Example: 0=debug, 1=info, 2=warn, 3=error
   displayTimestamp: boolean;
   logFormat: "pretty" | "json" | "simple";
-  // Add any other settings you need, mimicking tslog or your own requirements
+  // Add unknown other settings you need, mimicking tslog or your own requirements
   // e.g., name?: string; displayFunctionName?: boolean; etc.
 }
 
@@ -23,7 +24,10 @@ const LogLevel = {
  * (e.g., sending to Axiom) and adds an optional prefix for context.
  */
 @Injectable({ scope: Scope.TRANSIENT }) // TRANSIENT ensures getSubLogger provides truly independent instances if needed elsewhere
-export class Logger {
+export class Logger
+  implements
+    Pick<TsLogger<unknown>, "log" | "silly" | "trace" | "debug" | "info" | "warn" | "error" | "getSubLogger">
+{
   // Use NestLogger for the actual logging output
   private readonly nestLogger = new NestLogger("LoggerBridge");
   // Prefix to add to messages for this instance
@@ -57,50 +61,68 @@ export class Logger {
    * @param options.prefix - An array of strings to join as the log prefix.
    * @returns A new LoggerBridge instance with the specified prefix.
    */
-  getSubLogger(options: { prefix?: string[] }): Logger {
+  getSubLogger(options: { prefix?: string[] }): TsLogger<unknown> {
     const newLogger = new Logger();
     // Set the prefix for the *new* instance
     newLogger.prefix = options?.prefix?.join(" ") ?? "";
-    return newLogger;
+    return newLogger as unknown as TsLogger<unknown>;
   }
 
   // --- Public logging methods ---
 
-  info(...args: any[]) {
-    this.settings.minLevel <= 1 && this.logInternal("log", ...args);
+  log(...args: unknown[]): undefined {
+    if (this.settings.minLevel <= LogLevel.INFO) this.logInternal("log", ...args);
   }
 
-  warn(...args: any[]) {
-    this.settings.minLevel <= 2 && this.logInternal("warn", ...args);
+  info(...args: unknown[]): undefined {
+    if (this.settings.minLevel <= 1) {
+      this.logInternal("log", ...args);
+    }
   }
 
-  error(...args: any[]) {
-    this.settings.minLevel <= 3 && this.logInternal("error", ...args);
+  warn(...args: unknown[]): undefined {
+    if (this.settings.minLevel <= 2) {
+      this.logInternal("warn", ...args);
+    }
   }
 
-  debug(...args: any[]) {
-    this.settings.minLevel === 0 && this.logInternal("debug", ...args);
+  error(...args: unknown[]): undefined {
+    if (this.settings.minLevel <= 3) {
+      this.logInternal("error", ...args);
+    }
   }
 
-  trace(...args: any[]) {
-    this.settings.minLevel === 0 && this.logInternal("verbose", ...args);
+  debug(...args: unknown[]): undefined {
+    if (this.settings.minLevel === 0) {
+      this.logInternal("debug", ...args);
+    }
   }
 
-  fatal(...args: any[]) {
+  trace(...args: unknown[]): undefined {
+    if (this.settings.minLevel === 0) {
+      this.logInternal("verbose", ...args);
+    }
+  }
+
+  fatal(...args: unknown[]): undefined {
     // Prepend FATAL: to the message and log as error
     const fatalMessage = `fatal: ${this.formatArgsAsString(args)}`;
-    this.settings.minLevel <= 3 && this.logInternal("error", fatalMessage);
+    if (this.settings.minLevel <= 3) {
+      this.logInternal("error", fatalMessage);
+    }
   }
 
-  silly(...args: any[]) {
+  silly(...args: unknown[]): undefined {
     const sillyMessage = `silly: ${this.formatArgsAsString(args)}`;
-    this.settings.minLevel === 0 && this.logInternal("verbose", sillyMessage);
+    if (this.settings.minLevel === 0) {
+      this.logInternal("verbose", sillyMessage);
+    }
   }
 
   // --- Internal logging implementation ---
 
   /** Formats arguments into a single string */
-  private formatArgsAsString(args: any[]): string {
+  private formatArgsAsString(args: unknown[]): string {
     return args
       .map((arg) => {
         if (typeof arg === "string") {
@@ -109,7 +131,7 @@ export class Logger {
         // Attempt to stringify non-string arguments
         try {
           return JSON.stringify(arg);
-        } catch (e) {
+        } catch {
           return "[Unserializable Object]";
         }
       })
@@ -117,7 +139,7 @@ export class Logger {
   }
 
   /** Central method to forward logs to NestLogger */
-  private logInternal(level: "log" | "warn" | "error" | "debug" | "verbose", ...args: any[]) {
+  private logInternal(level: "log" | "warn" | "error" | "debug" | "verbose", ...args: unknown[]) {
     try {
       // Format message from potentially multiple arguments
       const formattedMessage = this.formatArgsAsString(args);

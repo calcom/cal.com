@@ -2,19 +2,23 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
-import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import {
+  prisma,
+  availabilityUserSelect,
+  userSelect as userSelectWithSelectedCalendars,
+} from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 
@@ -166,7 +170,16 @@ export class EventTypeRepository {
   ) {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
+    // Handle both UUID-based and legacy numeric profile IDs
+    let profileId: number | null = null;
+    if (lookupTarget.type === LookupTarget.Profile) {
+      if ("uid" in lookupTarget && lookupTarget.uid) {
+        const profile = await ProfileRepository.findByUid(lookupTarget.uid);
+        profileId = profile?.id ?? null;
+      } else if ("id" in lookupTarget && lookupTarget.id !== undefined) {
+        profileId = lookupTarget.id;
+      }
+    }
     const select = {
       ...eventTypeSelect,
       hashedLink: hashedLinkSelect,
@@ -296,7 +309,15 @@ export class EventTypeRepository {
   ) {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
+    let profileId: number | null = null;
+    if (lookupTarget.type === LookupTarget.Profile) {
+      if ("uid" in lookupTarget && lookupTarget.uid) {
+        const profile = await ProfileRepository.findByUid(lookupTarget.uid);
+        profileId = profile?.id ?? null;
+      } else if ("id" in lookupTarget && lookupTarget.id !== undefined) {
+        profileId = lookupTarget.id;
+      }
+    }
     const select = {
       ...eventTypeSelect,
       hashedLink: hashedLinkSelect,
@@ -467,7 +488,7 @@ export class EventTypeRepository {
       },
     });
 
-    if (!teamMembership) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (!teamMembership) throw new ErrorWithCode(ErrorCode.Unauthorized, "User is not a member of this team");
 
     return await prisma.eventType.findMany({
       where: {
@@ -553,6 +574,7 @@ export class EventTypeRepository {
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
+      autoTranslateInstantMeetingTitleEnabled: true,
       fieldTranslations: {
         select: {
           translatedText: true,
@@ -566,6 +588,7 @@ export class EventTypeRepository {
       disableGuests: true,
       disableCancelling: true,
       disableRescheduling: true,
+      minimumRescheduleNotice: true,
       allowReschedulingCancelledBookings: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
@@ -851,6 +874,7 @@ export class EventTypeRepository {
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
+      autoTranslateInstantMeetingTitleEnabled: true,
       fieldTranslations: {
         select: {
           translatedText: true,
@@ -864,6 +888,7 @@ export class EventTypeRepository {
       disableGuests: true,
       disableCancelling: true,
       disableRescheduling: true,
+      minimumRescheduleNotice: true,
       allowReschedulingCancelledBookings: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
@@ -1253,6 +1278,7 @@ export class EventTypeRepository {
         useEventLevelSelectedCalendars: true,
         restrictionScheduleId: true,
         useBookerTimezone: true,
+        rrHostSubsetEnabled: true,
         hostGroups: {
           select: {
             id: true,
@@ -1524,6 +1550,146 @@ export class EventTypeRepository {
       },
       select: {
         teamId: true,
+      },
+    });
+  }
+
+  async findByIdWithParent(eventTypeId: number) {
+    return this.prismaClient.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: {
+        id: true,
+        parentId: true,
+        userId: true,
+      },
+    });
+  }
+
+  async findManyChildEventTypes(parentId: number, excludeUserId?: number | null) {
+    return this.prismaClient.eventType.findMany({
+      where: {
+        parentId,
+        ...(excludeUserId !== undefined ? { userId: { not: excludeUserId } } : {}),
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+  }
+
+  async findManyWithPagination(params: {
+    where: Prisma.EventTypeWhereInput;
+    skip: number;
+    take: number;
+    orderBy?: Prisma.EventTypeOrderByWithRelationInput;
+  }) {
+    const [eventTypes, total] = await Promise.all([
+      this.prismaClient.eventType.findMany({
+        where: params.where,
+        skip: params.skip,
+        take: params.take,
+        orderBy: params.orderBy,
+      }),
+      this.prismaClient.eventType.count({ where: params.where }),
+    ]);
+
+    return { eventTypes, total };
+  }
+
+  /**
+   * List child event types for a given parent.
+   * Supports search, user exclusion, cursor pagination.
+   */
+  async listChildEventTypes({
+    parentEventTypeId,
+    excludeUserId,
+    searchTerm,
+    limit,
+    cursor,
+  }: {
+    parentEventTypeId: number;
+    excludeUserId?: number | null;
+    searchTerm?: string | null;
+    limit: number;
+    cursor?: number | null;
+  }) {
+    // Build where clause explicitly to avoid type issues with conditional spreads
+    const eventTypeWhere = {
+      parentId: parentEventTypeId,
+      ...(excludeUserId ? { userId: { not: excludeUserId } } : {}),
+      ...(searchTerm
+        ? {
+            owner: {
+              OR: [
+                { name: { contains: searchTerm, mode: "insensitive" as const } },
+                { email: { contains: searchTerm, mode: "insensitive" as const } },
+              ],
+            },
+          }
+        : {}),
+    };
+
+    // Extract query to preserve type inference
+    const rowsQuery = this.prismaClient.eventType.findMany({
+      where: eventTypeWhere,
+      select: {
+        id: true,
+        userId: true,
+        owner: {
+          select: {
+            ...userSelectWithSelectedCalendars,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
+            },
+          },
+        },
+      },
+      take: limit + 1, // over-fetch for nextCursor
+      ...(cursor && { skip: 1, cursor: { id: cursor } }),
+      orderBy: { id: "asc" }, // deterministic pagination
+    });
+
+    const [totalCount, rows] = await Promise.all([
+      this.prismaClient.eventType.count({ where: eventTypeWhere }),
+      rowsQuery,
+    ]);
+
+    const hasMore = rows.length > limit;
+    const items = hasMore ? rows.slice(0, limit) : rows;
+
+    return {
+      totalCount,
+      items,
+      hasMore,
+      nextCursor: hasMore ? items[items.length - 1].id : null,
+    };
+  }
+
+  async findByIdWithParentAndUserId(eventTypeId: number) {
+    return this.prismaClient.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: {
+        id: true,
+        parentId: true,
+        userId: true,
+        schedulingType: true,
+      },
+    });
+  }
+
+  async findByIdTargetChildEventType(userId: number, parentId: number) {
+    return this.prismaClient.eventType.findUnique({
+      where: {
+        userId_parentId: {
+          userId,
+          parentId,
+        },
+      },
+      select: {
+        id: true,
+        parentId: true,
+        userId: true,
       },
     });
   }

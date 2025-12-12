@@ -300,6 +300,11 @@ export class LuckyUserService implements ILuckyUserService {
     const oooCalibration = new Map<number, number>();
 
     oooData.forEach(({ userId, oooEntries }) => {
+      // Skip OOO calibration if there's only one host (division by zero would occur)
+      if (hosts.length <= 1) {
+        return;
+      }
+
       let calibration = 0;
 
       oooEntries.forEach((oooEntry) => {
@@ -911,6 +916,11 @@ export class LuckyUserService implements ILuckyUserService {
       weight?: number | null;
     }
   >(getLuckyUserParams: GetLuckyUserParams<T>) {
+    // Early return if only one available user to avoid unnecessary data fetching
+    if (getLuckyUserParams.availableUsers.length === 1) {
+      return getLuckyUserParams.availableUsers[0];
+    }
+
     const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
 
     const { luckyUser } = this.getLuckyUser_requiresDataToBePreFetched({

@@ -32,6 +32,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   executeAIPhoneCall: () => import("./executeAIPhoneCall").then((module) => module.executeAIPhoneCall),
   sendAwaitingPaymentEmail: () =>
     import("./sendAwaitingPaymentEmail").then((module) => module.sendAwaitingPaymentEmail),
+  bookingAudit: () => import("./bookingAudit").then((module) => module.bookingAudit),
 };
 
 export const tasksConfig = {

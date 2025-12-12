@@ -18,6 +18,7 @@ export const apiHandlers = {
   clic: import("./clic/api"),
   closecom: import("./closecom/api"),
   cron: import("./cron/api"),
+  databuddy: import("./databuddy/api"),
   deel: import("./deel/api"),
   demodesk: import("./demodesk/api"),
   dialpad: import("./dialpad/api"),
