@@ -21,6 +21,7 @@ import type { IAppRepository } from "@calcom/lib/server/repository/IAppRepositor
 import type { IRoutingFormRepository } from "@calcom/lib/server/repository/IRoutingFormRepository";
 import type { IAttributeOptionRepository } from "@calcom/lib/server/repository/IAttributeOptionRepository";
 import type { IAttributeToUserRepository } from "@calcom/lib/server/repository/IAttributeToUserRepository";
+import type { IBookingPaymentRepository } from "@calcom/lib/server/repository/BookingPaymentRepository.interface";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -61,6 +62,7 @@ import { appRepositoryModuleLoader } from "../modules/App";
 import { routingFormRepositoryModuleLoader } from "../modules/RoutingForm";
 import { attributeOptionRepositoryModuleLoader } from "../modules/AttributeOption";
 import { attributeToUserRepositoryModuleLoader } from "../modules/AttributeToUser";
+import { bookingPaymentRepositoryModuleLoader } from "../modules/BookingPayment";
 
 const repositoryContainer = createContainer();
 
@@ -95,6 +97,7 @@ repositoryContainer.load(appRepositoryModuleLoader());
 repositoryContainer.load(routingFormRepositoryModuleLoader());
 repositoryContainer.load(attributeOptionRepositoryModuleLoader());
 repositoryContainer.load(attributeToUserRepositoryModuleLoader());
+repositoryContainer.load(bookingPaymentRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -214,4 +217,8 @@ export function getAttributeOptionRepository(): IAttributeOptionRepository {
 
 export function getAttributeToUserRepository(): IAttributeToUserRepository {
   return repositoryContainer.get<IAttributeToUserRepository>(DI_TOKENS.ATTRIBUTE_TO_USER_REPOSITORY);
+}
+
+export function getBookingPaymentRepository(): IBookingPaymentRepository {
+  return repositoryContainer.get<IBookingPaymentRepository>(DI_TOKENS.BOOKING_PAYMENT_REPOSITORY);
 }
