@@ -1,8 +1,6 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-
-
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -120,8 +118,8 @@ import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresCon
 import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
-import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
 import { loadAndProcessUsersWithSeats } from "../handleNewBooking/loadAndProcessUsersWithSeats";
+import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
 import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
@@ -849,7 +847,7 @@ async function handler(
     reqBodyStart: reqBody.start,
     prismaClient: deps.prismaClient,
   });
-  
+
   let users = processedUsersResult.users;
   const isFirstSeat = processedUsersResult.isFirstSeat;
 
@@ -1081,14 +1079,14 @@ async function handler(
           ) {
             // for recurring round robin events check if lucky user is available for next slots
             try {
-              for (
-                let i = 0;
-                i < input.bookingData.allRecurringDates.length &&
-                i < input.bookingData.numSlotsToCheckForAvailability;
-                i++
-              ) {
-                const start = input.bookingData.allRecurringDates[i].start;
-                const end = input.bookingData.allRecurringDates[i].end;
+              const allRecurringDates = input.bookingData.allRecurringDates as Array<{
+                start: string;
+                end?: string;
+              }>;
+              const numSlotsToCheck = input.bookingData.numSlotsToCheckForAvailability;
+              for (let i = 0; i < allRecurringDates.length && i < numSlotsToCheck; i++) {
+                const start = allRecurringDates[i].start;
+                const end = allRecurringDates[i].end;
 
                 if (!skipAvailabilityCheck) {
                   await ensureAvailableUsers(
