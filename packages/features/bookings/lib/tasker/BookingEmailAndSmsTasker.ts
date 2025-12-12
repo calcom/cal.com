@@ -2,10 +2,12 @@ import { BookingActionMap, BookingActionType } from "@calcom/features/bookings/l
 import { Tasker } from "@calcom/lib/tasker/Tasker";
 import type { ILogger } from "@calcom/lib/tasker/types";
 import { SchedulingType } from "@calcom/prisma/client";
+import type { INotificationTasker } from "@calcom/features/notifications/tasker/INotificationTasker";
+import type { BookingNotificationSendData } from "./types";
+import { IBookingEmailAndSmsTasker } from "./types";
 
 import { BookingEmailAndSmsSyncTasker } from "./BookingEmailAndSmsSyncTasker";
 import { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerTasker";
-import { BookingEmailAndSmsTaskPayload, IBookingEmailAndSmsTasker } from "./types";
 
 export interface IBookingEmailAndSmsTaskerDependencies {
   asyncTasker: BookingEmailAndSmsTriggerDevTasker;
@@ -13,16 +15,15 @@ export interface IBookingEmailAndSmsTaskerDependencies {
   logger: ILogger;
 }
 
-export class BookingEmailAndSmsTasker extends Tasker<IBookingEmailAndSmsTasker> {
+export class BookingEmailAndSmsTasker
+  extends Tasker<IBookingEmailAndSmsTasker>
+  implements INotificationTasker<BookingNotificationSendData>
+{
   constructor(public readonly dependencies: IBookingEmailAndSmsTaskerDependencies) {
     super(dependencies);
   }
 
-  public async send(data: {
-    action: BookingActionType;
-    schedulingType: SchedulingType | null;
-    payload: BookingEmailAndSmsTaskPayload;
-  }): Promise<{ runId: string }> {
+  public async send(data: BookingNotificationSendData): Promise<{ runId: string }> {
     const { action, schedulingType, payload } = data;
     let taskResponse: {
       runId: string;

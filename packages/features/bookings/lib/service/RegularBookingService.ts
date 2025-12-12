@@ -48,6 +48,7 @@ import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
+import { NotificationChannel, NotificationType } from "@calcom/features/notifications/types";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -455,7 +456,6 @@ function buildBookingCreatedPayload({
     organizationId,
   };
 }
-
 
 export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
@@ -2670,6 +2670,10 @@ async function handler(
           );
           if (hasTeamFeature) {
             await deps.bookingEmailAndSmsTasker.send({
+              userId: organizerUser.id,
+              teamId: eventType.teamId ?? null,
+              notificationType: bookingEmailsAndSmsTaskerAction as NotificationType,
+              channel: NotificationChannel.EMAIL,
               action: bookingEmailsAndSmsTaskerAction,
               schedulingType: evtWithMetadata.eventType.schedulingType,
               payload: {

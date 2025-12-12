@@ -1,4 +1,6 @@
 import { EmailsAndSmsSideEffectsPayload } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
+import type { BaseNotificationTaskerSendData } from "@calcom/features/notifications/tasker/types";
+import { NotificationChannel, NotificationType } from "@calcom/features/notifications/types";
 
 export type BookingEmailAndSmsTaskPayload = {
   bookingId: number;
@@ -8,6 +10,12 @@ export type BookingEmailAndSmsTaskPayload = {
   platformCancelUrl?: string;
   platformBookingUrl?: string;
   isRescheduledByBooker?: boolean;
+};
+
+export type BookingNotificationSendData = BaseNotificationTaskerSendData & {
+  action: "BOOKING_CONFIRMED" | "BOOKING_RESCHEDULED" | "BOOKING_REQUESTED";
+  schedulingType: "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED" | null;
+  payload: BookingEmailAndSmsTaskPayload;
 };
 
 export type BookingEmailAndSmsSyncSendPayload = EmailsAndSmsSideEffectsPayload;
