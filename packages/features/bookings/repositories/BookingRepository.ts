@@ -327,6 +327,21 @@ const selectStatementToGetBookingForCalEventBuilder = {
 export class BookingRepository {
   constructor(private prismaClient: PrismaClient) {}
 
+  async create<T extends Prisma.BookingCreateArgs>(
+    args: Prisma.SelectSubset<T, Prisma.BookingCreateArgs>,
+    tx?: Prisma.TransactionClient
+  ) {
+    if (tx) {
+      return tx.booking.create(args);
+    }
+    return this.prismaClient.booking.create(args);
+  }
+
+  async update(args: Prisma.BookingUpdateArgs, tx?: Prisma.TransactionClient) {
+    const db = tx ?? this.prismaClient;
+    return db.booking.update(args);
+  }
+
   async getBookingAttendees(bookingId: number) {
     return await this.prismaClient.attendee.findMany({
       where: {

@@ -5,12 +5,14 @@ import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-fo
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import type { BookingRepository } from "../../repositories/BookingRepository";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
 import type { AwaitedBookingData, EventTypeId } from "./getBookingData";
 import type { NewBookingEventType } from "./getEventTypesFromDB";
@@ -20,7 +22,7 @@ import type { PaymentAppData, Tracking } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
-type CreateBookingParams = {
+export type CreateBookingParams = {
   uid: short.SUUID;
   routingFormResponseId: number | undefined;
   reroutingFormResponses: z.infer<typeof routingFormResponseInDbSchema> | null;
@@ -72,20 +74,26 @@ async function getAssociatedBookingForFormResponse(formResponseId: number) {
   return formResponse?.routedToBookingUid ?? null;
 }
 
-// Define the function with underscore prefix
-const _createBooking = async ({
-  uid,
-  reqBody,
-  eventType,
-  input,
-  evt,
-  originalRescheduledBooking,
-  routingFormResponseId,
-  reroutingFormResponses,
-  rescheduledBy,
-  creationSource,
-  tracking,
-}: CreateBookingParams & { rescheduledBy: string | undefined }) => {
+const _createBooking = async (
+  {
+    uid,
+    reqBody,
+    eventType,
+    input,
+    evt,
+    originalRescheduledBooking,
+    routingFormResponseId,
+    reroutingFormResponses,
+    rescheduledBy,
+    creationSource,
+    tracking,
+  }: CreateBookingParams & { rescheduledBy: string | undefined },
+  deps: {
+    tx: Prisma.TransactionClient;
+    routingFormResponseRepository: RoutingFormResponseRepository;
+    bookingRepository: BookingRepository;
+  }
+) => {
   updateEventDetails(evt, originalRescheduledBooking);
   const associatedBookingForFormResponse = routingFormResponseId
     ? await getAssociatedBookingForFormResponse(routingFormResponseId)
@@ -109,7 +117,8 @@ const _createBooking = async ({
     bookingAndAssociatedData,
     originalRescheduledBooking,
     eventType.paymentAppData,
-    eventType.organizerUser
+    eventType.organizerUser,
+    deps
   );
 
   function shouldConnectBookingToFormResponse() {
@@ -136,7 +145,12 @@ async function saveBooking(
   bookingAndAssociatedData: ReturnType<typeof buildNewBookingData>,
   originalRescheduledBooking: OriginalRescheduledBooking,
   paymentAppData: PaymentAppData,
-  organizerUser: CreateBookingParams["eventType"]["organizerUser"]
+  organizerUser: CreateBookingParams["eventType"]["organizerUser"],
+  deps: {
+    tx: Prisma.TransactionClient;
+    routingFormResponseRepository: RoutingFormResponseRepository;
+    bookingRepository: BookingRepository;
+  }
 ) {
   const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdateDataForCancellation } =
     bookingAndAssociatedData;
@@ -172,18 +186,20 @@ async function saveBooking(
   /**
    * Reschedule(Cancellation + Creation) with an update of reroutingFormResponse should be atomic
    */
-  return prisma.$transaction(async (tx) => {
+  const run = async (client: Prisma.TransactionClient) => {
     if (originalBookingUpdateDataForCancellation) {
-      await tx.booking.update(originalBookingUpdateDataForCancellation);
+      await deps.bookingRepository.update(originalBookingUpdateDataForCancellation, client);
     }
 
-    const booking = await tx.booking.create(createBookingObj);
+    const booking = await deps.bookingRepository.create(createBookingObj, client);
     if (reroutingFormResponseUpdateData) {
-      await tx.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
+      await deps.routingFormResponseRepository.update(reroutingFormResponseUpdateData, client);
     }
 
     return booking;
-  });
+  };
+
+  return run(deps.tx);
 }
 
 function getEventTypeRel(eventTypeId: EventTypeId) {

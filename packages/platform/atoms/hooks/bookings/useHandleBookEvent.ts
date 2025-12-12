@@ -66,6 +66,7 @@ export const useHandleBookEvent = ({
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
+  const reservedSlotUid = useBookerStoreContext((state) => state.reservedSlotUid);
   const handleError = (err: unknown) => {
     const errorMessage = err instanceof Error ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
@@ -117,6 +118,7 @@ export const useHandleBookEvent = ({
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
+        reservedSlotUid: reservedSlotUid || undefined,
         rrHostSubsetIds,
       };
 

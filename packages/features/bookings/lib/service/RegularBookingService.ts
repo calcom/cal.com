@@ -75,6 +75,11 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type {
+  PrismaSelectedSlotRepository,
+  ReservedSlot,
+} from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
+import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -107,11 +112,12 @@ import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToE
 import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "../handleNewBooking/createBooking";
+import type { CreateBookingParams } from "../handleNewBooking/createBooking";
 import type { Booking } from "../handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "../handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
-import { getEventType } from "../handleNewBooking/getEventType";
+import { getEventType, type GetEventTypeResult } from "../handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "../handleNewBooking/getLocationValuesForDb";
 import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresConfirmationFlags";
@@ -460,9 +466,11 @@ export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
   bookingRepository: BookingRepository;
+  selectedSlotsRepository: PrismaSelectedSlotRepository;
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
+  routingFormResponseRepository: RoutingFormResponseRepository;
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
@@ -510,6 +518,7 @@ async function getEventOrganizationId({
 async function handler(
   input: BookingHandlerInput,
   deps: IBookingServiceDependencies,
+  eventType: GetEventTypeResult,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const {
@@ -541,11 +550,6 @@ async function handler(
   });
 
   const isPlatformBooking = !!platformClientId;
-
-  const eventType = await getEventType({
-    eventTypeId: rawBookingData.eventTypeId,
-    eventTypeSlug: rawBookingData.eventTypeSlug,
-  });
 
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
@@ -587,6 +591,7 @@ async function handler(
     eventType,
   });
 
+  const bookingStartUtc = dayjs(reqBody.start).utc().toDate();
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: tracingLogger });
 
   try {
@@ -695,7 +700,7 @@ async function handler(
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
-      startTime: new Date(dayjs(reqBody.start).utc().format()),
+      startTime: bookingStartUtc,
       filterForUnconfirmed: !isConfirmedByDefault,
     });
 
@@ -859,7 +864,7 @@ async function handler(
     const booking = await deps.prismaClient.booking.findFirst({
       where: {
         eventTypeId: eventType.id,
-        startTime: new Date(dayjs(reqBody.start).utc().format()),
+        startTime: bookingStartUtc,
         status: BookingStatus.ACCEPTED,
       },
       select: {
@@ -1748,7 +1753,7 @@ async function handler(
 
   try {
     if (!isDryRun) {
-      booking = await createBooking({
+      const createArgs: CreateBookingParams = {
         uid,
         rescheduledBy: reqBody.rescheduledBy,
         routingFormResponseId: routingFormResponseId,
@@ -1776,6 +1781,12 @@ async function handler(
         originalRescheduledBooking,
         creationSource: input.bookingData.creationSource,
         tracking: reqBody.tracking,
+      };
+
+      booking = await createBooking(createArgs, {
+        tx: deps.prismaClient,
+        routingFormResponseRepository: deps.routingFormResponseRepository,
+        bookingRepository: deps.bookingRepository,
       });
 
       if (booking?.userId) {
@@ -2724,11 +2735,81 @@ export class RegularBookingService implements IBookingService {
   constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    const eventType = await getEventType({
+      eventTypeId: input.bookingData.eventTypeId,
+      eventTypeSlug: input.bookingData.eventTypeSlug,
+    });
+
+    const reservedSlot = this.getReservedSlotIfNotTeamOrSeatedEvent(input, eventType);
+    if (reservedSlot) {
+      await this.checkReservedSlotIsEarliest(reservedSlot);
+    }
+
+    const res = await handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps, eventType);
+
+    if (reservedSlot) {
+      await this.deleteReservedSlot(reservedSlot);
+    }
+    return res;
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    const eventType = await getEventType({
+      eventTypeId: input.bookingData.eventTypeId,
+      eventTypeSlug: input.bookingData.eventTypeSlug,
+    });
+
+    const reservedSlot = this.getReservedSlotIfNotTeamOrSeatedEvent(input, eventType);
+    if (reservedSlot) {
+      await this.checkReservedSlotIsEarliest(reservedSlot);
+    }
+
+    const res = await handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps, eventType);
+
+    if (reservedSlot) {
+      await this.deleteReservedSlot(reservedSlot);
+    }
+    return res;
+  }
+
+  private getReservedSlotIfNotTeamOrSeatedEvent(
+    input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta },
+    eventType: GetEventTypeResult
+  ) {
+    const isTeamEvent = eventType.schedulingType;
+    if (!input.bookingMeta?.reservedSlotUid || eventType.seatsPerTimeSlot || isTeamEvent) {
+      return undefined;
+    }
+
+    const bookingStartUtc = dayjs(input.bookingData.start).utc().toDate();
+    const bookingEndUtc = dayjs(input.bookingData.end).utc().toDate();
+
+    const reservedSlot = {
+      eventTypeId: input.bookingData.eventTypeId,
+      slotUtcStart: bookingStartUtc,
+      slotUtcEnd: bookingEndUtc,
+      reservedSlotUid: input.bookingMeta.reservedSlotUid,
+    };
+
+    return reservedSlot;
+  }
+
+  private async checkReservedSlotIsEarliest(reservedSlot: ReservedSlot) {
+    const earliestActive = await this.deps.selectedSlotsRepository.findEarliestActiveSlot(reservedSlot);
+
+    if (earliestActive && earliestActive.uid !== reservedSlot.reservedSlotUid) {
+      const now = dayjs.utc().toDate();
+      const secondsUntilRelease = dayjs(earliestActive.releaseAt).diff(now, "second");
+      throw new HttpError({
+        statusCode: 409,
+        message: "reserved_slot_not_first_in_line",
+        data: { secondsUntilRelease },
+      });
+    }
+  }
+
+  private async deleteReservedSlot(reservedSlot: ReservedSlot) {
+    await this.deps.selectedSlotsRepository.deleteForEvent(reservedSlot);
   }
 
   /**
@@ -2740,12 +2821,17 @@ export class RegularBookingService implements IBookingService {
     bookingDataSchemaGetter: BookingDataSchemaGetter;
   }) {
     const bookingMeta = input.bookingMeta ?? {};
+    const eventType = await getEventType({
+      eventTypeId: input.bookingData.eventTypeId,
+      eventTypeSlug: input.bookingData.eventTypeSlug,
+    });
     return handler(
       {
         bookingData: input.bookingData,
         ...bookingMeta,
       },
       this.deps,
+      eventType,
       input.bookingDataSchemaGetter
     );
   }
