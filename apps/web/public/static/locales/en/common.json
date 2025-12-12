@@ -1495,6 +1495,7 @@
   "event_cancelled_trigger": "when event is canceled",
   "after_hosts_cal_video_no_show": "After hosts didn't join cal video",
   "after_guests_cal_video_no_show": "After guests didn't join cal video",
+  "wrong_assignment_report": "Wrong assignment report",
   "join_video_call": "Join the video call",
   "sign_in_to_cal_com": "Sign in to Cal.com",
   "log_in_to_cal_com": "Log in to Cal.com",
