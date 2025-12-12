@@ -281,3 +281,5 @@ export const IS_PROD_DOMAIN = WEBAPP_URL.includes("cal.id");
 export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 export const META_API_VERSION = process.env.META_WHATSAPP_API_VERSION || "v21.0";
+export const META_WHATSAPP_BUSINESS_APP_ID = process.env.META_WHATSAPP_BUSINESS_APP_ID || "";
+export const META_WHATSAPP_BUSINESS_APP_SECRET = process.env.META_WHATSAPP_BUSINESS_APP_SECRET || "";
