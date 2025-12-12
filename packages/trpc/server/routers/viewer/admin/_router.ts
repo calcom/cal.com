@@ -19,6 +19,11 @@ import {
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
 import { adminPolicyRouter } from "./policy/_router";
+import { watchlistRouter } from "./watchlist/_router";
+
+const NAMESPACE = "admin";
+
+const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
@@ -103,4 +108,5 @@ export const adminRouter = router({
     }),
   }),
   policy: adminPolicyRouter,
+  watchlist: watchlistRouter,
 });
