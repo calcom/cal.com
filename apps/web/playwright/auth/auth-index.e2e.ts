@@ -56,6 +56,8 @@ test.describe("Can signup from a team invite", async () => {
     // Fill in form
     await newPage.fill('input[name="username"]', proUser.username); // Invalid username
     await newPage.fill('input[name="password"]', testUser.password);
+    const checkbox = newPage.getByTestId("signup-cookie-content-checkbox");
+    await checkbox.check();
     await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 409 });
     await expect(newPage.locator('text="Username or email is already taken"')).toBeVisible();
 

@@ -509,6 +509,8 @@ export async function signupFromEmailInviteLink({
 
   // Check required fields
   await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+  const checkbox = signupPage.getByTestId("signup-cookie-content-checkbox");
+  await checkbox.check();
   await signupPage.locator("button[type=submit]").click();
   await signupPage.waitForURL("/getting-started?from=signup");
   await context.close();

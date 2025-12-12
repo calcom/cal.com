@@ -5,7 +5,8 @@ CREATE TYPE "public"."PolicyType" AS ENUM ('PRIVACY_POLICY');
 CREATE TABLE "public"."policy_versions" (
     "version" TIMESTAMP(6) NOT NULL,
     "publishedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "description" TEXT,
+    "description" TEXT NOT NULL DEFAULT '',
+    "descriptionNonUS" TEXT NOT NULL DEFAULT '',
     "type" "public"."PolicyType" NOT NULL,
     "createdById" INTEGER NOT NULL,
 

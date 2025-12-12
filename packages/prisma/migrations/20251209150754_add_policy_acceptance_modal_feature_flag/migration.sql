@@ -3,7 +3,7 @@ INSERT INTO
 VALUES
   (
     'policy-acceptance-modal',
-    true,
+    false,
     'Enable policy acceptance modal - Show modal to users when policy is updated',
     'OPERATIONAL'
   ) ON CONFLICT (slug) DO NOTHING;
