@@ -97,11 +97,11 @@ describe("FeatureOptInService Integration Tests", () => {
     return featureSlug;
   }
 
-  describe("getFeatureStatusForUser", () => {
+  describe("resolveFeatureStateForUser", () => {
     it("should return effectiveEnabled=false when global feature is disabled", async () => {
       const testFeature = await setupFeature(false);
 
-      const status = await service.getFeatureStatusForUser({
+      const status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: null,
         featureId: testFeature,
@@ -123,7 +123,7 @@ describe("FeatureOptInService Integration Tests", () => {
         },
       });
 
-      const status = await service.getFeatureStatusForUser({
+      const status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -145,7 +145,7 @@ describe("FeatureOptInService Integration Tests", () => {
         },
       });
 
-      const status = await service.getFeatureStatusForUser({
+      const status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -161,7 +161,7 @@ describe("FeatureOptInService Integration Tests", () => {
       const testFeature = await setupFeature(true);
 
       // Case 1: No team row
-      let status = await service.getFeatureStatusForUser({
+      let status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -178,7 +178,7 @@ describe("FeatureOptInService Integration Tests", () => {
         },
       });
 
-      status = await service.getFeatureStatusForUser({
+      status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -196,7 +196,7 @@ describe("FeatureOptInService Integration Tests", () => {
         data: { enabled: false },
       });
 
-      status = await service.getFeatureStatusForUser({
+      status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -218,7 +218,7 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       // User has no explicit state (inherits)
-      const status = await service.getFeatureStatusForUser({
+      const status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -243,7 +243,7 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       // User has no explicit state (inherits)
-      const status = await service.getFeatureStatusForUser({
+      const status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -258,7 +258,7 @@ describe("FeatureOptInService Integration Tests", () => {
       const testFeature = await setupFeature(true);
 
       // No user row, no team row - both inherit
-      const status = await service.getFeatureStatusForUser({
+      const status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -292,7 +292,7 @@ describe("FeatureOptInService Integration Tests", () => {
         },
       });
 
-      const status = await service.getFeatureStatusForUser({
+      const status = await service.resolveFeatureStateForUser({
         userId: testUser.id,
         teamId: testTeam.id,
         featureId: testFeature,
@@ -460,11 +460,14 @@ describe("FeatureOptInService Integration Tests", () => {
     });
   });
 
-  describe("getFeatureStatusForTeam", () => {
+  describe("resolveFeatureStateForTeam", () => {
     it("should return effectiveEnabled=false when global feature is disabled", async () => {
       const testFeature = await setupFeature(false);
 
-      const status = await service.getFeatureStatusForTeam({ teamId: testTeam.id, featureId: testFeature });
+      const status = await service.resolveFeatureStateForTeam({
+        teamId: testTeam.id,
+        featureId: testFeature,
+      });
 
       expect(status.effectiveEnabled).toBe(false);
     });
@@ -481,7 +484,10 @@ describe("FeatureOptInService Integration Tests", () => {
         },
       });
 
-      const status = await service.getFeatureStatusForTeam({ teamId: testTeam.id, featureId: testFeature });
+      const status = await service.resolveFeatureStateForTeam({
+        teamId: testTeam.id,
+        featureId: testFeature,
+      });
 
       expect(status.teamState).toBe("enabled");
       expect(status.effectiveEnabled).toBe(true);
@@ -499,7 +505,10 @@ describe("FeatureOptInService Integration Tests", () => {
         },
       });
 
-      const status = await service.getFeatureStatusForTeam({ teamId: testTeam.id, featureId: testFeature });
+      const status = await service.resolveFeatureStateForTeam({
+        teamId: testTeam.id,
+        featureId: testFeature,
+      });
 
       expect(status.teamState).toBe("disabled");
       expect(status.effectiveEnabled).toBe(false);
@@ -508,7 +517,10 @@ describe("FeatureOptInService Integration Tests", () => {
     it("should return effectiveEnabled=false when team inherits (no row)", async () => {
       const testFeature = await setupFeature(true);
 
-      const status = await service.getFeatureStatusForTeam({ teamId: testTeam.id, featureId: testFeature });
+      const status = await service.resolveFeatureStateForTeam({
+        teamId: testTeam.id,
+        featureId: testFeature,
+      });
 
       expect(status.teamState).toBe("inherit");
       expect(status.effectiveEnabled).toBe(false);
