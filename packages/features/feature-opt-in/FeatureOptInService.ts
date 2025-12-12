@@ -41,22 +41,19 @@ export class FeatureOptInService {
     const globalFeature = allFeatures.find((f) => f.slug === featureId);
     const globalEnabled = globalFeature?.enabled ?? false;
 
-    // Get org state - use batch method with single feature
-    let orgState: FeatureState = "inherit";
-    if (orgId !== null) {
-      const orgStates = await this.featuresRepository.getTeamFeatureStates({
-        teamId: orgId,
-        featureIds: [featureId],
-      });
-      orgState = orgStates[featureId];
-    }
-
-    // Get team states - query all teams for the single feature in one call
-    const teamStatesByTeam = await this.featuresRepository.getFeatureStateForTeams({
-      teamIds,
+    // Get org and team states in a single query
+    // Include orgId in the query if it exists
+    const allTeamIds = orgId !== null ? [orgId, ...teamIds] : teamIds;
+    const allTeamStates = await this.featuresRepository.getFeatureStateForTeams({
+      teamIds: allTeamIds,
       featureId,
     });
-    const teamStates = teamIds.map((teamId) => teamStatesByTeam[teamId] ?? "inherit");
+
+    // Extract org state from the combined result
+    const orgState: FeatureState = orgId !== null ? (allTeamStates[orgId] ?? "inherit") : "inherit";
+
+    // Extract team states from the combined result
+    const teamStates = teamIds.map((teamId) => allTeamStates[teamId] ?? "inherit");
 
     // Get user state - use batch method with single feature
     const userStates = await this.featuresRepository.getUserFeatureStates({
