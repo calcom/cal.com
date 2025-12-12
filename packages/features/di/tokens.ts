@@ -96,6 +96,10 @@ export const DI_TOKENS = {
         APP_REPOSITORY_MODULE: Symbol("AppRepositoryModule"),
         ROUTING_FORM_REPOSITORY: Symbol("RoutingFormRepository"),
         ROUTING_FORM_REPOSITORY_MODULE: Symbol("RoutingFormRepositoryModule"),
+        ATTRIBUTE_OPTION_REPOSITORY: Symbol("AttributeOptionRepository"),
+        ATTRIBUTE_OPTION_REPOSITORY_MODULE: Symbol("AttributeOptionRepositoryModule"),
+        ATTRIBUTE_TO_USER_REPOSITORY: Symbol("AttributeToUserRepository"),
+        ATTRIBUTE_TO_USER_REPOSITORY_MODULE: Symbol("AttributeToUserRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens

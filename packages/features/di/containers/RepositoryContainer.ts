@@ -19,6 +19,8 @@ import type { IAssignmentReasonRepository } from "@calcom/lib/server/repository/
 import type { IOrgMembershipRepository } from "@calcom/lib/server/repository/IOrgMembershipRepository";
 import type { IAppRepository } from "@calcom/lib/server/repository/IAppRepository";
 import type { IRoutingFormRepository } from "@calcom/lib/server/repository/IRoutingFormRepository";
+import type { IAttributeOptionRepository } from "@calcom/lib/server/repository/IAttributeOptionRepository";
+import type { IAttributeToUserRepository } from "@calcom/lib/server/repository/IAttributeToUserRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -57,6 +59,8 @@ import { assignmentReasonRepositoryModuleLoader } from "../modules/AssignmentRea
 import { orgMembershipRepositoryModuleLoader } from "../modules/OrgMembership";
 import { appRepositoryModuleLoader } from "../modules/App";
 import { routingFormRepositoryModuleLoader } from "../modules/RoutingForm";
+import { attributeOptionRepositoryModuleLoader } from "../modules/AttributeOption";
+import { attributeToUserRepositoryModuleLoader } from "../modules/AttributeToUser";
 
 const repositoryContainer = createContainer();
 
@@ -89,6 +93,8 @@ repositoryContainer.load(assignmentReasonRepositoryModuleLoader());
 repositoryContainer.load(orgMembershipRepositoryModuleLoader());
 repositoryContainer.load(appRepositoryModuleLoader());
 repositoryContainer.load(routingFormRepositoryModuleLoader());
+repositoryContainer.load(attributeOptionRepositoryModuleLoader());
+repositoryContainer.load(attributeToUserRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -200,4 +206,12 @@ export function getAppRepository(): IAppRepository {
 
 export function getRoutingFormRepository(): IRoutingFormRepository {
   return repositoryContainer.get<IRoutingFormRepository>(DI_TOKENS.ROUTING_FORM_REPOSITORY);
+}
+
+export function getAttributeOptionRepository(): IAttributeOptionRepository {
+  return repositoryContainer.get<IAttributeOptionRepository>(DI_TOKENS.ATTRIBUTE_OPTION_REPOSITORY);
+}
+
+export function getAttributeToUserRepository(): IAttributeToUserRepository {
+  return repositoryContainer.get<IAttributeToUserRepository>(DI_TOKENS.ATTRIBUTE_TO_USER_REPOSITORY);
 }
