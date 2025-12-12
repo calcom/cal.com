@@ -7,7 +7,7 @@ import type { BookingRepository } from "@calcom/features/bookings/repositories/B
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllWorkflowsFromEventType } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { JsonObject } from "@calcom/types/Json";
 
