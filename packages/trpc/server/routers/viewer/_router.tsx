@@ -1,4 +1,5 @@
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
+import { featureOptInRouter } from "@calcom/features/feature-opt-in/trpc/router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
@@ -75,6 +76,7 @@ export const viewerRouter = router({
   // After that there would just one merge call here for all the apps.
   appRoutingForms: app_RoutingForms,
   features: featureFlagRouter,
+  featureOptIn: featureOptInRouter,
   users: userAdminRouter,
   oAuth: oAuthRouter,
   googleWorkspace: googleWorkspaceRouter,

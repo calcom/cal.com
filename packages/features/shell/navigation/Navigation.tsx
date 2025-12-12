@@ -16,6 +16,14 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
+const preserveBookingsQueryParams = ({
+  prevPathname,
+  nextPathname,
+}: {
+  prevPathname: string | null;
+  nextPathname: string;
+}) => Boolean(prevPathname?.startsWith("/bookings/")) && nextPathname.startsWith("/bookings/");
+
 const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
   {
     name: "event_types_page_title",
@@ -28,6 +36,38 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "calendar",
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
+    child: [
+      {
+        name: "upcoming",
+        href: "/bookings/upcoming",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/upcoming",
+      },
+      {
+        name: "unconfirmed",
+        href: "/bookings/unconfirmed",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/unconfirmed",
+      },
+      {
+        name: "recurring",
+        href: "/bookings/recurring",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/recurring",
+      },
+      {
+        name: "past",
+        href: "/bookings/past",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/past",
+      },
+      {
+        name: "cancelled",
+        href: "/bookings/cancelled",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/cancelled",
+      },
+    ],
   },
   {
     name: "availability",

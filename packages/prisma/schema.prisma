@@ -256,7 +256,6 @@ model EventType {
   hostGroups            HostGroup[]
 
   bookingRequiresAuthentication Boolean @default(false)
-  rrHostSubsetEnabled           Boolean @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -465,6 +464,7 @@ model User {
   NotificationsSubscriptions     NotificationsSubscriptions[]
   referralLinkId                 String?
   features                       UserFeatures[]
+  autoOptInExperimentalFeatures  Boolean                       @default(false)
   reassignedBookings             Booking[]                     @relation("reassignByUser")
   createdAttributeToUsers        AttributeToUser[]             @relation("createdBy")
   updatedAttributeToUsers        AttributeToUser[]             @relation("updatedBy")
@@ -594,7 +594,8 @@ model Team {
   agents                 Agent[]
   bookingReports         BookingReport[]
 
-  features TeamFeatures[]
+  features                      TeamFeatures[]
+  autoOptInExperimentalFeatures Boolean        @default(false)
 
   /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   bookingLimits                Json?
@@ -894,7 +895,6 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
-  @@index([fromReschedule])
 }
 
 model Tracking {
