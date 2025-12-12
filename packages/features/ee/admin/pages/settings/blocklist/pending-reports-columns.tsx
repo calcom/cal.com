@@ -53,7 +53,7 @@ export function usePendingReportsColumns({ t, onViewDetails }: UsePendingReports
           const email = row.original.bookerEmail;
           return (
             <div className="flex flex-col">
-              <span className="text-emphasis text-sm font-medium break-words">{email}</span>
+              <span className="text-emphasis break-words text-sm font-medium">{email}</span>
             </div>
           );
         },
@@ -67,15 +67,19 @@ export function usePendingReportsColumns({ t, onViewDetails }: UsePendingReports
           if (!org) {
             return <span className="text-subtle text-sm">{t("individual")}</span>;
           }
-          return <span className="text-default text-sm truncate block">{org.name}</span>;
+          return <span className="text-default block truncate text-sm">{org.name}</span>;
         },
       },
       {
         id: "reportedBy",
         header: t("reported_by"),
-        accessorFn: (row) => row.reporter?.email ?? "-",
+        accessorFn: (row) => row.reporter?.email ?? "--",
         size: 180,
-        cell: ({ row }) => <span className="text-default text-sm break-words block">{row.original.reporter?.email ?? "—"}</span>,
+        cell: ({ row }) => (
+          <span className="text-default wrap-break-word block text-sm">
+            {row.original.reporter?.email ?? "--"}
+          </span>
+        ),
       },
       {
         id: "reason",
@@ -85,7 +89,11 @@ export function usePendingReportsColumns({ t, onViewDetails }: UsePendingReports
           const reason = t(row.original.reason.toLowerCase());
           const capitalizedReason = reason.charAt(0).toUpperCase() + reason.slice(1);
 
-          return <Badge variant="blue" className="text-xs">{capitalizedReason}</Badge>;
+          return (
+            <Badge variant="blue" className="text-xs">
+              {capitalizedReason}
+            </Badge>
+          );
         },
       },
       {

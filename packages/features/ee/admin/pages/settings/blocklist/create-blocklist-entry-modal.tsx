@@ -161,7 +161,10 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
             <Button
               type="button"
               color="secondary"
-              onClick={onClose}
+              onClick={() => {
+                onClose();
+                reset();
+              }}
               disabled={isSubmitting || createWatchlistEntry.isPending}>
               {t("cancel")}
             </Button>

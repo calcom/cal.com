@@ -14,9 +14,9 @@ import { ConfirmationDialogContent, Dialog, DialogClose } from "@calcom/ui/compo
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { BulkDeleteBlocklistEntries } from "./BulkDeleteBlocklistEntries";
 import { useBlockedEntriesColumns } from "./blocked-entries-columns";
 import { BlocklistEntryDetailsSheet } from "./blocklist-entry-details-sheet";
-import { BulkDeleteBlocklistEntries } from "./BulkDeleteBlocklistEntries";
 
 type BlocklistEntry = RouterOutputs["viewer"]["admin"]["watchlist"]["list"]["rows"][number];
 
@@ -165,7 +165,7 @@ export function BlockedEntriesTable({ onAddClick }: BlockedEntriesTableProps) {
           variety="danger"
           title={t("remove_value_from_system_blocklist", { value: entryToDelete?.value })}
           confirmBtn={
-            <DialogClose color="destructive" onClick={confirmDelete}>
+            <DialogClose loading={deleteWatchlistEntry.isPending} color="destructive" onClick={confirmDelete}>
               {t("remove")}
             </DialogClose>
           }>
