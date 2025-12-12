@@ -86,6 +86,10 @@ export const DI_TOKENS = {
         WORKFLOW_STEP_REPOSITORY_MODULE: Symbol("WorkflowStepRepositoryModule"),
         API_KEY_REPOSITORY: Symbol("ApiKeyRepository"),
         API_KEY_REPOSITORY_MODULE: Symbol("ApiKeyRepositoryModule"),
+        HASHED_LINK_REPOSITORY: Symbol("HashedLinkRepository"),
+        HASHED_LINK_REPOSITORY_MODULE: Symbol("HashedLinkRepositoryModule"),
+        CAL_VIDEO_SETTINGS_REPOSITORY: Symbol("CalVideoSettingsRepository"),
+        CAL_VIDEO_SETTINGS_REPOSITORY_MODULE: Symbol("CalVideoSettingsRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens

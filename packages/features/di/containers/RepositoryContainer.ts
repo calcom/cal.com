@@ -13,6 +13,8 @@ import type { IWorkflowStepRepository } from "@calcom/lib/server/repository/IWor
 import type { IRoutingFormResponseRepository } from "@calcom/lib/server/repository/IRoutingFormResponseRepository";
 import type { IAttributeRepository } from "@calcom/lib/server/repository/IAttributeRepository";
 import type { IApiKeyRepository } from "@calcom/lib/server/repository/IApiKeyRepository";
+import type { IHashedLinkRepository } from "@calcom/lib/server/repository/IHashedLinkRepository";
+import type { ICalVideoSettingsRepository } from "@calcom/lib/server/repository/ICalVideoSettingsRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -45,6 +47,8 @@ import { workflowStepRepositoryModuleLoader } from "../modules/WorkflowStep";
 import { routingFormResponseRepositoryModuleLoader } from "../modules/RoutingFormResponse";
 import { attributeRepositoryModuleLoader } from "../modules/Attribute";
 import { apiKeyRepositoryModuleLoader } from "../modules/ApiKey";
+import { hashedLinkRepositoryModuleLoader } from "../modules/HashedLink";
+import { calVideoSettingsRepositoryModuleLoader } from "../modules/CalVideoSettings";
 
 const repositoryContainer = createContainer();
 
@@ -71,6 +75,8 @@ repositoryContainer.load(workflowStepRepositoryModuleLoader());
 repositoryContainer.load(routingFormResponseRepositoryModuleLoader());
 repositoryContainer.load(attributeRepositoryModuleLoader());
 repositoryContainer.load(apiKeyRepositoryModuleLoader());
+repositoryContainer.load(hashedLinkRepositoryModuleLoader());
+repositoryContainer.load(calVideoSettingsRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -158,4 +164,12 @@ export function getAttributeRepository(): IAttributeRepository {
 
 export function getApiKeyRepository(): IApiKeyRepository {
   return repositoryContainer.get<IApiKeyRepository>(DI_TOKENS.API_KEY_REPOSITORY);
+}
+
+export function getHashedLinkRepository(): IHashedLinkRepository {
+  return repositoryContainer.get<IHashedLinkRepository>(DI_TOKENS.HASHED_LINK_REPOSITORY);
+}
+
+export function getCalVideoSettingsRepository(): ICalVideoSettingsRepository {
+  return repositoryContainer.get<ICalVideoSettingsRepository>(DI_TOKENS.CAL_VIDEO_SETTINGS_REPOSITORY);
 }
