@@ -191,12 +191,14 @@ function buildSlotsWithDateRanges({
         toUser?: IToUser;
         reason?: string;
         emoji?: string;
+        notes?: string | null;
+        showNotePublicly?: boolean;
       } = {
         time: slotStartTime,
       };
 
       if (dateOutOfOfficeExists) {
-        const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
+        const { toUser, fromUser, reason, emoji, notes, showNotePublicly } = dateOutOfOfficeExists;
 
         slotData = {
           time: slotStartTime,
@@ -205,6 +207,8 @@ function buildSlotsWithDateRanges({
           ...(toUser && { toUser }),
           ...(reason && { reason }),
           ...(emoji && { emoji }),
+          ...(notes && showNotePublicly && { notes }),
+          ...(showNotePublicly !== undefined && { showNotePublicly }),
         };
       }
 
