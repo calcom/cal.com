@@ -35,23 +35,28 @@ export const BookingAuditActionSchema = z.enum([
 
 export type BookingAuditAction = z.infer<typeof BookingAuditActionSchema>;
 
+type AuditActionData<T extends { TYPE: string; latestFieldsSchema: z.ZodType }> = {
+    action: T["TYPE"];
+    data: z.infer<T["latestFieldsSchema"]>;
+};
+
 /**
  * Producer action data type - discriminated union for type-safe queueing
  * Used by the legacy queueAudit method for backwards compatibility
  */
 export type BookingAuditTaskProducerActionData =
-    | { action: typeof CreatedAuditActionService.TYPE; data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema> }
-    | { action: typeof RescheduledAuditActionService.TYPE; data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema> }
-    | { action: typeof AcceptedAuditActionService.TYPE; data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema> }
-    | { action: typeof CancelledAuditActionService.TYPE; data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema> }
-    | { action: typeof RescheduleRequestedAuditActionService.TYPE; data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema> }
-    | { action: typeof AttendeeAddedAuditActionService.TYPE; data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema> }
-    | { action: typeof HostNoShowUpdatedAuditActionService.TYPE; data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema> }
-    | { action: typeof RejectedAuditActionService.TYPE; data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema> }
-    | { action: typeof AttendeeRemovedAuditActionService.TYPE; data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema> }
-    | { action: typeof ReassignmentAuditActionService.TYPE; data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema> }
-    | { action: typeof LocationChangedAuditActionService.TYPE; data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema> }
-    | { action: typeof AttendeeNoShowUpdatedAuditActionService.TYPE; data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema> };
+    | AuditActionData<typeof CreatedAuditActionService>
+    | AuditActionData<typeof RescheduledAuditActionService>
+    | AuditActionData<typeof AcceptedAuditActionService>
+    | AuditActionData<typeof CancelledAuditActionService>
+    | AuditActionData<typeof RescheduleRequestedAuditActionService>
+    | AuditActionData<typeof AttendeeAddedAuditActionService>
+    | AuditActionData<typeof HostNoShowUpdatedAuditActionService>
+    | AuditActionData<typeof RejectedAuditActionService>
+    | AuditActionData<typeof AttendeeRemovedAuditActionService>
+    | AuditActionData<typeof ReassignmentAuditActionService>
+    | AuditActionData<typeof LocationChangedAuditActionService>
+    | AuditActionData<typeof AttendeeNoShowUpdatedAuditActionService>;
 
 /**
  * Lean base schema for booking audit task payload

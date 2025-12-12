@@ -15,6 +15,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
+import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 
 interface BookingLogsViewProps {
     bookingUid: string;
@@ -40,7 +41,7 @@ type AuditLog = {
     actionDisplayTitle: TranslationWithParams;
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
-        type: string;
+        type: AuditActorType;
         displayName: string | null;
         displayEmail: string | null;
         displayAvatar: string | null;
@@ -50,9 +51,9 @@ type AuditLog = {
 interface BookingLogsFiltersProps {
     searchTerm: string;
     onSearchChange: (value: string) => void;
-    actorFilter: string | null;
-    onActorFilterChange: (value: string | null) => void;
-    actorOptions: Array<{ label: string; value: string }>;
+    actorFilter: AuditActorType | null;
+    onActorFilterChange: (value: AuditActorType | null) => void;
+    actorOptions: Array<{ label: string; value: AuditActorType }>;
 }
 
 interface BookingLogsTimelineProps {
@@ -85,7 +86,7 @@ const getActionIcon = (action: string) => {
     }
 };
 
-const getActorRoleLabel = (actorType: string): string | null => {
+const getActorRoleLabel = (actorType: AuditActorType): string | null => {
     switch (actorType) {
         case "GUEST":
             return "Guest";
@@ -126,7 +127,7 @@ function BookingLogsFilters({
                     value={actorFilter ? { label: `${t("actor")}: ${actorFilter}`, value: actorFilter } : { label: `${t("actor")}: ${t("all")}`, value: "" }}
                     onChange={(option) => {
                         if (!option) return;
-                        onActorFilterChange(option.value || null);
+                        onActorFilterChange((option.value as AuditActorType) || null);
                     }}
                     options={[{ label: `${t("actor")}: ${t("all")}`, value: "" }, ...actorOptions.map(opt => ({ ...opt, label: `${t("actor")}: ${opt.label}` }))]}
                 />
@@ -344,7 +345,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
-    const [actorFilter, setActorFilter] = useState<string | null>(null);
+    const [actorFilter, setActorFilter] = useState<AuditActorType | null>(null);
     const { t } = useLocale();
     const { data, isLoading, error } = trpc.viewer.bookings.getAuditLogs.useQuery({
         bookingUid,
@@ -389,7 +390,7 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
         return matchesSearch && matchesActor;
     });
 
-    const uniqueActorTypes = Array.from(new Set(auditLogs.map((log) => log.actor.type)));
+    const uniqueActorTypes = Array.from(new Set(auditLogs.map((log) => log.actor.type))) as AuditActorType[];
 
     const actorOptions = uniqueActorTypes.map((actorType) => ({
         label: actorType,

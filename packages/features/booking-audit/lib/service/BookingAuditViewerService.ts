@@ -1,8 +1,10 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
+import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type { TranslationWithParams } from "../actions/IAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -11,6 +13,7 @@ interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
     userRepository: UserRepository;
     bookingRepository: BookingRepository;
+    log: ISimpleLogger;
 }
 
 type EnrichedAuditLog = {
@@ -25,7 +28,7 @@ type EnrichedAuditLog = {
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
         id: string;
-        type: string;
+        type: AuditActorType;
         userUuid: string | null;
         attendeeId: number | null;
         name: string | null;
@@ -45,11 +48,13 @@ export class BookingAuditViewerService {
     private readonly userRepository: UserRepository;
     private readonly bookingRepository: BookingRepository;
     private readonly rescheduledAuditActionService: RescheduledAuditActionService;
+    private readonly log: BookingAuditViewerServiceDeps["log"];
 
     constructor(private readonly deps: BookingAuditViewerServiceDeps) {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.userRepository = deps.userRepository;
         this.bookingRepository = deps.bookingRepository;
+        this.log = deps.log;
         this.rescheduledAuditActionService = new RescheduledAuditActionService();
 
         this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository });
@@ -134,7 +139,12 @@ export class BookingAuditViewerService {
             actionDisplayTitle,
             displayFields,
             actor: {
-                ...log.actor,
+                id: log.actor.id,
+                type: log.actor.type,
+                userUuid: log.actor.userUuid,
+                attendeeId: log.actor.attendeeId,
+                name: log.actor.name,
+                createdAt: log.actor.createdAt,
                 displayName: enrichedActor.displayName,
                 displayEmail: enrichedActor.displayEmail,
                 displayAvatar: enrichedActor.displayAvatar,
@@ -166,8 +176,7 @@ export class BookingAuditViewerService {
         });
 
         if (!rescheduledLog) {
-            // TODO: Use logger instead of console.error
-            console.error(`No rescheduled log found for booking ${fromRescheduleUid} -> ${currentBookingUid}`);
+            this.log.error(`No rescheduled log found for booking ${fromRescheduleUid} -> ${currentBookingUid}`);
             // Instead of crashing, we ignore because it is important to be able to access other logs as well.
             return null;
         }
