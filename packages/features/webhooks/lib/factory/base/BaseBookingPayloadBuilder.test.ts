@@ -5,10 +5,9 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { BookingWebhookEventDTO, EventTypeInfo } from "../../dto/types";
 import { BaseBookingPayloadBuilder } from "./BaseBookingPayloadBuilder";
 
-// Concrete implementation for testing
 class TestBookingPayloadBuilder extends BaseBookingPayloadBuilder {}
 
-// Mock dayjs timezone function
+
 vi.mock("@calcom/lib/dayjs", () => ({
   getUTCOffsetByTimezone: vi.fn(() => 0),
 }));

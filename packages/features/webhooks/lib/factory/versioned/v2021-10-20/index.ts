@@ -4,10 +4,6 @@
  * This is the initial webhook version. All builders extend base classes
  * and use default implementations.
  *
- * When creating a new version:
- * 1. Create a new directory: versioned/v{NEW_VERSION}/
- * 2. Extend base builders and override methods that need changes
- * 3. Register the new version in registry.ts
  */
 
 export { BookingPayloadBuilder } from "./BookingPayloadBuilder";

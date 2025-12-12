@@ -6,7 +6,5 @@ import { BaseBookingPayloadBuilder } from "../../base/BaseBookingPayloadBuilder"
  * This is the initial version - uses all default behavior from base class.
  * Future versions can extend BaseBookingPayloadBuilder and override methods.
  */
-export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
-  // Uses all default implementations from BaseBookingPayloadBuilder
-}
+export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {}
 

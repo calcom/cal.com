@@ -448,6 +448,35 @@ export interface WebhookDeliveryResult {
   webhookId: string;
 }
 
+/**
+ * Payment data associated with webhook events
+ * Used when sending booking payment webhooks
+ */
+export interface PaymentData {
+  id: number;
+  fee: number;
+  currency: string;
+  success: boolean;
+  refunded: boolean;
+  externalId: string;
+  data: unknown;
+  appId: string | null;
+  bookingId: number;
+}
+
+/**
+ * Minimal webhook shape for URL reservation check
+ * Used to check if a subscriber URL is already in use within a scope
+ */
+export interface WebhookForReservationCheck {
+  id: string;
+  subscriberUrl: string;
+  teamId: number | null;
+  userId: number | null;
+  eventTypeId: number | null;
+  platform: boolean;
+}
+
 // Legacy types moved from sendPayload.ts for backward compatibility
 export type EventTypeInfo = {
   eventTitle?: string | null;

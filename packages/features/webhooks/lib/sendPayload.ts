@@ -3,28 +3,13 @@ import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import type { WebhookSubscriber, PaymentData } from "@calcom/features/webhooks/lib/dto/types";
 import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-// Domain types - decoupled from Prisma
-type WebhookForPayload = {
-  subscriberUrl: string;
-  appId: string | null;
-  payloadTemplate: string | null;
-};
-
-type PaymentData = {
-  id: number;
-  fee: number;
-  currency: string;
-  success: boolean;
-  refunded: boolean;
-  externalId: string;
-  data: unknown;
-  appId: string | null;
-  bookingId: number;
-};
+// Minimal webhook shape for sending payloads (subset of WebhookSubscriber)
+type WebhookForPayload = Pick<WebhookSubscriber, "subscriberUrl" | "appId" | "payloadTemplate">;
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 

@@ -7,11 +7,6 @@ import type { WebhookSubscriber, WebhookGroup } from "../dto/types";
  *
  * This is a TypeScript-only enum (not Prisma).
  * DB operations go through the repository which enforces these values.
- *
- * When adding a new version:
- * 1. Add the new value here
- * 2. Create version-specific builders in versioned/v{VERSION}/
- * 3. Register the version in registry.ts
  */
 export const WebhookVersion = {
   V_2021_10_20: "2021-10-20",

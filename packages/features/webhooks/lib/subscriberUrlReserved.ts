@@ -1,15 +1,4 @@
-/**
- * Minimal webhook shape for URL reservation check.
- * Decoupled from Prisma to avoid hard coupling outside repositories.
- */
-interface WebhookForReservationCheck {
-  id: string;
-  subscriberUrl: string;
-  teamId: number | null;
-  userId: number | null;
-  eventTypeId: number | null;
-  platform: boolean;
-}
+import type { WebhookForReservationCheck } from "./dto/types";
 
 interface Params {
   subscriberUrl: string;

@@ -2,10 +2,11 @@
  * Base payload builder classes.
  *
  * These provide shared logic that version-specific builders can extend.
+ * 
  * When creating a new webhook version:
- * 1. Extend the base class
- * 2. Override only the methods that need version-specific behavior
- * 3. Register in registry.ts
+ * 1. Create a new directory: versioned/v{NEW_VERSION}/
+ * 2. Extend base builders and override methods that need changes
+ * 3. Register the new version in registry.tsregistry.ts
  */
 export { BaseBookingPayloadBuilder } from "./BaseBookingPayloadBuilder";
 export { BaseFormPayloadBuilder } from "./BaseFormPayloadBuilder";
