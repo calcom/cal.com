@@ -707,7 +707,7 @@ export function BookingActionsDropdown({
                   <DropdownItem
                     type="button"
                     color="destructive"
-                    StartIcon="alert-triangle"
+                    StartIcon="user-x"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsOpenWrongAssignmentDialog(true);

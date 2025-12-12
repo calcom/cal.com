@@ -1,19 +1,14 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import AddMembersWithSwitch, {
-  mapUserToValue,
-} from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
-import type { FormValues as EventTypeFormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Label } from "@calcom/ui/components/form";
+import { Label, Select } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
@@ -34,63 +29,11 @@ interface FormValues {
   additionalNotes: string;
 }
 
-// Wrapper component that provides AddMembersWithSwitch with its own FormContext
-const TeamMemberSelector = ({
-  teamId,
-  teamMembers,
-  onMemberSelect,
-}: {
-  teamId: number;
-  teamMembers: TeamMember[];
-  onMemberSelect: (email: string) => void;
-}) => {
-  const { t } = useLocale();
-  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState(false);
-  const [selectedHosts, setSelectedHosts] = useState<Host[]>([]);
-
-  // Create a minimal form context for AddMembersWithSwitch
-  const innerForm = useForm<EventTypeFormValues>({
-    defaultValues: {
-      assignRRMembersUsingSegment: false,
-      rrSegmentQueryValue: null,
-      hosts: [],
-      assignAllTeamMembers: false,
-    },
-  });
-
-  const handleHostsChange = (hosts: Host[]) => {
-    setSelectedHosts(hosts);
-    // When a host is selected, find their email and call onMemberSelect
-    if (hosts.length > 0) {
-      const lastHost = hosts[hosts.length - 1];
-      const member = teamMembers.find((m) => m.value === String(lastHost.userId));
-      if (member) {
-        onMemberSelect(member.email);
-      }
-    } else {
-      onMemberSelect("");
-    }
-  };
-
-  return (
-    <FormProvider {...innerForm}>
-      <AddMembersWithSwitch
-        teamId={teamId}
-        groupId={null}
-        teamMembers={teamMembers}
-        value={selectedHosts}
-        onChange={handleHostsChange}
-        assignAllTeamMembers={assignAllTeamMembers}
-        setAssignAllTeamMembers={setAssignAllTeamMembers}
-        automaticAddAllEnabled={false}
-        isFixed={false}
-        isSegmentApplicable={false}
-        placeholder={t("select_team_member")}
-        onActive={() => {}}
-      />
-    </FormProvider>
-  );
-};
+interface TeamMemberOption {
+  label: string;
+  value: string;
+  email: string;
+}
 
 export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
   const { t } = useLocale();
@@ -110,7 +53,6 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
   const {
     control,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -125,21 +67,13 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
     { enabled: !!teamId && isOpenDialog }
   );
 
-  // Transform team members to the format expected by AddMembersWithSwitch
-  const teamMembers: TeamMember[] =
-    teamMembersData?.members.map((member) =>
-      mapUserToValue(
-        {
-          id: member.id,
-          name: member.name,
-          username: member.username,
-          avatar: member.avatarUrl ?? "",
-          email: member.email,
-          defaultScheduleId: null,
-        },
-        t("pending")
-      )
-    ) ?? [];
+  // Transform team members to options for Select component
+  const teamMemberOptions: TeamMemberOption[] =
+    teamMembersData?.members.map((member) => ({
+      label: member.name || member.email,
+      value: member.email,
+      email: member.email,
+    })) ?? [];
 
   const { mutate: reportWrongAssignment, isPending } =
     trpc.viewer.bookings.reportWrongAssignment.useMutation({
@@ -161,10 +95,6 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
     });
   };
 
-  const handleMemberSelect = (email: string) => {
-    setValue("correctAssignee", email);
-  };
-
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent enableOverflow>
@@ -173,7 +103,7 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
             <div className="w-full">
               <DialogHeader title={t("wrong_assignment")} />
 
-              <div className="mb-4 space-y-3">
+              <div className="-mt-2 mb-4 space-y-3">
                 <div>
                   <Label className="text-emphasis mb-1 block text-sm font-medium">
                     {t("routing_reason")}
@@ -213,11 +143,21 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
                   {t("who_should_have_received_it")}{" "}
                   <span className="text-subtle font-normal">({t("optional")})</span>
                 </Label>
-                {teamId && teamMembers.length > 0 ? (
-                  <TeamMemberSelector
-                    teamId={teamId}
-                    teamMembers={teamMembers}
-                    onMemberSelect={handleMemberSelect}
+                {teamId && teamMemberOptions.length > 0 ? (
+                  <Controller
+                    name="correctAssignee"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        options={teamMemberOptions}
+                        placeholder={t("select_team_member")}
+                        onChange={(option) => {
+                          if (option) field.onChange(option.value);
+                        }}
+                        value={teamMemberOptions.find((opt) => opt.value === field.value) || null}
+                        isClearable
+                      />
+                    )}
                   />
                 ) : (
                   <Controller
