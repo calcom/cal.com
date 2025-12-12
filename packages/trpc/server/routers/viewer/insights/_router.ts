@@ -3,12 +3,12 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { getInsightsBookingService } from "@calcom/features/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/features/di/containers/InsightsRouting";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import {
   extractDateRangeFromColumnFilters,
   replaceDateRangeColumnFilter,
 } from "@calcom/features/insights/lib/bookingUtils";
 import { objectToCsv } from "@calcom/features/insights/lib/objectToCsv";
-import { getEventTypeList } from "@calcom/features/insights/server/getEventTypeList";
 import {
   getTimeView,
   getDateRanges,
@@ -567,8 +567,8 @@ export const insightsRouter = router({
       const { prisma, user } = ctx;
       const { teamId, userId, isAll } = input;
 
-      const eventTypeList = await getEventTypeList({
-        prisma,
+      const eventTypeRepository = new EventTypeRepository(prisma);
+      const eventTypeList = await eventTypeRepository.getEventTypeList({
         teamId,
         userId,
         isAll,
