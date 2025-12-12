@@ -1,81 +1,303 @@
 import { describe, it, expect } from "vitest";
 
-import { computeEffectiveState } from "./computeEffectiveState";
+import { computeEffectiveStateAcrossTeams } from "./computeEffectiveState";
 
-describe("computeEffectiveState", () => {
+describe("computeEffectiveStateAcrossTeams", () => {
   describe("when global is disabled", () => {
-    it("returns false regardless of team and user state", () => {
+    it("returns false regardless of other states", () => {
       expect(
-        computeEffectiveState({ globalEnabled: false, teamState: "enabled", userState: "enabled" })
-      ).toBe(false);
-      expect(
-        computeEffectiveState({ globalEnabled: false, teamState: "disabled", userState: "enabled" })
-      ).toBe(false);
-      expect(
-        computeEffectiveState({ globalEnabled: false, teamState: "inherit", userState: "enabled" })
-      ).toBe(false);
-      expect(
-        computeEffectiveState({ globalEnabled: false, teamState: "enabled", userState: "disabled" })
-      ).toBe(false);
-      expect(
-        computeEffectiveState({ globalEnabled: false, teamState: "enabled", userState: "inherit" })
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: false,
+          orgState: "enabled",
+          teamStates: ["enabled"],
+          userState: "enabled",
+        })
       ).toBe(false);
     });
   });
 
-  describe("when global is enabled", () => {
-    describe("when team is disabled", () => {
+  describe("when org is disabled", () => {
+    it("returns false regardless of team and user state", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "disabled",
+          teamStates: ["enabled"],
+          userState: "enabled",
+        })
+      ).toBe(false);
+    });
+  });
+
+  describe("when org is enabled", () => {
+    describe("when all teams are disabled", () => {
       it("returns false regardless of user state", () => {
         expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "disabled", userState: "enabled" })
-        ).toBe(false);
-        expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "disabled", userState: "disabled" })
-        ).toBe(false);
-        expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "disabled", userState: "inherit" })
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "enabled",
+            teamStates: ["disabled", "disabled"],
+            userState: "enabled",
+          })
         ).toBe(false);
       });
     });
 
-    describe("when team is enabled", () => {
+    describe("when at least one team is enabled", () => {
       it("returns true when user is enabled", () => {
         expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "enabled", userState: "enabled" })
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "enabled",
+            teamStates: ["enabled", "disabled"],
+            userState: "enabled",
+          })
         ).toBe(true);
       });
 
       it("returns false when user is disabled", () => {
         expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "enabled", userState: "disabled" })
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "enabled",
+            teamStates: ["enabled", "disabled"],
+            userState: "disabled",
+          })
         ).toBe(false);
       });
 
-      it("returns true when user inherits (inherits from enabled team)", () => {
+      it("returns true when user inherits", () => {
         expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "enabled", userState: "inherit" })
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "enabled",
+            teamStates: ["enabled", "disabled"],
+            userState: "inherit",
+          })
         ).toBe(true);
       });
     });
 
-    describe("when team inherits", () => {
-      it("returns true when user is enabled", () => {
+    describe("when teams inherit from enabled org", () => {
+      it("returns true when user is enabled or inherits", () => {
         expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "inherit", userState: "enabled" })
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "enabled",
+            teamStates: ["inherit"],
+            userState: "enabled",
+          })
+        ).toBe(true);
+
+        expect(
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "enabled",
+            teamStates: ["inherit"],
+            userState: "inherit",
+          })
+        ).toBe(true);
+      });
+    });
+  });
+
+  describe("when org inherits (or no org)", () => {
+    describe("when all teams are disabled", () => {
+      it("returns false regardless of user state", () => {
+        expect(
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "inherit",
+            teamStates: ["disabled"],
+            userState: "enabled",
+          })
+        ).toBe(false);
+      });
+    });
+
+    describe("when at least one team is enabled", () => {
+      it("returns true when user is enabled or inherits", () => {
+        expect(
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "inherit",
+            teamStates: ["enabled", "disabled"],
+            userState: "enabled",
+          })
+        ).toBe(true);
+
+        expect(
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "inherit",
+            teamStates: ["enabled"],
+            userState: "inherit",
+          })
         ).toBe(true);
       });
 
       it("returns false when user is disabled", () => {
         expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "inherit", userState: "disabled" })
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "inherit",
+            teamStates: ["enabled"],
+            userState: "disabled",
+          })
         ).toBe(false);
       });
+    });
 
-      it("returns false when user inherits (team not explicitly enabled)", () => {
+    describe("when teams only inherit (no org enabled)", () => {
+      it("returns false because no explicit enablement in chain", () => {
         expect(
-          computeEffectiveState({ globalEnabled: true, teamState: "inherit", userState: "inherit" })
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "inherit",
+            teamStates: ["inherit"],
+            userState: "enabled",
+          })
+        ).toBe(false);
+
+        expect(
+          computeEffectiveStateAcrossTeams({
+            globalEnabled: true,
+            orgState: "inherit",
+            teamStates: ["inherit"],
+            userState: "inherit",
+          })
         ).toBe(false);
       });
+    });
+  });
+
+  describe("when user has no teams", () => {
+    it("returns true when org is enabled and user is enabled/inherits", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "enabled",
+          teamStates: [],
+          userState: "enabled",
+        })
+      ).toBe(true);
+
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "enabled",
+          teamStates: [],
+          userState: "inherit",
+        })
+      ).toBe(true);
+    });
+
+    it("returns false when org inherits and user has no explicit enablement", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "inherit",
+          teamStates: [],
+          userState: "inherit",
+        })
+      ).toBe(true); // No teams = no restriction from teams, user can use if global enabled
+    });
+  });
+
+  describe("truth table from design doc", () => {
+    it("org disabled, any teams, any user → false", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "disabled",
+          teamStates: ["enabled"],
+          userState: "enabled",
+        })
+      ).toBe(false);
+    });
+
+    it("org enabled, all teams disabled, any user → false", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "enabled",
+          teamStates: ["disabled", "disabled"],
+          userState: "enabled",
+        })
+      ).toBe(false);
+    });
+
+    it("org enabled, at least one team enabled/inherit, user disabled → false", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "enabled",
+          teamStates: ["enabled"],
+          userState: "disabled",
+        })
+      ).toBe(false);
+    });
+
+    it("org enabled, at least one team enabled/inherit, user enabled/inherit → true", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "enabled",
+          teamStates: ["enabled"],
+          userState: "enabled",
+        })
+      ).toBe(true);
+
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "enabled",
+          teamStates: ["inherit"],
+          userState: "inherit",
+        })
+      ).toBe(true);
+    });
+
+    it("org inherit/null, all teams disabled, any user → false", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "inherit",
+          teamStates: ["disabled"],
+          userState: "enabled",
+        })
+      ).toBe(false);
+    });
+
+    it("org inherit/null, at least one team enabled, user disabled → false", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "inherit",
+          teamStates: ["enabled"],
+          userState: "disabled",
+        })
+      ).toBe(false);
+    });
+
+    it("org inherit/null, at least one team enabled, user enabled/inherit → true", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "inherit",
+          teamStates: ["enabled"],
+          userState: "enabled",
+        })
+      ).toBe(true);
+
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "inherit",
+          teamStates: ["enabled"],
+          userState: "inherit",
+        })
+      ).toBe(true);
     });
   });
 });
