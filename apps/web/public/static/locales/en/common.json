@@ -1,4 +1,5 @@
 {
+  "change_file": "Change file",
   "sync_failed": "Failed to sync templates",
   "successfully_synced": "Successfully synced templates",
   "booking_seats": "Booked Seats",
@@ -2368,6 +2369,7 @@
   "email_invite_team_bulk": "{{userCount}} users have been invited",
   "error_collecting_card": "Error collecting card",
   "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit",
+  "image_size_limit_exceed_1mb": "Uploaded image shouldn't exceed 1mb size limit",
   "unauthorized_workflow_error_message": "{{errorCode}}: You are not authorized to enable or disable this workflow",
   "inline_embed": "Inline",
   "load_inline_content": "Loads your event type directly inline with your other website content.",
