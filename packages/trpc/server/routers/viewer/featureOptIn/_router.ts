@@ -3,6 +3,7 @@ import { z } from "zod";
 import { FeatureOptInService } from "@calcom/features/feature-opt-in/FeatureOptInService";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -22,20 +23,9 @@ const featureOptInService = new FeatureOptInService(featuresRepository);
  * Returns orgId (if user belongs to an org) and teamIds (non-org teams).
  */
 async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
-  const memberships = await prisma.membership.findMany({
-    where: {
-      userId,
-      accepted: true,
-    },
-    select: {
-      teamId: true,
-      team: {
-        select: {
-          id: true,
-          isOrganization: true,
-        },
-      },
-    },
+  const memberships = await MembershipRepository.findAllByUserId({
+    userId,
+    filters: { accepted: true },
   });
 
   let orgId: number | null = null;
