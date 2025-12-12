@@ -133,4 +133,102 @@ describe("getBusyTimes", () => {
       }),
     ]);
   });
+
+  // Buffer times bug fix
+  it("should correctly apply afterEventBuffer to block time after booking", async () => {
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimes({
+      credentials: [],
+      userId: 1,
+      userEmail: "exampleuser1@example.com",
+      username: "exampleuser1",
+      bypassBusyCalendarTimes: false,
+      selectedCalendars: [],
+      startTime: startOfTomorrow.format(),
+      endTime: startOfTomorrow.endOf("day").format(),
+      currentBookings: [mockBookings({ afterEventBuffer: 30 })[0]],
+    });
+    expect(busyTimes).toEqual([
+      expect.objectContaining({
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 10).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 11).set("minute", 30).toDate(),
+        source: "eventType-1-booking-1",
+        title: "Booking Between X and Y",
+      }),
+    ]);
+  });
+
+  it("should correctly apply beforeEventBuffer to block time before booking", async () => {
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimes({
+      credentials: [],
+      userId: 1,
+      userEmail: "exampleuser1@example.com",
+      username: "exampleuser1",
+      bypassBusyCalendarTimes: false,
+      selectedCalendars: [],
+      startTime: startOfTomorrow.format(),
+      endTime: startOfTomorrow.endOf("day").format(),
+      currentBookings: [mockBookings({ beforeEventBuffer: 20 })[0]],
+    });
+    expect(busyTimes).toEqual([
+      expect.objectContaining({
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 9).set("minute", 40).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 11).toDate(),
+        source: "eventType-1-booking-1",
+        title: "Booking Between X and Y",
+      }),
+    ]);
+  });
+
+  it("should correctly apply both beforeEventBuffer and afterEventBuffer", async () => {
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimes({
+      credentials: [],
+      userId: 1,
+      userEmail: "exampleuser1@example.com",
+      username: "exampleuser1",
+      bypassBusyCalendarTimes: false,
+      selectedCalendars: [],
+      startTime: startOfTomorrow.format(),
+      endTime: startOfTomorrow.endOf("day").format(),
+      currentBookings: [mockBookings({ beforeEventBuffer: 15, afterEventBuffer: 30 })[0]],
+    });
+    expect(busyTimes).toEqual([
+      expect.objectContaining({
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 9).set("minute", 45).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 11).set("minute", 30).toDate(),
+        source: "eventType-1-booking-1",
+        title: "Booking Between X and Y",
+      }),
+    ]);
+  });
+
+  it("should apply afterEventBuffer correctly for multiple bookings", async () => {
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimes({
+      credentials: [],
+      userId: 1,
+      userEmail: "exampleuser1@example.com",
+      username: "exampleuser1",
+      bypassBusyCalendarTimes: false,
+      selectedCalendars: [],
+      startTime: startOfTomorrow.format(),
+      endTime: startOfTomorrow.endOf("day").format(),
+      currentBookings: mockBookings({ afterEventBuffer: 30 }),
+    });
+    expect(busyTimes).toHaveLength(2);
+    expect(busyTimes[0]).toEqual(
+      expect.objectContaining({
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 10).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 11).set("minute", 30).toDate(),
+      })
+    );
+    expect(busyTimes[1]).toEqual(
+      expect.objectContaining({
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 14).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 15).set("minute", 30).toDate(),
+      })
+    );
+  });
 });
