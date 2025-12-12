@@ -52,7 +52,7 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
     <div
       ref={containerNavRef}
       className={classNames(
-        "bg-default dark:bg-cal-muted sticky top-(--calendar-dates-sticky-offset,0px) z-80 flex-none border-b",
+        "bg-default dark:bg-cal-muted top-(--calendar-dates-sticky-offset,0px) z-80 sticky flex-none border-b",
         borderColor === "subtle" ? "border-b-subtle" : "border-b-default",
         showBorder && (borderColor === "subtle" ? "border-r-subtle border-r" : "border-r-default border-r")
       )}>
@@ -101,7 +101,7 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
                 <span
                   className={classNames(
                     "items-center justify-center p-1",
-                    isToday && "bg-brand-default text-brand rounded-md"
+                    isToday && "bg-brand-default text-brand ml-1 rounded-md"
                   )}>
                   {day.format("DD")}
                 </span>

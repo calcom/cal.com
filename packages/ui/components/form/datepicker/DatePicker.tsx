@@ -11,10 +11,11 @@ type Props = {
   onDatesChange?: ((date: Date) => void) | undefined;
   className?: string;
   disabled?: boolean;
-  minDate?: Date;
+  minDate?: Date | null;
+  label?: string;
 };
 
-const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props) => {
+const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }: Props) => {
   function handleDayClick(newDate: Date) {
     onDatesChange?.(newDate ?? new Date());
   }
@@ -42,7 +43,7 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props
             color="secondary"
             EndIcon="calendar"
             className={classNames("justify-between text-left font-normal", !date && "text-subtle")}>
-            {date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>}
+            {label ?? (date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>)}
           </Button>
         </Popover.Trigger>
         <Popover.Portal>
