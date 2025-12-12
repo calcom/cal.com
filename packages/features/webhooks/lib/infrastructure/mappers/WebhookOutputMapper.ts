@@ -1,13 +1,30 @@
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import type { WebhookSubscriber } from "../../dto/types";
+import type { Webhook, WebhookSubscriber } from "../../dto/types";
 import { WebhookVersion } from "../../interface/IWebhookRepository";
 
 /**
- * Selected webhook fields from Prisma query
- * Uses explicit enum types from @calcom/prisma/enums to match query result
+ * Full webhook from Prisma (for CRUD operations)
  */
-type PrismaWebhookSelect = {
+type PrismaWebhookFull = {
+  id: string;
+  subscriberUrl: string;
+  payloadTemplate: string | null;
+  appId: string | null;
+  secret: string | null;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  eventTypeId: number | null;
+  teamId: number | null;
+  time: number | null;
+  timeUnit: TimeUnit | null;
+  version: string;
+};
+
+/**
+ * Minimal webhook from Prisma (for delivery/subscribers)
+ */
+type PrismaWebhookMinimal = {
   id: string;
   subscriberUrl: string;
   payloadTemplate: string | null;
@@ -20,7 +37,34 @@ type PrismaWebhookSelect = {
 };
 
 export class WebhookOutputMapper {
-  static toDomain(prismaWebhook: PrismaWebhookSelect): WebhookSubscriber {
+  /**
+   * Map full Prisma webhook to domain Webhook (for UI/CRUD)
+   */
+  static toWebhook(prismaWebhook: PrismaWebhookFull): Webhook {
+    return {
+      id: prismaWebhook.id,
+      subscriberUrl: prismaWebhook.subscriberUrl,
+      payloadTemplate: prismaWebhook.payloadTemplate,
+      appId: prismaWebhook.appId,
+      secret: prismaWebhook.secret,
+      active: prismaWebhook.active,
+      eventTriggers: prismaWebhook.eventTriggers,
+      eventTypeId: prismaWebhook.eventTypeId,
+      teamId: prismaWebhook.teamId,
+      time: prismaWebhook.time ?? undefined,
+      timeUnit: prismaWebhook.timeUnit ?? undefined,
+      version: prismaWebhook.version as WebhookVersion,
+    };
+  }
+
+  static toWebhookList(prismaWebhooks: PrismaWebhookFull[]): Webhook[] {
+    return prismaWebhooks.map(WebhookOutputMapper.toWebhook);
+  }
+
+  /**
+   * Map minimal Prisma webhook to WebhookSubscriber (for delivery)
+   */
+  static toSubscriber(prismaWebhook: PrismaWebhookMinimal): WebhookSubscriber {
     return {
       id: prismaWebhook.id,
       subscriberUrl: prismaWebhook.subscriberUrl,
@@ -34,8 +78,24 @@ export class WebhookOutputMapper {
     };
   }
 
-  static toDomainList(prismaWebhooks: PrismaWebhookSelect[]): WebhookSubscriber[] {
-    return prismaWebhooks.map(WebhookOutputMapper.toDomain);
+  static toSubscriberList(prismaWebhooks: PrismaWebhookMinimal[]): WebhookSubscriber[] {
+    return prismaWebhooks.map(WebhookOutputMapper.toSubscriber);
+  }
+
+  /**
+   * Legacy method - kept for backward compatibility
+   * @deprecated Use toWebhook() or toSubscriber() based on context
+   */
+  static toDomain(prismaWebhook: PrismaWebhookMinimal): WebhookSubscriber {
+    return WebhookOutputMapper.toSubscriber(prismaWebhook);
+  }
+
+  /**
+   * Legacy method - kept for backward compatibility
+   * @deprecated Use toWebhookList() or toSubscriberList() based on context
+   */
+  static toDomainList(prismaWebhooks: PrismaWebhookMinimal[]): WebhookSubscriber[] {
+    return WebhookOutputMapper.toSubscriberList(prismaWebhooks);
   }
 
   static toSubscriberPartial(prismaWebhook: {

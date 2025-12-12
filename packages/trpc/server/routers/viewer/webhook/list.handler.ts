@@ -1,4 +1,5 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { WebhookOutputMapper } from "@calcom/features/webhooks/lib/infrastructure/mappers/WebhookOutputMapper";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -78,7 +79,24 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     }
   }
 
-  return await prisma.webhook.findMany({
+  const webhooks = await prisma.webhook.findMany({
     where,
+    select: {
+      id: true,
+      subscriberUrl: true,
+      payloadTemplate: true,
+      appId: true,
+      secret: true,
+      active: true,
+      eventTriggers: true,
+      eventTypeId: true,
+      teamId: true,
+      time: true,
+      timeUnit: true,
+      version: true,
+    },
   });
+
+  // Map Prisma webhooks to domain Webhook objects
+  return WebhookOutputMapper.toWebhookList(webhooks);
 };

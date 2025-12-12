@@ -404,6 +404,29 @@ export interface WebhookTriggerArgs {
   paymentData?: Record<string, unknown>;
 }
 
+/**
+ * Full webhook entity - used for CRUD operations and UI display
+ * Contains all fields needed for webhook management
+ */
+export interface Webhook {
+  id: string;
+  subscriberUrl: string;
+  payloadTemplate: string | null;
+  appId: string | null;
+  secret: string | null;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  eventTypeId: number | null;
+  teamId: number | null;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
+  version: WebhookVersion;
+}
+
+/**
+ * Webhook subscriber - minimal type for webhook delivery/payload sending
+ * Subset of Webhook with only fields needed for triggering webhooks
+ */
 export interface WebhookSubscriber {
   id: string;
   subscriberUrl: string;
@@ -540,6 +563,9 @@ export type BookingWebhookEventDTO =
   | BookingRejectedDTO
   | BookingNoShowDTO;
 
+/**
+ * Grouped webhooks for UI display with profile and permission metadata
+ */
 export interface WebhookGroup {
   teamId?: number | null;
   profile: {
@@ -551,5 +577,5 @@ export interface WebhookGroup {
     canModify: boolean;
     canDelete: boolean;
   };
-  webhooks: WebhookSubscriber[];
+  webhooks: Webhook[]; // Full webhook entities for UI display
 }

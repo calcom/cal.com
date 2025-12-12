@@ -1,9 +1,8 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import type { WebhookVersion } from "../lib/interface/IWebhookRepository";
+import type { Webhook } from "../lib/dto/types";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -23,20 +22,8 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
-type WebhookProps = {
-  id: string;
-  subscriberUrl: string;
-  payloadTemplate: string | null;
-  active: boolean;
-  eventTriggers: WebhookTriggerEvents[];
-  secret: string | null;
-  eventTypeId: number | null;
-  teamId: number | null;
-  version: WebhookVersion;
-};
-
 export default function WebhookListItem(props: {
-  webhook: WebhookProps;
+  webhook: Webhook;
   canEditWebhook?: boolean;
   onEditWebhook: () => void;
   lastItem: boolean;
