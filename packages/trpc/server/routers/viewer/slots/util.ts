@@ -774,7 +774,9 @@ export class AvailableSlotsService {
       input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
-    const allUserIds = Array.from(userIdAndEmailMap.keys());
+    
+    const allUserIds: number[] = [];
+    userIdAndEmailMap.forEach((_, userId) => allUserIds.push(userId));
 
     const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
@@ -1046,6 +1048,30 @@ export class AvailableSlotsService {
       });
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];
+
+    // For reschedules, include attendees as additional hosts (but only for 1:1 meetings)
+    if (input.rescheduleUid) {
+      const isTeamEvent = eventType.schedulingType === SchedulingType.COLLECTIVE || 
+                          eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+      
+      if (!isTeamEvent) {
+        const attendeeHosts = await this.getAttendeeHostsForReschedule({
+          rescheduleUid: input.rescheduleUid,
+          loggerWithEventDetails,
+        });
+
+        // Add attendee hosts, but avoid duplicates with existing hosts
+        for (const attendeeHost of attendeeHosts) {
+          const isDuplicate = allHosts.some(existingHost => 
+            String(existingHost.user.id) === String(attendeeHost.user.id)
+          );
+          
+          if (!isDuplicate) {
+            allHosts.push(attendeeHost);
+          }
+        }
+      }
+    }
 
     const twoWeeksFromNow = dayjs().add(2, "week");
 
@@ -1426,13 +1452,17 @@ export class AvailableSlotsService {
       return withinBoundsSlotsMappedToDate;
     };
     const mapWithinBoundsSlotsToDate = withReporting(
+      
       _mapWithinBoundsSlotsToDate.bind(this),
       "mapWithinBoundsSlotsToDate"
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
+    // Attendee availability already handled upstream, no filtering needed
+    const finalSlotsMappedToDate = withinBoundsSlotsMappedToDate;
+
     // We only want to run this on single targeted events and not dynamic
-    if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
+    if (!Object.keys(finalSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
         await this.dependencies.noSlotsNotificationService.handleNotificationWhenNoSlots({
           eventDetails: {
@@ -1474,8 +1504,87 @@ export class AvailableSlotsService {
       : null;
 
     return {
-      slots: withinBoundsSlotsMappedToDate,
+      slots: finalSlotsMappedToDate,
       ...troubleshooterData,
     };
   }
-}
+
+  // Get attendee hosts for reschedule availability check
+  private async getAttendeeHostsForReschedule({
+    rescheduleUid,
+    loggerWithEventDetails,
+  }: {
+    rescheduleUid: string;
+    loggerWithEventDetails: Logger<unknown>;
+  }) {
+    try {
+      const originalBooking = await this.dependencies.bookingRepo.findBookingByUid({ 
+        bookingUid: rescheduleUid 
+      });
+      
+      if (!originalBooking?.attendees?.length) {
+        return [];
+      }
+
+      // Only include attendees who accepted the original booking
+      const acceptedAttendees = originalBooking.attendees.filter((attendee) => {
+        const status = (attendee as any)?.status ?? "ACCEPTED";
+        return status === "ACCEPTED";
+      });
+
+      // Remove duplicate emails (case-insensitive) and limit to reasonable number
+      const MAX_ATTENDEES = 10;
+      const uniqueEmails: string[] = [];
+      const seenEmails: { [key: string]: boolean } = {};
+
+      for (const attendee of acceptedAttendees) {
+        if (uniqueEmails.length >= MAX_ATTENDEES) break;
+        
+        const email = String((attendee as any)?.email ?? "").trim();
+        if (!email) continue;
+
+        const emailKey = email.toLowerCase();
+        if (!seenEmails[emailKey]) {
+          seenEmails[emailKey] = true;
+          uniqueEmails.push(email);
+        }
+      }
+
+      if (uniqueEmails.length === 0) {
+        return [];
+      }
+
+      // Look up each attendee and convert them to host format
+      const attendeeHosts: any[] = [];
+      
+      for (const email of uniqueEmails) {
+        try {
+          const user = await this.dependencies.userAvailabilityService.getUser({ email });
+          
+          if (user?.id != null && user?.email) {
+            attendeeHosts.push({
+              isFixed: false,
+              groupId: null,
+              createdAt: null,
+              user,
+            });
+          }
+        } catch (error) {
+          // Log the failure but continue with other attendees
+          loggerWithEventDetails.warn("Could not find user for attendee", {
+            email,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      return attendeeHosts;
+
+    } catch (error) {
+      loggerWithEventDetails.error("Failed to get attendee hosts for reschedule", {
+        rescheduleUid,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return [];
+    }
+  }}
