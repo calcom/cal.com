@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
 
-import type { IBookingReportRepository } from "./bookingReport.interface";
 import type {
   IWatchlistRepository,
   CreateWatchlistInput,

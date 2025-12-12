@@ -21,11 +21,7 @@ interface UseBlockedEntriesColumnsProps {
   onDelete: (entry: BlocklistEntry) => void;
 }
 
-export function useBlockedEntriesColumns({
-  t,
-  onViewDetails,
-  onDelete,
-}: UseBlockedEntriesColumnsProps) {
+export function useBlockedEntriesColumns({ t, onViewDetails, onDelete }: UseBlockedEntriesColumnsProps) {
   return useMemo<ColumnDef<BlocklistEntry>[]>(
     () => [
       {
@@ -83,13 +79,14 @@ export function useBlockedEntriesColumns({
         header: t("blocked_by"),
         size: 180,
         cell: ({ row }) => {
-          const audit = row.original.audits?.[0] as
+          const audit = row.original.latestAudit as
             | { changedByUserId: number | null }
             | {
                 changedByUser?: { id: number; email: string; name: string | null } | undefined;
                 changedByUserId: number | null;
               }
             | undefined;
+
           const email =
             (audit && "changedByUser" in audit ? audit.changedByUser?.email : undefined) ?? undefined;
           return <span className="text-default">{email ?? "—"}</span>;
