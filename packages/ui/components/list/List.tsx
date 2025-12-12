@@ -57,7 +57,7 @@ export function ListItem(props: ListItemProps) {
   );
 
   return href ? (
-    <Link passHref href={href} legacyBehavior>
+    <Link href={href}>
       {element}
     </Link>
   ) : (
