@@ -40,19 +40,13 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     // Mock implementation - do nothing
   }
 
-  async getUserFeatureState(_input: {
-    userId: number;
-    featureId: string;
-  }): Promise<{ enabled: boolean } | null> {
-    // Mock implementation - return null (inherit)
-    return null;
+  async getUserFeatureState(_input: { userId: number; featureId: string }): Promise<FeatureState> {
+    // Mock implementation - return inherit
+    return "inherit";
   }
 
-  async getTeamFeatureState(_input: {
-    teamId: number;
-    featureId: string;
-  }): Promise<{ enabled: boolean } | null> {
-    // Mock implementation - return null (inherit)
-    return null;
+  async getTeamFeatureState(_input: { teamId: number; featureId: string }): Promise<FeatureState> {
+    // Mock implementation - return inherit
+    return "inherit";
   }
 }

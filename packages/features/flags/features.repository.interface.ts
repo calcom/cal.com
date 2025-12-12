@@ -24,12 +24,12 @@ export interface IFeaturesRepository {
   ): Promise<void>;
   /**
    * Get user's feature state.
-   * @returns Row with enabled value, or null if no row exists (inherit)
+   * @returns 'enabled' | 'disabled' | 'inherit'
    */
-  getUserFeatureState(input: { userId: number; featureId: string }): Promise<{ enabled: boolean } | null>;
+  getUserFeatureState(input: { userId: number; featureId: string }): Promise<FeatureState>;
   /**
    * Get team's feature state.
-   * @returns Row with enabled value, or null if no row exists (inherit)
+   * @returns 'enabled' | 'disabled' | 'inherit'
    */
-  getTeamFeatureState(input: { teamId: number; featureId: string }): Promise<{ enabled: boolean } | null>;
+  getTeamFeatureState(input: { teamId: number; featureId: string }): Promise<FeatureState>;
 }

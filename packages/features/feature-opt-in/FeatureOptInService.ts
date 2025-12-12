@@ -4,17 +4,6 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import { OPT_IN_FEATURES } from "./config";
 import type { FeatureState } from "./types";
 
-/**
- * Converts a database row state to a FeatureState.
- * - Row exists with enabled=true → "enabled"
- * - Row exists with enabled=false → "disabled"
- * - No row → "inherit"
- */
-function toFeatureState(row: { enabled: boolean } | null): FeatureState {
-  if (row === null) return "inherit";
-  return row.enabled ? "enabled" : "disabled";
-}
-
 function computeEffectiveState(globalEnabled: boolean, teamState: FeatureState, userState: FeatureState) {
   if (!globalEnabled || teamState === "disabled") {
     return false;
@@ -61,15 +50,13 @@ export class FeatureOptInService {
     const globalEnabled = globalFeature?.enabled ?? false;
 
     // Get user state
-    const userRow = await this.featuresRepository.getUserFeatureState({ userId, featureId });
-    const userState = toFeatureState(userRow);
+    const userState = await this.featuresRepository.getUserFeatureState({ userId, featureId });
 
     // Get team state
-    let teamRow: { enabled: boolean } | null = null;
+    let teamState: FeatureState = "inherit";
     if (teamId !== null) {
-      teamRow = await this.featuresRepository.getTeamFeatureState({ teamId, featureId });
+      teamState = await this.featuresRepository.getTeamFeatureState({ teamId, featureId });
     }
-    const teamState = toFeatureState(teamRow);
     const effectiveEnabled = computeEffectiveState(globalEnabled, userState, teamState);
 
     return {
@@ -108,8 +95,7 @@ export class FeatureOptInService {
     const globalEnabled = globalFeature?.enabled ?? false;
 
     // Get team state
-    const teamRow = await this.featuresRepository.getTeamFeatureState({ teamId, featureId });
-    const teamState = toFeatureState(teamRow);
+    const teamState = await this.featuresRepository.getTeamFeatureState({ teamId, featureId });
 
     // Compute effective enabled: global must be enabled and team must be explicitly enabled
     const effectiveEnabled = globalEnabled && teamState === "enabled";

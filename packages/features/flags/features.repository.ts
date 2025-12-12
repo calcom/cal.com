@@ -476,17 +476,14 @@ export class FeaturesRepository implements IFeaturesRepository {
   /**
    * Get user's feature state.
    * Uses tri-state semantics:
-   * - Row with enabled=true → feature is enabled
-   * - Row with enabled=false → feature is explicitly disabled
-   * - No row → inherit from team/org level
+   * - Row with enabled=true → 'enabled'
+   * - Row with enabled=false → 'disabled'
+   * - No row → 'inherit' from team/org level
    *
    * @param input - Object containing userId and featureId
-   * @returns Row with enabled value, or null if no row exists (inherit)
+   * @returns 'enabled' | 'disabled' | 'inherit'
    */
-  async getUserFeatureState(input: {
-    userId: number;
-    featureId: string;
-  }): Promise<{ enabled: boolean } | null> {
+  async getUserFeatureState(input: { userId: number; featureId: string }): Promise<FeatureState> {
     const { userId, featureId } = input;
 
     try {
@@ -503,7 +500,10 @@ export class FeaturesRepository implements IFeaturesRepository {
         select: { enabled: true },
       });
 
-      return userFeature;
+      if (!userFeature) {
+        return "inherit";
+      }
+      return userFeature.enabled ? "enabled" : "disabled";
     } catch (err) {
       captureException(err);
       throw err;
@@ -513,17 +513,14 @@ export class FeaturesRepository implements IFeaturesRepository {
   /**
    * Get team's feature state.
    * Uses tri-state semantics:
-   * - Row with enabled=true → feature is enabled
-   * - Row with enabled=false → feature is explicitly disabled
-   * - No row → inherit from parent team/org level
+   * - Row with enabled=true → 'enabled'
+   * - Row with enabled=false → 'disabled'
+   * - No row → 'inherit' from parent team/org level
    *
    * @param input - Object containing teamId and featureId
-   * @returns Row with enabled value, or null if no row exists (inherit)
+   * @returns 'enabled' | 'disabled' | 'inherit'
    */
-  async getTeamFeatureState(input: {
-    teamId: number;
-    featureId: string;
-  }): Promise<{ enabled: boolean } | null> {
+  async getTeamFeatureState(input: { teamId: number; featureId: string }): Promise<FeatureState> {
     const { teamId, featureId } = input;
 
     try {
@@ -537,7 +534,10 @@ export class FeaturesRepository implements IFeaturesRepository {
         select: { enabled: true },
       });
 
-      return teamFeature;
+      if (!teamFeature) {
+        return "inherit";
+      }
+      return teamFeature.enabled ? "enabled" : "disabled";
     } catch (err) {
       captureException(err);
       throw err;
