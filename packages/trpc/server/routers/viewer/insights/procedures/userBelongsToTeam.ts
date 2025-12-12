@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 
@@ -31,17 +30,13 @@ export const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next
   // If teamId is provided, check if user belongs to team
   // If teamId is not provided, check if user belongs to any team
 
-  const membershipWhereConditional: Prisma.MembershipWhereInput = {
-    userId: ctx.user.id,
-    accepted: true,
-  };
-
-  if (parse.data.teamId) {
-    membershipWhereConditional["teamId"] = parse.data.teamId;
-  }
-
   const membership = await ctx.insightsDb.membership.findFirst({
-    where: membershipWhereConditional,
+    where: {
+      userId: ctx.user.id,
+      accepted: true,
+      ...(parse.data.teamId && { teamId: parse.data.teamId }),
+    },
+    select: { id: true },
   });
 
   let isOwnerAdminOfParentTeam = false;
@@ -56,6 +51,7 @@ export const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next
           id: parse.data.teamId,
           parentId: ctx.user.organizationId,
         },
+        select: { id: true },
       });
       if (!isChildTeamOfOrg) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
