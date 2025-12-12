@@ -18,6 +18,8 @@ export const DI_TOKENS = {
   SCHEDULE_REPOSITORY_MODULE: Symbol("ScheduleRepositoryModule"),
   SELECTED_SLOT_REPOSITORY: Symbol("SelectedSlotRepository"),
   SELECTED_SLOT_REPOSITORY_MODULE: Symbol("SelectedSlotRepositoryModule"),
+  SELECTED_CALENDAR_REPOSITORY: Symbol("SelectedCalendarRepository"),
+  SELECTED_CALENDAR_REPOSITORY_MODULE: Symbol("SelectedCalendarRepositoryModule"),
   TEAM_REPOSITORY: Symbol("TeamRepository"),
   TEAM_REPOSITORY_MODULE: Symbol("TeamRepositoryModule"),
   USER_REPOSITORY: Symbol("UserRepository"),
