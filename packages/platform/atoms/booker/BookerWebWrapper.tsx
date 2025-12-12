@@ -1,15 +1,17 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useCallback, useEffect } from "react";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useMemo, useCallback, useEffect, useRef } from "react";
 import React from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import {
+  sdkActionManager,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
+import { useBookerEmbedEvents } from "@calcom/embed-core/src/embed-iframe/react-hooks";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import {
@@ -37,6 +39,7 @@ export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
+
 const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -47,11 +50,11 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   });
   const event = props.eventData
     ? {
-        data: props.eventData,
-        isSuccess: true,
-        isError: false,
-        isPending: false,
-      }
+      data: props.eventData,
+      isSuccess: true,
+      isError: false,
+      isPending: false,
+    }
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
@@ -173,6 +176,12 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     teamMemberEmail: props.teamMemberEmail,
   });
 
+  useBookerEmbedEvents({
+    eventId: event.data?.id,
+    eventSlug: event.data?.slug,
+    schedule,
+  });
+
   const verifyCode = useVerifyCode({
     onSuccess: () => {
       if (!bookerForm.formEmail) return;
@@ -206,10 +215,10 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const areInstantMeetingParametersSet = Boolean(
     event.data?.instantMeetingParameters &&
-      searchParams &&
-      event.data.instantMeetingParameters?.every?.((param) =>
-        Array.from(searchParams.values()).includes(param)
-      )
+    searchParams &&
+    event.data.instantMeetingParameters?.every?.((param) =>
+      Array.from(searchParams.values()).includes(param)
+    )
   );
 
   useEffect(() => {
