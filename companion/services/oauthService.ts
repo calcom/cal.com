@@ -278,7 +278,11 @@ export class CalComOAuthService {
 
       return await request.promptAsync(discovery);
     } else {
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri);
+      // Use non-ephemeral session to share cookies with Safari (iOS) / Chrome (Android)
+      // This allows users to stay logged in when opening Cal.com links in the in-app browser
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri, {
+        preferEphemeralSession: false, // Share session with browser (iOS 13+)
+      });
 
       if (result.type === "success") {
         const params = this.parseCallbackUrl(result.url);

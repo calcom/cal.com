@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
-import { LogoutButton } from "../../components/LogoutButton";
+import { useAuth } from "../../contexts/AuthContext";
+import { showErrorAlert } from "../../utils/alerts";
+import { openInAppBrowser } from "../../utils/browser";
 
 interface MoreMenuItem {
   name: string;
@@ -15,19 +17,24 @@ interface MoreMenuItem {
 
 export default function More() {
   const router = useRouter();
+  const { logout } = useAuth();
 
-  const openExternalLink = async (url: string, fallbackMessage: string) => {
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert("Error", `Cannot open ${fallbackMessage} on your device.`);
-      }
-    } catch (error) {
-      console.error(`Failed to open ${url}:`, error);
-      Alert.alert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
-    }
+  const handleSignOut = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            console.error("Logout error:", error);
+            showErrorAlert("Error", "Failed to sign out. Please try again.");
+          }
+        },
+      },
+    ]);
   };
 
   const menuItems: MoreMenuItem[] = [
@@ -36,37 +43,37 @@ export default function More() {
       icon: "person-outline",
       isExternal: true,
       onPress: () =>
-        openExternalLink("https://app.cal.com/settings/my-account/profile", "Profile page"),
+        openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Profile page"),
     },
     {
       name: "Apps",
       icon: "grid-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/apps", "Apps page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/apps", "Apps page"),
     },
     {
       name: "Routing",
       icon: "git-branch-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/routing", "Routing page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/routing", "Routing page"),
     },
     {
       name: "Workflows",
       icon: "flash-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/workflows", "Workflows page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/workflows", "Workflows page"),
     },
     {
       name: "Insights",
       icon: "bar-chart-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/insights", "Insights page"),
+      onPress: () => openInAppBrowser("https://app.cal.com/insights", "Insights page"),
     },
     {
       name: "Support",
       icon: "help-circle-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://go.cal.com/support", "Support"),
+      onPress: () => openInAppBrowser("https://go.cal.com/support", "Support"),
     },
   ];
 
@@ -99,14 +106,27 @@ export default function More() {
           ))}
         </View>
 
-        {/* Authentication Info and Logout */}
-        <View className="py-4">
-          <LogoutButton className="w-full bg-transparent text-gray-900" />
+        {/* Sign Out Button */}
+        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+          <TouchableOpacity
+            onPress={handleSignOut}
+            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
+          >
+            <Ionicons name="log-out-outline" size={20} color="#800000" />
+            <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
+          </TouchableOpacity>
         </View>
 
-        <Text className="mt-4 text-sm text-gray-500">
-          We view the companion as an extension of the web application. If you are performing any
-          complicated actions, please refer back to the web application.
+        {/* Footer Note */}
+        <Text className="mt-6 px-1 text-center text-xs text-gray-400">
+          The companion app is an extension of the web application.{"\n"}
+          For advanced features, visit{" "}
+          <Text
+            className="text-gray-800"
+            onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}
+          >
+            app.cal.com
+          </Text>
         </Text>
       </ScrollView>
     </View>
