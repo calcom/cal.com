@@ -9,6 +9,7 @@ import AddMembersWithSwitch, {
 import type { FormValues as EventTypeFormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Label } from "@calcom/ui/components/form";
@@ -103,7 +104,12 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
     teamId,
   } = props;
 
-  const { control, handleSubmit, setValue } = useForm<FormValues>({
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
     defaultValues: {
       correctAssignee: "",
       additionalNotes: "",
@@ -216,11 +222,12 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
 
               <div className="mb-4">
                 <Label htmlFor="additionalNotes" className="text-emphasis mb-2 block text-sm font-medium">
-                  {t("additional_notes")} <span className="text-subtle font-normal">({t("optional")})</span>
+                  {t("additional_notes")} <span className="text-error">*</span>
                 </Label>
                 <Controller
                   name="additionalNotes"
                   control={control}
+                  rules={{ required: t("field_required") }}
                   render={({ field }) => (
                     <TextArea
                       {...field}
@@ -229,7 +236,16 @@ export const WrongAssignmentDialog = (props: IWrongAssignmentDialog) => {
                     />
                   )}
                 />
+                {errors.additionalNotes && (
+                  <p className="text-error mt-1 text-sm">{errors.additionalNotes.message}</p>
+                )}
               </div>
+
+              <Alert
+                severity="info"
+                title={t("did_you_know")}
+                message={t("wrong_assignment_crm_info")}
+              />
             </div>
           </div>
 
