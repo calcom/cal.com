@@ -97,12 +97,11 @@ export async function handler(req: NextRequest) {
       cancelUpdatePromises.push(cancelPromise, updatePromise);
     }
 
-    Promise.allSettled(cancelUpdatePromises).then((results) => {
-      results.forEach((result) => {
-        if (result.status === "rejected") {
-          logger.error(`Error cancelling scheduled_sends: ${result.reason}`);
-        }
-      });
+    const results = await Promise.allSettled(cancelUpdatePromises);
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        logger.error(`Error cancelling scheduled_sends: ${result.reason}`);
+      }
     });
   }
 
@@ -498,12 +497,11 @@ export async function handler(req: NextRequest) {
     }
   }
 
-  Promise.allSettled(sendEmailPromises).then((results) => {
-    results.forEach((result) => {
-      if (result.status === "rejected") {
-        logger.error("Email sending failed", result.reason);
-      }
-    });
+  const sendResults = await Promise.allSettled(sendEmailPromises);
+  sendResults.forEach((result) => {
+    if (result.status === "rejected") {
+      logger.error("Email sending failed", result.reason);
+    }
   });
 
   return NextResponse.json({ message: `${unscheduledReminders.length} Emails to schedule` }, { status: 200 });
