@@ -39,6 +39,7 @@ import {
   InputBookingField_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
+  supportedIntegrations,
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -228,10 +229,16 @@ export class InputEventTypesService_2024_06_14 {
 
     const metadata: EventTypeMetadata = {
       ...metadataTransformed,
-      bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
-      requiresConfirmationThreshold:
-        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-      multipleDuration: lengthInMinutesOptions,
+      ...(bookerLayouts !== undefined
+        ? { bookerLayouts: this.transformInputBookerLayouts(bookerLayouts) }
+        : {}),
+      ...(confirmationPolicy !== undefined
+        ? {
+            requiresConfirmationThreshold:
+              confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+          }
+        : {}),
+      ...(lengthInMinutesOptions !== undefined ? { multipleDuration: lengthInMinutesOptions } : {}),
     };
 
     const eventType = {
@@ -542,14 +549,40 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
-    const conferencingApps = ["google-meet", "office365-video", "zoom"];
+    const conferencingApps = supportedIntegrations as readonly string[];
     if (!conferencingApps.includes(appSlug)) {
       throw new BadRequestException("Invalid app, available apps are: ", conferencingApps.join(", "));
     }
 
-    if (appSlug === "office365-video") {
-      appSlug = "msteams";
-    }
+    // Map API integration names to actual app slugs
+    const slugMap: Record<string, string> = {
+      "office365-video": "msteams",
+      "facetime-video": "facetime",
+      "whereby-video": "whereby",
+      "whatsapp-video": "whatsapp",
+      "webex-video": "webex",
+      "telegram-video": "telegram",
+      "sylaps-video": "sylapsvideo",
+      "skype-video": "skype",
+      "sirius-video": "sirius_video",
+      "signal-video": "signal",
+      "shimmer-video": "shimmervideo",
+      "salesroom-video": "salesroom",
+      "roam-video": "roam",
+      "riverside-video": "riverside",
+      "ping-video": "ping",
+      "mirotalk-video": "mirotalk",
+      "jelly-video": "jelly",
+      "jelly-conferencing": "jelly",
+      "huddle": "huddle01",
+      "element-call-video": "element-call",
+      "eightxeight-video": "eightxeight",
+      "discord-video": "discord",
+      "demodesk-video": "demodesk",
+      "campfire-video": "campfire",
+    };
+
+    appSlug = slugMap[appSlug] || appSlug;
 
     const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
