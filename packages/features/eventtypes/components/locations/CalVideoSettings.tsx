@@ -175,8 +175,6 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
               data-testid="calVideoSettings.redirectUrlOnExit"
               containerClassName="mt-4"
               className="leading-6"
-              disabled={!hasTeamPlan}
-              LockedIcon={!hasTeamPlan ? <UpgradeTeamsBadge checkForActiveStatus /> : undefined}
               {...formMethods.register("calVideoSettings.redirectUrlOnExit", {
                 setValueAs: (v) => (!v || v.trim() === "" ? null : v),
               })}
