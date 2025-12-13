@@ -236,7 +236,18 @@ export type SelectClassNames = {
   container?: string;
 };
 
-export const EventTypeDuplicateInput = z
+// Define type first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+export type TEventTypeDuplicateInput = {
+  id: number;
+  slug: string;
+  title: string;
+  description: string;
+  length: number;
+  teamId?: number | null;
+};
+
+export const EventTypeDuplicateInput: z.ZodType<TEventTypeDuplicateInput> = z
   .object({
     id: z.number(),
     slug: z.string(),
@@ -261,7 +272,28 @@ const calVideoSettingsSchema = z
   .optional()
   .nullable();
 
-export const createEventTypeInput = z
+// Define type first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+export type TCreateEventTypeInput = {
+  title: string;
+  slug: string;
+  description?: string | null;
+  length: number;
+  hidden?: boolean;
+  teamId?: number | null;
+  schedulingType?: SchedulingType | null;
+  locations?: z.infer<typeof eventTypeLocations>;
+  metadata?: z.infer<typeof EventTypeMetaDataSchema>;
+  disableGuests?: boolean;
+  slotInterval?: number | null;
+  minimumBookingNotice?: number;
+  beforeEventBuffer?: number;
+  afterEventBuffer?: number;
+  scheduleId?: number;
+  calVideoSettings?: CalVideoSettings | null;
+};
+
+export const createEventTypeInput: z.ZodType<TCreateEventTypeInput> = z
   .object({
     title: z.string().trim().min(1),
     slug: eventTypeSlug,

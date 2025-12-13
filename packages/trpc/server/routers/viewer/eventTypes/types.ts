@@ -108,7 +108,12 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   .partial()
   .extend(EventTypeSchema.pick({ id: true }).shape);
 
-export const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
+// Infer the type first from the base schema (excluding refines/transforms)
+export type TUpdateInputSchema = z.infer<typeof BaseEventTypeUpdateInput>;
+
+// Annotate with z.ZodType to prevent full Zod generic tree from being emitted in .d.ts
+// This significantly reduces declaration file size while preserving runtime validation
+export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema> = BaseEventTypeUpdateInput.extend({
   aiPhoneCallConfig: aiPhoneCallConfig.refine(
     (data) => {
       if (!data) return true;
@@ -124,5 +129,3 @@ export const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
     }
   ),
 }).strict();
-// only run infer over the simple type, excluding refines/transforms.
-export type TUpdateInputSchema = z.infer<typeof BaseEventTypeUpdateInput>;
