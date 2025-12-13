@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Stack, useRouter } from "expo-router";
+import React, { useState, useMemo, Activity } from "react";
 import {
   View,
   Text,
@@ -19,24 +19,24 @@ import {
 import * as Clipboard from "expo-clipboard";
 import Svg, { Path } from "react-native-svg";
 
-import { CalComAPIService, EventType } from "../../services/calcom";
-import { Header } from "../../components/Header";
-import { Tooltip } from "../../components/Tooltip";
-import { FullScreenModal } from "../../components/FullScreenModal";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { EmptyScreen } from "../../components/EmptyScreen";
-import { slugify } from "../../utils/slugify";
-import { showErrorAlert } from "../../utils/alerts";
-import { offlineAwareRefresh } from "../../utils/network";
-import { openInAppBrowser } from "../../utils/browser";
-import { formatDuration } from "../../components/event-type-detail/utils";
+import { CalComAPIService, EventType } from "../../../services/calcom";
+import { Header } from "../../../components/Header";
+import { Tooltip } from "../../../components/Tooltip";
+import { FullScreenModal } from "../../../components/FullScreenModal";
+import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { EmptyScreen } from "../../../components/EmptyScreen";
+import { slugify } from "../../../utils/slugify";
+import { showErrorAlert } from "../../../utils/alerts";
+import { offlineAwareRefresh } from "../../../utils/network";
+import { openInAppBrowser } from "../../../utils/browser";
+import { formatDuration } from "../../../components/event-type-detail/utils";
 import {
   useEventTypes,
   useCreateEventType,
   useDeleteEventType,
   useDuplicateEventType,
   useUsername,
-} from "../../hooks";
+} from "../../../hooks";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -520,7 +520,9 @@ export default function EventTypes() {
   if (loading) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Header />
+        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+          <Header />
+        </Activity>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <LoadingSpinner size="large" />
         </View>
@@ -531,7 +533,9 @@ export default function EventTypes() {
   if (error) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Header />
+        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+          <Header />
+        </Activity>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name="alert-circle" size={64} color="#FF3B30" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
@@ -549,7 +553,9 @@ export default function EventTypes() {
   if (eventTypes.length === 0) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Header />
+        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+          <Header />
+        </Activity>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <EmptyScreen
             icon="link-outline"
@@ -566,6 +572,78 @@ export default function EventTypes() {
   if (filteredEventTypes.length === 0 && searchQuery.trim() !== "") {
     return (
       <View className="flex-1 bg-gray-100">
+        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+          <Header />
+          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+            <TextInput
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+              placeholder="Search event types"
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
+            <TouchableOpacity
+              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              onPress={handleCreateNew}
+            >
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text className="text-base font-semibold text-white">New</Text>
+            </TouchableOpacity>
+          </View>
+        </Activity>
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+          <EmptyScreen
+            icon="search-outline"
+            headline={`No results found for "${searchQuery}"`}
+            description="Try searching with different keywords"
+          />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: "Event Types",
+          headerLargeTitleEnabled: true,
+          headerStyle: {
+            backgroundColor: "transparent",
+          },
+          headerSearchBarOptions: {
+            placeholder: "Search event types",
+            barTintColor: "#fff",
+            obscureBackground: false,
+            onChangeText: (e) => {
+              handleSearch(e.nativeEvent.text);
+            },
+            autoFocus: true,
+          },
+          unstable_headerRightItems: () => [
+            {
+              type: "button",
+              label: "New",
+              labelStyle: {
+                // style if needed
+              },
+              variant: "prominent",
+              tintColor: "#000",
+              // icon: {
+              //   name: "plus",
+              //   type: "sfSymbol",
+              // },
+              onPress: handleCreateNew,
+            },
+          ],
+        }}
+      />
+
+      <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
         <Header />
         <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
           <TextInput
@@ -586,43 +664,13 @@ export default function EventTypes() {
             <Text className="text-base font-semibold text-white">New</Text>
           </TouchableOpacity>
         </View>
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <EmptyScreen
-            icon="search-outline"
-            headline={`No results found for "${searchQuery}"`}
-            description="Try searching with different keywords"
-          />
-        </View>
-      </View>
-    );
-  }
+      </Activity>
 
-  return (
-    <View className="flex-1 bg-gray-100">
-      <Header />
-      <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-        <TextInput
-          className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-          placeholder="Search event types"
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={handleSearch}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-        <TouchableOpacity
-          className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-          onPress={handleCreateNew}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text className="text-base font-semibold text-white">New</Text>
-        </TouchableOpacity>
-      </View>
       <ScrollView
         contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
       >
         <View className="px-2 pt-4 md:px-4">
           <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
@@ -988,6 +1036,6 @@ export default function EventTypes() {
           </View>
         </View>
       )}
-    </View>
+    </>
   );
 }

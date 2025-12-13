@@ -12,7 +12,7 @@ export default function TabLayout() {
   if (supportsLiquidGlass) {
     return (
       <NativeTabs>
-        <NativeTabs.Trigger name="event-types">
+        <NativeTabs.Trigger name="(event-types)">
           <NativeTabs.Trigger.Icon sf="link" />
           <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
