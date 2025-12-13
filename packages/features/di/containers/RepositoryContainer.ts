@@ -24,6 +24,8 @@ import type { IAttributeToUserRepository } from "@calcom/lib/server/repository/I
 import type { IBookingPaymentRepository } from "@calcom/lib/server/repository/BookingPaymentRepository.interface";
 import type { QueuedFormResponseRepositoryInterface } from "@calcom/app-store/routing-forms/lib/queuedFormResponse/QueuedFormResponseRepository.interface";
 import type { IAuditRepository } from "../../watchlist/lib/interface/IAuditRepository";
+import type { IBookingAuditRepository } from "../../booking-audit/lib/repository/IBookingAuditRepository";
+import type { IAuditActorRepository } from "../../booking-audit/lib/repository/IAuditActorRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -67,6 +69,8 @@ import { attributeToUserRepositoryModuleLoader } from "../modules/AttributeToUse
 import { bookingPaymentRepositoryModuleLoader } from "../modules/BookingPayment";
 import { queuedFormResponseRepositoryModuleLoader } from "../modules/QueuedFormResponse";
 import { watchlistAuditRepositoryModuleLoader } from "../modules/WatchlistAudit";
+import { bookingAuditRepositoryModuleLoader } from "../modules/BookingAudit";
+import { auditActorRepositoryModuleLoader } from "../modules/AuditActor";
 
 const repositoryContainer = createContainer();
 
@@ -104,6 +108,8 @@ repositoryContainer.load(attributeToUserRepositoryModuleLoader());
 repositoryContainer.load(bookingPaymentRepositoryModuleLoader());
 repositoryContainer.load(queuedFormResponseRepositoryModuleLoader());
 repositoryContainer.load(watchlistAuditRepositoryModuleLoader());
+repositoryContainer.load(bookingAuditRepositoryModuleLoader());
+repositoryContainer.load(auditActorRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -237,4 +243,12 @@ export function getQueuedFormResponseRepository(): QueuedFormResponseRepositoryI
 
 export function getWatchlistAuditRepository(): IAuditRepository {
   return repositoryContainer.get<IAuditRepository>(DI_TOKENS.WATCHLIST_AUDIT_REPOSITORY);
+}
+
+export function getBookingAuditRepository(): IBookingAuditRepository {
+  return repositoryContainer.get<IBookingAuditRepository>(DI_TOKENS.BOOKING_AUDIT_REPOSITORY);
+}
+
+export function getAuditActorRepository(): IAuditActorRepository {
+  return repositoryContainer.get<IAuditActorRepository>(DI_TOKENS.AUDIT_ACTOR_REPOSITORY);
 }
