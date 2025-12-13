@@ -324,7 +324,7 @@ export default class HubspotCalendarService implements CRM {
           const parts = email.split("@");
           return parts.length > 1 ? parts[1] : "";
         })
-        .filter((domain) => domain !== "");
+        .filter((domain, index, self) => domain !== "" && self.indexOf(domain) === index);
 
       if (domains.length === 0) {
         return [];
