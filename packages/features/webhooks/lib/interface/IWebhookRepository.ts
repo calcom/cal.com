@@ -1,7 +1,23 @@
-import type { Webhook } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents, UserPermissionRole } from "@calcom/prisma/enums";
 
-import type { WebhookSubscriber } from "../dto/types";
+import type { WebhookSubscriber, WebhookGroup } from "../dto/types";
+
+/**
+ * Webhook Version enum - defines the payload format versions.
+ *
+ * This is a TypeScript-only enum (not Prisma).
+ * DB operations go through the repository which enforces these values.
+ */
+export const WebhookVersion = {
+  V_2021_10_20: "2021-10-20",
+} as const;
+
+export type WebhookVersion = (typeof WebhookVersion)[keyof typeof WebhookVersion];
+
+/**
+ * Default webhook version - used for new webhooks and as fallback
+ */
+export const DEFAULT_WEBHOOK_VERSION = WebhookVersion.V_2021_10_20;
 
 export interface GetSubscribersOptions {
   userId?: number | null;
@@ -11,20 +27,6 @@ export interface GetSubscribersOptions {
   orgId?: number | null;
   oAuthClientId?: string | null;
 }
-
-type WebhookGroup = {
-  teamId?: number | null;
-  profile: {
-    slug: string | null;
-    name: string | null;
-    image?: string;
-  };
-  metadata?: {
-    canModify: boolean;
-    canDelete: boolean;
-  };
-  webhooks: Webhook[];
-};
 
 export interface IWebhookRepository {
   getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]>;
@@ -41,6 +43,7 @@ export interface IWebhookRepository {
     platform: boolean;
     time: number | null;
     timeUnit: string | null;
+    version: WebhookVersion;
   }>;
   getFilteredWebhooksForUser(options: { userId: number; userRole?: UserPermissionRole }): Promise<{
     webhookGroups: WebhookGroup[];
@@ -54,3 +57,4 @@ export interface IWebhookRepository {
     }[];
   }>;
 }
+

@@ -3835,6 +3835,7 @@
   "webhook_attendee_email": "Email of the first attendee",
   "webhook_attendee_timezone": "Timezone of the first attendee",
   "webhook_attendee_locale": "Locale of the first attendee",
+  "webhook_version": "Webhook Version",
   "webhook_team_name": "Name of the team booked",
   "webhook_team_members": "Members of the team booked",
   "webhook_video_call_url": "Video call URL for the meeting",
