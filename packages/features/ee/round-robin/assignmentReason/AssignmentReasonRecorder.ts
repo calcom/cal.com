@@ -1,4 +1,5 @@
 import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -102,7 +103,7 @@ export default class AssignmentReasonRecorder {
 
       const attributeValue = attributeToFilter.value;
 
-      if (!userAttribute || !attributeValue || typeof attributeValue[0] === null) continue;
+      if (!userAttribute || !attributeValue || attributeValue[0] === null) continue;
 
       if (attributeValue && attributeValue[0]) {
         const attributeValueString = (() => {
@@ -117,9 +118,12 @@ export default class AssignmentReasonRecorder {
       }
     }
 
+    const isFallback = isFallbackRoute(takenRoute);
     const reasonEnum = isRerouting
       ? AssignmentReasonEnum.REROUTED
-      : AssignmentReasonEnum.ROUTING_FORM_ROUTING;
+      : isFallback
+        ? AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK
+        : AssignmentReasonEnum.ROUTING_FORM_ROUTING;
     const reasonString = `${
       isRerouting && reroutedByEmail ? `Rerouted by ${reroutedByEmail}` : ""
     } ${attributeValues.join(", ")}`;
