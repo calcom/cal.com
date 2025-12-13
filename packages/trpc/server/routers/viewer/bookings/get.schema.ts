@@ -2,7 +2,33 @@ import { z } from "zod";
 
 import { ZTextFilterValue } from "@calcom/features/data-table/lib/types";
 
-export const ZGetInputSchema = z.object({
+// Define type first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+type BookingStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
+
+export type TGetInputSchema = {
+  filters: {
+    teamIds?: number[];
+    userIds?: number[];
+    status?: BookingStatus;
+    statuses?: BookingStatus[];
+    eventTypeIds?: number[];
+    attendeeEmail?: string | z.infer<typeof ZTextFilterValue>;
+    attendeeName?: string | z.infer<typeof ZTextFilterValue>;
+    bookingUid?: string;
+    afterStartDate?: string;
+    beforeEndDate?: string;
+    afterUpdatedDate?: string;
+    beforeUpdatedDate?: string;
+    afterCreatedDate?: string;
+    beforeCreatedDate?: string;
+  };
+  limit: number;
+  offset?: number;
+  cursor?: string;
+};
+
+export const ZGetInputSchema: z.ZodType<TGetInputSchema> = z.object({
   filters: z.object({
     teamIds: z.number().array().optional(),
     userIds: z.number().array().optional(),
@@ -25,5 +51,3 @@ export const ZGetInputSchema = z.object({
   // Cursor for infinite query support (calendar view)
   cursor: z.string().optional(),
 });
-
-export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
