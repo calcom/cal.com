@@ -1,11 +1,13 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
+import { makeNamedSystemActor } from "@calcom/features/bookings/lib/types/actor";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -79,6 +81,12 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
   if (!isConfirmed) {
     if (!requiresConfirmation) {
+      const auditActorRepository = getAuditActorRepository();
+      const actor = await makeNamedSystemActor(
+        "stripe-payment-webhook",
+        "Stripe Payment Webhook",
+        auditActorRepository
+      );
       await handleConfirmation({
         user: { ...userWithCredentials, credentials: allCredentials },
         evt,
@@ -87,6 +95,8 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
         booking,
         paid: true,
         platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
+        source: "WEBHOOK",
+        actor,
       });
     } else {
       await handleBookingRequested({

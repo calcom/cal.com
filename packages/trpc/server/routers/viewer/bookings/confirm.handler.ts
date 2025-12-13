@@ -7,6 +7,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
@@ -317,6 +318,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      source: "WEBAPP",
+      actor: makeUserActor(user.uuid),
     });
   } else {
     evt.rejectionReason = rejectionReason;

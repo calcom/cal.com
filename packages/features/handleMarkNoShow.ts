@@ -1,9 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getPIIFreeBookingAuditActor } from "@calcom/features/bookings/lib/types/actor";
 import type { Actor } from "@calcom/features/bookings/lib/types/actor";
-import type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -22,7 +20,7 @@ import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enum
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-
+import { makeGuestActor } from "@calcom/features/bookings/lib/types/actor";
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
@@ -97,7 +95,6 @@ const handleMarkNoShow = async ({
   userUuid,
   locale,
   platformClientParams,
-  auditActorRepository,
   actionSource = "UNKNOWN",
 }: TNoShowInputSchema & {
   /**
@@ -107,7 +104,6 @@ const handleMarkNoShow = async ({
   userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
-  auditActorRepository: IAuditActorRepository;
   actionSource?: ActionSource;
 }) => {
   if (actionSource === "UNKNOWN") {
@@ -121,7 +117,7 @@ const handleMarkNoShow = async ({
   const t = await getTranslation(locale ?? "en", "common");
 
   // Helper function to get the appropriate actor
-  const getActor = async (): Promise<Actor> => {
+  const getAuditActor = async (): Promise<Actor> => {
     const fallbackEmail = `fallback-${bookingUid}-${Date.now()}@guest.internal`;
 
     if (!userUuid) {
@@ -129,13 +125,7 @@ const handleMarkNoShow = async ({
         bookingUid,
       });
     }
-
-    return getPIIFreeBookingAuditActor({
-      userUuid: userUuid ?? null,
-      attendeeId: null,
-      guestActor: { email: fallbackEmail },
-      auditActorRepository,
-    });
+    return makeGuestActor({ email: fallbackEmail, name: null });
   };
 
   try {
@@ -380,7 +370,7 @@ const handleMarkNoShow = async ({
         });
 
         if (bookingForAudit) {
-          const actor = await getActor();
+          const actor = await getAuditActor();
           if (actor) {
             const bookingEventHandlerService = getBookingEventHandlerService();
             const orgId = await getOrgIdFromMemberOrTeamId({
@@ -438,7 +428,7 @@ const handleMarkNoShow = async ({
         });
 
         if (bookingForAudit) {
-          const actor = await getActor();
+          const actor = await getAuditActor();
           const bookingEventHandlerService = getBookingEventHandlerService();
           const orgId = await getOrgIdFromMemberOrTeamId({
             memberId: bookingForAudit.eventType?.userId ?? null,

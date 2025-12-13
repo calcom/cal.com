@@ -45,6 +45,48 @@ The Booking Audit System tracks all actions and changes related to bookings in C
 - **ATTENDEE**: Guests who have an Attendee record associated with a booking
 - **SYSTEM**: Automated system actions (scheduled jobs, webhooks, etc.)
 
+## Source and Actor Design Pattern
+
+The booking audit system uses two complementary fields to fully describe an action:
+
+### Source: The Channel
+**`source`** identifies **how** the action was initiated - the entry point or channel through which the action entered the system:
+
+- **`WEBAPP`**: Action initiated through the Cal.com web application (user clicking buttons, submitting forms)
+- **`API_V1`**: Action initiated through the API v1 endpoint
+- **`API_V2`**: Action initiated through the API v2 endpoint
+- **`WEBHOOK`**: Action triggered by an external webhook (e.g., Stripe payment webhook)
+- **`UNKNOWN`**: Source cannot be determined (fallback for legacy or edge cases)
+
+### Actor: The Entity
+**`actor`** identifies **who or what** performed the action - the entity responsible for the action:
+
+- **User Actor**: A registered Cal.com user (`makeUserActor(userUuid)`)
+- **Guest Actor**: A non-registered guest (`getPIIFreeBookingAuditActor` with guest info)
+- **Attendee Actor**: An attendee associated with a booking (`makeAttendeeActor(attendeeId)`)
+- **System Actor**: An automated system action
+  - Generic system actor: `makeSystemActor()` (for general system actions)
+  - Named system actor: `makeNamedSystemActor(identifier, displayName, repo)` (for specific webhooks/services)
+    - Example: `makeNamedSystemActor("stripe-payment-webhook", "Stripe Payment Webhook", repo)`
+    - Uses `.internal` email convention: `stripe-payment-webhook@system.internal`
+
+### The Analogy
+
+Think of it like a phone call:
+- **Source** = the phone line/channel (landline, mobile, VoIP, webhook)
+- **Actor** = the person/system making the call (John, Jane, Stripe Payment Webhook)
+
+This separation allows us to answer both:
+- "How did this action enter the system?" → `source`
+- "Who or what performed this action?" → `actor`
+
+### Why This Matters
+
+- **Compliance**: Clear audit trail showing both the entry point and responsible entity
+- **Debugging**: Quickly identify if issues are channel-specific (API vs webapp) or actor-specific
+- **Analytics**: Track usage patterns by channel and by actor type
+- **Security**: Distinguish between user-initiated actions and automated system actions
+
 ## Audit Record Types
 
 - **RECORD_CREATED**: Initial booking creation
@@ -226,6 +268,14 @@ The audit system is designed to work with third-party queue providers (e.g., tri
 - Each task is independent - one task failure doesn't block others
 - Persistent queue handles retries, monitoring, and observability
 - Easy to add features - new side effect = new task definition
+
+## TODO
+- Actor must be created in the controllers
+  - This is importnat so that we know whether a webhook triggered the action or a user. Creating actor in the service layer could be wrong because we could have userUuid there which could beprovided by stripe webhook on behalf of a user.
+
+### Good to have 
+- getPiiFreeAuditActor should not exist in types/Actor.ts. Figure out what the write place for it is. Requirement being we pass Actor to BookingEventHandlerService. One approach could be to do have it in Producer service and call it from there itself, differentiating b/w the case when we need to pass actor to task as is and where we need to create Actor first.
+
 
 ## Observability
 

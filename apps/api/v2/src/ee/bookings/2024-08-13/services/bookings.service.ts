@@ -6,7 +6,6 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { getPagination } from "@/lib/pagination/pagination";
-import { PrismaAuditActorRepository } from "@/lib/repositories/prisma-audit-actor.repository";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
 import { RegularBookingService } from "@/lib/services/regular-booking.service";
@@ -952,7 +951,6 @@ export class BookingsService_2024_08_13 {
       userId: bookingOwnerId,
       userUuid,
       platformClientParams,
-      auditActorRepository: this.auditActorRepository,
       actionSource: "API_V2",
     });
 

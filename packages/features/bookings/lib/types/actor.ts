@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 
 const UserActorSchema = z.object({
   identifiedBy: z.literal("user"),
@@ -16,17 +15,40 @@ const ActorByIdSchema = z.object({
   id: z.string(),
 });
 
+const GuestActorSchema = z.object({
+  identifiedBy: z.literal("guest"),
+  email: z.string(),
+  name: z.string().nullable(),
+});
+
+const SystemActorSchema = z.object({
+  identifiedBy: z.literal("system"),
+  identifier: z.string(),
+  name: z.string(),
+});
+
 export const ActorSchema = z.discriminatedUnion("identifiedBy", [
+  ActorByIdSchema,
+  UserActorSchema,
+  AttendeeActorSchema,
+  GuestActorSchema,
+  SystemActorSchema,
+]);
+
+export const PIIFreeActorSchema = z.discriminatedUnion("identifiedBy", [
   ActorByIdSchema,
   UserActorSchema,
   AttendeeActorSchema,
 ]);
 
 export type Actor = z.infer<typeof ActorSchema>;
+export type PIIFreeActor = z.infer<typeof PIIFreeActorSchema>;
+
 type UserActor = z.infer<typeof UserActorSchema>;
 type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
-
+type GuestActor = z.infer<typeof GuestActorSchema>;
+type SystemActor = z.infer<typeof SystemActorSchema>;
 /**
  * Creates an Actor representing a User by UUID
  */
@@ -37,14 +59,23 @@ export function makeUserActor(userUuid: string): UserActor {
   };
 }
 
+export function makeGuestActor({ email, name }: { email: string, name: string | null }): GuestActor {
+  return {
+    identifiedBy: "guest",
+    email,
+    name: name ?? null,
+  };
+}
+
 /**
  * Creates an Actor representing the System
  * System actors must be referenced by ID (requires migration)
  */
-export function makeSystemActor(): ActorById {
+export function makeSystemActor({ identifier, name }: { identifier: string, name: string }): SystemActor {
   return {
-    identifiedBy: "id",
-    id: SYSTEM_ACTOR_ID,
+    identifiedBy: "system",
+    identifier,
+    name,
   };
 }
 
@@ -69,48 +100,10 @@ export function makeAttendeeActor(attendeeId: number): AttendeeActor {
   };
 }
 
-// System actor ID constant
-export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
+export function buildActorEmail({ identifier, actorType }: { identifier: string, actorType: "system" | "guest" }): string {
+  return `${identifier}@${actorType}.internal`;
+}
 
-/**
- * Producer-side actor resolution - creates PII-free actors for queueing
- * 
- * For guests: Creates AuditActor record in DB upfront, returns ActorById
- * For users/attendees: Returns ID-only actors
- * 
- * Callers must provide userUuid (not userId) - if user is known, userUuid must be available
- * Callers must provide attendeeId if they want AttendeeActor - no automatic lookup
- * 
- * @param params.userUuid - User UUID (required, nullable)
- * @param params.attendeeId - Attendee ID (required, nullable)
- * @param params.guestActor - Guest actor info with email and optional name (required, nullable)
- * @param params.auditActorRepository - Repository for creating guest actors
- * @returns Actor with no PII (only IDs)
- */
-export async function getPIIFreeBookingAuditActor(params: {
-  userUuid: string | null;
-  attendeeId: number | null;
-  guestActor: { email: string; name?: string } | null;
-  auditActorRepository: IAuditActorRepository;
-}): Promise<Actor> {
-  const { userUuid, attendeeId, guestActor, auditActorRepository } = params;
-
-  if (userUuid) {
-    return makeUserActor(userUuid);
-  }
-
-  if (attendeeId) {
-    return makeAttendeeActor(attendeeId);
-  }
-
-  if (!guestActor) {
-    throw new Error("At least one of userUuid, attendeeId, or guestActor must be provided");
-  }
-
-  const createdGuestActor = await auditActorRepository.createIfNotExistsGuestActor({
-    email: guestActor.email,
-    name: guestActor.name ?? null,
-    phone: null,
-  });
-  return makeActorById(createdGuestActor.id);
+export function makeStripeWebhookActor(): SystemActor {
+  return makeSystemActor({ identifier: "stripe-webhook", name: "Stripe Webhook" });
 }

@@ -16,8 +16,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { getPIIFreeBookingAuditActor } from "@calcom/features/bookings/lib/types/actor";
-import { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
+import { makeGuestActor, buildActorEmail, type Actor } from "@calcom/features/bookings/lib/types/actor";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
@@ -47,10 +46,25 @@ import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
+import { type ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 enum ErrorCode {
   InvalidRoundRobinHost = "invalid_round_robin_host",
   UserIsFixed = "user_is_round_robin_fixed",
+}
+
+function getAuditActor({ reassignedByUuid, bookingUid }: {
+  reassignedByUuid: string | null;
+  bookingUid: string;
+  logger: ISimpleLogger;
+}): Actor {
+  if (!reassignedByUuid) {
+    logger.warn("No reassignedByUuid provided, creating fallback guest actor for audit log", safeStringify({
+      bookingUid,
+    }));
+  }
+  return makeGuestActor({ email: buildActorEmail({ identifier: `fallback-${bookingUid}-${Date.now()}`, actorType: "guest" }), name: null });
 }
 
 export const roundRobinManualReassignment = async ({
@@ -255,20 +269,12 @@ export const roundRobinManualReassignment = async ({
       title: { old: oldTitle, new: newBookingTitle },
     };
 
-    // Create audit log - always create an actor, fallback to guest if UUID not provided
-    const auditActorRepository = getAuditActorRepository();
-    const actor = await getPIIFreeBookingAuditActor({
-      userUuid: reassignedByUuid ?? null,
-      attendeeId: null,
-      guestActor: { email: `fallback-${booking.uid}-${Date.now()}@guest.internal` },
-      auditActorRepository,
+    const actor = getAuditActor({
+      reassignedByUuid: reassignedByUuid ?? null,
+      bookingUid: booking.uid,
+      logger: roundRobinReassignLogger,
     });
-    if (!reassignedByUuid) {
-      roundRobinReassignLogger.warn(
-        `No reassignedByUuid provided, creating fallback guest actor for audit log`,
-        { bookingId, bookingUid: booking.uid }
-      );
-    }
+
     await bookingEventHandlerService.onReassignment({
       bookingUid: booking.uid,
       actor,

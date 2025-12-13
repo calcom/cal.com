@@ -40,101 +40,26 @@ interface OnBookingRescheduledParams {
   source: ActionSource;
 }
 
-interface OnBookingAcceptedParams {
+interface BaseBookingEventParams<TAuditData> {
   bookingUid: string;
   actor: Actor;
   organizationId: number | null;
-  auditData: AcceptedAuditData;
+  auditData: TAuditData;
   source: ActionSource;
 }
 
-interface OnBookingCancelledParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: CancelledAuditData;
-  source: ActionSource;
-}
-
-interface OnRescheduleRequestedParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: RescheduleRequestedAuditData;
-  source: ActionSource;
-}
-
-interface OnAttendeeAddedParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: AttendeeAddedAuditData;
-  source: ActionSource;
-}
-
-interface OnHostNoShowUpdatedParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: HostNoShowUpdatedAuditData;
-  source: ActionSource;
-}
-
-interface OnBookingRejectedParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: RejectedAuditData;
-  source: ActionSource;
-}
-
-interface OnAttendeeRemovedParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: AttendeeRemovedAuditData;
-  source: ActionSource;
-}
-
-interface OnReassignmentParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: ReassignmentAuditData;
-  source: ActionSource;
-}
-
-interface OnLocationChangedParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: LocationChangedAuditData;
-  source: ActionSource;
-}
-
-interface OnAttendeeNoShowUpdatedParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: AttendeeNoShowUpdatedAuditData;
-  source: ActionSource;
-}
-
-interface OnSeatBookedParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: SeatBookedAuditData;
-  source: ActionSource;
-}
-
-interface OnSeatRescheduledParams {
-  bookingUid: string;
-  actor: Actor;
-  organizationId: number | null;
-  auditData: SeatRescheduledAuditData;
-  source: ActionSource;
-}
+type OnBookingAcceptedParams = BaseBookingEventParams<AcceptedAuditData>;
+type OnBookingCancelledParams = BaseBookingEventParams<CancelledAuditData>;
+type OnRescheduleRequestedParams = BaseBookingEventParams<RescheduleRequestedAuditData>;
+type OnAttendeeAddedParams = BaseBookingEventParams<AttendeeAddedAuditData>;
+type OnHostNoShowUpdatedParams = BaseBookingEventParams<HostNoShowUpdatedAuditData>;
+type OnBookingRejectedParams = BaseBookingEventParams<RejectedAuditData>;
+type OnAttendeeRemovedParams = BaseBookingEventParams<AttendeeRemovedAuditData>;
+type OnReassignmentParams = BaseBookingEventParams<ReassignmentAuditData>;
+type OnLocationChangedParams = BaseBookingEventParams<LocationChangedAuditData>;
+type OnAttendeeNoShowUpdatedParams = BaseBookingEventParams<AttendeeNoShowUpdatedAuditData>;
+type OnSeatBookedParams = BaseBookingEventParams<SeatBookedAuditData>;
+type OnSeatRescheduledParams = BaseBookingEventParams<SeatRescheduledAuditData>;
 
 export class BookingEventHandlerService {
   private readonly log: BookingEventHandlerDeps["log"];

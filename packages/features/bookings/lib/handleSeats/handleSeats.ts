@@ -7,13 +7,12 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { getPIIFreeBookingAuditActor } from "../types/actor";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
-
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   const {
     eventType,
@@ -39,7 +38,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     organizationId,
     userUuid,
     fullName,
-    auditActorRepository,
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
@@ -96,17 +94,12 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // Helper function to get audit actor with logging for guest actors
   const getAuditActorForSeats = async (): Promise<import("../types/actor").Actor> => {
-    if (!userUuid) {
-      loggerWithEventDetails.warn("Creating guest actor for seat booking - user not authenticated", {
-        email: bookerEmail,
-        name: fullName,
-      });
-    }
-    return getPIIFreeBookingAuditActor({
-      userUuid: userUuid ?? null,
+    return getBookingAuditActorForNewBooking({
       attendeeId: null,
-      guestActor: { email: bookerEmail, name: fullName },
-      auditActorRepository,
+      userUuid: userUuid ?? null,
+      bookerEmail,
+      bookerName: fullName,
+      logger: loggerWithEventDetails,
     });
   };
 

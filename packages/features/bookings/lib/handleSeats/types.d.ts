@@ -4,7 +4,6 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
-import type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 import type { BookingEventHandlerService } from "../../onBookingEvents/BookingEventHandlerService";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 import type { Booking } from "../handleNewBooking/createBooking";
@@ -64,7 +63,6 @@ export type NewSeatedBookingObject = {
   isDryRun?: boolean;
   bookingEventHandler?: BookingEventHandlerService;
   organizationId?: number | null;
-  auditActorRepository: IAuditActorRepository;
   actionSource?: ActionSource;
 };
 

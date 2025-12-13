@@ -1,5 +1,4 @@
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
-import { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
 
 import type { TNoShowInputSchema } from "./markHostAsNoShow.schema";
 
@@ -13,7 +12,6 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
   return handleMarkNoShow({
     bookingUid,
     noShowHost,
-    auditActorRepository: getAuditActorRepository(),
   });
 };
 

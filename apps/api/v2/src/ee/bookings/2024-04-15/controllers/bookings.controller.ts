@@ -7,7 +7,6 @@ import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ma
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
-import { PrismaAuditActorRepository } from "@/lib/repositories/prisma-audit-actor.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
@@ -125,7 +124,6 @@ export class BookingsController_2024_04_15 {
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeRepository: PrismaEventTypeRepository,
-    private readonly auditActorRepository: PrismaAuditActorRepository,
     private readonly teamRepository: PrismaTeamRepository
   ) { }
 
@@ -315,7 +313,6 @@ export class BookingsController_2024_04_15 {
         noShowHost: body.noShowHost,
         userId: user.id,
         userUuid: user.uuid,
-        auditActorRepository: this.auditActorRepository,
         actionSource: "API_V2" as const,
       });
 

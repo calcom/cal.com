@@ -1,8 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { IAuditActorRepository } from "./IAuditActorRepository";
 
-const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
-
 type Dependencies = {
     prismaClient: PrismaClient;
 }
@@ -12,18 +10,6 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         return this.deps.prismaClient.auditActor.findUnique({
             where: { userUuid },
         });
-    }
-
-    async findSystemActorOrThrow() {
-        const actor = await this.deps.prismaClient.auditActor.findUnique({
-            where: { id: SYSTEM_ACTOR_ID },
-        });
-
-        if (!actor) {
-            throw new Error("System actor not found");
-        }
-
-        return actor;
     }
 
     async createIfNotExistsUserActor(params: { userUuid: string }) {
@@ -108,6 +94,18 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
             create: {
                 type: "ATTENDEE",
                 attendeeId: params.attendeeId,
+            },
+            update: {},
+        });
+    }
+
+    async createIfNotExistsSystemActor(params: { email: string; name: string }) {
+        return this.deps.prismaClient.auditActor.upsert({
+            where: { email: params.email },
+            create: {
+                type: "SYSTEM",
+                email: params.email,
+                name: params.name,
             },
             update: {},
         });

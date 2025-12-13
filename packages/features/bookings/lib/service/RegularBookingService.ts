@@ -128,9 +128,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
-import { getPIIFreeBookingAuditActor } from "../types/actor";
-import type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
-
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 const translator = short();
 
 type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
@@ -469,7 +467,6 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
-  auditActorRepository: IAuditActorRepository;
 }
 
 /**
@@ -1682,7 +1679,6 @@ async function handler(
       isDryRun,
       bookingEventHandler: deps.bookingEventHandler,
       organizationId: eventOrganizationId,
-      auditActorRepository: deps.auditActorRepository,
       actionSource,
     });
 
@@ -2336,11 +2332,12 @@ async function handler(
   // Find attendee matching bookerEmail to get attendeeId
   const bookerAttendeeId = booking?.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
 
-  const auditActor = await getPIIFreeBookingAuditActor({
-    userUuid: userUuid ?? null,
+  const auditActor = getBookingAuditActorForNewBooking({
     attendeeId: bookerAttendeeId ?? null,
-    guestActor: { email: bookerEmail },
-    auditActorRepository: deps.auditActorRepository,
+    userUuid: userUuid ?? null,
+    bookerEmail,
+    bookerName: fullName,
+    logger: tracingLogger,
   });
 
   // Map CreationSource to ActionSource

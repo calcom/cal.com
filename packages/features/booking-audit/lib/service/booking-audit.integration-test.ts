@@ -206,11 +206,11 @@ describe("Booking Audit Integration", () => {
         bookingUid: testBookingUid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
         data: {
           startTime: booking!.startTime.getTime(),
           endTime: booking!.endTime.getTime(),
           status: booking!.status,
-          source: "WEBAPP",
         },
         timestamp: Date.now(),
       });
@@ -235,7 +235,8 @@ describe("Booking Audit Integration", () => {
 
       // Verify audit data matches (getDisplayJson returns formatted display data)
       // Format is "yyyy-MM-dd HH:mm:ss" in the user's timezone (UTC in this test)
-      const displayData = auditLog.data as any;
+      const displayData = auditLog.displayJson as any;
+      expect(displayData).toBeDefined();
       expect(displayData.startTime).toBeDefined();
       expect(typeof displayData.startTime).toBe("string");
       // Verify format matches "yyyy-MM-dd HH:mm:ss" pattern
@@ -263,11 +264,11 @@ describe("Booking Audit Integration", () => {
         bookingUid: testBookingUid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
         data: {
           startTime: booking!.startTime.getTime(),
           endTime: booking!.endTime.getTime(),
           status: booking!.status,
-          source: "WEBAPP",
         },
         timestamp: Date.now(),
       });
@@ -303,11 +304,11 @@ describe("Booking Audit Integration", () => {
         bookingUid: testBookingUid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
         data: {
           startTime: booking!.startTime.getTime(),
           endTime: booking!.endTime.getTime(),
           status: booking!.status,
-          source: "WEBAPP",
         },
         timestamp: Date.now(),
       });

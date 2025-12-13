@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ActorSchema } from "@calcom/features/bookings/lib/types/actor";
+import { PIIFreeActorSchema } from "@calcom/features/bookings/lib/types/actor";
 import { ActionSourceSchema } from "../common/actionSource";
 
 /**
@@ -33,14 +33,14 @@ export type BookingAuditAction = z.infer<typeof BookingAuditActionSchema>;
  * The consumer parses with this first, then validates `data` 
  * with the action-specific schema based on the `action` field.
  */
-export const BookingAuditTaskBaseSchema = z.object({
+export const BookingAuditTaskConsumerSchema = z.object({
     bookingUid: z.string(),
-    actor: ActorSchema,
+    actor: PIIFreeActorSchema,
     organizationId: z.number().nullable(),
     timestamp: z.number(),
     action: BookingAuditActionSchema,
-    source: ActionSourceSchema,
+    source: ActionSourceSchema.default("UNKNOWN"),
     data: z.unknown(),
 });
 
-export type BookingAuditTaskBasePayload = z.infer<typeof BookingAuditTaskBaseSchema>;
+export type BookingAuditTaskConsumerPayload = z.infer<typeof BookingAuditTaskConsumerSchema>;

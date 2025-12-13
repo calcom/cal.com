@@ -52,8 +52,7 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { getPIIFreeBookingAuditActor } from "./types/actor";
-import { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
+import { buildActorEmail, makeGuestActor, type Actor } from "./types/actor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -77,6 +76,20 @@ export type CancelBookingInput = {
   bookingData: z.infer<typeof bookingCancelInput>;
   actionSource?: ActionSource;
 } & PlatformParams;
+
+function getAuditActor({ userUuid, cancelledBy, bookingUid }: {
+  userUuid: string | null;
+  cancelledBy: string | null;
+  bookingUid: string;
+}): Actor {
+  if (!userUuid && !cancelledBy) {
+    log.warn("No cancelledBy email available, creating fallback guest actor for audit", safeStringify({
+      bookingUid,
+    }));
+  }
+  const cancelledByEmail = cancelledBy || buildActorEmail({ identifier: `fallback-${bookingUid}-${Date.now()}`, actorType: "guest" });
+  return makeGuestActor({ email: cancelledByEmail, name: null });
+}
 
 async function handler(input: CancelBookingInput) {
   const body = input.bookingData;
@@ -488,19 +501,13 @@ async function handler(input: CancelBookingInput) {
     updatedBookings.push(updatedBooking);
 
     const bookingEventHandlerService = getBookingEventHandlerService();
-    const auditActorRepository = getAuditActorRepository();
-    const fallbackEmail = cancelledBy || `fallback-${updatedBooking.uid}-${Date.now()}@guest.internal`;
-    if (!userUuid && !cancelledBy) {
-      log.warn("No cancelledBy email available, creating fallback guest actor for audit", {
-        bookingUid: updatedBooking.uid,
-      });
-    }
-    const actorToUse = await getPIIFreeBookingAuditActor({
+
+    const actorToUse = await getAuditActor({
       userUuid: userUuid ?? null,
-      attendeeId: null,
-      guestActor: { email: fallbackEmail },
-      auditActorRepository,
+      cancelledBy: cancelledBy ?? null,
+      bookingUid: updatedBooking.uid,
     });
+
     await bookingEventHandlerService.onBookingCancelled({
       bookingUid: updatedBooking.uid,
       actor: actorToUse,
