@@ -1,7 +1,16 @@
 ---
 title: "HubSpot"
 ---
-### Obtaining HubSpot Client ID and Secret
+
+With our HubSpot integration you can sync data between Cal.com and your instance of HubSpot CRM.
+
+## Basic functionality
+
+- On booking, we create a meeting record under a contact/company record
+- On reschedule, we adjust the meeting record's dates
+- On cancellation, we cancel the meeting record
+
+## Obtaining HubSpot Client ID and Secret
 
 <Steps>
     <Step title="Sign into HubSpot Developer">
@@ -34,12 +43,52 @@ title: "HubSpot"
         Replace `<Cal.com URL>` with the URL where your application is hosted.
     </Step>
     <Step title="Select Required Scopes">
-        In the "Scopes" section, select "Read" and "Write" for the scope called `crm.objects.contacts`.
+        In the "Scopes" section, select "Read" and "Write" for the following scopes:
+        - `crm.objects.contacts` - For contact records
+        - `crm.objects.companies` - For company records
     </Step>
     <Step title="Save the Application">
         Click the "Save" button at the bottom of the page.
     </Step>
     <Step title="Complete HubSpot Integration">
-        You’re all set! Any booking in Cal.com will now be created as a meeting in HubSpot for your contacts.
+        You're all set! Any booking in Cal.com will now be created as a meeting in HubSpot.
     </Step>
 </Steps>
+
+## Event Type Options
+
+### On booking, add events on and new attendees as
+
+Choose which record to create HubSpot meetings under or if the attendee does not exist in HubSpot as the selected record, create a new record of the chosen type. We search for records based on the attendee email.
+
+**Options:**
+- **Contact** - Create meetings under contact records
+- **Company** - Create meetings under company records (matched by email domain)
+
+### Do not create new records for guests added to the booking
+
+If this option is enabled, we will only handle creating meetings under the main attendee of the event and not additional guests.
+
+### Skip creating contacts if they do not exist in HubSpot
+
+<Note>This option is available when "Contact" is selected.</Note>
+
+If the option is enabled, skip creating new contacts if they do not exist in HubSpot already. No meeting will be created if the contact doesn't exist.
+
+### Create event on contact, if it exists. Else fall back to company
+
+<Note>This option is available when "Company" is selected.</Note>
+
+If this option is enabled, we check if a contact already exists with the attendee's email. If it does, create the meeting on the contact record. If it does not exist, then we create the meeting on an existing company record (matched by email domain) or create a new company.
+
+## Appendix
+
+### How we match companies
+
+We determine if an attendee belongs to a company by extracting the email domain (e.g., `john@acme.com` → `acme.com`) and searching for a company with a matching `domain` property in HubSpot.
+
+### Meeting association
+
+Meetings are associated with the appropriate record type:
+- For contacts: Uses `meeting_event_to_contact` association
+- For companies: Uses `meeting_event_to_company` association
