@@ -479,6 +479,14 @@ export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
     nullable: true,
   })
   avatarUrl?: string | null;
+
+  @IsInt()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "The schedule ID for this host, if they have a custom schedule for this event type",
+    nullable: true,
+  })
+  scheduleId?: number | null;
 }
 
 export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
@@ -514,7 +522,7 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ValidateNested({ each: true })
   @Type(() => TeamEventTypeResponseHost)
   @IsArray()
-  @DocsProperty()
+  @DocsProperty({ type: [TeamEventTypeResponseHost] })
   hosts!: TeamEventTypeResponseHost[];
 
   @IsBoolean()

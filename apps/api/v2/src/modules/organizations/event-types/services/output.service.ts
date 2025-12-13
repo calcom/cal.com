@@ -174,6 +174,7 @@ export class OutputOrganizationsEventTypesService {
           name: user?.name || "",
           username: user?.username || "",
           avatarUrl: user?.avatarUrl,
+          scheduleId: child.scheduleId,
         });
       }
     }
@@ -200,6 +201,7 @@ export class OutputOrganizationsEventTypesService {
           mandatory: !!databaseHost.isFixed,
           priority: getPriorityLabel(databaseHost.priority || 2),
           avatarUrl: databaseUser?.avatarUrl,
+          scheduleId: databaseHost.scheduleId,
         });
       } else {
         transformedHosts.push({
@@ -207,6 +209,7 @@ export class OutputOrganizationsEventTypesService {
           name: databaseUser?.name || "",
           username: databaseUser?.username || "",
           avatarUrl: databaseUser?.avatarUrl,
+          scheduleId: databaseHost.scheduleId,
         });
       }
     }
