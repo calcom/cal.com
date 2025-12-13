@@ -1,6 +1,7 @@
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import prisma from "@calcom/prisma";
+import {
+  getBookingRepository,
+  getRoutingFormResponseRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 export interface ValidationOptions {
@@ -21,7 +22,7 @@ export interface ValidationResult {
 export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptions) {
   const { formId, responseId, responses, submittedAt } = options;
 
-  const bookingRepository = new BookingRepository(prisma);
+  const bookingRepository = getBookingRepository();
 
   // Check if a booking was created from this form response
   const bookingFromResponse = await bookingRepository.findFirstBookingFromResponse({ responseId });
@@ -83,7 +84,7 @@ async function hasDuplicateSubmission({
   if (!submitterEmail) return false;
 
   const date = submittedAt ?? new Date();
-  const formResponseRepository = new RoutingFormResponseRepository(prisma);
+  const formResponseRepository = getRoutingFormResponseRepository();
 
   const sixtyMinutesAgo = new Date(date.getTime() - 60 * 60 * 1000);
 

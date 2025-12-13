@@ -1,5 +1,4 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import prisma from "@calcom/prisma";
+import { getTeamRepository } from "@calcom/features/di/containers/RepositoryContainer";
 
 import type { BillingPortalService } from "../base/BillingPortalService";
 import { OrganizationBillingPortalService } from "../organization/OrganizationBillingPortalService";
@@ -14,7 +13,7 @@ export class BillingPortalServiceFactory {
    * Determines team type and returns the appropriate service
    */
   static async createService(teamId: number): Promise<BillingPortalService> {
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const team = await teamRepository.findById({ id: teamId });
 
     if (!team) {

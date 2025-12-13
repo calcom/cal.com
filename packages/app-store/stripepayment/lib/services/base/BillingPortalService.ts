@@ -1,11 +1,11 @@
 import type { NextApiResponse } from "next";
 
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/RepositoryContainer";
+import type { ITeamRepository } from "@calcom/features/ee/teams/repositories/ITeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -25,12 +25,12 @@ export interface BillingPortalResult {
 
 export abstract class BillingPortalService {
   protected permissionService: PermissionCheckService;
-  protected teamRepository: TeamRepository;
+  protected teamRepository: ITeamRepository;
   protected contextName = "Team"; // Can be overridden by subclasses
 
   constructor() {
     this.permissionService = new PermissionCheckService();
-    this.teamRepository = new TeamRepository(prisma);
+    this.teamRepository = getTeamRepository();
   }
 
   /**

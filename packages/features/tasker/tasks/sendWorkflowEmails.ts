@@ -2,11 +2,12 @@ import { z } from "zod";
 
 import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
+import {
+  getBookingRepository,
+  getBookingSeatRepository,
+  getWorkflowReminderRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
-import { prisma } from "@calcom/prisma";
 
 export const ZSendWorkflowEmailsSchemaEager = z.object({
   to: z.array(z.string()),
@@ -41,7 +42,7 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
 
   // Generate workflow body to send
   if ("bookingUid" in mailData && "workflowReminderId" in mailData) {
-    const bookingRepository = new BookingRepository(prisma);
+    const bookingRepository = getBookingRepository();
     const booking = await bookingRepository.getBookingForCalEventBuilderFromUid(mailData.bookingUid);
 
     if (!booking) {
@@ -53,8 +54,8 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
     if (!calendarEvent) {
       throw new Error("Calendar event could not be built");
     }
-    const workflowReminderRepository = new WorkflowReminderRepository(prisma);
-    const bookingSeatRepository = new BookingSeatRepository(prisma);
+    const workflowReminderRepository = getWorkflowReminderRepository();
+    const bookingSeatRepository = getBookingSeatRepository();
     const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
 
     await emailWorkflowService.handleSendEmailWorkflowTask({
