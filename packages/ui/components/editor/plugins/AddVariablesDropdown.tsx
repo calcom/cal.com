@@ -155,9 +155,8 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                     ref={(el) => (itemRefs.current[index] = el)}
                     key={variable}
                     type="button"
-                    className={`w-full px-3 py-2 text-left transition-colors focus:outline-none data-[active=true]:bg-subtle`}
+                    className={`w-full px-3 py-2 text-left transition-colors focus:outline-none`}
                     onMouseEnter={() => setSelectedIndex(index)}
-                    data-active={selectedIndex === index}
                     onClick={() => {
                       props.addVariable(t(`${variable}_variable`));
                       setQuery("");
