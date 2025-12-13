@@ -6,7 +6,7 @@ import { type Container, createModule } from "../di";
 export const featuresRepositoryModule = createModule();
 const token = DI_TOKENS.FEATURES_REPOSITORY;
 const moduleToken = DI_TOKENS.FEATURES_REPOSITORY_MODULE;
-featuresRepositoryModule.bind(token).toClass(FeaturesRepository, [DI_TOKENS.PRISMA_CLIENT]);
+featuresRepositoryModule.bind(token).toClass(FeaturesRepository, [DI_TOKENS.PRISMA_CLIENT, DI_TOKENS.REDIS_CLIENT]);
 
 export const moduleLoader = {
   token,

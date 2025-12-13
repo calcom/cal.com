@@ -2,9 +2,23 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import { RedisService } from "@calcom/features/redis/RedisService";
+import { NoopRedisService } from "@calcom/features/redis/NoopRedisService";
 
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
+
+/**
+ * Helper to get Redis client based on environment variables.
+ * Returns NoopRedisService if Upstash is not configured.
+ */
+const getDefaultRedisClient = (): IRedisService => {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return new RedisService();
+  }
+  return new NoopRedisService();
+};
 
 interface CacheOptions {
   ttl: number; // time in ms
@@ -23,6 +37,9 @@ const globalForCache = globalThis as unknown as {
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
+  private static readonly FEATURES_CACHE_KEY = "features:all";
+  private static readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
   private static get featuresCache() {
     return globalForCache.__featuresCache ?? null;
   }
@@ -31,33 +48,79 @@ export class FeaturesRepository implements IFeaturesRepository {
     globalForCache.__featuresCache = value;
   }
 
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(
+    private prismaClient: PrismaClient,
+    private redisClient: IRedisService = getDefaultRedisClient()
+  ) {}
 
   /**
-   * Clears the in-memory feature flags cache.
+   * Clears the feature flags cache (both Redis and in-memory).
    * Call this when feature flags are updated to ensure fresh data is fetched.
+   * @param redisClient - Optional Redis client to clear Redis cache
    */
-  public static clearCache() {
+  public static async clearCache(redisClient: IRedisService = getDefaultRedisClient()) {
+    const isRealRedis = redisClient instanceof RedisService;
+
+    // Clear Redis cache if using real Redis
+    if (isRealRedis) {
+      try {
+        await redisClient.del(FeaturesRepository.FEATURES_CACHE_KEY);
+      } catch (error) {
+        console.error("[FeaturesRepository] ❌ Failed to clear Redis cache:", error);
+      }
+    }
+
+    // Also clear globalThis fallback cache
     globalForCache.__featuresCache = null;
   }
 
   /**
    * Gets all features with their enabled status.
-   * Uses caching to avoid hitting the database on every request.
+   * Uses Redis caching (if available) with globalThis fallback to avoid hitting the database on every request.
    * @returns Promise<Feature[]> - Array of all features
    */
   public async getAllFeatures() {
+    const isRealRedis = this.redisClient instanceof RedisService;
+
+    // Try Redis cache first (if using real Redis)
+    if (isRealRedis) {
+      try {
+        const cached = await this.redisClient.get<{ slug: string; enabled: boolean }[]>(
+          FeaturesRepository.FEATURES_CACHE_KEY
+        );
+        if (cached) {
+          return cached;
+        }
+      } catch (error) {
+        console.error("[FeaturesRepository] ❌ Failed to get features from Redis cache:", error);
+      }
+    }
+
+    // Fallback: check globalThis cache
     if (FeaturesRepository.featuresCache && Date.now() < FeaturesRepository.featuresCache.expiry) {
       return FeaturesRepository.featuresCache.data;
     }
 
+    // Fetch from DB
     const features = await this.prismaClient.feature.findMany({
       orderBy: { slug: "asc" },
     });
 
+    // Store in Redis (if using real Redis)
+    if (isRealRedis) {
+      try {
+        await this.redisClient.set(FeaturesRepository.FEATURES_CACHE_KEY, features, {
+          ttl: FeaturesRepository.CACHE_TTL_MS,
+        });
+      } catch (error) {
+        console.error("[FeaturesRepository] ❌ Failed to set features in Redis cache:", error);
+      }
+    }
+
+    // Also store in globalThis as fallback
     FeaturesRepository.featuresCache = {
       data: features,
-      expiry: Date.now() + 5 * 60 * 1000, // 5 minutes cache
+      expiry: Date.now() + FeaturesRepository.CACHE_TTL_MS,
     };
 
     return features;
@@ -299,7 +362,7 @@ export class FeaturesRepository implements IFeaturesRepository {
         update: {},
       });
       // Clear cache when features are modified
-      FeaturesRepository.clearCache();
+      await FeaturesRepository.clearCache(this.redisClient);
     } catch (err) {
       captureException(err);
       throw err;
