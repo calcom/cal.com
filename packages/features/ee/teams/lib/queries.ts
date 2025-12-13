@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getTeam, getOrg } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import logger from "@calcom/lib/logger";
@@ -187,7 +187,7 @@ export async function getTeamWithMembers(args: {
   if (!teamOrOrg) return null;
 
   const teamOrOrgMemberships = [];
-  const userRepo = new UserRepository(prisma);
+  const userRepo = getUserRepository();
   for (const membership of teamOrOrg.members) {
     teamOrOrgMemberships.push({
       ...membership,
@@ -487,8 +487,8 @@ async function getEventTypesToAddNewMembers(teamId: number) {
 export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
   const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
-  eventTypesToAdd.length > 0 &&
-    (await prisma.$transaction(
+  if (eventTypesToAdd.length > 0) {
+    await prisma.$transaction(
       eventTypesToAdd.map((eventType) => {
         if (eventType.schedulingType === "MANAGED") {
           return prisma.eventType.create({
@@ -504,7 +504,8 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
           });
         }
       })
-    ));
+    );
+  }
 }
 
 export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: number[]; teamId: number }) {
