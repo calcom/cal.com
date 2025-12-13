@@ -59,11 +59,16 @@ export class AttendeeNoShowUpdatedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.attendee_no_show_updated" };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeNoShowUpdatedAuditDisplayData {
+    getDisplayJson({
+        storedData,
+    }: {
+        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        userTimeZone: string;
+    }): AttendeeNoShowUpdatedAuditDisplayData {
         const { fields } = storedData;
         return {
             noShowAttendee: fields.noShowAttendee.new,

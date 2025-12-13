@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { formatInTimeZone } from "date-fns-tz";
 
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -184,10 +185,13 @@ describe("Booking Audit Integration", () => {
       expect(auditLog.type).toBe("RECORD_CREATED");
 
       // Verify audit data matches (getDisplayJson returns fields only, not versioned wrapper)
+      // getDisplayJson formats dates using formatDateTimeInTimeZone (yyyy-MM-dd HH:mm:ss format)
       const displayData = auditLog.data
-      expect(displayData.startTime).toBe(booking!.startTime.toISOString());
-      expect(displayData.endTime).toBe(booking!.endTime.toISOString());
-      expect(displayData.status).toBe(booking!.status);
+      const expectedStartTime = formatInTimeZone(booking!.startTime, "UTC", "yyyy-MM-dd HH:mm:ss");
+      const expectedEndTime = formatInTimeZone(booking!.endTime, "UTC", "yyyy-MM-dd HH:mm:ss");
+      expect(displayData?.startTime).toBe(expectedStartTime);
+      expect(displayData?.endTime).toBe(expectedEndTime);
+      expect(displayData?.status).toBe(booking!.status);
     });
 
     it("should enrich actor information with user details", async () => {

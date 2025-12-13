@@ -15,6 +15,7 @@ const fieldsSchemaV1 = z.object({
     assignedToId: NumberChangeSchema,
     assignedById: NumberChangeSchema,
     reassignmentReason: StringChangeSchema,
+    reassignmentType: z.enum(["manual", "roundRobin"]),
     userPrimaryEmail: StringChangeSchema.optional(),
     title: StringChangeSchema.optional(),
 });
@@ -64,7 +65,7 @@ export class ReassignmentAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Promise<TranslationWithParams> {
+    async getDisplayTitle({ storedData }: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
         const { fields } = storedData;
         const user = await this.userRepository.findById({ id: fields.assignedToId.new });
         const reassignedToName = user?.name || "Unknown";
@@ -74,12 +75,33 @@ export class ReassignmentAuditActionService
         };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): ReassignmentAuditDisplayData {
+    getDisplayJson({
+        storedData,
+    }: {
+        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        userTimeZone: string;
+    }): ReassignmentAuditDisplayData {
         const { fields } = storedData;
         return {
             newAssignedToId: fields.assignedToId.new,
             reassignmentReason: fields.reassignmentReason.new ?? null,
         };
+    }
+
+    getDisplayFields(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Array<{
+        labelKey: string;
+        valueKey: string;
+    }> {
+        const { fields } = storedData;
+
+        const typeTranslationKey = `booking_audit_action.assignmentType_${fields.reassignmentType}`;
+
+        return [
+            {
+                labelKey: "booking_audit_action.type",
+                valueKey: typeTranslationKey,
+            }
+        ];
     }
 }
 
