@@ -40,7 +40,7 @@ type EventTypeRelations = {
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
 };
-export type DatabaseEventType = Omit<EventType, "allowReschedulingCancelledBookings"> & EventTypeRelations;
+export type DatabaseEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
   DatabaseEventType,
@@ -94,6 +94,14 @@ type Input = Pick<
   | "bookingRequiresAuthentication"
   | "maxActiveBookingsPerBooker"
   | "maxActiveBookingPerBookerOfferReschedule"
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "canSendCalVideoTranscriptionEmails"
+  | "autoTranslateInstantMeetingTitleEnabled"
+  | "interfaceLanguage"
+  | "allowReschedulingPastBookings"
+  | "allowReschedulingCancelledBookings"
+  | "showOptimizedSlots"
 >;
 
 @Injectable()
@@ -134,6 +142,14 @@ export class OutputEventTypesService_2024_06_14 {
       calVideoSettings,
       hidden,
       bookingRequiresAuthentication,
+      disableCancelling,
+      disableRescheduling,
+      canSendCalVideoTranscriptionEmails,
+      autoTranslateInstantMeetingTitleEnabled,
+      interfaceLanguage,
+      allowReschedulingPastBookings,
+      allowReschedulingCancelledBookings,
+      showOptimizedSlots,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -214,6 +230,14 @@ export class OutputEventTypesService_2024_06_14 {
       hidden,
       bookingRequiresAuthentication,
       bookerActiveBookingsLimit,
+      disableCancelling,
+      disableRescheduling,
+      canSendCalVideoTranscriptionEmails,
+      autoTranslateInstantMeetingTitleEnabled,
+      interfaceLanguage,
+      allowReschedulingPastBookings,
+      allowReschedulingCancelledBookings,
+      showOptimizedSlots,
     };
   }
 

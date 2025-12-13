@@ -18,8 +18,10 @@ import {
   ValidateNested,
   ArrayNotEmpty,
   ArrayUnique,
+  IsIn,
 } from "class-validator";
 
+import { SUPPORTED_LOCALES } from "@calcom/platform-constants";
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
@@ -513,6 +515,73 @@ export class BaseCreateEventTypeInput {
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, guests and organizer can no longer cancel the event.",
+    default: false,
+  })
+  disableCancelling?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, guests and organizer can no longer reschedule the event.",
+    default: false,
+  })
+  disableRescheduling?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
+    default: true,
+  })
+  canSendCalVideoTranscriptionEmails?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Automatically translate instant meeting title to the visitor's browser language using AI.",
+    default: false,
+  })
+  autoTranslateInstantMeetingTitleEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
+  @DocsPropertyOptional({
+    description:
+      "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+    enum: SUPPORTED_LOCALES,
+  })
+  interfaceLanguage?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Enabling this option allows for past events to be rescheduled.",
+    default: false,
+  })
+  allowReschedulingPastBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+    default: false,
+  })
+  allowReschedulingCancelledBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Arrange time slots to optimize availability.",
+    default: false,
+  })
+  showOptimizedSlots?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
