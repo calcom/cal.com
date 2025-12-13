@@ -34,6 +34,9 @@ import type { IAgentRepository } from "@calcom/lib/server/repository/IAgentRepos
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { IBookingSeatRepository } from "../../bookings/repositories/IBookingSeatRepository";
 import type { IVideoCallGuestRepository } from "../../video-call-guest/repositories/IVideoCallGuestRepository";
+import type { IAccessCodeRepository } from "../../oauth/repositories/IAccessCodeRepository";
+import type { IOrganizationSettingsRepository } from "../../organizations/repositories/IOrganizationSettingsRepository";
+import type { ICalendarCacheEventRepository } from "../../calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
@@ -84,6 +87,9 @@ import { phoneNumberRepositoryModuleLoader } from "../modules/PhoneNumber";
 import { agentRepositoryModuleLoader } from "../modules/Agent";
 import { bookingSeatRepositoryModuleLoader } from "../modules/BookingSeat";
 import { videoCallGuestRepositoryModuleLoader } from "../modules/VideoCallGuest";
+import { accessCodeRepositoryModuleLoader } from "../modules/AccessCode";
+import { organizationSettingsRepositoryModuleLoader } from "../modules/OrganizationSettings";
+import { calendarCacheEventRepositoryModuleLoader } from "../modules/CalendarCacheEvent";
 
 const repositoryContainer = createContainer();
 
@@ -130,6 +136,9 @@ repositoryContainer.load(phoneNumberRepositoryModuleLoader());
 repositoryContainer.load(agentRepositoryModuleLoader());
 repositoryContainer.load(bookingSeatRepositoryModuleLoader());
 repositoryContainer.load(videoCallGuestRepositoryModuleLoader());
+repositoryContainer.load(accessCodeRepositoryModuleLoader());
+repositoryContainer.load(organizationSettingsRepositoryModuleLoader());
+repositoryContainer.load(calendarCacheEventRepositoryModuleLoader());
 
 export function getScheduleRepository():IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -299,4 +308,16 @@ export function getBookingSeatRepository(): IBookingSeatRepository {
 
 export function getVideoCallGuestRepository(): IVideoCallGuestRepository {
   return repositoryContainer.get<IVideoCallGuestRepository>(DI_TOKENS.VIDEO_CALL_GUEST_REPOSITORY);
+}
+
+export function getAccessCodeRepository(): IAccessCodeRepository {
+  return repositoryContainer.get<IAccessCodeRepository>(DI_TOKENS.ACCESS_CODE_REPOSITORY);
+}
+
+export function getOrganizationSettingsRepository(): IOrganizationSettingsRepository {
+  return repositoryContainer.get<IOrganizationSettingsRepository>(DI_TOKENS.ORGANIZATION_SETTINGS_REPOSITORY);
+}
+
+export function getCalendarCacheEventRepository(): ICalendarCacheEventRepository {
+  return repositoryContainer.get<ICalendarCacheEventRepository>(DI_TOKENS.CALENDAR_CACHE_EVENT_REPOSITORY);
 }

@@ -124,6 +124,12 @@ export const DI_TOKENS = {
         BOOKING_SEAT_REPOSITORY_MODULE: Symbol("BookingSeatRepositoryModule"),
         VIDEO_CALL_GUEST_REPOSITORY: Symbol("VideoCallGuestRepository"),
         VIDEO_CALL_GUEST_REPOSITORY_MODULE: Symbol("VideoCallGuestRepositoryModule"),
+        ACCESS_CODE_REPOSITORY: Symbol("AccessCodeRepository"),
+        ACCESS_CODE_REPOSITORY_MODULE: Symbol("AccessCodeRepositoryModule"),
+        ORGANIZATION_SETTINGS_REPOSITORY: Symbol("OrganizationSettingsRepository"),
+        ORGANIZATION_SETTINGS_REPOSITORY_MODULE: Symbol("OrganizationSettingsRepositoryModule"),
+        CALENDAR_CACHE_EVENT_REPOSITORY: Symbol("CalendarCacheEventRepository"),
+        CALENDAR_CACHE_EVENT_REPOSITORY_MODULE: Symbol("CalendarCacheEventRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens
