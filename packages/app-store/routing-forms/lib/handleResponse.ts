@@ -6,8 +6,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import { prisma } from "@calcom/prisma";
+import { getRoutingFormResponseRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { Prisma } from "@calcom/prisma/client";
 
 import isRouter from "../lib/isRouter";
@@ -167,7 +166,7 @@ const _handleResponse = async ({
     }
     let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
-      const formResponseRepo = new RoutingFormResponseRepository(prisma);
+      const formResponseRepo = getRoutingFormResponseRepository();
       if (queueFormResponse) {
         queuedFormResponse = await formResponseRepo.recordQueuedFormResponse({
           formId: form.id,

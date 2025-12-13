@@ -1,6 +1,5 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { prisma } from "@calcom/prisma";
+import { getEventTypeRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { LocalRoute } from "../../types/types";
@@ -33,8 +32,8 @@ export default async function routerGetCrmContactOwnerEmail({
   // Determine if the action is an event type redirect
   if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId) return null;
 
-  const eventTypeRepo = new EventTypeRepository(prisma);
-  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: action.eventTypeId });
+    const eventTypeRepo = getEventTypeRepository();
+    const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: action.eventTypeId });
   if (!eventType || eventType.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
 
   const eventTypeMetadata = eventType.metadata;
