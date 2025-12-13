@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { PrismaClient } from "@calcom/prisma";
 
-import { HostRepository } from "./host";
+import { HostRepository } from "./HostRepository";
 
 vi.mock("@calcom/prisma", () => {
   const mockPrisma = {

@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export class CalVideoSettingsRepository {
   static async deleteCalVideoSettings(eventTypeId: number) {
