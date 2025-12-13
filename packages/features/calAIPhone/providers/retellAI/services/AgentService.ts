@@ -1,14 +1,13 @@
 import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { v4 as uuidv4 } from "uuid";
 
+import { getApiKeyRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
-import prisma from "@calcom/prisma";
 
 import type {
   AIPhoneServiceUpdateModelParams,
@@ -34,7 +33,7 @@ export class AgentService {
   constructor(private deps: Dependencies) {}
 
   private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
-    const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
+    const apiKeyRepository = getApiKeyRepository();
     return await apiKeyRepository.createApiKey({
       userId,
       teamId,
