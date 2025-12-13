@@ -29,6 +29,7 @@ let topLevelRoutesExcludedFromOrgRewrite = exports.topLevelRoutesExcludedFromOrg
   )
   .map((filename) =>
     filename
+      .replace(/\\/g, "/")
       // Remove the directory prefix (pages/, app/ and route group folders.)
       .replace(
         /^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|app\/\(booking-page-wrapper\)|pages|app)\//,
@@ -94,12 +95,12 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
 }
 
 // To handle /something
-exports.orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9\-_]+)`;
+exports.orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9-_]+)`;
 
 // To handle /something/somethingelse
 exports.orgUserTypeRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes(
   "/"
-)})[^/]+)/:type((?!avatar\.png)[^/]+)`;
+)})[^/]+)/:type((?!avatar.png)[^/]+)`;
 
 // To handle /something/somethingelse/embed
 exports.orgUserTypeEmbedRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/")})[^/]+)/:type/embed`;

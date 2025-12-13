@@ -1011,6 +1011,30 @@ export class AvailableSlotsService {
     "getAvailableSlots"
   );
 
+  private async _getBookerUserIfCalUser({ rescheduleUid }: { rescheduleUid?: string | null }) {
+    if (!rescheduleUid) return null;
+
+    const bookingRepo = this.dependencies.bookingRepo;
+    const booking = await bookingRepo.findByUidIncludeEventType({ bookingUid: rescheduleUid });
+
+    if (!booking || !booking.attendees || booking.attendees.length === 0) {
+      return null;
+    }
+
+    // Get the first attendee's email (the person who booked)
+    const bookerEmail = booking.attendees[0].email;
+
+    // Look up if this email belongs to a Cal.com user
+    const userRepo = this.dependencies.userRepo;
+    const bookerUser = await userRepo.findByEmail({ email: bookerEmail });
+
+    return bookerUser;
+  }
+  private getBookerUserIfCalUser = withReporting(
+    this._getBookerUserIfCalUser.bind(this),
+    "getBookerUserIfCalUser"
+  );
+
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {
       _enableTroubleshooter: enableTroubleshooter = false,
@@ -1100,7 +1124,36 @@ export class AvailableSlotsService {
         rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
       });
 
-    const allHosts = [...qualifiedRRHosts, ...fixedHosts];
+    let allHosts = [...qualifiedRRHosts, ...fixedHosts];
+
+    // CAL-4531: When host reschedules, check if booker is a Cal.com user and include their availability
+    const bookerUser = await this.getBookerUserIfCalUser({ rescheduleUid: input.rescheduleUid ?? undefined });
+    if (bookerUser) {
+      loggerWithEventDetails.info("Booker is a Cal.com user, including their availability", {
+        bookerUserId: bookerUser.id,
+      });
+
+      // Fetch booker with full credentials and schedule for availability check
+      // Using the same method that's used to fetch users for availability checks
+      const { findUsersForAvailabilityCheck } = await import(
+        "@calcom/features/availability/lib/findUsersForAvailabilityCheck"
+      );
+      const bookerWithCredentials = await findUsersForAvailabilityCheck({
+        where: { id: bookerUser.id },
+      });
+
+      if (bookerWithCredentials) {
+        allHosts = [
+          ...allHosts,
+          {
+            isFixed: true, // Treat booker as fixed host so their availability is always checked
+            createdAt: new Date(),
+            user: bookerWithCredentials as unknown as GetAvailabilityUserWithDelegationCredentials,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any,
+        ];
+      }
+    }
 
     const twoWeeksFromNow = dayjs().add(2, "week");
 

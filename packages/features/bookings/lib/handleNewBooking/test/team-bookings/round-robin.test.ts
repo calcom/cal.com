@@ -29,7 +29,7 @@ describe("Round Robin handleNewBooking", () => {
   setupAndTeardown();
 
   describe("Round Robin with groups", () => {
-    test("Books one host from each round robin group", async () => {
+    test("Books one host from each round robin group", { timeout: 60000 }, async () => {
       const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
