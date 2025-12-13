@@ -13,6 +13,7 @@ import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -29,7 +30,6 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
