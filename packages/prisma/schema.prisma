@@ -1764,6 +1764,7 @@ model OAuthClient {
   clientType   OAuthClientType @default(CONFIDENTIAL)
   name         String
   logo         String?
+  isTrusted    Boolean         @default(false)
   accessCodes  AccessCode[]
 }
 
