@@ -4,10 +4,10 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -253,7 +253,7 @@ export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export async function getEventTypeHosts({
   hosts,
   fetchAllUsers = false,
-  prisma,
+  prisma: _prisma,
 }: {
   hosts: Prisma.EventTypeGetPayload<{ select: ReturnType<typeof getPublicEventSelect> }>["hosts"];
   fetchAllUsers?: boolean;
@@ -262,7 +262,7 @@ export async function getEventTypeHosts({
   const usersAsHosts = hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
-  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(usersAsHosts);
+  const enrichedUsers = await getUserRepository().enrichUsersWithTheirProfiles(usersAsHosts);
 
   // Map enriched users back to the hosts
   const enrichedHosts = hosts.map((host, index) => ({
@@ -291,7 +291,7 @@ export const getPublicEvent = async (
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
-    const usersInOrgContext = await new UserRepository(prisma).findUsersByUsername({
+    const usersInOrgContext = await getUserRepository().findUsersByUsername({
       usernameList,
       orgSlug: org,
     });
@@ -451,7 +451,7 @@ export const getPublicEvent = async (
   const usersAsHosts = event.hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
-  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(usersAsHosts);
+  const enrichedUsers = await getUserRepository().enrichUsersWithTheirProfiles(usersAsHosts);
 
   // Map enriched users back to the hosts
   const hosts = event.hosts.map((host, index) => ({
@@ -462,7 +462,7 @@ export const getPublicEvent = async (
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
-      ? await new UserRepository(prisma).enrichUserWithItsProfile({
+      ? await getUserRepository().enrichUserWithItsProfile({
           user: event.owner,
         })
       : null,
@@ -589,9 +589,9 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = getPublicEventSelect(true);
+const _eventData = getPublicEventSelect(true);
 
-type Event = Prisma.EventTypeGetPayload<{ select: typeof eventData }>;
+type Event = Prisma.EventTypeGetPayload<{ select: typeof _eventData }>;
 
 type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   hosts?: Event["hosts"];
@@ -693,7 +693,7 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
   if (!users.length) return null;
 
   // Batch enrich users in a single call
-  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(users);
+  const enrichedUsers = await getUserRepository().enrichUsersWithTheirProfiles(users);
 
   // Map the enriched users back to include the organization info
   const usersWithUserProfile = enrichedUsers.map((user) => ({

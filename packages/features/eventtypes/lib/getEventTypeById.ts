@@ -4,9 +4,8 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getUserRepository, getEventTypeRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -18,7 +17,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { TRPCError } from "@trpc/server";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 
@@ -73,7 +71,7 @@ export const getEventTypeById = async ({
   const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
-  const userRepo = new UserRepository(prisma);
+  const userRepo = getUserRepository();
   const eventTeamMembershipsWithUserProfile = [];
   for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
@@ -270,9 +268,9 @@ export async function getRawEventType({
   eventTypeId,
   isUserOrganizationAdmin,
   currentOrganizationId,
-  prisma,
+  prisma: _prisma,
 }: Omit<getEventTypeByIdProps, "isTrpcCall">) {
-  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventTypeRepo = getEventTypeRepository();
   const organizationRepo = getOrganizationRepository();
   const isUserInPlatformOrganization = currentOrganizationId ? !!(await organizationRepo.findById({ id: currentOrganizationId }))?.isPlatform : false;
 
