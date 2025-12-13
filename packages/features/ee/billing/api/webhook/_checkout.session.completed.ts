@@ -4,7 +4,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { CHECKOUT_SESSION_TYPES } from "../../constants";
