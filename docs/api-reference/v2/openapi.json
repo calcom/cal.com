@@ -28226,6 +28226,11 @@
             "type": "string",
             "example": "jane100@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "jane100@example.com",
+            "description": "Clean email for display purposes"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -28235,7 +28240,7 @@
             "example": "America/Los_Angeles"
           }
         },
-        "required": ["id", "name", "email", "username", "timeZone"]
+        "required": ["id", "name", "email", "displayEmail", "username", "timeZone"]
       },
       "EventType": {
         "type": "object",
@@ -28261,6 +28266,11 @@
           "email": {
             "type": "string",
             "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
           },
           "timeZone": {
             "type": "string",
@@ -28324,7 +28334,7 @@
             "example": "+1234567890"
           }
         },
-        "required": ["name", "email", "timeZone", "absent"]
+        "required": ["name", "email", "displayEmail", "timeZone", "absent"]
       },
       "BookingOutput_2024_08_13": {
         "type": "object",
@@ -28652,6 +28662,11 @@
             "type": "string",
             "example": "john@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -28731,7 +28746,15 @@
             }
           }
         },
-        "required": ["name", "email", "timeZone", "absent", "seatUid", "bookingFieldsResponses"]
+        "required": [
+          "name",
+          "email",
+          "displayEmail",
+          "timeZone",
+          "absent",
+          "seatUid",
+          "bookingFieldsResponses"
+        ]
       },
       "CreateSeatedBookingOutput_2024_08_13": {
         "type": "object",
@@ -29730,9 +29753,14 @@
           "email": {
             "type": "string",
             "example": "john.doe@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Clean email for display purposes"
           }
         },
-        "required": ["id", "name", "email"]
+        "required": ["id", "name", "email", "displayEmail"]
       },
       "ReassignBookingOutput_2024_08_13": {
         "type": "object",
