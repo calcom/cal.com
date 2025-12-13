@@ -1,10 +1,9 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { getQueuedFormResponseRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 
-import { PrismaQueuedFormResponseRepository } from "../lib/queuedFormResponse/PrismaQueuedFormResponseRepository";
 import { QueuedFormResponseService } from "../lib/queuedFormResponse/QueuedFormResponseService";
 
 function validateRequest(request: NextRequest) {
@@ -24,7 +23,7 @@ export async function handleQueuedFormResponseCleanup(request: NextRequest) {
   }
 
   try {
-    const queuedFormResponseRepo = new PrismaQueuedFormResponseRepository(prisma);
+    const queuedFormResponseRepo = getQueuedFormResponseRepository();
     const queuedFormResponseService = new QueuedFormResponseService({
       logger,
       queuedFormResponseRepo,

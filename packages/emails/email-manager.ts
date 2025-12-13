@@ -3,14 +3,13 @@ import type { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
+import { getOrganizationSettingsRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { prisma } from "@calcom/prisma";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -61,7 +60,7 @@ const sendEmail = (prepare: () => BaseEmail) => {
 
 export const fetchOrganizationEmailSettings = async (organizationId?: number | null | undefined) => {
   if (!organizationId) return null;
-  const repo = new OrganizationSettingsRepository(prisma);
+  const repo = getOrganizationSettingsRepository();
   return await repo.getEmailSettings(organizationId);
 };
 
