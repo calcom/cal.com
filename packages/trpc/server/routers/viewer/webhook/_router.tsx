@@ -15,6 +15,7 @@ type WebhookRouterHandlerCache = {
   delete?: typeof import("./delete.handler").deleteHandler;
   testTrigger?: typeof import("./testTrigger.handler").testTriggerHandler;
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
+  getByOrg?: typeof import("./getByOrg.handler").getByOrgHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WebhookRouterHandlerCache = {};
@@ -144,6 +145,25 @@ export const webhookRouter = router({
       }
 
       return UNSTABLE_HANDLER_CACHE.getByViewer({
+        ctx,
+      });
+    }
+  ),
+
+  getByOrg: createWebhookPbacProcedure("webhook.read", ["ADMIN", "OWNER", "MEMBER"]).query(
+    async ({ ctx }) => {
+      if (!UNSTABLE_HANDLER_CACHE.getByOrg) {
+        UNSTABLE_HANDLER_CACHE.getByOrg = await import("./getByOrg.handler").then(
+          (mod) => mod.getByOrgHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.getByOrg) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.getByOrg({
         ctx,
       });
     }

@@ -185,7 +185,7 @@ export const OAuthClientCard = ({
           color="primary"
           loading={isLoading}
           disabled={isLoading}
-          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit/webhooks`)}>
+          onClick={() => router.push(`/settings/platform/webhooks`)}>
           Webhooks
         </Button>
         <Button
