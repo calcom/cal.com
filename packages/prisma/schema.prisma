@@ -482,6 +482,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  holidaySettings                UserHolidaySettings?
 
   @@unique([email])
   @@unique([email, username])
@@ -1970,6 +1971,35 @@ model OutOfOfficeReason {
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   entries OutOfOfficeEntry[]
+}
+
+model UserHolidaySettings {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  countryCode String?
+  disabledIds String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Holiday cache for Google Calendar public holidays
+model HolidayCache {
+  id          String   @id @default(uuid())
+  countryCode String
+  calendarId  String
+  eventId     String
+  name        String
+  date        DateTime
+  year        Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryCode, eventId])
+  @@index([countryCode, year])
+  @@index([countryCode, date])
 }
 
 // Platform
