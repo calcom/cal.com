@@ -4,7 +4,14 @@
  * Implementations can use Prisma, Kysely, or any other data access layer
  */
 
-import type { BookingStatus, WorkflowTriggerEvents, TimeUnit, PaymentOption } from "@calcom/prisma/enums";
+import type {
+  BookingStatus,
+  WorkflowTriggerEvents,
+  TimeUnit,
+  PaymentOption,
+  WorkflowActions,
+  WorkflowTemplates,
+} from "@calcom/prisma/enums";
 import type { JsonValue } from "@calcom/types/JsonObject";
 
 // ============================================================================
@@ -124,6 +131,7 @@ export interface AttendeeDto {
 
 /**
  * Booking reference (calendar/video integrations)
+ * Compatible with Prisma BookingReference type
  */
 export interface BookingReferenceDto {
   id: number;
@@ -137,6 +145,8 @@ export interface BookingReferenceDto {
   deleted: boolean | null;
   credentialId: number | null;
   thirdPartyRecurringEventId: string | null;
+  delegationCredentialId: string | null;
+  domainWideDelegationCredentialId: string | null;
 }
 
 /**
@@ -144,6 +154,13 @@ export interface BookingReferenceDto {
  */
 export interface EventTypeWithTeamDto {
   team: TeamSummaryDto | null;
+  metadata: JsonValue;
+  title: string;
+  recurringEvent: JsonValue;
+  seatsPerTimeSlot: number | null;
+  seatsShowAttendees: boolean | null;
+  hideOrganizerEmail: boolean;
+  customReplyToEmail: string | null;
 }
 
 /**
@@ -163,6 +180,11 @@ export interface BookingFullContextDto {
   destinationCalendar: DestinationCalendarDto | null;
   references: BookingReferenceDto[];
   user: BookingUserDto | null;
+  userPrimaryEmail: string | null;
+  iCalUID: string | null;
+  iCalSequence: number;
+  metadata: JsonValue;
+  responses: JsonValue;
 }
 
 /**
@@ -181,16 +203,17 @@ export interface BookingConfirmationUserDto {
 
 /**
  * Workflow step information
+ * Compatible with @calcom/features/ee/workflows/lib/types.WorkflowStep
  */
 export interface WorkflowStepDto {
   id: number;
   stepNumber: number;
-  action: string;
+  action: WorkflowActions;
   workflowId: number;
   sendTo: string | null;
   reminderBody: string | null;
   emailSubject: string | null;
-  template: string;
+  template: WorkflowTemplates;
   numberRequired: boolean | null;
   sender: string | null;
   numberVerificationPending: boolean;
@@ -199,16 +222,16 @@ export interface WorkflowStepDto {
 
 /**
  * Workflow information
+ * Compatible with @calcom/features/ee/workflows/lib/types.Workflow
  */
 export interface WorkflowDto {
   id: number;
-  userId: number | null;
-  teamId: number | null;
   name: string;
   trigger: WorkflowTriggerEvents;
   time: number | null;
   timeUnit: TimeUnit | null;
-  activeOn: JsonValue[];
+  userId: number | null;
+  teamId: number | null;
   steps: WorkflowStepDto[];
 }
 
@@ -230,6 +253,7 @@ export interface ParentEventTypeDto {
  * Event type owner information
  */
 export interface EventTypeOwnerDto {
+  id: number;
   hideBranding: boolean;
 }
 
@@ -325,6 +349,33 @@ export interface BookingBatchUpdateResultDto {
   count: number;
 }
 
+/**
+ * Input for creating a booking reference
+ */
+export interface BookingReferenceCreateInput {
+  type: string;
+  uid: string;
+  meetingId?: string | null;
+  meetingPassword?: string | null;
+  meetingUrl?: string | null;
+  externalCalendarId?: string | null;
+  credentialId?: number | null;
+}
+
+/**
+ * Input for updating booking location
+ */
+export interface UpdateLocationInput {
+  where: { id: number };
+  data: {
+    location: string;
+    metadata: Record<string, unknown>;
+    referencesToCreate: BookingReferenceCreateInput[];
+    responses?: Record<string, unknown>;
+    iCalSequence?: number;
+  };
+}
+
 // ============================================================================
 // Repository Interface
 // ============================================================================
@@ -396,4 +447,9 @@ export interface IBookingRepository {
    * Reject a booking by ID
    */
   rejectById(params: { bookingId: number; rejectionReason?: string }): Promise<BookingUpdateResultDto>;
+
+  /**
+   * Update booking location by ID
+   */
+  updateLocationById(params: UpdateLocationInput): Promise<void>;
 }

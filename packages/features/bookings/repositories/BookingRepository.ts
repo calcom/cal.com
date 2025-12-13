@@ -2007,7 +2007,7 @@ export class BookingRepository implements IBookingRepository {
   private bookingWithFullContextInclude = {
     attendees: true,
     eventType: {
-      include: {
+      select: {
         team: {
           select: {
             id: true,
@@ -2015,6 +2015,13 @@ export class BookingRepository implements IBookingRepository {
             parentId: true,
           },
         },
+        metadata: true,
+        title: true,
+        recurringEvent: true,
+        seatsPerTimeSlot: true,
+        seatsShowAttendees: true,
+        hideOrganizerEmail: true,
+        customReplyToEmail: true,
       },
     },
     destinationCalendar: true,
@@ -2071,6 +2078,13 @@ export class BookingRepository implements IBookingRepository {
                   parentId: booking.eventType.team.parentId,
                 }
               : null,
+            metadata: booking.eventType.metadata,
+            title: booking.eventType.title,
+            recurringEvent: booking.eventType.recurringEvent,
+            seatsPerTimeSlot: booking.eventType.seatsPerTimeSlot,
+            seatsShowAttendees: booking.eventType.seatsShowAttendees,
+            hideOrganizerEmail: booking.eventType.hideOrganizerEmail,
+            customReplyToEmail: booking.eventType.customReplyToEmail,
           }
         : null,
       destinationCalendar: booking.destinationCalendar
@@ -2100,6 +2114,8 @@ export class BookingRepository implements IBookingRepository {
         deleted: boolean | null;
         credentialId: number | null;
         thirdPartyRecurringEventId: string | null;
+        delegationCredentialId: string | null;
+        domainWideDelegationCredentialId: string | null;
       }) => ({
         id: ref.id,
         type: ref.type,
@@ -2112,6 +2128,8 @@ export class BookingRepository implements IBookingRepository {
         deleted: ref.deleted,
         credentialId: ref.credentialId,
         thirdPartyRecurringEventId: ref.thirdPartyRecurringEventId,
+        delegationCredentialId: ref.delegationCredentialId,
+        domainWideDelegationCredentialId: ref.domainWideDelegationCredentialId,
       })),
       user: booking.user
         ? {
@@ -2159,6 +2177,11 @@ export class BookingRepository implements IBookingRepository {
             })),
           }
         : null,
+      userPrimaryEmail: booking.userPrimaryEmail,
+      iCalUID: booking.iCalUID,
+      iCalSequence: booking.iCalSequence,
+      metadata: booking.metadata,
+      responses: booking.responses,
     };
   }
 
@@ -2250,6 +2273,7 @@ export class BookingRepository implements IBookingRepository {
             id: true,
             owner: {
               select: {
+                id: true,
                 hideBranding: true,
               },
             },
@@ -2383,7 +2407,7 @@ export class BookingRepository implements IBookingRepository {
         ? {
             id: booking.eventType.id,
             owner: booking.eventType.owner
-              ? { hideBranding: booking.eventType.owner.hideBranding }
+              ? { id: booking.eventType.owner.id, hideBranding: booking.eventType.owner.hideBranding }
               : null,
             teamId: booking.eventType.teamId,
             recurringEvent: booking.eventType.recurringEvent,
@@ -2435,13 +2459,12 @@ export class BookingRepository implements IBookingRepository {
             }}) => ({
               workflow: {
                 id: wf.workflow.id,
-                userId: wf.workflow.userId,
-                teamId: wf.workflow.teamId,
                 name: wf.workflow.name,
                 trigger: wf.workflow.trigger,
                 time: wf.workflow.time,
                 timeUnit: wf.workflow.timeUnit,
-                activeOn: wf.workflow.activeOn,
+                userId: wf.workflow.userId,
+                teamId: wf.workflow.teamId,
                 steps: wf.workflow.steps.map((step) => ({
                   id: step.id,
                   stepNumber: step.stepNumber,
