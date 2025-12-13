@@ -210,13 +210,13 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   useEffect(() => {
     if (hasSession) onOverlaySwitchStateChange(true);
-  }, [hasSession]);
+  }, [hasSession, onOverlaySwitchStateChange]);
 
   return (
     <BookerComponent
       {...props}
       onGoBackInstantMeeting={() => {
-        if (pathname) window.location.href = pathname;
+        if (pathname) router.push(pathname);
       }}
       onConnectNowInstantMeeting={() => {
         const newPath = `${pathname}?isInstantMeeting=true`;
