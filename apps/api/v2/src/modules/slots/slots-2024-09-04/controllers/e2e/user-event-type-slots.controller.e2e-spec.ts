@@ -40,6 +40,7 @@ import type {
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
 } from "@calcom/platform-types";
 import type { EventType, User, Team } from "@calcom/prisma/client";
+import { PeriodType } from "@calcom/prisma/enums";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("User event type slots", () => {
@@ -500,7 +501,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       const reserveResponseBody: GetReservedSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       const { reservationDuration: _1, ...rest } = reservedSlot;
       expect(reserveResponseBody.data).toEqual(rest);
     });
@@ -1923,9 +1924,115 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
     });
 
+    describe("rolling window adjustment", () => {
+      let rollingWindowEventType: EventType;
+      const rollingWindowUserEmail = `rolling-window-user-${randomString()}@example.com`;
+      let rollingWindowUser: User;
+
+      beforeAll(async () => {
+        rollingWindowUser = await userRepositoryFixture.create({
+          email: rollingWindowUserEmail,
+          name: rollingWindowUserEmail,
+          username: rollingWindowUserEmail,
+        });
+
+        const rollingWindowUserSchedule: CreateScheduleInput_2024_06_11 = {
+          name: `rolling-window-schedule-${randomString()}`,
+          timeZone: "UTC",
+          isDefault: true,
+        };
+        await schedulesService.createUserSchedule(rollingWindowUser.id, rollingWindowUserSchedule);
+
+        rollingWindowEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: "rolling window event",
+            slug: `rolling-window-event-type-${randomString()}`,
+            length: 30,
+            periodType: PeriodType.ROLLING_WINDOW,
+            periodDays: 30,
+            periodCountCalendarDays: true,
+          },
+          rollingWindowUser.id
+        );
+      });
+
+      it("should respect start property and return slots only within requested date range for rolling window event type", async () => {
+        // Use dynamic dates in the future to avoid "time bomb" issues
+        // Request slots for a date range starting 30 days from now
+        const now = DateTime.utc();
+        const startDateObj = now.plus({ days: 30 });
+        const endDateObj = startDateObj.plus({ days: 2 });
+        const startDate = startDateObj.toFormat("yyyy-MM-dd");
+        const endDate = endDateObj.toFormat("yyyy-MM-dd");
+
+        // Calculate the date that would be 1 month before the start date
+        // This is what would have been included without the fix
+        const oneMonthBeforeStart = startDateObj.minus({ months: 1 }).toFormat("yyyy-MM-dd");
+        const dayBeforeStart = startDateObj.minus({ days: 1 }).toFormat("yyyy-MM-dd");
+        const dayAfterEnd = endDateObj.plus({ days: 1 }).toFormat("yyyy-MM-dd");
+
+        const response = await request(app.getHttpServer())
+          .get(
+            `/v2/slots?eventTypeId=${rollingWindowEventType.id}&start=${startDate}&end=${endDate}&timeZone=UTC&format=range`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(200);
+
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        expect(slots).toBeDefined();
+        expect(typeof slots).toBe("object");
+
+        // Critical: Verify that slots are actually returned
+        // This prevents false positives where an empty object passes the test
+        const returnedDates = Object.keys(slots);
+        expect(returnedDates.length).toBeGreaterThan(0);
+        // If the above fails, it means no slots were returned, which could indicate:
+        // - The dates are in the past (API filters them out)
+        // - The user has no availability for those dates
+        // - There's an issue with the schedule setup
+
+        // All returned dates should be within the requested range
+        returnedDates.forEach((date) => {
+          expect(date >= startDate).toBe(true);
+          expect(date <= endDate).toBe(true);
+        });
+
+        // Critical: Verify that dates before the start date are NOT included
+        // This is the key test - without the fix, slots from 1 month before
+        // would have been included due to rolling window adjustment
+        expect(slots[oneMonthBeforeStart]).toBeUndefined();
+        expect(slots[dayBeforeStart]).toBeUndefined();
+
+        // Verify that dates after the end date are NOT included
+        expect(slots[dayAfterEnd]).toBeUndefined();
+
+        // Verify that the date range boundaries are respected
+        const sortedDates = returnedDates.sort();
+        const firstDate = sortedDates[0];
+        const lastDate = sortedDates[sortedDates.length - 1];
+        expect(firstDate >= startDate).toBe(true);
+        expect(lastDate <= endDate).toBe(true);
+      });
+
+      afterAll(async () => {
+        try {
+          await userRepositoryFixture.deleteByEmail(rollingWindowUserEmail);
+        } catch {
+          // Ignore if user doesn't exist
+        }
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
-      await userRepositoryFixture.deleteByEmail(oooTestUserEmail);
+      try {
+        await userRepositoryFixture.deleteByEmail(oooTestUserEmail);
+      } catch {
+        // Ignore if user doesn't exist
+      }
       await userRepositoryFixture.deleteByEmail(unrelatedUser.email);
       await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
