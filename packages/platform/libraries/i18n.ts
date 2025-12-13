@@ -1,5 +1,4 @@
 import { createInstance } from "i18next";
-import type { i18n as I18nInstance } from "i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchWithTimeout } from "@calcom/lib/fetchWithTimeout";
@@ -11,9 +10,9 @@ const path = require("path");
 const translationsPath = path.resolve(__dirname, "../../../../apps/web/public/static/locales/en/common.json");
 const englishTranslations: Record<string, string> = require(translationsPath);
 /* eslint-enable @typescript-eslint/no-require-imports */
-
 const translationCache = new Map<string, Record<string, string>>([["en-common", englishTranslations]]);
-const i18nInstanceCache = new Map<string, I18nInstance>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
 
 /**
@@ -70,9 +69,9 @@ export const getTranslation = async (locale: string, ns: string) => {
   }
 
   const resources = await loadTranslations(locale, ns);
-
   const _i18n = createInstance();
-  _i18n.init({
+
+  await _i18n.init({
     lng: locale,
     resources: {
       [locale]: {
@@ -80,9 +79,11 @@ export const getTranslation = async (locale: string, ns: string) => {
       },
     },
     fallbackLng: "en",
+    interpolation: {
+      escapeValue: false,
+    },
   });
 
-  // Cache the i18n instance
   i18nInstanceCache.set(cacheKey, _i18n);
   return _i18n.getFixedT(locale, ns);
 };
