@@ -30,7 +30,7 @@ export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: Ev
 
   return {
     date: formattedDate,
-    time: timeFormat === TimeFormat.TWELVE_HOUR ? formattedTime.toLowerCase() : formattedTime,
+    time: formattedTime,
   };
 };
 
@@ -59,7 +59,7 @@ export const formatEventFromToTime = ({
 
   return {
     date: formattedDate,
-    time: timeFormat === TimeFormat.TWELVE_HOUR ? formattedTime.toLowerCase() : formattedTime,
+    time: formattedTime,
   };
 };
 
