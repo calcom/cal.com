@@ -1,4 +1,4 @@
-import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { IBookingRepository } from "@calcom/features/bookings/repositories/IBookingRepository";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { prismaModule } from "@calcom/features/di/modules/Prisma";
 
@@ -9,6 +9,6 @@ const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
 container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
 
-export function getBookingRepository() {
-  return container.get<BookingRepository>(DI_TOKENS.BOOKING_REPOSITORY);
+export function getBookingRepository(): IBookingRepository {
+  return container.get<IBookingRepository>(DI_TOKENS.BOOKING_REPOSITORY);
 }

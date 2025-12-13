@@ -10,6 +10,17 @@ import {
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import type {
+  IBookingRepository,
+  BookingBasicDto,
+  BookingInstantLocationDto,
+  BookingExistsDto,
+  BookingFullContextDto,
+  BookingForConfirmationDto,
+  BookingUpdateResultDto,
+  BookingBatchUpdateResultDto,
+} from "./IBookingRepository";
+
 type ManagedEventReassignmentCreateParams = {
   uid: string;
   userId: number;
@@ -324,7 +335,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
   },
 };
 
-export class BookingRepository {
+export class BookingRepository implements IBookingRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async getBookingAttendees(bookingId: number) {
@@ -1899,8 +1910,8 @@ export class BookingRepository {
     });
   }
 
-  async findByUidBasic({ bookingUid }: { bookingUid: string }) {
-    return this.prismaClient.booking.findUnique({
+  async findByUidBasic({ bookingUid }: { bookingUid: string }): Promise<BookingBasicDto | null> {
+    const booking = await this.prismaClient.booking.findUnique({
       where: {
         uid: bookingUid,
       },
@@ -1915,10 +1926,27 @@ export class BookingRepository {
         eventTypeId: true,
       },
     });
+
+    if (!booking) return null;
+
+    return {
+      id: booking.id,
+      uid: booking.uid,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      description: booking.description,
+      status: booking.status,
+      paid: booking.paid,
+      eventTypeId: booking.eventTypeId,
+    };
   }
 
-  async findAcceptedByIdForInstantBooking({ bookingId }: { bookingId: number }) {
-    return this.prismaClient.booking.findUnique({
+  async findAcceptedByIdForInstantBooking({
+    bookingId,
+  }: {
+    bookingId: number;
+  }): Promise<BookingInstantLocationDto | null> {
+    const booking = await this.prismaClient.booking.findUnique({
       where: {
         id: bookingId,
         status: BookingStatus.ACCEPTED,
@@ -1935,6 +1963,20 @@ export class BookingRepository {
         eventTypeId: true,
       },
     });
+
+    if (!booking) return null;
+
+    return {
+      id: booking.id,
+      uid: booking.uid,
+      location: booking.location,
+      metadata: booking.metadata as Record<string, unknown> | null,
+      startTime: booking.startTime,
+      status: booking.status,
+      endTime: booking.endTime,
+      description: booking.description,
+      eventTypeId: booking.eventTypeId,
+    };
   }
 
   async countSeatReferencesByReferenceUid({ referenceUid }: { referenceUid: string }) {
@@ -1990,14 +2032,136 @@ export class BookingRepository {
     },
   } as const;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapToBookingFullContextDto(booking: any): BookingFullContextDto {
+    return {
+      id: booking.id,
+      uid: booking.uid,
+      userId: booking.userId,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      title: booking.title,
+      description: booking.description,
+      status: booking.status,
+      attendees: booking.attendees.map((attendee: {
+        id: number;
+        email: string;
+        name: string;
+        timeZone: string;
+        locale: string | null;
+        bookingId: number | null;
+        phoneNumber: string | null;
+        noShow: boolean | null;
+      }) => ({
+        id: attendee.id,
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        locale: attendee.locale,
+        bookingId: attendee.bookingId,
+        phoneNumber: attendee.phoneNumber,
+        noShow: attendee.noShow,
+      })),
+      eventType: booking.eventType
+        ? {
+            team: booking.eventType.team
+              ? {
+                  id: booking.eventType.team.id,
+                  name: booking.eventType.team.name,
+                  parentId: booking.eventType.team.parentId,
+                }
+              : null,
+          }
+        : null,
+      destinationCalendar: booking.destinationCalendar
+        ? {
+            id: booking.destinationCalendar.id,
+            integration: booking.destinationCalendar.integration,
+            externalId: booking.destinationCalendar.externalId,
+            primaryEmail: booking.destinationCalendar.primaryEmail,
+            userId: booking.destinationCalendar.userId,
+            eventTypeId: booking.destinationCalendar.eventTypeId,
+            credentialId: booking.destinationCalendar.credentialId,
+          }
+        : null,
+      references: booking.references.map((ref: {
+        id: number;
+        type: string;
+        uid: string;
+        meetingId: string | null;
+        meetingPassword: string | null;
+        meetingUrl: string | null;
+        bookingId: number | null;
+        externalCalendarId: string | null;
+        deleted: boolean | null;
+        credentialId: number | null;
+        thirdPartyRecurringEventId: string | null;
+      }) => ({
+        id: ref.id,
+        type: ref.type,
+        uid: ref.uid,
+        meetingId: ref.meetingId,
+        meetingPassword: ref.meetingPassword,
+        meetingUrl: ref.meetingUrl,
+        bookingId: ref.bookingId,
+        externalCalendarId: ref.externalCalendarId,
+        deleted: ref.deleted,
+        credentialId: ref.credentialId,
+        thirdPartyRecurringEventId: ref.thirdPartyRecurringEventId,
+      })),
+      user: booking.user
+        ? {
+            id: booking.user.id,
+            destinationCalendar: booking.user.destinationCalendar
+              ? {
+                  id: booking.user.destinationCalendar.id,
+                  integration: booking.user.destinationCalendar.integration,
+                  externalId: booking.user.destinationCalendar.externalId,
+                  primaryEmail: booking.user.destinationCalendar.primaryEmail,
+                  userId: booking.user.destinationCalendar.userId,
+                  eventTypeId: booking.user.destinationCalendar.eventTypeId,
+                  credentialId: booking.user.destinationCalendar.credentialId,
+                }
+              : null,
+            credentials: booking.user.credentials.map((cred: {
+              id: number;
+              type: string;
+              key: unknown;
+              userId: number | null;
+              teamId: number | null;
+              appId: string | null;
+              subscriptionId: string | null;
+              paymentStatus: string | null;
+              billingCycleStart: number | null;
+              invalid: boolean | null;
+            }) => ({
+              id: cred.id,
+              type: cred.type,
+              key: cred.key,
+              userId: cred.userId,
+              teamId: cred.teamId,
+              appId: cred.appId,
+              subscriptionId: cred.subscriptionId,
+              paymentStatus: cred.paymentStatus,
+              billingCycleStart: cred.billingCycleStart,
+              invalid: cred.invalid,
+            })),
+            profiles: booking.user.profiles.map((profile: { organizationId: number | null }) => ({
+              organizationId: profile.organizationId,
+            })),
+          }
+        : null,
+    };
+  }
+
   async findByIdForAdminIncludeFullContext({
     bookingId,
     adminUserId,
   }: {
     bookingId: number;
     adminUserId: number;
-  }) {
-    return this.prismaClient.booking.findFirst({
+  }): Promise<BookingFullContextDto | null> {
+    const booking = await this.prismaClient.booking.findFirst({
       where: {
         id: bookingId,
         eventType: {
@@ -2015,6 +2179,10 @@ export class BookingRepository {
       },
       include: this.bookingWithFullContextInclude,
     });
+
+    if (!booking) return null;
+
+    return this.mapToBookingFullContextDto(booking);
   }
 
   async findByIdForOrganizerOrCollectiveMemberIncludeFullContext({
@@ -2023,8 +2191,8 @@ export class BookingRepository {
   }: {
     bookingId: number;
     userId: number;
-  }) {
-    return this.prismaClient.booking.findFirst({
+  }): Promise<BookingFullContextDto | null> {
+    const booking = await this.prismaClient.booking.findFirst({
       where: {
         id: bookingId,
         AND: [
@@ -2047,10 +2215,14 @@ export class BookingRepository {
       },
       include: this.bookingWithFullContextInclude,
     });
+
+    if (!booking) return null;
+
+    return this.mapToBookingFullContextDto(booking);
   }
 
-  async findByIdForConfirmation({ bookingId }: { bookingId: number }) {
-    return this.prismaClient.booking.findUniqueOrThrow({
+  async findByIdForConfirmation({ bookingId }: { bookingId: number }): Promise<BookingForConfirmationDto> {
+    const booking = await this.prismaClient.booking.findUniqueOrThrow({
       where: {
         id: bookingId,
       },
@@ -2158,17 +2330,216 @@ export class BookingRepository {
         smsReminderNumber: true,
       },
     });
+
+    return this.mapToBookingForConfirmationDto(booking);
   }
 
-  async updateStatusToAccepted({ bookingId }: { bookingId: number }) {
-    return this.prismaClient.booking.update({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapToBookingForConfirmationDto(booking: any): BookingForConfirmationDto {
+    return {
+      id: booking.id,
+      uid: booking.uid,
+      title: booking.title,
+      description: booking.description,
+      customInputs: booking.customInputs,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      attendees: booking.attendees.map((attendee: {
+        id: number;
+        email: string;
+        name: string;
+        timeZone: string;
+        locale: string | null;
+        bookingId: number | null;
+        phoneNumber: string | null;
+        noShow: boolean | null;
+      }) => ({
+        id: attendee.id,
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        locale: attendee.locale,
+        bookingId: attendee.bookingId,
+        phoneNumber: attendee.phoneNumber,
+        noShow: attendee.noShow,
+      })),
+      eventTypeId: booking.eventTypeId,
+      responses: booking.responses,
+      metadata: booking.metadata,
+      userPrimaryEmail: booking.userPrimaryEmail,
+      eventType: booking.eventType
+        ? {
+            id: booking.eventType.id,
+            owner: booking.eventType.owner,
+            teamId: booking.eventType.teamId,
+            recurringEvent: booking.eventType.recurringEvent,
+            title: booking.eventType.title,
+            slug: booking.eventType.slug,
+            requiresConfirmation: booking.eventType.requiresConfirmation,
+            currency: booking.eventType.currency,
+            length: booking.eventType.length,
+            description: booking.eventType.description,
+            price: booking.eventType.price,
+            bookingFields: booking.eventType.bookingFields,
+            hideOrganizerEmail: booking.eventType.hideOrganizerEmail,
+            hideCalendarNotes: booking.eventType.hideCalendarNotes,
+            hideCalendarEventDetails: booking.eventType.hideCalendarEventDetails,
+            disableGuests: booking.eventType.disableGuests,
+            customReplyToEmail: booking.eventType.customReplyToEmail,
+            metadata: booking.eventType.metadata,
+            locations: booking.eventType.locations,
+            team: booking.eventType.team
+              ? {
+                  id: booking.eventType.team.id,
+                  name: booking.eventType.team.name,
+                  parentId: booking.eventType.team.parentId,
+                }
+              : null,
+            workflows: booking.eventType.workflows.map((wf: { workflow: {
+              id: number;
+              userId: number | null;
+              teamId: number | null;
+              name: string;
+              trigger: string;
+              time: number | null;
+              timeUnit: string | null;
+              activeOn: unknown[];
+              steps: {
+                id: number;
+                stepNumber: number;
+                action: string;
+                workflowId: number;
+                sendTo: string | null;
+                reminderBody: string | null;
+                emailSubject: string | null;
+                template: string;
+                numberRequired: boolean | null;
+                sender: string | null;
+                numberVerificationPending: boolean;
+                includeCalendarEvent: boolean;
+              }[];
+            }}) => ({
+              workflow: {
+                id: wf.workflow.id,
+                userId: wf.workflow.userId,
+                teamId: wf.workflow.teamId,
+                name: wf.workflow.name,
+                trigger: wf.workflow.trigger,
+                time: wf.workflow.time,
+                timeUnit: wf.workflow.timeUnit,
+                activeOn: wf.workflow.activeOn,
+                steps: wf.workflow.steps.map((step) => ({
+                  id: step.id,
+                  stepNumber: step.stepNumber,
+                  action: step.action,
+                  workflowId: step.workflowId,
+                  sendTo: step.sendTo,
+                  reminderBody: step.reminderBody,
+                  emailSubject: step.emailSubject,
+                  template: step.template,
+                  numberRequired: step.numberRequired,
+                  sender: step.sender,
+                  numberVerificationPending: step.numberVerificationPending,
+                  includeCalendarEvent: step.includeCalendarEvent,
+                })),
+              },
+            })),
+            customInputs: booking.eventType.customInputs,
+            parentId: booking.eventType.parentId,
+            parent: booking.eventType.parent
+              ? { teamId: booking.eventType.parent.teamId }
+              : null,
+          }
+        : null,
+      location: booking.location,
+      userId: booking.userId,
+      user: booking.user
+        ? {
+            id: booking.user.id,
+            username: booking.user.username,
+            email: booking.user.email,
+            timeZone: booking.user.timeZone,
+            timeFormat: booking.user.timeFormat,
+            name: booking.user.name,
+            destinationCalendar: booking.user.destinationCalendar
+              ? {
+                  id: booking.user.destinationCalendar.id,
+                  integration: booking.user.destinationCalendar.integration,
+                  externalId: booking.user.destinationCalendar.externalId,
+                  primaryEmail: booking.user.destinationCalendar.primaryEmail,
+                  userId: booking.user.destinationCalendar.userId,
+                  eventTypeId: booking.user.destinationCalendar.eventTypeId,
+                  credentialId: booking.user.destinationCalendar.credentialId,
+                }
+              : null,
+            locale: booking.user.locale,
+          }
+        : null,
+      payment: booking.payment.map((p: {
+        id: number;
+        uid: string;
+        appId: string | null;
+        bookingId: number;
+        amount: number;
+        fee: number;
+        currency: string;
+        success: boolean;
+        refunded: boolean;
+        data: unknown;
+        externalId: string;
+        paymentOption: string | null;
+      }) => ({
+        id: p.id,
+        uid: p.uid,
+        appId: p.appId,
+        bookingId: p.bookingId,
+        amount: p.amount,
+        fee: p.fee,
+        currency: p.currency,
+        success: p.success,
+        refunded: p.refunded,
+        data: p.data,
+        externalId: p.externalId,
+        paymentOption: p.paymentOption,
+      })),
+      destinationCalendar: booking.destinationCalendar
+        ? {
+            id: booking.destinationCalendar.id,
+            integration: booking.destinationCalendar.integration,
+            externalId: booking.destinationCalendar.externalId,
+            primaryEmail: booking.destinationCalendar.primaryEmail,
+            userId: booking.destinationCalendar.userId,
+            eventTypeId: booking.destinationCalendar.eventTypeId,
+            credentialId: booking.destinationCalendar.credentialId,
+          }
+        : null,
+      paid: booking.paid,
+      recurringEventId: booking.recurringEventId,
+      status: booking.status,
+      smsReminderNumber: booking.smsReminderNumber,
+    };
+  }
+
+  async updateStatusToAccepted({ bookingId }: { bookingId: number }): Promise<BookingUpdateResultDto> {
+    const result = await this.prismaClient.booking.update({
       where: {
         id: bookingId,
       },
       data: {
         status: BookingStatus.ACCEPTED,
       },
+      select: {
+        id: true,
+        uid: true,
+        status: true,
+      },
     });
+
+    return {
+      id: result.id,
+      uid: result.uid,
+      status: result.status,
+    };
   }
 
   async findRecurringEventBookingExists({
@@ -2177,8 +2548,8 @@ export class BookingRepository {
   }: {
     recurringEventId: string;
     bookingId: number;
-  }) {
-    return this.prismaClient.booking.findFirst({
+  }): Promise<BookingExistsDto | null> {
+    const booking = await this.prismaClient.booking.findFirst({
       where: {
         recurringEventId,
         id: bookingId,
@@ -2187,6 +2558,12 @@ export class BookingRepository {
         id: true,
       },
     });
+
+    if (!booking) return null;
+
+    return {
+      id: booking.id,
+    };
   }
 
   async countByRecurringEventId({ recurringEventId }: { recurringEventId: string }) {
@@ -2206,8 +2583,8 @@ export class BookingRepository {
   }: {
     recurringEventId: string;
     rejectionReason?: string;
-  }) {
-    return this.prismaClient.booking.updateMany({
+  }): Promise<BookingBatchUpdateResultDto> {
+    const result = await this.prismaClient.booking.updateMany({
       where: {
         recurringEventId,
         status: BookingStatus.PENDING,
@@ -2217,6 +2594,10 @@ export class BookingRepository {
         rejectionReason,
       },
     });
+
+    return {
+      count: result.count,
+    };
   }
 
   async rejectById({
@@ -2225,8 +2606,8 @@ export class BookingRepository {
   }: {
     bookingId: number;
     rejectionReason?: string;
-  }) {
-    return this.prismaClient.booking.update({
+  }): Promise<BookingUpdateResultDto> {
+    const result = await this.prismaClient.booking.update({
       where: {
         id: bookingId,
       },
@@ -2234,6 +2615,17 @@ export class BookingRepository {
         status: BookingStatus.REJECTED,
         rejectionReason,
       },
+      select: {
+        id: true,
+        uid: true,
+        status: true,
+      },
     });
+
+    return {
+      id: result.id,
+      uid: result.uid,
+      status: result.status,
+    };
   }
 }
