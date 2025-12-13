@@ -123,26 +123,6 @@ export class HolidayRepository {
     });
   }
 
-  /**
-   * Fetches user's holiday settings along with their timezone.
-   * The timezone is needed to accurately determine which calendar date a booking time falls on
-   * in the host's local time (for holiday conflict checking).
-   */
-  static async findUserSettingsWithTimezone({ userId }: { userId: number }) {
-    return prisma.userHolidaySettings.findUnique({
-      where: { userId },
-      select: {
-        countryCode: true,
-        disabledIds: true,
-        user: {
-          select: {
-            timeZone: true,
-          },
-        },
-      },
-    });
-  }
-
   static async findUserSettingsSelect<T extends Prisma.UserHolidaySettingsSelect>({
     userId,
     select,

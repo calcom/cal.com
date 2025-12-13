@@ -105,7 +105,6 @@ import getBookingDataSchema from "../getBookingDataSchema";
 import { LuckyUserService } from "../getLuckyUser";
 import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
-import { ensureNoHolidayConflict } from "../handleNewBooking/checkHolidayConflict";
 import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "../handleNewBooking/createBooking";
 import type { Booking } from "../handleNewBooking/createBooking";
@@ -888,16 +887,6 @@ async function handler(
         }
       }
     }
-  }
-
-  // Check for holiday conflicts before availability check
-  if (!skipAvailabilityCheck) {
-    const userIdsToCheck = Array.from(new Set(users.map((user) => user.id)));
-    await ensureNoHolidayConflict({
-      userIds: userIdsToCheck,
-      startTime: new Date(reqBody.start),
-      loggerWithEventDetails: tracingLogger,
-    });
   }
 
   //checks what users are available

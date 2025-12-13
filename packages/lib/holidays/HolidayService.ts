@@ -131,46 +131,6 @@ export class HolidayService {
       .sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  /**
-   * Checks if a given date falls on a holiday for a specific country.
-   *
-   * @param date - The date to check (typically booking start time)
-   * @param countryCode - The country code to check holidays for
-   * @param disabledIds - Array of holiday IDs that have been disabled by the user
-   * @param hostTimeZone - The host's timezone. The date will be converted to this timezone
-   *                       before checking against holidays. This is important because a holiday
-   *                       like "December 25th" should be checked in the host's local time,
-   *                       not UTC. For example, a booking at Dec 24th 11PM UTC is actually
-   *                       Dec 25th in IST (UTC+5:30), so it should be blocked for an Indian host.
-   * @returns The holiday if found, null otherwise
-   */
-  async getHolidayOnDate(
-    date: Date,
-    countryCode: string,
-    disabledIds: string[] = [],
-    hostTimeZone: string
-  ): Promise<Holiday | null> {
-    // Convert the booking time to the host's timezone to get the correct calendar date
-    const dateInHostTz = dayjs(date).tz(hostTimeZone);
-    const year = dateInHostTz.year();
-    const dateStr = dateInHostTz.format("YYYY-MM-DD");
-    const disabledSet = new Set(disabledIds);
-
-    const holidays = await this.cachingProxy.getHolidaysForCountry(countryCode, year);
-
-    for (const holiday of holidays) {
-      if (disabledSet.has(holiday.eventId)) continue;
-
-      // Holiday dates are stored as UTC midnight, so use UTC for consistent formatting
-      const holidayDateStr = dayjs(holiday.date).utc().format("YYYY-MM-DD");
-      if (holidayDateStr === dateStr) {
-        return this.cachedHolidayToHoliday(holiday);
-      }
-    }
-
-    return null;
-  }
-
   async getHolidayDatesInRange(
     countryCode: string,
     disabledIds: string[],

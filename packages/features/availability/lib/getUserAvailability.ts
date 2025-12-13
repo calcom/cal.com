@@ -721,18 +721,26 @@ export class UserAvailabilityService {
       return {};
     }
 
+    // Holidays are stored as midnight UTC (e.g., 2025-12-25T00:00:00Z).
+    // When checking availability for a specific booking slot (e.g., 10:00-11:00),
+    // we need to expand the date range to include the full day so holidays are found.
+    // Otherwise, a booking at 10:00 wouldn't find a holiday stored at 00:00.
+    const startOfDay = dayjs(startDate).utc().startOf("day").toDate();
+    const endOfDay = dayjs(endDate).utc().endOf("day").toDate();
+
     const holidayService = getHolidayService();
     const holidayDates = await holidayService.getHolidayDatesInRange(
       holidaySettings.countryCode,
       holidaySettings.disabledIds,
-      startDate,
-      endDate
+      startOfDay,
+      endOfDay
     );
 
     if (holidayDates.length === 0) {
       return {};
     }
 
+    // Match OOO pattern: get working days from availability
     const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
       (a, b) => a - b
     );
@@ -740,13 +748,14 @@ export class UserAvailabilityService {
     const result: IOutOfOfficeData = {};
 
     for (const { date, holiday } of holidayDates) {
-      const holidayDate = dayjs(date);
-      const dayOfWeek = holidayDate.day();
+      // Match OOO pattern: use dayjs.utc() to parse date string and get day of week
+      const dayOfWeek = dayjs.utc(date).day();
 
       if (!flattenDays.includes(dayOfWeek)) {
         continue;
       }
 
+      // Match OOO pattern: key by the date string (already in YYYY-MM-DD UTC format)
       result[date] = {
         fromUser: null,
         toUser: null,

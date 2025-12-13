@@ -302,7 +302,6 @@ const getError = ({
 
   let date = "";
   let count = 0;
-  let holidayName = "";
 
   if (error.message === ErrorCode.BookerLimitExceededReschedule) {
     const formattedDate = formatEventFromTime({
@@ -318,20 +317,13 @@ const getError = ({
     count = error.data.count;
   }
 
-  if (error.message === ErrorCode.BookingOnHoliday && error.data?.holidayName) {
-    holidayName = error.data.holidayName;
-  }
-
   const messageKey =
     error.message === ErrorCode.BookerLimitExceeded ? "booker_upcoming_limit_reached" : error.message;
 
-  // Don't show trace ID for expected validation errors
-  const hideTraceId = error.message === ErrorCode.BookingOnHoliday;
-
   return error?.message ? (
     <>
-      {responseVercelIdHeader ?? ""} {t(messageKey, { date, count, holidayName })}
-      {error.data?.traceId && !hideTraceId && (
+      {responseVercelIdHeader ?? ""} {t(messageKey, { date, count })}
+      {error.data?.traceId && (
         <div className="text-subtle mt-2 text-xs">
           <span className="font-medium">{t("trace_reference_id")}:</span>
           <code className="ml-1 select-all break-all font-mono">{error.data.traceId}</code>

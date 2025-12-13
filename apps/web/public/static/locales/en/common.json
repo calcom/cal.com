@@ -4123,7 +4123,6 @@
   "booking_count_other": "{{count}} bookings",
   "and_more_holidays_with_conflicts_one": "... and {{count}} more holiday with conflicts",
   "and_more_holidays_with_conflicts_other": "... and {{count}} more holidays with conflicts",
-  "booking_on_holiday_error": "This date is {{holidayName}} in the host's local time. Please select another date.",
   "assignment_reason": "Assignment Reason",
   "saved": "Saved",
   "booking_history": "Booking History",
