@@ -6,9 +6,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeaturesRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -55,7 +54,7 @@ const Page = async ({ params }: PageProps) => {
 
   const userProfile = session?.user?.profile;
   const orgId = userProfile?.organizationId ?? session?.user.org?.id;
-  const featuresRepository = new FeaturesRepository(prisma);
+  const featuresRepository = getFeaturesRepository();
   const bookingsV3Enabled = orgId
     ? await featuresRepository.checkIfTeamHasFeature(orgId, "bookings-v3")
     : false;

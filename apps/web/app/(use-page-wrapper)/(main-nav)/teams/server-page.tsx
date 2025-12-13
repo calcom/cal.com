@@ -2,19 +2,18 @@ import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
+import { getTeamRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TeamsCTA } from "./CTA";
 
 const getCachedTeams = unstable_cache(
   async (userId: number) => {
-    const teamRepo = new TeamRepository(prisma);
+    const teamRepo = getTeamRepository();
     return await teamRepo.findTeamsByUserId({
       userId,
       includeOrgs: true,

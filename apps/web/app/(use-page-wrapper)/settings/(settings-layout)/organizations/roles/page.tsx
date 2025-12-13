@@ -3,14 +3,13 @@ import { unstable_cache } from "next/cache";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 
+import { getFeaturesRepository, getTeamRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import type { AppFlags } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { prisma } from "@calcom/prisma";
 
 import { validateUserHasOrg } from "../actions/validateUserHasOrg";
 import { CreateRoleCTA } from "./_components/CreateRoleCta";
@@ -29,7 +28,7 @@ const getCachedTeamRoles = unstable_cache(
 
 const getCachedTeamFeature = unstable_cache(
   async (teamId: number, feature: keyof AppFlags) => {
-    const featureRepo = new FeaturesRepository(prisma);
+    const featureRepo = getFeaturesRepository();
     const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
     return res;
   },
@@ -48,10 +47,8 @@ const getCachedResourcePermissions = unstable_cache(
 
 const getCachedTeamPrivacy = unstable_cache(
   async (teamId: number) => {
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: { isPrivate: true },
-    });
+    const teamRepo = getTeamRepository();
+    const team = await teamRepo.findById({ teamId });
     return team?.isPrivate ?? false;
   },
   ["team-privacy"],
