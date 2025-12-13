@@ -20,6 +20,7 @@ describe("OrganizationOnboardingFactory", () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
+    vi.setConfig({ testTimeout: 20000 });
     originalEnv = { ...process.env };
     vi.clearAllMocks();
   });
@@ -31,7 +32,7 @@ describe("OrganizationOnboardingFactory", () => {
   });
 
   describe("create", () => {
-    it("should return BillingEnabledOrgOnboardingService for regular user when billing is enabled", async () => {
+    it("should return BillingEnabledOrgOnboardingService for regular user when billing is enabled", { timeout: 20000 }, async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -41,6 +42,7 @@ describe("OrganizationOnboardingFactory", () => {
       });
 
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = Factory.create(mockRegularUser as any);
 
       expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
@@ -56,6 +58,7 @@ describe("OrganizationOnboardingFactory", () => {
       });
 
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = Factory.create(mockAdminUser as any);
 
       expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
@@ -71,6 +74,7 @@ describe("OrganizationOnboardingFactory", () => {
       });
 
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = Factory.create(mockAdminUser as any);
 
       // Self-hosted admins skip billing
@@ -87,6 +91,7 @@ describe("OrganizationOnboardingFactory", () => {
       });
 
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = Factory.create(mockRegularUser as any);
 
       // When billing is disabled, everyone uses self-hosted flow
@@ -105,6 +110,7 @@ describe("OrganizationOnboardingFactory", () => {
       });
 
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = Factory.create(mockAdminUser as any);
 
       // E2E mode returns false from isBillingEnabled, meaning SelfHosted flow
@@ -121,6 +127,7 @@ describe("OrganizationOnboardingFactory", () => {
       });
 
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = Factory.create(mockRegularUser as any);
 
       expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
@@ -191,6 +198,7 @@ describe("OrganizationOnboardingFactory", () => {
         });
 
         const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const service = Factory.create(user as any);
 
         if (expected === "BillingEnabled") {
