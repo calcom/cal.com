@@ -2,8 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { loadAppApiHandlers } from "@calcom/app-store/appLoader";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
@@ -55,11 +55,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const [appName, apiEndpoint] = args;
   try {
-    /* Absolute path didn't work */
-    const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
-    const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
-    const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
-    if (!handlers) throw new HttpError({ statusCode: 404, message: `No handlers found for ${handlerKey}` });
+    const handlers = await loadAppApiHandlers(appName);
+    if (!handlers) throw new HttpError({ statusCode: 404, message: `No handlers found for ${appName}` });
     const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
     if (typeof handler === "undefined")
       throw new HttpError({ statusCode: 404, message: `API handler not found` });
