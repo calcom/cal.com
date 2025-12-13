@@ -4,7 +4,8 @@
  * Implementations can use Prisma, Kysely, or any other data access layer
  */
 
-import type { BookingStatus } from "@calcom/prisma/enums";
+import type { BookingStatus, WorkflowTriggerEvents, TimeUnit, PaymentOption } from "@calcom/prisma/enums";
+import type { JsonValue } from "@calcom/types/JsonObject";
 
 // ============================================================================
 // DTOs - Data Transfer Objects
@@ -68,6 +69,10 @@ export interface DestinationCalendarDto {
   userId: number | null;
   eventTypeId: number | null;
   credentialId: number | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  delegationCredentialId: string | null;
+  domainWideDelegationCredentialId: string | null;
 }
 
 /**
@@ -200,10 +205,10 @@ export interface WorkflowDto {
   userId: number | null;
   teamId: number | null;
   name: string;
-  trigger: string;
+  trigger: WorkflowTriggerEvents;
   time: number | null;
-  timeUnit: string | null;
-  activeOn: unknown[];
+  timeUnit: TimeUnit | null;
+  activeOn: JsonValue[];
   steps: WorkflowStepDto[];
 }
 
@@ -222,13 +227,20 @@ export interface ParentEventTypeDto {
 }
 
 /**
+ * Event type owner information
+ */
+export interface EventTypeOwnerDto {
+  hideBranding: boolean;
+}
+
+/**
  * Event type information for confirmation flow
  */
 export interface EventTypeForConfirmationDto {
   id: number;
-  owner: number | null;
+  owner: EventTypeOwnerDto | null;
   teamId: number | null;
-  recurringEvent: unknown;
+  recurringEvent: JsonValue;
   title: string;
   slug: string;
   requiresConfirmation: boolean;
@@ -236,17 +248,17 @@ export interface EventTypeForConfirmationDto {
   length: number;
   description: string | null;
   price: number;
-  bookingFields: unknown;
+  bookingFields: JsonValue;
   hideOrganizerEmail: boolean;
   hideCalendarNotes: boolean;
   hideCalendarEventDetails: boolean;
   disableGuests: boolean;
   customReplyToEmail: string | null;
-  metadata: unknown;
-  locations: unknown;
+  metadata: JsonValue;
+  locations: JsonValue;
   team: TeamSummaryDto | null;
   workflows: WorkflowOnEventTypeDto[];
-  customInputs: unknown;
+  customInputs: JsonValue;
   parentId: number | null;
   parent: ParentEventTypeDto | null;
 }
@@ -264,9 +276,9 @@ export interface PaymentDto {
   currency: string;
   success: boolean;
   refunded: boolean;
-  data: unknown;
+  data: JsonValue;
   externalId: string;
-  paymentOption: string | null;
+  paymentOption: PaymentOption | null;
 }
 
 /**
@@ -277,13 +289,13 @@ export interface BookingForConfirmationDto {
   uid: string;
   title: string;
   description: string | null;
-  customInputs: unknown;
+  customInputs: JsonValue;
   startTime: Date;
   endTime: Date;
   attendees: AttendeeDto[];
   eventTypeId: number | null;
-  responses: unknown;
-  metadata: unknown;
+  responses: JsonValue;
+  metadata: JsonValue;
   userPrimaryEmail: string | null;
   eventType: EventTypeForConfirmationDto | null;
   location: string | null;

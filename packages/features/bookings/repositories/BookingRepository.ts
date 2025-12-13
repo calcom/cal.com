@@ -2082,6 +2082,10 @@ export class BookingRepository implements IBookingRepository {
             userId: booking.destinationCalendar.userId,
             eventTypeId: booking.destinationCalendar.eventTypeId,
             credentialId: booking.destinationCalendar.credentialId,
+            createdAt: booking.destinationCalendar.createdAt,
+            updatedAt: booking.destinationCalendar.updatedAt,
+            delegationCredentialId: booking.destinationCalendar.delegationCredentialId,
+            domainWideDelegationCredentialId: booking.destinationCalendar.domainWideDelegationCredentialId,
           }
         : null,
       references: booking.references.map((ref: {
@@ -2121,6 +2125,10 @@ export class BookingRepository implements IBookingRepository {
                   userId: booking.user.destinationCalendar.userId,
                   eventTypeId: booking.user.destinationCalendar.eventTypeId,
                   credentialId: booking.user.destinationCalendar.credentialId,
+                  createdAt: booking.user.destinationCalendar.createdAt,
+                  updatedAt: booking.user.destinationCalendar.updatedAt,
+                  delegationCredentialId: booking.user.destinationCalendar.delegationCredentialId,
+                  domainWideDelegationCredentialId: booking.user.destinationCalendar.domainWideDelegationCredentialId,
                 }
               : null,
             credentials: booking.user.credentials.map((cred: {
@@ -2240,7 +2248,11 @@ export class BookingRepository implements IBookingRepository {
         eventType: {
           select: {
             id: true,
-            owner: true,
+            owner: {
+              select: {
+                hideBranding: true,
+              },
+            },
             teamId: true,
             recurringEvent: true,
             title: true,
@@ -2370,7 +2382,9 @@ export class BookingRepository implements IBookingRepository {
       eventType: booking.eventType
         ? {
             id: booking.eventType.id,
-            owner: booking.eventType.owner,
+            owner: booking.eventType.owner
+              ? { hideBranding: booking.eventType.owner.hideBranding }
+              : null,
             teamId: booking.eventType.teamId,
             recurringEvent: booking.eventType.recurringEvent,
             title: booking.eventType.title,
@@ -2470,6 +2484,10 @@ export class BookingRepository implements IBookingRepository {
                   userId: booking.user.destinationCalendar.userId,
                   eventTypeId: booking.user.destinationCalendar.eventTypeId,
                   credentialId: booking.user.destinationCalendar.credentialId,
+                  createdAt: booking.user.destinationCalendar.createdAt,
+                  updatedAt: booking.user.destinationCalendar.updatedAt,
+                  delegationCredentialId: booking.user.destinationCalendar.delegationCredentialId,
+                  domainWideDelegationCredentialId: booking.user.destinationCalendar.domainWideDelegationCredentialId,
                 }
               : null,
             locale: booking.user.locale,
@@ -2511,6 +2529,10 @@ export class BookingRepository implements IBookingRepository {
             userId: booking.destinationCalendar.userId,
             eventTypeId: booking.destinationCalendar.eventTypeId,
             credentialId: booking.destinationCalendar.credentialId,
+            createdAt: booking.destinationCalendar.createdAt,
+            updatedAt: booking.destinationCalendar.updatedAt,
+            delegationCredentialId: booking.destinationCalendar.delegationCredentialId,
+            domainWideDelegationCredentialId: booking.destinationCalendar.domainWideDelegationCredentialId,
           }
         : null,
       paid: booking.paid,

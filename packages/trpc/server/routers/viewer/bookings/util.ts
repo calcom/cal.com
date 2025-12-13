@@ -1,13 +1,5 @@
 import { getBookingRepository } from "@calcom/features/di/containers/Booking";
-import type {
-  Booking,
-  EventType,
-  BookingReference,
-  Attendee,
-  Credential,
-  DestinationCalendar,
-  User,
-} from "@calcom/prisma/client";
+import type { BookingFullContextDto } from "@calcom/features/bookings/repositories/IBookingRepository";
 
 import { TRPCError } from "@trpc/server";
 
@@ -44,21 +36,5 @@ export const bookingsProcedure = authedProcedure
   });
 
 export type BookingsProcedureContext = {
-  booking: Booking & {
-    eventType:
-      | (EventType & {
-          team?: { id: number; name: string; parentId?: number | null } | null;
-        })
-      | null;
-    destinationCalendar: DestinationCalendar | null;
-    user:
-      | (User & {
-          destinationCalendar: DestinationCalendar | null;
-          credentials: Credential[];
-          profiles: { organizationId: number }[];
-        })
-      | null;
-    references: BookingReference[];
-    attendees: Attendee[];
-  };
+  booking: BookingFullContextDto;
 };
