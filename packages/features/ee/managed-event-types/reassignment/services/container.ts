@@ -1,8 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
+import { getBookingRepository, getUserRepository, getEventTypeRepository, getAssignmentReasonRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import type { LuckyUserService } from "@calcom/features/bookings/lib/getLuckyUser";
 import { ManagedEventManualReassignmentService } from "./ManagedEventManualReassignmentService";
 import { ManagedEventReassignmentService } from "./ManagedEventReassignmentService";
@@ -26,10 +23,10 @@ export class ReassignmentServiceContainer {
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
-    this.bookingRepository = new BookingRepository(prisma);
-    this.userRepository = new UserRepository(prisma);
-    this.eventTypeRepository = new EventTypeRepository(prisma);
-    this.assignmentReasonRepository = new AssignmentReasonRepository(prisma);
+    this.bookingRepository = getBookingRepository();
+    this.userRepository = getUserRepository();
+    this.eventTypeRepository = getEventTypeRepository();
+    this.assignmentReasonRepository = getAssignmentReasonRepository();
     this.assignmentReasonService = new ManagedEventAssignmentReasonService({
       userRepository: this.userRepository,
       assignmentReasonRepository: this.assignmentReasonRepository,
