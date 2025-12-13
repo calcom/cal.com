@@ -32,6 +32,8 @@ import type { IPhoneNumberRepository } from "@calcom/lib/server/repository/IPhon
 import type { IAgentRepository } from "@calcom/lib/server/repository/IAgentRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
+import type { IBookingSeatRepository } from "../../bookings/repositories/IBookingSeatRepository";
+import type { IVideoCallGuestRepository } from "../../video-call-guest/repositories/IVideoCallGuestRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
@@ -80,6 +82,8 @@ import { organizationBillingRepositoryModuleLoader } from "../modules/Organizati
 import { teamBillingDataRepositoryModuleLoader } from "../modules/TeamBillingData";
 import { phoneNumberRepositoryModuleLoader } from "../modules/PhoneNumber";
 import { agentRepositoryModuleLoader } from "../modules/Agent";
+import { bookingSeatRepositoryModuleLoader } from "../modules/BookingSeat";
+import { videoCallGuestRepositoryModuleLoader } from "../modules/VideoCallGuest";
 
 const repositoryContainer = createContainer();
 
@@ -124,8 +128,10 @@ repositoryContainer.load(organizationBillingRepositoryModuleLoader());
 repositoryContainer.load(teamBillingDataRepositoryModuleLoader());
 repositoryContainer.load(phoneNumberRepositoryModuleLoader());
 repositoryContainer.load(agentRepositoryModuleLoader());
+repositoryContainer.load(bookingSeatRepositoryModuleLoader());
+repositoryContainer.load(videoCallGuestRepositoryModuleLoader());
 
-export function getScheduleRepository(): IScheduleRepository {
+export function getScheduleRepository():IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
 }
 
@@ -285,4 +291,12 @@ export function getPhoneNumberRepository(): IPhoneNumberRepository {
 
 export function getAgentRepository(): IAgentRepository {
   return repositoryContainer.get<IAgentRepository>(DI_TOKENS.AGENT_REPOSITORY);
+}
+
+export function getBookingSeatRepository(): IBookingSeatRepository {
+  return repositoryContainer.get<IBookingSeatRepository>(DI_TOKENS.BOOKING_SEAT_REPOSITORY);
+}
+
+export function getVideoCallGuestRepository(): IVideoCallGuestRepository {
+  return repositoryContainer.get<IVideoCallGuestRepository>(DI_TOKENS.VIDEO_CALL_GUEST_REPOSITORY);
 }

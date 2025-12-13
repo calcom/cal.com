@@ -120,6 +120,10 @@ export const DI_TOKENS = {
         PHONE_NUMBER_REPOSITORY_MODULE: Symbol("PhoneNumberRepositoryModule"),
         AGENT_REPOSITORY: Symbol("AgentRepository"),
         AGENT_REPOSITORY_MODULE: Symbol("AgentRepositoryModule"),
+        BOOKING_SEAT_REPOSITORY: Symbol("BookingSeatRepository"),
+        BOOKING_SEAT_REPOSITORY_MODULE: Symbol("BookingSeatRepositoryModule"),
+        VIDEO_CALL_GUEST_REPOSITORY: Symbol("VideoCallGuestRepository"),
+        VIDEO_CALL_GUEST_REPOSITORY_MODULE: Symbol("VideoCallGuestRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens
