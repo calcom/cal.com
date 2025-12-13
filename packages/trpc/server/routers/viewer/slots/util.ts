@@ -1091,9 +1091,10 @@ export class AvailableSlotsService {
           ...allHosts,
           {
             isFixed: true, // Treat booker as fixed host so their availability is always checked
-            createdAt: null,
-            user: bookerWithCredentials,
-          },
+            createdAt: new Date(),
+            user: bookerWithCredentials as unknown as GetAvailabilityUserWithDelegationCredentials,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any,
         ];
       }
     }
