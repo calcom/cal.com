@@ -1,12 +1,11 @@
 import { setUser as SentrySetUser } from "@sentry/nextjs";
 import type { Session } from "next-auth";
 
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -25,7 +24,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
-  const userRepo = new UserRepository(prisma);
+  const userRepo = getUserRepository();
   const userFromDb = await userRepo.findUnlockedUserForSession({ userId: session.user.id });
 
   // some hacks to make sure `username` and `email` are never inferred as `null`

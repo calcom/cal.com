@@ -1,9 +1,8 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import type { FilterType } from "@calcom/types/data-table";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeaturesRepository, getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -42,7 +41,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const expand = input.expand;
   const filters = input.filters || [];
 
-  const featuresRepository = new FeaturesRepository(prisma);
+  const featuresRepository = getFeaturesRepository();
   const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
 
   const allAttributeOptions = await prisma.attributeOption.findMany({
@@ -281,7 +280,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
-      const user = await new UserRepository(prisma).enrichUserWithItsProfile({ user: membership.user });
+      const user = await getUserRepository().enrichUserWithItsProfile({ user: membership.user });
       let attributes;
 
       if (expand?.includes("attributes")) {

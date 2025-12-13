@@ -1,7 +1,7 @@
 import type { Session } from "next-auth";
 
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -27,7 +27,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     sessionUser
   );
 
-  const user = await new UserRepository(prisma).enrichUserWithTheProfile({
+  const user = await getUserRepository().enrichUserWithTheProfile({
     user: sessionUser,
     upId: session.upId,
   });
