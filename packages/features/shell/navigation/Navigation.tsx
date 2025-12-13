@@ -96,6 +96,13 @@ const getNavigationItems = (
     ],
   },
   {
+    name: "platform",
+    href: "/settings/platform",
+    icon: "code",
+    moreOnMobile: true,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/settings/platform") ?? false,
+  },
+  {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
     icon: "ellipsis",
