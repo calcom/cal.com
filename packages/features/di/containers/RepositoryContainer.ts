@@ -29,6 +29,7 @@ import type { IAuditActorRepository } from "../../booking-audit/lib/repository/I
 import type { IBillingRepository } from "../../ee/billing/repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../ee/billing/repository/teamBillingData/ITeamBillingDataRepository";
 import type { IPhoneNumberRepository } from "@calcom/lib/server/repository/IPhoneNumberRepository";
+import type { IAgentRepository } from "@calcom/lib/server/repository/IAgentRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -78,6 +79,7 @@ import { teamBillingRepositoryModuleLoader } from "../modules/TeamBilling";
 import { organizationBillingRepositoryModuleLoader } from "../modules/OrganizationBilling";
 import { teamBillingDataRepositoryModuleLoader } from "../modules/TeamBillingData";
 import { phoneNumberRepositoryModuleLoader } from "../modules/PhoneNumber";
+import { agentRepositoryModuleLoader } from "../modules/Agent";
 
 const repositoryContainer = createContainer();
 
@@ -121,6 +123,7 @@ repositoryContainer.load(teamBillingRepositoryModuleLoader());
 repositoryContainer.load(organizationBillingRepositoryModuleLoader());
 repositoryContainer.load(teamBillingDataRepositoryModuleLoader());
 repositoryContainer.load(phoneNumberRepositoryModuleLoader());
+repositoryContainer.load(agentRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -278,4 +281,8 @@ export function getTeamBillingDataRepository(): ITeamBillingDataRepository {
 
 export function getPhoneNumberRepository(): IPhoneNumberRepository {
   return repositoryContainer.get<IPhoneNumberRepository>(DI_TOKENS.PHONE_NUMBER_REPOSITORY);
+}
+
+export function getAgentRepository(): IAgentRepository {
+  return repositoryContainer.get<IAgentRepository>(DI_TOKENS.AGENT_REPOSITORY);
 }
