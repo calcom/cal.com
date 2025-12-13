@@ -10,6 +10,30 @@ For comprehensive documentation on embed events including usage examples and all
 
 These events are used internally by the embed system for communication between the iframe and parent window. They are prefixed with `__` and are not intended for external use.
 
+<Info>Event payloads may evolve over time. For the most reliable integration, you can listen to `action: "*"` to receive all events and inspect `e.detail.type` and `e.detail.data` at runtime.</Info>
+
+### Public Events
+
+These events are intended for external use and provide information about user interactions and booking lifecycle.
+
+| Action                     | Description                                                                                           | Properties                                                                                                                       |
+|----------------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| eventTypeSelected          | When user chooses an event-type from the listing.                                                     | `eventType: object` // Event Type that has been selected                                                                         |
+| bookingSuccessfulV2        | When a booking is successfully created. It might not be confirmed.                                    | `uid: string` // Booking unique identifier <br /> `title: string` // Booking title <br /> `startTime: string` // Booking start time <br /> `endTime: string` // Booking end time <br /> `eventTypeId: number` // Event type ID <br /> `status: string` // Booking status <br /> `paymentRequired: boolean` // Whether payment is required <br /> `isRecurring: boolean` // Whether this is a recurring booking <br /> `allBookings: array` // For recurring bookings, array of all booking times <br /> `videoCallUrl: string` // Video call URL if available |
+| rescheduleBookingSuccessfulV2 | When a booking is successfully rescheduled.                                                           | Same properties as `bookingSuccessfulV2`                                                                                           |
+| dryRunBookingSuccessfulV2    | When a dry run booking is successfully created (test mode).                                           | Same properties as `bookingSuccessfulV2` (without `uid`)                                                                           |
+| dryRunRescheduleBookingSuccessfulV2 | When a dry run reschedule is successful (test mode).                                           | Same properties as `bookingSuccessfulV2` (without `uid`)                                                                           |
+| bookingCancelled           | When a booking is cancelled.                                                                          | `booking: object` // Booking details including cancellationReason <br /> `organizer: object` // Organizer details (name, email, timeZone) <br /> `eventType: object` // Event type details |
+| availabilityLoaded         | When availability slots are successfully loaded.                                                      | `eventId: number` // Event type ID <br /> `eventSlug: string` // Event type slug                                                |
+| routed                     | When a routing form routes to an action (event type, external URL, or custom page).                  | `actionType: string` // Type of action: "customPageMessage", "externalRedirectUrl", or "eventTypeRedirectUrl" <br /> `actionValue: string` // The value/URL of the action |
+| navigatedToBooker          | When user navigates to the booker interface.                                                          | None                                                                                                                             |
+| linkReady                  | Tells that the link is ready to be shown now.                                                         | None                                                                                                                             |
+| linkFailed                 | Fired if link fails to load.                                                                          | `code: string` // Error Code <br /> `msg: string` // Human Readable message <br /> `data: object` // More details to debug the error (includes url) |
+
+### Internal Events
+
+These events are used internally by the embed system for communication between the iframe and parent window. They are prefixed with `__` and are not intended for external use.
+
 | Action               | Description                                                                                           | Properties                                                                                                                       |
 |----------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | __iframeReady        | Fired when the embedded iframe is ready to communicate with parent snippet.                           | `isPrerendering: boolean` // Whether the iframe is in prerender mode                                                             |
