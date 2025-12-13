@@ -283,6 +283,9 @@ export const useEmbedType = () => {
 };
 
 function makeBodyVisible() {
+  if (typeof document === "undefined") {
+    return;
+  }
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
