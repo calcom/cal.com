@@ -1,14 +1,13 @@
 import { z } from "zod";
 
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { prisma } from "@calcom/prisma";
 
 import { getTeamBillingServiceFactory } from "../../di/containers/Billing";
 import type { SWHMap } from "./__handler";
@@ -95,7 +94,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     }
 
     // Get the user who created the onboarding (for service instantiation)
-    const userRepo = new UserRepository(prisma);
+    const userRepo = getUserRepository();
     const creator = organizationOnboarding.createdById
       ? await userRepo.findById({ id: organizationOnboarding.createdById })
       : null;

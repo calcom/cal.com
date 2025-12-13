@@ -1,6 +1,5 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import prisma from "@calcom/prisma";
+import { getPhoneNumberRepository } from "@calcom/features/di/containers/RepositoryContainer";
 
 import type { LazyModule, SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
@@ -13,7 +12,7 @@ const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
   const subscription = data.object;
-  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+  const phoneNumberRepo = getPhoneNumberRepository();
 
   const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
     stripeSubscriptionId: subscription.id,
@@ -42,7 +41,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   if (typeof productId !== "string") {
     throw new Error(`Unable to determine Product ID from subscription: ${subscription.id}`);
   }
-  const handlerGetter = handlers[productId as any];
+  const handlerGetter = handlers[productId as `prod_${string}`];
   if (!handlerGetter) {
     console.log("No product handler found for product", productId);
     return {
@@ -64,7 +63,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
 
 async function handleCalAIPhoneNumberSubscriptionDeleted(
   subscription: Data["object"],
-  phoneNumber: NonNullable<Awaited<ReturnType<PrismaPhoneNumberRepository["findByStripeSubscriptionId"]>>>
+  phoneNumber: NonNullable<Awaited<ReturnType<ReturnType<typeof getPhoneNumberRepository>["findByStripeSubscriptionId"]>>>
 ) {
   if (!subscription.id) {
     throw new HttpCode(400, "Subscription ID not found");

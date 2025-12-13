@@ -1,8 +1,10 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import {
+  getAgentRepository,
+  getPhoneNumberRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import prisma from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
@@ -128,7 +130,7 @@ async function handleCalAIPhoneNumberSubscription(
     throw new HttpCode(400, "Missing agentId for phone number subscription");
   }
 
-  const agentRepo = new PrismaAgentRepository(prisma);
+  const agentRepo = getAgentRepository();
   const agent = await agentRepo.findByIdWithUserAccess({
     agentId,
     userId,
@@ -159,7 +161,7 @@ async function handleCalAIPhoneNumberSubscription(
     throw new HttpCode(400, "Invalid subscription data");
   }
 
-  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+  const phoneNumberRepo = getPhoneNumberRepository();
   const newNumber = await phoneNumberRepo.createPhoneNumber({
     userId,
     teamId: teamId ?? undefined,
