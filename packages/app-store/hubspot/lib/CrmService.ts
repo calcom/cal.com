@@ -89,9 +89,6 @@ export default class HubspotCalendarService implements CRM {
   };
 
   private hubspotAssociate = async (meeting: SimplePublicObject, contacts: Contact[]) => {
-    const appOptions = this.getAppOptions();
-    const createEventOn = appOptions.createEventOn ?? HubspotRecordEnum.CONTACT;
-
     // Separate contacts and companies based on recordType
     const contactRecords = contacts.filter((c) => c.recordType !== "company");
     const companyRecords = contacts.filter((c) => c.recordType === "company");
@@ -114,23 +111,20 @@ export default class HubspotCalendarService implements CRM {
       results.push(contactResult);
     }
 
-    if (companyRecords.length > 0 || createEventOn === HubspotRecordEnum.COMPANY) {
-      const companiesToAssociate = companyRecords.length > 0 ? companyRecords : contacts;
-      if (companiesToAssociate.length > 0 && companiesToAssociate[0].recordType === "company") {
-        const companyAssociation: BatchInputPublicAssociation = {
-          inputs: companiesToAssociate.map((company) => ({
-            _from: { id: meeting.id },
-            to: { id: company.id },
-            type: "meeting_event_to_company",
-          })),
-        };
-        const companyResult = await this.hubspotClient.crm.associations.batchApi.create(
-          "meetings",
-          "companies",
-          companyAssociation
-        );
-        results.push(companyResult);
-      }
+    if (companyRecords.length > 0) {
+      const companyAssociation: BatchInputPublicAssociation = {
+        inputs: companyRecords.map((company) => ({
+          _from: { id: meeting.id },
+          to: { id: company.id },
+          type: "meeting_event_to_company",
+        })),
+      };
+      const companyResult = await this.hubspotClient.crm.associations.batchApi.create(
+        "meetings",
+        "companies",
+        companyAssociation
+      );
+      results.push(companyResult);
     }
 
     return results.length > 0 ? results[0] : null;
@@ -273,7 +267,6 @@ export default class HubspotCalendarService implements CRM {
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? HubspotRecordEnum.CONTACT;
 
-
     if (createEventOn === HubspotRecordEnum.CONTACT) {
       const contacts = await this.searchContacts(emailArray);
       // If contacts exist, return them regardless of skipContactCreation
@@ -283,21 +276,16 @@ export default class HubspotCalendarService implements CRM {
       return [];
     }
 
-    if (createEventOn === HubspotRecordEnum.COMPANY) {
-      if (appOptions.checkForContact) {
-        const contacts = await this.searchContacts(emailArray);
-        if (contacts.length > 0) {
-          return contacts;
-        }
-        // No contact found, fall back to company
-        const companies = await this.searchCompanies(emailArray);
-        return companies;
+    if (appOptions.checkForContact) {
+      const contacts = await this.searchContacts(emailArray);
+      if (contacts.length > 0) {
+        return contacts;
       }
       const companies = await this.searchCompanies(emailArray);
       return companies;
     }
-
-    return await this.searchContacts(emailArray);
+    const companies = await this.searchCompanies(emailArray);
+    return companies;
   }
 
   private async searchContacts(emailArray: string[]): Promise<Contact[]> {
@@ -327,41 +315,6 @@ export default class HubspotCalendarService implements CRM {
         email: contact.properties.email,
       };
     });
-  }
-
-  private async searchLeads(emailArray: string[]): Promise<Contact[]> {
-    try {
-      const publicObjectSearchRequest: PublicObjectSearchRequest = {
-        filterGroups: emailArray.map((attendeeEmail) => ({
-          filters: [
-            {
-              value: attendeeEmail,
-              propertyName: "hs_lead_email",
-              operator: "EQ",
-            },
-          ],
-        })),
-        sorts: ["hs_object_id"],
-        properties: ["hs_object_id", "hs_lead_email"],
-        limit: 10,
-        after: 0,
-      };
-
-      const leads = await this.hubspotClient.crm.objects.searchApi
-        .doSearch("leads", publicObjectSearchRequest)
-        .then((apiResponse) => apiResponse.results);
-
-      return leads.map((lead) => {
-        return {
-          id: lead.id,
-          email: lead.properties.hs_lead_email || "",
-          recordType: "lead",
-        };
-      });
-    } catch (error) {
-      this.log.error("searchLeads:error", { error });
-      return [];
-    }
   }
 
   private async searchCompanies(emailArray: string[]): Promise<Contact[]> {
