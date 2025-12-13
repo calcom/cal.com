@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { FeatureOptInService } from "@calcom/features/feature-opt-in/FeatureOptInService";
-import type { AppFlags } from "@calcom/features/flags/config";
+import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -131,9 +131,16 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!isOptInFeature(input.featureId)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid featureId. This feature is not opt-in configurable.",
+        });
+      }
+
       await featureOptInService.setUserFeatureState({
         userId: ctx.user.id,
-        featureId: input.featureId as keyof AppFlags,
+        featureId: input.featureId,
         state: input.state,
         assignedBy: ctx.user.id,
       });
@@ -153,6 +160,13 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!isOptInFeature(input.featureId)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid featureId. This feature is not opt-in configurable.",
+        });
+      }
+
       const permissionCheckService = new PermissionCheckService();
       const hasPermission = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
@@ -170,7 +184,7 @@ export const featureOptInRouter = router({
 
       await featureOptInService.setTeamFeatureState({
         teamId: input.teamId,
-        featureId: input.featureId as keyof AppFlags,
+        featureId: input.featureId,
         state: input.state,
         assignedBy: ctx.user.id,
       });
@@ -190,6 +204,13 @@ export const featureOptInRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!isOptInFeature(input.featureId)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid featureId. This feature is not opt-in configurable.",
+        });
+      }
+
       const organizationId = ctx.user.organizationId;
 
       if (!organizationId) {
@@ -217,7 +238,7 @@ export const featureOptInRouter = router({
       // Organizations use the same TeamFeatures table
       await featureOptInService.setTeamFeatureState({
         teamId: organizationId,
-        featureId: input.featureId as keyof AppFlags,
+        featureId: input.featureId,
         state: input.state,
         assignedBy: ctx.user.id,
       });

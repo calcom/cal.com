@@ -148,16 +148,11 @@ export class FeatureOptInService {
    */
   async setTeamFeatureState(input: {
     teamId: number;
-    featureId: string;
+    featureId: keyof AppFlags;
     state: FeatureState;
     assignedBy: number;
   }) {
     const { teamId, featureId, state, assignedBy } = input;
-    await this.featuresRepository.setTeamFeatureState(
-      teamId,
-      featureId as keyof AppFlags,
-      state,
-      String(assignedBy)
-    );
+    await this.featuresRepository.setTeamFeatureState(teamId, featureId, state, String(assignedBy));
   }
 }
