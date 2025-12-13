@@ -26,6 +26,7 @@ import type { QueuedFormResponseRepositoryInterface } from "@calcom/app-store/ro
 import type { IAuditRepository } from "../../watchlist/lib/interface/IAuditRepository";
 import type { IBookingAuditRepository } from "../../booking-audit/lib/repository/IBookingAuditRepository";
 import type { IAuditActorRepository } from "../../booking-audit/lib/repository/IAuditActorRepository";
+import type { IBillingRepository } from "../../ee/billing/repository/billing/IBillingRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -71,6 +72,8 @@ import { queuedFormResponseRepositoryModuleLoader } from "../modules/QueuedFormR
 import { watchlistAuditRepositoryModuleLoader } from "../modules/WatchlistAudit";
 import { bookingAuditRepositoryModuleLoader } from "../modules/BookingAudit";
 import { auditActorRepositoryModuleLoader } from "../modules/AuditActor";
+import { teamBillingRepositoryModuleLoader } from "../modules/TeamBilling";
+import { organizationBillingRepositoryModuleLoader } from "../modules/OrganizationBilling";
 
 const repositoryContainer = createContainer();
 
@@ -110,6 +113,8 @@ repositoryContainer.load(queuedFormResponseRepositoryModuleLoader());
 repositoryContainer.load(watchlistAuditRepositoryModuleLoader());
 repositoryContainer.load(bookingAuditRepositoryModuleLoader());
 repositoryContainer.load(auditActorRepositoryModuleLoader());
+repositoryContainer.load(teamBillingRepositoryModuleLoader());
+repositoryContainer.load(organizationBillingRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -251,4 +256,12 @@ export function getBookingAuditRepository(): IBookingAuditRepository {
 
 export function getAuditActorRepository(): IAuditActorRepository {
   return repositoryContainer.get<IAuditActorRepository>(DI_TOKENS.AUDIT_ACTOR_REPOSITORY);
+}
+
+export function getTeamBillingRepository(): IBillingRepository {
+  return repositoryContainer.get<IBillingRepository>(DI_TOKENS.TEAM_BILLING_REPOSITORY);
+}
+
+export function getOrganizationBillingRepository(): IBillingRepository {
+  return repositoryContainer.get<IBillingRepository>(DI_TOKENS.ORGANIZATION_BILLING_REPOSITORY);
 }

@@ -110,6 +110,10 @@ export const DI_TOKENS = {
         BOOKING_AUDIT_REPOSITORY_MODULE: Symbol("BookingAuditRepositoryModule"),
         AUDIT_ACTOR_REPOSITORY: Symbol("AuditActorRepository"),
         AUDIT_ACTOR_REPOSITORY_MODULE: Symbol("AuditActorRepositoryModule"),
+        TEAM_BILLING_REPOSITORY: Symbol("TeamBillingRepository"),
+        TEAM_BILLING_REPOSITORY_MODULE: Symbol("TeamBillingRepositoryModule"),
+        ORGANIZATION_BILLING_REPOSITORY: Symbol("OrganizationBillingRepository"),
+        ORGANIZATION_BILLING_REPOSITORY_MODULE: Symbol("OrganizationBillingRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens
