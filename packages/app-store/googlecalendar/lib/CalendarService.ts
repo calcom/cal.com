@@ -431,14 +431,16 @@ export default class GoogleCalendarService implements Calendar {
         "There was an error deleting event from google calendar: ",
         safeStringify({ error, event, externalCalendarId })
       );
-      const err = error as GoogleCalError;
+      const err = error as GoogleCalError & { status?: number; response?: { status?: number } };
       /**
        *  410 is when an event is already deleted on the Google cal before on cal.com
-       *  404 is when the event is on a different calendar
+       *  404 is when the event is on a different calendar or the event ID is invalid/empty
+       *  Note: Google API errors may have the status code in either `code`, `status`, or `response.status`
        */
-      if (err.code === 410) return;
+      const statusCode = err.code ?? err.status ?? err.response?.status;
+      if (statusCode === 410) return;
       console.error("There was an error contacting google calendar service: ", err);
-      if (err.code === 404) return;
+      if (statusCode === 404) return;
       throw err;
     }
   }
