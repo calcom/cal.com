@@ -21,6 +21,10 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
 
   const { user } = ctx;
 
+  if (user.username && newPassword.toLowerCase() === user.username.toLowerCase()) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "password_same_as_username" });
+  }
+
   if (user.identityProvider !== IdentityProvider.CAL) {
     const userWithPassword = await prisma.user.findUnique({
       where: {

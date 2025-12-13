@@ -105,6 +105,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     username = usernameAndEmailValidation.username;
   }
 
+  // Check if password is the same as username (case-insensitive)
+  if (username && password.toLowerCase() === username.toLowerCase()) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "password_same_as_username",
+    });
+  }
+
   // Create the customer in Stripe
 
   const customer = await billingService.createCustomer({
