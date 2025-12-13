@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { WizardForm } from "@calcom/ui/components/form";
 import type { WizardStep } from "@calcom/ui/components/form/wizard/WizardForm";
 
+import AdminEmailConsent from "@components/setup/AdminEmailConsent";
 import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
 import LicenseSelection from "@components/setup/LicenseSelection";
 
@@ -29,6 +30,9 @@ export function Setup(props: PageProps) {
   const [licenseOption, setLicenseOption] = useState<"FREE" | "EXISTING">(
     props.hasValidLicense ? "EXISTING" : "FREE"
   );
+  const [adminEmail, setAdminEmail] = useState<string>("");
+
+  const showAdminEmailConsent = !IS_CALCOM;
 
   const defaultStep = useMemo(() => {
     if (props.userCount > 0) {
@@ -51,9 +55,15 @@ export function Setup(props: PageProps) {
           onSubmit={() => {
             setIsPending(true);
           }}
-          onSuccess={() => {
-            // If there's already a valid license or user picked AGPLv3, skip to apps step
-            if (props.hasValidLicense || hasPickedAGPLv3) {
+          onSuccess={(email?: string) => {
+            if (email) {
+              setAdminEmail(email);
+            }
+            // For self-hosters, go to admin email consent step next
+            if (showAdminEmailConsent) {
+              nav.onNext();
+            } else if (props.hasValidLicense || hasPickedAGPLv3) {
+              // If there's already a valid license or user picked AGPLv3, skip to apps step
               nav.onNext();
               nav.onNext(); // Skip license step
             } else {
@@ -69,6 +79,44 @@ export function Setup(props: PageProps) {
       ),
     },
   ];
+
+  // For self-hosters (!IS_CALCOM), add admin email consent step
+  if (showAdminEmailConsent) {
+    steps.push({
+      title: t("stay_informed"),
+      description: t("stay_informed_description"),
+      customActions: true,
+      content: (setIsPending, nav) => {
+        return (
+          <AdminEmailConsent
+            id="wizard-step-2"
+            name="wizard-step-2"
+            defaultEmail={adminEmail}
+            onSubmit={() => {
+              setIsPending(true);
+              // After consent step, go to license step or apps step
+              if (props.hasValidLicense || hasPickedAGPLv3) {
+                nav.onNext();
+                nav.onNext(); // Skip license step
+              } else {
+                nav.onNext();
+              }
+            }}
+            onSkip={() => {
+              // After skipping, go to license step or apps step
+              if (props.hasValidLicense || hasPickedAGPLv3) {
+                nav.onNext();
+                nav.onNext(); // Skip license step
+              } else {
+                nav.onNext();
+              }
+            }}
+            onPrevStep={nav.onPrev}
+          />
+        );
+      },
+    });
+  }
 
   // Only show license selection step if there's no valid license already and AGPLv3 wasn't picked
   if (!props.hasValidLicense && !hasPickedAGPLv3) {
