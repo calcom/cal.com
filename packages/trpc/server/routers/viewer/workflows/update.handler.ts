@@ -253,6 +253,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const agentRepo = new PrismaAgentRepository(prisma);
 
+  const stepIds = userWorkflow.steps.map((step) => step.id);
+  const allReminders = await WorkflowReminderRepository.findWorkflowRemindersByStepIds(stepIds);
+
+  const remindersByStepId = new Map<number, (typeof allReminders)[number][]>();
+  for (const reminder of allReminders) {
+    const stepId = reminder.workflowStepId;
+    if (stepId === null) continue;
+
+    let list = remindersByStepId.get(stepId);
+    if (!list) {
+      list = [];
+      remindersByStepId.set(stepId, list);
+    }
+    list.push(reminder);
+  }
+
   // handle deleted and edited workflow steps
   await Promise.all(
     userWorkflow.steps.map(async (oldStep) => {
@@ -271,7 +287,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         };
       }
 
-      const remindersFromStep = await WorkflowReminderRepository.findWorkflowRemindersByStepId(oldStep.id);
+      const remindersFromStep = remindersByStepId.get(oldStep.id) || [];
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {

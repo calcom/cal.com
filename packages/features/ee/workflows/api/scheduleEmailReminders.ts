@@ -47,7 +47,9 @@ export async function handler(req: NextRequest) {
   if (isSendgridEnabled) {
     const remindersToDelete: { referenceId: string | null; id: number }[] = await getAllRemindersToDelete();
 
+    const reminderIds: number[] = [];
     const handlePastCancelledReminders = remindersToDelete.map(async (reminder) => {
+      reminderIds.push(reminder.id);
       try {
         if (reminder.referenceId) {
           await deleteScheduledSend(reminder.referenceId);
@@ -55,18 +57,24 @@ export async function handler(req: NextRequest) {
       } catch (err) {
         logger.error(`Error deleting scheduled send (ref: ${reminder.referenceId}): ${err}`);
       }
-
-      try {
-        await prisma.workflowReminder.update({
-          where: { id: reminder.id },
-          data: { referenceId: null },
-        });
-      } catch (err) {
-        logger.error(`Error updating reminder (id: ${reminder.id}): ${err}`);
-      }
     });
 
     await Promise.allSettled(handlePastCancelledReminders);
+
+    if (reminderIds.length > 0) {
+      try {
+        await prisma.workflowReminder.updateMany({
+          where: {
+            id: {
+              in: reminderIds,
+            },
+          },
+          data: { referenceId: null },
+        });
+      } catch (err) {
+        logger.error(`Error updating reminders: ${err}`);
+      }
+    }
 
     //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
     const remindersToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
@@ -89,12 +97,11 @@ export async function handler(req: NextRequest) {
       cancelUpdatePromises.push(cancelPromise, updatePromise);
     }
 
-    Promise.allSettled(cancelUpdatePromises).then((results) => {
-      results.forEach((result) => {
-        if (result.status === "rejected") {
-          logger.error(`Error cancelling scheduled_sends: ${result.reason}`);
-        }
-      });
+    const results = await Promise.allSettled(cancelUpdatePromises);
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        logger.error(`Error cancelling scheduled_sends: ${result.reason}`);
+      }
     });
   }
 
@@ -490,12 +497,11 @@ export async function handler(req: NextRequest) {
     }
   }
 
-  Promise.allSettled(sendEmailPromises).then((results) => {
-    results.forEach((result) => {
-      if (result.status === "rejected") {
-        logger.error("Email sending failed", result.reason);
-      }
-    });
+  const sendResults = await Promise.allSettled(sendEmailPromises);
+  sendResults.forEach((result) => {
+    if (result.status === "rejected") {
+      logger.error("Email sending failed", result.reason);
+    }
   });
 
   return NextResponse.json({ message: `${unscheduledReminders.length} Emails to schedule` }, { status: 200 });
