@@ -52,7 +52,7 @@ test.describe("SAML tests", () => {
       await expect(page.locator('input[name="password"]')).toBeHidden();
     });
 
-    test("Checkbox for cookie consent does not need to be checked", async ({ page }) => {
+    test("Checkbox for cookie consent must be checked", async ({ page }) => {
       // Fill form
       await page.locator('input[name="username"]').fill("tester123");
       await page.locator('input[name="email"]').fill("tester123@example.com");
@@ -60,12 +60,16 @@ test.describe("SAML tests", () => {
       const submitButton = page.getByTestId("saml-submit-button");
       const checkbox = page.getByTestId("signup-cookie-content-checkbox");
 
+      // Submit button should be disabled when checkbox is not checked
+      await expect(submitButton).toBeDisabled();
+
+      // Check the checkbox
       await checkbox.check();
       await expect(submitButton).toBeEnabled();
 
-      // the cookie consent checkbox does not need to be checked for user to proceed
+      // Uncheck the checkbox - button should be disabled again
       await checkbox.uncheck();
-      await expect(submitButton).toBeEnabled();
+      await expect(submitButton).toBeDisabled();
     });
 
     test("Submit button should be disabled with a premium username", async ({ page }) => {

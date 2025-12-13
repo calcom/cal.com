@@ -34,6 +34,7 @@ export type AppFlags = {
   "booking-email-sms-tasker": boolean;
   "bookings-v3": boolean;
   "booking-audit": boolean;
+  "policy-acceptance-modal": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

@@ -31,7 +31,10 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<Feature[]> - Array of all features
    */
   public async getAllFeatures() {
-    if (FeaturesRepository.featuresCache && Date.now() < FeaturesRepository.featuresCache.expiry) {
+    // Disable cache in E2E tests to avoid stale data
+    const isCacheEnabled = process.env.NEXT_PUBLIC_IS_E2E !== "1";
+
+    if (isCacheEnabled && FeaturesRepository.featuresCache && Date.now() < FeaturesRepository.featuresCache.expiry) {
       return FeaturesRepository.featuresCache.data;
     }
 
@@ -39,10 +42,12 @@ export class FeaturesRepository implements IFeaturesRepository {
       orderBy: { slug: "asc" },
     });
 
-    FeaturesRepository.featuresCache = {
-      data: features,
-      expiry: Date.now() + 5 * 60 * 1000, // 5 minutes cache
-    };
+    if (isCacheEnabled) {
+      FeaturesRepository.featuresCache = {
+        data: features,
+        expiry: Date.now() + 5 * 60 * 1000, // 5 minutes cache
+      };
+    }
 
     return features;
   }

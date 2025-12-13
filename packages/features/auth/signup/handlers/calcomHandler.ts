@@ -8,6 +8,7 @@ import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/cr
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { PolicyService } from "@calcom/features/policies/lib/service/policy.service";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
@@ -190,6 +191,10 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
           org: team.parent,
         });
       }
+
+      // Record policy acceptance on signup
+      const policyService = new PolicyService();
+      await policyService.recordLatestPolicyAcceptanceOnSignup(user.id);
     }
 
     // Cleanup token after use
@@ -200,7 +205,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
   } else {
     // Create the user
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         username,
         email,
@@ -213,6 +218,11 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
         creationSource: CreationSource.WEBAPP,
       },
     });
+
+    // Record policy acceptance on signup
+    const policyService = new PolicyService();
+    await policyService.recordLatestPolicyAcceptanceOnSignup(user.id);
+
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }

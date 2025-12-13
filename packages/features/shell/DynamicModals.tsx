@@ -1,6 +1,7 @@
 "use client";
 
 import { WelcomeToOrganizationsModal } from "@calcom/features/ee/organizations/components/WelcomeToOrganizationsModal";
+import { PolicyAcceptanceModal } from "@calcom/features/policies/components/PolicyAcceptanceModal";
 
 import { WelcomeToCalcomModal } from "./components/WelcomeToCalcomModal";
 import { GatedFeaturesModal } from "./components/GatedFeaturesModal";
@@ -20,6 +21,7 @@ export function DynamicModals() {
     <>
       <WelcomeToOrganizationsModal />
       <WelcomeToCalcomModal />
+      <PolicyAcceptanceModal />
       {/* Add more query-param driven modals here */}
       <GatedFeaturesModal />
     </>

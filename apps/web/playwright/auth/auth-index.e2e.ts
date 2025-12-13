@@ -56,6 +56,8 @@ test.describe("Can signup from a team invite", async () => {
     // Fill in form
     await newPage.fill('input[name="username"]', proUser.username); // Invalid username
     await newPage.fill('input[name="password"]', testUser.password);
+    const checkbox = newPage.getByTestId("signup-cookie-content-checkbox");
+    await checkbox.check();
     await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 409 });
     await expect(newPage.locator('text="Username or email is already taken"')).toBeVisible();
 
@@ -64,6 +66,7 @@ test.describe("Can signup from a team invite", async () => {
     await newPage.reload();
     await newPage.fill('input[name="username"]', testUser.username);
     await newPage.fill('input[name="password"]', testUser.password);
+    await checkbox.check();
     await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 201 });
     // Since it's a new user, it should be redirected to the onboarding
     await newPage.locator('text="Welcome to Cal.com!"').waitFor();
