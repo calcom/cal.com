@@ -28,7 +28,8 @@ export function getOptInFeatureConfig(slug: string): OptInFeatureConfig | undefi
 
 /**
  * Check if a feature slug is in the opt-in allowlist.
+ * Acts as a type guard, narrowing the slug to keyof AppFlags when true.
  */
-export function isOptInFeature(slug: string): boolean {
+export function isOptInFeature(slug: string): slug is keyof AppFlags {
   return OPT_IN_FEATURES.some((f) => f.slug === slug);
 }
