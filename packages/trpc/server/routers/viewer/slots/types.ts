@@ -5,33 +5,7 @@ import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
 const isValidDateString = (val: string) => !isNaN(Date.parse(val));
 
-// Define type first to use with z.ZodType annotation
-// This prevents full Zod generic tree from being emitted in .d.ts files
-export type TGetScheduleSchemaObject = {
-  startTime: string;
-  endTime: string;
-  eventTypeId?: number;
-  eventTypeSlug?: string;
-  timeZone?: string;
-  usernameList?: string[];
-  debug?: boolean;
-  duration?: string;
-  rescheduleUid?: string | null;
-  isTeamEvent?: boolean;
-  orgSlug?: string | null;
-  teamMemberEmail?: string | null;
-  routedTeamMemberIds?: number[] | null;
-  skipContactOwner?: boolean | null;
-  rrHostSubsetIds?: number[] | null;
-  _enableTroubleshooter?: boolean;
-  _bypassCalendarBusyTimes?: boolean;
-  _silentCalendarFailures?: boolean;
-  routingFormResponseId?: number;
-  queuedFormResponseId?: string | null;
-  email?: string | null;
-};
-
-export const getScheduleSchemaObject: z.ZodType<TGetScheduleSchemaObject> = z.object({
+export const getScheduleSchemaObject = z.object({
   startTime: z.string().refine(isValidDateString, {
     message: "startTime must be a valid date string",
   }),
@@ -88,15 +62,7 @@ export const getScheduleSchema = getScheduleSchemaObject
     path: ["endTime"],
   });
 
-// Define type for reserveSlotSchema
-export type TReserveSlotSchema = {
-  eventTypeId: number;
-  slotUtcStartDate: string;
-  slotUtcEndDate: string;
-  _isDryRun?: boolean;
-};
-
-export const reserveSlotSchema: z.ZodType<TReserveSlotSchema> = z
+export const reserveSlotSchema = z
   .object({
     eventTypeId: z.number().int(),
     // startTime ISOString
@@ -118,12 +84,7 @@ export type Slot = {
   users?: string[];
 };
 
-// Define type for removeSelectedSlotSchema
-export type TRemoveSelectedSlotSchema = {
-  uid: string | null;
-};
-
-export const removeSelectedSlotSchema: z.ZodType<TRemoveSelectedSlotSchema> = z.object({
+export const removeSelectedSlotSchema = z.object({
   uid: z.string().nullable(),
 });
 
