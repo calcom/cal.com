@@ -1,10 +1,8 @@
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
-import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeaturesRepository, getCalendarCacheEventRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import type { Calendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -44,8 +42,8 @@ export const getCalendar = async (
   }
   // if shouldServeCache is not supplied, determine on the fly.
   if (typeof shouldServeCache === "undefined") {
-    const featuresRepository = new FeaturesRepository(prisma);
-    const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
+        const featuresRepository = getFeaturesRepository();
+        const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [
         featuresRepository.checkIfFeatureIsEnabledGlobally(
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
@@ -64,8 +62,8 @@ export const getCalendar = async (
     const originalCalendar = new CalendarService(credential as any);
     if (originalCalendar) {
       // return cacheable calendar
-      const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
-      return new CalendarCacheWrapper({
+            const calendarCacheEventRepository = getCalendarCacheEventRepository();
+            return new CalendarCacheWrapper({
         originalCalendar,
         calendarCacheEventRepository,
       });

@@ -3,10 +3,9 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
-import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getCredentialRepository, getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import {
   buildNonDelegationCredential,
   buildNonDelegationCredentials,
@@ -14,7 +13,6 @@ import {
 } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
@@ -593,7 +591,7 @@ export async function findUniqueDelegationCalendarCredential({
 }) {
   const [delegationCredential, user] = await Promise.all([
     DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({ id: delegationCredentialId }),
-    new UserRepository(prisma).findById({ id: userId }),
+    getUserRepository().findById({ id: userId }),
   ]);
 
   if (!delegationCredential) {
@@ -655,7 +653,7 @@ export async function getCredentialForSelectedCalendar({
   userId,
 }: Partial<SelectedCalendar>) {
   if (credentialId) {
-    const credentialRepository = new CredentialRepository(prisma);
+    const credentialRepository = getCredentialRepository();
     const credential = await credentialRepository.findByIdWithDelegationCredential(credentialId);
     if (credential?.delegationCredential?.id && credential.userId) {
       return findUniqueDelegationCalendarCredential({
