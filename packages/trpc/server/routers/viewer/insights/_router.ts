@@ -3,92 +3,36 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { getInsightsBookingService } from "@calcom/features/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/features/di/containers/InsightsRouting";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import {
   extractDateRangeFromColumnFilters,
   replaceDateRangeColumnFilter,
 } from "@calcom/features/insights/lib/bookingUtils";
+import { objectToCsv } from "@calcom/features/insights/lib/objectToCsv";
 import {
+  getTimeView,
+  getDateRanges,
+  type GetDateRangesParams,
+} from "@calcom/features/insights/server/insightsDateUtils";
+import {
+  bookingRepositoryBaseInputSchema,
   insightsRoutingServiceInputSchema,
   insightsRoutingServicePaginatedInputSchema,
   routingRepositoryBaseInputSchema,
   routedToPerPeriodInputSchema,
   routedToPerPeriodCsvInputSchema,
-  bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { RoutingEventsInsights } from "@calcom/features/insights/server/routing-events";
+import { VirtualQueuesInsights } from "@calcom/features/insights/server/virtual-queues";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
-import { RoutingEventsInsights } from "./routing-events";
-import { VirtualQueuesInsights } from "./virtual-queues";
-
-const UserBelongsToTeamInput = z.object({
-  teamId: z.coerce.number().optional().nullable(),
-  isAll: z.boolean().optional(),
-});
-
-const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRawInput }) => {
-  const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
-  if (!parse.success) {
-    throw new TRPCError({ code: "BAD_REQUEST" });
-  }
-
-  // If teamId is provided, check if user belongs to team
-  // If teamId is not provided, check if user belongs to any team
-
-  const membershipWhereConditional: Prisma.MembershipWhereInput = {
-    userId: ctx.user.id,
-    accepted: true,
-  };
-
-  if (parse.data.teamId) {
-    membershipWhereConditional["teamId"] = parse.data.teamId;
-  }
-
-  const membership = await ctx.insightsDb.membership.findFirst({
-    where: membershipWhereConditional,
-  });
-
-  let isOwnerAdminOfParentTeam = false;
-
-  // Probably we couldn't find a membership because the user is not a direct member of the team
-  // So that would mean ctx.user.organization is present
-  if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
-    //Look for membership type in organizationId
-    if (!membership && ctx.user.organizationId && parse.data.teamId) {
-      const isChildTeamOfOrg = await ctx.insightsDb.team.findFirst({
-        where: {
-          id: parse.data.teamId,
-          parentId: ctx.user.organizationId,
-        },
-      });
-      if (!isChildTeamOfOrg) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-    }
-
-    const hasOrgAccess = await checkInsightsPermission(ctx.user.id, ctx.user.organizationId);
-    if (!hasOrgAccess) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-    isOwnerAdminOfParentTeam = true;
-  }
-
-  return next({
-    ctx: {
-      user: {
-        ...ctx.user,
-        isOwnerAdminOfParentTeam,
-      },
-    },
-  });
-});
+import { userBelongsToTeamProcedure } from "./procedures/userBelongsToTeam";
 
 const userSelect = {
   id: true,
@@ -97,16 +41,6 @@ const userSelect = {
   username: true,
   avatarUrl: true,
 };
-
-async function checkInsightsPermission(userId: number, teamId: number): Promise<boolean> {
-  const permissionCheckService = new PermissionCheckService();
-  return await permissionCheckService.checkPermission({
-    userId,
-    teamId,
-    permission: "insights.read",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
-}
 
 const emptyResponseBookingKPIStats = {
   empty: true,
@@ -633,8 +567,8 @@ export const insightsRouter = router({
       const { prisma, user } = ctx;
       const { teamId, userId, isAll } = input;
 
-      const eventTypeList = await getEventTypeList({
-        prisma,
+      const eventTypeRepository = new EventTypeRepository(prisma);
+      const eventTypeList = await eventTypeRepository.getEventTypeList({
         teamId,
         userId,
         isAll,
@@ -944,168 +878,3 @@ export const insightsRouter = router({
       }
     }),
 });
-
-export async function getEventTypeList({
-  prisma,
-  teamId,
-  userId,
-  isAll,
-  user,
-}: {
-  prisma: PrismaClient;
-  teamId: number | null | undefined;
-  userId: number | null | undefined;
-  isAll: boolean | undefined;
-  user: {
-    id: number;
-    organizationId: number | null;
-    isOwnerAdminOfParentTeam: boolean;
-  };
-}) {
-  if (!teamId && !userId && !isAll) {
-    return [];
-  }
-
-  const membershipWhereConditional: Prisma.MembershipWhereInput = {};
-  let childrenTeamIds: number[] = [];
-
-  if (userId && !teamId && !isAll) {
-    const eventTypeResult = await prisma.eventType.findMany({
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        teamId: true,
-        userId: true,
-        team: {
-          select: {
-            name: true,
-          },
-        },
-      },
-      where: {
-        userId: user.id,
-        teamId: null,
-      },
-    });
-
-    return eventTypeResult;
-  }
-
-  if (isAll && user.organizationId && user.isOwnerAdminOfParentTeam) {
-    const childTeams = await prisma.team.findMany({
-      where: {
-        parentId: user.organizationId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (childTeams.length > 0) {
-      childrenTeamIds = childTeams.map((team) => team.id);
-    }
-
-    const eventTypeResult = await prisma.eventType.findMany({
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        teamId: true,
-        userId: true,
-        team: {
-          select: {
-            name: true,
-          },
-        },
-      },
-      where: {
-        OR: [
-          {
-            teamId: {
-              in: [user.organizationId, ...childrenTeamIds],
-            },
-          },
-          {
-            userId: user.id,
-            teamId: null,
-          },
-        ],
-      },
-    });
-
-    return eventTypeResult;
-  }
-
-  if (teamId && !isAll) {
-    membershipWhereConditional["teamId"] = teamId;
-    membershipWhereConditional["userId"] = user.id;
-  }
-
-  // I'm not using unique here since when userId comes from input we should look for every
-  // event type that user owns
-  const membership = await prisma.membership.findFirst({
-    where: membershipWhereConditional,
-  });
-
-  if (!membership && !user.isOwnerAdminOfParentTeam) {
-    throw new Error("User is not part of a team/org");
-  }
-
-  const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
-
-  if (teamId && !isAll) {
-    eventTypeWhereConditional["teamId"] = teamId;
-  }
-
-  let isMember = membership?.role === "MEMBER";
-  if (user.isOwnerAdminOfParentTeam) {
-    isMember = false;
-  }
-
-  if (isMember) {
-    eventTypeWhereConditional["OR"] = [{ userId: user.id }, { users: { some: { id: user.id } } }];
-    // @TODO this is not working as expected
-    // hosts: { some: { id: user.id } },
-  }
-
-  const eventTypeResult = await prisma.eventType.findMany({
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      teamId: true,
-      userId: true,
-      team: {
-        select: {
-          name: true,
-        },
-      },
-    },
-    where: eventTypeWhereConditional,
-  });
-
-  return eventTypeResult;
-}
-
-function objectToCsv(data: Record<string, string>[]) {
-  if (!data.length) return "";
-
-  const headers = Object.keys(data[0]);
-  const csvRows = [
-    headers.join(","),
-    ...data.map((row) =>
-      headers
-        .map((header) => {
-          const value = row[header]?.toString() || "";
-          // Escape quotes and wrap in quotes if contains comma or newline
-          return value.includes(",") || value.includes("\n") || value.includes('"')
-            ? `"${value.replace(/"/g, '""')}"` // escape double quotes
-            : value;
-        })
-        .join(",")
-    ),
-  ];
-
-  return csvRows.join("\n");
-}
