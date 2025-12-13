@@ -21,6 +21,7 @@ export const ENDPOINTS = [
   "i18n",
   "insights",
   "me",
+  "oneOffMeetings",
   "ooo",
   "payments",
   "public",

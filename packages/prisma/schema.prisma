@@ -482,6 +482,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  oneOffMeetings                 OneOffMeeting[]
 
   @@unique([email])
   @@unique([email, username])
@@ -886,6 +887,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  oneOffMeeting                OneOffMeeting?
 
   // @@partial_index([reassignById])
 
@@ -1939,18 +1941,18 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id              Int                @id @default(autoincrement())
-  uuid            String             @unique
-  start           DateTime
-  end             DateTime
-  notes           String?
-  showNotePublicly Boolean           @default(false)
-  userId          Int
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId        Int?
-  toUser          User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  reasonId        Int?
-  reason          OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  id               Int                @id @default(autoincrement())
+  uuid             String             @unique
+  start            DateTime
+  end              DateTime
+  notes            String?
+  showNotePublicly Boolean            @default(false)
+  userId           Int
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId         Int?
+  toUser           User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId         Int?
+  reason           OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2909,4 +2911,58 @@ model CalendarCacheEvent {
   @@unique([selectedCalendarId, externalId])
   @@index([start, end, status])
   @@index([selectedCalendarId, iCalUID])
+}
+
+// One-off Meeting Feature
+enum OneOffMeetingStatus {
+  ACTIVE    @map("active")
+  BOOKED    @map("booked")
+  EXPIRED   @map("expired")
+  CANCELLED @map("cancelled")
+}
+
+model OneOffMeeting {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  duration    Int // Duration in minutes
+  /// @zod.import(["import { eventTypeLocations } from '../../zod-utils'"]).custom.use(eventTypeLocations)
+  location    Json? // Same format as EventType.locations
+  timeZone    String
+
+  // Owner
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The offered time slots - stored as JSON array of {start: DateTime, end: DateTime}
+  offeredSlots OneOffMeetingSlot[]
+
+  // Generated booking link (unique hash)
+  linkHash String @unique
+
+  // Status
+  status    OneOffMeetingStatus @default(ACTIVE)
+  bookedAt  DateTime?
+  bookingId Int?                @unique
+  booking   Booking?            @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime? // Optional expiration date
+
+  @@index([userId])
+  @@index([linkHash])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OneOffMeetingSlot {
+  id              String        @id @default(cuid())
+  oneOffMeetingId String
+  oneOffMeeting   OneOffMeeting @relation(fields: [oneOffMeetingId], references: [id], onDelete: Cascade)
+
+  startTime DateTime
+  endTime   DateTime
+
+  @@index([oneOffMeetingId])
 }

@@ -1,7 +1,7 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
-import { _generateMetadata, getTranslate } from "app/_utils";
+import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -13,7 +13,7 @@ import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
+import EventTypes, { EventTypesCTA, EventTypesPageWrapper, DynamicHeading, DynamicSubtitle, MainTabsNavigation } from "~/event-types/views/event-types-listing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -65,17 +65,19 @@ const Page = async ({ searchParams }: PageProps) => {
     return redirect(onboardingPath);
   }
 
-  const t = await getTranslate();
   const filters = getTeamsFiltersFromQuery(_searchParams);
   const userEventGroupsData = await getCachedEventGroups(_headers, _cookies, filters);
 
   return (
-    <ShellMainAppDir
-      heading={t("event_types_page_title")}
-      subtitle={t("event_types_page_subtitle")}
-      CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
-      <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
-    </ShellMainAppDir>
+    <EventTypesPageWrapper>
+      <ShellMainAppDir
+        heading={<DynamicHeading />}
+        subtitle={<DynamicSubtitle />}
+        beforeCTAactions={<MainTabsNavigation />}
+        CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
+        <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
+      </ShellMainAppDir>
+    </EventTypesPageWrapper>
   );
 };
 
