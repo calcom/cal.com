@@ -81,6 +81,21 @@ export class CredentialRepository {
     return buildNonDelegationCredential(credential);
   }
 
+  static async findByUserIdAndType({
+    userId,
+    type,
+    select,
+  }: {
+    userId: number;
+    type: string;
+    select?: Prisma.CredentialSelect;
+  }) {
+    return prisma.credential.findMany({
+      where: { userId, type },
+      select: select || { key: true },
+    });
+  }
+
   static async deleteById({ id }: { id: number }) {
     await prisma.credential.delete({ where: { id } });
   }
