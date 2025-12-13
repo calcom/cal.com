@@ -140,6 +140,10 @@ export const DI_TOKENS = {
         DELEGATION_CREDENTIAL_REPOSITORY_MODULE: Symbol("DelegationCredentialRepositoryModule"),
         WEBHOOK_REPOSITORY: Symbol("WebhookRepository"),
         WEBHOOK_REPOSITORY_MODULE: Symbol("WebhookRepositoryModule"),
+        ROLE_REPOSITORY: Symbol("RoleRepository"),
+        ROLE_REPOSITORY_MODULE: Symbol("RoleRepositoryModule"),
+        PERMISSION_REPOSITORY: Symbol("PermissionRepository"),
+        PERMISSION_REPOSITORY_MODULE: Symbol("PermissionRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens
