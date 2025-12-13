@@ -130,6 +130,10 @@ export const DI_TOKENS = {
         ORGANIZATION_SETTINGS_REPOSITORY_MODULE: Symbol("OrganizationSettingsRepositoryModule"),
         CALENDAR_CACHE_EVENT_REPOSITORY: Symbol("CalendarCacheEventRepository"),
         CALENDAR_CACHE_EVENT_REPOSITORY_MODULE: Symbol("CalendarCacheEventRepositoryModule"),
+        GLOBAL_WATCHLIST_REPOSITORY: Symbol("GlobalWatchlistRepository"),
+        GLOBAL_WATCHLIST_REPOSITORY_MODULE: Symbol("GlobalWatchlistRepositoryModule"),
+        ORGANIZATION_WATCHLIST_REPOSITORY: Symbol("OrganizationWatchlistRepository"),
+        ORGANIZATION_WATCHLIST_REPOSITORY_MODULE: Symbol("OrganizationWatchlistRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens

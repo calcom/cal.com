@@ -37,6 +37,7 @@ import type { IVideoCallGuestRepository } from "../../video-call-guest/repositor
 import type { IAccessCodeRepository } from "../../oauth/repositories/IAccessCodeRepository";
 import type { IOrganizationSettingsRepository } from "../../organizations/repositories/IOrganizationSettingsRepository";
 import type { ICalendarCacheEventRepository } from "../../calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
+import type { IGlobalWatchlistRepository, IOrganizationWatchlistRepository } from "../../watchlist/lib/interface/IWatchlistRepositories";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
@@ -90,6 +91,8 @@ import { videoCallGuestRepositoryModuleLoader } from "../modules/VideoCallGuest"
 import { accessCodeRepositoryModuleLoader } from "../modules/AccessCode";
 import { organizationSettingsRepositoryModuleLoader } from "../modules/OrganizationSettings";
 import { calendarCacheEventRepositoryModuleLoader } from "../modules/CalendarCacheEvent";
+import { globalWatchlistRepositoryModuleLoader } from "../modules/GlobalWatchlist";
+import { organizationWatchlistRepositoryModuleLoader } from "../modules/OrganizationWatchlist";
 
 const repositoryContainer = createContainer();
 
@@ -139,6 +142,8 @@ repositoryContainer.load(videoCallGuestRepositoryModuleLoader());
 repositoryContainer.load(accessCodeRepositoryModuleLoader());
 repositoryContainer.load(organizationSettingsRepositoryModuleLoader());
 repositoryContainer.load(calendarCacheEventRepositoryModuleLoader());
+repositoryContainer.load(globalWatchlistRepositoryModuleLoader());
+repositoryContainer.load(organizationWatchlistRepositoryModuleLoader());
 
 export function getScheduleRepository():IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -320,4 +325,12 @@ export function getOrganizationSettingsRepository(): IOrganizationSettingsReposi
 
 export function getCalendarCacheEventRepository(): ICalendarCacheEventRepository {
   return repositoryContainer.get<ICalendarCacheEventRepository>(DI_TOKENS.CALENDAR_CACHE_EVENT_REPOSITORY);
+}
+
+export function getGlobalWatchlistRepository(): IGlobalWatchlistRepository {
+  return repositoryContainer.get<IGlobalWatchlistRepository>(DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY);
+}
+
+export function getOrganizationWatchlistRepository(): IOrganizationWatchlistRepository {
+  return repositoryContainer.get<IOrganizationWatchlistRepository>(DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY);
 }
