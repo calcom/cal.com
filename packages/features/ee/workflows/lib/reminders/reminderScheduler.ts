@@ -1,4 +1,4 @@
-import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
+import { getBookingSeatRepository, getWorkflowReminderRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
@@ -11,12 +11,10 @@ import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFun
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
-import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -77,7 +75,7 @@ const getReminderPhoneNumber = async (
   }
 
   if (seatReferenceUid) {
-    const bookingSeatRepository = new BookingSeatRepository(prisma);
+    const bookingSeatRepository = getBookingSeatRepository();
     const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
       seatReferenceUid
     );
@@ -148,8 +146,8 @@ const processWorkflowStep = async (
       return;
     }
 
-    const workflowReminderRepository = new WorkflowReminderRepository(prisma);
-    const bookingSeatRepository = new BookingSeatRepository(prisma);
+    const workflowReminderRepository = getWorkflowReminderRepository();
+    const bookingSeatRepository = getBookingSeatRepository();
     const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
     const emailParams = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
       evt,
@@ -293,11 +291,7 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
   teamId?: number | null;
   userIdsWithNoCredits: number[];
 }) => {
-  const { WorkflowReminderRepository } = await import(
-    "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository"
-  );
-
-  const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+  const workflowReminderRepository = getWorkflowReminderRepository();
   const scheduledMessages = await workflowReminderRepository.findScheduledMessagesToCancel({
     teamId,
     userIdsWithNoCredits,

@@ -1,7 +1,6 @@
-import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
+import { getBookingSeatRepository, getWorkflowReminderRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import tasker from "@calcom/features/tasker";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -124,8 +123,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     timeUnit: timeSpan.timeUnit,
     evt,
   });
-  const workflowReminderRepository = new WorkflowReminderRepository(prisma);
-  const bookingSeatRepository = new BookingSeatRepository(prisma);
+  const workflowReminderRepository = getWorkflowReminderRepository();
+  const bookingSeatRepository = getBookingSeatRepository();
   const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
   const mailData = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
     evt,
