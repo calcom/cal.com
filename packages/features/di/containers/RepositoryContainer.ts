@@ -28,6 +28,7 @@ import type { IBookingAuditRepository } from "../../booking-audit/lib/repository
 import type { IAuditActorRepository } from "../../booking-audit/lib/repository/IAuditActorRepository";
 import type { IBillingRepository } from "../../ee/billing/repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../ee/billing/repository/teamBillingData/ITeamBillingDataRepository";
+import type { IPhoneNumberRepository } from "@calcom/lib/server/repository/IPhoneNumberRepository";
 
 import type { IBookingRepository } from "../../bookings/repositories/IBookingRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
@@ -76,6 +77,7 @@ import { auditActorRepositoryModuleLoader } from "../modules/AuditActor";
 import { teamBillingRepositoryModuleLoader } from "../modules/TeamBilling";
 import { organizationBillingRepositoryModuleLoader } from "../modules/OrganizationBilling";
 import { teamBillingDataRepositoryModuleLoader } from "../modules/TeamBillingData";
+import { phoneNumberRepositoryModuleLoader } from "../modules/PhoneNumber";
 
 const repositoryContainer = createContainer();
 
@@ -118,6 +120,7 @@ repositoryContainer.load(auditActorRepositoryModuleLoader());
 repositoryContainer.load(teamBillingRepositoryModuleLoader());
 repositoryContainer.load(organizationBillingRepositoryModuleLoader());
 repositoryContainer.load(teamBillingDataRepositoryModuleLoader());
+repositoryContainer.load(phoneNumberRepositoryModuleLoader());
 
 export function getScheduleRepository(): IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -271,4 +274,8 @@ export function getOrganizationBillingRepository(): IBillingRepository {
 
 export function getTeamBillingDataRepository(): ITeamBillingDataRepository {
   return repositoryContainer.get<ITeamBillingDataRepository>(DI_TOKENS.TEAM_BILLING_DATA_REPOSITORY);
+}
+
+export function getPhoneNumberRepository(): IPhoneNumberRepository {
+  return repositoryContainer.get<IPhoneNumberRepository>(DI_TOKENS.PHONE_NUMBER_REPOSITORY);
 }
