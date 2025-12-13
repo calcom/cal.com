@@ -102,6 +102,10 @@ export const DI_TOKENS = {
         ATTRIBUTE_TO_USER_REPOSITORY_MODULE: Symbol("AttributeToUserRepositoryModule"),
         BOOKING_PAYMENT_REPOSITORY: Symbol("BookingPaymentRepository"),
         BOOKING_PAYMENT_REPOSITORY_MODULE: Symbol("BookingPaymentRepositoryModule"),
+        QUEUED_FORM_RESPONSE_REPOSITORY: Symbol("QueuedFormResponseRepository"),
+        QUEUED_FORM_RESPONSE_REPOSITORY_MODULE: Symbol("QueuedFormResponseRepositoryModule"),
+        WATCHLIST_AUDIT_REPOSITORY: Symbol("WatchlistAuditRepository"),
+        WATCHLIST_AUDIT_REPOSITORY_MODULE: Symbol("WatchlistAuditRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens
