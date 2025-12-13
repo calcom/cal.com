@@ -22,6 +22,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
 import type { appDataSchema } from "../zod";
+import { HubspotRecordEnum } from "./enums";
 
 export default class HubspotCalendarService implements CRM {
   private url = "";
@@ -87,19 +88,52 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
   };
 
-  private hubspotAssociate = async (meeting: SimplePublicObject, contacts: Array<{ id: string }>) => {
-    const batchInputPublicAssociation: BatchInputPublicAssociation = {
-      inputs: contacts.map((contact: { id: string }) => ({
-        _from: { id: meeting.id },
-        to: { id: contact.id },
-        type: "meeting_event_to_contact",
-      })),
-    };
-    return this.hubspotClient.crm.associations.batchApi.create(
-      "meetings",
-      "contacts",
-      batchInputPublicAssociation
-    );
+  private hubspotAssociate = async (meeting: SimplePublicObject, contacts: Contact[]) => {
+    const appOptions = this.getAppOptions();
+    const createEventOn = appOptions.createEventOn ?? HubspotRecordEnum.CONTACT;
+
+    // Separate contacts and companies based on recordType
+    const contactRecords = contacts.filter((c) => c.recordType !== "company");
+    const companyRecords = contacts.filter((c) => c.recordType === "company");
+
+    const results = [];
+
+    if (contactRecords.length > 0) {
+      const contactAssociation: BatchInputPublicAssociation = {
+        inputs: contactRecords.map((contact) => ({
+          _from: { id: meeting.id },
+          to: { id: contact.id },
+          type: "meeting_event_to_contact",
+        })),
+      };
+      const contactResult = await this.hubspotClient.crm.associations.batchApi.create(
+        "meetings",
+        "contacts",
+        contactAssociation
+      );
+      results.push(contactResult);
+    }
+
+    if (companyRecords.length > 0 || createEventOn === HubspotRecordEnum.COMPANY) {
+      const companiesToAssociate = companyRecords.length > 0 ? companyRecords : contacts;
+      if (companiesToAssociate.length > 0 && companiesToAssociate[0].recordType === "company") {
+        const companyAssociation: BatchInputPublicAssociation = {
+          inputs: companiesToAssociate.map((company) => ({
+            _from: { id: meeting.id },
+            to: { id: company.id },
+            type: "meeting_event_to_company",
+          })),
+        };
+        const companyResult = await this.hubspotClient.crm.associations.batchApi.create(
+          "meetings",
+          "companies",
+          companyAssociation
+        );
+        results.push(companyResult);
+      }
+    }
+
+    return results.length > 0 ? results[0] : null;
   };
 
   private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
@@ -186,11 +220,10 @@ export default class HubspotCalendarService implements CRM {
   };
 
   async handleMeetingCreation(event: CalendarEvent, contacts: Contact[]) {
-    const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
     const meetingEvent = await this.hubspotCreateMeeting(event);
     if (meetingEvent) {
       this.log.debug("meeting:creation:ok", { meetingEvent });
-      const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
+      const associatedMeeting = await this.hubspotAssociate(meetingEvent, contacts);
       if (associatedMeeting) {
         this.log.debug("association:creation:ok", { associatedMeeting });
         return Promise.resolve({
@@ -238,14 +271,30 @@ export default class HubspotCalendarService implements CRM {
 
     const emailArray = Array.isArray(emails) ? emails : [emails];
     const appOptions = this.getAppOptions();
+    const createEventOn = appOptions.createEventOn ?? HubspotRecordEnum.CONTACT;
 
-    if (appOptions.createEventOnLeadCheckForContact) {
+
+    if (createEventOn === HubspotRecordEnum.CONTACT) {
       const contacts = await this.searchContacts(emailArray);
+      // If contacts exist, return them regardless of skipContactCreation
       if (contacts.length > 0) {
         return contacts;
       }
-      const leads = await this.searchLeads(emailArray);
-      return leads;
+      return [];
+    }
+
+    if (createEventOn === HubspotRecordEnum.COMPANY) {
+      if (appOptions.checkForContact) {
+        const contacts = await this.searchContacts(emailArray);
+        if (contacts.length > 0) {
+          return contacts;
+        }
+        // No contact found, fall back to company
+        const companies = await this.searchCompanies(emailArray);
+        return companies;
+      }
+      const companies = await this.searchCompanies(emailArray);
+      return companies;
     }
 
     return await this.searchContacts(emailArray);
@@ -315,10 +364,70 @@ export default class HubspotCalendarService implements CRM {
     }
   }
 
+  private async searchCompanies(emailArray: string[]): Promise<Contact[]> {
+    try {
+      const domains = emailArray
+        .map((email) => {
+          const parts = email.split("@");
+          return parts.length > 1 ? parts[1] : "";
+        })
+        .filter((domain) => domain !== "");
+
+      if (domains.length === 0) {
+        return [];
+      }
+
+      const publicObjectSearchRequest: PublicObjectSearchRequest = {
+        filterGroups: domains.map((domain) => ({
+          filters: [
+            {
+              value: domain,
+              propertyName: "domain",
+              operator: "EQ",
+            },
+          ],
+        })),
+        sorts: ["hs_object_id"],
+        properties: ["hs_object_id", "domain", "name"],
+        limit: 10,
+        after: 0,
+      };
+
+      const companies = await this.hubspotClient.crm.companies.searchApi
+        .doSearch(publicObjectSearchRequest)
+        .then((apiResponse) => apiResponse.results);
+
+      return companies.map((company) => {
+        return {
+          id: company.id,
+          email: company.properties.domain || "",
+          recordType: "company",
+        };
+      });
+    } catch (error) {
+      this.log.error("searchCompanies:error", { error });
+      return [];
+    }
+  }
+
   async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
     const auth = await this.auth;
     await auth.getToken();
 
+    const appOptions = this.getAppOptions();
+    const createEventOn = appOptions.createEventOn ?? HubspotRecordEnum.CONTACT;
+
+    if (createEventOn === HubspotRecordEnum.CONTACT && appOptions.skipContactCreation) {
+      return [];
+    }
+
+    if (createEventOn === HubspotRecordEnum.COMPANY) {
+      return await this.createCompanyRecords(contactsToCreate);
+    }
+    return await this.createContactRecords(contactsToCreate);
+  }
+
+  private async createContactRecords(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
     const simplePublicObjectInputs = contactsToCreate.map((attendee) => {
       const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
       return {
@@ -353,7 +462,65 @@ export default class HubspotCalendarService implements CRM {
     });
   }
 
+  private async createCompanyRecords(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
+    const domainMap = new Map<string, ContactCreateInput>();
+    contactsToCreate.forEach((attendee) => {
+      const parts = attendee.email.split("@");
+      if (parts.length > 1) {
+        const domain = parts[1];
+        if (!domainMap.has(domain)) {
+          domainMap.set(domain, attendee);
+        }
+      }
+    });
+
+    const companyInputs = Array.from(domainMap.entries()).map(([domain, attendee]) => {
+      return {
+        properties: {
+          domain,
+          name: attendee.name || domain,
+        },
+      };
+    });
+
+    const createdCompanies = await Promise.all(
+      companyInputs.map((company) =>
+        this.hubspotClient.crm.companies.basicApi.create(company).catch((error) => {
+          if (error.body?.message?.includes("Company already exists")) {
+            return { id: "", properties: company.properties, error: "exists" };
+          }
+          throw error;
+        })
+      )
+    );
+
+    const results: Contact[] = [];
+    for (const company of createdCompanies) {
+      if ((company as any).error === "exists") {
+        const existingCompanies = await this.searchCompanies([`user@${company.properties.domain}`]);
+        if (existingCompanies.length > 0) {
+          results.push(existingCompanies[0]);
+        }
+      } else if (company.id) {
+        results.push({
+          id: company.id,
+          email: company.properties.domain || "",
+          recordType: "company",
+        });
+      }
+    }
+
+    return results;
+  }
+
   getAppOptions() {
+    const createEventOn = this.appOptions.createEventOn ?? HubspotRecordEnum.CONTACT;
+    if (createEventOn === HubspotRecordEnum.COMPANY) {
+      return {
+        ...this.appOptions,
+        skipContactCreation: false,
+      };
+    }
     return this.appOptions;
   }
 
