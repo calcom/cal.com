@@ -205,7 +205,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     notes: string | null;
     showNotePublicly: boolean;
     reason: { reason: string; emoji: string } | null;
-    reasonId: number;
+    reasonId: number | null;
     user: { id: number; name: string | null; email: string; timeZone: string };
     toUser: { id: number; name: string | null; email: string; timeZone: string } | null;
     uuid: string;
