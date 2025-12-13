@@ -100,7 +100,37 @@ const getDuration = (start: string, end: string): DurationObject => ({
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
+const unfoldIcal = (ical: string): string => {
+  return ical.replace(/\r\n[ \t]/g, "");
+};
+
+const foldIcal = (ical: string): string => {
+  return ical
+    .split("\r\n")
+    .map((line) => {
+      if (Buffer.byteLength(line, "utf8") <= 75) return line;
+
+      let folded = "";
+      let limit = 75;
+
+      while (Buffer.byteLength(line, "utf8") > limit) {
+        // Find the correct split point that doesn't exceed the current limit
+        let splitIndex = limit;
+        while (splitIndex > 0 && Buffer.byteLength(line.substring(0, splitIndex), "utf8") > limit) {
+          splitIndex--;
+        }
+        folded += line.substring(0, splitIndex) + "\r\n ";
+        line = line.substring(splitIndex);
+        limit = 74;
+      }
+      folded += line;
+      return folded;
+    })
+    .join("\r\n");
+};
+
 export default abstract class BaseCalendarService implements Calendar {
+  // ... existing properties ...
   private url = "";
   private credentials: Record<string, string> = {};
   private headers: Record<string, string> = {};
@@ -145,7 +175,7 @@ export default abstract class BaseCalendarService implements Calendar {
       const uid = uuidv4();
 
       // We create local ICS files
-      const { error, value: iCalString } = createEvent({
+      const { error, value: initialICalString } = createEvent({
         uid,
         startInputType: "utc",
         start: convertDate(event.startTime),
@@ -164,8 +194,18 @@ export default abstract class BaseCalendarService implements Calendar {
         ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
       });
 
-      if (error || !iCalString)
+      if (error || !initialICalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
+
+      let iCalString = initialICalString;
+
+      // Fastmail sends emails on behalf of the user if the SCHEDULE-AGENT is not set to CLIENT
+      // This causes duplicate emails to be sent to the attendees
+      if (this.url?.includes("fastmail.com")) {
+        const unfolded = unfoldIcal(iCalString);
+        const modified = unfolded.replace(/^(ATTENDEE)([:;])/gmi, "$1;SCHEDULE-AGENT=CLIENT$2");
+        iCalString = foldIcal(modified);
+      }
 
       const mainHostDestinationCalendar = event.destinationCalendar
         ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
@@ -222,7 +262,7 @@ export default abstract class BaseCalendarService implements Calendar {
       const events = await this.getEventsByUID(uid);
 
       /** We generate the ICS files */
-      const { error, value: iCalString } = createEvent({
+      const { error, value: initialICalString } = createEvent({
         uid,
         startInputType: "utc",
         start: convertDate(event.startTime),
@@ -246,6 +286,17 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+
+      let iCalString = initialICalString;
+
+      // Fastmail sends emails on behalf of the user if the SCHEDULE-AGENT is not set to CLIENT
+      // This causes duplicate emails to be sent to the attendees
+      if (this.url?.includes("fastmail.com") && iCalString) {
+        const unfolded = unfoldIcal(iCalString);
+        const modified = unfolded.replace(/^(ATTENDEE)([:;])/gmi, "$1;SCHEDULE-AGENT=CLIENT$2");
+        iCalString = foldIcal(modified);
+      }
+
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
