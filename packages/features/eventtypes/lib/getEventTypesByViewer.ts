@@ -1,13 +1,12 @@
 import { orderBy } from "lodash";
 
+import { getEventTypeRepository, getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
@@ -15,7 +14,6 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
@@ -60,7 +58,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
   });
 
-  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventTypeRepo = getEventTypeRepository();
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
@@ -117,12 +115,12 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   type UserEventTypes = (typeof profileEventTypes)[number];
 
   const mapEventType = async (eventType: UserEventTypes) => {
-    const userRepo = new UserRepository(prisma);
+    const userRepo = getUserRepository();
     return {
       ...eventType,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
       users: await Promise.all(
-        (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+        (eventType.hosts && eventType.hosts.length > 0 ? eventType.hosts.map((host) => host.user) : eventType.users).map(
           async (u) =>
             await userRepo.enrichUserWithItsProfile({
               user: u,

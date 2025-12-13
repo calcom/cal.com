@@ -1,6 +1,5 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeaturesRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
@@ -55,7 +54,7 @@ export const getResourcePermissions = async ({
   userRole,
   fallbackRoles = {},
 }: ResourcePermissionsOptions): Promise<ResourcePermissions> => {
-  const featureRepo = new FeaturesRepository(prisma);
+  const featureRepo = getFeaturesRepository();
   const permissionService = new PermissionCheckService();
 
   const pbacEnabled = await featureRepo.checkIfTeamHasFeature(teamId, "pbac");
@@ -111,7 +110,7 @@ export const getSpecificPermissions = async ({
   actions,
   fallbackRoles = {},
 }: SpecificPermissionsOptions): Promise<Record<string, boolean>> => {
-  const featureRepo = new FeaturesRepository(prisma);
+  const featureRepo = getFeaturesRepository();
   const permissionService = new PermissionCheckService();
 
   const pbacEnabled = await featureRepo.checkIfTeamHasFeature(teamId, "pbac");
