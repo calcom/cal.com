@@ -941,8 +941,8 @@ const InfiniteScrollMain = ({
     matchFullPath: true,
   }));
 
-  const activeEventTypeGroup =
-    eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
+  const filteredGroups = eventTypeGroups.filter((item) => item.teamId === data.teamId);
+  const activeEventTypeGroup = filteredGroups.length > 0 ? filteredGroups : [eventTypeGroups[0]];
 
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
 
