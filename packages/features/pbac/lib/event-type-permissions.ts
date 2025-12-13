@@ -1,5 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { prisma } from "@calcom/prisma";
+import { getFeaturesRepository, getMembershipRepository, getTeamRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { Resource } from "../domain/types/permission-registry";
@@ -94,7 +93,7 @@ export async function getEventTypePermissions(
   }
 
   const permissionCheckService = new PermissionCheckService();
-  const featuresRepository = new FeaturesRepository(prisma);
+  const featuresRepository = getFeaturesRepository();
 
   // Check if PBAC is enabled for the team
   const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(teamId, "pbac");
@@ -121,38 +120,20 @@ export async function getEventTypePermissions(
 
   // Fallback to role-based permissions when PBAC is not enabled
   // Check both team membership and org membership (via parentId)
+  const membershipRepo = getMembershipRepository();
+  const teamRepo = getTeamRepository();
   const [teamMembership, team] = await Promise.all([
-    prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId,
-      },
-      select: {
-        role: true,
-      },
-    }),
-    prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      select: {
-        parentId: true,
-      },
-    }),
+    membershipRepo.findUniqueByUserIdAndTeamId({ userId, teamId }),
+    teamRepo.findById({ teamId }),
   ]);
 
   let effectiveRole: MembershipRole | null = teamMembership?.role ?? null;
 
   // If the team has a parent (org), check for org membership
   if (team?.parentId) {
-    const orgMembership = await prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId: team.parentId,
-      },
-      select: {
-        role: true,
-      },
+    const orgMembership = await membershipRepo.findUniqueByUserIdAndTeamId({
+      userId,
+      teamId: team.parentId,
     });
 
     // Use the highest role between team and org

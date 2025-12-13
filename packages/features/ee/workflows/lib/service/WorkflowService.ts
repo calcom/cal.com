@@ -4,15 +4,13 @@ import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/rem
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow, WorkflowStep } from "@calcom/ee/workflows/lib/types";
+import { getTeamRepository, getWorkflowReminderRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents, WorkflowType, WorkflowMethods } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
@@ -51,8 +49,8 @@ export class WorkflowService {
   }
 
   static async deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
-    const teamRepository = new TeamRepository(prisma);
-    const team = await teamRepository.findById({ id: teamId });
+    const teamRepository = getTeamRepository();
+    const team = await teamRepository.findById({ teamId });
 
     if (team?.parentId) {
       const activeWorkflowsOnTeam = await WorkflowRepository.findActiveWorkflowsOnTeam({
@@ -65,7 +63,6 @@ export class WorkflowService {
         let remainingActiveOnIds = [];
 
         if (workflow.isActiveOnAll) {
-          const teamRepository = new TeamRepository(prisma);
           const allRemainingOrgTeams = await teamRepository.findOrgTeamsExcludingTeam({
             parentId: team.parentId,
             excludeTeamId: team.id,
@@ -283,7 +280,7 @@ export class WorkflowService {
 
     let workflowReminder: { id: number | null; uuid: string | null };
     try {
-      const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+      const workflowReminderRepository = getWorkflowReminderRepository();
       workflowReminder = await workflowReminderRepository.create({
         bookingUid,
         workflowStepId,

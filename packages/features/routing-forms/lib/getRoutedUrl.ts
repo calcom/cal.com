@@ -14,16 +14,14 @@ import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleRespon
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
+import { getUserRepository, getRoutingFormRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
-import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -95,7 +93,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let timeTaken: Record<string, number | null> = {};
 
   const formQueryStart = performance.now();
-  const form = await PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
+  const routingFormRepo = getRoutingFormRepository();
+  const form = await routingFormRepo.findFormByIdIncludeUserTeamAndOrg(formId);
   timeTaken.formQuery = performance.now() - formQueryStart;
 
   if (!form) {
@@ -105,7 +104,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   }
 
   const profileEnrichmentStart = performance.now();
-  const userRepo = new UserRepository(prisma);
+  const userRepo = getUserRepository();
   const formWithUserProfile = {
     ...form,
     user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
