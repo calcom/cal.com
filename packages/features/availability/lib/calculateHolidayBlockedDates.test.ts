@@ -92,12 +92,18 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       [{ days: [1, 2, 3, 4, 5] }]
     );
 
+    // Dates are expanded to full day range (startOfDay to endOfDay in UTC)
+    // to ensure holidays stored at midnight UTC are found
     expect(mockHolidayService.getHolidayDatesInRange).toHaveBeenCalledWith(
       "US",
       [],
-      new Date("2025-02-01"),
-      new Date("2025-02-28")
+      expect.any(Date),
+      expect.any(Date)
     );
+    // Verify the date range covers the full days
+    const [, , startDate, endDate] = mockHolidayService.getHolidayDatesInRange.mock.calls[0];
+    expect(startDate.toISOString()).toBe("2025-02-01T00:00:00.000Z");
+    expect(endDate.toISOString()).toBe("2025-02-28T23:59:59.999Z");
     expect(result).toEqual({});
   });
 
