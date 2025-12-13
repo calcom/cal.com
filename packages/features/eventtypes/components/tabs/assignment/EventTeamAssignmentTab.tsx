@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ComponentProps, Dispatch, SetStateAction } from "react";
+import type { ComponentProps, Dispatch, FormEvent, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 import { v4 as uuidv4 } from "uuid";
@@ -25,15 +25,18 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
+import { CreationSource, RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
 import WeightDescription from "../../WeightDescription";
@@ -118,6 +121,77 @@ const ChildrenEventTypesList = ({
         />
       </div>
     </div>
+  );
+};
+
+const InviteMembersInline = ({
+  teamId,
+  onInvitesCompleted,
+}: {
+  teamId: number;
+  onInvitesCompleted?: () => Promise<void> | void;
+}) => {
+  const { t, i18n } = useLocale();
+  const [emails, setEmails] = useState("");
+
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+    async onSuccess(data) {
+      const invited = Array.isArray(data.usernameOrEmail) ? data.usernameOrEmail : [data.usernameOrEmail];
+      const message =
+        invited.length > 1
+          ? t("email_invite_team_bulk", { userCount: data.numUsersInvited })
+          : t("email_invite_team", { email: invited[0] });
+      showToast(message, "success");
+      setEmails("");
+      await onInvitesCompleted?.();
+    },
+    onError: (error) => showToast(error.message, "error"),
+  });
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const parsedEmails = emails
+      .split(/[,\\s]+/)
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean);
+    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+
+    if (!parsedEmails.length || parsedEmails.some((email) => !emailRegex.test(email))) {
+      showToast(t("enter_email"), "warning");
+      return;
+    }
+
+    inviteMemberMutation.mutate({
+      teamId,
+      usernameOrEmail: parsedEmails.length === 1 ? parsedEmails[0] : parsedEmails,
+      language: i18n.language,
+      creationSource: CreationSource.WEBAPP,
+    });
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="border-subtle mt-4 flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-end">
+      <div className="flex-1">
+        <Label className="mb-1 text-sm font-semibold">{t("invite_team_member")}</Label>
+        <TextField
+          name="assignment-invite"
+          placeholder="email@example.com, second@example.com"
+          value={emails}
+          onChange={(event) => setEmails(event.target.value)}
+        />
+        <p className="text-subtle mt-1 text-xs">{t("enter_email")}</p>
+      </div>
+      <Button
+        type="submit"
+        size="sm"
+        color="secondary"
+        className="w-full sm:w-auto"
+        loading={inviteMemberMutation.isPending}>
+        {t("send_invite")}
+      </Button>
+    </form>
   );
 };
 
@@ -757,8 +831,9 @@ export const EventTeamAssignmentTab = ({
       // description: t("round_robin_description"),
     },
   ];
+  const includePendingMembers = !!eventType.team?.parentId;
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
-    !!eventType.team?.parentId || !!member.username;
+    includePendingMembers || !!member.username;
   const teamMembersOptions = teamMembers
     .filter(pendingMembers)
     .map((member) => mapUserToValue(member, t("pending")));
@@ -774,6 +849,76 @@ export const EventTeamAssignmentTab = ({
       t("pending")
     );
   });
+  const [availableTeamMembers, setAvailableTeamMembers] = useState(teamMembersOptions);
+  const [availableChildrenOptions, setAvailableChildrenOptions] = useState(childrenEventTypeOptions);
+  const { refetch: refetchTeamMembers } = trpc.viewer.teams.listMembers.useQuery(
+    {
+      teamId: team?.id ?? 0,
+      limit: 100,
+    },
+    { enabled: !!team?.id }
+  );
+
+  useEffect(() => {
+    setAvailableTeamMembers(teamMembersOptions);
+    setAvailableChildrenOptions(childrenEventTypeOptions);
+  }, [teamMembersOptions, childrenEventTypeOptions]);
+
+  const mergeByValue = <T extends { value: string }>(options: T[]) => {
+    const mapped = new Map<string, T>();
+    options.forEach((opt) => mapped.set(opt.value, opt));
+    return Array.from(mapped.values()).sort((a, b) => a.label.localeCompare(b.label));
+  };
+
+  const syncTeamMembers = useCallback(async () => {
+    if (!team?.id) return;
+    const result = await refetchTeamMembers();
+    const members = result.data?.members ?? [];
+    const filteredMembers = members.filter((member) => includePendingMembers || member.accepted);
+
+    const mappedTeamMembers = filteredMembers.map((member) =>
+      mapUserToValue(
+        {
+          id: member.id,
+          name: member.name ?? "",
+          username: member.username ?? null,
+          avatar: member.avatarUrl || "",
+          email: member.email,
+          defaultScheduleId: member.defaultScheduleId ?? null,
+        },
+        t("pending")
+      )
+    );
+
+    const mappedChildrenOptions = filteredMembers.map((member) =>
+      mapMemberToChildrenOption(
+        {
+          id: member.id,
+          name: member.name ?? "",
+          email: member.email,
+          username: member.username ?? "",
+          membership: member.role,
+          eventTypes: [],
+          avatar: member.avatarUrl || "",
+          profile: member.profile,
+          defaultScheduleId: member.defaultScheduleId ?? null,
+        },
+        eventType.slug,
+        t("pending")
+      )
+    );
+
+    setAvailableTeamMembers(mergeByValue([...teamMembersOptions, ...mappedTeamMembers]));
+    setAvailableChildrenOptions(mergeByValue([...childrenEventTypeOptions, ...mappedChildrenOptions]));
+  }, [
+    childrenEventTypeOptions,
+    eventType.slug,
+    includePendingMembers,
+    t,
+    team?.id,
+    refetchTeamMembers,
+    teamMembersOptions,
+  ]);
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   const { getValues, setValue, control } = useFormContext<FormValues>();
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
@@ -947,16 +1092,17 @@ export const EventTeamAssignmentTab = ({
             teamId={team.id}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
-            teamMembers={teamMembersOptions}
+            teamMembers={availableTeamMembers}
             customClassNames={customClassNames?.hosts}
           />
+          <InviteMembersInline teamId={team.id} onInvitesCompleted={syncTeamMembers} />
         </>
       )}
       {team && isManagedEventType && (
         <ChildrenEventTypes
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          childrenEventTypeOptions={childrenEventTypeOptions}
+          childrenEventTypeOptions={availableChildrenOptions}
           customClassNames={customClassNames?.childrenEventTypes}
         />
       )}

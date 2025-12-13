@@ -34,6 +34,7 @@ const userSelect = {
   bio: true,
   disableImpersonation: true,
   lastActiveAt: true,
+  defaultScheduleId: true,
 } satisfies Prisma.UserSelect;
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
