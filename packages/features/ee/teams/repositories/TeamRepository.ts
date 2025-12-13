@@ -1,12 +1,15 @@
 import type { z } from "zod";
 
-import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import {
+  getOrgFullOrigin,
+  whereClauseForOrgWithSlugOrRequestedSlug,
+} from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
@@ -580,6 +583,167 @@ export class TeamRepository {
     `;
 
     return users;
+  }
+
+  async findTeamForMigration({ teamId }: { teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        slug: true,
+        metadata: true,
+        parent: {
+          select: {
+            id: true,
+            isPlatform: true,
+          },
+        },
+        members: {
+          select: {
+            role: true,
+            userId: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async updateTeamSlugAndParent({
+    teamId,
+    slug,
+    parentId,
+  }: {
+    teamId: number;
+    slug: string | null;
+    parentId: number;
+  }) {
+    return await this.prismaClient.team.update({
+      where: {
+        id: teamId,
+      },
+      data: {
+        slug,
+        parentId,
+      },
+    });
+  }
+
+  async upsertTeamRedirect({
+    oldTeamSlug,
+    teamSlug,
+    orgSlug,
+  }: {
+    oldTeamSlug: string;
+    teamSlug: string;
+    orgSlug: string;
+  }) {
+    const orgUrlPrefix = getOrgFullOrigin(orgSlug);
+
+    return await this.prismaClient.tempOrgRedirect.upsert({
+      where: {
+        from_type_fromOrgId: {
+          type: RedirectType.Team,
+          from: oldTeamSlug,
+          fromOrgId: 0,
+        },
+      },
+      create: {
+        type: RedirectType.Team,
+        from: oldTeamSlug,
+        fromOrgId: 0,
+        toUrl: `${orgUrlPrefix}/${teamSlug}`,
+      },
+      update: {
+        toUrl: `${orgUrlPrefix}/${teamSlug}`,
+      },
+    });
+  }
+
+  async findOrganizationForValidation(orgId: number) {
+    return await this.prismaClient.team.findUnique({
+      where: { id: orgId },
+      select: { slug: true, id: true, metadata: true },
+    });
+  }
+
+  async findTeamBySlugAndParentId({ slug, parentId }: { slug: string; parentId: number | null }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        parentId,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async findTeamsByParentId(parentId: number) {
+    return await this.prismaClient.team.findMany({
+      where: { parentId },
+      select: { slug: true },
+    });
+  }
+
+  async createTeamWithOwner({
+    slug,
+    name,
+    bio,
+    parentId,
+    ownerId,
+  }: {
+    slug: string;
+    name: string;
+    bio?: string | null;
+    parentId?: number | null;
+    ownerId: number;
+  }) {
+    return await this.prismaClient.team.create({
+      data: {
+        slug,
+        name,
+        bio: bio ?? null,
+        parentId: parentId ?? null,
+        members: {
+          create: {
+            userId: ownerId,
+            role: MembershipRole.OWNER,
+            accepted: true,
+          },
+        },
+      },
+    });
+  }
+
+  async createTeamsInTransaction(
+    teams: Array<{
+      slug: string;
+      name: string;
+      parentId: number;
+      ownerId: number;
+    }>
+  ) {
+    return await this.prismaClient.$transaction(
+      teams.map((team) =>
+        this.prismaClient.team.create({
+          data: {
+            name: team.name,
+            parentId: team.parentId,
+            slug: team.slug,
+            members: {
+              create: { userId: team.ownerId, role: MembershipRole.OWNER, accepted: true },
+            },
+          },
+        })
+      )
+    );
   }
 
   private parsePermission(permission: string): { resource: string; action: string } {
