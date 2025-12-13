@@ -1,7 +1,7 @@
-import { PrismaAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/PrismaAuditActorRepository";
+import { KyselyAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/KyselyAuditActorRepository";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { bindModuleToClassOnToken } from "@calcom/features/di/di";
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { moduleLoader as kyselyModuleLoader } from "@calcom/features/di/modules/Kysely";
 import { createModule } from "../../di/di";
 
 export const actorRepositoryModule = createModule();
@@ -11,9 +11,10 @@ const loadModule = bindModuleToClassOnToken({
     module: actorRepositoryModule,
     moduleToken,
     token,
-    classs: PrismaAuditActorRepository,
+    classs: KyselyAuditActorRepository,
     depsMap: {
-        prismaClient: prismaModuleLoader,
+        kyselyRead: kyselyModuleLoader,
+        kyselyWrite: kyselyModuleLoader,
     },
 });
 

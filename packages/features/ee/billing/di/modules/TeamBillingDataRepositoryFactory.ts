@@ -1,9 +1,9 @@
 import { type Container, createModule, ModuleLoader, type ResolveFunction } from "@calcom/features/di/di";
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { moduleLoader as kyselyModuleLoader } from "@calcom/features/di/modules/Kysely";
 import { DI_TOKENS as GLOBAL_DI_TOKENS } from "@calcom/features/di/tokens";
-import type { PrismaClient } from "@calcom/prisma";
+import type { KyselyDb } from "@calcom/kysely";
 
-import { PrismaTeamBillingDataRepository } from "../../repository/teamBillingData/PrismaTeamBillingRepository";
+import { KyselyTeamBillingDataRepository } from "../../repository/teamBillingData/KyselyTeamBillingDataRepository";
 import { StubTeamBillingDataRepository } from "../../repository/teamBillingData/StubTeamBillingRepository";
 import { DI_TOKENS } from "../tokens";
 import { isTeamBillingEnabledModuleLoader } from "./IsTeamBillingEnabled";
@@ -17,15 +17,16 @@ teamBillingDataRepositoryFactoryModule.bind(token).toFactory((resolve: ResolveFu
     return new StubTeamBillingDataRepository();
   }
 
-  const prisma = resolve(GLOBAL_DI_TOKENS.PRISMA_CLIENT) as PrismaClient;
-  return new PrismaTeamBillingDataRepository(prisma);
+  const kyselyRead = resolve(GLOBAL_DI_TOKENS.KYSELY_READ_DB) as KyselyDb;
+  const kyselyWrite = resolve(GLOBAL_DI_TOKENS.KYSELY_WRITE_DB) as KyselyDb;
+  return new KyselyTeamBillingDataRepository(kyselyRead, kyselyWrite);
 });
 
 export const teamBillingDataRepositoryModuleLoader: ModuleLoader = {
   token,
   loadModule: (container: Container) => {
     // Load dependencies first
-    prismaModuleLoader.loadModule(container);
+    kyselyModuleLoader.loadModule(container);
     isTeamBillingEnabledModuleLoader.loadModule(container);
 
     // Then load this module

@@ -1,6 +1,6 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { KyselyOOORepository } from "@calcom/lib/server/repository/KyselyOOORepository";
+import { moduleLoader as kyselyModuleLoader } from "@calcom/features/di/modules/Kysely";
 
 import { createModule, bindModuleToClassOnToken, type ModuleLoader } from "../di";
 
@@ -11,8 +11,11 @@ const loadModule = bindModuleToClassOnToken({
   module: oooRepositoryModule,
   moduleToken,
   token,
-  classs: PrismaOOORepository,
-  dep: prismaModuleLoader,
+  classs: KyselyOOORepository,
+  depsMap: {
+    kyselyRead: kyselyModuleLoader,
+    kyselyWrite: kyselyModuleLoader,
+  },
 });
 
 export const moduleLoader: ModuleLoader = {

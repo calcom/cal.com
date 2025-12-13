@@ -1,9 +1,9 @@
 import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
-import { OrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/repository/OrganizationWatchlistRepository";
-import { PrismaWatchlistAuditRepository } from "@calcom/features/watchlist/lib/repository/PrismaWatchlistAuditRepository";
+import { KyselyGlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/KyselyGlobalWatchlistRepository";
+import { KyselyOrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/repository/KyselyOrganizationWatchlistRepository";
+import { KyselyWatchlistAuditRepository } from "@calcom/features/watchlist/lib/repository/KyselyWatchlistAuditRepository";
 import { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/GlobalBlockingService";
 import { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 
@@ -22,15 +22,15 @@ watchlistModule.bind(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE).toClass(
 // Bind specialized repositories
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY)
-  .toClass(GlobalWatchlistRepository, [DI_TOKENS.PRISMA_CLIENT]);
+  .toClass(KyselyGlobalWatchlistRepository, [DI_TOKENS.KYSELY_READ_DB, DI_TOKENS.KYSELY_WRITE_DB]);
 
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY)
-  .toClass(OrganizationWatchlistRepository, [DI_TOKENS.PRISMA_CLIENT]);
+  .toClass(KyselyOrganizationWatchlistRepository, [DI_TOKENS.KYSELY_READ_DB, DI_TOKENS.KYSELY_WRITE_DB]);
 
 // Bind remaining repositories
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY)
-  .toClass(PrismaWatchlistAuditRepository, [DI_TOKENS.PRISMA_CLIENT]);
+  .toClass(KyselyWatchlistAuditRepository, [DI_TOKENS.KYSELY_READ_DB, DI_TOKENS.KYSELY_WRITE_DB]);
 
 // Services are created in the facade to handle Deps pattern properly

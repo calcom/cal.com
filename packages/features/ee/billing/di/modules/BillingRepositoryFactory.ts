@@ -1,11 +1,11 @@
 import { type Container, createModule, ModuleLoader, type ResolveFunction } from "@calcom/features/di/di";
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { moduleLoader as kyselyModuleLoader } from "@calcom/features/di/modules/Kysely";
 import { DI_TOKENS as GLOBAL_DI_TOKENS } from "@calcom/features/di/tokens";
-import type { PrismaClient } from "@calcom/prisma";
+import type { KyselyDb } from "@calcom/kysely";
 
 import { IBillingRepository } from "../../repository/billing/IBillingRepository";
-import { PrismaOrganizationBillingRepository } from "../../repository/billing/PrismaOrganizationBillingRepository";
-import { PrismaTeamBillingRepository } from "../../repository/billing/PrismaTeamBillingRepository";
+import { KyselyOrganizationBillingRepository } from "../../repository/billing/KyselyOrganizationBillingRepository";
+import { KyselyTeamBillingRepository } from "../../repository/billing/KyselyTeamBillingRepository";
 import { StubBillingRepository } from "../../repository/billing/StubBillingRepository";
 import { DI_TOKENS } from "../tokens";
 import { isTeamBillingEnabledModuleLoader } from "./IsTeamBillingEnabled";
@@ -20,13 +20,14 @@ billingRepositoryFactoryModule.bind(token).toFactory((resolve: ResolveFunction) 
       return new StubBillingRepository();
     }
 
-    const prisma = resolve(GLOBAL_DI_TOKENS.PRISMA_CLIENT) as PrismaClient;
+    const kyselyRead = resolve(GLOBAL_DI_TOKENS.KYSELY_READ_DB) as KyselyDb;
+    const kyselyWrite = resolve(GLOBAL_DI_TOKENS.KYSELY_WRITE_DB) as KyselyDb;
 
     if (isOrganization) {
-      return new PrismaOrganizationBillingRepository(prisma);
+      return new KyselyOrganizationBillingRepository(kyselyRead, kyselyWrite);
     }
 
-    return new PrismaTeamBillingRepository(prisma);
+    return new KyselyTeamBillingRepository(kyselyRead, kyselyWrite);
   };
 });
 
@@ -34,7 +35,7 @@ export const billingRepositoryFactoryModuleLoader: ModuleLoader = {
   token,
   loadModule: (container: Container) => {
     // Load dependencies first
-    prismaModuleLoader.loadModule(container);
+    kyselyModuleLoader.loadModule(container);
     isTeamBillingEnabledModuleLoader.loadModule(container);
 
     // Then load this module
