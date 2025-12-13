@@ -4,14 +4,16 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
+import {
+  getAssignmentReasonRepository,
+  getRoutingFormResponseRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaAssignmentReasonRepository } from "@calcom/lib/server/repository/PrismaAssignmentReasonRepository";
-import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/lib/server/repository/PrismaRoutingFormResponseRepository";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -1341,7 +1343,7 @@ export default class SalesforceCRMService implements CRM {
 
     const routingFormResponseDataFactory = new RoutingFormResponseDataFactory({
       logger: log,
-      routingFormResponseRepo: new RoutingFormResponseRepository(),
+      routingFormResponseRepo: getRoutingFormResponseRepository(),
     });
     const findFieldResult = findFieldValueByIdentifier(
       await routingFormResponseDataFactory.createWithBookingUid(bookingUid),
@@ -1381,7 +1383,8 @@ export default class SalesforceCRMService implements CRM {
   }
 
   private async getAssignmentReason(bookingId: string) {
-    const assignmentReason = await PrismaAssignmentReasonRepository.findLatestReasonFromBookingUid(bookingId);
+    const assignmentReasonRepo = getAssignmentReasonRepository();
+    const assignmentReason = await assignmentReasonRepo.findLatestReasonFromBookingUid(bookingId);
     return assignmentReason?.reasonString ?? "";
   }
 
