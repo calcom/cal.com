@@ -1,4 +1,5 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -37,11 +38,25 @@ export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEve
     }))
   );
 
-  return await prisma.host.createMany({
+  const result = await prisma.host.createMany({
     data,
     // skip if user already a host in eventType
     skipDuplicates: true,
   });
+
+  eventTypeIds.forEach((eventTypeId) => {
+    userIds.forEach((userId) => {
+      logger.info("Host added to event type", {
+        action: "host_added",
+        actorId: ctx.user.id,
+        eventTypeId,
+        userId,
+        teamId,
+      });
+    });
+  });
+
+  return result;
 }
 
 export default addMembersToEventTypesHandler;
