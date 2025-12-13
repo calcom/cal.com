@@ -39,6 +39,7 @@ import type { IOrganizationSettingsRepository } from "../../organizations/reposi
 import type { ICalendarCacheEventRepository } from "../../calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import type { IGlobalWatchlistRepository, IOrganizationWatchlistRepository } from "../../watchlist/lib/interface/IWatchlistRepositories";
 import type { IWorkflowReminderRepository } from "../../ee/workflows/repositories/IWorkflowReminderRepository";
+import type { IDelegationCredentialRepository } from "../../delegation-credentials/repositories/IDelegationCredentialRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
@@ -95,6 +96,7 @@ import { calendarCacheEventRepositoryModuleLoader } from "../modules/CalendarCac
 import { globalWatchlistRepositoryModuleLoader } from "../modules/GlobalWatchlist";
 import { organizationWatchlistRepositoryModuleLoader } from "../modules/OrganizationWatchlist";
 import { workflowReminderRepositoryModuleLoader } from "../modules/WorkflowReminder";
+import { delegationCredentialRepositoryModuleLoader } from "../modules/DelegationCredential";
 
 const repositoryContainer = createContainer();
 
@@ -147,6 +149,7 @@ repositoryContainer.load(calendarCacheEventRepositoryModuleLoader());
 repositoryContainer.load(globalWatchlistRepositoryModuleLoader());
 repositoryContainer.load(organizationWatchlistRepositoryModuleLoader());
 repositoryContainer.load(workflowReminderRepositoryModuleLoader());
+repositoryContainer.load(delegationCredentialRepositoryModuleLoader());
 
 export function getScheduleRepository():IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -340,4 +343,8 @@ export function getOrganizationWatchlistRepository(): IOrganizationWatchlistRepo
 
 export function getWorkflowReminderRepository(): IWorkflowReminderRepository {
   return repositoryContainer.get<IWorkflowReminderRepository>(DI_TOKENS.WORKFLOW_REMINDER_REPOSITORY);
+}
+
+export function getDelegationCredentialRepository(): IDelegationCredentialRepository {
+  return repositoryContainer.get<IDelegationCredentialRepository>(DI_TOKENS.DELEGATION_CREDENTIAL_REPOSITORY);
 }

@@ -136,6 +136,8 @@ export const DI_TOKENS = {
         ORGANIZATION_WATCHLIST_REPOSITORY_MODULE: Symbol("OrganizationWatchlistRepositoryModule"),
         WORKFLOW_REMINDER_REPOSITORY: Symbol("WorkflowReminderRepository"),
         WORKFLOW_REMINDER_REPOSITORY_MODULE: Symbol("WorkflowReminderRepositoryModule"),
+        DELEGATION_CREDENTIAL_REPOSITORY: Symbol("DelegationCredentialRepository"),
+        DELEGATION_CREDENTIAL_REPOSITORY_MODULE: Symbol("DelegationCredentialRepositoryModule"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens
