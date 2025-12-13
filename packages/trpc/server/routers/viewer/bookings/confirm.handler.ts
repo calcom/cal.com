@@ -18,7 +18,6 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -34,6 +33,8 @@ import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
+
+import { getOrgMembershipRepository } from "@calcom/features/di/containers/RepositoryContainer";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
@@ -483,9 +484,10 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
     if (membership) return;
   }
 
+  const orgMembershipRepo = getOrgMembershipRepository();
   if (
     bookingUserId &&
-    (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(loggedInUserId, bookingUserId))
+    (await orgMembershipRepo.isLoggedInUserOrgAdminOfBookingHost(loggedInUserId, bookingUserId))
   ) {
     return;
   }

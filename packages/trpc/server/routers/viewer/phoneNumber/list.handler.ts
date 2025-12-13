@@ -1,5 +1,4 @@
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import prisma from "@calcom/prisma";
+import { getPhoneNumberRepository } from "@calcom/features/di/containers/RepositoryContainer";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TListInputSchema } from "./list.schema";
@@ -12,7 +11,7 @@ type ListHandlerOptions = {
 };
 
 export const listHandler = async ({ ctx, input }: ListHandlerOptions) => {
-  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+  const phoneNumberRepo = getPhoneNumberRepository();
   return await phoneNumberRepo.findManyWithUserAccess({
     userId: ctx.user.id,
     teamId: input?.teamId,

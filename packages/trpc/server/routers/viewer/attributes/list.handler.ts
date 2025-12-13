@@ -1,5 +1,4 @@
-import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import prisma from "@calcom/prisma";
+import { getAttributeRepository } from "@calcom/features/di/containers/RepositoryContainer";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,7 +19,7 @@ const listHandler = async (opts: GetOptions) => {
       message: "You need to be apart of an organization to use this feature",
     });
   }
-  const attributeRepo = new PrismaAttributeRepository(prisma);
+  const attributeRepo = getAttributeRepository();
 
   return await attributeRepo.findAllByOrgIdWithOptions({ orgId: org.id });
 };

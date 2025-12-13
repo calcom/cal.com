@@ -1,8 +1,8 @@
+import { getRoutingFormRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -192,7 +192,8 @@ const fetchRoutingFormOptions = async ({
   userId: number;
   teamId?: number;
 }): Promise<Option[]> => {
-  const routingForms = await PrismaRoutingFormRepository.findActiveFormsForUserOrTeam({ userId, teamId });
+  const routingFormRepo = getRoutingFormRepository();
+  const routingForms = await routingFormRepo.findActiveFormsForUserOrTeam({ userId, teamId });
 
   return routingForms.map((form) => ({
     value: form.id,

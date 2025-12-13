@@ -1,8 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getAgentRepository, getFeaturesRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import logger from "@calcom/lib/logger";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,14 +18,14 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
   const timeZone = ctx.user.timeZone ?? "Europe/London";
   const eventTypeId = input.eventTypeId;
 
-  const featuresRepository = new FeaturesRepository(prisma);
+  const featuresRepository = getFeaturesRepository();
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
   if (!calAIVoiceAgents) {
     logger.warn("Cal.ai voice agents are disabled - skipping AI phone call scheduling");
     return;
   }
 
-  const agentRepo = new PrismaAgentRepository(prisma);
+  const agentRepo = getAgentRepository();
   const agent = await agentRepo.findByIdWithCallAccess({
     id: input.agentId,
     userId: ctx.user.id,
