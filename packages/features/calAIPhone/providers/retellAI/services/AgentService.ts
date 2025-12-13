@@ -1,9 +1,8 @@
 import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { v4 as uuidv4 } from "uuid";
 
-import { getApiKeyRepository } from "@calcom/features/di/containers/RepositoryContainer";
+import { getApiKeyRepository, getEventTypeRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
@@ -718,7 +717,7 @@ export class AgentService {
     }
 
     if (outboundEventTypeId && agent.outboundEventTypeId !== outboundEventTypeId) {
-      const eventTypeRepository = new EventTypeRepository(prisma);
+      const eventTypeRepository = getEventTypeRepository();
 
       const outBoundEventType = await eventTypeRepository.findByIdMinimal({
         id: outboundEventTypeId,
