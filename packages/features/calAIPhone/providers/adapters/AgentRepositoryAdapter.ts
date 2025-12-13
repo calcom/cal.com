@@ -8,10 +8,10 @@ import type {
 } from "../interfaces/AgentRepositoryInterface";
 
 /**
- * Adapter that bridges the provider interface to the Prisma implementation
+ * Adapter that bridges the provider interface to the repository implementation
  * This adapter provides a clean abstraction layer between provider and application
  */
-export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
+export class AgentRepositoryAdapter implements AgentRepositoryInterface {
   async canManageTeamResources(params: { userId: number; teamId: number }): Promise<boolean> {
     const agentRepo = getAgentRepository();
     return await agentRepo.canManageTeamResources(params);

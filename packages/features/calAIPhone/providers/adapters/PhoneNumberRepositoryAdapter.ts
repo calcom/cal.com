@@ -7,10 +7,10 @@ import type {
 } from "../interfaces/PhoneNumberRepositoryInterface";
 
 /**
- * Adapter that bridges the provider interface to the Prisma implementation
+ * Adapter that bridges the provider interface to the repository implementation
  * This adapter provides a clean abstraction layer between provider and application
  */
-export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepositoryInterface {
+export class PhoneNumberRepositoryAdapter implements PhoneNumberRepositoryInterface {
   async findByPhoneNumberAndUserId(params: {
     phoneNumber: string;
     userId: number;

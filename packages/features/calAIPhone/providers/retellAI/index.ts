@@ -37,8 +37,11 @@ export { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 export { RetellAIPhoneServiceProviderFactory } from "./RetellAIPhoneServiceProviderFactory";
 export { RetellSDKClient } from "./RetellSDKClient";
 export { RetellAIError } from "./errors";
-export { PrismaAgentRepositoryAdapter } from "../adapters/PrismaAgentRepositoryAdapter";
-export { PrismaPhoneNumberRepositoryAdapter } from "../adapters/PrismaPhoneNumberRepositoryAdapter";
+export { AgentRepositoryAdapter } from "../adapters/AgentRepositoryAdapter";
+export { PhoneNumberRepositoryAdapter } from "../adapters/PhoneNumberRepositoryAdapter";
+// Backward compatibility aliases
+export { AgentRepositoryAdapter as PrismaAgentRepositoryAdapter } from "../adapters/AgentRepositoryAdapter";
+export { PhoneNumberRepositoryAdapter as PrismaPhoneNumberRepositoryAdapter } from "../adapters/PhoneNumberRepositoryAdapter";
 export { PrismaTransactionAdapter } from "../adapters/PrismaTransactionAdapter";
 export type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 export type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
