@@ -96,7 +96,7 @@ export function getUrlSearchParamsToForward({
     }
   }
 
-  const attributeRoutingConfigParams: Record<string, any> = {};
+  const attributeRoutingConfigParams: Record<string, string> = {};
 
   if (attributeRoutingConfig) {
     for (const key of Object.keys(attributeRoutingConfig)) {
@@ -126,7 +126,9 @@ export function getUrlSearchParamsToForward({
     ...paramsFromResponse,
     ...(teamMembersMatchingAttributeLogic
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
-      : null),
+      : attributeRoutingConfig
+        ? { ["cal.routedTeamMemberIds"]: "" }
+        : null),
     ...(typeof formResponseId === "number"
       ? { [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId) }
       : null),

@@ -14,7 +14,7 @@ function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   for (const [key, value] of entries) {
-    if (result.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(result, key)) {
       let currentValue = result[key];
       if (!Array.isArray(currentValue)) {
         currentValue = [currentValue];
@@ -72,7 +72,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should build query params from response correctly when identifier is not present in fields. Should fallback to label", () => {
+  it("should build query params from response correctly when identifier is not present in fields. Should fallback to label",() => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -107,7 +107,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should handle select fields correctly when options have id set", () => {
+  it("should handle select fields correctly when options have id set",() => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -159,7 +159,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should handle select fields correctly when options have no id set(Legacy options)", () => {
+  it("should handle select fields correctly when options have no id set(Legacy options)",() => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -211,7 +211,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should handle number values correctly", () => {
+  it("should handle number values correctly",() => {
     const field1Id = uuidv4();
     const response = {
       [field1Id]: { value: 123 },
@@ -239,7 +239,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should add cal.skipContactOwner when attributeRoutingConfig.skipContactOwner is true", () => {
+  it("should add cal.skipContactOwner when attributeRoutingConfig.skipContactOwner is true",() => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -269,6 +269,7 @@ describe("getUrlSearchParamsToForward", () => {
       query2: "value2",
       "cal.routingFormResponseId": "1",
       "cal.skipContactOwner": "true",
+      "cal.routedTeamMemberIds": "",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -325,6 +326,95 @@ describe("getUrlSearchParamsToForward", () => {
       formResponseId: 1,
       queuedFormResponseId: null,
       attributeRoutingConfig: null,
+    });
+    expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
+  });
+
+  it("should add cal.routedTeamMemberIds with empty value when routing finds no matches", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
+    const formResponse = {
+      [field1Id]: { value: "value1", label: "Field 1" },
+      [field2Id]: { value: ["option1", "option2"], label: "Field 2" },
+    };
+
+    const fields = [
+      { id: field1Id, identifier: "f1", type: "text", label: "Field 1" },
+      {
+        id: field2Id,
+        identifier: "f2",
+        label: "Field 2",
+        type: "multiselect",
+        options: [
+          { id: "option1", label: "Option 1" },
+          { id: "option2", label: "Option 2" },
+        ],
+      },
+    ];
+
+    const searchParams = new URLSearchParams("?query1=value1&query2=value2");
+    const expectedParams = {
+      f1: "value1",
+      f2: ["Option 1", "Option 2"],
+      query1: "value1",
+      query2: "value2",
+      "cal.routingFormResponseId": "1",
+      "cal.routedTeamMemberIds": "",
+    };
+
+    const result = getUrlSearchParamsToForward({
+      formResponse,
+      fields,
+      searchParams,
+      teamMembersMatchingAttributeLogic: [], // Empty array means routing found no matches
+      formResponseId: 1,
+      queuedFormResponseId: null,
+      attributeRoutingConfig: null,
+    });
+    expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
+  });
+
+  it("should add cal.routedTeamMemberIds with empty value when attribute routing is used but finds no matches", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
+    const formResponse = {
+      [field1Id]: { value: "value1", label: "Field 1" },
+      [field2Id]: { value: ["option1", "option2"], label: "Field 2" },
+    };
+
+    const fields = [
+      { id: field1Id, identifier: "f1", type: "text", label: "Field 1" },
+      {
+        id: field2Id,
+        identifier: "f2",
+        label: "Field 2",
+        type: "multiselect",
+        options: [
+          { id: "option1", label: "Option 1" },
+          { id: "option2", label: "Option 2" },
+        ],
+      },
+    ];
+
+    const searchParams = new URLSearchParams("?query1=value1&query2=value2");
+    const expectedParams = {
+      f1: "value1",
+      f2: ["Option 1", "Option 2"],
+      query1: "value1",
+      query2: "value2",
+      "cal.routingFormResponseId": "1",
+      "cal.routedTeamMemberIds": "",
+    };
+
+    const result = getUrlSearchParamsToForward({
+      formResponse,
+      fields,
+      searchParams,
+      teamMembersMatchingAttributeLogic: null, // null means no routed team members found
+      formResponseId: 1,
+      queuedFormResponseId: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      attributeRoutingConfig: { some: "config" } as any, // attribute routing is configured
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
