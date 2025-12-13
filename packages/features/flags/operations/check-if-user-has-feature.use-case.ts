@@ -1,7 +1,6 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { prisma } from "@calcom/prisma";
+import { getFeaturesRepository } from "@calcom/features/di/containers/RepositoryContainer";
 
 /**
  * Use Cases represent individual operations, like "Create Feature" or "Sign In" or "Toggle Feature".
@@ -12,7 +11,7 @@ import { prisma } from "@calcom/prisma";
  */
 export function checkIfUserHasFeatureUseCase(userId: number, slug: string): Promise<boolean> {
   return startSpan({ name: "checkIfUserHasFeature UseCase", op: "function" }, async () => {
-    const featuresRepository = new FeaturesRepository(prisma);
+    const featuresRepository = getFeaturesRepository();
 
     return await featuresRepository.checkIfUserHasFeature(userId, slug);
   });

@@ -4,7 +4,8 @@ import {
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
 } from "@calcom/features/users/lib/getRoutedUsers";
-import { withSelectedCalendars, UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -116,7 +117,7 @@ export const findUsersByUsername = async ({
   usernameList: string[];
 }) => {
   log.debug("findUsersByUsername", { usernameList, orgSlug });
-  const { where, profiles } = await new UserRepository(prisma)._getWhereClauseForFindingUsersByUsername({
+  const { where, profiles } = await getUserRepository()._getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   });

@@ -1,12 +1,8 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository, getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
-const teamRepository = new TeamRepository(prisma);
-const userRepository = new UserRepository(prisma);
 type Team = {
   hideBranding: boolean | null;
   parent: {
@@ -56,7 +52,7 @@ export async function getHideBranding({
 }): Promise<boolean> {
   if (teamId) {
     // Get team data with parent organization
-    const team = await teamRepository.findTeamWithParentHideBranding({ teamId });
+    const team = await getTeamRepository().findTeamWithParentHideBranding({ teamId });
 
     if (!team) return false;
 
@@ -66,7 +62,7 @@ export async function getHideBranding({
     });
   } else if (userId) {
     // Get user data with profile and organization
-    const user = await userRepository.findUserWithHideBranding({ userId });
+    const user = await getUserRepository().findUserWithHideBranding({ userId });
 
     if (!user) return false;
 

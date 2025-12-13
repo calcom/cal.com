@@ -1,8 +1,7 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository, getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -20,7 +19,7 @@ export const createAProfileForAnExistingUser = async ({
   };
   organizationId: number;
 }) => {
-  const teamRepo = new TeamRepository(prisma);
+  const teamRepo = getTeamRepository();
   const org = await teamRepo.findById({ id: organizationId });
   if (!org) {
     throw new Error(`Organization with id ${organizationId} not found`);
@@ -47,7 +46,7 @@ export const createAProfileForAnExistingUser = async ({
     movedFromUserId: user.id,
   });
 
-  const userRepo = new UserRepository(prisma);
+  const userRepo = getUserRepository();
   await userRepo.updateWhereId({
     whereId: user.id,
     data: {
