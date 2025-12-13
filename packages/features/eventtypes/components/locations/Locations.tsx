@@ -9,6 +9,7 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { CalVideoSettings as CalVideoSettingsType } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
@@ -37,6 +38,11 @@ type LocationsProps = {
   isChildrenManagedEventType?: boolean;
   isManagedEventType?: boolean;
   disableLocationProp?: boolean;
+  locationLockedProps?: {
+    disabled: boolean;
+    isLocked: boolean;
+    LockedIcon: React.ReactNode;
+  };
   getValues: UseFormGetValues<LocationFormValues>;
   setValue: UseFormSetValue<LocationFormValues>;
   control: Control<LocationFormValues>;
@@ -86,6 +92,7 @@ const Locations: React.FC<LocationsProps> = ({
   isChildrenManagedEventType,
   disableLocationProp,
   isManagedEventType,
+  locationLockedProps,
   getValues,
   setValue: _setValue,
   control,
@@ -254,7 +261,21 @@ const Locations: React.FC<LocationsProps> = ({
                 )}
               </div>
 
-              {isCalVideo && !isPlatform && <CalVideoSettings />}
+              {isCalVideo && !isPlatform && (
+                <CalVideoSettings
+                  calVideoSettings={
+                    eventType.calVideoSettings
+                      ? ({
+                          ...eventType.calVideoSettings,
+                          redirectUrlOnExit: (eventType.calVideoSettings.redirectUrlOnExit ?? undefined) as
+                            | string
+                            | undefined,
+                        } as CalVideoSettingsType)
+                      : undefined
+                  }
+                  locationLockedProps={locationLockedProps}
+                />
+              )}
 
               {eventLocationType?.supportsCustomLabel && eventLocationType?.type ? (
                 <DefaultLocationSettings
