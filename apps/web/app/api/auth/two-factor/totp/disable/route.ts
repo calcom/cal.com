@@ -59,7 +59,7 @@ async function handler(req: NextRequest) {
   if (user.twoFactorEnabled && body.backupCode) {
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
       console.error("Missing encryption key; cannot proceed with backup code login.");
-      throw new Error(ErrorCode.InternalServerError);
+      return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
     }
 
     if (!user.backupCodes) {
@@ -89,7 +89,7 @@ async function handler(req: NextRequest) {
 
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
       console.error("Missing encryption key; cannot proceed with two factor login.");
-      throw new Error(ErrorCode.InternalServerError);
+      return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
     }
 
     const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
