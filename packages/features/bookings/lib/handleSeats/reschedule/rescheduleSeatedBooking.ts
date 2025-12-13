@@ -1,8 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
+import { getOrgMembershipRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { HttpError } from "@calcom/lib/http-error";
-import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
@@ -101,7 +101,7 @@ const rescheduleSeatedBooking = async (
     const isOrgAdmin =
       reqUserId &&
       seatedBooking.user &&
-      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+      (await getOrgMembershipRepository().isLoggedInUserOrgAdminOfBookingHost(
         reqUserId,
         seatedBooking.user?.id
       ));

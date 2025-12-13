@@ -10,7 +10,7 @@ export type {
   InstantBookingCreateResult,
   RegularBookingCreateResult,
 } from "@calcom/features/bookings/lib/dto/types";
-export { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
+export { KyselyOrgMembershipRepository as PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/KyselyOrgMembershipRepository";
 export { addGuestsHandler } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 export { BookingEmailAndSmsTaskService } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTaskService";
 export { BookingEmailAndSmsSyncTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsSyncTasker";

@@ -1,7 +1,7 @@
-import type { PrismaApiKeyRepository } from "../repository/PrismaApiKeyRepository";
+import type { IApiKeyRepository } from "../repository/IApiKeyRepository";
 
 type Deps = {
-  apiKeyRepo: PrismaApiKeyRepository;
+  apiKeyRepo: IApiKeyRepository;
 };
 
 interface VerifyKeyResult {

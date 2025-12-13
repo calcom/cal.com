@@ -4,10 +4,10 @@ import getRawBody from "raw-body";
 import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { getBookingPaymentRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { PrismaBookingPaymentRepository as BookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
 
 import appConfig from "../config.json";
 import { btcpayCredentialKeysSchema } from "../lib/btcpayCredentialKeysSchema";
@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!SUPPORTED_INVOICE_EVENTS.includes(data.type))
       return res.status(200).send({ message: "Webhook received but ignored" });
 
-    const bookingPaymentRepository = new BookingPaymentRepository();
+    const bookingPaymentRepository = getBookingPaymentRepository();
     const payment = await bookingPaymentRepository.findByExternalIdIncludeBookingUserCredentials(
       data.invoiceId,
       appConfig.type

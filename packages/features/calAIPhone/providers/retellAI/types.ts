@@ -1,6 +1,6 @@
 import type { Retell } from "retell-sdk";
 
-import type { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
+import type { IAgentRepository } from "@calcom/lib/server/repository/IAgentRepository";
 
 export type RetellLLM = Retell.LlmResponse;
 export type RetellPhoneNumber = Retell.PhoneNumberResponse;
@@ -103,7 +103,7 @@ export type CreateAgentRequest = Retell.AgentCreateParams;
 export type UpdateLLMRequest = Retell.LlmUpdateParams;
 export type UpdateAgentRequest = Retell.AgentUpdateParams;
 export type Agent = NonNullable<
-  Awaited<ReturnType<PrismaAgentRepository["findByIdWithUserAccessAndDetails"]>>
+  Awaited<ReturnType<IAgentRepository["findByIdWithUserAccessAndDetails"]>>
 >;
 
 export type RetellAgentWithDetails = {
