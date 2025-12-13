@@ -1,12 +1,11 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
+import { getAttributeRepository, getAttributeToUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 
-import { PrismaAttributeRepository } from "../../../server/repository/PrismaAttributeRepository";
-import { PrismaAttributeToUserRepository } from "../../../server/repository/PrismaAttributeToUserRepository";
 import type { AttributeId } from "../types";
 
 type UserId = number;
@@ -244,7 +243,8 @@ async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: numb
 }
 
 async function _queryAllData({ orgId, teamId }: { orgId: number; teamId: number }) {
-  const attributeRepo = new PrismaAttributeRepository(prisma);
+  const attributeRepo = getAttributeRepository();
+  const attributeToUserRepo = getAttributeToUserRepository();
 
   const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] = await Promise.all([
     _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
@@ -254,7 +254,7 @@ async function _queryAllData({ orgId, teamId }: { orgId: number; teamId: number 
   const orgMembershipIds = Array.from(orgMembershipToUserIdForTeamMembers.keys());
 
   // Get all the attributes assigned to the members of the team
-  const attributesToUsersForTeam = await PrismaAttributeToUserRepository.findManyByOrgMembershipIds({
+  const attributesToUsersForTeam = await attributeToUserRepo.findManyByOrgMembershipIds({
     orgMembershipIds,
   });
 
