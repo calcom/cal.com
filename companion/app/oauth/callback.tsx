@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, Platform } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 export default function OAuthCallback() {
@@ -7,6 +7,8 @@ export default function OAuthCallback() {
   const params = useLocalSearchParams();
 
   useEffect(() => {
+    if (Platform.OS !== "web") return;
+
     // Extract code, state, and error parameters from URL
     const code = params.code as string;
     const state = params.state as string;
