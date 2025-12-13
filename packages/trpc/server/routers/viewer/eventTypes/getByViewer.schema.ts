@@ -29,7 +29,8 @@ export const ZEventTypeInputSchema: z.ZodType<TEventTypeInputSchema> = z
   })
   .nullish();
 
-export type TGetEventTypesFromGroupSchema = {
+// Input type - what callers send (limit is optional)
+export type TGetEventTypesFromGroupSchemaInput = {
   filters?: TFilterQuerySchemaStrict;
   forRoutingForms?: boolean;
   cursor?: number | null;
@@ -38,7 +39,17 @@ export type TGetEventTypesFromGroupSchema = {
   searchQuery?: string;
 };
 
-export const ZGetEventTypesFromGroupSchema: z.ZodType<TGetEventTypesFromGroupSchema> = z.object({
+// Output type - what handlers receive after parsing (limit has default, so required)
+export type TGetEventTypesFromGroupSchema = {
+  filters?: TFilterQuerySchemaStrict;
+  forRoutingForms?: boolean;
+  cursor?: number | null;
+  limit: number;
+  group: { teamId?: number | null; parentId?: number | null };
+  searchQuery?: string;
+};
+
+export const ZGetEventTypesFromGroupSchema: z.ZodType<TGetEventTypesFromGroupSchema, z.ZodTypeDef, TGetEventTypesFromGroupSchemaInput> = z.object({
   filters: filterQuerySchemaStrict.optional(),
   forRoutingForms: z.boolean().optional(),
   cursor: z.number().nullish(),
