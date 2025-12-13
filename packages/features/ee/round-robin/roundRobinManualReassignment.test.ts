@@ -310,7 +310,7 @@ describe("roundRobinManualReassignment test", () => {
       userId: newHost.id,
     });
 
-    expectSuccessfulRoundRobinReschedulingEmails({
+    await expectSuccessfulRoundRobinReschedulingEmails({
       prevOrganizer: originalHost,
       newOrganizer: newHost,
       emails,

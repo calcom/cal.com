@@ -201,7 +201,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
             rescheduledBy: organizer.email,
@@ -220,7 +220,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -438,7 +438,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -629,7 +629,7 @@ describe("handleNewBooking", () => {
             to: {
               description: "",
               location: "integrations:daily",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -827,7 +827,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 // Rescheduled booking sill stays in pending state
@@ -1058,7 +1058,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1307,7 +1307,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1522,7 +1522,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 // Rescheduled booking sill stays in pending state
@@ -1766,7 +1766,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1857,7 +1857,7 @@ describe("handleNewBooking", () => {
           3. Should send appropriate notifications
           4. Should update/create necessary video conference links
         `,
-        async ({ emails }) => {
+        async ({ emails: _emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -1941,7 +1941,7 @@ describe("handleNewBooking", () => {
           );
 
           // Mock video meeting creation for Cal Video
-          const videoMock = mockSuccessfulVideoMeetingCreation({
+          const _videoMock = mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
 
@@ -1982,7 +1982,7 @@ describe("handleNewBooking", () => {
               location: BookingLocations.GoogleMeet,
             },
             to: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2123,7 +2123,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
             rescheduledBy: booker.email,
@@ -2144,7 +2144,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2156,7 +2156,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
+          await expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost2,
             emails,
@@ -2275,7 +2275,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2293,7 +2293,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2305,7 +2305,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
+          await expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost1, // Round robin host 2 is not available and it will be rescheduled to same user
             emails,
@@ -2475,7 +2475,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2493,7 +2493,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2506,7 +2506,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
+          await expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost1, // Round robin host 2 is not available and it will be rescheduled to same user
             emails,
@@ -2630,7 +2630,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2651,7 +2651,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2663,7 +2663,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
+          await expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost1,
             emails,
@@ -2800,7 +2800,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2820,7 +2820,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2832,7 +2832,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
+          await expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: hostOfOriginalBooking,
             newOrganizer: otherHost,
             emails,
@@ -2844,7 +2844,7 @@ describe("handleNewBooking", () => {
 
     test(
       "should use correct credentials when round robin reschedule changes host - original host credentials for deletion, new host for creation",
-      async ({ emails }) => {
+      async ({ emails: _emails }) => {
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
@@ -2918,7 +2918,7 @@ describe("handleNewBooking", () => {
           })
         );
 
-        const videoMock = mockSuccessfulVideoMeetingCreation({
+        const _videoMock = mockSuccessfulVideoMeetingCreation({
           metadataLookupKey: "dailyvideo",
         });
 
@@ -3055,7 +3055,7 @@ describe("handleNewBooking", () => {
           })
         );
 
-        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const _calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: { uid: "NEW_EVENT_ID" },
           update: { uid: "UPDATED_EVENT_ID" },
         });
@@ -3086,7 +3086,7 @@ describe("handleNewBooking", () => {
           },
           to: {
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: 1,
             // Only recurring event can have recurringEventId
