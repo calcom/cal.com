@@ -1,9 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
-import { prisma } from "@calcom/prisma";
+import { getCalendarCacheEventRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderForAppDir";
 
 /**
@@ -21,7 +20,7 @@ async function getHandler(request: NextRequest) {
   }
 
   // instantiate dependencies
-  const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
+  const calendarCacheEventRepository = getCalendarCacheEventRepository();
   const calendarCacheEventService = new CalendarCacheEventService({
     calendarCacheEventRepository,
   });

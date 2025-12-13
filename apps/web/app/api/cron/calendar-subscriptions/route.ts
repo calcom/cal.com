@@ -1,15 +1,16 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { DefaultAdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
-import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
-import { getSelectedCalendarRepository } from "@calcom/features/di/containers/RepositoryContainer";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { prisma } from "@calcom/prisma";
+import {
+  getBookingRepository,
+  getCalendarCacheEventRepository,
+  getFeaturesRepository,
+  getSelectedCalendarRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import { defaultResponderForAppDir } from "@calcom/web/app/api/defaultResponderForAppDir";
 
 /**
@@ -27,11 +28,11 @@ async function getHandler(request: NextRequest) {
   }
 
   // instantiate dependencies
-  const bookingRepository = new BookingRepository(prisma);
+  const bookingRepository = getBookingRepository();
   const calendarSyncService = new CalendarSyncService({
     bookingRepository,
   });
-  const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
+  const calendarCacheEventRepository = getCalendarCacheEventRepository();
   const calendarCacheEventService = new CalendarCacheEventService({
     calendarCacheEventRepository,
   });
@@ -39,7 +40,7 @@ async function getHandler(request: NextRequest) {
   const calendarSubscriptionService = new CalendarSubscriptionService({
     adapterFactory: new DefaultAdapterFactory(),
     selectedCalendarRepository: getSelectedCalendarRepository(),
-    featuresRepository: new FeaturesRepository(prisma),
+    featuresRepository: getFeaturesRepository(),
     calendarSyncService,
     calendarCacheEventService,
   });
