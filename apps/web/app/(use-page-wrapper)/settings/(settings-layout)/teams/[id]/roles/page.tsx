@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { AppFlags } from "@calcom/features/flags/config";
@@ -131,12 +132,15 @@ const Page = async ({
   ]);
 
   // NOTE: this approach of fetching permssions per resource does not account for fall back roles.
+  // Fall back to legacy admin/owner check if no PBAC permissions are set
   const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
+  const currentUserMember = team.members.find((member) => member.id === session.user.id);
+  const isTeamAdminOrOwner = checkAdminOrOwner(currentUserMember?.role);
 
-  const canCreate = roleActions[CrudAction.Create] ?? false;
-  const canRead = roleActions[CrudAction.Read] ?? false;
-  const canUpdate = roleActions[CrudAction.Update] ?? false;
-  const canDelete = roleActions[CrudAction.Delete] ?? false;
+  const canCreate = roleActions[CrudAction.Create] ?? isTeamAdminOrOwner;
+  const canRead = roleActions[CrudAction.Read] ?? isTeamAdminOrOwner;
+  const canUpdate = roleActions[CrudAction.Update] ?? isTeamAdminOrOwner;
+  const canDelete = roleActions[CrudAction.Delete] ?? isTeamAdminOrOwner;
 
   if (!canRead) {
     return notFound();
