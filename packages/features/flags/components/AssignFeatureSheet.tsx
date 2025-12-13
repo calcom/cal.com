@@ -58,6 +58,8 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
   const assignMutation = trpc.viewer.admin.assignFeatureToTeam.useMutation({
     onSuccess: () => {
       utils.viewer.admin.getTeamsForFeature.invalidate({ featureId: flag.slug });
+      utils.viewer.features.list.invalidate();
+      utils.viewer.features.map.invalidate();
       showToast(t("feature_assigned_successfully"), "success");
     },
     onError: (err) => {
@@ -68,6 +70,8 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
   const unassignMutation = trpc.viewer.admin.unassignFeatureFromTeam.useMutation({
     onSuccess: () => {
       utils.viewer.admin.getTeamsForFeature.invalidate({ featureId: flag.slug });
+      utils.viewer.features.list.invalidate();
+      utils.viewer.features.map.invalidate();
       showToast(t("feature_unassigned_successfully"), "success");
     },
     onError: (err) => {
