@@ -28,6 +28,7 @@ import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
@@ -58,7 +59,6 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { TRPCError } from "@trpc/server";
 
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-import type { NoSlotsNotificationService } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
@@ -148,7 +148,7 @@ function withSlotsCache(
 }
 
 export class AvailableSlotsService {
-  constructor(public readonly dependencies: IAvailableSlotsService) { }
+  constructor(public readonly dependencies: IAvailableSlotsService) {}
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -199,8 +199,8 @@ export class AvailableSlotsService {
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
         : input.usernameList
-          ? [input.usernameList]
-          : [],
+        ? [input.usernameList]
+        : [],
     });
 
     const usersWithOldSelectedCalendars = usersForDynamicEventType.map((user) => withSelectedCalendars(user));
@@ -271,6 +271,61 @@ export class AvailableSlotsService {
   private doesRangeStartFromToday(periodType: PeriodType) {
     return periodType === PeriodType.ROLLING_WINDOW || periodType === PeriodType.ROLLING;
   }
+
+  /**
+   * Filters slots to only include dates within the requested range.
+   * This is necessary because buildDateRanges uses a ±1 day buffer when checking
+   * if date overrides should be included (to handle timezone edge cases), which can
+   * cause slots from adjacent days to leak into the response.
+   */
+  private _filterSlotsByRequestedDateRange<
+    T extends Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
+  >({
+    slotsMappedToDate,
+    startTime,
+    endTime,
+    timeZone,
+  }: {
+    slotsMappedToDate: T;
+    startTime: string;
+    endTime: string;
+    timeZone: string | undefined;
+  }): T {
+    if (!timeZone) {
+      return slotsMappedToDate;
+    }
+    const inputStartTime = dayjs(startTime).tz(timeZone);
+    const inputEndTime = dayjs(endTime).tz(timeZone);
+
+    // fr-CA uses YYYY-MM-DD format
+    const formatter = new Intl.DateTimeFormat("fr-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: timeZone,
+    });
+
+    const allowedDates = new Set<string>();
+    for (
+      let d = inputStartTime.startOf("day");
+      !d.isAfter(inputEndTime, "day");
+      d = d.add(1, "day")
+    ) {
+      allowedDates.add(formatter.format(d.toDate()));
+    }
+
+    const filtered = {} as T;
+    for (const [date, slots] of Object.entries(slotsMappedToDate)) {
+      if (allowedDates.has(date)) {
+        (filtered as Record<string, typeof slots>)[date] = slots;
+      }
+    }
+    return filtered;
+  }
+  private filterSlotsByRequestedDateRange = withReporting(
+    this._filterSlotsByRequestedDateRange.bind(this),
+    "filterSlotsByRequestedDateRange"
+  );
 
   private _getAllDatesWithBookabilityStatus(availableDates: string[]) {
     const availableDatesSet = new Set(availableDates);
@@ -790,15 +845,15 @@ export class AvailableSlotsService {
 
     const bookingLimits =
       eventType?.bookingLimits &&
-        typeof eventType?.bookingLimits === "object" &&
-        Object.keys(eventType?.bookingLimits).length > 0
+      typeof eventType?.bookingLimits === "object" &&
+      Object.keys(eventType?.bookingLimits).length > 0
         ? parseBookingLimit(eventType?.bookingLimits)
         : null;
 
     const durationLimits =
       eventType?.durationLimits &&
-        typeof eventType?.durationLimits === "object" &&
-        Object.keys(eventType?.durationLimits).length > 0
+      typeof eventType?.durationLimits === "object" &&
+      Object.keys(eventType?.durationLimits).length > 0
         ? parseDurationLimit(eventType?.durationLimits)
         : null;
 
@@ -966,9 +1021,9 @@ export class AvailableSlotsService {
     } = input;
     const orgDetails = input?.orgSlug
       ? {
-        currentOrgDomain: input.orgSlug,
-        isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
-      }
+          currentOrgDomain: input.orgSlug,
+          isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
+        }
       : orgDomainConfig(ctx?.req);
 
     if (process.env.INTEGRATION_TEST_MODE === "true") {
@@ -981,7 +1036,7 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const shouldServeCache = false
+    const shouldServeCache = false;
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1042,6 +1097,7 @@ export class AvailableSlotsService {
         routedTeamMemberIds,
         contactOwnerEmail,
         routingFormResponse,
+        rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
       });
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];
@@ -1184,10 +1240,10 @@ export class AvailableSlotsService {
         const travelSchedules =
           isDefaultSchedule && !eventType.useBookerTimezone
             ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
-              startDate: dayjs(schedule.startDate),
-              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
-              timeZone: schedule.timeZone,
-            }))
+                startDate: dayjs(schedule.startDate),
+                endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+                timeZone: schedule.timeZone,
+              }))
             : [];
 
         const { dateRanges: restrictionRanges } = buildDateRanges({
@@ -1282,9 +1338,9 @@ export class AvailableSlotsService {
           (
             item:
               | {
-                time: dayjs.Dayjs;
-                userIds?: number[] | undefined;
-              }
+                  time: dayjs.Dayjs;
+                  userIds?: number[] | undefined;
+                }
               | undefined
           ): item is {
             time: dayjs.Dayjs;
@@ -1430,8 +1486,15 @@ export class AvailableSlotsService {
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
+    const filteredSlotsMappedToDate = this.filterSlotsByRequestedDateRange({
+      slotsMappedToDate: withinBoundsSlotsMappedToDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      timeZone: input.timeZone,
+    });
+
     // We only want to run this on single targeted events and not dynamic
-    if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
+    if (!Object.keys(filteredSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
         await this.dependencies.noSlotsNotificationService.handleNotificationWhenNoSlots({
           eventDetails: {
@@ -1453,27 +1516,27 @@ export class AvailableSlotsService {
 
     const troubleshooterData = enableTroubleshooter
       ? {
-        troubleshooter: {
-          routedTeamMemberIds: routedTeamMemberIds,
-          // One that Salesforce asked for
-          askedContactOwner: contactOwnerEmailFromInput,
-          // One that we used as per Routing skipContactOwner flag
-          consideredContactOwner: contactOwnerEmail,
-          // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
-          routedHosts: usersWithCredentials.map((user) => {
-            return {
-              userId: user.id,
-            };
-          }),
-          hostsAfterSegmentMatching: allHosts.map((host) => ({
-            userId: host.user.id,
-          })),
-        },
-      }
+          troubleshooter: {
+            routedTeamMemberIds: routedTeamMemberIds,
+            // One that Salesforce asked for
+            askedContactOwner: contactOwnerEmailFromInput,
+            // One that we used as per Routing skipContactOwner flag
+            consideredContactOwner: contactOwnerEmail,
+            // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
+            routedHosts: usersWithCredentials.map((user) => {
+              return {
+                userId: user.id,
+              };
+            }),
+            hostsAfterSegmentMatching: allHosts.map((host) => ({
+              userId: host.user.id,
+            })),
+          },
+        }
       : null;
 
     return {
-      slots: withinBoundsSlotsMappedToDate,
+      slots: filteredSlotsMappedToDate,
       ...troubleshooterData,
     };
   }

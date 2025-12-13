@@ -22,7 +22,7 @@ export interface WatchlistAudit {
   action: WatchlistAction;
   changedAt: Date;
   changedByUserId?: number | null;
-  watchlistId: string;
+  watchlistId: string | null;
 }
 
 export interface WatchlistEventAudit {
