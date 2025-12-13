@@ -36,7 +36,8 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
 
   return (
     <div className={classNames("grid gap-2", className)}>
-      <Popover.Root>
+      {/* modal prop required for iOS compatibility when nested inside Dialog modals */}
+      <Popover.Root modal>
         <Popover.Trigger asChild>
           <Button
             data-testid="pick-date"
