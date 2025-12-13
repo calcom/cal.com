@@ -4,12 +4,13 @@ import { NextResponse } from "next/server";
 import { Retell } from "retell-sdk";
 import { z } from "zod";
 
+import {
+  getAgentRepository,
+  getPhoneNumberRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import prisma from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
@@ -153,7 +154,7 @@ async function handleCallAnalyzed(callData: RetellCallData) {
       };
     }
 
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     const agent = await agentRepo.findByProviderAgentId({
       providerAgentId: agent_id,
     });
@@ -171,7 +172,7 @@ async function handleCallAnalyzed(callData: RetellCallData) {
 
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
   } else {
-    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    const phoneNumberRepo = getPhoneNumberRepository();
     const phoneNumber = await phoneNumberRepo.findByPhoneNumber({
       phoneNumber: from_number,
     });

@@ -5,10 +5,9 @@ import { z, ZodError } from "zod";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getRoutingFormResponseRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import prisma from "@calcom/prisma";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
@@ -24,7 +23,7 @@ export const queuedResponseHandler = async ({
   queuedFormResponseId: string;
   params: Record<string, string | string[]>;
 }) => {
-  const formResponseRepo = new RoutingFormResponseRepository(prisma);
+  const formResponseRepo = getRoutingFormResponseRepository();
 
   // Get the queued response
   const queuedFormResponse = await formResponseRepo.getQueuedFormResponseFromId(queuedFormResponseId);

@@ -8,10 +8,11 @@ import {
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import {
+  getBookingRepository,
+  getVideoCallGuestRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
-import { VideoCallGuestRepository } from "@calcom/features/video-call-guest/repositories/VideoCallGuestRepository";
-import prisma from "@calcom/prisma";
 import { validateCsrfToken } from "@calcom/web/lib/validateCsrfToken";
 
 const videoCallGuestWithCsrfSchema = z.object({
@@ -36,7 +37,7 @@ async function handler(req: NextRequest) {
     return csrfError;
   }
 
-  const bookingRepo = new BookingRepository(prisma);
+  const bookingRepo = getBookingRepository();
   const booking = await bookingRepo.findBookingIncludeCalVideoSettingsAndReferences({
     bookingUid: guestData.bookingUid,
   });
@@ -55,7 +56,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ error: "invalid_guest_email" }, { status: 403 });
   }
 
-  const videoCallGuestRepo = new VideoCallGuestRepository(prisma);
+  const videoCallGuestRepo = getVideoCallGuestRepository();
   const guestSession = await videoCallGuestRepo.upsertVideoCallGuest({
     bookingUid: guestData.bookingUid,
     email: guestData.email,

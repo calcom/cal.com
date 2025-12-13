@@ -3,15 +3,16 @@ import type { NextApiRequest } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import { BotDetectionService } from "@calcom/features/bot-detection";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import {
+  getEventTypeRepository,
+  getFeaturesRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { TraceContext } from "@calcom/lib/tracing";
-import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number; traceContext: TraceContext }) {
@@ -25,8 +26,8 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
   }
 
   // Check for bot detection using feature flag
-  const featuresRepository = new FeaturesRepository(prisma);
-  const eventTypeRepository = new EventTypeRepository(prisma);
+  const featuresRepository = getFeaturesRepository();
+  const eventTypeRepository = getEventTypeRepository();
   const botDetectionService = new BotDetectionService(featuresRepository, eventTypeRepository);
 
   await botDetectionService.checkBotDetection({
