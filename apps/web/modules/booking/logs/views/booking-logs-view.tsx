@@ -129,7 +129,7 @@ function BookingLogsFilters({
                         if (!option) return;
                         onActorFilterChange(option.value || null);
                     }}
-                    options={[{ label: `${t("actor")}: ${t("all")}`, value: "" }, ...actorOptions.map(opt => ({ ...opt, label: `${t("actor")}: ${opt.label}` }))]}
+                    options={[{ label: t("all"), value: "" }, ...actorOptions]}
                 />
             </div>
         </div>
@@ -389,16 +389,18 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
             log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
             log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesActor = !actorFilter || log.actor.type === actorFilter;
+        const matchesActor = !actorFilter || log.actor.displayName === actorFilter;
 
         return matchesSearch && matchesActor;
     });
 
-    const uniqueActorTypes = Array.from(new Set(auditLogs.map((log) => log.actor.type)));
+    const uniqueActorNames = Array.from(
+        new Set(auditLogs.map((log) => log.actor.displayName).filter(Boolean))
+    ) as string[];
 
-    const actorOptions = uniqueActorTypes.map((actorType) => ({
-        label: actorType,
-        value: actorType,
+    const actorOptions = uniqueActorNames.map((actorName) => ({
+        label: actorName,
+        value: actorName,
     }));
 
     return (

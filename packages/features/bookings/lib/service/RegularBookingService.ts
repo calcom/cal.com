@@ -2339,6 +2339,7 @@ async function handler(
   const auditActor = await getPIIFreeBookingAuditActor({
     userUuid: userUuid ?? null,
     attendeeId: bookerAttendeeId ?? null,
+    systemActor: null,
     guestActor: { email: bookerEmail },
     auditActorRepository: deps.auditActorRepository,
   });

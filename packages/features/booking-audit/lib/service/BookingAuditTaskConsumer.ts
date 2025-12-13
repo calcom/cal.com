@@ -7,7 +7,7 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import type { Actor } from "../../../bookings/lib/types/actor";
 import type { BookingAuditTaskBasePayload } from "../types/bookingAuditTask";
 import { BookingAuditTaskBaseSchema } from "../types/bookingAuditTask";
-import { BookingAuditActionServiceRegistry, type AuditActionData } from "./BookingAuditActionServiceRegistry";
+import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction } from "../repository/IBookingAuditRepository";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import type { ActionSource } from "../common/actionSource";

@@ -33,8 +33,8 @@ import { getCalEventResponses } from "./getCalEventResponses";
 import type { AcceptedAuditData } from "@calcom/features/booking-audit/lib/actions/AcceptedAuditActionService";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import { makeUserActor } from "./types/actor";
-
+import type { Actor } from "./types/actor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
@@ -78,6 +78,8 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  source: ActionSource;
+  actor: Actor;
 }) {
   const {
     user,
@@ -325,7 +327,6 @@ export async function handleConfirmation(args: {
         new: BookingStatus.ACCEPTED,
       },
     };
-    const actor = makeUserActor(user.uuid);
     const auditTeamId = await getTeamIdFromEventType({
       eventType: {
         team: { id: booking.eventType?.teamId ?? null },
@@ -337,10 +338,10 @@ export async function handleConfirmation(args: {
     const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
     await bookingEventHandlerService.onBookingAccepted({
       bookingUid: updatedBooking.uid,
-      actor,
+      actor: args.actor,
       organizationId: auditOrgId ?? null,
       auditData,
-      source: "WEBAPP",
+      source: args.source,
     });
   }
 

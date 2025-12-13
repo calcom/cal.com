@@ -206,11 +206,11 @@ describe("Booking Audit Integration", () => {
         bookingUid: testBookingUid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
         data: {
           startTime: booking!.startTime.getTime(),
           endTime: booking!.endTime.getTime(),
           status: booking!.status,
-          source: "WEBAPP",
         },
         timestamp: Date.now(),
       });
@@ -255,11 +255,11 @@ describe("Booking Audit Integration", () => {
         bookingUid: testBookingUid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
         data: {
           startTime: booking!.startTime.getTime(),
           endTime: booking!.endTime.getTime(),
           status: booking!.status,
-          source: "WEBAPP",
         },
         timestamp: Date.now(),
       });
@@ -295,11 +295,11 @@ describe("Booking Audit Integration", () => {
         bookingUid: testBookingUid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
         data: {
           startTime: booking!.startTime.getTime(),
           endTime: booking!.endTime.getTime(),
           status: booking!.status,
-          source: "WEBAPP",
         },
         timestamp: Date.now(),
       });

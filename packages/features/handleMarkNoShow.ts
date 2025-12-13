@@ -133,6 +133,7 @@ const handleMarkNoShow = async ({
     return getPIIFreeBookingAuditActor({
       userUuid: userUuid ?? null,
       attendeeId: null,
+      systemActor: null,
       guestActor: { email: fallbackEmail },
       auditActorRepository,
     });

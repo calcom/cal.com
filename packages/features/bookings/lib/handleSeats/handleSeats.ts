@@ -105,6 +105,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     return getPIIFreeBookingAuditActor({
       userUuid: userUuid ?? null,
       attendeeId: null,
+      systemActor: null,
       guestActor: { email: bookerEmail, name: fullName },
       auditActorRepository,
     });

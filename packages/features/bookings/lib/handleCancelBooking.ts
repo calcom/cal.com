@@ -498,6 +498,7 @@ async function handler(input: CancelBookingInput) {
     const actorToUse = await getPIIFreeBookingAuditActor({
       userUuid: userUuid ?? null,
       attendeeId: null,
+      systemActor: null,
       guestActor: { email: fallbackEmail },
       auditActorRepository,
     });

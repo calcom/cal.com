@@ -260,6 +260,7 @@ export const roundRobinManualReassignment = async ({
     const actor = await getPIIFreeBookingAuditActor({
       userUuid: reassignedByUuid ?? null,
       attendeeId: null,
+      systemActor: null,
       guestActor: { email: `fallback-${booking.uid}-${Date.now()}@guest.internal` },
       auditActorRepository,
     });

@@ -5,11 +5,13 @@ import type Stripe from "stripe";
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
+import { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
+import { makeNamedSystemActor } from "@calcom/features/bookings/lib/types/actor";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
@@ -118,6 +120,12 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!requiresConfirmation) {
+    const auditActorRepository = getAuditActorRepository();
+    const actor = await makeNamedSystemActor(
+      "stripe-payment-webhook",
+      "Stripe Payment Webhook",
+      auditActorRepository
+    );
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -126,6 +134,8 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       booking,
       paid: true,
       platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
+      source: "WEBHOOK",
+      actor,
     });
   } else if (areEmailsEnabled) {
     await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);

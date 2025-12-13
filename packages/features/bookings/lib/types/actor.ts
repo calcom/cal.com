@@ -71,29 +71,33 @@ export function makeAttendeeActor(attendeeId: number): AttendeeActor {
 
 // System actor ID constant
 export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
-
 /**
  * Producer-side actor resolution - creates PII-free actors for queueing
  * 
  * For guests: Creates AuditActor record in DB upfront, returns ActorById
  * For users/attendees: Returns ID-only actors
+ * For system actors: Creates AuditActor record with .internal email convention, returns ActorById
+ * 
+ * Priority order: userUuid > attendeeId > systemActor > guestActor
  * 
  * Callers must provide userUuid (not userId) - if user is known, userUuid must be available
  * Callers must provide attendeeId if they want AttendeeActor - no automatic lookup
  * 
  * @param params.userUuid - User UUID (required, nullable)
  * @param params.attendeeId - Attendee ID (required, nullable)
+ * @param params.systemActor - System actor info with identifier and name (required, nullable)
  * @param params.guestActor - Guest actor info with email and optional name (required, nullable)
- * @param params.auditActorRepository - Repository for creating guest actors
+ * @param params.auditActorRepository - Repository for creating actors
  * @returns Actor with no PII (only IDs)
  */
 export async function getPIIFreeBookingAuditActor(params: {
   userUuid: string | null;
   attendeeId: number | null;
+  systemActor: { identifier: string; name: string } | null;
   guestActor: { email: string; name?: string } | null;
   auditActorRepository: IAuditActorRepository;
 }): Promise<Actor> {
-  const { userUuid, attendeeId, guestActor, auditActorRepository } = params;
+  const { userUuid, attendeeId, systemActor, guestActor, auditActorRepository } = params;
 
   if (userUuid) {
     return makeUserActor(userUuid);
@@ -103,8 +107,17 @@ export async function getPIIFreeBookingAuditActor(params: {
     return makeAttendeeActor(attendeeId);
   }
 
+  if (systemActor) {
+    const email = `${systemActor.identifier}@system.internal`;
+    const actor = await auditActorRepository.createIfNotExistsSystemActor({
+      email,
+      name: systemActor.name,
+    });
+    return makeActorById(actor.id);
+  }
+
   if (!guestActor) {
-    throw new Error("At least one of userUuid, attendeeId, or guestActor must be provided");
+    throw new Error("At least one of userUuid, attendeeId, systemActor, or guestActor must be provided");
   }
 
   const createdGuestActor = await auditActorRepository.createIfNotExistsGuestActor({
