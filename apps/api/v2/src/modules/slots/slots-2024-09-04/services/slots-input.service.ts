@@ -31,6 +31,7 @@ export type InternalGetSlotsQuery = {
   orgSlug: string | null | undefined;
   rescheduleUid: string | null;
   disableRollingWindowAdjustment?: boolean;
+  rrHostSubsetIds?: number[];
 };
 
 export type InternalGetSlotsQueryWithRouting = InternalGetSlotsQuery & {
@@ -83,6 +84,7 @@ export class SlotsInputService_2024_09_04 {
       // Always disable rolling window adjustment for API calls since users explicitly provide startTime/endTime
       // and expect slots within that exact date range
       disableRollingWindowAdjustment: true,
+      rrHostSubsetIds: query.rrHostSubsetIds,
     };
   }
 
