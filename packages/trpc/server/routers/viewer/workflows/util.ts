@@ -1,14 +1,12 @@
 import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
-import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { scheduleAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
-import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
@@ -23,18 +21,15 @@ import type { PermissionString } from "@calcom/features/pbac/domain/types/permis
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Workflow } from "@calcom/prisma/client";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { WorkflowTemplates, WorkflowType as PrismaWorkflowType } from "@calcom/prisma/enums";
+import { WorkflowTemplates } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -941,54 +936,6 @@ export function isStepEdited(oldStep: WorkflowStep, newStep: WorkflowStep) {
   }
 
   return false;
-}
-
-export async function getAllWorkflowsFromEventType(
-  eventType: {
-    workflows?: {
-      workflow: WorkflowType;
-    }[];
-    teamId?: number | null;
-    parentId?: number | null;
-    parent?: {
-      id?: number | null;
-      teamId: number | null;
-    } | null;
-    metadata?: Prisma.JsonValue;
-  } | null,
-  userId?: number | null
-) {
-  if (!eventType) return [];
-
-  const eventTypeWorkflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
-
-  const teamId = await getTeamIdFromEventType({
-    eventType: {
-      team: { id: eventType?.teamId ?? null },
-      parentId: eventType?.parentId || eventType?.parent?.id || null,
-    },
-  });
-
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
-  const isManagedEventType = !!eventType?.parent;
-
-  const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
-
-  const workflowsLockedForUser = isManagedEventType
-    ? !eventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
-    : false;
-
-  const allWorkflows = await getAllWorkflows({
-    entityWorkflows: eventTypeWorkflows,
-    userId,
-    teamId,
-    orgId,
-    workflowsLockedForUser,
-    type: PrismaWorkflowType.EVENT_TYPE,
-  });
-
-  return allWorkflows;
 }
 
 export const getEventTypeWorkflows = async (
