@@ -916,4 +916,443 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe("setUserFeatureState", () => {
+    it("should create a new UserFeatures row with enabled=true when state is 'enabled'", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      await featuresRepository.setUserFeatureState(testUser.id, testFeature, "enabled", "test-assigner");
+
+      const userFeature = await prisma.userFeatures.findFirst({
+        where: {
+          userId: testUser.id,
+          featureId: testFeature,
+        },
+      });
+
+      expect(userFeature).not.toBeNull();
+      expect(userFeature?.enabled).toBe(true);
+      expect(userFeature?.assignedBy).toBe("test-assigner");
+    });
+
+    it("should create a new UserFeatures row with enabled=false when state is 'disabled'", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      await featuresRepository.setUserFeatureState(testUser.id, testFeature, "disabled", "test-assigner");
+
+      const userFeature = await prisma.userFeatures.findFirst({
+        where: {
+          userId: testUser.id,
+          featureId: testFeature,
+        },
+      });
+
+      expect(userFeature).not.toBeNull();
+      expect(userFeature?.enabled).toBe(false);
+      expect(userFeature?.assignedBy).toBe("test-assigner");
+    });
+
+    it("should update existing UserFeatures row", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      // Create with enabled=false first
+      await prisma.userFeatures.create({
+        data: {
+          userId: testUser.id,
+          featureId: testFeature,
+          enabled: false,
+          assignedBy: "original-assigner",
+        },
+      });
+
+      // Now enable the feature
+      await featuresRepository.setUserFeatureState(testUser.id, testFeature, "enabled", "new-assigner");
+
+      const userFeature = await prisma.userFeatures.findFirst({
+        where: {
+          userId: testUser.id,
+          featureId: testFeature,
+        },
+      });
+
+      expect(userFeature).not.toBeNull();
+      expect(userFeature?.enabled).toBe(true);
+      expect(userFeature?.assignedBy).toBe("new-assigner");
+    });
+
+    it("should delete the row when state is 'inherit'", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      // Create a row first
+      await prisma.userFeatures.create({
+        data: {
+          userId: testUser.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "test",
+        },
+      });
+
+      // Set to inherit (should delete)
+      await featuresRepository.setUserFeatureState(testUser.id, testFeature, "inherit", "test-assigner");
+
+      const userFeature = await prisma.userFeatures.findFirst({
+        where: {
+          userId: testUser.id,
+          featureId: testFeature,
+        },
+      });
+
+      expect(userFeature).toBeNull();
+    });
+  });
+
+  describe("getUserFeatureStates", () => {
+    it("should return 'inherit' when user has no feature row", async () => {
+      const result = await featuresRepository.getUserFeatureStates({
+        userId: testUser.id,
+        featureIds: [testFeature],
+      });
+
+      expect(result[testFeature]).toBe("inherit");
+    });
+
+    it("should return 'enabled' when user has feature enabled", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      await prisma.userFeatures.create({
+        data: {
+          userId: testUser.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getUserFeatureStates({
+        userId: testUser.id,
+        featureIds: [testFeature],
+      });
+
+      expect(result[testFeature]).toBe("enabled");
+    });
+
+    it("should return 'disabled' when user has feature disabled", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      await prisma.userFeatures.create({
+        data: {
+          userId: testUser.id,
+          featureId: testFeature,
+          enabled: false,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getUserFeatureStates({
+        userId: testUser.id,
+        featureIds: [testFeature],
+      });
+
+      expect(result[testFeature]).toBe("disabled");
+    });
+
+    it("should return states for multiple features in a single query", async () => {
+      const testFeature2 = "organizations" as keyof typeof import("./config").AppFlags;
+
+      await prisma.feature.createMany({
+        data: [
+          { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+          { slug: testFeature2, enabled: true, type: "OPERATIONAL" },
+        ],
+      });
+
+      await prisma.userFeatures.createMany({
+        data: [
+          { userId: testUser.id, featureId: testFeature, enabled: true, assignedBy: "test" },
+          { userId: testUser.id, featureId: testFeature2, enabled: false, assignedBy: "test" },
+        ],
+      });
+
+      const result = await featuresRepository.getUserFeatureStates({
+        userId: testUser.id,
+        featureIds: [testFeature, testFeature2],
+      });
+
+      expect(result[testFeature]).toBe("enabled");
+      expect(result[testFeature2]).toBe("disabled");
+
+      // Clean up
+      await prisma.userFeatures.deleteMany({
+        where: { userId: testUser.id, featureId: testFeature2 },
+      });
+      await prisma.feature.deleteMany({
+        where: { slug: testFeature2 },
+      });
+    });
+  });
+
+  describe("getTeamFeatureStates", () => {
+    it("should return 'inherit' when team has no feature row", async () => {
+      const result = await featuresRepository.getTeamFeatureStates({
+        teamId: testTeam.id,
+        featureIds: [testFeature],
+      });
+
+      expect(result[testFeature]).toBe("inherit");
+    });
+
+    it("should return 'enabled' when team has feature enabled", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getTeamFeatureStates({
+        teamId: testTeam.id,
+        featureIds: [testFeature],
+      });
+
+      expect(result[testFeature]).toBe("enabled");
+    });
+
+    it("should return 'disabled' when team has feature disabled", async () => {
+      await prisma.feature.create({
+        data: {
+          slug: testFeature,
+          enabled: true,
+          type: "OPERATIONAL",
+        },
+      });
+
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: false,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getTeamFeatureStates({
+        teamId: testTeam.id,
+        featureIds: [testFeature],
+      });
+
+      expect(result[testFeature]).toBe("disabled");
+    });
+
+    it("should return states for multiple features in a single query", async () => {
+      const testFeature2 = "organizations" as keyof typeof import("./config").AppFlags;
+
+      await prisma.feature.createMany({
+        data: [
+          { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+          { slug: testFeature2, enabled: true, type: "OPERATIONAL" },
+        ],
+      });
+
+      await prisma.teamFeatures.createMany({
+        data: [
+          { teamId: testTeam.id, featureId: testFeature, enabled: true, assignedBy: "test" },
+          { teamId: testTeam.id, featureId: testFeature2, enabled: false, assignedBy: "test" },
+        ],
+      });
+
+      const result = await featuresRepository.getTeamFeatureStates({
+        teamId: testTeam.id,
+        featureIds: [testFeature, testFeature2],
+      });
+
+      expect(result[testFeature]).toBe("enabled");
+      expect(result[testFeature2]).toBe("disabled");
+
+      // Clean up
+      await prisma.teamFeatures.deleteMany({
+        where: { teamId: testTeam.id, featureId: testFeature2 },
+      });
+      await prisma.feature.deleteMany({
+        where: { slug: testFeature2 },
+      });
+    });
+  });
+
+  describe("getFeatureStateForTeams", () => {
+    it("should return empty object for empty teamIds array", async () => {
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [],
+        featureId: testFeature,
+      });
+
+      expect(result).toEqual({});
+    });
+
+    it("should return inherit (missing key) when team has no feature row", async () => {
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id],
+        featureId: testFeature,
+      });
+
+      // Teams without explicit state are not in the result (caller should default to 'inherit')
+      expect(result[testTeam.id]).toBeUndefined();
+    });
+
+    it("should return 'enabled' when team has feature enabled", async () => {
+      await prisma.feature.create({
+        data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+      });
+
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id],
+        featureId: testFeature,
+      });
+
+      expect(result[testTeam.id]).toBe("enabled");
+    });
+
+    it("should return 'disabled' when team has feature disabled", async () => {
+      await prisma.feature.create({
+        data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+      });
+
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: false,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id],
+        featureId: testFeature,
+      });
+
+      expect(result[testTeam.id]).toBe("disabled");
+    });
+
+    it("should return states for multiple teams in a single query", async () => {
+      const secondTeam = await prisma.team.create({
+        data: { name: "Second Test Team", slug: "second-test-team" },
+      });
+
+      await prisma.feature.create({
+        data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+      });
+
+      await prisma.teamFeatures.createMany({
+        data: [
+          { teamId: testTeam.id, featureId: testFeature, enabled: true, assignedBy: "test" },
+          { teamId: secondTeam.id, featureId: testFeature, enabled: false, assignedBy: "test" },
+        ],
+      });
+
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id, secondTeam.id],
+        featureId: testFeature,
+      });
+
+      expect(result[testTeam.id]).toBe("enabled");
+      expect(result[secondTeam.id]).toBe("disabled");
+
+      // Clean up
+      await prisma.teamFeatures.deleteMany({
+        where: { teamId: secondTeam.id },
+      });
+      await prisma.team.delete({
+        where: { id: secondTeam.id },
+      });
+    });
+
+    it("should only return teams with explicit state, not all requested teams", async () => {
+      const secondTeam = await prisma.team.create({
+        data: { name: "Second Test Team", slug: "second-test-team-2" },
+      });
+
+      await prisma.feature.create({
+        data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
+      });
+
+      // Only set feature for testTeam, not secondTeam
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeam.id,
+          featureId: testFeature,
+          enabled: true,
+          assignedBy: "test",
+        },
+      });
+
+      const result = await featuresRepository.getFeatureStateForTeams({
+        teamIds: [testTeam.id, secondTeam.id],
+        featureId: testFeature,
+      });
+
+      expect(result[testTeam.id]).toBe("enabled");
+      expect(result[secondTeam.id]).toBeUndefined(); // Not in result, caller defaults to 'inherit'
+
+      // Clean up
+      await prisma.team.delete({
+        where: { id: secondTeam.id },
+      });
+    });
+  });
 });

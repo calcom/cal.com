@@ -278,6 +278,62 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Updates a feature status for a specific user.
+   * Uses tri-state semantics:
+   * - 'enabled': creates/updates a row with enabled=true
+   * - 'disabled': creates/updates a row with enabled=false
+   * - 'inherit': deletes the row to inherit from team/org level
+   *
+   * @param userId - The ID of the user to update the feature for
+   * @param featureId - The feature identifier to update
+   * @param state - 'enabled' | 'disabled' | 'inherit'
+   * @param assignedBy - The user or what assigned the feature
+   * @returns Promise<void>
+   * @throws Error if the feature update fails
+   */
+  async setUserFeatureState(
+    userId: number,
+    featureId: keyof AppFlags,
+    state: FeatureState,
+    assignedBy: string
+  ): Promise<void> {
+    try {
+      if (state === "enabled" || state === "disabled") {
+        await this.prismaClient.userFeatures.upsert({
+          where: {
+            userId_featureId: {
+              userId,
+              featureId,
+            },
+          },
+          create: {
+            userId,
+            featureId,
+            enabled: state === "enabled",
+            assignedBy,
+          },
+          update: {
+            enabled: state === "enabled",
+            assignedBy,
+          },
+        });
+      } else if (state === "inherit") {
+        await this.prismaClient.userFeatures.deleteMany({
+          where: {
+            userId,
+            featureId,
+          },
+        });
+      }
+      // Clear cache when features are modified
+      this.clearCache();
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
    * Updates a feature status for a specific team.
    * Uses tri-state semantics: creates/updates a row with enabled=true.
    * @param teamId - The ID of the team to enable the feature for
@@ -411,6 +467,138 @@ export class FeaturesRepository implements IFeaturesRepository {
       });
 
       return rows.map((r) => r.teamId);
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Get user's feature states for multiple features.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → 'enabled'
+   * - Row with enabled=false → 'disabled'
+   * - No row → 'inherit' from team/org level
+   *
+   * @param input - Object containing userId and featureIds array
+   * @returns Record<featureId, 'enabled' | 'disabled' | 'inherit'>
+   */
+  async getUserFeatureStates(input: {
+    userId: number;
+    featureIds: string[];
+  }): Promise<Record<string, FeatureState>> {
+    const { userId, featureIds } = input;
+
+    try {
+      // Initialize result with all features set to 'inherit'
+      const result: Record<string, FeatureState> = {};
+      for (const featureId of featureIds) {
+        result[featureId] = "inherit";
+      }
+
+      // Query all user features in a single call
+      const userFeatures = await this.prismaClient.userFeatures.findMany({
+        where: {
+          userId,
+          featureId: { in: featureIds },
+        },
+        select: { featureId: true, enabled: true },
+      });
+
+      // Update result with actual values from database
+      for (const userFeature of userFeatures) {
+        result[userFeature.featureId] = userFeature.enabled ? "enabled" : "disabled";
+      }
+
+      return result;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Get team's feature states for multiple features.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → 'enabled'
+   * - Row with enabled=false → 'disabled'
+   * - No row → 'inherit' from parent team/org level
+   *
+   * @param input - Object containing teamId and featureIds array
+   * @returns Record<featureId, 'enabled' | 'disabled' | 'inherit'>
+   */
+  async getTeamFeatureStates(input: {
+    teamId: number;
+    featureIds: string[];
+  }): Promise<Record<string, FeatureState>> {
+    const { teamId, featureIds } = input;
+
+    try {
+      // Initialize result with all features set to 'inherit'
+      const result: Record<string, FeatureState> = {};
+      for (const featureId of featureIds) {
+        result[featureId] = "inherit";
+      }
+
+      // Query all team features in a single call
+      const teamFeatures = await this.prismaClient.teamFeatures.findMany({
+        where: {
+          teamId,
+          featureId: { in: featureIds },
+        },
+        select: { featureId: true, enabled: true },
+      });
+
+      // Update result with actual values from database
+      for (const teamFeature of teamFeatures) {
+        result[teamFeature.featureId] = teamFeature.enabled ? "enabled" : "disabled";
+      }
+
+      return result;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Get a single feature's state across multiple teams.
+   * Optimized for querying many teams for one feature.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → 'enabled'
+   * - Row with enabled=false → 'disabled'
+   * - No row → 'inherit' from parent team/org level
+   *
+   * @param input - Object containing teamIds array and featureId
+   * @returns Record<teamId, 'enabled' | 'disabled' | 'inherit'>
+   */
+  async getFeatureStateForTeams(input: {
+    teamIds: number[];
+    featureId: string;
+  }): Promise<Record<number, FeatureState>> {
+    const { teamIds, featureId } = input;
+
+    if (teamIds.length === 0) {
+      return {};
+    }
+
+    try {
+      // Query all team features in a single call
+      const teamFeatures = await this.prismaClient.teamFeatures.findMany({
+        where: {
+          teamId: { in: teamIds },
+          featureId,
+        },
+        select: { teamId: true, enabled: true },
+      });
+
+      // Build result map - teams not in the result will default to 'inherit'
+      const result: Record<number, FeatureState> = {};
+      for (const teamFeature of teamFeatures) {
+        result[teamFeature.teamId] = teamFeature.enabled ? "enabled" : "disabled";
+      }
+
+      return result;
     } catch (err) {
       captureException(err);
       throw err;
