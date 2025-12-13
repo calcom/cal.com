@@ -9,7 +9,7 @@ import { checkHolidayConflict, ensureNoHolidayConflict } from "./checkHolidayCon
 // Mock the HolidayRepository
 vi.mock("@calcom/lib/server/repository/HolidayRepository", () => ({
   HolidayRepository: {
-    findUserSettingsSelect: vi.fn(),
+    findUserSettingsWithTimezone: vi.fn(),
   },
 }));
 
@@ -20,9 +20,14 @@ vi.mock("@calcom/lib/holidays", () => ({
   })),
 }));
 
-// Helper to create mock holiday settings (only the fields our code uses)
-const mockHolidaySettings = (settings: { countryCode: string | null; disabledIds: string[] } | null) =>
-  settings as never;
+// Helper to create mock holiday settings with timezone (matching the new repository method)
+const mockHolidaySettingsWithTimezone = (
+  settings: {
+    countryCode: string | null;
+    disabledIds: string[];
+    user?: { timeZone: string } | null;
+  } | null
+) => settings as never;
 
 describe("checkHolidayConflict", () => {
   let mockHolidayServiceInstance: { getHolidayOnDate: ReturnType<typeof vi.fn> };
@@ -36,7 +41,7 @@ describe("checkHolidayConflict", () => {
   });
 
   it("should return no conflict when user has no holiday settings", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect).mockResolvedValue(null);
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(null);
 
     const result = await checkHolidayConflict({
       userId: 123,
@@ -48,8 +53,8 @@ describe("checkHolidayConflict", () => {
   });
 
   it("should return no conflict when user has no country selected", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect).mockResolvedValue(
-      mockHolidaySettings({ countryCode: null, disabledIds: [] })
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(
+      mockHolidaySettingsWithTimezone({ countryCode: null, disabledIds: [], user: { timeZone: "America/New_York" } })
     );
 
     const result = await checkHolidayConflict({
@@ -62,8 +67,8 @@ describe("checkHolidayConflict", () => {
   });
 
   it("should return no conflict when date is not a holiday", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect).mockResolvedValue(
-      mockHolidaySettings({ countryCode: "US", disabledIds: [] })
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(
+      mockHolidaySettingsWithTimezone({ countryCode: "US", disabledIds: [], user: { timeZone: "America/New_York" } })
     );
     mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue(null);
 
@@ -76,13 +81,14 @@ describe("checkHolidayConflict", () => {
     expect(mockHolidayServiceInstance.getHolidayOnDate).toHaveBeenCalledWith(
       new Date("2025-12-26"),
       "US",
-      []
+      [],
+      "America/New_York"
     );
   });
 
   it("should return conflict when date falls on an enabled holiday", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect).mockResolvedValue(
-      mockHolidaySettings({ countryCode: "US", disabledIds: [] })
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(
+      mockHolidaySettingsWithTimezone({ countryCode: "US", disabledIds: [], user: { timeZone: "America/New_York" } })
     );
     mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue({
       id: "christmas_2025",
@@ -103,8 +109,12 @@ describe("checkHolidayConflict", () => {
   });
 
   it("should return no conflict when holiday is disabled", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect).mockResolvedValue(
-      mockHolidaySettings({ countryCode: "US", disabledIds: ["christmas_2025"] })
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(
+      mockHolidaySettingsWithTimezone({
+        countryCode: "US",
+        disabledIds: ["christmas_2025"],
+        user: { timeZone: "America/New_York" },
+      })
     );
     // Service returns null because holiday is in disabledIds
     mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue(null);
@@ -115,9 +125,32 @@ describe("checkHolidayConflict", () => {
     });
 
     expect(result).toEqual({ hasConflict: false });
-    expect(mockHolidayServiceInstance.getHolidayOnDate).toHaveBeenCalledWith(new Date("2025-12-25"), "US", [
-      "christmas_2025",
-    ]);
+    expect(mockHolidayServiceInstance.getHolidayOnDate).toHaveBeenCalledWith(
+      new Date("2025-12-25"),
+      "US",
+      ["christmas_2025"],
+      "America/New_York"
+    );
+  });
+
+  it("should use UTC as fallback when user has no timezone set", async () => {
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(
+      mockHolidaySettingsWithTimezone({ countryCode: "US", disabledIds: [], user: null })
+    );
+    mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue(null);
+
+    await checkHolidayConflict({
+      userId: 123,
+      startTime: new Date("2025-12-25"),
+    });
+
+    // Should use UTC as fallback timezone
+    expect(mockHolidayServiceInstance.getHolidayOnDate).toHaveBeenCalledWith(
+      new Date("2025-12-25"),
+      "US",
+      [],
+      "UTC"
+    );
   });
 });
 
@@ -133,8 +166,8 @@ describe("ensureNoHolidayConflict", () => {
   });
 
   it("should not throw when no holiday conflict exists", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect).mockResolvedValue(
-      mockHolidaySettings({ countryCode: "US", disabledIds: [] })
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(
+      mockHolidaySettingsWithTimezone({ countryCode: "US", disabledIds: [], user: { timeZone: "America/New_York" } })
     );
     mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue(null);
 
@@ -147,8 +180,8 @@ describe("ensureNoHolidayConflict", () => {
   });
 
   it("should throw BookingOnHoliday error when date falls on holiday", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect).mockResolvedValue(
-      mockHolidaySettings({ countryCode: "US", disabledIds: [] })
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(
+      mockHolidaySettingsWithTimezone({ countryCode: "US", disabledIds: [], user: { timeZone: "America/New_York" } })
     );
     mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue({
       id: "christmas_2025",
@@ -167,9 +200,11 @@ describe("ensureNoHolidayConflict", () => {
 
   it("should check all users and throw if any has holiday conflict", async () => {
     // First user has no holidays
-    vi.mocked(HolidayRepository.findUserSettingsSelect)
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone)
       .mockResolvedValueOnce(null) // User 1 - no settings
-      .mockResolvedValueOnce(mockHolidaySettings({ countryCode: "US", disabledIds: [] })); // User 2 - has holiday
+      .mockResolvedValueOnce(
+        mockHolidaySettingsWithTimezone({ countryCode: "US", disabledIds: [], user: { timeZone: "America/New_York" } })
+      ); // User 2 - has holiday
 
     mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue({
       id: "christmas_2025",
@@ -187,9 +222,13 @@ describe("ensureNoHolidayConflict", () => {
   });
 
   it("should pass if all users have no holiday conflicts", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect)
-      .mockResolvedValueOnce(mockHolidaySettings({ countryCode: "US", disabledIds: [] }))
-      .mockResolvedValueOnce(mockHolidaySettings({ countryCode: "UK", disabledIds: [] }));
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone)
+      .mockResolvedValueOnce(
+        mockHolidaySettingsWithTimezone({ countryCode: "US", disabledIds: [], user: { timeZone: "America/New_York" } })
+      )
+      .mockResolvedValueOnce(
+        mockHolidaySettingsWithTimezone({ countryCode: "GB", disabledIds: [], user: { timeZone: "Europe/London" } })
+      );
 
     mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue(null);
 
@@ -200,12 +239,12 @@ describe("ensureNoHolidayConflict", () => {
       })
     ).resolves.not.toThrow();
 
-    expect(HolidayRepository.findUserSettingsSelect).toHaveBeenCalledTimes(2);
+    expect(HolidayRepository.findUserSettingsWithTimezone).toHaveBeenCalledTimes(2);
   });
 
   it("should throw HttpError with status 400 and holiday name in data", async () => {
-    vi.mocked(HolidayRepository.findUserSettingsSelect).mockResolvedValue(
-      mockHolidaySettings({ countryCode: "US", disabledIds: [] })
+    vi.mocked(HolidayRepository.findUserSettingsWithTimezone).mockResolvedValue(
+      mockHolidaySettingsWithTimezone({ countryCode: "US", disabledIds: [], user: { timeZone: "America/New_York" } })
     );
     mockHolidayServiceInstance.getHolidayOnDate.mockResolvedValue({
       id: "independence_day_2025",

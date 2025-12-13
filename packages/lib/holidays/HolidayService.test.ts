@@ -98,10 +98,16 @@ describe("HolidayService", () => {
   });
 
   describe("getHolidayOnDate", () => {
-    it("should return holiday if date matches", async () => {
+    it("should return holiday if date matches in host timezone", async () => {
       vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
-      const holiday = await holidayService.getHolidayOnDate(new Date("2025-12-25"), "US");
+      // Booking at midnight UTC on Dec 25th - should match Christmas in UTC timezone
+      const holiday = await holidayService.getHolidayOnDate(
+        new Date("2025-12-25T00:00:00.000Z"),
+        "US",
+        [],
+        "UTC"
+      );
 
       expect(holiday?.name).toBe("Christmas Day");
     });
@@ -109,9 +115,76 @@ describe("HolidayService", () => {
     it("should return null if holiday is disabled", async () => {
       vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
 
-      const holiday = await holidayService.getHolidayOnDate(new Date("2025-12-25"), "US", ["christmas_day_2025"]);
+      const holiday = await holidayService.getHolidayOnDate(
+        new Date("2025-12-25T00:00:00.000Z"),
+        "US",
+        ["christmas_day_2025"],
+        "UTC"
+      );
 
       expect(holiday).toBeNull();
+    });
+
+    describe("timezone edge cases", () => {
+      it("should detect holiday when booking time is Dec 24th UTC but Dec 25th in IST (UTC+5:30)", async () => {
+        vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+
+        // Dec 24th 8:00 PM UTC = Dec 25th 1:30 AM IST
+        // This should be blocked for an Indian host because it's Christmas in their timezone
+        const holiday = await holidayService.getHolidayOnDate(
+          new Date("2025-12-24T20:00:00.000Z"),
+          "US",
+          [],
+          "Asia/Kolkata" // IST = UTC+5:30
+        );
+
+        expect(holiday?.name).toBe("Christmas Day");
+      });
+
+      it("should NOT detect holiday when booking time is Dec 25th UTC but Dec 26th in far-east timezone", async () => {
+        vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+
+        // Dec 25th 8:00 PM UTC = Dec 26th 7:00 AM in Asia/Tokyo (UTC+9)
+        // This should NOT be blocked because it's Dec 26th in Tokyo
+        const holiday = await holidayService.getHolidayOnDate(
+          new Date("2025-12-25T20:00:00.000Z"),
+          "US",
+          [],
+          "Asia/Tokyo" // UTC+9
+        );
+
+        expect(holiday).toBeNull();
+      });
+
+      it("should detect holiday correctly for US Eastern timezone on Christmas", async () => {
+        vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+
+        // Dec 25th 10:00 AM UTC = Dec 25th 5:00 AM EST (UTC-5)
+        // This should be blocked because it's Christmas in Eastern US
+        const holiday = await holidayService.getHolidayOnDate(
+          new Date("2025-12-25T10:00:00.000Z"),
+          "US",
+          [],
+          "America/New_York"
+        );
+
+        expect(holiday?.name).toBe("Christmas Day");
+      });
+
+      it("should NOT detect holiday when booking time is Dec 26th 3AM UTC which is Dec 25th 10PM EST", async () => {
+        vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+
+        // Dec 26th 3:00 AM UTC = Dec 25th 10:00 PM EST (UTC-5)
+        // This SHOULD be blocked because it's still Christmas in Eastern US
+        const holiday = await holidayService.getHolidayOnDate(
+          new Date("2025-12-26T03:00:00.000Z"),
+          "US",
+          [],
+          "America/New_York"
+        );
+
+        expect(holiday?.name).toBe("Christmas Day");
+      });
     });
   });
 

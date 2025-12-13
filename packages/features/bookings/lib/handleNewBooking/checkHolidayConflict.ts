@@ -6,6 +6,9 @@ import { HttpError } from "@calcom/lib/http-error";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { HolidayRepository } from "@calcom/lib/server/repository/HolidayRepository";
 
+// Default timezone fallback if user has no timezone set
+const DEFAULT_TIMEZONE = "UTC";
+
 export interface HolidayConflictResult {
   hasConflict: boolean;
   holidayName?: string;
@@ -14,8 +17,13 @@ export interface HolidayConflictResult {
 /**
  * Checks if a booking time conflicts with an enabled holiday for a user.
  *
+ * The booking time is converted to the host's timezone before checking against holidays.
+ * This ensures that a holiday like "December 25th" blocks bookings that fall on Dec 25th
+ * in the host's local time, not UTC. For example, a booking at Dec 24th 11PM UTC would
+ * be blocked for an Indian host (IST = UTC+5:30) because it's Dec 25th in their timezone.
+ *
  * @param userId - The ID of the host user to check holidays for
- * @param startTime - The start time of the booking
+ * @param startTime - The start time of the booking (in UTC)
  * @returns HolidayConflictResult with conflict status and holiday name if found
  */
 const _checkHolidayConflict = async ({
@@ -25,10 +33,9 @@ const _checkHolidayConflict = async ({
   userId: number;
   startTime: Date;
 }): Promise<HolidayConflictResult> => {
-  // Fetch user's holiday settings using repository pattern
-  const holidaySettings = await HolidayRepository.findUserSettingsSelect({
+  // Fetch user's holiday settings AND timezone using repository pattern
+  const holidaySettings = await HolidayRepository.findUserSettingsWithTimezone({
     userId,
-    select: { countryCode: true, disabledIds: true },
   });
 
   // No holidays configured for this user
@@ -37,12 +44,15 @@ const _checkHolidayConflict = async ({
   }
 
   const holidayService = getHolidayService();
+  const hostTimeZone = holidaySettings.user?.timeZone || DEFAULT_TIMEZONE;
 
   // Check if booking start date falls on an enabled holiday
+  // The booking time is converted to the host's timezone for accurate date comparison
   const holiday = await holidayService.getHolidayOnDate(
     startTime,
     holidaySettings.countryCode,
-    holidaySettings.disabledIds
+    holidaySettings.disabledIds,
+    hostTimeZone
   );
 
   if (holiday) {
