@@ -506,6 +506,7 @@ export const userMetadata = z
         revertTime: z.string().optional(),
       })
       .optional(),
+    defaultHomeView: z.enum(["event-types", "bookings"]).optional(),
   })
   .nullable();
 

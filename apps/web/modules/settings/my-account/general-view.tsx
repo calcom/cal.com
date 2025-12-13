@@ -39,6 +39,10 @@ export type FormValues = {
     value: string;
     label: string;
   };
+  defaultHomeView: {
+    value: "event-types" | "bookings";
+    label: string;
+  };
   travelSchedules: {
     id?: number;
     startDate: Date;
@@ -93,6 +97,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     { value: 24, label: t("24_hour") },
   ];
 
+  const defaultHomeViewOptions = [
+    { value: "event-types" as const, label: t("event_types") },
+    { value: "bookings" as const, label: t("bookings") },
+  ];
+
   const weekStartOptions = [
     { value: "Sunday", label: nameOfDay(localeProp, 0) },
     { value: "Monday", label: nameOfDay(localeProp, 1) },
@@ -117,6 +126,12 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       weekStart: {
         value: user.weekStart,
         label: weekStartOptions.find((option) => option.value === user.weekStart)?.label || "",
+      },
+      defaultHomeView: {
+        value: (user.metadata as { defaultHomeView?: "event-types" | "bookings" } | null)?.defaultHomeView ?? "event-types",
+        label: defaultHomeViewOptions.find(
+          (option) => option.value === ((user.metadata as { defaultHomeView?: "event-types" | "bookings" } | null)?.defaultHomeView ?? "event-types")
+        )?.label || t("event_types"),
       },
       travelSchedules:
         travelSchedules.map((schedule) => {
@@ -165,6 +180,9 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               locale: values.locale.value,
               timeFormat: values.timeFormat.value,
               weekStart: values.weekStart.value,
+              metadata: {
+                defaultHomeView: values.defaultHomeView.value,
+              },
             });
           }}>
           <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
@@ -298,6 +316,24 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     options={weekStartOptions}
                     onChange={(event) => {
                       if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
+                    }}
+                  />
+                </>
+              )}
+            />
+            <Controller
+              name="defaultHomeView"
+              control={formMethods.control}
+              render={({ field: { value } }) => (
+                <>
+                  <Label className="text-emphasis mt-6">
+                    <>{t("default_home_view")}</>
+                  </Label>
+                  <Select
+                    value={value}
+                    options={defaultHomeViewOptions}
+                    onChange={(event) => {
+                      if (event) formMethods.setValue("defaultHomeView", { ...event }, { shouldDirty: true });
                     }}
                   />
                 </>
