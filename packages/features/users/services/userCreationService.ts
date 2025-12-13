@@ -1,10 +1,9 @@
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
 import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 
 interface CreateUserInput {
@@ -42,7 +41,7 @@ export class UserCreationService {
 
     const hashedPassword = password ? await hashPassword(password) : null;
 
-    const userRepo = new UserRepository(prisma);
+    const userRepo = getUserRepository();
     const user = await userRepo.create({
       ...data,
       username: slugify(username),

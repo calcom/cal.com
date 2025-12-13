@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -269,7 +269,7 @@ export class CreditService {
       return null;
     }
 
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const teams = await teamRepository.findTeamsForCreditCheck({
       teamIds: memberships.map((m) => m.teamId),
     });

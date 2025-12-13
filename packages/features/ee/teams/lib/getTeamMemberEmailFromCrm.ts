@@ -1,6 +1,6 @@
 import type { ParsedUrlQuery } from "querystring";
 
-/* eslint-disable */
+ 
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import {
   ROUTING_FORM_RESPONSE_ID_QUERY_STRING,
@@ -10,10 +10,10 @@ import { enabledAppSlugs } from "@calcom/app-store/routing-forms/lib/enabledApps
 import type { AttributeRoutingConfig, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes as routesSchema } from "@calcom/app-store/routing-forms/zod";
 
-/* eslint-enable */
+ 
+import { getRoutingFormResponseRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -74,7 +74,7 @@ async function getAttributeRoutingConfig(
     return data.route.attributeRoutingConfig ?? null;
   }
   const { routingFormResponseId, queuedFormResponseId } = data;
-  const routingFormResponseRepository = new RoutingFormResponseRepository(prisma);
+  const routingFormResponseRepository = getRoutingFormResponseRepository();
 
   const routingFormResponseQuery = routingFormResponseId
     ? await routingFormResponseRepository.findFormResponseIncludeForm({ routingFormResponseId })
