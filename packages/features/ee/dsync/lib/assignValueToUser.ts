@@ -1,8 +1,10 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import {
+  getAttributeOptionRepository,
+  getAttributeRepository,
+  getMembershipRepository,
+} from "@calcom/features/di/containers/RepositoryContainer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaAttributeOptionRepository } from "@calcom/lib/server/repository/PrismaAttributeOptionRepository";
-import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import { findAssignmentsForMember } from "@calcom/lib/service/attribute/server/utils";
 import type {
   AttributeId,
@@ -41,7 +43,7 @@ const findAttributesByName = async ({
   orgId: number;
   attributeNames: AttributeName[];
 }) => {
-  const attributeRepo = new PrismaAttributeRepository(prisma);
+  const attributeRepo = getAttributeRepository();
   const attributesFromDb = await attributeRepo.findManyByNamesAndOrgIdIncludeOptions({
     attributeNames,
     orgId,
@@ -330,13 +332,14 @@ const createMissingOptionsAndReturnAlongWithExisting = async <
     ),
   });
 
-  await PrismaAttributeOptionRepository.createMany({
+  const attributeOptionRepo = getAttributeOptionRepository();
+  await attributeOptionRepo.createMany({
     createManyInput: attributeOptionCreateManyInput,
   });
 
   // We need fetch all the attribute options to ensure that we have the newly created options as well.
   const allAttributeOptions = (
-    await PrismaAttributeOptionRepository.findMany({
+    await attributeOptionRepo.findMany({
       orgId,
     })
   ).map((attributeOption) => ({
@@ -423,7 +426,7 @@ export const assignValueToUserInOrgBulk = async ({
   attributeLabelToValueMap: AttributeLabelToValueMap;
   updater: BulkAttributeAssigner;
 }) => {
-  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+  const membership = await getMembershipRepository().findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
   const defaultReturn = { numOfAttributeOptionsSet: 0, numOfAttributeOptionsDeleted: 0 };
   if (!membership) {
     console.error(`User ${userId} not a member of org ${orgId}, not assigning attribute options`);

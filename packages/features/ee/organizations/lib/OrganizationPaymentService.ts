@@ -1,11 +1,13 @@
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
   ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
@@ -13,8 +15,6 @@ import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 import type { OnboardingUser } from "./service/onboarding/types";
@@ -114,7 +114,7 @@ export class OrganizationPaymentService {
 
     const stripeCustomerId = customer.stripeCustomerId;
     if (existingCustomer && parsedMetadata) {
-      await new UserRepository(prisma).updateStripeCustomerId({
+      await getUserRepository().updateStripeCustomerId({
         id: existingCustomer.id,
         stripeCustomerId,
         existingMetadata: parsedMetadata,

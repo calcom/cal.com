@@ -1,4 +1,4 @@
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import { getPhoneNumberRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import prisma from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
@@ -14,7 +14,7 @@ const handler = async (data: Data) => {
     throw new HttpCode(400, "Subscription ID not found");
   }
 
-  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+  const phoneNumberRepo = getPhoneNumberRepository();
   const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
     stripeSubscriptionId: subscription.id,
   });

@@ -1,7 +1,7 @@
 import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
 
+import { getUserRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -82,7 +82,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
       throw new Error("User belongs to another organization.");
     }
     if (eventData.active) {
-      if (await new UserRepository(prisma).isAMemberOfOrganization({ user, organizationId })) {
+      if (await getUserRepository().isAMemberOfOrganization({ user, organizationId })) {
         await syncCustomAttributesToUser({
           event,
           userEmail,

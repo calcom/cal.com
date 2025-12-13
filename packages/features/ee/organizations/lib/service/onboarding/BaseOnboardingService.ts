@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 
 import { sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { getTeamRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   assertCanCreateOrg,
@@ -9,8 +10,6 @@ import {
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -148,7 +147,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     orgSlug: string,
     teams: TeamInput[] = []
   ): Promise<TeamInput[]> {
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const ownedTeams = await teamRepository.findOwnedTeamsByUserId({ userId: this.user.id });
 
     const conflictingTeam = ownedTeams.find((team) => team.slug === orgSlug);
