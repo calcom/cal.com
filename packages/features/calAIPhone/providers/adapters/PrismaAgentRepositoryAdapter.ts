@@ -1,5 +1,4 @@
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import prisma from "@calcom/prisma";
+import { getAgentRepository } from "@calcom/features/di/containers/RepositoryContainer";
 
 import type {
   AgentRepositoryInterface,
@@ -14,12 +13,12 @@ import type {
  */
 export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
   async canManageTeamResources(params: { userId: number; teamId: number }): Promise<boolean> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     return await agentRepo.canManageTeamResources(params);
   }
 
   async findByIdWithUserAccess(params: { agentId: string; userId: number }): Promise<AgentData | null> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     return await agentRepo.findByIdWithUserAccess(params);
   }
 
@@ -27,7 +26,7 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     providerAgentId: string;
     userId: number;
   }): Promise<AgentData | null> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     return await agentRepo.findByProviderAgentIdWithUserAccess(params);
   }
 
@@ -36,7 +35,7 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     teamId?: number;
     scope?: "personal" | "team" | "all";
   }): Promise<AgentWithDetailsData[]> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     return await agentRepo.findManyWithUserAccess(params);
   }
 
@@ -45,7 +44,7 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     userId: number;
     teamId?: number;
   }): Promise<AgentWithDetailsData | null> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     return await agentRepo.findByIdWithUserAccessAndDetails(params);
   }
 
@@ -55,7 +54,7 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     userId: number;
     teamId?: number;
   }): Promise<AgentData> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     return await agentRepo.create(params);
   }
 
@@ -64,7 +63,7 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     userId: number;
     teamId?: number;
   }): Promise<AgentData | null> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     return await agentRepo.findByIdWithAdminAccess(params);
   }
 
@@ -72,27 +71,27 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     id: string;
     userId: number;
   }): Promise<AgentWithPhoneNumbersData | null> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     return await agentRepo.findByIdWithCallAccess(params);
   }
 
   async delete(params: { id: string }): Promise<void> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     await agentRepo.delete(params);
   }
 
   async linkOutboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     await agentRepo.linkOutboundAgentToWorkflow(params);
   }
 
   async linkInboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     await agentRepo.linkInboundAgentToWorkflow(params);
   }
 
   async updateOutboundEventTypeId(params: { agentId: string; eventTypeId: number }): Promise<void> {
-    const agentRepo = new PrismaAgentRepository(prisma);
+    const agentRepo = getAgentRepository();
     await agentRepo.updateOutboundEventTypeId(params);
   }
 }

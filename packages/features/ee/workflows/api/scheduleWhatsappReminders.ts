@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
+import { getBookingSeatRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -57,7 +57,7 @@ export async function handler(req: NextRequest) {
       // For seated events, get the correct attendee based on seatReferenceId
       let targetAttendee = reminder.booking?.attendees[0];
       if (reminder.seatReferenceId) {
-        const bookingSeatRepository = new BookingSeatRepository(prisma);
+        const bookingSeatRepository = getBookingSeatRepository();
         const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
           reminder.seatReferenceId
         );
