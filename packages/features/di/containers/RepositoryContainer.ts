@@ -38,6 +38,7 @@ import type { IAccessCodeRepository } from "../../oauth/repositories/IAccessCode
 import type { IOrganizationSettingsRepository } from "../../organizations/repositories/IOrganizationSettingsRepository";
 import type { ICalendarCacheEventRepository } from "../../calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import type { IGlobalWatchlistRepository, IOrganizationWatchlistRepository } from "../../watchlist/lib/interface/IWatchlistRepositories";
+import type { IWorkflowReminderRepository } from "../../ee/workflows/repositories/IWorkflowReminderRepository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
@@ -93,6 +94,7 @@ import { organizationSettingsRepositoryModuleLoader } from "../modules/Organizat
 import { calendarCacheEventRepositoryModuleLoader } from "../modules/CalendarCacheEvent";
 import { globalWatchlistRepositoryModuleLoader } from "../modules/GlobalWatchlist";
 import { organizationWatchlistRepositoryModuleLoader } from "../modules/OrganizationWatchlist";
+import { workflowReminderRepositoryModuleLoader } from "../modules/WorkflowReminder";
 
 const repositoryContainer = createContainer();
 
@@ -144,6 +146,7 @@ repositoryContainer.load(organizationSettingsRepositoryModuleLoader());
 repositoryContainer.load(calendarCacheEventRepositoryModuleLoader());
 repositoryContainer.load(globalWatchlistRepositoryModuleLoader());
 repositoryContainer.load(organizationWatchlistRepositoryModuleLoader());
+repositoryContainer.load(workflowReminderRepositoryModuleLoader());
 
 export function getScheduleRepository():IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -333,4 +336,8 @@ export function getGlobalWatchlistRepository(): IGlobalWatchlistRepository {
 
 export function getOrganizationWatchlistRepository(): IOrganizationWatchlistRepository {
   return repositoryContainer.get<IOrganizationWatchlistRepository>(DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY);
+}
+
+export function getWorkflowReminderRepository(): IWorkflowReminderRepository {
+  return repositoryContainer.get<IWorkflowReminderRepository>(DI_TOKENS.WORKFLOW_REMINDER_REPOSITORY);
 }
