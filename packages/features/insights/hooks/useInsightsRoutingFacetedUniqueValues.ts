@@ -77,12 +77,12 @@ export const useInsightsRoutingFacetedUniqueValues = ({
               }))
           );
         } else if (columnId === "bookingStatusOrder") {
-          return convertFacetedValuesToMap(
-            Object.keys(statusOrder).map((status) => ({
-              value: statusOrder[status as BookingStatus],
-              label: bookingStatusToText(status as BookingStatus),
-            }))
-          );
+          const options = Object.keys(statusOrder).map((status) => ({
+            value: statusOrder[status as BookingStatus],
+            label: bookingStatusToText(status as BookingStatus),
+          }));
+          options.splice(3, 0, { value: 6, label: "Rescheduled" });
+          return convertFacetedValuesToMap(options);
         } else if (columnId === "formId") {
           return convertFacetedValuesToMap(
             forms?.map((form) => ({
