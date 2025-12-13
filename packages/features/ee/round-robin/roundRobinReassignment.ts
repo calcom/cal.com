@@ -28,7 +28,9 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
+import { criticalLogger } from "@calcom/lib/logger.server";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -40,6 +42,23 @@ import { handleWorkflowsUpdate } from "./roundRobinManualReassignment";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
+
+function formatAvailabilitySnapshot(data: {
+  dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+  oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+}) {
+  return {
+    ...data,
+    dateRanges: data.dateRanges.map(({ start, end }) => ({
+      start: start.toISOString(),
+      end: end.toISOString(),
+    })),
+    oooExcludedDateRanges: data.oooExcludedDateRanges.map(({ start, end }) => ({
+      start: start.toISOString(),
+      end: end.toISOString(),
+    })),
+  };
+}
 
 export const roundRobinReassignment = async ({
   bookingId,
@@ -161,6 +180,21 @@ export const roundRobinReassignment = async ({
     eventType,
     allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
     routingFormResponse: null,
+  });
+
+  const selectedCalendarRepository = new SelectedCalendarRepository(prisma);
+  const reassignedHostSelectedCalendars = await selectedCalendarRepository.findByUserId(
+    reassignedRRHost.id
+  );
+
+  const reassignedHostAvailability = availableUsers.find((user) => user.id === reassignedRRHost.id);
+
+  criticalLogger.info(`Round robin host reassigned`, {
+    bookingUid: booking.uid,
+    selectedCalendarIds: reassignedHostSelectedCalendars.map((c) => c.id),
+    availabilitySnapshot: reassignedHostAvailability?.availabilityData
+      ? formatAvailabilitySnapshot(reassignedHostAvailability.availabilityData)
+      : null,
   });
 
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
