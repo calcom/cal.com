@@ -299,6 +299,179 @@ describe("handleNewBooking", () => {
       );
 
       test(
+        `should store internalProviderUrl in BookingReference.meetingUrl on reschedule with location change
+          1. BookingReference.meetingUrl should have the internal provider URL (e.g., Daily.co URL)
+          2. Webhook videoCallData.url should have the public Cal.com URL
+    `,
+        async () => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
+
+          await createBookingScenario(
+            getScenarioData({
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl: "http://my-webhook.example.com",
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  // Original booking had a different location (in-person)
+                  location: "New York",
+                  metadata: {
+                    videoCallUrl: "",
+                  },
+                  references: [
+                    {
+                      type: appStoreMetadata.googlecalendar.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASSWORD",
+                      meetingUrl: "https://UNUSED_URL",
+                      externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                      credentialId: undefined,
+                    },
+                  ],
+                  iCalUID,
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          const internalDailyUrl = "https://meetco.daily.co/MOCK_ROOM";
+          const publicCalVideoUrl = `${WEBAPP_URL}/video/PLACEHOLDER_UID`;
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: publicCalVideoUrl,
+              internalProviderUrl: internalDailyUrl,
+            },
+          });
+
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+            },
+            update: {
+              uid: "UPDATED_MOCK_ID",
+              iCalUID,
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T04:00:00.000Z`,
+              end: `${plus1DateString}T04:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                // Reschedule changes location from in-person to Cal Video
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          // Verify previous booking is cancelled
+          await expectBookingToBeInDatabase({
+            uid: uidOfBookingToBeRescheduled,
+            status: BookingStatus.CANCELLED,
+          });
+
+          // Verify BookingReference.meetingUrl has the internal Daily.co URL (for video embed)
+          await expectBookingInDBToBeRescheduledFromTo({
+            from: {
+              uid: uidOfBookingToBeRescheduled,
+            },
+            to: {
+              description: "",
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              status: BookingStatus.ACCEPTED,
+              location: BookingLocations.CalVideo,
+              responses: expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              }),
+              references: [
+                {
+                  type: appStoreMetadata.dailyvideo.type,
+                  uid: "MOCK_ID",
+                  meetingId: "MOCK_ID",
+                  meetingPassword: "MOCK_PASS",
+                  meetingUrl: internalDailyUrl,
+                },
+                {
+                  type: appStoreMetadata.googlecalendar.type,
+                  uid: "UPDATED_MOCK_ID",
+                  meetingId: "UPDATED_MOCK_ID",
+                  meetingPassword: "MOCK_PASSWORD",
+                },
+              ],
+            },
+          });
+
+          // Verify webhook receives the public Cal.com URL (not the internal Daily.co URL)
+          expectBookingRescheduledWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.CalVideo,
+            subscriberUrl: "http://my-webhook.example.com",
+            videoCallUrl: publicCalVideoUrl,
+          });
+        },
+        timeout
+      );
+
+      test(
         `should reschedule a booking successfully and update the event in the same externalCalendarId as was used in the booking earlier.
           1. Should cancel the existing booking
           2. Should create a new booking in the database
