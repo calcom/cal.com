@@ -9,4 +9,4 @@ export { TeamRepository as PrismaTeamRepository } from "@calcom/features/ee/team
 export { UserRepository as PrismaUserRepository } from "@calcom/features/users/repositories/UserRepository";
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 export { MembershipRepository as PrismaMembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-export { HostRepository as PrismaHostRepository } from "@calcom/lib/server/repository/host";
+export { HostRepository as PrismaHostRepository } from "@calcom/features/host/repositories/HostRepository";
