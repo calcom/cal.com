@@ -6,6 +6,7 @@ export const AppSetupPageMap = {
   stripe: import("../../stripepayment/pages/setup/_getServerSideProps"),
   hitpay: import("../../hitpay/pages/setup/_getServerSideProps"),
   btcpayserver: import("../../btcpayserver/pages/setup/_getServerSideProps"),
+  razorpay: import("../../razorpay/pages/setup/_getServerSideProps"),
 };
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
