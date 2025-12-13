@@ -5,7 +5,7 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getBookingRepository } from "@calcom/features/di/containers/Booking";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -15,7 +15,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import type { Booking, BookingReference } from "@calcom/prisma/client";
+import type { Booking } from "@calcom/prisma/client";
+import type { PartialBooking } from "@calcom/types/EventManager";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -45,10 +46,8 @@ async function updateLocationInConnectedAppForBooking({
 }: {
   evt: CalendarEvent;
   eventManager: EventManager;
-  booking: Booking & {
-    references: BookingReference[];
-  };
-}) {
+  booking: PartialBooking;
+}){
   const updatedResult = await eventManager.updateLocation(evt, booking);
   const results = updatedResult.results;
   if (results.length > 0 && results.every((res) => !res.success)) {
@@ -107,7 +106,7 @@ async function updateBookingLocationInDb({
     },
   };
 
-  const bookingRepository = new BookingRepository(prisma);
+  const bookingRepository = getBookingRepository();
   await bookingRepository.updateLocationById({
     where: { id: booking.id },
     data: {
