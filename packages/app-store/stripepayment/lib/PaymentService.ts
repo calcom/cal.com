@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getBookingRepository } from "@calcom/features/di/containers/RepositoryContainer";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -229,7 +229,7 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error("Stripe credentials not found");
       }
 
-      const bookingRepository = new BookingRepository(prisma);
+      const bookingRepository = getBookingRepository();
       const booking = await bookingRepository.findByIdIncludeUserAndAttendees(bookingId);
 
       if (!booking) {
