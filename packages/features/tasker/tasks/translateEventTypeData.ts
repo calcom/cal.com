@@ -30,6 +30,9 @@ const SUPPORTED_LOCALES = [
   "ja", // Japanese
   "sv", // Swedish
   "da", // Danish
+  "is", // Icelandic
+  "lt", // Lithuanian
+  "nb", // Norwegian Bokmål
 ] as const;
 
 async function processTranslations({
