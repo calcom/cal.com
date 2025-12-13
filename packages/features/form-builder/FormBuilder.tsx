@@ -8,6 +8,7 @@ import { ZodError } from "zod";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { DEFAULT_WORKFLOW_PHONE_FIELD } from "@calcom/lib/bookings/SystemField";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -86,6 +87,7 @@ export const FormBuilder = function FormBuilder({
   showPriceField,
   paymentCurrency = "USD",
   showPhoneAndEmailToggle = false,
+  hasAttendeePhoneLocation = false,
 }: {
   formProp: string;
   title: string;
@@ -94,6 +96,7 @@ export const FormBuilder = function FormBuilder({
   disabled: boolean;
   LockedIcon: false | JSX.Element;
   showPhoneAndEmailToggle?: boolean;
+  hasAttendeePhoneLocation?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -152,7 +155,9 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <div className="flex items-start justify-between">
-          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">{description}</p>
+          <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
+            {description}
+          </p>
           {showPhoneAndEmailToggle && (
             <ToggleGroup
               value={(() => {
@@ -210,7 +215,7 @@ export const FormBuilder = function FormBuilder({
         <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
           {t("questions")}
         </p>
-        <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
+        <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
           {t("all_info_your_booker_provide")}
         </p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
@@ -313,23 +318,67 @@ export const FormBuilder = function FormBuilder({
                       ))}
                     </div>
                   </div>
-                  <p className="text-subtle max-w-[280px] wrap-break-word pt-1 text-sm sm:max-w-[500px]">
+                  <p className="text-subtle wrap-break-word max-w-[280px] pt-1 text-sm sm:max-w-[500px]">
                     {fieldType.label}
                   </p>
                 </div>
                 {field.editable !== "user-readonly" && !disabled && (
                   <div className="flex items-center space-x-2">
-                    {!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled && (
-                      <Switch
-                        data-testid="toggle-field"
-                        disabled={isFieldEditableSystem}
-                        checked={!field.hidden}
-                        onCheckedChange={(checked) => {
-                          update(index, { ...field, hidden: !checked });
-                        }}
-                        tooltip={t("show_on_booking_page")}
-                      />
-                    )}
+                    {(() => {
+                      const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
+                      const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
+                      const isFieldEditableSystem = field.editable === "system";
+                      const isAIAgentPhone = field.name === "aiAgentCallPhoneNumber";
+                      const isSmsReminder = field.name === "smsReminderNumber";
+                      const isPriorityWorkflowField = field.name === DEFAULT_WORKFLOW_PHONE_FIELD;
+
+                      // Count visible phone fields (not hidden)
+                      const isPhoneField = field.type === "phone";
+                      const visiblePhoneFieldsCount = fields.filter(
+                        (f) => f.type === "phone" && !f.hidden
+                      ).length;
+                      const isLastVisiblePhoneField =
+                        isPhoneField && visiblePhoneFieldsCount === 1 && !field.hidden;
+
+                      // Must stay visible if: no location phone AND this is the last visible phone field
+                      const mustStayVisible = !hasAttendeePhoneLocation && isLastVisiblePhoneField;
+                      const canShowToggle =
+                        (!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled) ||
+                        ((isAIAgentPhone || isSmsReminder) && !disabled);
+                      return (
+                        canShowToggle && (
+                          <Switch
+                            data-testid="toggle-field"
+                            disabled={
+                              (isFieldEditableSystem && !(isAIAgentPhone || isSmsReminder)) ||
+                              (mustStayVisible && !field.hidden)
+                            }
+                            checked={!field.hidden}
+                            onCheckedChange={(checked) => {
+                              if (!checked && mustStayVisible) {
+                                showToast(
+                                  t("at_least_one_phone_required") ||
+                                    "At least one phone number must be present on the booking page",
+                                  "warning"
+                                );
+                                return;
+                              }
+                              if (isAIAgentPhone) {
+                                update(index, { ...field, hidden: !checked, required: checked });
+                              } else {
+                                update(index, { ...field, hidden: !checked });
+                              }
+                            }}
+                            tooltip={
+                              mustStayVisible
+                                ? t("at_least_one_phone_required") ||
+                                  "At least one phone number must be present on the booking page"
+                                : t("show_on_booking_page")
+                            }
+                          />
+                        )
+                      );
+                    })()}
                     {isUserField && (
                       <Button
                         data-testid="delete-field-action"
@@ -486,7 +535,7 @@ function Options({
                   {value.length > 2 && !readOnly && (
                     <Button
                       type="button"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0!"
+                      className="hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0! absolute right-1 top-1/2 -translate-y-1/2"
                       size="sm"
                       color="minimal"
                       StartIcon="x"
