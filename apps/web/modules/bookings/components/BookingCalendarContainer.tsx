@@ -16,6 +16,8 @@ import { Icon } from "@calcom/ui/components/icon";
 import { useBookingCalendarData } from "~/bookings/hooks/useBookingCalendarData";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useCalendarAllowedFilters } from "~/bookings/hooks/useCalendarAllowedFilters";
+import { useCalendarAutoSelector } from "~/bookings/hooks/useCalendarAutoSelector";
+import { useCalendarNavigationCapabilities } from "~/bookings/hooks/useCalendarNavigationCapabilities";
 import { useCurrentWeekStart } from "~/bookings/hooks/useCurrentWeekStart";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
@@ -36,6 +38,7 @@ interface BookingCalendarContainerProps {
   permissions: {
     canReadOthersBookings: boolean;
   };
+  bookingsV3Enabled: boolean;
 }
 
 interface BookingCalendarInnerProps extends BookingCalendarContainerProps {
@@ -48,19 +51,36 @@ interface BookingCalendarInnerProps extends BookingCalendarContainerProps {
   isPending: boolean;
   hasError: boolean;
   errorMessage?: string;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
 }
 
 function BookingCalendarInner({
   status,
   permissions,
+  bookingsV3Enabled,
   data,
   allowedFilterIds,
   hasError,
   errorMessage,
+  hasNextPage,
+  isFetchingNextPage,
 }: BookingCalendarInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const { currentWeekStart, setCurrentWeekStart, userWeekStart } = useCurrentWeekStart();
+
+  const rowData = useBookingCalendarData({ data, status });
+
+  // Extract bookings from table data
+  const bookings = useMemo(() => {
+    return rowData
+      .filter((row): row is Extract<RowData, { type: "data" }> => row.type === "data")
+      .map((row) => row.booking);
+  }, [rowData]);
+
+  // Handle auto-selection for calendar view
+  useCalendarAutoSelector(bookings, hasNextPage, isFetchingNextPage);
 
   const goToPreviousWeek = () => {
     setCurrentWeekStart(currentWeekStart.subtract(1, "week"));
@@ -86,8 +106,6 @@ function BookingCalendarInner({
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
-  const rowData = useBookingCalendarData({ data, status });
-
   const table = useReactTable<RowData>({
     data: rowData,
     columns,
@@ -98,13 +116,6 @@ function BookingCalendarInner({
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues,
   });
-
-  // Extract bookings from table data
-  const bookings = useMemo(() => {
-    return rowData
-      .filter((row): row is Extract<RowData, { type: "data" }> => row.type === "data")
-      .map((row) => row.booking);
-  }, [rowData]);
 
   return (
     <>
@@ -132,7 +143,7 @@ function BookingCalendarInner({
               <Icon name="chevron-right" className="h-4 w-4" />
             </Button>
           </ButtonGroup>
-          <ViewToggleButton />
+          <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />
         </div>
       </div>
       {hasError && ErrorView ? (
@@ -158,7 +169,7 @@ function BookingCalendarInner({
 export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
   const { canReadOthersBookings } = props.permissions;
   const { userIds } = useBookingFilters();
-  const { currentWeekStart } = useCurrentWeekStart();
+  const { currentWeekStart, setCurrentWeekStart, userWeekStart } = useCurrentWeekStart();
 
   const allowedFilterIds = useCalendarAllowedFilters({
     canReadOthersBookings,
@@ -208,8 +219,17 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
 
   const bookings = useMemo(() => data?.bookings ?? [], [data?.bookings]);
 
+  // Create navigation capabilities for calendar view
+  // This hook handles probe queries and prefetching internally
+  const capabilities = useCalendarNavigationCapabilities({
+    currentWeekStart,
+    setCurrentWeekStart,
+    userWeekStart,
+    filters: { statuses: STATUSES, userIds },
+  });
+
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings}>
+    <BookingDetailsSheetStoreProvider bookings={bookings} capabilities={capabilities}>
       <BookingCalendarInner
         {...props}
         data={data}
@@ -217,6 +237,8 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
         isPending={query.isPending}
         hasError={!!query.error}
         errorMessage={query.error?.message}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
       />
     </BookingDetailsSheetStoreProvider>
   );

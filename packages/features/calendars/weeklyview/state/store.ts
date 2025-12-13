@@ -50,6 +50,7 @@ export function createCalendarStore(initial?: Partial<CalendarComponentProps>): 
         ...state,
         blockingDates,
         events,
+        selectedBookingUid: state.selectedBookingUid,
       });
     },
     setSelectedEvent: (event) => set({ selectedEvent: event }),

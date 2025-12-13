@@ -24,6 +24,12 @@ export const ZGetInputSchema = z.object({
   offset: z.number().default(0),
   // Cursor for infinite query support (calendar view)
   cursor: z.string().optional(),
+  // Sort options for controlling result order
+  sort: z
+    .object({
+      sortStart: z.enum(["asc", "desc"]).optional(),
+    })
+    .optional(),
 });
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
