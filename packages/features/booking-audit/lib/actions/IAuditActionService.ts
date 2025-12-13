@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 /**
  * Represents a component that can be interpolated into translations
  * Used with react-i18next Trans component for proper i18n support (RTL, word order, etc.)
@@ -21,19 +19,33 @@ export type TranslationWithParams = {
 };
 
 /**
+ * Common base type for stored audit data
+ * All action services use this structure, with fields being validated per-service
+ */
+export type StoredAuditData = {
+    version: number;
+    fields: Record<string, unknown>;
+};
+
+/**
+ * Common parameter type for methods that accept stored data and timezone
+ */
+export type StoredDataParams = {
+    storedData: StoredAuditData;
+    userTimeZone: string;
+};
+
+/**
  * Interface for Audit Action Services
  * 
  * Defines the contract that all audit action services must implement.
  * Uses composition with AuditActionServiceHelper to provide common functionality
- * while maintaining type safety and flexibility for versioned schemas.
+ * while maintaining runtime type safety through Zod schema validation.
  * 
- * @template TLatestFieldsSchema - The Zod schema type for the latest version's audit fields (write operations)
- * @template TStoredFieldsSchema - The Zod schema type for all supported versions' audit fields (read operations, union type)
+ * All methods use common base types at the interface level, while implementations
+ * validate to their specific schemas internally.
  */
-export interface IAuditActionService<
-    TLatestFieldsSchema extends z.ZodTypeAny,
-    TStoredFieldsSchema extends z.ZodTypeAny
-> {
+export interface IAuditActionService {
     /**
      * Current version number for this action type
      */
@@ -44,7 +56,7 @@ export interface IAuditActionService<
      * @param fields - Raw input fields (just the audit fields)
      * @returns Parsed data with version wrapper { version, fields }
      */
-    getVersionedData(fields: unknown): { version: number; fields: z.infer<TLatestFieldsSchema> };
+    getVersionedData(fields: unknown): StoredAuditData;
 
     /**
      * Parse stored audit record (includes version wrapper)
@@ -52,7 +64,7 @@ export interface IAuditActionService<
      * @param data - Stored data from database (can be any version)
      * @returns Parsed stored data { version, fields } - version may differ from current VERSION
      */
-    parseStored(data: unknown): { version: number; fields: z.infer<TStoredFieldsSchema> };
+    parseStored(data: unknown): StoredAuditData;
 
     /**
      * Extract version number from stored data
@@ -69,7 +81,7 @@ export interface IAuditActionService<
      * @param params.userTimeZone - User's timezone for datetime formatting (required)
      * @returns The fields object without version wrapper and we decide what fields to show to the client
      */
-    getDisplayJson?(params: { storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }; userTimeZone: string }): unknown;
+    getDisplayJson?(params: StoredDataParams): Record<string, unknown>;
 
     /**
      * Get the display title for the audit action
@@ -80,7 +92,7 @@ export interface IAuditActionService<
      * @param params.userTimeZone - User's timezone for date formatting (required)
      * @returns Translation key with optional interpolation params
      */
-    getDisplayTitle(params: { storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }; userTimeZone: string }): Promise<TranslationWithParams>;
+    getDisplayTitle(params: StoredDataParams): Promise<TranslationWithParams>;
 
     /**
      * Returns additional display fields with translation keys for frontend rendering
@@ -88,7 +100,7 @@ export interface IAuditActionService<
      * @param storedData - Parsed stored data { version, fields }
      * @returns Array of field objects with label and value translation keys
      */
-    getDisplayFields?(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): Array<{
+    getDisplayFields?(storedData: StoredAuditData): Array<{
         labelKey: string;  // Translation key for field label
         valueKey: string;  // Translation key for field value
     }>;
@@ -111,6 +123,6 @@ export interface IAuditActionService<
         /**
          * Always set, either migrated or original
          */
-        latestData: z.infer<TLatestFieldsSchema>;
+        latestData: Record<string, unknown>;
     };
 }

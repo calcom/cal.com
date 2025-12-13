@@ -19,10 +19,7 @@ const fieldsSchemaV1 = z.object({
     endTime: z.number(),
 });
 
-export class SeatBookedAuditActionService implements IAuditActionService<
-    typeof fieldsSchemaV1,
-    typeof fieldsSchemaV1
-> {
+export class SeatBookedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "SEAT_BOOKED" as const;
     private static dataSchemaV1 = z.object({

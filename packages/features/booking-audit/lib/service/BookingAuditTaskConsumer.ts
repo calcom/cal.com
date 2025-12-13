@@ -209,10 +209,7 @@ export class BookingAuditTaskConsumer {
                 return userActor.id;
             }
             case "attendee": {
-                const attendeeActor = await this.auditActorRepository.findByAttendeeId(actor.attendeeId);
-                if (!attendeeActor) {
-                    throw new Error(`Attendee actor not found for attendeeId: ${actor.attendeeId}`);
-                }
+                const attendeeActor = await this.auditActorRepository.createIfNotExistsAttendeeActor({ attendeeId: actor.attendeeId });
                 return attendeeActor.id;
             }
         }
@@ -289,7 +286,7 @@ export class BookingAuditTaskConsumer {
         actor: Actor;
         action: BookingAuditAction;
         source: ActionSource;
-        data: AuditActionData;
+        data: Record<string, unknown>;
         timestamp: number;
     }): Promise<BookingAudit> {
         const { bookingUid, actor, action, source, data, timestamp } = params;
@@ -304,7 +301,7 @@ export class BookingAuditTaskConsumer {
             type: recordType,
             action,
             source,
-            data: versionedData,
+            data: versionedData as JsonValue,
             timestamp: new Date(timestamp),
         });
     }

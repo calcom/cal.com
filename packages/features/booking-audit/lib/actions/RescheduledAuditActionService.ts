@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, StoredDataParams, StoredAuditData } from "./IAuditActionService";
 
 /**
  * Rescheduled Audit Action Service
@@ -16,8 +16,7 @@ const fieldsSchemaV1 = z.object({
     rescheduledToUid: StringChangeSchema,
 });
 
-export class RescheduledAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class RescheduledAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "RESCHEDULED" as const;
     private static dataSchemaV1 = z.object({
@@ -64,19 +63,17 @@ export class RescheduledAuditActionService
     async getDisplayTitle({
         storedData,
         userTimeZone,
-    }: {
-        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone: string;
-    }): Promise<TranslationWithParams> {
-        const rescheduledToUid = storedData.fields.rescheduledToUid.new;
+    }: StoredDataParams): Promise<TranslationWithParams> {
+        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const rescheduledToUid = fields.rescheduledToUid.new;
         const timeZone = userTimeZone;
 
         // Format dates in user timezone
-        const oldDate = storedData.fields.startTime.old
-            ? AuditActionServiceHelper.formatDateInTimeZone(storedData.fields.startTime.old, timeZone)
+        const oldDate = fields.startTime.old
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.old, timeZone)
             : "";
-        const newDate = storedData.fields.startTime.new
-            ? AuditActionServiceHelper.formatDateInTimeZone(storedData.fields.startTime.new, timeZone)
+        const newDate = fields.startTime.new
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.new, timeZone)
             : "";
 
         return {
@@ -96,16 +93,17 @@ export class RescheduledAuditActionService
     }: {
         fromRescheduleUid: string;
         userTimeZone: string;
-        parsedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        parsedData: StoredAuditData;
     }): TranslationWithParams {
+        const { fields } = this.helper.parseStored({ version: parsedData.version, fields: parsedData.fields });
         const timeZone = userTimeZone;
 
         // Format dates in user timezone
-        const oldDate = parsedData.fields.startTime.old
-            ? AuditActionServiceHelper.formatDateInTimeZone(parsedData.fields.startTime.old, timeZone)
+        const oldDate = fields.startTime.old
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.old, timeZone)
             : "";
-        const newDate = parsedData.fields.startTime.new
-            ? AuditActionServiceHelper.formatDateInTimeZone(parsedData.fields.startTime.new, timeZone)
+        const newDate = fields.startTime.new
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.new, timeZone)
             : "";
 
         return {
@@ -121,11 +119,8 @@ export class RescheduledAuditActionService
     getDisplayJson({
         storedData,
         userTimeZone,
-    }: {
-        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone: string;
-    }): RescheduledAuditDisplayData {
-        const { fields } = storedData;
+    }: StoredDataParams): RescheduledAuditDisplayData {
+        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         const timeZone = userTimeZone;
 
         return {
@@ -161,7 +156,8 @@ export class RescheduledAuditActionService
     }): T | null {
         return rescheduledLogs.find((log) => {
             const parsedData = this.parseStored(log.data);
-            return parsedData.fields.rescheduledToUid.new === rescheduledToBookingUid;
+            const typedData = parsedData.fields as z.infer<typeof fieldsSchemaV1>;
+            return typedData.rescheduledToUid.new === rescheduledToBookingUid;
         }) ?? null;
     }
 }

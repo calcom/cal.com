@@ -15,4 +15,14 @@ export class AttendeeRepository {
       select: { id: true },
     });
   }
+
+  async findById(id: number): Promise<{ name: string; email: string } | null> {
+    return this.prisma.attendee.findUnique({
+      where: { id },
+      select: {
+        name: true,
+        email: true,
+      },
+    });
+  }
 }

@@ -1,6 +1,7 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
@@ -14,6 +15,7 @@ interface BookingAuditViewerServiceDeps {
     userRepository: UserRepository;
     bookingRepository: BookingRepository;
     membershipRepository: MembershipRepository;
+    attendeeRepository: AttendeeRepository;
 }
 
 type EnrichedAuditLog = {
@@ -24,7 +26,7 @@ type EnrichedAuditLog = {
     timestamp: string;
     createdAt: string;
     source: ActionSource;
-    data: Record<string, unknown> | null;
+    displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
@@ -49,6 +51,7 @@ export class BookingAuditViewerService {
     private readonly userRepository: UserRepository;
     private readonly bookingRepository: BookingRepository;
     private readonly membershipRepository: MembershipRepository;
+    private readonly attendeeRepository: AttendeeRepository;
     private readonly rescheduledAuditActionService: RescheduledAuditActionService;
     private readonly accessService: BookingAuditAccessService;
 
@@ -57,6 +60,7 @@ export class BookingAuditViewerService {
         this.userRepository = deps.userRepository;
         this.bookingRepository = deps.bookingRepository;
         this.membershipRepository = deps.membershipRepository;
+        this.attendeeRepository = deps.attendeeRepository;
         this.rescheduledAuditActionService = new RescheduledAuditActionService();
         this.accessService = new BookingAuditAccessService({
             bookingRepository: this.bookingRepository,
@@ -125,10 +129,10 @@ export class BookingAuditViewerService {
 
         const actionDisplayTitle = await actionService.getDisplayTitle({ storedData: parsedData, userTimeZone });
 
-        // Get display data - use custom getDisplayJson if available, otherwise use raw fields
-        const displayData = actionService.getDisplayJson
+        // Get display JSON - only set if getDisplayJson is defined
+        const displayJson = actionService.getDisplayJson
             ? actionService.getDisplayJson({ storedData: parsedData, userTimeZone })
-            : parsedData.fields;
+            : undefined;
 
         // Get display fields - use custom getDisplayFields if available
         const displayFields = actionService.getDisplayFields
@@ -143,7 +147,7 @@ export class BookingAuditViewerService {
             timestamp: log.timestamp.toISOString(),
             createdAt: log.createdAt.toISOString(),
             source: log.source,
-            data: displayData,
+            displayJson,
             actionDisplayTitle,
             displayFields,
             actor: {
@@ -188,18 +192,20 @@ export class BookingAuditViewerService {
         const enrichedLog = await this.enrichAuditLog(rescheduledLog, userTimeZone);
         const parsedData = this.rescheduledAuditActionService.parseStored(rescheduledLog.data);
 
-        // Transform the display data to show "rescheduled from" instead of "rescheduled to"
+        // Transform the display JSON to show "rescheduled from" instead of "rescheduled to"
         // by replacing rescheduledToUid with rescheduledFromUid
-        const transformedData = {
-            ...enrichedLog.data,
-            rescheduledFromUid: fromRescheduleUid,
-        };
+        const transformedDisplayJson = enrichedLog.displayJson
+            ? {
+                ...enrichedLog.displayJson,
+                rescheduledFromUid: fromRescheduleUid,
+            }
+            : undefined;
 
         return {
             ...enrichedLog,
             // Override bookingUid to associate with the current booking being viewed
             bookingUid: currentBookingUid,
-            data: transformedData,
+            displayJson: transformedDisplayJson,
             // Use a different translation key to show "Rescheduled from" instead of "Rescheduled"
             actionDisplayTitle: this.rescheduledAuditActionService.getDisplayTitleForRescheduledFromLog({
                 fromRescheduleUid,
@@ -217,7 +223,6 @@ export class BookingAuditViewerService {
         displayEmail: string | null;
         displayAvatar: string | null;
     }> {
-        // SYSTEM actor
         if (actor.type === "SYSTEM") {
             return {
                 displayName: "Cal.com",
@@ -226,7 +231,6 @@ export class BookingAuditViewerService {
             };
         }
 
-        // GUEST actor - use name or default
         if (actor.type === "GUEST") {
             return {
                 displayName: actor.name || "Guest",
@@ -235,16 +239,6 @@ export class BookingAuditViewerService {
             };
         }
 
-        // ATTENDEE actor - use name or default
-        if (actor.type === "ATTENDEE") {
-            return {
-                displayName: actor.name || "Attendee",
-                displayEmail: null,
-                displayAvatar: null,
-            };
-        }
-
-        // USER actor - lookup from User table and include avatar
         if (actor.type === "USER") {
             if (!actor.userUuid) {
                 throw new Error("User UUID is required for USER actor");
@@ -264,7 +258,27 @@ export class BookingAuditViewerService {
             }
         }
 
-        // Satisfying Typescript
+
+        // ATTENDEE actor - use name or default
+        if (actor.type === "ATTENDEE") {
+            if (!actor.attendeeId) {
+                throw new Error("Attendee ID is required for ATTENDEE actor");
+            }
+            const attendee = await this.attendeeRepository.findById(actor.attendeeId);
+            if (attendee) {
+                return {
+                    displayName: attendee.name || attendee.email,
+                    displayEmail: attendee.email,
+                    displayAvatar: null,
+                };
+            }
+            return {
+                displayName: "Deleted Attendee",
+                displayEmail: null,
+                displayAvatar: null,
+            }
+        }
+
         throw new Error(`Unknown actor type: ${actor.type}`);
     }
 }

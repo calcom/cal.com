@@ -37,7 +37,7 @@ type AuditLog = {
     type: string;
     timestamp: string;
     source: string;
-    data: Record<string, unknown> | null;
+    displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
@@ -317,7 +317,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                     {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
                                                 </span>
                                             </div>
-                                            {log.data && Object.keys(log.data).length > 0 && (
+                                            {log.displayJson && Object.keys(log.displayJson).length > 0 && (
                                                 <div>
                                                     <div className="flex flex-col items-start gap-2 py-1 px-3 border-b border-subtle">
                                                         <Button
@@ -330,7 +330,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                         </Button>
                                                     </div>
                                                     <div>
-                                                        {showJson && <JsonViewer data={log.data} />}
+                                                        {showJson && <JsonViewer data={log.displayJson} />}
                                                     </div>
                                                 </div>
                                             )}

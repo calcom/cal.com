@@ -18,8 +18,7 @@ const fieldsSchemaV1 = z.object({
     rescheduledToBookingUid: StringChangeSchema,
 });
 
-export class SeatRescheduledAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class SeatRescheduledAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "SEAT_RESCHEDULED" as const;
     private static dataSchemaV1 = z.object({

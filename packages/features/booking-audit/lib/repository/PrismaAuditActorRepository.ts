@@ -102,9 +102,14 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         });
     }
 
-    async findByAttendeeId(attendeeId: number) {
-        return this.deps.prismaClient.auditActor.findUnique({
-            where: { attendeeId },
+    async createIfNotExistsAttendeeActor(params: { attendeeId: number }) {
+        return this.deps.prismaClient.auditActor.upsert({
+            where: { attendeeId: params.attendeeId },
+            create: {
+                type: "ATTENDEE",
+                attendeeId: params.attendeeId,
+            },
+            update: {},
         });
     }
 

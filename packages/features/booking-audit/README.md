@@ -227,34 +227,65 @@ The audit system is designed to work with third-party queue providers (e.g., tri
 - Persistent queue handles retries, monitoring, and observability
 - Easy to add features - new side effect = new task definition
 
-## TODO
+## Observability
 
-### Pending Tasks
+### Production Monitoring Setup
 
-1. **Type Safety Improvements**
-   - Migration result type needs improvement: `migrationResult.data` currently has "any" type in action services with migration logic
+The booking audit system integrates with the following observability tools:
 
-### Completed Tasks
+- **Sentry**: Error tracking and performance monitoring
+- **Axiom**: Structured logging and log aggregation (when `AXIOM_TOKEN` and `AXIOM_DATASET` are configured)
+- **Logger**: Application-level logging via `@calcom/lib/logger`
 
-#### ✅ Add audit log for PENDING bookings early return
-- Created `buildBookingCreatedPayload()` helper function to avoid code duplication
-- Added audit logging before early return for existing PENDING bookings
-- Ensures audit logs are created for both new and existing bookings in PENDING state
+### Critical Metrics to Monitor
 
-#### ✅ Remove PII from Queue
-- Removed email/name/phone from GuestActorSchema
-- Created `getPIIFreeBookingAuditActor()` for producer-side actor resolution
-- Create GuestActor records upfront in AuditActor table (producer-side)
-- Queue contains only IDs (userUuid, attendeeId, actorId)
-- Consumer's `resolveActorId()` handles all resolution logic
-- Safe for third-party queue providers (trigger.dev, AWS SQS, etc.)
+#### Permanent Task Failures
 
-#### ✅ Simplify Actor Resolution
-- Removed old `getAuditActor()` wrapper function
-- Callers use `getPIIFreeBookingAuditActor()` directly
-- No userId fallback - callers must provide userUuid
-- No automatic attendeeId lookup - callers must provide it
-- Simple, explicit API with no hidden complexity
+**⚠️ IMPORTANT**: Permanent task failures must be monitored in production.
+
+**Current Configuration:**
+- Tasks have a default `maxAttempts: 3` (configured in `Task` schema)
+- When a task reaches `attempts >= maxAttempts`, it is considered permanently failed
+- Permanently failed tasks are no longer retried and remain in the database
+
+**Why This Matters:**
+- Permanent failures indicate audit records that were not created
+- Missing audit records break the complete audit trail required for compliance (HIPAA §164.312(b))
+- Failed tasks may indicate systemic issues (database connectivity, schema validation errors, etc.)
+
+**Monitoring Queries:**
+
+```typescript
+// Get all permanently failed booking audit tasks
+const failedTasks = await Task.getFailed();
+const failedBookingAuditTasks = failedTasks.filter(task => task.type === "bookingAudit");
+
+// Count permanently failed tasks
+const failedCount = await Task.countFailed();
+```
+
+**Recommended Alerts:**
+- Alert when permanently failed booking audit tasks exceed threshold (e.g., > 0 in last hour)
+- Alert on increasing failure rate trends
+- Alert on specific error patterns (e.g., schema validation failures, actor resolution failures)
+
+**Investigation Steps:**
+1. Query failed tasks: `Task.getFailed()` filtered by `type === "bookingAudit"`
+2. Review `lastError` field for error messages
+3. Check `lastFailedAttemptAt` to identify failure patterns
+4. Review task `payload` to understand what booking action failed
+5. Check application logs around `lastFailedAttemptAt` timestamp for context
+
+**Task Fields for Debugging:**
+- `id`: Task identifier
+- `type`: Task type (should be `"bookingAudit"`)
+- `payload`: JSON payload containing booking audit data
+- `attempts`: Number of retry attempts made
+- `maxAttempts`: Maximum allowed attempts (default: 3)
+- `lastError`: Error message from last failed attempt
+- `lastFailedAttemptAt`: Timestamp of last failure
+- `scheduledAt`: When task was scheduled to run
+- `createdAt`: When task was created
 
 ## Summary
 
