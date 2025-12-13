@@ -20,6 +20,7 @@ interface IUserSettingsProps {
   nextStep: () => void;
   hideUsername?: boolean;
   user: RouterOutputs["viewer"]["me"]["get"];
+  isPlatformUser?: boolean;
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
@@ -118,7 +119,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
-        {t("connect_your_calendar")}
+        {props.isPlatformUser ? t("continue") : t("connect_your_calendar")}
       </Button>
     </form>
   );

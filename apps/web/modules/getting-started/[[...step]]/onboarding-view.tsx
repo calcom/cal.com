@@ -3,7 +3,7 @@
 import type { TFunction } from "i18next";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useTransition } from "react";
+import { Suspense, useTransition, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
 import posthog from "posthog-js";
@@ -11,7 +11,9 @@ import posthog from "posthog-js";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { StepCard } from "@calcom/ui/components/card";
@@ -33,9 +35,12 @@ const BASE_STEPS = [
   "user-profile",
 ] as const;
 
+// Platform users only need the first step (user-settings) before being redirected to platform onboarding
+const PLATFORM_STEPS = ["user-settings"] as const;
+
 type StepType = (typeof BASE_STEPS)[number];
 
-const getStepsAndHeadersForUser = (t: TFunction) => {
+const getStepsAndHeadersForUser = (t: TFunction, isPlatformUser: boolean) => {
   const baseHeaders: {
     title: string;
     subtitle: string[];
@@ -69,6 +74,14 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
       },
     ];
 
+  // For platform users, only return the first step
+  if (isPlatformUser) {
+    return {
+      steps: [...PLATFORM_STEPS],
+      headers: [baseHeaders[0]],
+    };
+  }
+
   return {
     steps: [...BASE_STEPS],
     headers: [...baseHeaders],
@@ -97,6 +110,16 @@ const OnboardingPage = (props: PageProps) => {
   const { t } = useLocale();
   const [isNextStepLoading, startTransition] = useTransition();
 
+  // Detect if the user is a platform user by checking the onBoardingRedirect URL
+  // Platform users come from /login?callbackUrl=...settings/platform/new
+  const [isPlatformUser, setIsPlatformUser] = useState(false);
+
+  useEffect(() => {
+    const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    const isPlatform = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
+    setIsPlatformUser(!!isPlatform);
+  }, []);
+
   const result = stepRouteSchema.safeParse({
     ...params,
     step: Array.isArray(params.step) ? params.step : [params.step],
@@ -115,7 +138,7 @@ const OnboardingPage = (props: PageProps) => {
   //     }
   //   );
   // }
-  const { steps, headers } = getStepsAndHeadersForUser(t);
+  const { steps, headers } = getStepsAndHeadersForUser(t, isPlatformUser);
   const stepTransform = (step: StepType) => {
     const stepIndex = steps.indexOf(step as (typeof steps)[number]);
 
@@ -144,6 +167,33 @@ const OnboardingPage = (props: PageProps) => {
     const newStep = steps[nextIndex];
     startTransition(() => {
       router.push(`/getting-started/${stepTransform(newStep)}`);
+    });
+  };
+
+  // For platform users, complete onboarding and redirect to platform URL after the first step
+  const utils = trpc.useUtils();
+  const completePlatformOnboarding = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: async () => {
+      posthog.capture("onboarding_completed", {
+        is_platform_user: true,
+      });
+      await utils.viewer.me.get.refetch();
+      const redirectUrl = localStorage.getItem("onBoardingRedirect");
+      localStorage.removeItem("onBoardingRedirect");
+      router.push(redirectUrl || "/settings/platform");
+    },
+  });
+
+  const handlePlatformUserNextStep = () => {
+    posthog.capture("onboarding_step_completed", {
+      step: currentStep,
+      step_index: currentStepIndex,
+      from: from,
+      was_skipped: false,
+      is_platform_user: true,
+    });
+    completePlatformOnboarding.mutate({
+      completedOnboarding: true,
     });
   };
 
@@ -178,7 +228,12 @@ const OnboardingPage = (props: PageProps) => {
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && (
-                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} user={user} />
+                  <UserSettings
+                    nextStep={isPlatformUser ? handlePlatformUserNextStep : goToNextStep}
+                    hideUsername={from === "signup"}
+                    user={user}
+                    isPlatformUser={isPlatformUser}
+                  />
                 )}
                 {currentStep === "connected-calendar" && (
                   <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
