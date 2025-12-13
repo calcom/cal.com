@@ -58,6 +58,8 @@ type TimeRangeExtended = TimeRange & {
   toUser?: IToUser;
   reason?: string;
   emoji?: string;
+  notes?: string | null;
+  showNotePublicly?: boolean;
 };
 
 export type CalendarAvailableTimeslots = {

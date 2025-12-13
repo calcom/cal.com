@@ -162,6 +162,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const watchedTeamUserId = watch("toTeamUserId");
   const watchForUserId = watch("forUserId");
+  const watchedNotes = watch("notes");
+  const hasValidNotes = Boolean(watchedNotes?.trim());
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
@@ -345,7 +347,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 placeholder={t("additional_notes")}
                 {...register("notes")}
                 onChange={(e) => {
-                  setValue("notes", e?.target.value);
+                  const newNotes = e?.target.value;
+                  setValue("notes", newNotes);
+                  if (!newNotes?.trim()) {
+                    setValue("showNotePublicly", false);
+                  }
                 }}
               />
               <Controller
@@ -358,8 +364,14 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       data-testid="show-note-publicly-checkbox"
                       checked={value ?? false}
                       onCheckedChange={onChange}
+                      disabled={!hasValidNotes}
                     />
-                    <label htmlFor="show-note-publicly" className="text-emphasis ml-2 cursor-pointer text-sm">
+                    <label
+                      htmlFor="show-note-publicly"
+                      className={classNames(
+                        "ml-2 text-sm",
+                        hasValidNotes ? "text-emphasis cursor-pointer" : "text-muted cursor-not-allowed"
+                      )}>
                       {t("show_note_publicly_description")}
                     </label>
                   </div>
