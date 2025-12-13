@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
 
 export default function TabLayout() {
@@ -13,23 +13,23 @@ export default function TabLayout() {
     return (
       <NativeTabs>
         <NativeTabs.Trigger name="event-types">
-          <Icon sf="link" />
-          <Label>Event Types</Label>
+          <NativeTabs.Trigger.Icon sf="link" />
+          <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="bookings">
-          <Icon sf="calendar" />
-          <Label>Bookings</Label>
+          <NativeTabs.Trigger.Icon sf="calendar" />
+          <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="availability">
-          <Icon sf="clock" />
-          <Label>Availability</Label>
+          <NativeTabs.Trigger.Icon sf="clock" />
+          <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="more">
-          <Icon sf="ellipsis" />
-          <Label>More</Label>
+          <NativeTabs.Trigger.Icon sf="ellipsis" />
+          <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
       </NativeTabs>
     );
