@@ -40,6 +40,7 @@ import type { ICalendarCacheEventRepository } from "../../calendar-subscription/
 import type { IGlobalWatchlistRepository, IOrganizationWatchlistRepository } from "../../watchlist/lib/interface/IWatchlistRepositories";
 import type { IWorkflowReminderRepository } from "../../ee/workflows/repositories/IWorkflowReminderRepository";
 import type { IDelegationCredentialRepository } from "../../delegation-credentials/repositories/IDelegationCredentialRepository";
+import type { IWebhookRepository } from "../../webhooks/lib/interface/repository";
 import type { ICredentialRepository } from "../../credentials/repositories/ICredentialRepository";
 import type { ITeamRepository } from "../../ee/teams/repositories/ITeamRepository";
 import type { IEventTypeRepository } from "../../eventtypes/repositories/IEventTypeRepository";
@@ -97,6 +98,7 @@ import { globalWatchlistRepositoryModuleLoader } from "../modules/GlobalWatchlis
 import { organizationWatchlistRepositoryModuleLoader } from "../modules/OrganizationWatchlist";
 import { workflowReminderRepositoryModuleLoader } from "../modules/WorkflowReminder";
 import { delegationCredentialRepositoryModuleLoader } from "../modules/DelegationCredential";
+import { webhookRepositoryModuleLoader } from "../modules/Webhook";
 
 const repositoryContainer = createContainer();
 
@@ -150,6 +152,7 @@ repositoryContainer.load(globalWatchlistRepositoryModuleLoader());
 repositoryContainer.load(organizationWatchlistRepositoryModuleLoader());
 repositoryContainer.load(workflowReminderRepositoryModuleLoader());
 repositoryContainer.load(delegationCredentialRepositoryModuleLoader());
+repositoryContainer.load(webhookRepositoryModuleLoader());
 
 export function getScheduleRepository():IScheduleRepository {
   return repositoryContainer.get<IScheduleRepository>(DI_TOKENS.SCHEDULE_REPOSITORY);
@@ -347,4 +350,8 @@ export function getWorkflowReminderRepository(): IWorkflowReminderRepository {
 
 export function getDelegationCredentialRepository(): IDelegationCredentialRepository {
   return repositoryContainer.get<IDelegationCredentialRepository>(DI_TOKENS.DELEGATION_CREDENTIAL_REPOSITORY);
+}
+
+export function getWebhookRepository(): IWebhookRepository {
+  return repositoryContainer.get<IWebhookRepository>(DI_TOKENS.WEBHOOK_REPOSITORY);
 }
