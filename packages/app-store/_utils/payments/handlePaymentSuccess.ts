@@ -1,11 +1,15 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import { sendScheduledEmailsAndSMS, sendScheduledSeatsEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -13,7 +17,8 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, type EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
 export async function handlePaymentSuccess(paymentId: number, bookingId: number) {
@@ -96,7 +101,49 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
-    await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+    const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+
+    // For seated events, send emails only to the attendee who just completed payment
+    if (evt.seatsPerTimeSlot) {
+      // Find the attendee whose bookingSeat has this paymentId
+      const attendeeWhoPaid = evt.attendees.find((a) => a.bookingSeat?.paymentId === paymentId);
+
+      if (attendeeWhoPaid) {
+        const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
+
+        let isHostConfirmationEmailsDisabled = false;
+        let isAttendeeConfirmationEmailDisabled = false;
+
+        if (workflows) {
+          isHostConfirmationEmailsDisabled =
+            eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
+          isAttendeeConfirmationEmailDisabled =
+            eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+          if (isHostConfirmationEmailsDisabled) {
+            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          }
+
+          if (isAttendeeConfirmationEmailDisabled) {
+            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          }
+        }
+
+        const newSeat = evt.attendees.length > 1;
+
+        await sendScheduledSeatsEmailsAndSMS(
+          evt,
+          attendeeWhoPaid,
+          newSeat,
+          !!evt.seatsShowAttendees,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled,
+          eventTypeMetadata
+        );
+      }
+    } else {
+      await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventTypeMetadata);
+    }
   }
 
   throw new HttpCode({

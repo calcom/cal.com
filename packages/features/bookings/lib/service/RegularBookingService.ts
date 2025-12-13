@@ -1916,7 +1916,7 @@ async function handler(
 
         // Save description to bookingSeat
         const uniqueAttendeeId = uuid();
-        await deps.prismaClient.bookingSeat.create({
+        const newBookingSeat = await deps.prismaClient.bookingSeat.create({
           data: {
             referenceUid: uniqueAttendeeId,
             data: {
@@ -1935,8 +1935,37 @@ async function handler(
               },
             },
           },
+          select: {
+            id: true,
+            referenceUid: true,
+            data: true,
+            metadata: true,
+            bookingId: true,
+            attendeeId: true,
+          },
         });
         evt.attendeeSeatId = uniqueAttendeeId;
+
+        evt = {
+          ...evt,
+          attendees: evt.attendees.map((attendee) => {
+            if (attendee.email === bookerEmail) {
+              return {
+                ...attendee,
+                bookingSeat: {
+                  id: newBookingSeat.id,
+                  referenceUid: newBookingSeat.referenceUid,
+                  data: newBookingSeat.data,
+                  metadata: newBookingSeat.metadata,
+                  bookingId: newBookingSeat.bookingId,
+                  attendeeId: newBookingSeat.attendeeId,
+                  paymentId: null,
+                },
+              };
+            }
+            return attendee;
+          }),
+        };
       }
     } else {
       const { booking: dryRunBooking, troubleshooterData: _troubleshooterData } = buildDryRunBooking({
@@ -2464,6 +2493,14 @@ async function handler(
       bookingFields: eventType.bookingFields,
       locale: language,
     });
+
+    if (payment?.id && evt.attendeeSeatId) {
+      await deps.prismaClient.bookingSeat.update({
+        where: { referenceUid: evt.attendeeSeatId },
+        data: { paymentId: payment.id },
+      });
+    }
+
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
