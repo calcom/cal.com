@@ -52,6 +52,7 @@ jobs:
         id: check-if-pr-has-label
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.EQUITY_BEE_TEAM_LABELER_ACTION_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             let labels = [];
 
