@@ -9,7 +9,6 @@ import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayl
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -196,7 +195,23 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       toUserId: toUserId ? toUserId : null,
     },
   });
-  let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;
+  // Explicit type to avoid Prisma.OutOfOfficeEntryGetPayload conditional types leaking into .d.ts files
+  type OOOEntryResult = {
+    id: number;
+    start: Date;
+    end: Date;
+    createdAt: Date;
+    updatedAt: Date;
+    notes: string | null;
+    showNotePublicly: boolean;
+    reason: { reason: string; emoji: string } | null;
+    reasonId: number | null;
+    user: { id: number; name: string | null; email: string; timeZone: string };
+    toUser: { id: number; name: string | null; email: string; timeZone: string } | null;
+    uuid: string;
+  };
+
+  let resultRedirect: OOOEntryResult | null = null;
   if (createdOrUpdatedOutOfOffice) {
     const findRedirect = await prisma.outOfOfficeEntry.findUnique({
       where: {

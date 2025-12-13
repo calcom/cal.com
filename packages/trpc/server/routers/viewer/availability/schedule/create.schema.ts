@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-export const ZCreateInputSchema = z.object({
+// Define type first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+export type TCreateInputSchema = {
+  name: string;
+  schedule?: { start: Date; end: Date }[][];
+  eventTypeId?: number;
+};
+
+export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
   name: z.string(),
   schedule: z
     .array(
@@ -14,5 +22,3 @@ export const ZCreateInputSchema = z.object({
     .optional(),
   eventTypeId: z.number().optional(),
 });
-
-export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

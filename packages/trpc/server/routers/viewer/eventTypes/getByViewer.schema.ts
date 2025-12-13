@@ -2,23 +2,54 @@ import { z } from "zod";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
-export const filterQuerySchemaStrict = z.object({
+// Define types first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+export type TFilterQuerySchemaStrict = {
+  teamIds?: number[];
+  upIds?: string[];
+  schedulingTypes?: SchedulingType[];
+};
+
+export const filterQuerySchemaStrict: z.ZodType<TFilterQuerySchemaStrict> = z.object({
   teamIds: z.number().array().optional(),
   // A user can only filter by only his userId
   upIds: z.string().array().max(1).optional(),
   schedulingTypes: z.nativeEnum(SchedulingType).array().optional(),
 });
 
-export const ZEventTypeInputSchema = z
+export type TEventTypeInputSchema = {
+  filters?: TFilterQuerySchemaStrict;
+  forRoutingForms?: boolean;
+} | null | undefined;
+
+export const ZEventTypeInputSchema: z.ZodType<TEventTypeInputSchema> = z
   .object({
     filters: filterQuerySchemaStrict.optional(),
     forRoutingForms: z.boolean().optional(),
   })
   .nullish();
 
-export type TEventTypeInputSchema = z.infer<typeof ZEventTypeInputSchema>;
+// Input type - what callers send (limit is optional)
+export type TGetEventTypesFromGroupSchemaInput = {
+  filters?: TFilterQuerySchemaStrict;
+  forRoutingForms?: boolean;
+  cursor?: number | null;
+  limit?: number;
+  group: { teamId?: number | null; parentId?: number | null };
+  searchQuery?: string;
+};
 
-export const ZGetEventTypesFromGroupSchema = z.object({
+// Output type - what handlers receive after parsing (limit has default, so required)
+export type TGetEventTypesFromGroupSchema = {
+  filters?: TFilterQuerySchemaStrict;
+  forRoutingForms?: boolean;
+  cursor?: number | null;
+  limit: number;
+  group: { teamId?: number | null; parentId?: number | null };
+  searchQuery?: string;
+};
+
+export const ZGetEventTypesFromGroupSchema: z.ZodType<TGetEventTypesFromGroupSchema, z.ZodTypeDef, TGetEventTypesFromGroupSchemaInput> = z.object({
   filters: filterQuerySchemaStrict.optional(),
   forRoutingForms: z.boolean().optional(),
   cursor: z.number().nullish(),
@@ -26,5 +57,3 @@ export const ZGetEventTypesFromGroupSchema = z.object({
   group: z.object({ teamId: z.number().nullish(), parentId: z.number().nullish() }),
   searchQuery: z.string().optional(),
 });
-
-export type TGetEventTypesFromGroupSchema = z.infer<typeof ZGetEventTypesFromGroupSchema>;

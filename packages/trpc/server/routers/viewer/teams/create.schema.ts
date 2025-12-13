@@ -2,7 +2,17 @@ import { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
 
-export const ZCreateInputSchema = z.object({
+// Define type first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+export type TCreateInputSchema = {
+  name: string;
+  slug: string;
+  logo?: string | null;
+  bio?: string;
+  isOnboarding?: boolean;
+};
+
+export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
   name: z.string(),
   slug: z.string().transform((val) => slugify(val.trim())),
   logo: z
@@ -13,5 +23,3 @@ export const ZCreateInputSchema = z.object({
   bio: z.string().optional(),
   isOnboarding: z.boolean().optional(),
 });
-
-export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

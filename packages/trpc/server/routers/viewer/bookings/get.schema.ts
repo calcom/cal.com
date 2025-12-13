@@ -2,7 +2,45 @@ import { z } from "zod";
 
 import { ZTextFilterValue } from "@calcom/features/data-table/lib/types";
 
-export const ZGetInputSchema = z.object({
+// Define type first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+// Note: offset has .default(0), so input type has it optional but output type has it required
+type BookingStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
+
+type TGetInputSchemaFilters = {
+  teamIds?: number[];
+  userIds?: number[];
+  status?: BookingStatus;
+  statuses?: BookingStatus[];
+  eventTypeIds?: number[];
+  attendeeEmail?: string | z.infer<typeof ZTextFilterValue>;
+  attendeeName?: string | z.infer<typeof ZTextFilterValue>;
+  bookingUid?: string;
+  afterStartDate?: string;
+  beforeEndDate?: string;
+  afterUpdatedDate?: string;
+  beforeUpdatedDate?: string;
+  afterCreatedDate?: string;
+  beforeCreatedDate?: string;
+};
+
+// Input type - what callers send (offset is optional)
+export type TGetInputSchemaInput = {
+  filters: TGetInputSchemaFilters;
+  limit: number;
+  offset?: number;
+  cursor?: string;
+};
+
+// Output type - what handlers receive after parsing (offset has default, so required)
+export type TGetInputSchema = {
+  filters: TGetInputSchemaFilters;
+  limit: number;
+  offset: number;
+  cursor?: string;
+};
+
+export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInputSchemaInput> = z.object({
   filters: z.object({
     teamIds: z.number().array().optional(),
     userIds: z.number().array().optional(),
@@ -25,5 +63,3 @@ export const ZGetInputSchema = z.object({
   // Cursor for infinite query support (calendar view)
   cursor: z.string().optional(),
 });
-
-export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;

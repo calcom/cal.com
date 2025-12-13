@@ -9,7 +9,18 @@ const ZListMembersFilter = z.object({
   value: ZFilterValue,
 });
 
-export const ZListMembersInputSchema = z.object({
+// Define type first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+export type TListMembersSchema = {
+  limit: number;
+  offset: number;
+  searchTerm?: string;
+  expand?: ("attributes")[];
+  filters?: { id: string; value: z.infer<typeof ZFilterValue> }[];
+  oAuthClientId?: string;
+};
+
+export const ZListMembersInputSchema: z.ZodType<TListMembersSchema> = z.object({
   limit: z.number().min(1).max(100),
   offset: z.number(),
   searchTerm: z.string().optional(),
@@ -17,5 +28,3 @@ export const ZListMembersInputSchema = z.object({
   filters: z.array(ZListMembersFilter).optional(),
   oAuthClientId: z.string().optional(),
 });
-
-export type TListMembersSchema = z.infer<typeof ZListMembersInputSchema>;

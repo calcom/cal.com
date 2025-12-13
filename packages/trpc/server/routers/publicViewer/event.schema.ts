@@ -1,6 +1,28 @@
 import z from "zod";
 
-export const ZEventInputSchema = z.object({
+// Define type first to use with z.ZodType annotation
+// This prevents full Zod generic tree from being emitted in .d.ts files
+// Note: fromRedirectOfNonOrgLink has .default(false), so input has it optional but output has it required
+
+// Input type - what callers send (fromRedirectOfNonOrgLink is optional)
+export type TEventInputSchemaInput = {
+  username: string;
+  eventSlug: string;
+  isTeamEvent?: boolean;
+  org: string | null;
+  fromRedirectOfNonOrgLink?: boolean;
+};
+
+// Output type - what handlers receive after parsing (fromRedirectOfNonOrgLink has default, so required)
+export type TEventInputSchema = {
+  username: string;
+  eventSlug: string;
+  isTeamEvent?: boolean;
+  org: string | null;
+  fromRedirectOfNonOrgLink: boolean;
+};
+
+export const ZEventInputSchema: z.ZodType<TEventInputSchema, z.ZodTypeDef, TEventInputSchemaInput> = z.object({
   username: z.string(),
   eventSlug: z.string(),
   isTeamEvent: z.boolean().optional(),
@@ -11,5 +33,3 @@ export const ZEventInputSchema = z.object({
    */
   fromRedirectOfNonOrgLink: z.boolean().optional().default(false),
 });
-
-export type TEventInputSchema = z.infer<typeof ZEventInputSchema>;

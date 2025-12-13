@@ -240,7 +240,22 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     },
   } satisfies Prisma.UserDefaultArgs;
 
-  let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
+  // Explicit type to avoid Prisma.UserGetPayload conditional types leaking into .d.ts files
+  type UpdatedUserResult = {
+    id: number;
+    username: string | null;
+    email: string;
+    identityProvider: string | null;
+    identityProviderId: string | null;
+    metadata: Prisma.JsonValue;
+    name: string | null;
+    createdDate: Date;
+    avatarUrl: string | null;
+    locale: string | null;
+    schedules: { id: number }[];
+  };
+
+  let updatedUser: UpdatedUserResult;
 
   try {
     updatedUser = await prisma.user.update({
