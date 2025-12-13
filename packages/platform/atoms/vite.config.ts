@@ -8,8 +8,6 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms
   const webAppUrl = env.NEXT_PUBLIC_WEBAPP_URL ?? "https://app.cal.com";
   const calcomVersion = env.NEXT_PUBLIC_CALCOM_VERSION ?? "";
-  const vercelCommitSha = env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "";
-
   return {
     optimizeDeps: {
       include: [
@@ -40,6 +38,9 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     define: {
+      "process.env.NEXT_PUBLIC_WEBAPP_URL": JSON.stringify(webAppUrl),
+      "process.env.NEXT_PUBLIC_CALCOM_VERSION": JSON.stringify(calcomVersion),
+      "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": JSON.stringify(vercelCommitSha),
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
       "process.env.NEXT_PUBLIC_CALCOM_VERSION": `"${calcomVersion}"`,
       "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": `"${vercelCommitSha}"`,
