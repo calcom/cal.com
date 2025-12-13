@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
 import { CreditType } from "@calcom/prisma/enums";
 
-import { CreditsRepository } from "./credits";
+import { CreditsRepository } from "./CreditsRepository";
 
 describe("CreditsRepository", () => {
   beforeEach(() => {
