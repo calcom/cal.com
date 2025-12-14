@@ -2,13 +2,13 @@ import type { TFunction } from "i18next";
 
 import { sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -24,11 +24,11 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
 import { CreationSource, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { userMetadata, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { OrganizationPaymentService } from "../../OrganizationPaymentService";
 import { OrganizationPermissionService } from "../../OrganizationPermissionService";
+import { createTeams } from "../../createTeams";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
 import type {
   TeamInput,
@@ -165,9 +165,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       }
 
       return teams.map((team) =>
-        team.id === conflictingTeam.id
-          ? { ...team, isBeingMigrated: true }
-          : team
+        team.id === conflictingTeam.id ? { ...team, isBeingMigrated: true } : team
       );
     }
 
@@ -270,7 +268,9 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
   }): Promise<{ logo?: string | null; bannerUrl?: string | null }> {
     const [logo, bannerUrl] = await Promise.all([
       input.logo ? resizeBase64Image(input.logo) : Promise.resolve(input.logo),
-      input.bannerUrl ? resizeBase64Image(input.bannerUrl, { maxSize: 1500 }) : Promise.resolve(input.bannerUrl),
+      input.bannerUrl
+        ? resizeBase64Image(input.bannerUrl, { maxSize: 1500 })
+        : Promise.resolve(input.bannerUrl),
     ]);
 
     return { logo, bannerUrl };
@@ -308,7 +308,9 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     logoUrl?: string | null;
     bannerUrl?: string | null;
   }> {
-    const uploadedLogoUrl = logoUrl ? await this.uploadImageAsset({ image: logoUrl, teamId: organizationId }) : logoUrl;
+    const uploadedLogoUrl = logoUrl
+      ? await this.uploadImageAsset({ image: logoUrl, teamId: organizationId })
+      : logoUrl;
 
     const uploadedBannerUrl = bannerUrl
       ? await this.uploadImageAsset({ image: bannerUrl, teamId: organizationId, isBanner: true })
@@ -391,11 +393,11 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
       organization = {
         ...orgCreationResult.organization,
-        ...await this.uploadOrganizationBrandAssets({
+        ...(await this.uploadOrganizationBrandAssets({
           logoUrl: orgData.logoUrl,
           bannerUrl: orgData.bannerUrl,
           organizationId: orgCreationResult.organization.id,
-        })
+        })),
       };
 
       const ownerProfile = orgCreationResult.ownerProfile;
@@ -472,11 +474,11 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
     organization = {
       ...orgCreationResult.organization,
-      ...await this.uploadOrganizationBrandAssets({
+      ...(await this.uploadOrganizationBrandAssets({
         logoUrl: orgData.logoUrl,
         bannerUrl: orgData.bannerUrl,
         organizationId: orgCreationResult.organization.id,
-      })
+      })),
     };
 
     const { ownerProfile, orgOwner: orgOwnerFromCreation } = orgCreationResult;
@@ -534,20 +536,23 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       )} teams for organization ${organizationId}`
     );
 
-    await createTeamsHandler({
-      ctx: {
-        user: {
-          ...owner,
-          organizationId,
+    await createTeams(
+      {
+        ctx: {
+          user: {
+            ...owner,
+            organizationId,
+          },
+        },
+        input: {
+          teamNames: teamsToCreate,
+          orgId: organizationId,
+          moveTeams: teamsToMove,
+          creationSource: CreationSource.WEBAPP,
         },
       },
-      input: {
-        teamNames: teamsToCreate,
-        orgId: organizationId,
-        moveTeams: teamsToMove,
-        creationSource: CreationSource.WEBAPP,
-      },
-    });
+      inviteMembersWithNoInviterPermissionCheck
+    );
 
     log.info(
       `Created ${teamsToCreate.length} teams and moved ${teamsToMove.length} teams for organization ${organizationId}`
@@ -616,7 +621,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       } else if (member.teamName) {
         targetTeamId = teamNameToId.get(member.teamName.toLowerCase());
         log.debug(
-          `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${targetTeamId || "not found"
+          `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${
+            targetTeamId || "not found"
           }`
         );
       }
@@ -758,4 +764,3 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     });
   }
 }
-
