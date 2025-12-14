@@ -1,4 +1,19 @@
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogClose,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
+import { Input, InputField } from "@calid/features/ui/components/input/input";
+import { Label } from "@calid/features/ui/components/label";
+import { Switch } from "@calid/features/ui/components/switch";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
@@ -11,21 +26,9 @@ import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calid/features/ui/components/badge";
-import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose, DialogTitle, DialogDescription } from "@calid/features/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import {
-  CheckboxField,
-  SelectField,
-  Form,
-  BooleanToggleGroupField,
-} from "@calcom/ui/components/form";
-import { Switch } from "@calid/features/ui/components/switch";
-import { Input, InputField } from "@calid/features/ui/components/input/input";
-import { Label } from "@calid/features/ui/components/label";
-import { triggerToast } from "@calid/features/ui/components/toast";
+import { CheckboxField, SelectField, Form, BooleanToggleGroupField } from "@calcom/ui/components/form";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
@@ -561,12 +564,7 @@ function FieldEditDialog({
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
-      <DialogContent 
-        size="md" 
-        className="max-h-none" 
-        data-testid="edit-field-dialog" 
-        enableOverflow={true}
-      >
+      <DialogContent size="md" className="max-h-none" data-testid="edit-field-dialog" enableOverflow={true}>
         <DialogHeader>
           <DialogTitle>{t("add_a_booking_question")}</DialogTitle>
           <DialogDescription>{t("booking_questions_description")}</DialogDescription>
