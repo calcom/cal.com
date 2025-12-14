@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import UnconfirmedBookingBadge from "@calcom/web/modules/bookings/components/UnconfirmedBookingBadge";
 import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import {
   useOrgBranding,
@@ -16,14 +16,6 @@ import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
 
 export const MORE_SEPARATOR_NAME = "more";
-
-const preserveBookingsQueryParams = ({
-  prevPathname,
-  nextPathname,
-}: {
-  prevPathname: string | null;
-  nextPathname: string;
-}) => Boolean(prevPathname?.startsWith("/bookings/")) && nextPathname.startsWith("/bookings/");
 
 const getNavigationItems = (
   orgBranding: OrganizationBranding,
