@@ -225,15 +225,37 @@ throw new Error("Booking failed");
 
 ### Error Types
 
+Use `ErrorWithCode` for files that are not directly coupled to tRPC. The tRPC package has a middleware called `errorConversionMiddleware` that automatically converts `ErrorWithCode` instances into `TRPCError` instances.
+
 ```typescript
-// ✅ Good - Use proper error classes
+// ✅ Good - Use ErrorWithCode in non-tRPC files (services, repositories, utilities)
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+
+// Option 1: Using constructor with ErrorCode enum
+throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
+
+// Option 2: Using the Factory pattern for common HTTP errors
+throw ErrorWithCode.Factory.Forbidden("You don't have permission to view this");
+throw ErrorWithCode.Factory.NotFound("Resource not found");
+throw ErrorWithCode.Factory.BadRequest("Invalid input");
+
+// ✅ Good - Use TRPCError only in tRPC routers/procedures
 import { TRPCError } from "@trpc/server";
 
 throw new TRPCError({
   code: "BAD_REQUEST",
   message: "Invalid booking time slot",
 });
+
+// ❌ Bad - Using TRPCError in non-tRPC files
+import { TRPCError } from "@trpc/server";
+// Don't use TRPCError in services, repositories, or utility files
 ```
+
+### packages/features Import Restrictions
+
+Files in `packages/features/**` should NOT import from `trpc`. This keeps the features package decoupled from the tRPC layer, making the code more reusable and testable. Use `ErrorWithCode` for error handling in these files, and let the tRPC middleware handle the conversion.
 
 ## Basic Performance Guidelines
 
@@ -306,9 +328,54 @@ import { Button } from "@calcom/ui/components/button";
 - **Tests**: Same as source file + `.test.ts` or `.spec.ts`
 - **Avoid**: Dot-suffixes like `.service.ts`, `.repository.ts` (except for tests, types, specs)
 
-## Repository Method Conventions
+## Repository + DTO Pattern and Method Conventions
 
-Repositories should follow consistent naming and design patterns to promote reusability and maintainability.
+We use a Repository + DTO pattern to isolate Prisma and the database from business logic. Repositories are the only layer that talks to Prisma and database models. All services, tRPC handlers, API controllers, workflows, and UI should depend on DTOs or domain types, not Prisma types.
+
+DTOs (Data Transfer Objects) are simple TypeScript types or interfaces that represent our domain data in an ORM-agnostic way and are returned from repositories.
+
+### Why this pattern?
+
+- **Prevent type leaks**: Prisma type changes stay inside repositories instead of breaking services, handlers, and UI across dozens of files.
+- **Enable safe refactors**: Business logic works against stable DTOs, so you can change storage details without touching higher layers.
+- **Keep ORM swappable**: If we ever change ORM, only repository implementations change; services and handlers stay the same.
+
+### What not to do: tight Prisma coupling in business logic
+
+Do not import Prisma types in business logic. Prisma types belong only in the data access layer.
+
+```typescript
+// ❌ Bad – business logic depends on Prisma
+import type { Webhook } from "@calcom/prisma/client";
+export function sendPayload(webhook: Webhook) { /* ... */ }
+
+// ✅ Good – business logic depends on DTO + repository
+export interface WebhookDTO { id: string; url: string; }
+export interface IWebhookRepository { findById(id: string): Promise<WebhookDTO | null>; }
+export async function sendPayload(repo: IWebhookRepository, id: string) {
+  const webhook = await repo.findById(id);
+  // ...
+}
+```
+
+### DTOs in repositories
+
+Repositories should expose DTOs from their public methods and keep Prisma types internal. Inside the repository, use `Prisma.*GetPayload` and map rows to DTOs. The public methods should only return DTOs, never Prisma models.
+
+```typescript
+// DTO – ORM-agnostic type exported from the repository module
+export interface BookingDTO {
+  id: string;
+  userId: number;
+  startTime: Date;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED";
+}
+```
+
+### Prisma boundaries
+
+- **Allowed**: `packages/prisma`, repository implementations (`packages/features/**/repositories/*Repository.ts`), and low-level data access infrastructure.
+- **Not allowed**: `packages/features/**` business logic (non-repository), `packages/trpc/**` handlers, `apps/web/**`, `apps/api/v2/**` services/controllers, and workflow/webhook/service layers.
 
 ### Method Naming Rules
 

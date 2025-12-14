@@ -144,38 +144,9 @@ export class CalComOAuthService {
     }
   }
 
-  // Detect browser extension environment using reliable indicators
-  private isBrowserExtension(): boolean {
-    if (Platform.OS !== "web" || typeof window === "undefined") {
-      return false;
-    }
-
-    if (typeof chrome !== "undefined" && chrome.runtime?.id) {
-      return true;
-    }
-
-    if (window.location.protocol === "chrome-extension:") {
-      return true;
-    }
-
-    // Extension content script injects companion app as iframe
-    if (window.parent !== window) {
-      try {
-        const parentOrigin = window.parent.location.origin;
-        const currentOrigin = window.location.origin;
-
-        if (parentOrigin !== currentOrigin && window.location.hostname === "localhost") {
-          return true;
-        }
-      } catch {
-        // Cross-origin access blocked - expected for extension iframes
-        if (window.location.hostname === "localhost") {
-          return true;
-        }
-      }
-    }
-
-    return false;
+  // Detect if this is a mobile app (not web/extension)
+  private isMobileApp(): boolean {
+    return Platform.OS !== "web";
   }
 
   private async launchExtensionAuthFlow(authUrl: string): Promise<string> {
@@ -251,9 +222,17 @@ export class CalComOAuthService {
   ): Promise<AuthSession.AuthSessionResult | { type: string; params: Record<string, string> }> {
     const authUrl = this.buildAuthorizationUrl(codeChallenge, state);
 
-    const isExtension = this.isBrowserExtension();
+    if (this.isMobileApp()) {
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri);
 
-    if (isExtension) {
+      if (result.type === "success") {
+        const params = this.parseCallbackUrl(result.url);
+        return { type: "success" as const, params };
+      }
+
+      return { type: result.type, params: {} } as { type: string; params: Record<string, string> };
+    } else {
+      // Treat everything else as browser extension
       try {
         const responseUrl = await this.launchExtensionAuthFlow(authUrl);
         const params = this.parseCallbackUrl(responseUrl);
@@ -290,6 +269,7 @@ export class CalComOAuthService {
       }
 
       return { type: result.type, params: {} } as { type: string; params: Record<string, string> };
+
     }
   }
 
@@ -352,7 +332,7 @@ export class CalComOAuthService {
     }
 
     // Extension: use APIs to avoid CORS
-    if (this.isBrowserExtension() && window.parent !== window) {
+    if (!this.isMobileApp() && typeof window !== "undefined" && window.parent !== window) {
       return await this.exchangeTokensViaExtension(code, state);
     }
 
