@@ -6,7 +6,7 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
 
-import Shell from "~/shell/Shell";
+import Shell from "~/shell/components/Shell";
 
 export default function PlatformPlans() {
   const { t } = useLocale();

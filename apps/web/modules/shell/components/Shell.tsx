@@ -4,8 +4,8 @@ import type { ComponentProps } from "react";
 
 import BaseShell from "@calcom/features/shell/Shell";
 
-import { MobileNavigationContainer } from "./navigation/Navigation";
 import { SideBarContainer } from "./SideBar";
+import { MobileNavigationContainer } from "./navigation/Navigation";
 
 export type { LayoutProps } from "@calcom/features/shell/Shell";
 export { ShellMain } from "@calcom/features/shell/Shell";

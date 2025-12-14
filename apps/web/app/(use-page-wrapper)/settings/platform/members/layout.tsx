@@ -1,8 +1,9 @@
 import { getTranslate } from "app/_utils";
 
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
-import Shell from "~/shell/Shell";
 import { Button } from "@calcom/ui/components/button";
+
+import Shell from "~/shell/components/Shell";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const t = await getTranslate();

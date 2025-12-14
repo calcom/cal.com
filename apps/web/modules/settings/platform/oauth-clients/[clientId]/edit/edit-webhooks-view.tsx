@@ -17,7 +17,7 @@ import {
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 
-import Shell from "~/shell/Shell";
+import Shell from "~/shell/components/Shell";
 
 export default function EditOAuthClientWebhooks() {
   const { t } = useLocale();

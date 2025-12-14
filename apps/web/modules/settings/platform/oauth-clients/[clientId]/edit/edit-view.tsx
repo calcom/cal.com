@@ -16,7 +16,7 @@ import { useGetUserAttributes } from "@components/settings/platform/hooks/useGet
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
-import Shell from "~/shell/Shell";
+import Shell from "~/shell/components/Shell";
 
 export default function EditOAuthClient() {
   const { t } = useLocale();
@@ -82,7 +82,7 @@ export default function EditOAuthClient() {
                 </p>
               </div>
             </div>
-            {(!Boolean(clientId) || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
+            {(!clientId || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
             {isFetched && !!data && (
               <EditOAuthClientForm
                 defaultValues={{
