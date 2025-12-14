@@ -4,11 +4,11 @@ import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
