@@ -9,6 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "ext:build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "build:safari": "wxt build -b safari",
     "ext": "wxt",
     "ext:zip": "wxt zip",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
