@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import posthog from "posthog-js";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
@@ -14,12 +14,14 @@ import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { ButtonProps } from "@calcom/ui/components/button";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface AppCardProps {
@@ -53,10 +55,30 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   });
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
+
+  useEffect(() => {
+    const checkTruncation = () => {
+      if (descriptionRef.current) {
+        const isTruncated = descriptionRef.current.scrollHeight > descriptionRef.current.clientHeight;
+        setIsDescriptionTruncated(isTruncated);
+      }
+    };
+
+    checkTruncation();
+
+    const resizeObserver = new ResizeObserver(checkTruncation);
+    if (descriptionRef.current) {
+      resizeObserver.observe(descriptionRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, [app.description]);
 
   const handleAppInstall = () => {
     posthog.capture("app_install_button_clicked", {
@@ -127,16 +149,36 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p
-        className="text-default mt-2 grow text-sm"
-        dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
-        style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
-        }}
-      />
+      {isDescriptionTruncated ? (
+        <Tooltip
+          content={stripMarkdown(app.description || "")}
+          side="top"
+          className="max-w-sm whitespace-normal cursor-pointer">
+          <p
+            ref={descriptionRef}
+            className="text-default mt-2 grow text-sm cursor-pointer"
+            dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
+            style={{
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: "3",
+            }}
+          />
+        </Tooltip>
+      ) : (
+        <p
+          ref={descriptionRef}
+          className="text-default mt-2 grow text-sm"
+          dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
+          style={{
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: "3",
+          }}
+        />
+      )}
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
