@@ -1,52 +1,80 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
   FlatList,
   ScrollView,
-  ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
   TextInput,
   ActionSheetIOS,
   Share,
   Alert,
-  Clipboard,
   Platform,
   Modal,
   KeyboardAvoidingView,
-  Linking,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import Svg, { Path } from "react-native-svg";
 
 import { CalComAPIService, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
 import { Tooltip } from "../../components/Tooltip";
 import { FullScreenModal } from "../../components/FullScreenModal";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { EmptyScreen } from "../../components/EmptyScreen";
 import { slugify } from "../../utils/slugify";
+import { showErrorAlert } from "../../utils/alerts";
+import { offlineAwareRefresh } from "../../utils/network";
+import { openInAppBrowser } from "../../utils/browser";
+import { formatDuration } from "../../components/event-type-detail/utils";
+import {
+  useEventTypes,
+  useCreateEventType,
+  useDeleteEventType,
+  useDuplicateEventType,
+  useUsername,
+} from "../../hooks";
 
 export default function EventTypes() {
-  console.log("EventTypes component rendering");
   const router = useRouter();
-  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
-  const [filteredEventTypes, setFilteredEventTypes] = useState<EventType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
 
   // Modal state for creating new event type
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventSlug, setNewEventSlug] = useState("");
   const [newEventDescription, setNewEventDescription] = useState("");
   const [newEventDuration, setNewEventDuration] = useState("15");
-  const [username, setUsername] = useState<string>("");
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+
+  // Use React Query hooks
+  const {
+    data: eventTypes = [],
+    isLoading: loading,
+    isFetching,
+    error: queryError,
+    refetch,
+  } = useEventTypes();
+
+  // Show refresh indicator when fetching
+  const refreshing = isFetching && !loading;
+
+  const { data: username = "" } = useUsername();
+  const { mutate: createEventTypeMutation, isPending: creating } = useCreateEventType();
+  const { mutate: deleteEventTypeMutation, isPending: isDeleting } = useDeleteEventType();
+  const { mutate: duplicateEventTypeMutation } = useDuplicateEventType();
+
+  // Convert query error to string
+  // Don't show error UI for authentication errors (user will be redirected to login)
+  // Only show error UI in development mode for other errors
+  const isAuthError =
+    queryError?.message?.includes("Authentication") ||
+    queryError?.message?.includes("sign in") ||
+    queryError?.message?.includes("401");
+  const error = queryError && !isAuthError && __DEV__ ? "Failed to load event types." : null;
 
   // Modal state for web platform action sheet
   const [showActionModal, setShowActionModal] = useState(false);
@@ -58,7 +86,6 @@ export default function EventTypes() {
   // Modal state for delete confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventTypeToDelete, setEventTypeToDelete] = useState<EventType | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Toast state for web platform
   const [showToast, setShowToast] = useState(false);
@@ -78,89 +105,25 @@ export default function EventTypes() {
     }, 2000);
   };
 
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+  // Handle pull-to-refresh
+  // Handle pull-to-refresh (offline-aware)
+  const onRefresh = () => offlineAwareRefresh(refetch);
 
-  // Fetch username on mount
-  useEffect(() => {
-    const fetchUsername = async () => {
-      try {
-        const fetchedUsername = await CalComAPIService.getUsername();
-        setUsername(fetchedUsername);
-      } catch (error) {
-        console.error("Failed to fetch username:", error);
-        // Keep default username if fetch fails
-      }
-    };
-    fetchUsername();
-  }, []);
-
-  const fetchEventTypes = async () => {
-    try {
-      setError(null);
-
-      const data = await CalComAPIService.getEventTypes();
-
-      if (isMountedRef.current) {
-        if (Array.isArray(data)) {
-          setEventTypes(data);
-          setFilteredEventTypes(data);
-        } else {
-          setEventTypes([]);
-          setFilteredEventTypes([]);
-        }
-      }
-    } catch (err) {
-      console.error("🎯 EventTypesScreen: Error fetching event types:", err);
-      if (isMountedRef.current) {
-        setError("Failed to load event types. Please check your API key and try again.");
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-        setRefreshing(false);
-      }
+  // Filter event types based on search query
+  const filteredEventTypes = useMemo(() => {
+    if (searchQuery.trim() === "") {
+      return eventTypes;
     }
-  };
-
-  useEffect(() => {
-    fetchEventTypes();
-  }, []);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchEventTypes();
-  };
+    const searchLower = searchQuery.toLowerCase();
+    return eventTypes.filter(
+      (eventType) =>
+        eventType.title.toLowerCase().includes(searchLower) ||
+        (eventType.description && eventType.description.toLowerCase().includes(searchLower))
+    );
+  }, [eventTypes, searchQuery]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim() === "") {
-      setFilteredEventTypes(eventTypes);
-    } else {
-      const filtered = eventTypes.filter(
-        (eventType) =>
-          eventType.title.toLowerCase().includes(query.toLowerCase()) ||
-          (eventType.description &&
-            eventType.description.toLowerCase().includes(query.toLowerCase()))
-      );
-      setFilteredEventTypes(filtered);
-    }
-  };
-
-  const formatDuration = (minutes: number | undefined) => {
-    if (!minutes || minutes <= 0) {
-      return "0m";
-    }
-    if (minutes < 60) {
-      return `${minutes}m`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
   const getDuration = (eventType: EventType): number => {
@@ -259,7 +222,7 @@ export default function EventTypes() {
   const handleCopyLink = async (eventType: EventType) => {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      Clipboard.setString(link);
+      await Clipboard.setStringAsync(link);
 
       if (Platform.OS === "web") {
         showToastMessage("Link copied!", eventType.id);
@@ -270,7 +233,7 @@ export default function EventTypes() {
       if (Platform.OS === "web") {
         showToastMessage("Failed to copy link");
       } else {
-        Alert.alert("Error", "Failed to copy link. Please try again.");
+        showErrorAlert("Error", "Failed to copy link. Please try again.");
       }
     }
   };
@@ -283,7 +246,7 @@ export default function EventTypes() {
         url: link,
       });
     } catch (error) {
-      Alert.alert("Error", "Failed to share link. Please try again.");
+      showErrorAlert("Error", "Failed to share link. Please try again.");
     }
   };
 
@@ -308,20 +271,11 @@ export default function EventTypes() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!eventTypeToDelete) return;
 
-    setIsDeleting(true);
-    try {
-      await CalComAPIService.deleteEventType(eventTypeToDelete.id);
-
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        // Remove the deleted event type from local state
-        const updatedEventTypes = eventTypes.filter((et) => et.id !== eventTypeToDelete.id);
-        setEventTypes(updatedEventTypes);
-        setFilteredEventTypes(updatedEventTypes);
-
+    deleteEventTypeMutation(eventTypeToDelete.id, {
+      onSuccess: () => {
         // Close modal and reset state
         setShowDeleteModal(false);
         setEventTypeToDelete(null);
@@ -331,76 +285,57 @@ export default function EventTypes() {
         } else {
           Alert.alert("Success", "Event type deleted successfully");
         }
-      }
-    } catch (error) {
-      console.error("Failed to delete event type:", error);
-      if (isMountedRef.current) {
+      },
+      onError: (error) => {
+        console.error("Failed to delete event type:", error);
         if (Platform.OS === "web") {
           showToastMessage("Failed to delete event type");
         } else {
-          Alert.alert("Error", "Failed to delete event type. Please try again.");
+          showErrorAlert("Error", "Failed to delete event type. Please try again.");
         }
-      }
-    } finally {
-      setIsDeleting(false);
-    }
+      },
+    });
   };
 
-  const handleDuplicate = async (eventType: EventType) => {
-    try {
-      // Generate a new title and slug for the duplicate
-      const newTitle = `${eventType.title} (copy)`;
-      let newSlug = `${eventType.slug}-copy`;
+  const handleDuplicate = (eventType: EventType) => {
+    duplicateEventTypeMutation(
+      { eventType, existingEventTypes: eventTypes },
+      {
+        onSuccess: (duplicatedEventType) => {
+          if (Platform.OS === "web") {
+            showToastMessage("Event type duplicated successfully");
+          } else {
+            Alert.alert("Success", "Event type duplicated successfully");
+          }
 
-      // Check if slug already exists and append a number if needed
-      let counter = 1;
-      while (eventTypes.some((et) => et.slug === newSlug)) {
-        newSlug = `${eventType.slug}-copy-${counter}`;
-        counter++;
-      }
+          const duration = getDuration(eventType);
 
-      const duration = getDuration(eventType);
-
-      // Create the duplicate event type
-      const duplicatedEventType = await CalComAPIService.createEventType({
-        title: newTitle,
-        slug: newSlug,
-        lengthInMinutes: duration,
-        description: eventType.description || undefined,
-      });
-
-      // Refresh the list
-      await fetchEventTypes();
-
-      if (Platform.OS === "web") {
-        showToastMessage("Event type duplicated successfully");
-      } else {
-        Alert.alert("Success", "Event type duplicated successfully");
-      }
-
-      // Navigate to edit the newly created duplicate
-      router.push({
-        pathname: "/event-type-detail",
-        params: {
-          id: duplicatedEventType.id.toString(),
-          title: duplicatedEventType.title,
-          description: duplicatedEventType.description || "",
-          duration: (
-            duplicatedEventType.lengthInMinutes ||
-            duplicatedEventType.length ||
-            duration
-          ).toString(),
-          slug: duplicatedEventType.slug || "",
+          // Navigate to edit the newly created duplicate
+          router.push({
+            pathname: "/event-type-detail",
+            params: {
+              id: duplicatedEventType.id.toString(),
+              title: duplicatedEventType.title,
+              description: duplicatedEventType.description || "",
+              duration: (
+                duplicatedEventType.lengthInMinutes ||
+                duplicatedEventType.length ||
+                duration
+              ).toString(),
+              slug: duplicatedEventType.slug || "",
+            },
+          });
         },
-      });
-    } catch (error) {
-      console.error("Failed to duplicate event type:", error);
-      if (Platform.OS === "web") {
-        showToastMessage("Failed to duplicate event type");
-      } else {
-        Alert.alert("Error", "Failed to duplicate event type. Please try again.");
+        onError: (error) => {
+          console.error("Failed to duplicate event type:", error);
+          if (Platform.OS === "web") {
+            showToastMessage("Failed to duplicate event type");
+          } else {
+            showErrorAlert("Error", "Failed to duplicate event type. Please try again.");
+          }
+        },
       }
-    }
+    );
   };
 
   const handlePreview = async (eventType: EventType) => {
@@ -410,15 +345,15 @@ export default function EventTypes() {
       if (Platform.OS === "web") {
         window.open(link, "_blank");
       } else {
-        // For mobile, use Linking
-        await Linking.openURL(link);
+        // For mobile, use in-app browser
+        await openInAppBrowser(link, "event type preview");
       }
     } catch (error) {
       console.error("Failed to open preview:", error);
       if (Platform.OS === "web") {
         showToastMessage("Failed to open preview");
       } else {
-        Alert.alert("Error", "Failed to open preview. Please try again.");
+        showErrorAlert("Error", "Failed to open preview. Please try again.");
       }
     }
   };
@@ -440,7 +375,7 @@ export default function EventTypes() {
     setIsSlugManuallyEdited(false);
   };
 
-  const handleCreateEventType = async () => {
+  const handleCreateEventType = () => {
     if (!newEventTitle.trim()) {
       Alert.alert("Error", "Please enter a title for your event type");
       return;
@@ -457,39 +392,36 @@ export default function EventTypes() {
       return;
     }
 
-    setCreating(true);
-    try {
-      // Create the event type with the form data
-      const newEventType = await CalComAPIService.createEventType({
+    createEventTypeMutation(
+      {
         title: newEventTitle.trim(),
         slug: newEventSlug.trim(),
         lengthInMinutes: duration,
         description: newEventDescription.trim() || undefined,
-      });
+      },
+      {
+        onSuccess: (newEventType) => {
+          // Close modal and reset form
+          handleCloseCreateModal();
 
-      // Close modal and reset form
-      handleCloseCreateModal();
-
-      // Refresh the list
-      await fetchEventTypes();
-
-      // Navigate to edit the newly created event type
-      router.push({
-        pathname: "/event-type-detail",
-        params: {
-          id: newEventType.id.toString(),
-          title: newEventType.title,
-          description: newEventType.description || "",
-          duration: (newEventType.lengthInMinutes || newEventType.length || 15).toString(),
-          slug: newEventType.slug || "",
+          // Navigate to edit the newly created event type
+          router.push({
+            pathname: "/event-type-detail",
+            params: {
+              id: newEventType.id.toString(),
+              title: newEventType.title,
+              description: newEventType.description || "",
+              duration: (newEventType.lengthInMinutes || newEventType.length || 15).toString(),
+              slug: newEventType.slug || "",
+            },
+          });
         },
-      });
-    } catch (error) {
-      console.error("Failed to create event type:", error);
-      Alert.alert("Error", "Failed to create event type. Please try again.");
-    } finally {
-      setCreating(false);
-    }
+        onError: (error) => {
+          console.error("Failed to create event type:", error);
+          showErrorAlert("Error", "Failed to create event type. Please try again.");
+        },
+      }
+    );
   };
 
   const renderEventType = ({ item, index }: { item: EventType; index: number }) => {
@@ -590,8 +522,7 @@ export default function EventTypes() {
       <View className="flex-1 bg-gray-100">
         <Header />
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <ActivityIndicator size="large" color="#000000" />
-          <Text className="mt-4 text-base text-gray-500">Loading event types...</Text>
+          <LoadingSpinner size="large" />
         </View>
       </View>
     );
@@ -607,7 +538,7 @@ export default function EventTypes() {
             Unable to load event types
           </Text>
           <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
-          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={fetchEventTypes}>
+          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
             <Text className="text-base font-semibold text-white">Retry</Text>
           </TouchableOpacity>
         </View>
@@ -619,24 +550,14 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search event types"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-        </View>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="calendar-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No event types found</Text>
-          <Text className="text-center text-base text-gray-500">
-            Create your first event type in Cal.com
-          </Text>
+          <EmptyScreen
+            icon="link-outline"
+            headline="Create your first event type"
+            description="Event types enable you to share links that show available times on your calendar and allow people to make bookings with you."
+            buttonText="New"
+            onButtonPress={handleCreateNew}
+          />
         </View>
       </View>
     );
@@ -646,7 +567,7 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
+        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
           <TextInput
             className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
             placeholder="Search event types"
@@ -657,13 +578,20 @@ export default function EventTypes() {
             autoCorrect={false}
             clearButtonMode="while-editing"
           />
+          <TouchableOpacity
+            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+            onPress={handleCreateNew}
+          >
+            <Ionicons name="add" size={18} color="#fff" />
+            <Text className="text-base font-semibold text-white">New</Text>
+          </TouchableOpacity>
         </View>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="search-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No results found</Text>
-          <Text className="text-center text-base text-gray-500">
-            Try searching with different keywords
-          </Text>
+          <EmptyScreen
+            icon="search-outline"
+            headline={`No results found for "${searchQuery}"`}
+            description="Try searching with different keywords"
+          />
         </View>
       </View>
     );
@@ -914,8 +842,8 @@ export default function EventTypes() {
                       if (eventType) handleDelete(eventType);
                     }}
                   >
-                    <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                    <Text className="ml-3 text-base text-red-500">Delete</Text>
+                    <Ionicons name="trash-outline" size={20} color="#800000" />
+                    <Text className="ml-3 text-base text-[#800000]">Delete</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -1007,7 +935,7 @@ export default function EventTypes() {
               <View className="flex-row">
                 {/* Danger icon */}
                 <View className="mr-3 self-start rounded-full bg-red-50 p-2">
-                  <Ionicons name="alert-circle" size={20} color="#DC2626" />
+                  <Ionicons name="alert-circle" size={20} color="#800000" />
                 </View>
 
                 {/* Title and description */}
