@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-empty-function */
+ 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -17,7 +17,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/components/form";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
-import { EventTypeSingleLayout } from "./EventTypeLayout";
+import { EventTypeSingleLayout } from "@calcom/features/eventtypes/components/EventTypeLayout";
 
 export type Host = {
   isFixed: boolean;
@@ -30,7 +30,7 @@ export type Host = {
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
-const tabs = [
+const _tabs = [
   "setup",
   "availability",
   "team",
@@ -62,7 +62,7 @@ export type EventTypeComponentProps = EventTypeSetupProps & {
   eventTypeApps?: EventTypeApps;
   isUpdating: boolean;
   isPlatform?: boolean;
-  tabName: (typeof tabs)[number];
+  tabName: (typeof _tabs)[number];
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;
   saveButtonRef?: React.RefObject<HTMLButtonElement>;

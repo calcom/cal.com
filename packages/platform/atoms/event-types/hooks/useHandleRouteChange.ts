@@ -1,10 +1,9 @@
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useEffect } from "react";
 
 import type {
   EventTypeAssignedUsers,
   EventTypeHosts,
-} from "@calcom/features/eventtypes/components/EventType";
+} from "../components/EventType";
 import { checkForEmptyAssignment } from "@calcom/features/eventtypes/lib/checkForEmptyAssignment";
 
 export const useHandleRouteChange = ({
@@ -57,6 +56,5 @@ export const useHandleRouteChange = ({
     return () => {
       onEnd?.(handleRouteChange);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchTrigger, hosts, assignedUsers, assignAllTeamMembers, onError, onStart, onEnd]);
 };

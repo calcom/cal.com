@@ -5,11 +5,11 @@ import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallba
 
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
+import { EventType as EventTypeComponent } from "../components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
 import type { EventAdvancedTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
 import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
-import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { EventAvailabilityTabCustomClassNames } from "../components/tabs/availability/EventAvailabilityTab";
 import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
 import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
@@ -324,9 +324,11 @@ const EventType = forwardRef<
   const onDelete = () => {
     if (allowDelete && !isDryRun) {
       isTeamEventTypeDeleted.current = true;
-      team?.id
-        ? deleteTeamEventTypeMutation.mutate({ eventTypeId: id, teamId: team.id })
-        : deleteMutation.mutate(id);
+      if (team?.id) {
+        deleteTeamEventTypeMutation.mutate({ eventTypeId: id, teamId: team.id });
+      } else {
+        deleteMutation.mutate(id);
+      }
     }
 
     if (isDryRun) {
