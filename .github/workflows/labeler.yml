@@ -15,18 +15,6 @@ jobs:
       - uses: actions/labeler@v5
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
-  team-labels:
-    permissions:
-      contents: read
-      pull-requests: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: equitybee/team-label-action@main
-        with:
-          repo-token: ${{ secrets.EQUITY_BEE_TEAM_LABELER_ACTION_TOKEN }}
-          organization-name: calcom
-          ignore-labels: "admin, app-store, ai, api, authentication, automated-testing, billing, bookings, caldav, calendar-apps, ci, console, crm-apps, dba, devops, docs, documentation, emails, embeds, event-types, i18n, impersonation, manual-testing, ui, performance, ops-stack, organizations, public-api, routing-forms, seats, self-hosted, sre, teams, webhooks, workflows, zapier"
   apply-labels-from-issue:
     runs-on: ubuntu-latest
 
