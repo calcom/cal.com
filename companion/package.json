@@ -31,6 +31,7 @@
     "expo-clipboard": "8.0.9-canary-20251211-7da85ea",
     "expo-constants": "18.1.0-canary-20251211-7da85ea",
     "expo-crypto": "15.0.9-canary-20251211-7da85ea",
+    "expo-dev-client": "6.1.0-canary-20251211-7da85ea",
     "expo-device": "8.0.11-canary-20251211-7da85ea",
     "expo-glass-effect": "0.2.0-canary-20251211-7da85ea",
     "expo-linking": "8.0.11-canary-20251211-7da85ea",

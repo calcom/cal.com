@@ -1,10 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Stack, useRouter } from "expo-router";
+import React, { useState, useMemo, Activity } from "react";
 import {
   View,
   Text,
-  FlatList,
   ScrollView,
   TouchableOpacity,
   RefreshControl,
@@ -13,30 +12,28 @@ import {
   Share,
   Alert,
   Platform,
-  Modal,
-  KeyboardAvoidingView,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import Svg, { Path } from "react-native-svg";
 
-import { CalComAPIService, EventType } from "../../services/calcom";
-import { Header } from "../../components/Header";
-import { Tooltip } from "../../components/Tooltip";
-import { FullScreenModal } from "../../components/FullScreenModal";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { EmptyScreen } from "../../components/EmptyScreen";
-import { slugify } from "../../utils/slugify";
-import { showErrorAlert } from "../../utils/alerts";
-import { offlineAwareRefresh } from "../../utils/network";
-import { openInAppBrowser } from "../../utils/browser";
-import { formatDuration } from "../../components/event-type-detail/utils";
+import { CalComAPIService, EventType } from "../../../services/calcom";
+import { Header } from "../../../components/Header";
+import { FullScreenModal } from "../../../components/FullScreenModal";
+import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { EmptyScreen } from "../../../components/EmptyScreen";
+import { slugify } from "../../../utils/slugify";
+import { showErrorAlert } from "../../../utils/alerts";
+import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
+import { offlineAwareRefresh } from "../../../utils/network";
+import { openInAppBrowser } from "../../../utils/browser";
 import {
   useEventTypes,
   useCreateEventType,
   useDeleteEventType,
   useDuplicateEventType,
   useUsername,
-} from "../../hooks";
+} from "../../../hooks";
+import { getEventDuration } from "../../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -126,49 +123,6 @@ export default function EventTypes() {
     setSearchQuery(query);
   };
 
-  const getDuration = (eventType: EventType): number => {
-    // Prefer lengthInMinutes (API field), fallback to length for backwards compatibility
-    return eventType.lengthInMinutes ?? eventType.length ?? 0;
-  };
-
-  const normalizeMarkdown = (text: string): string => {
-    if (!text) return "";
-
-    return (
-      text
-        // Remove HTML tags including <br>, <div>, <p>, etc.
-        .replace(/<[^>]*>/g, " ")
-        // Convert HTML entities
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&nbsp;/g, " ")
-        // Convert markdown links [text](url) to just text
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-        // Remove bold/italic markers **text** or *text*
-        .replace(/\*\*([^*]+)\*\*/g, "$1")
-        .replace(/\*([^*]+)\*/g, "$1")
-        // Remove inline code `text`
-        .replace(/`([^`]+)`/g, "$1")
-        // Remove strikethrough ~~text~~
-        .replace(/~~([^~]+)~~/g, "$1")
-        // Remove heading markers # ## ###
-        .replace(/^#{1,6}\s+/gm, "")
-        // Remove blockquote markers >
-        .replace(/^>\s+/gm, "")
-        // Remove list markers - * +
-        .replace(/^[\s]*[-*+]\s+/gm, "")
-        // Remove numbered list markers 1. 2. etc
-        .replace(/^[\s]*\d+\.\s+/gm, "")
-        // Normalize multiple whitespace/newlines to single space
-        .replace(/\s+/g, " ")
-        // Trim whitespace
-        .trim()
-    );
-  };
-
   const handleEventTypePress = (eventType: EventType) => {
     handleEdit(eventType);
   };
@@ -251,7 +205,7 @@ export default function EventTypes() {
   };
 
   const handleEdit = (eventType: EventType) => {
-    const duration = getDuration(eventType);
+    const duration = getEventDuration(eventType);
     router.push({
       pathname: "/event-type-detail",
       params: {
@@ -308,7 +262,7 @@ export default function EventTypes() {
             Alert.alert("Success", "Event type duplicated successfully");
           }
 
-          const duration = getDuration(eventType);
+          const duration = getEventDuration(eventType);
 
           // Navigate to edit the newly created duplicate
           router.push({
@@ -424,103 +378,12 @@ export default function EventTypes() {
     );
   };
 
-  const renderEventType = ({ item, index }: { item: EventType; index: number }) => {
-    const duration = getDuration(item);
-    const isLast = index === filteredEventTypes.length - 1;
-
-    return (
-      <TouchableOpacity
-        className={`bg-white active:bg-[#F8F9FA] ${!isLast ? "border-b border-[#E5E5EA]" : ""}`}
-        onPress={() => handleEventTypePress(item)}
-        onLongPress={() => handleEventTypeLongPress(item)}
-        style={{ paddingHorizontal: 16, paddingVertical: 16 }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="mr-4 flex-1">
-            <View className="mb-1 flex-row items-center">
-              <Text className="flex-1 text-base font-semibold text-[#333]">{item.title}</Text>
-            </View>
-            {item.description && (
-              <Text className="mb-2 mt-0.5 text-sm leading-5 text-[#666]" numberOfLines={2}>
-                {normalizeMarkdown(item.description)}
-              </Text>
-            )}
-            <View className="mt-2 flex-row items-center self-start rounded-lg border border-[#E5E5EA] bg-[#E5E5EA] px-2 py-1">
-              <Ionicons name="time-outline" size={14} color="#000" />
-              <Text className="ml-1.5 text-xs font-semibold text-black">
-                {formatDuration(duration)}
-              </Text>
-            </View>
-            {(item.price != null && item.price > 0) || item.requiresConfirmation ? (
-              <View className="mt-2 flex-row items-center gap-3">
-                {item.price != null && item.price > 0 && (
-                  <Text className="text-sm font-medium text-[#34C759]">
-                    {item.currency || "$"}
-                    {item.price}
-                  </Text>
-                )}
-                {item.requiresConfirmation && (
-                  <View className="rounded bg-[#FF9500] px-2 py-0.5">
-                    <Text className="text-xs font-medium text-white">Requires Confirmation</Text>
-                  </View>
-                )}
-              </View>
-            ) : null}
-          </View>
-          <View className="flex-row">
-            <Tooltip text="Preview">
-              <TouchableOpacity
-                className="items-center justify-center rounded-l-lg border border-r-0 border-[#E5E5EA]"
-                style={{ width: 32, height: 32 }}
-                onPress={() => handlePreview(item)}
-              >
-                <Ionicons name="open-outline" size={18} color="#3C3F44" />
-              </TouchableOpacity>
-            </Tooltip>
-            <Tooltip text={copiedEventTypeId === item.id ? "Copied!" : "Copy link"}>
-              <TouchableOpacity
-                className="items-center justify-center border border-r-0 border-[#E5E5EA]"
-                style={{ width: 32, height: 32 }}
-                onPress={() => handleCopyLink(item)}
-              >
-                {copiedEventTypeId === item.id ? (
-                  <Ionicons name="checkmark" size={18} color="#10B981" />
-                ) : (
-                  <Svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#3C3F44"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <Path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                    <Path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                  </Svg>
-                )}
-              </TouchableOpacity>
-            </Tooltip>
-            <Tooltip text="More">
-              <TouchableOpacity
-                className="items-center justify-center rounded-r-lg border border-[#E5E5EA]"
-                style={{ width: 32, height: 32 }}
-                onPress={() => handleEventTypeLongPress(item)}
-              >
-                <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
-              </TouchableOpacity>
-            </Tooltip>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   if (loading) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Header />
+        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+          <Header />
+        </Activity>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <LoadingSpinner size="large" />
         </View>
@@ -531,7 +394,9 @@ export default function EventTypes() {
   if (error) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Header />
+        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+          <Header />
+        </Activity>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name="alert-circle" size={64} color="#FF3B30" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
@@ -549,7 +414,9 @@ export default function EventTypes() {
   if (eventTypes.length === 0) {
     return (
       <View className="flex-1 bg-gray-100">
-        <Header />
+        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+          <Header />
+        </Activity>
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <EmptyScreen
             icon="link-outline"
@@ -566,6 +433,77 @@ export default function EventTypes() {
   if (filteredEventTypes.length === 0 && searchQuery.trim() !== "") {
     return (
       <View className="flex-1 bg-gray-100">
+        <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+          <Header />
+          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+            <TextInput
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+              placeholder="Search event types"
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
+            <TouchableOpacity
+              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              onPress={handleCreateNew}
+            >
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text className="text-base font-semibold text-white">New</Text>
+            </TouchableOpacity>
+          </View>
+        </Activity>
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+          <EmptyScreen
+            icon="search-outline"
+            headline={`No results found for "${searchQuery}"`}
+            description="Try searching with different keywords"
+          />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: "Event Types",
+          headerLargeTitleEnabled: true,
+          headerStyle: {
+            backgroundColor: "transparent",
+          },
+          headerSearchBarOptions: {
+            placeholder: "Search event types",
+            barTintColor: "#fff",
+            obscureBackground: false,
+            onChangeText: (e) => {
+              handleSearch(e.nativeEvent.text);
+            },
+          },
+          unstable_headerRightItems: () => [
+            {
+              type: "button",
+              label: "New",
+              labelStyle: {
+                // style if needed
+              },
+              variant: "prominent",
+              tintColor: "#000",
+              // icon: {
+              //   name: "plus",
+              //   type: "sfSymbol",
+              // },
+              onPress: handleCreateNew,
+            },
+          ],
+        }}
+      />
+
+      <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
         <Header />
         <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
           <TextInput
@@ -586,48 +524,32 @@ export default function EventTypes() {
             <Text className="text-base font-semibold text-white">New</Text>
           </TouchableOpacity>
         </View>
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <EmptyScreen
-            icon="search-outline"
-            headline={`No results found for "${searchQuery}"`}
-            description="Try searching with different keywords"
-          />
-        </View>
-      </View>
-    );
-  }
+      </Activity>
 
-  return (
-    <View className="flex-1 bg-gray-100">
-      <Header />
-      <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-        <TextInput
-          className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-          placeholder="Search event types"
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={handleSearch}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-        <TouchableOpacity
-          className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-          onPress={handleCreateNew}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text className="text-base font-semibold text-white">New</Text>
-        </TouchableOpacity>
-      </View>
       <ScrollView
+        style={{ backgroundColor: "white" }}
         contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
       >
         <View className="px-2 pt-4 md:px-4">
           <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
             {filteredEventTypes.map((item, index) => (
-              <View key={item.id.toString()}>{renderEventType({ item, index })}</View>
+              <EventTypeListItem
+                key={item.id.toString()}
+                item={item}
+                index={index}
+                filteredEventTypes={filteredEventTypes}
+                copiedEventTypeId={copiedEventTypeId}
+                handleEventTypePress={handleEventTypePress}
+                handleEventTypeLongPress={handleEventTypeLongPress}
+                handleCopyLink={handleCopyLink}
+                handlePreview={handlePreview}
+                onEdit={handleEdit}
+                onDuplicate={handleDuplicate}
+                onDelete={handleDelete}
+              />
             ))}
           </View>
         </View>
@@ -988,6 +910,6 @@ export default function EventTypes() {
           </View>
         </View>
       )}
-    </View>
+    </>
   );
 }
