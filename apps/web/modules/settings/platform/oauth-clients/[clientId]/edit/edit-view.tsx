@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-import Shell from "~/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
@@ -16,6 +15,8 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
+
+import Shell from "~/shell/Shell";
 
 export default function EditOAuthClient() {
   const { t } = useLocale();
@@ -39,7 +40,7 @@ export default function EditOAuthClient() {
   });
 
   const onSubmit = (data: FormValues) => {
-    let _userPermissions = 0;
+    let userPermissions = 0;
     const userRedirectUris = data.redirectUris.map((uri) => uri.uri).filter((uri) => !!uri);
 
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
@@ -47,8 +48,8 @@ export default function EditOAuthClient() {
       const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;
       const read = PERMISSIONS_GROUPED_MAP[entity].read;
       const write = PERMISSIONS_GROUPED_MAP[entity].write;
-      if (data[`${entityKey}Read`]) _userPermissions |= read;
-      if (data[`${entityKey}Write`]) _userPermissions |= write;
+      if (data[`${entityKey}Read`]) userPermissions |= read;
+      if (data[`${entityKey}Write`]) userPermissions |= write;
     });
 
     update({
@@ -81,7 +82,7 @@ export default function EditOAuthClient() {
                 </p>
               </div>
             </div>
-            {(!clientId || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
+            {(!Boolean(clientId) || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
             {isFetched && !!data && (
               <EditOAuthClientForm
                 defaultValues={{
