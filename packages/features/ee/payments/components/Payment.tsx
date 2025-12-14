@@ -9,8 +9,11 @@ import { useEffect, useState } from "react";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { formatPrice } from "@calcom/lib/currencyConversions";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { CalPromotionData } from "@calcom/lib/payment/promoCode";
+import { getCalPromotionFromPaymentData, getStripePublishableKey } from "@calcom/lib/payment/promoCode";
 import type { EventType, Payment } from "@calcom/prisma/client";
 import type { PaymentOption } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
@@ -19,39 +22,8 @@ import { TextField } from "@calcom/ui/components/form/inputs/TextField";
 
 import type { PaymentPageProps } from "../pages/payment";
 
-type CalPromotionData = {
-  code: string;
-  promotionCodeId: string;
-  couponId: string;
-  originalAmount: number;
-  discountAmount: number;
-  finalAmount: number;
-  percentOff?: number | null;
-  amountOff?: number | null;
-  amountOffCurrency?: string | null;
-};
-
-function isCalPromotionData(x: unknown): x is CalPromotionData {
-  if (!x || typeof x !== "object") return false;
-  const r = x as Record<string, unknown>;
-  return (
-    typeof r.code === "string" &&
-    typeof r.promotionCodeId === "string" &&
-    typeof r.couponId === "string" &&
-    typeof r.originalAmount === "number" &&
-    typeof r.discountAmount === "number" &&
-    typeof r.finalAmount === "number"
-  );
-}
-
 function getInitialPromotion(paymentData: Record<string, unknown>): CalPromotionData | null {
-  const promo = paymentData["calPromotion"];
-  return isCalPromotionData(promo) ? promo : null;
-}
-
-function getStripePublishableKey(paymentData: Record<string, unknown>): string | undefined {
-  const key = paymentData["stripe_publishable_key"];
-  return typeof key === "string" ? key : undefined;
+  return getCalPromotionFromPaymentData(paymentData);
 }
 
 type PromoCodeApiResponse = {
@@ -71,21 +43,6 @@ function hasFetchUpdates(
 ): elements is StripeElements & { fetchUpdates: () => Promise<void> } {
   const maybeFn = (elements as unknown as Record<string, unknown>)["fetchUpdates"];
   return typeof maybeFn === "function";
-}
-
-function formatMoney({
-  amountMinor,
-  currency,
-  locale,
-}: {
-  amountMinor: number;
-  currency: string;
-  locale: string;
-}): string {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: currency.toUpperCase(),
-  }).format(amountMinor / 100);
 }
 
 export type Props = {
@@ -205,20 +162,11 @@ export const PaymentFormComponent = (
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <div className="text-subtle">{t("discount")}</div>
                 <div className="text-error text-right font-medium">
-                  -
-                  {formatMoney({
-                    amountMinor: props.promo.promotion.discountAmount,
-                    currency: props.payment.currency,
-                    locale: i18n.language,
-                  })}
+                  -{formatPrice(props.promo.promotion.discountAmount, props.payment.currency, i18n.language)}
                 </div>
                 <div className="text-subtle">{t("total")}</div>
                 <div className="text-right font-semibold">
-                  {formatMoney({
-                    amountMinor: props.promo.promotion.finalAmount,
-                    currency: props.payment.currency,
-                    locale: i18n.language,
-                  })}
+                  {formatPrice(props.promo.promotion.finalAmount, props.payment.currency, i18n.language)}
                 </div>
               </div>
             </div>

@@ -7,10 +7,15 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
+import type { CalPromotionData } from "@calcom/lib/payment/promoCode";
+import { parseCalPromotionData } from "@calcom/lib/payment/promoCode";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder, type TracedRequest } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+
+const PROMO_CODE_RATE_LIMIT = 5;
+const PROMO_CODE_RATE_LIMIT_WINDOW = "60s" as const;
 
 function safeJsonObject(value: unknown): Prisma.JsonObject {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
@@ -36,45 +41,12 @@ function getStripeAccountFromPaymentData(paymentData: unknown): string {
   return throwPromoError("stripe_account_missing", "Stripe account not found on payment");
 }
 
-type CalPromotionData = {
-  code: string;
-  promotionCodeId: string;
-  couponId: string;
-  originalAmount: number;
-  discountAmount: number;
-  finalAmount: number;
-  percentOff?: number | null;
-  amountOff?: number | null;
-  amountOffCurrency?: string | null;
-};
-
 function getExistingPromotion(data: Prisma.JsonObject): CalPromotionData | null {
-  const value = data["calPromotion"];
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const record = value as Record<string, unknown>;
+  return parseCalPromotionData(data["calPromotion"]);
+}
 
-  if (
-    typeof record.code !== "string" ||
-    typeof record.promotionCodeId !== "string" ||
-    typeof record.couponId !== "string" ||
-    typeof record.originalAmount !== "number" ||
-    typeof record.discountAmount !== "number" ||
-    typeof record.finalAmount !== "number"
-  ) {
-    return null;
-  }
-
-  return {
-    code: record.code,
-    promotionCodeId: record.promotionCodeId,
-    couponId: record.couponId,
-    originalAmount: record.originalAmount,
-    discountAmount: record.discountAmount,
-    finalAmount: record.finalAmount,
-    percentOff: typeof record.percentOff === "number" ? record.percentOff : null,
-    amountOff: typeof record.amountOff === "number" ? record.amountOff : null,
-    amountOffCurrency: typeof record.amountOffCurrency === "string" ? record.amountOffCurrency : null,
-  };
+async function lockPaymentForPromoCode(tx: Prisma.TransactionClient, paymentId: number) {
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(${BigInt(paymentId)})`;
 }
 
 const applySchema = z.object({
@@ -211,45 +183,121 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
     return throwPromoError("not_eligible", "Payment is not eligible for promo codes");
   }
 
-  await stripe.paymentIntents.update(
-    payment.externalId,
-    {
-      amount: finalAmount,
-      metadata: {
-        calPromotionCode: promotionCode.code ?? promoCode,
-        calPromotionCodeId: promotionCode.id,
+  const stripeInitialAmount = paymentIntent.amount;
+  const stripeInitialPromotionCode =
+    typeof paymentIntent.metadata?.calPromotionCode === "string"
+      ? paymentIntent.metadata.calPromotionCode
+      : "";
+  const stripeInitialPromotionCodeId =
+    typeof paymentIntent.metadata?.calPromotionCodeId === "string"
+      ? paymentIntent.metadata.calPromotionCodeId
+      : "";
+
+  return await prisma.$transaction(async (tx) => {
+    await lockPaymentForPromoCode(tx, payment.id);
+
+    const lockedPayment = await tx.payment.findUnique({
+      where: { id: payment.id },
+      select: {
+        id: true,
+        uid: true,
+        amount: true,
+        currency: true,
+        success: true,
+        refunded: true,
+        externalId: true,
+        data: true,
       },
-    },
-    { stripeAccount }
-  );
+    });
 
-  const promotion: CalPromotionData = {
-    code: promotionCode.code ?? promoCode,
-    promotionCodeId: promotionCode.id,
-    couponId: coupon.id,
-    originalAmount: baseAmount,
-    discountAmount,
-    finalAmount,
-    percentOff,
-    amountOff,
-    amountOffCurrency,
-  };
+    if (!lockedPayment) return throwPromoError("not_found", "Payment not found", 404);
+    if (lockedPayment.success || lockedPayment.refunded) {
+      return throwPromoError("not_eligible", "Payment is not eligible for promo codes");
+    }
+    if (!lockedPayment.externalId) {
+      return throwPromoError("payment_external_id_missing", "Payment externalId missing");
+    }
 
-  await prisma.payment.update({
-    where: { id: payment.id },
-    data: {
-      amount: finalAmount,
-      data: {
-        ...paymentData,
-        calPromotion: promotion,
-      } as Prisma.InputJsonValue,
-    },
+    const lockedPaymentData = safeJsonObject(lockedPayment.data);
+    const lockedExistingPromotion = getExistingPromotion(lockedPaymentData);
+    if (lockedExistingPromotion && lockedExistingPromotion.code.toLowerCase() === promoCode.toLowerCase()) {
+      return {
+        payment: { uid: lockedPayment.uid, amount: lockedPayment.amount, currency: lockedPayment.currency },
+        promotion: lockedExistingPromotion,
+      };
+    }
+
+    const lockedBaseAmount = lockedExistingPromotion?.originalAmount ?? lockedPayment.amount;
+    const lockedDiscountAmount =
+      typeof coupon.percent_off === "number"
+        ? Math.round((lockedBaseAmount * coupon.percent_off) / 100)
+        : typeof coupon.amount_off === "number"
+        ? coupon.amount_off
+        : 0;
+    const lockedFinalAmount = Math.max(0, lockedBaseAmount - lockedDiscountAmount);
+    if (lockedFinalAmount <= 0) {
+      return throwPromoError("free_payment", "Promo code would make this payment free");
+    }
+
+    const promotion: CalPromotionData = {
+      code: promotionCode.code ?? promoCode,
+      promotionCodeId: promotionCode.id,
+      couponId: coupon.id,
+      originalAmount: lockedBaseAmount,
+      discountAmount: lockedDiscountAmount,
+      finalAmount: lockedFinalAmount,
+      percentOff,
+      amountOff,
+      amountOffCurrency,
+    };
+
+    try {
+      await stripe.paymentIntents.update(
+        lockedPayment.externalId,
+        {
+          amount: lockedFinalAmount,
+          metadata: {
+            calPromotionCode: promotionCode.code ?? promoCode,
+            calPromotionCodeId: promotionCode.id,
+          },
+        },
+        { stripeAccount }
+      );
+
+      await tx.payment.update({
+        where: { id: lockedPayment.id },
+        data: {
+          amount: lockedFinalAmount,
+          data: {
+            ...lockedPaymentData,
+            calPromotion: promotion,
+          } as Prisma.InputJsonValue,
+        },
+      });
+    } catch (err) {
+      try {
+        await stripe.paymentIntents.update(
+          lockedPayment.externalId,
+          {
+            amount: stripeInitialAmount,
+            metadata: {
+              calPromotionCode: stripeInitialPromotionCode,
+              calPromotionCodeId: stripeInitialPromotionCodeId,
+            },
+          },
+          { stripeAccount }
+        );
+      } catch {
+        // ignore rollback errors
+      }
+      throw err;
+    }
+
+    return {
+      payment: { uid: lockedPayment.uid, amount: lockedFinalAmount, currency: lockedPayment.currency },
+      promotion,
+    };
   });
-
-  return {
-    payment: { uid: payment.uid, amount: finalAmount, currency: payment.currency },
-    promotion,
-  };
 }
 
 async function removePromoCode(args: z.infer<typeof removeSchema>) {
@@ -317,33 +365,100 @@ async function removePromoCode(args: z.infer<typeof removeSchema>) {
     return throwPromoError("not_eligible", "Payment is not eligible for promo codes");
   }
 
-  await stripe.paymentIntents.update(
-    payment.externalId,
-    {
-      amount: existingPromotion.originalAmount,
-      metadata: {
-        calPromotionCode: "",
-        calPromotionCodeId: "",
+  const stripeInitialAmount = paymentIntent.amount;
+  const stripeInitialPromotionCode =
+    typeof paymentIntent.metadata?.calPromotionCode === "string"
+      ? paymentIntent.metadata.calPromotionCode
+      : "";
+  const stripeInitialPromotionCodeId =
+    typeof paymentIntent.metadata?.calPromotionCodeId === "string"
+      ? paymentIntent.metadata.calPromotionCodeId
+      : "";
+
+  return await prisma.$transaction(async (tx) => {
+    await lockPaymentForPromoCode(tx, payment.id);
+
+    const lockedPayment = await tx.payment.findUnique({
+      where: { id: payment.id },
+      select: {
+        id: true,
+        uid: true,
+        amount: true,
+        currency: true,
+        success: true,
+        refunded: true,
+        externalId: true,
+        data: true,
       },
-    },
-    { stripeAccount }
-  );
+    });
 
-  // remove calPromotion
-  const { calPromotion: _removed, ...restData } = paymentData as unknown as Record<string, unknown>;
+    if (!lockedPayment) return throwPromoError("not_found", "Payment not found", 404);
+    if (lockedPayment.success || lockedPayment.refunded) {
+      return throwPromoError("not_eligible", "Payment is not eligible for promo codes");
+    }
+    if (!lockedPayment.externalId) {
+      return throwPromoError("payment_external_id_missing", "Payment externalId missing");
+    }
 
-  await prisma.payment.update({
-    where: { id: payment.id },
-    data: {
-      amount: existingPromotion.originalAmount,
-      data: restData as Prisma.InputJsonValue,
-    },
+    const lockedPaymentData = safeJsonObject(lockedPayment.data);
+    const lockedExistingPromotion = getExistingPromotion(lockedPaymentData);
+    if (!lockedExistingPromotion) {
+      return {
+        payment: { uid: lockedPayment.uid, amount: lockedPayment.amount, currency: lockedPayment.currency },
+        promotion: null,
+      };
+    }
+
+    const { calPromotion: _removed, ...restData } = lockedPaymentData;
+
+    try {
+      await stripe.paymentIntents.update(
+        lockedPayment.externalId,
+        {
+          amount: lockedExistingPromotion.originalAmount,
+          metadata: {
+            calPromotionCode: "",
+            calPromotionCodeId: "",
+          },
+        },
+        { stripeAccount }
+      );
+
+      await tx.payment.update({
+        where: { id: lockedPayment.id },
+        data: {
+          amount: lockedExistingPromotion.originalAmount,
+          data: restData as Prisma.InputJsonValue,
+        },
+      });
+    } catch (err) {
+      try {
+        await stripe.paymentIntents.update(
+          lockedPayment.externalId,
+          {
+            amount: stripeInitialAmount,
+            metadata: {
+              calPromotionCode: stripeInitialPromotionCode,
+              calPromotionCodeId: stripeInitialPromotionCodeId,
+            },
+          },
+          { stripeAccount }
+        );
+      } catch {
+        // ignore rollback errors
+      }
+      throw err;
+    }
+
+    return {
+      payment: {
+        uid: lockedPayment.uid,
+        amount: lockedExistingPromotion.originalAmount,
+        currency: lockedPayment.currency,
+      },
+      promotion: null,
+    };
   });
-
-  return {
-    payment: { uid: payment.uid, amount: existingPromotion.originalAmount, currency: payment.currency },
-    promotion: null,
-  };
 }
 
 async function handler(req: TracedRequest, _res: NextApiResponse) {
@@ -357,8 +472,8 @@ async function handler(req: TracedRequest, _res: NextApiResponse) {
       identifier: `paymentPromoCode:${piiHasher.hash(`${identifierBase}:${userIp}`)}`,
       opts: {
         limit: {
-          limit: 5,
-          duration: "60s",
+          limit: PROMO_CODE_RATE_LIMIT,
+          duration: PROMO_CODE_RATE_LIMIT_WINDOW,
         },
       },
     });

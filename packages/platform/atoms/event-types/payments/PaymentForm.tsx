@@ -85,8 +85,8 @@ export const PaymentForm = ({
                           <div className="col-span-2 mb-6">
                             {date.format("dddd, DD MMMM YYYY")}
                             <br />
-                            {date.format(is24h ? "H:mm" : "h:mma")} - {paymentInfo.eventType.length} mins{" "}
-                            <span className="text-subtle">({timezone})</span>
+                            {date.format(is24h ? "H:mm" : "h:mma")} - {paymentInfo.eventType.length}{" "}
+                            {t("minute_timeUnit")} <span className="text-subtle">({timezone})</span>
                           </div>
                           {paymentInfo.booking.location && (
                             <>
@@ -124,6 +124,7 @@ export const PaymentForm = ({
                           uid={paymentUid}
                           onPaymentSuccess={onPaymentSuccess}
                           onPaymentCancellation={onPaymentCancellation}
+                          paymentPageProps={paymentInfo}
                         />
                       )}
                       {paymentInfo.payment.refunded && (

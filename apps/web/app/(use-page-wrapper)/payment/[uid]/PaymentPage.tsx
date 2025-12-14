@@ -68,12 +68,13 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const paymentAppData = getPaymentAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
+    let rafId: number | null = null;
     const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE;
     setTimezone(_timezone);
     setDate(date.tz(_timezone));
     setIs24h(!!getIs24hClockFromLocalStorage());
     if (isEmbed) {
-      requestAnimationFrame(function fixStripeIframe() {
+      const fixStripeIframe = () => {
         // HACK: Look for stripe iframe and center position it just above the embed content
         const stripeIframeWrapper = document.querySelector(
           'iframe[src*="https://js.stripe.com/v3/authorize-with-url-inner"]'
@@ -82,11 +83,22 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
           stripeIframeWrapper.style.margin = "0 auto";
           stripeIframeWrapper.style.width = `${embedIframeWidth}px`;
         }
-        requestAnimationFrame(fixStripeIframe);
-      });
-      sdkActionManager?.on("__dimensionChanged", (e) => {
+        rafId = requestAnimationFrame(fixStripeIframe);
+      };
+      rafId = requestAnimationFrame(fixStripeIframe);
+
+      const handleDimensionChanged = (e: CustomEvent<{ data: { iframeWidth: number } }>) => {
         embedIframeWidth = e.detail.data.iframeWidth as number;
-      });
+      };
+
+      sdkActionManager?.on("__dimensionChanged", handleDimensionChanged);
+
+      return () => {
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+        }
+        sdkActionManager?.off("__dimensionChanged", handleDimensionChanged);
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEmbed]);
@@ -126,8 +138,8 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         {date.locale(i18n.language ?? "en").format("dddd, DD MMMM YYYY")}
                         <br />
-                        {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                        <span className="text-subtle">({timezone})</span>
+                        {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length}{" "}
+                        {t("minute_timeUnit")} <span className="text-subtle">({timezone})</span>
                       </div>
                       {props.booking.location && (
                         <>

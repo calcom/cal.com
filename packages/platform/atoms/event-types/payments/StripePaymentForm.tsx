@@ -8,22 +8,19 @@ import { PaymentFormComponent } from "@calcom/features/ee/payments/components/Pa
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-function getStripePublishableKey(paymentData: Record<string, unknown>): string | undefined {
-  const key = paymentData["stripe_publishable_key"];
-  return typeof key === "string" ? key : undefined;
-}
+import { getStripePublishableKey } from "@calcom/lib/payment/promoCode";
 
 const StripePaymentComponent = (
   props: Props & {
     onPaymentSuccess?: (input: PaymentPageProps) => void;
     onPaymentCancellation?: (input: PaymentPageProps) => void;
+    paymentPageProps?: PaymentPageProps;
   }
 ) => {
   const { t } = useLocale();
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
-  const attendeeEmail = props.booking.attendees[0].email;
+  const attendeeEmail = props.booking.attendees?.[0]?.email ?? null;
   const stripe = useStripe();
 
   const [state, setState] = useState<States>({ status: "idle" });
@@ -87,7 +84,9 @@ const StripePaymentComponent = (
           });
         } else {
           setState({ status: "idle" });
-          props.onPaymentSuccess?.(props as unknown as PaymentPageProps);
+          if (props.paymentPageProps) {
+            props.onPaymentSuccess?.(props.paymentPageProps);
+          }
           if (props.location) {
             if (props.location.includes("integration")) {
               params.location = t("web_conferencing_details_to_follow");
@@ -98,7 +97,9 @@ const StripePaymentComponent = (
         }
       }}
       onCancel={() => {
-        props.onPaymentCancellation?.(props as unknown as PaymentPageProps);
+        if (props.paymentPageProps) {
+          props.onPaymentCancellation?.(props.paymentPageProps);
+        }
       }}
       onPaymentElementChange={() => {
         setState({ status: "idle" });

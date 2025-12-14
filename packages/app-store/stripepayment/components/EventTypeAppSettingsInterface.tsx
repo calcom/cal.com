@@ -107,7 +107,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               min="0.5"
               type="number"
               required
-              placeholder="Price"
+              placeholder={t("price")}
               disabled={disabled}
               onChange={(e) => {
                 setAppData("price", convertToSmallestCurrencyUnit(Number(e.target.value), currency));
