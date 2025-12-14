@@ -3,6 +3,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
+import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -52,24 +54,34 @@ export async function handler(req: NextRequest) {
     const teamId = reminder.workflowStep.workflow.teamId;
 
     try {
+      // For seated events, get the correct attendee based on seatReferenceId
+      let targetAttendee = reminder.booking?.attendees[0];
+      if (reminder.seatReferenceId) {
+        const bookingSeatRepository = new BookingSeatRepository(prisma);
+        const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
+          reminder.seatReferenceId
+        );
+        if (seatAttendeeData?.attendee) {
+          targetAttendee = seatAttendeeData.attendee;
+        }
+      }
+
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.WHATSAPP_NUMBER
           ? reminder.workflowStep.sendTo
-          : reminder.booking?.smsReminderNumber;
+          : targetAttendee?.phoneNumber;
 
       const userName =
-        reminder.workflowStep.action === WorkflowActions.WHATSAPP_ATTENDEE
-          ? reminder.booking?.attendees[0].name
-          : "";
+        reminder.workflowStep.action === WorkflowActions.WHATSAPP_ATTENDEE ? targetAttendee?.name || "" : "";
 
       const attendeeName =
         reminder.workflowStep.action === WorkflowActions.WHATSAPP_ATTENDEE
           ? reminder.booking?.user?.name
-          : reminder.booking?.attendees[0].name;
+          : targetAttendee?.name;
 
       const timeZone =
         reminder.workflowStep.action === WorkflowActions.WHATSAPP_ATTENDEE
-          ? reminder.booking?.attendees[0].timeZone
+          ? targetAttendee?.timeZone
           : reminder.booking?.user?.timeZone;
 
       const startTime = reminder.booking?.startTime.toISOString();
@@ -102,6 +114,8 @@ export async function handler(req: NextRequest) {
       );
 
       if (message?.length && message?.length > 0 && sendTo) {
+        const creditService = new CreditService();
+
         const scheduledNotification = await scheduleSmsOrFallbackEmail({
           twilioData: {
             phoneNumber: sendTo,
@@ -118,12 +132,13 @@ export async function handler(req: NextRequest) {
           fallbackData:
             reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)
               ? {
-                  email: reminder.booking.attendees[0].email,
-                  t: await getTranslation(reminder.booking.attendees[0].locale || "en", "common"),
+                  email: targetAttendee?.email,
+                  t: await getTranslation(targetAttendee?.locale || "en", "common"),
                   replyTo: reminder.booking?.user?.email ?? "",
                   workflowStepId: reminder.workflowStep.id,
                 }
               : undefined,
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
 
         if (scheduledNotification) {

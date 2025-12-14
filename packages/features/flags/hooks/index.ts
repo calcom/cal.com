@@ -29,6 +29,10 @@ const initialData: AppFlags = {
   "calendar-subscription-sync": false,
   "onboarding-v3": false,
   "booker-botid": false,
+  "booking-calendar-view": false,
+  "booking-email-sms-tasker": false,
+  "bookings-v3": false,
+  "booking-audit": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

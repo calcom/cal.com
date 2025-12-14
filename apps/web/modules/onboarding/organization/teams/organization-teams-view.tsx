@@ -10,8 +10,9 @@ import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { OnboardingCard } from "../../personal/_components/OnboardingCard";
-import { OnboardingLayout } from "../../personal/_components/OnboardingLayout";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
+import { OnboardingTeamsBrowserView } from "../../components/onboarding-teams-browser-view";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationTeamsViewProps = {
@@ -25,7 +26,7 @@ type FormValues = {
 export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { teams: storedTeams, setTeams } = useOnboardingStore();
+  const { teams: storedTeams, setTeams, organizationBrand, organizationDetails } = useOnboardingStore();
 
   const formSchema = z.object({
     teams: z.array(
@@ -50,12 +51,12 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   const handleContinue = (data: FormValues) => {
     // Save teams to store
     setTeams(data.teams);
-    router.push("/onboarding/organization/invite");
+    router.push("/onboarding/organization/invite/email");
   };
 
   const handleSkip = () => {
     // Skip teams and go to invite
-    router.push("/onboarding/organization/invite");
+    router.push("/onboarding/organization/invite/email");
   };
 
   const hasValidTeams = fields.some((_, index) => {
@@ -64,28 +65,38 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   });
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={3}>
+    <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={4}>
+      {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_teams_title")}
         subtitle={t("onboarding_org_teams_subtitle")}
         footer={
-          <>
-            <Button type="button" color="minimal" className="rounded-[10px]" onClick={handleSkip}>
-              {t("onboarding_skip_for_now")}
-            </Button>
+          <div className="flex w-full items-center justify-between gap-4">
             <Button
-              type="submit"
-              form="teams-form"
-              color="primary"
+              type="button"
+              color="minimal"
               className="rounded-[10px]"
-              disabled={!hasValidTeams}>
-              {t("continue")}
+              onClick={() => router.push("/onboarding/organization/brand")}>
+              {t("back")}
             </Button>
-          </>
+            <div className="flex items-center gap-2">
+              <Button type="button" color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+                {t("onboarding_skip_for_now")}
+              </Button>
+              <Button
+                type="submit"
+                form="teams-form"
+                color="primary"
+                className="rounded-[10px]"
+                disabled={!hasValidTeams}>
+                {t("continue")}
+              </Button>
+            </div>
+          </div>
         }>
         <Form id="teams-form" form={form} handleSubmit={handleContinue} className="w-full">
-          <div className="bg-default border-subtle w-full rounded-md border">
-            <div className="flex w-full flex-col gap-8 px-5 py-5">
+          <div className="w-full ">
+            <div className="flex w-full flex-col gap-8 ">
               <div className="flex w-full flex-col gap-2">
                 <div className="flex flex-col gap-1">
                   <p className="text-emphasis text-sm font-medium leading-4">{t("team")}</p>
@@ -132,6 +143,15 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
           </div>
         </Form>
       </OnboardingCard>
+
+      {/* Right column - Browser view */}
+      <OnboardingTeamsBrowserView
+        teams={form.watch("teams")}
+        organizationLogo={organizationBrand.logo}
+        organizationName={organizationDetails.name}
+        organizationBanner={organizationBrand.banner}
+        slug={organizationDetails.link}
+      />
     </OnboardingLayout>
   );
 };

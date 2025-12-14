@@ -28,6 +28,7 @@ export const bookingCreateBodySchema = z.object({
   routedTeamMemberIds: z.array(z.number()).nullish(),
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
+  rrHostSubsetIds: z.array(z.number()).nullish(),
   crmAppSlug: z.string().nullish().optional(),
   cfToken: z.string().nullish().optional(),
 
@@ -39,8 +40,6 @@ export const bookingCreateBodySchema = z.object({
    * Used to identify if the booking is a dry run.
    */
   _isDryRun: z.boolean().optional(),
-  /** Whether to override the cache */
-  _shouldServeCache: z.boolean().optional(),
   tracking: z
     .object({
       utm_source: z.string().optional(),
