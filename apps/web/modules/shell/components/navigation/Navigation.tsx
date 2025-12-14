@@ -2,8 +2,6 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-
-import UnconfirmedBookingBadge from "../../bookings/components/UnconfirmedBookingBadge";
 import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import {
   useOrgBranding,
@@ -11,6 +9,8 @@ import {
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import classNames from "@calcom/ui/classNames";
+
+import UnconfirmedBookingBadge from "~/bookings/components/UnconfirmedBookingBadge";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -22,7 +22,6 @@ const getNavigationItems = (
   orgBranding: OrganizationBranding,
   hasInsightsAccess: boolean
 ): NavigationItemType[] => [
- 
   {
     name: "event_types_page_title",
     href: "/event-types",
