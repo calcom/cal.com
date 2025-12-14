@@ -1,6 +1,6 @@
 "use client";
 
-import Shell from "@calcom/features/shell/Shell";
+import Shell from "~/shell/Shell";
 import {
   SkeletonButton,
   SkeletonContainer,

@@ -22,7 +22,6 @@ import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
-import { MobileNavigationContainer } from "./navigation/Navigation";
 import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
@@ -194,10 +193,8 @@ export function ShellMain(props: LayoutProps) {
 }
 
 function MainContainer({
-  isPlatformUser,
-  MobileNavigationContainer: MobileNavigationContainerProp = (
-    <MobileNavigationContainer isPlatformNavigation={isPlatformUser} />
-  ),
+  isPlatformUser: _isPlatformUser,
+  MobileNavigationContainer: MobileNavigationContainerProp,
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
 }: LayoutProps) {

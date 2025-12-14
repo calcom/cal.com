@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import Shell from "@calcom/features/shell/Shell";
+import Shell from "~/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";

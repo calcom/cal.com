@@ -1,6 +1,6 @@
 "use client";
 
-import Shell from "@calcom/features/shell/Shell";
+import Shell from "~/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
@@ -9,7 +9,7 @@ import { PlatformPricing } from "@components/settings/platform/pricing/platform-
 
 export default function PlatformPlans() {
   const { t } = useLocale();
-  const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
+  const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser: _isPaidUser, userBillingData, userOrgId } =
     useGetUserAttributes();
 
   if (isUserLoading || (isUserBillingDataLoading && !userBillingData)) {

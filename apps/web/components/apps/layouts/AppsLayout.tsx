@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React from "react";
 
-import Shell from "@calcom/features/shell/Shell";
+import Shell from "~/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 

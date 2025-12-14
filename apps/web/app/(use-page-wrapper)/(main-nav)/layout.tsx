@@ -3,7 +3,7 @@ import { cookies, headers } from "next/headers";
 import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import Shell from "@calcom/features/shell/Shell";
+import Shell from "~/shell/Shell";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

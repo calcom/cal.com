@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { AppCard } from "@calcom/features/apps/components/AppCard";
-import Shell from "@calcom/features/shell/Shell";
+import Shell from "~/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 

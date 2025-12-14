@@ -13,7 +13,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
-import Shell from "@calcom/features/shell/Shell";
+import Shell from "~/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";

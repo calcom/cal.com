@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import Shell from "@calcom/features/shell/Shell";
+import Shell from "~/shell/Shell";
 import { PlatformManagedUsersTable } from "@calcom/features/users/components/UserTable/PlatformManagedUsersTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui/components/form";
