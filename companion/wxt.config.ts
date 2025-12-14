@@ -11,14 +11,14 @@ export default defineConfig({
     description: "Your calendar companion for quick booking and scheduling",
     permissions: ["activeTab", "storage", "identity"],
     host_permissions: [
-      "http://localhost:8081/*",
+      "https://companion.cal.com/*",
       "https://api.cal.com/*",
       "https://app.cal.com/*",
       "https://mail.google.com/*",
     ],
     content_security_policy: {
       extension_pages:
-        "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;",
+        "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com",
     },
     action: {
       default_title: "Cal.com Companion",
@@ -50,6 +50,33 @@ export default defineConfig({
       "import.meta.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI": JSON.stringify(
         process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI
       ),
+      // Cache configuration environment variables
+      "import.meta.env.EXPO_PUBLIC_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_CACHE_STALE_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_CACHE_GC_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_CACHE_GC_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_BOOKINGS_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_BOOKINGS_CACHE_STALE_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_EVENT_TYPES_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_EVENT_TYPES_CACHE_STALE_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_SCHEDULES_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_SCHEDULES_CACHE_STALE_TIME_MINUTES
+      ),
+      "import.meta.env.EXPO_PUBLIC_USER_PROFILE_CACHE_STALE_TIME_MINUTES": JSON.stringify(
+        process.env.EXPO_PUBLIC_USER_PROFILE_CACHE_STALE_TIME_MINUTES
+      ),
+      // DEV ONLY: API Key for testing - only included in development builds
+      ...(process.env.NODE_ENV !== "production" && process.env.EXPO_PUBLIC_CAL_API_KEY
+        ? {
+            "import.meta.env.EXPO_PUBLIC_CAL_API_KEY": JSON.stringify(
+              process.env.EXPO_PUBLIC_CAL_API_KEY
+            ),
+          }
+        : {}),
     },
     optimizeDeps: {
       include: ["react-native-web"],
