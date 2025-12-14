@@ -1,0 +1,30 @@
+/**
+ * Booking DTOs - Re-export all DTOs from this index file
+ */
+export type {
+  BookingBasicDto,
+  BookingInstantLocationDto,
+  BookingExistsDto,
+  TeamSummaryDto,
+  DestinationCalendarDto,
+  CredentialDto,
+  UserProfileDto,
+  BookingUserDto,
+  AttendeeDto,
+  BookingReferenceDto,
+  EventTypeWithTeamDto,
+  BookingFullContextDto,
+  BookingConfirmationUserDto,
+  WorkflowStepDto,
+  WorkflowDto,
+  WorkflowOnEventTypeDto,
+  ParentEventTypeDto,
+  EventTypeOwnerDto,
+  EventTypeForConfirmationDto,
+  PaymentDto,
+  BookingForConfirmationDto,
+  BookingUpdateResultDto,
+  BookingBatchUpdateResultDto,
+  BookingReferenceCreateInput,
+  UpdateLocationInput,
+} from "./booking-dto";

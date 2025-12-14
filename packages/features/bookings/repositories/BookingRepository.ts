@@ -2005,7 +2005,18 @@ export class BookingRepository implements IBookingRepository {
   }
 
   private bookingWithFullContextInclude = {
-    attendees: true,
+    attendees: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        locale: true,
+        bookingId: true,
+        phoneNumber: true,
+        noShow: true,
+      },
+    },
     eventType: {
       select: {
         team: {
@@ -2024,12 +2035,70 @@ export class BookingRepository implements IBookingRepository {
         customReplyToEmail: true,
       },
     },
-    destinationCalendar: true,
-    references: true,
+    destinationCalendar: {
+      select: {
+        id: true,
+        integration: true,
+        externalId: true,
+        primaryEmail: true,
+        userId: true,
+        eventTypeId: true,
+        credentialId: true,
+        createdAt: true,
+        updatedAt: true,
+        delegationCredentialId: true,
+        domainWideDelegationCredentialId: true,
+      },
+    },
+    references: {
+      select: {
+        id: true,
+        type: true,
+        uid: true,
+        meetingId: true,
+        meetingPassword: true,
+        meetingUrl: true,
+        bookingId: true,
+        externalCalendarId: true,
+        deleted: true,
+        credentialId: true,
+        thirdPartyRecurringEventId: true,
+        delegationCredentialId: true,
+        domainWideDelegationCredentialId: true,
+      },
+    },
     user: {
-      include: {
-        destinationCalendar: true,
-        credentials: true,
+      select: {
+        id: true,
+        destinationCalendar: {
+          select: {
+            id: true,
+            integration: true,
+            externalId: true,
+            primaryEmail: true,
+            userId: true,
+            eventTypeId: true,
+            credentialId: true,
+            createdAt: true,
+            updatedAt: true,
+            delegationCredentialId: true,
+            domainWideDelegationCredentialId: true,
+          },
+        },
+        credentials: {
+          select: {
+            id: true,
+            type: true,
+            // Note: key is intentionally NOT selected to avoid leaking sensitive data
+            userId: true,
+            teamId: true,
+            appId: true,
+            subscriptionId: true,
+            paymentStatus: true,
+            billingCycleStart: true,
+            invalid: true,
+          },
+        },
         profiles: {
           select: {
             organizationId: true,
@@ -2152,7 +2221,6 @@ export class BookingRepository implements IBookingRepository {
             credentials: booking.user.credentials.map((cred: {
               id: number;
               type: string;
-              key: unknown;
               userId: number | null;
               teamId: number | null;
               appId: string | null;
@@ -2163,7 +2231,6 @@ export class BookingRepository implements IBookingRepository {
             }) => ({
               id: cred.id,
               type: cred.type,
-              key: cred.key,
               userId: cred.userId,
               teamId: cred.teamId,
               appId: cred.appId,
