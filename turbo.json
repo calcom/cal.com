@@ -74,9 +74,7 @@
       "dependsOn": ["@calcom/prisma#db-deploy"]
     }
   },
-  "globalDependencies": [
-    "yarn.lock"
-  ],
+  "globalDependencies": ["yarn.lock"],
   "globalEnv": [
     "ACCOUNT_DELETE_SURVEY",
     "AB_TEST_BUCKET_PROBABILITY",
@@ -112,6 +110,12 @@
     "AUTH_BEARER_TOKEN_VERCEL",
     "AVATARAPI_PASSWORD",
     "AVATARAPI_USERNAME",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_S3_ATTACHMENTS_PREFIX",
+    "AWS_S3_BUCKET",
+    "AWS_S3_CUSTOM_DOMAIN",
+    "AWS_S3_REGION",
     "AZURE_AD_B2C_PRIMARY_USER_FLOW",
     "AZURE_AD_CLIENT_ID",
     "AZURE_AD_CLIENT_SECRET",
@@ -404,5 +408,5 @@
     "NEXT_PUBLIC_ONEHASH_CHAT_ORIGIN",
     "NEXT_PUBLIC_SINGLE_ORG_MODE_ENABLED",
     "EXPOSE_SWAGGER_UI"
-]
+  ]
 }
