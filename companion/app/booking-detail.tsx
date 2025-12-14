@@ -8,16 +8,19 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Linking,
   TextInput,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Booking } from "../services/calcom";
+import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
 import { SvgImage } from "../components/SvgImage";
 import { FullScreenModal } from "../components/FullScreenModal";
+import { BookingActionsModal } from "../components/BookingActionsModal";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
 import { getDefaultLocationIconUrl, defaultLocations } from "../utils/defaultLocations";
+import { formatAppIdToDisplayName } from "../utils/formatters";
 
 // Format date: "Tuesday, November 25, 2025"
 const formatDateFull = (dateString: string): string => {
@@ -137,14 +140,6 @@ const getLocationProvider = (location: string | undefined, metadata?: Record<str
     const iconUrl = getAppIconUrl("", appId);
 
     if (iconUrl) {
-      // Format appId to display name (e.g., "cal-video" -> "Cal Video")
-      const formatAppIdToDisplayName = (id: string): string => {
-        return id
-          .split("-")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ");
-      };
-
       return {
         label: formatAppIdToDisplayName(appId),
         iconUrl: iconUrl,
@@ -181,6 +176,8 @@ export default function BookingDetail() {
   const [error, setError] = useState<string | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [rescheduling, setRescheduling] = useState(false);
 
@@ -208,9 +205,13 @@ export default function BookingDetail() {
     } catch (err) {
       console.error("Error fetching booking:", err);
       setError("Failed to load booking. Please try again.");
-      Alert.alert("Error", "Failed to load booking. Please try again.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      if (__DEV__) {
+        Alert.alert("Error", "Failed to load booking. Please try again.", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else {
+        router.back();
+      }
     } finally {
       setLoading(false);
     }
@@ -221,31 +222,70 @@ export default function BookingDetail() {
 
     const provider = getLocationProvider(booking.location);
     if (provider?.url) {
-      Linking.openURL(provider.url);
+      openInAppBrowser(provider.url, "meeting link");
     }
   };
 
-  const handleReschedule = async () => {
+  const openRescheduleModal = () => {
     if (!booking) return;
+
+    // Pre-fill with the current booking date/time (using local timezone consistently)
+    const currentDate = new Date(booking.startTime);
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`;
+    const timeStr = `${String(currentDate.getHours()).padStart(2, "0")}:${String(currentDate.getMinutes()).padStart(2, "0")}`;
+
+    setRescheduleDate(dateStr);
+    setRescheduleTime(timeStr);
+    setRescheduleReason("");
+    setShowRescheduleModal(true);
+  };
+
+  const handleReschedule = async () => {
+    if (!booking || !rescheduleDate || !rescheduleTime) {
+      showErrorAlert("Error", "Please enter both date and time");
+      return;
+    }
+
+    // Parse the date and time
+    const dateTimeStr = `${rescheduleDate}T${rescheduleTime}:00`;
+    const newDateTime = new Date(dateTimeStr);
+
+    // Validate the date
+    if (isNaN(newDateTime.getTime())) {
+      showErrorAlert(
+        "Error",
+        "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
+      );
+      return;
+    }
+
+    // Check if the new time is in the future
+    if (newDateTime <= new Date()) {
+      showErrorAlert("Error", "Please select a future date and time");
+      return;
+    }
+
+    // Convert to UTC ISO string
+    const startUtc = newDateTime.toISOString();
 
     setRescheduling(true);
     try {
-      // For now, we'll use the current start time
-      // In a full implementation, you'd show a date/time picker
       await CalComAPIService.rescheduleBooking(booking.uid, {
-        start: booking.startTime,
+        start: startUtc,
         reschedulingReason: rescheduleReason.trim() || undefined,
       });
 
-      Alert.alert("Success", "Reschedule request sent successfully");
+      Alert.alert("Success", "Booking rescheduled successfully");
       setShowRescheduleModal(false);
+      setRescheduleDate("");
+      setRescheduleTime("");
       setRescheduleReason("");
 
       // Refresh booking data
       await fetchBooking();
     } catch (error) {
       console.error("Failed to reschedule booking:", error);
-      Alert.alert("Error", "Failed to send reschedule request. Please try again.");
+      showErrorAlert("Error", "Failed to reschedule booking. Please try again.");
     } finally {
       setRescheduling(false);
     }
@@ -470,193 +510,51 @@ export default function BookingDetail() {
       </View>
 
       {/* Booking Actions Modal */}
-      <FullScreenModal
+      <BookingActionsModal
         visible={showActionsModal}
-        animationType="fade"
-        onRequestClose={() => setShowActionsModal(false)}
-      >
-        <TouchableOpacity
-          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
-          activeOpacity={1}
-          onPress={() => setShowActionsModal(false)}
-        >
-          <TouchableOpacity
-            className="mx-4 w-full max-w-sm rounded-2xl bg-white"
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <View className="border-b border-gray-200 p-6">
-              <Text className="text-center text-xl font-semibold text-gray-900">
-                Booking Actions
-              </Text>
-            </View>
-            {/* Actions List */}
-            <View className="p-2">
-              {/* View Booking */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowActionsModal(false);
-                  // TODO: Navigate to booking view page
-                  console.log("View booking");
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons name="eye-outline" size={20} color="#6B7280" />
-                <Text className="ml-3 text-base text-gray-900">View Booking</Text>
-              </TouchableOpacity>
-
-              {/* Separator */}
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              {/* Edit event label */}
-              <View className="px-4 py-1">
-                <Text className="text-xs font-medium text-gray-500">Edit event</Text>
-              </View>
-
-              {/* Request Reschedule */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowActionsModal(false);
-                  setShowRescheduleModal(true);
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons name="send-outline" size={20} color="#6B7280" />
-                <Text className="ml-3 text-base text-gray-900">Send Reschedule Request</Text>
-              </TouchableOpacity>
-
-              {/* Edit Location */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowActionsModal(false);
-                  // TODO: Open edit location dialog
-                  console.log("Edit location");
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons name="location-outline" size={20} color="#6B7280" />
-                <Text className="ml-3 text-base text-gray-900">Edit Location</Text>
-              </TouchableOpacity>
-
-              {/* Add Guests */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowActionsModal(false);
-                  // TODO: Open add guests dialog
-                  console.log("Add guests");
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons name="person-add-outline" size={20} color="#6B7280" />
-                <Text className="ml-3 text-base text-gray-900">Add Guests</Text>
-              </TouchableOpacity>
-
-              {/* Separator */}
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              {/* After event label */}
-              <View className="px-4 py-1">
-                <Text className="text-xs font-medium text-gray-500">After event</Text>
-              </View>
-
-              {/* View Recordings */}
-              {locationProvider?.url && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowActionsModal(false);
-                    // TODO: Open view recordings dialog
-                    console.log("View recordings");
-                  }}
-                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                >
-                  <Ionicons name="videocam-outline" size={20} color="#6B7280" />
-                  <Text className="ml-3 text-base text-gray-900">View Recordings</Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Meeting Session Details */}
-              {locationProvider?.url && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowActionsModal(false);
-                    // TODO: Open session details dialog
-                    console.log("Meeting session details");
-                  }}
-                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                >
-                  <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
-                  <Text className="ml-3 text-base text-gray-900">Meeting Session Details</Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Mark as No-Show */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowActionsModal(false);
-                  // TODO: Mark as no-show
-                  console.log("Mark as no-show");
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons name="eye-off-outline" size={20} color="#6B7280" />
-                <Text className="ml-3 text-base text-gray-900">Mark as No-Show</Text>
-              </TouchableOpacity>
-
-              {/* Separator */}
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              {/* Report Booking */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowActionsModal(false);
-                  // TODO: Open report booking dialog
-                  console.log("Report booking");
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons name="flag-outline" size={20} color="#EF4444" />
-                <Text className="ml-3 text-base text-red-500">Report Booking</Text>
-              </TouchableOpacity>
-
-              {/* Separator */}
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              {/* Cancel Booking */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowActionsModal(false);
-                  Alert.alert("Cancel Booking", "Are you sure you want to cancel this booking?", [
-                    { text: "No", style: "cancel" },
-                    {
-                      text: "Yes, Cancel",
-                      style: "destructive",
-                      onPress: () => {
-                        // TODO: Cancel booking
-                        console.log("Cancel booking");
-                      },
-                    },
-                  ]);
-                }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-              >
-                <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
-                <Text className="ml-3 text-base text-red-500">Cancel Booking</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Cancel button */}
-            <View className="border-t border-gray-200 p-2 md:p-4">
-              <TouchableOpacity
-                className="w-full rounded-lg bg-gray-100 p-3"
-                onPress={() => setShowActionsModal(false)}
-              >
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </FullScreenModal>
+        onClose={() => setShowActionsModal(false)}
+        booking={booking}
+        hasLocationUrl={!!locationProvider?.url}
+        isUpcoming={booking ? new Date(booking.startTime) > new Date() : false}
+        isPast={booking ? new Date(booking.startTime) <= new Date() : false}
+        isCancelled={booking?.status?.toUpperCase() === "CANCELLED"}
+        isUnconfirmed={booking?.status?.toUpperCase() === "PENDING"}
+        onReschedule={openRescheduleModal}
+        onEditLocation={() => {
+          Alert.alert("Edit Location", "Edit location functionality coming soon");
+        }}
+        onAddGuests={() => {
+          Alert.alert("Add Guests", "Add guests functionality coming soon");
+        }}
+        onViewRecordings={() => {
+          Alert.alert("View Recordings", "View recordings functionality coming soon");
+        }}
+        onMeetingSessionDetails={() => {
+          Alert.alert(
+            "Meeting Session Details",
+            "Meeting session details functionality coming soon"
+          );
+        }}
+        onMarkNoShow={() => {
+          Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
+        }}
+        onReportBooking={() => {
+          Alert.alert("Report Booking", "Report booking functionality coming soon");
+        }}
+        onCancelBooking={() => {
+          Alert.alert("Cancel Booking", "Are you sure you want to cancel this booking?", [
+            { text: "No", style: "cancel" },
+            {
+              text: "Yes, Cancel",
+              style: "destructive",
+              onPress: () => {
+                // TODO: Implement cancel booking
+                console.log("Cancel booking");
+              },
+            },
+          ]);
+        }}
+      />
 
       {/* Reschedule Modal */}
       <FullScreenModal
@@ -685,37 +583,74 @@ export default function BookingDetail() {
             <View className="px-8 pb-4 pt-6">
               <View className="flex-row items-start space-x-3">
                 <View className="h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#F3F4F6]">
-                  <Ionicons name="time-outline" size={24} color="#111827" />
+                  <Ionicons name="calendar-outline" size={24} color="#111827" />
                 </View>
                 <View className="flex-1 pt-1">
                   <Text className="mb-2 text-2xl font-semibold text-[#111827]">
-                    Reschedule request
+                    Reschedule Booking
                   </Text>
                   <Text className="text-sm text-[#6B7280]">
-                    Send a reschedule request to the organizer of this booking.
+                    Select a new date and time for this booking.
                   </Text>
                 </View>
               </View>
             </View>
 
             {/* Content */}
-            <View className="px-8 pb-6">
-              <Text className="mb-2 text-sm font-bold text-[#111827]">
-                Reason for reschedule request
-                <Text className="font-normal text-[#6B7280]"> (Optional)</Text>
-              </Text>
-              <TextInput
-                className="min-h-[100px] rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
-                placeholder="Please let us know why you need to reschedule..."
-                placeholderTextColor="#9CA3AF"
-                value={rescheduleReason}
-                onChangeText={setRescheduleReason}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                editable={!rescheduling}
-              />
-            </View>
+            <ScrollView className="max-h-[400px] px-8 pb-6">
+              {/* Date Input */}
+              <View className="mb-4">
+                <Text className="mb-2 text-sm font-bold text-[#111827]">
+                  New Date
+                  <Text className="font-normal text-[#6B7280]"> (YYYY-MM-DD)</Text>
+                </Text>
+                <TextInput
+                  className="rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
+                  placeholder="2024-12-25"
+                  placeholderTextColor="#9CA3AF"
+                  value={rescheduleDate}
+                  onChangeText={setRescheduleDate}
+                  editable={!rescheduling}
+                  keyboardType="default"
+                />
+              </View>
+
+              {/* Time Input */}
+              <View className="mb-4">
+                <Text className="mb-2 text-sm font-bold text-[#111827]">
+                  New Time
+                  <Text className="font-normal text-[#6B7280]"> (HH:MM, 24-hour)</Text>
+                </Text>
+                <TextInput
+                  className="rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
+                  placeholder="14:30"
+                  placeholderTextColor="#9CA3AF"
+                  value={rescheduleTime}
+                  onChangeText={setRescheduleTime}
+                  editable={!rescheduling}
+                  keyboardType="default"
+                />
+              </View>
+
+              {/* Reason Input */}
+              <View className="mb-2">
+                <Text className="mb-2 text-sm font-bold text-[#111827]">
+                  Reason
+                  <Text className="font-normal text-[#6B7280]"> (Optional)</Text>
+                </Text>
+                <TextInput
+                  className="min-h-[80px] rounded-md border border-[#D1D5DB] bg-white px-3 py-3 text-base text-[#111827]"
+                  placeholder="Enter reason for rescheduling..."
+                  placeholderTextColor="#9CA3AF"
+                  value={rescheduleReason}
+                  onChangeText={setRescheduleReason}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  editable={!rescheduling}
+                />
+              </View>
+            </ScrollView>
 
             {/* Footer */}
             <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
@@ -724,6 +659,8 @@ export default function BookingDetail() {
                   className="rounded-xl border border-[#D1D5DB] bg-white px-2 py-2 md:px-4"
                   onPress={() => {
                     setShowRescheduleModal(false);
+                    setRescheduleDate("");
+                    setRescheduleTime("");
                     setRescheduleReason("");
                   }}
                   disabled={rescheduling}
@@ -735,7 +672,11 @@ export default function BookingDetail() {
                   onPress={handleReschedule}
                   disabled={rescheduling}
                 >
-                  <Text className="text-base font-medium text-white">Reschedule request</Text>
+                  {rescheduling ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text className="text-base font-medium text-white">Reschedule</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
