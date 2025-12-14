@@ -19,7 +19,7 @@ export const MostUsedApps = () => {
     Razorpay: "razorpay",
     Stripe: "stripepayment",
     Zoom: "zoomvideo",
-    "Google Analytics": "ga4",
+    "Whatsapp Business": "whatsapp-business",
     "Meta Pixel": "metapixel",
     Zapier: "zapier",
     Make: "make",
@@ -52,8 +52,8 @@ export const MostUsedApps = () => {
       dirName: appDirNames["Stripe"],
     },
     {
-      name: "Google Analytics",
-      dirName: appDirNames["Google Analytics"],
+      name: "Whatsapp Business",
+      dirName: appDirNames["Whatsapp Business"],
     },
     {
       name: "Meta Pixel",
