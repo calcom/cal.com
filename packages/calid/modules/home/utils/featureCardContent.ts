@@ -11,6 +11,13 @@ export type Feature = {
 
 export const newFeatureCardContent: Feature[] = [
   {
+    icon: "message-circle",
+    title: "WhatsApp Business",
+    description: "Connect your WhatsApp Business to message bookers using your own templates.",
+    pageSlug: "/apps/whatsapp-business",
+    isNew: true,
+  },
+  {
     icon: "linkedin",
     title: "Social Profiles on Public Page",
     description: "Add your social profiles to show on your public page.",
@@ -27,12 +34,6 @@ export const newFeatureCardContent: Feature[] = [
     icon: "paperclip",
     title: "Attachments",
     description: "Allow your bookers to upload attachments to their bookings.",
-    isComingSoon: true,
-  },
-  {
-    icon: "message-circle",
-    title: "WhatsApp Business",
-    description: "Connect your WhatsApp Business to message bookers using your own templates.",
     isComingSoon: true,
   },
   {
