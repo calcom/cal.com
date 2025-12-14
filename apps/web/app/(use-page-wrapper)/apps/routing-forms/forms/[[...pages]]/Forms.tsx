@@ -38,7 +38,7 @@ import {
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
 
-import { ShellMain } from "~/shell/components/Shell";
+import { ShellMain } from "~/shell/Shell";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();

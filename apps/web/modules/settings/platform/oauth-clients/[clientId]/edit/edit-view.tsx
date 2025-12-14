@@ -16,7 +16,7 @@ import { useGetUserAttributes } from "@components/settings/platform/hooks/useGet
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 export default function EditOAuthClient() {
   const { t } = useLocale();

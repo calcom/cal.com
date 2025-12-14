@@ -2,7 +2,7 @@
 
 import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 export function AvailabilityScheduleSkeleton() {
   return (

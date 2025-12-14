@@ -2,7 +2,7 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 import { MobileNavigationMoreItems } from "~/shell/navigation/Navigation";
 
 export default function MorePage() {

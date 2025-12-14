@@ -7,7 +7,6 @@ import { useState } from "react";
 
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -15,6 +14,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
+import Shell, { ShellMain } from "@calcom/web/modules/shell/Shell";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -73,7 +73,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
           }>
           <>
             {filteredWorkflows?.totalCount ? (
-              <div className="flex mb-2">
+              <div className="mb-2 flex">
                 <TeamsFilter />
                 <div className="mb-4 ml-auto">
                   <CreateButtonWithTeamsList

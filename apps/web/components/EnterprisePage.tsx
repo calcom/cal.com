@@ -6,7 +6,7 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 export default function EnterprisePage() {
   const { t } = useLocale();

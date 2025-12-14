@@ -9,7 +9,7 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 export type OrgUpgradeBannerProps = {
   data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["orgUpgradeBanner"];

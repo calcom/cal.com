@@ -9,7 +9,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 

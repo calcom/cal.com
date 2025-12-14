@@ -7,7 +7,7 @@ import React from "react";
 import type { UserPermissionRole } from "@calcom/prisma/enums";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 
-import type Shell from "~/shell/components/Shell";
+import type Shell from "~/shell/Shell";
 
 export type AdminLayoutProps = {
   children: React.ReactNode;

@@ -10,7 +10,7 @@ import { Skeleton, SkeletonContainer, SkeletonText } from "@calcom/ui/components
 
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 type OAuthClientOption = { label: string; value: string };
 

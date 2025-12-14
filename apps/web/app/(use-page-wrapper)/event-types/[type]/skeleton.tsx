@@ -7,7 +7,7 @@ import {
   SkeletonAvatar,
 } from "@calcom/ui/components/skeleton";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 export const EventTypeEditPageSkeleton = () => {
   const backButtonSkeleton = (

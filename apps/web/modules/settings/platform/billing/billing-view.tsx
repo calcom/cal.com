@@ -16,7 +16,7 @@ import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPl
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 
 import { CtaRow } from "~/settings/billing/billing-view";
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 declare global {
   interface Window {

@@ -6,7 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import Shell from "~/shell/components/Shell";
+import Shell from "~/shell/Shell";
 
 import FormProvider from "../[...pages]/FormProvider";
 
