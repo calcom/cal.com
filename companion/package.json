@@ -28,7 +28,7 @@
     "base64-js": "^1.5.1",
     "expo": "^55.0.0-canary-20251211-7da85ea",
     "expo-auth-session": "7.0.11-canary-20251211-7da85ea",
-    "expo-clipboard": "~8.0.8",
+    "expo-clipboard": "8.0.9-canary-20251211-7da85ea",
     "expo-constants": "18.1.0-canary-20251211-7da85ea",
     "expo-crypto": "15.0.9-canary-20251211-7da85ea",
     "expo-device": "8.0.11-canary-20251211-7da85ea",
