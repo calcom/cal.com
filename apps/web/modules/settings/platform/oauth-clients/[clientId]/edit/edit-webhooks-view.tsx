@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-import Shell from "~/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -17,6 +16,8 @@ import {
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
+
+import Shell from "~/shell/Shell";
 
 export default function EditOAuthClientWebhooks() {
   const { t } = useLocale();
@@ -95,7 +96,7 @@ export default function EditOAuthClientWebhooks() {
                     }
                     await refetchWebhooks();
                     router.push("/settings/platform/");
-                  } catch {
+                  } catch (err) {
                     showToast(t(webhookId ? "webhook_update_failed" : "webhook_create_failed"), "error");
                   }
                 }}
