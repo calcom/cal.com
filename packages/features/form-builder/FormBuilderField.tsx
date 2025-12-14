@@ -46,6 +46,16 @@ type ValueProps =
   | {
       value: boolean;
       setValue: (value: boolean) => void;
+    }
+  | {
+      value: {
+        name: string;
+        url: string;
+        dataUrl: string;
+        size: number;
+        type: string;
+      };
+      setValue: (value: { name: string; url: string; dataUrl: string; size: number; type: string }) => void;
     };
 
 export const FormBuilderField = ({
@@ -391,6 +401,36 @@ export const ComponentForField = ({
         setValue={setValue as (arg: Record<string, string> | string) => void}
         variants={translatedVariantsConfig.variants}
       />
+    );
+  }
+
+  if (componentConfig.propsType === "attachment") {
+    return (
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
+        <componentConfig.factory
+          readOnly={readOnly}
+          name={field.name}
+          label={field.label}
+          value={
+            value as {
+              name: string;
+              url: string;
+              dataUrl: string;
+              size: number;
+              type: string;
+            }
+          }
+          setValue={
+            setValue as (arg: {
+              name: string;
+              url: string;
+              dataUrl: string;
+              size: number;
+              type: string;
+            }) => void
+          }
+        />
+      </WithLabel>
     );
   }
 
