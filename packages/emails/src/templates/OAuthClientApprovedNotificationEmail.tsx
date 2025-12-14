@@ -9,12 +9,14 @@ type OAuthClientApprovedNotification = {
   userName: string | null;
   clientName: string;
   clientId: string;
+  clientSecret?: string;
 };
 
 export const OAuthClientApprovedNotificationEmail = ({
   userName,
   clientName,
   clientId,
+  clientSecret,
   language,
 }: OAuthClientApprovedNotification) => {
   return (
@@ -66,13 +68,42 @@ export const OAuthClientApprovedNotificationEmail = ({
             <td style={{ padding: "12px", borderBottom: "1px solid #e5e7eb" }}>{clientName}</td>
           </tr>
           <tr style={{ lineHeight: "24px" }}>
-            <td style={{ padding: "12px", fontWeight: 600 }}>{language("client_id")}</td>
-            <td style={{ padding: "12px" }}>
+            <td
+              style={{
+                padding: "12px",
+                borderBottom: clientSecret ? "1px solid #e5e7eb" : undefined,
+                fontWeight: 600,
+              }}>
+              {language("client_id")}
+            </td>
+            <td style={{ padding: "12px", borderBottom: clientSecret ? "1px solid #e5e7eb" : undefined }}>
               <code style={{ fontSize: "12px" }}>{clientId}</code>
             </td>
           </tr>
+          {clientSecret && (
+            <tr style={{ lineHeight: "24px" }}>
+              <td style={{ padding: "12px", fontWeight: 600 }}>{language("client_secret")}</td>
+              <td style={{ padding: "12px" }}>
+                <code style={{ fontSize: "12px" }}>{clientSecret}</code>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
+      {clientSecret && (
+        <p
+          style={{
+            fontWeight: 400,
+            lineHeight: "24px",
+            marginTop: "12px",
+            padding: "12px",
+            backgroundColor: "#fef3c7",
+            borderRadius: "6px",
+            border: "1px solid #f59e0b",
+          }}>
+          {language("oauth_client_secret_one_time_warning")}
+        </p>
+      )}
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "20px" }}>
         {language("oauth_client_approved_email_footer")}
       </p>

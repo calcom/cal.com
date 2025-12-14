@@ -160,6 +160,20 @@ export class OAuthClientRepository {
     });
   }
 
+  async regenerateSecret(clientId: string) {
+    const [hashed, plain] = generateSecret();
+    const updated = await this.prismaClient.oAuthClient.update({
+      where: { clientId },
+      data: { clientSecret: hashed },
+      select: {
+        clientId: true,
+        name: true,
+        clientType: true,
+      },
+    });
+    return { ...updated, clientSecret: plain };
+  }
+
   async update(
     clientId: string,
     data: {

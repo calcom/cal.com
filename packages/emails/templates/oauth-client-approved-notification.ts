@@ -11,6 +11,7 @@ export type OAuthClientApprovedNotification = {
   userName: string | null;
   clientName: string;
   clientId: string;
+  clientSecret?: string;
 };
 
 export default class OAuthClientApprovedEmail extends BaseEmail {
@@ -31,6 +32,7 @@ export default class OAuthClientApprovedEmail extends BaseEmail {
         userName: this.input.userName,
         clientName: this.input.clientName,
         clientId: this.input.clientId,
+        clientSecret: this.input.clientSecret,
         language: this.input.t,
       }),
       text: this.getTextBody(),
