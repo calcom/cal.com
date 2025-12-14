@@ -155,7 +155,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6 font-semibold">
                         <Price
                           currency={paymentAppData.currency}
-                          price={displayAmount || props.payment?.amount || paymentAppData.price}
+                          price={displayAmount ?? props.payment?.amount ?? paymentAppData.price}
                           displayAlternateSymbol={false}
                         />
                         {hasPromotion && (

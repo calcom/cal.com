@@ -584,7 +584,9 @@ function PaymentSection({
 
   return (
     <Section title={t("payment")}>
-      <p className="text-emphasis text-sm font-medium">{formattedPrice}</p>
+      <p className="text-emphasis text-sm font-medium">
+        {payment.amount === 0 ? t("free_of_charge") : formattedPrice}
+      </p>
       {paymentStatusMessage && <p className="text-subtle text-xs">{paymentStatusMessage}</p>}
     </Section>
   );

@@ -150,16 +150,12 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
     return throwPromoError("expired", "Promo code has expired");
   }
 
-  const baseAmount = existingPromotion?.originalAmount ?? payment.amount;
-
-  let discountAmount = 0;
   let percentOff: number | null = null;
   let amountOff: number | null = null;
   let amountOffCurrency: string | null = null;
 
   if (typeof coupon.percent_off === "number") {
     percentOff = coupon.percent_off;
-    discountAmount = Math.round((baseAmount * coupon.percent_off) / 100);
   } else if (typeof coupon.amount_off === "number") {
     amountOff = coupon.amount_off;
     amountOffCurrency = coupon.currency ?? null;
@@ -167,15 +163,8 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
     if (!coupon.currency || coupon.currency.toLowerCase() !== payment.currency.toLowerCase()) {
       return throwPromoError("currency_mismatch", "Promo code is not applicable to this currency");
     }
-
-    discountAmount = coupon.amount_off;
   } else {
     return throwPromoError("unsupported_coupon", "Unsupported coupon type");
-  }
-
-  const finalAmount = Math.max(0, baseAmount - discountAmount);
-  if (finalAmount <= 0) {
-    return throwPromoError("free_payment", "Promo code would make this payment free");
   }
 
   const paymentIntent = await stripe.paymentIntents.retrieve(payment.externalId, { stripeAccount });
@@ -235,9 +224,6 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
         ? coupon.amount_off
         : 0;
     const lockedFinalAmount = Math.max(0, lockedBaseAmount - lockedDiscountAmount);
-    if (lockedFinalAmount <= 0) {
-      return throwPromoError("free_payment", "Promo code would make this payment free");
-    }
 
     const promotion: CalPromotionData = {
       code: promotionCode.code ?? promoCode,
@@ -252,22 +238,37 @@ async function applyPromoCode(args: z.infer<typeof applySchema>) {
     };
 
     try {
-      await stripe.paymentIntents.update(
-        lockedPayment.externalId,
-        {
-          amount: lockedFinalAmount,
-          metadata: {
-            calPromotionCode: promotionCode.code ?? promoCode,
-            calPromotionCodeId: promotionCode.id,
+      const nextPaymentAmount = lockedFinalAmount;
+      if (lockedFinalAmount === 0) {
+        await stripe.paymentIntents.update(
+          lockedPayment.externalId,
+          {
+            metadata: {
+              calPromotionCode: promotionCode.code ?? promoCode,
+              calPromotionCodeId: promotionCode.id,
+              calPromotionFinalAmount: "0",
+            },
           },
-        },
-        { stripeAccount }
-      );
+          { stripeAccount }
+        );
+      } else {
+        await stripe.paymentIntents.update(
+          lockedPayment.externalId,
+          {
+            amount: lockedFinalAmount,
+            metadata: {
+              calPromotionCode: promotionCode.code ?? promoCode,
+              calPromotionCodeId: promotionCode.id,
+            },
+          },
+          { stripeAccount }
+        );
+      }
 
       await tx.payment.update({
         where: { id: lockedPayment.id },
         data: {
-          amount: lockedFinalAmount,
+          amount: nextPaymentAmount,
           data: {
             ...lockedPaymentData,
             calPromotion: promotion,

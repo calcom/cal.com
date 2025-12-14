@@ -43,10 +43,17 @@ const Page = async ({ params }: { params: Params }) => {
   const user = await userRepo.adminFindById(input.data.id);
   const t = await getTranslate();
 
+  const usersEditUser = {
+    ...user,
+    locale: user.locale ?? "en",
+    timeFormat: user.timeFormat ?? 12,
+    allowDynamicBooking: user.allowDynamicBooking ?? true,
+  };
+
   return (
     <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>
       <LicenseRequired>
-        <UsersEditView user={user} />
+        <UsersEditView user={usersEditUser} />
       </LicenseRequired>
     </SettingsHeader>
   );

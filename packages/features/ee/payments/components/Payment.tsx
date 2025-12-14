@@ -104,6 +104,7 @@ export const PaymentFormComponent = (
   const [isCanceling, setIsCanceling] = useState<boolean>(false);
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
   const disableButtons = isCanceling || !holdAcknowledged || ["processing", "error"].includes(state.status);
+  const isFreeAfterPromo = paymentOption === "ON_BOOKING" && props.promo.promotion?.finalAmount === 0;
 
   const paymentElementOptions = {
     layout: "accordion",
@@ -115,9 +116,11 @@ export const PaymentFormComponent = (
 
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={props.onSubmit}>
-      <div>
-        <PaymentElement options={paymentElementOptions} onChange={(_) => onPaymentElementChange()} />
-      </div>
+      {!isFreeAfterPromo && (
+        <div>
+          <PaymentElement options={paymentElementOptions} onChange={(_) => onPaymentElementChange()} />
+        </div>
+      )}
       {props.promo.enabled && paymentOption === "ON_BOOKING" && (
         <div className="mt-4">
           <div className="text-default text-sm font-medium">{t("promo_code")}</div>
@@ -214,6 +217,8 @@ export const PaymentFormComponent = (
               <div className="spinner" id="spinner" />
             ) : paymentOption === "HOLD" ? (
               t("submit_card")
+            ) : isFreeAfterPromo ? (
+              t("confirm")
             ) : (
               t("pay_now")
             )}
@@ -248,6 +253,8 @@ const PaymentForm = (props: Props) => {
   const [promotion, setPromotion] = useState<CalPromotionData | null>(() =>
     getInitialPromotion(props.payment.data)
   );
+
+  const isFreeAfterPromo = paymentOption === "ON_BOOKING" && promotion?.finalAmount === 0;
 
   const promoEnabled =
     props.allowPromotionCodes === true &&
@@ -349,8 +356,58 @@ const PaymentForm = (props: Props) => {
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
 
-    if (!stripe || !elements || searchParams === null) {
+    if (searchParams === null) {
       return;
+    }
+
+    if (isFreeAfterPromo) {
+      const email = searchParams?.get("email");
+      if (!email) {
+        setState({ status: "error", error: new Error(t("promo_code_missing_email")) });
+        return;
+      }
+
+      setState({ status: "processing" });
+      try {
+        const res = await fetch("/api/payment/confirm-free", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentUid: props.payment.uid,
+            email,
+          }),
+        });
+        const json = (await res.json()) as { ok?: boolean; message?: string };
+        if (!res.ok) {
+          throw new Error(json.message || t("something_went_wrong"));
+        }
+
+        const params: {
+          uid: string;
+          email: string | null;
+          location?: string;
+        } = {
+          uid: props.booking.uid,
+          email,
+        };
+        if (props.location) {
+          if (props.location.includes("integration")) {
+            params.location = t("web_conferencing_details_to_follow");
+          } else {
+            params.location = props.location;
+          }
+        }
+
+        return bookingSuccessRedirect({
+          successRedirectUrl: props.eventType.successRedirectUrl,
+          query: params,
+          booking: props.booking,
+          forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
+        });
+      } catch (e) {
+        setState({ status: "error", error: e instanceof Error ? e : new Error(t("something_went_wrong")) });
+        return;
+      }
     }
 
     if (!stripe || !elements) {
