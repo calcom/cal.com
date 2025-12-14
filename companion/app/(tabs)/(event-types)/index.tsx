@@ -622,7 +622,6 @@ export default function EventTypes() {
             onChangeText: (e) => {
               handleSearch(e.nativeEvent.text);
             },
-            autoFocus: true,
           },
           unstable_headerRightItems: () => [
             {
@@ -667,6 +666,7 @@ export default function EventTypes() {
       </Activity>
 
       <ScrollView
+        style={{ backgroundColor: "white" }}
         contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
