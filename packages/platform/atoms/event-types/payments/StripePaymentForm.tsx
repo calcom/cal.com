@@ -9,6 +9,11 @@ import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/paymen
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+function getStripePublishableKey(paymentData: Record<string, unknown>): string | undefined {
+  const key = paymentData["stripe_publishable_key"];
+  return typeof key === "string" ? key : undefined;
+}
+
 const StripePaymentComponent = (
   props: Props & {
     onPaymentSuccess?: (input: PaymentPageProps) => void;
@@ -109,7 +114,7 @@ const StripePaymentForm = (
     onPaymentCancellation?: (input: PaymentPageProps) => void;
   }
 ) => {
-  const stripePromise = getStripe(props.payment.data.stripe_publishable_key as any);
+  const stripePromise = getStripe(getStripePublishableKey(props.payment.data));
   const [theme, setTheme] = useState<"stripe" | "night">("stripe");
 
   useEffect(() => {

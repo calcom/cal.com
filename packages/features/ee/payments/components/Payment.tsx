@@ -14,9 +14,79 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, Payment } from "@calcom/prisma/client";
 import type { PaymentOption } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
-import { CheckboxField } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form/checkbox/Checkbox";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
 
 import type { PaymentPageProps } from "../pages/payment";
+
+type CalPromotionData = {
+  code: string;
+  promotionCodeId: string;
+  couponId: string;
+  originalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  percentOff?: number | null;
+  amountOff?: number | null;
+  amountOffCurrency?: string | null;
+};
+
+function isCalPromotionData(x: unknown): x is CalPromotionData {
+  if (!x || typeof x !== "object") return false;
+  const r = x as Record<string, unknown>;
+  return (
+    typeof r.code === "string" &&
+    typeof r.promotionCodeId === "string" &&
+    typeof r.couponId === "string" &&
+    typeof r.originalAmount === "number" &&
+    typeof r.discountAmount === "number" &&
+    typeof r.finalAmount === "number"
+  );
+}
+
+function getInitialPromotion(paymentData: Record<string, unknown>): CalPromotionData | null {
+  const promo = paymentData["calPromotion"];
+  return isCalPromotionData(promo) ? promo : null;
+}
+
+function getStripePublishableKey(paymentData: Record<string, unknown>): string | undefined {
+  const key = paymentData["stripe_publishable_key"];
+  return typeof key === "string" ? key : undefined;
+}
+
+type PromoCodeApiResponse = {
+  payment: { uid: string; amount: number; currency: string };
+  promotion: CalPromotionData | null;
+};
+
+type ApiErrorPayload = {
+  message?: string;
+  data?: {
+    code?: string;
+  } | null;
+};
+
+function hasFetchUpdates(
+  elements: StripeElements
+): elements is StripeElements & { fetchUpdates: () => Promise<void> } {
+  const maybeFn = (elements as unknown as Record<string, unknown>)["fetchUpdates"];
+  return typeof maybeFn === "function";
+}
+
+function formatMoney({
+  amountMinor,
+  currency,
+  locale,
+}: {
+  amountMinor: number;
+  currency: string;
+  locale: string;
+}): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).format(amountMinor / 100);
+}
 
 export type Props = {
   payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
@@ -33,6 +103,8 @@ export type Props = {
   location?: string | null;
   clientSecret: string;
   booking: PaymentPageProps["booking"];
+  allowPromotionCodes?: boolean;
+  onPaymentAmountChange?: (amount: number, promotion: CalPromotionData | null) => void;
 };
 
 export type States =
@@ -58,6 +130,16 @@ export const PaymentFormComponent = (
     elements: StripeElements | null;
     paymentOption: PaymentOption | null;
     state: States;
+    promo: {
+      enabled: boolean;
+      promotion: CalPromotionData | null;
+      inputValue: string;
+      isBusy: boolean;
+      error: string | null;
+    };
+    onPromoInputChange: (value: string) => void;
+    onApplyPromoCode: () => void;
+    onRemovePromoCode: () => void;
   }
 ) => {
   const { t, i18n } = useLocale();
@@ -79,6 +161,75 @@ export const PaymentFormComponent = (
       <div>
         <PaymentElement options={paymentElementOptions} onChange={(_) => onPaymentElementChange()} />
       </div>
+      {props.promo.enabled && paymentOption === "ON_BOOKING" && (
+        <div className="mt-4">
+          <div className="text-default text-sm font-medium">{t("promo_code")}</div>
+          <div className="mt-2 flex items-end gap-2">
+            <div className="grow">
+              <TextField
+                name="promo_code"
+                labelSrOnly
+                disabled={props.promo.isBusy || !!props.promo.promotion}
+                value={props.promo.inputValue}
+                onChange={(e) => props.onPromoInputChange(e.currentTarget.value)}
+                placeholder={t("promo_code_placeholder")}
+              />
+            </div>
+            {!props.promo.promotion ? (
+              <Button
+                type="button"
+                color="secondary"
+                loading={props.promo.isBusy}
+                disabled={props.promo.isBusy || props.promo.inputValue.trim().length === 0}
+                onClick={props.onApplyPromoCode}>
+                {t("apply")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                color="destructive"
+                loading={props.promo.isBusy}
+                disabled={props.promo.isBusy}
+                onClick={props.onRemovePromoCode}>
+                {t("remove")}
+              </Button>
+            )}
+          </div>
+          {props.promo.promotion && (
+            <div className="text-default border-subtle mt-2 rounded-md border p-3 text-sm">
+              <div>
+                {t("promo_code_applied", {
+                  code: props.promo.promotion.code,
+                })}
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="text-subtle">{t("discount")}</div>
+                <div className="text-error text-right font-medium">
+                  -
+                  {formatMoney({
+                    amountMinor: props.promo.promotion.discountAmount,
+                    currency: props.payment.currency,
+                    locale: i18n.language,
+                  })}
+                </div>
+                <div className="text-subtle">{t("total")}</div>
+                <div className="text-right font-semibold">
+                  {formatMoney({
+                    amountMinor: props.promo.promotion.finalAmount,
+                    currency: props.payment.currency,
+                    locale: i18n.language,
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+          {props.promo.error && (
+            <div className="mt-2 text-sm text-red-900 dark:text-gray-300" role="alert">
+              {props.promo.error}
+            </div>
+          )}
+        </div>
+      )}
       {paymentOption === "HOLD" && (
         <div className="bg-cal-info mb-5 mt-2 rounded-md p-3">
           <CheckboxField
@@ -142,6 +293,110 @@ const PaymentForm = (props: Props) => {
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
   const bookingSuccessRedirect = useBookingSuccessRedirect();
+
+  const [promoInput, setPromoInput] = useState<string>("");
+  const [promoIsBusy, setPromoIsBusy] = useState<boolean>(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [promotion, setPromotion] = useState<CalPromotionData | null>(() =>
+    getInitialPromotion(props.payment.data)
+  );
+
+  const promoEnabled =
+    props.allowPromotionCodes === true &&
+    paymentOption === "ON_BOOKING" &&
+    typeof searchParams?.get("email") === "string";
+
+  const mapPromoError = (payload: ApiErrorPayload): string => {
+    const code = payload.data?.code;
+    if (code === "invalid") return t("promo_code_invalid");
+    if (code === "expired") return t("promo_code_expired");
+    if (code === "not_active") return t("promo_code_not_active");
+    if (code === "currency_mismatch") return t("promo_code_currency_mismatch");
+    if (code === "free_payment") return t("promo_code_free_payment_not_supported");
+    if (code === "not_enabled") return t("promo_code_not_enabled");
+    if (code === "not_eligible") return t("promo_code_not_eligible");
+    if (code === "unauthorized") return t("promo_code_unauthorized");
+    if (code === "rate_limited") return t("promo_code_rate_limited");
+    return payload.message || t("promo_code_error");
+  };
+
+  const applyPromoCode = async () => {
+    if (!promoEnabled || !elements) return;
+    const email = searchParams?.get("email");
+    if (!email) {
+      setPromoError(t("promo_code_missing_email"));
+      return;
+    }
+
+    setPromoError(null);
+    setPromoIsBusy(true);
+    try {
+      const res = await fetch("/api/payment/promo-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentUid: props.payment.uid,
+          promoCode: promoInput,
+          email,
+        }),
+      });
+
+      const json = (await res.json()) as PromoCodeApiResponse | ApiErrorPayload;
+      if (!res.ok) {
+        setPromoError(mapPromoError(json as ApiErrorPayload));
+        return;
+      }
+      const data = json as PromoCodeApiResponse;
+      setPromotion(data.promotion);
+      props.onPaymentAmountChange?.(data.payment.amount, data.promotion);
+      if (hasFetchUpdates(elements)) {
+        await elements.fetchUpdates();
+      }
+    } catch (e) {
+      setPromoError(e instanceof Error ? e.message : t("promo_code_error"));
+    } finally {
+      setPromoIsBusy(false);
+    }
+  };
+
+  const removePromoCode = async () => {
+    if (!promoEnabled || !elements) return;
+    const email = searchParams?.get("email");
+    if (!email) {
+      setPromoError(t("promo_code_missing_email"));
+      return;
+    }
+
+    setPromoError(null);
+    setPromoIsBusy(true);
+    try {
+      const res = await fetch("/api/payment/promo-code", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentUid: props.payment.uid,
+          email,
+        }),
+      });
+
+      const json = (await res.json()) as PromoCodeApiResponse | ApiErrorPayload;
+      if (!res.ok) {
+        setPromoError(mapPromoError(json as ApiErrorPayload));
+        return;
+      }
+      const data = json as PromoCodeApiResponse;
+      setPromotion(null);
+      setPromoInput("");
+      props.onPaymentAmountChange?.(data.payment.amount, null);
+      if (hasFetchUpdates(elements)) {
+        await elements.fetchUpdates();
+      }
+    } catch (e) {
+      setPromoError(e instanceof Error ? e.message : t("promo_code_error"));
+    } finally {
+      setPromoIsBusy(false);
+    }
+  };
 
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
@@ -222,6 +477,19 @@ const PaymentForm = (props: Props) => {
       elements={elements}
       paymentOption={paymentOption}
       state={state}
+      promo={{
+        enabled: promoEnabled,
+        promotion,
+        inputValue: promoInput,
+        isBusy: promoIsBusy,
+        error: promoError,
+      }}
+      onPromoInputChange={(value) => {
+        setPromoInput(value);
+        setPromoError(null);
+      }}
+      onApplyPromoCode={applyPromoCode}
+      onRemovePromoCode={removePromoCode}
       onSubmit={handleSubmit}
       onCancel={() => {
         if (username) {
@@ -237,7 +505,7 @@ const PaymentForm = (props: Props) => {
 };
 
 export default function PaymentComponent(props: Props) {
-  const stripePromise = getStripe(props.payment.data.stripe_publishable_key as any);
+  const stripePromise = getStripe(getStripePublishableKey(props.payment.data));
   const [theme, setTheme] = useState<"stripe" | "night">("stripe");
 
   useEffect(() => {

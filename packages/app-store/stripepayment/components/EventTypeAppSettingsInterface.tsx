@@ -10,9 +10,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form/checkbox/Checkbox";
+import { TextField } from "@calcom/ui/components/form/inputs/TextField";
+import { Select } from "@calcom/ui/components/form/select/Select";
 import { RadioField } from "@calcom/ui/components/radio";
 
 import { paymentOptions } from "../lib/constants";
@@ -29,6 +29,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 }) => {
   const price = getAppData("price");
   const currency = getAppData("currency") || currencyOptions[0].value;
+  const allowPromotionCodes = getAppData("allowPromotionCodes");
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyOptions.find((c) => c.value === currency) || {
       label: currencyOptions[0].label,
@@ -65,6 +66,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
       }
       if (!getAppData("paymentOption")) {
         setAppData("paymentOption", paymentOptions[0].value);
+      }
+      if (getAppData("allowPromotionCodes") === undefined) {
+        setAppData("allowPromotionCodes", false);
       }
     }
 
@@ -161,6 +165,16 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               isDisabled={seatsEnabled || disabled}
             />
           </div>
+          {paymentOption === "ON_BOOKING" && (
+            <div className="mt-4">
+              <CheckboxField
+                checked={!!allowPromotionCodes}
+                disabled={disabled}
+                onChange={(e) => setAppData("allowPromotionCodes", e.target.checked)}
+                description={t("allow_promotion_codes")}
+              />
+            </div>
+          )}
           {seatsEnabled && paymentOption === "HOLD" && (
             <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
           )}
@@ -170,7 +184,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               <RadioGroup.Root
                 disabled={disabled || paymentOption === "HOLD"}
                 defaultValue="never"
-                className="flex flex-col stack-y-2"
+                className="stack-y-2 flex flex-col"
                 value={getAppData("refundPolicy")}
                 onValueChange={(val) => {
                   setAppData("refundPolicy", val);

@@ -21,7 +21,7 @@ export function getPaymentAppData(
   };
   const metadataApps = eventType.metadata?.apps;
   if (!metadataApps) {
-    return { enabled: false, price: 0, currency: "usd", appId: null };
+    return { enabled: false, price: 0, currency: "usd", appId: null, allowPromotionCodes: undefined };
   }
   type appId = keyof typeof metadataApps;
   // @TODO: a lot of unknowns types here can be improved later
@@ -38,6 +38,7 @@ export function getPaymentAppData(
     currency: string;
     appId: EventTypeAppsList | null;
     paymentOption: typeof paymentOptionEnum;
+    allowPromotionCodes?: boolean;
     credentialId?: number;
     refundPolicy?: string;
     refundDaysCount?: number;
@@ -61,6 +62,7 @@ export function getPaymentAppData(
       currency: "usd",
       appId: null,
       paymentOption: "ON_BOOKING",
+      allowPromotionCodes: undefined,
       credentialId: undefined,
       refundPolicy: undefined,
       refundDaysCount: undefined,

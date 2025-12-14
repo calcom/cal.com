@@ -61,6 +61,8 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const [timezone, setTimezone] = useState<string | null>(null);
+  const [displayAmount, setDisplayAmount] = useState<number>(props.payment?.amount ?? 0);
+  const [hasPromotion, setHasPromotion] = useState<boolean>(false);
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   const paymentAppData = getPaymentAppData(props.eventType);
@@ -141,9 +143,12 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6 font-semibold">
                         <Price
                           currency={paymentAppData.currency}
-                          price={props.payment?.amount ?? paymentAppData.price}
+                          price={displayAmount || props.payment?.amount || paymentAppData.price}
                           displayAlternateSymbol={false}
                         />
+                        {hasPromotion && (
+                          <div className="text-subtle mt-1 text-xs">{t("promo_code_price_updated")}</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -160,6 +165,11 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       user={props.user}
                       location={props.booking.location}
                       booking={props.booking}
+                      allowPromotionCodes={paymentAppData.allowPromotionCodes}
+                      onPaymentAmountChange={(amount, promotion) => {
+                        setDisplayAmount(amount);
+                        setHasPromotion(!!promotion);
+                      }}
                     />
                   )}
                   {props.payment.appId === "paypal" && !props.payment.success && (
