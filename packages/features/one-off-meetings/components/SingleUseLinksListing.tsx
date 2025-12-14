@@ -9,34 +9,18 @@ import { OneOffMeetingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { Dialog } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { SkeletonText, SkeletonButton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { CreateOneOffMeetingDialog } from "./CreateOneOffMeetingDialog";
-
-export interface SingleUseLinksListingProps {
-  isCreateDialogOpen?: boolean;
-  setIsCreateDialogOpen?: (open: boolean) => void;
-}
-
-export function SingleUseLinksListing({ 
-  isCreateDialogOpen: externalIsOpen, 
-  setIsCreateDialogOpen: externalSetIsOpen 
-}: SingleUseLinksListingProps = {}) {
+export function SingleUseLinksListing() {
   const { t } = useLocale();
   const { copyToClipboard } = useCopy();
   const utils = trpc.useUtils();
 
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
-  
-  // Use external state if provided, otherwise use internal state
-  const isCreateDialogOpen = externalIsOpen ?? internalIsOpen;
-  const setIsCreateDialogOpen = externalSetIsOpen ?? setInternalIsOpen;
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data, isLoading } = trpc.viewer.oneOffMeetings.list.useQuery(undefined, {
@@ -107,7 +91,7 @@ export function SingleUseLinksListing({
           headline={t("no_single_use_links")}
           description={t("no_single_use_links_description")}
           buttonRaw={
-            <Button onClick={() => setIsCreateDialogOpen(true)} StartIcon="plus">
+            <Button href="/one-off/create" target="_blank" StartIcon="plus">
               {t("create_one_off_meeting")}
             </Button>
           }
@@ -115,9 +99,7 @@ export function SingleUseLinksListing({
       ) : (
         <div className="border-subtle divide-subtle divide-y rounded-md border">
           {meetings.map((meeting) => (
-            <div
-              key={meeting.id}
-              className="flex items-center justify-between p-4 hover:bg-subtle/50">
+            <div key={meeting.id} className="hover:bg-subtle/50 flex items-center justify-between p-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-emphasis font-medium">{meeting.title}</h3>
@@ -172,9 +154,11 @@ export function SingleUseLinksListing({
                 )}
 
                 {/* Hide delete for booked meetings that haven't happened yet */}
-                {!(meeting.status === OneOffMeetingStatus.BOOKED && 
-                   meeting.booking && 
-                   dayjs(meeting.booking.startTime).isAfter(dayjs())) && (
+                {!(
+                  meeting.status === OneOffMeetingStatus.BOOKED &&
+                  meeting.booking &&
+                  dayjs(meeting.booking.startTime).isAfter(dayjs())
+                ) && (
                   <Tooltip content={t("delete")}>
                     <Button
                       variant="icon"
@@ -190,12 +174,6 @@ export function SingleUseLinksListing({
         </div>
       )}
 
-      <CreateOneOffMeetingDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onSuccess={() => setIsCreateDialogOpen(false)}
-      />
-
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <ConfirmationDialogContent
           variety="danger"
@@ -209,4 +187,3 @@ export function SingleUseLinksListing({
     </>
   );
 }
-

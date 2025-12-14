@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
+// Context for sharing tab state between header components and content
+import { createContext, useContext } from "react";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -18,6 +20,7 @@ import {
 } from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+import { SingleUseLinksListing } from "@calcom/features/one-off-meetings";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
@@ -62,8 +65,6 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TRPCClientError } from "@trpc/client";
 
-import { SingleUseLinksListing } from "@calcom/features/one-off-meetings";
-
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
 
@@ -97,19 +98,12 @@ const querySchema = z.object({
 
 type MainTab = "event-types" | "single-use-links";
 
-// Context for sharing tab state between header components and content
-import { createContext, useContext } from "react";
-
 const MainTabContext = createContext<{
   activeTab: MainTab;
   setActiveTab: (tab: MainTab) => void;
-  isOneOffDialogOpen: boolean;
-  setIsOneOffDialogOpen: (open: boolean) => void;
 }>({
   activeTab: "event-types",
   setActiveTab: () => {},
-  isOneOffDialogOpen: false,
-  setIsOneOffDialogOpen: () => {},
 });
 
 export function useMainTab() {
@@ -129,7 +123,9 @@ export function DynamicSubtitle() {
   const { t } = useLocale();
   const { activeTab } = useMainTab();
 
-  return <>{activeTab === "event-types" ? t("event_types_page_subtitle") : t("single_use_links_description")}</>;
+  return (
+    <>{activeTab === "event-types" ? t("event_types_page_subtitle") : t("single_use_links_description")}</>
+  );
 }
 
 // Tabs navigation component for the header
@@ -986,8 +982,7 @@ const EmptyEventTypeList = ({
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
-            variant="button"
-          >
+            variant="button">
             {t("create")}
           </Button>
         }
@@ -1007,7 +1002,7 @@ const InfiniteScrollMainContent = ({
   const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
-  const { activeTab, isOneOffDialogOpen, setIsOneOffDialogOpen } = useMainTab();
+  const { activeTab } = useMainTab();
 
   const teamTabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
@@ -1049,10 +1044,7 @@ const InfiniteScrollMainContent = ({
           {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
         </>
       ) : (
-        <SingleUseLinksListing 
-          isCreateDialogOpen={isOneOffDialogOpen} 
-          setIsCreateDialogOpen={setIsOneOffDialogOpen} 
-        />
+        <SingleUseLinksListing />
       )}
     </>
   );
@@ -1071,9 +1063,18 @@ const InfiniteScrollMain = ({
 
 // Exported provider wrapper for the entire page
 export function EventTypesPageWrapper({ children }: { children: React.ReactNode }) {
-  const [activeTab, setActiveTab] = useState<MainTab>("event-types");
-  const [isOneOffDialogOpen, setIsOneOffDialogOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const tabParam = searchParams?.get("tab");
+  const initialTab: MainTab = tabParam === "single-use-links" ? "single-use-links" : "event-types";
+  const [activeTab, setActiveTab] = useState<MainTab>(initialTab);
   const utils = trpc.useUtils();
+
+  // Update tab when URL param changes
+  useEffect(() => {
+    if (tabParam === "single-use-links") {
+      setActiveTab("single-use-links");
+    }
+  }, [tabParam]);
 
   // Prefetch single-use links data immediately so it's ready when tab is clicked
   useEffect(() => {
@@ -1081,11 +1082,7 @@ export function EventTypesPageWrapper({ children }: { children: React.ReactNode 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <MainTabContext.Provider value={{ activeTab, setActiveTab, isOneOffDialogOpen, setIsOneOffDialogOpen }}>
-      {children}
-    </MainTabContext.Provider>
-  );
+  return <MainTabContext.Provider value={{ activeTab, setActiveTab }}>{children}</MainTabContext.Provider>;
 }
 
 type Props = {
@@ -1098,8 +1095,8 @@ type Props = {
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const { t } = useLocale();
-  const { activeTab, setIsOneOffDialogOpen } = useMainTab();
-  
+  const { activeTab } = useMainTab();
+
   const profileOptions =
     userEventGroupsData.profiles
       ?.filter((profile) => !profile.readOnly)
@@ -1143,9 +1140,10 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   // Show different CTA based on active tab
   if (activeTab === "single-use-links") {
     return (
-      <Button 
-        onClick={() => setIsOneOffDialogOpen(true)} 
-        StartIcon="plus" 
+      <Button
+        href="/one-off/create"
+        target="_blank"
+        StartIcon="plus"
         size="sm"
         variant="fab"
         data-testid="new-one-off-meeting">
