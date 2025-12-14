@@ -18,14 +18,6 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const preserveBookingsQueryParams = ({
-  prevPathname,
-  nextPathname,
-}: {
-  prevPathname: string | null;
-  nextPathname: string;
-}) => Boolean(prevPathname?.startsWith("/bookings/")) && nextPathname.startsWith("/bookings/");
-
 const getNavigationItems = (
   orgBranding: OrganizationBranding,
   hasInsightsAccess: boolean
