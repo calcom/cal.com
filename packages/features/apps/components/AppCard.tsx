@@ -78,7 +78,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     }
 
     return () => resizeObserver.disconnect();
-  }, [app.description]);
+  }, [app.description, isDescriptionTruncated]);
 
   const handleAppInstall = () => {
     posthog.capture("app_install_button_clicked", {
