@@ -18,11 +18,12 @@ import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { KBarTrigger } from "../kbar/Kbar";
+import { KBarTrigger } from "@calcom/features/kbar/Kbar";
+import { useBottomNavItems } from "@calcom/features/shell/useBottomNavItems";
+import { ProfileDropdown } from "@calcom/features/shell/user-dropdown/ProfileDropdown";
+import { UserDropdown } from "@calcom/features/shell/user-dropdown/UserDropdown";
+
 import { Navigation } from "./navigation/Navigation";
-import { useBottomNavItems } from "./useBottomNavItems";
-import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
-import { UserDropdown } from "./user-dropdown/UserDropdown";
 
 // need to import without ssr to prevent hydration errors
 const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {

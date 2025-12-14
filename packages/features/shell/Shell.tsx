@@ -18,7 +18,6 @@ import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { DynamicModals } from "./DynamicModals";
-import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
@@ -42,11 +41,7 @@ const Layout = (props: LayoutProps) => {
         {banners && !props.isPlatformUser && <BannerContainer banners={banners} />}
 
         <div className="flex flex-1" data-testid="dashboard-shell">
-          {props.SidebarContainer ? (
-            cloneElement(props.SidebarContainer, { bannersHeight })
-          ) : (
-            <SideBarContainer isPlatformUser={props.isPlatformUser} bannersHeight={bannersHeight} />
-          )}
+          {props.SidebarContainer ? cloneElement(props.SidebarContainer, { bannersHeight }) : null}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
