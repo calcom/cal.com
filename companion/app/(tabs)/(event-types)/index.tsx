@@ -12,8 +12,6 @@ import {
   Share,
   Alert,
   Platform,
-  Modal,
-  KeyboardAvoidingView,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 
@@ -27,7 +25,6 @@ import { showErrorAlert } from "../../../utils/alerts";
 import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
 import { offlineAwareRefresh } from "../../../utils/network";
 import { openInAppBrowser } from "../../../utils/browser";
-import { formatDuration } from "../../../components/event-type-detail/utils";
 import {
   useEventTypes,
   useCreateEventType,
@@ -35,6 +32,8 @@ import {
   useDuplicateEventType,
   useUsername,
 } from "../../../hooks";
+import { getEventDuration } from "../../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -124,49 +123,6 @@ export default function EventTypes() {
     setSearchQuery(query);
   };
 
-  const getDuration = (eventType: EventType): number => {
-    // Prefer lengthInMinutes (API field), fallback to length for backwards compatibility
-    return eventType.lengthInMinutes ?? eventType.length ?? 0;
-  };
-
-  const normalizeMarkdown = (text: string): string => {
-    if (!text) return "";
-
-    return (
-      text
-        // Remove HTML tags including <br>, <div>, <p>, etc.
-        .replace(/<[^>]*>/g, " ")
-        // Convert HTML entities
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&nbsp;/g, " ")
-        // Convert markdown links [text](url) to just text
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-        // Remove bold/italic markers **text** or *text*
-        .replace(/\*\*([^*]+)\*\*/g, "$1")
-        .replace(/\*([^*]+)\*/g, "$1")
-        // Remove inline code `text`
-        .replace(/`([^`]+)`/g, "$1")
-        // Remove strikethrough ~~text~~
-        .replace(/~~([^~]+)~~/g, "$1")
-        // Remove heading markers # ## ###
-        .replace(/^#{1,6}\s+/gm, "")
-        // Remove blockquote markers >
-        .replace(/^>\s+/gm, "")
-        // Remove list markers - * +
-        .replace(/^[\s]*[-*+]\s+/gm, "")
-        // Remove numbered list markers 1. 2. etc
-        .replace(/^[\s]*\d+\.\s+/gm, "")
-        // Normalize multiple whitespace/newlines to single space
-        .replace(/\s+/g, " ")
-        // Trim whitespace
-        .trim()
-    );
-  };
-
   const handleEventTypePress = (eventType: EventType) => {
     handleEdit(eventType);
   };
@@ -249,7 +205,7 @@ export default function EventTypes() {
   };
 
   const handleEdit = (eventType: EventType) => {
-    const duration = getDuration(eventType);
+    const duration = getEventDuration(eventType);
     router.push({
       pathname: "/event-type-detail",
       params: {
@@ -306,7 +262,7 @@ export default function EventTypes() {
             Alert.alert("Success", "Event type duplicated successfully");
           }
 
-          const duration = getDuration(eventType);
+          const duration = getEventDuration(eventType);
 
           // Navigate to edit the newly created duplicate
           router.push({
@@ -590,6 +546,9 @@ export default function EventTypes() {
                 handleEventTypeLongPress={handleEventTypeLongPress}
                 handleCopyLink={handleCopyLink}
                 handlePreview={handlePreview}
+                onEdit={handleEdit}
+                onDuplicate={handleDuplicate}
+                onDelete={handleDelete}
               />
             ))}
           </View>

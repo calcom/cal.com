@@ -5,8 +5,6 @@ import Svg, { Path } from "react-native-svg";
 import { Host, ContextMenu, Button, Image, Label, HStack } from "@expo/ui/swift-ui";
 
 import { Tooltip } from "../../components/Tooltip";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
 import {
   background,
   buttonStyle,
@@ -19,6 +17,8 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 import { EventTypeListItemProps } from "./types";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { getEventDuration } from "../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
 
 export const EventTypeListItem = ({
   item,

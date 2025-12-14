@@ -4,9 +4,9 @@ import { View, Text, TouchableOpacity } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { Tooltip } from "../../components/Tooltip";
+import { EventTypeListItemProps } from "./types";
 import { getEventDuration } from "../../utils/getEventDuration";
 import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
-import { EventTypeListItemProps } from "./types";
 
 export const EventTypeListItem = ({
   item,
