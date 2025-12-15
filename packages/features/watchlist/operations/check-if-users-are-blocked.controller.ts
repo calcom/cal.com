@@ -1,6 +1,9 @@
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 import type { SpanFn } from "@calcom/features/watchlist/lib/telemetry";
 import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["watchlist:check-if-users-are-blocked"] });
 
 function presenter(containsBlockedUser: boolean, span?: SpanFn): Promise<boolean> {
   const result = !!containsBlockedUser;
@@ -27,7 +30,20 @@ export async function checkIfUsersAreBlocked(params: CheckUsersBlockedParams): P
 
     for (const user of users) {
       if (!user.email) continue;
-      const normalizedEmail = normalizeEmail(user.email);
+
+      let normalizedEmail: string;
+      try {
+        normalizedEmail = normalizeEmail(user.email);
+      } catch (error) {
+        // If email normalization fails (e.g., email contains characters like % that don't match our regex),
+        // log the issue and skip watchlist check for this user. This prevents booking failures
+        // when host users have emails with unusual but valid characters.
+        log.warn("Failed to normalize email for watchlist check, skipping user", {
+          username: user.username,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+        continue;
+      }
 
       const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail);
       if (globalResult.isBlocked) {

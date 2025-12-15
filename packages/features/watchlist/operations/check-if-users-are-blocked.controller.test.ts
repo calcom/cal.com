@@ -185,6 +185,40 @@ describe("checkIfUsersAreBlocked", () => {
       expect(mockGlobalBlocking.isBlocked).toHaveBeenCalledWith("user1@example.com");
       expect(mockGlobalBlocking.isBlocked).toHaveBeenCalledWith("user2@example.com");
     });
+
+    test("should not throw when email contains characters that fail normalization (e.g., %)", async () => {
+      // This test ensures that emails with unusual but valid characters (like %)
+      // don't cause the booking flow to fail with a 500 error.
+      // Instead, the user should be skipped and other users should still be checked.
+      mockGlobalBlocking.isBlocked.mockResolvedValue({ isBlocked: false });
+
+      // This should not throw - the user with invalid email format should be skipped
+      const result = await checkIfUsersAreBlocked({
+        users: [
+          { email: "info%blackforest-service.de@gtempaccount.com", username: "user1", locked: false },
+          { email: "valid@example.com", username: "user2", locked: false },
+        ],
+      });
+
+      expect(result).toBe(false);
+      // Only the valid email should be checked
+      expect(mockGlobalBlocking.isBlocked).toHaveBeenCalledTimes(1);
+      expect(mockGlobalBlocking.isBlocked).toHaveBeenCalledWith("valid@example.com");
+    });
+
+    test("should return false when all users have invalid email formats", async () => {
+      // If all users have emails that fail normalization, we should return false (not blocked)
+      // rather than throwing an error
+      const result = await checkIfUsersAreBlocked({
+        users: [
+          { email: "invalid%email@temp.com", username: "user1", locked: false },
+          { email: "another%invalid@temp.com", username: "user2", locked: false },
+        ],
+      });
+
+      expect(result).toBe(false);
+      expect(mockGlobalBlocking.isBlocked).not.toHaveBeenCalled();
+    });
   });
 
   describe("Edge cases", () => {
