@@ -152,6 +152,7 @@ const commons = {
   eventTypeColor: null,
   hostGroups: [],
   bookingRequiresAuthentication: false,
+  optionalGuestTeamMembers: [],
   createdAt: null,
   updatedAt: null,
   rrHostSubsetEnabled: false,

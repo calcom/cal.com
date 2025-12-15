@@ -252,10 +252,11 @@ model EventType {
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
-  useBookerTimezone     Boolean     @default(false)
-  restrictionScheduleId Int?
-  restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
-  hostGroups            HostGroup[]
+  useBookerTimezone        Boolean     @default(false)
+  restrictionScheduleId    Int?
+  restrictionSchedule      Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  hostGroups               HostGroup[]
+  optionalGuestTeamMembers User[]      @relation("optional_guest_team_members")
 
   bookingRequiresAuthentication Boolean @default(false)
   rrHostSubsetEnabled           Boolean @default(false)
@@ -482,6 +483,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  optionalGuestForEventTypes     EventType[]                   @relation("optional_guest_team_members")
 
   @@unique([email])
   @@unique([email, username])
@@ -1939,18 +1941,18 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id              Int                @id @default(autoincrement())
-  uuid            String             @unique
-  start           DateTime
-  end             DateTime
-  notes           String?
-  showNotePublicly Boolean           @default(false)
-  userId          Int
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId        Int?
-  toUser          User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  reasonId        Int?
-  reason          OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  id               Int                @id @default(autoincrement())
+  uuid             String             @unique
+  start            DateTime
+  end              DateTime
+  notes            String?
+  showNotePublicly Boolean            @default(false)
+  userId           Int
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId         Int?
+  toUser           User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId         Int?
+  reason           OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

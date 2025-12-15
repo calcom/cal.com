@@ -83,12 +83,10 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   calVideoSettings: calVideoSettingsSchema,
   calAiPhoneScript: z.string(),
   customInputs: z.array(customInputSchema),
-  destinationCalendar: DestinationCalendarSchema
-    .pick({
-      integration: true,
-      externalId: true,
-    })
-    .nullable(),
+  destinationCalendar: DestinationCalendarSchema.pick({
+    integration: true,
+    externalId: true,
+  }).nullable(),
   users: z.array(stringOrNumber),
   children: z.array(childSchema),
   hosts: z.array(hostSchema),
@@ -104,6 +102,10 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   useEventLevelSelectedCalendars: z.boolean().optional(),
   seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
   hostGroups: z.array(hostGroupSchema).optional(),
+  optionalGuestTeamMembers: z
+    .array(z.object({ id: z.number() }))
+    .nullable()
+    .optional(),
 })
   .partial()
   .extend(EventTypeSchema.pick({ id: true }).shape);
