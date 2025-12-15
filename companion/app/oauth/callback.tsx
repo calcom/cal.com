@@ -10,8 +10,6 @@ export default function OAuthCallback() {
 
   useEffect(() => {
     if (Platform.OS === "android") {
-      console.log("Android");
-      console.log(auth.userInfo);
       if (auth.userInfo) {
         router.replace("/(tabs)");
       }
