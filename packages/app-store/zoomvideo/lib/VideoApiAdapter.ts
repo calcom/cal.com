@@ -186,7 +186,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     const meetingPayload = {
       topic: event.title,
       type: recurrence ? 8 : 2, // 8=Recurring with fixed time, 2=Scheduled meeting
-      start_time: dayjs(event.startTime).format("YYYY-MM-DDTHH:mm:ss"),
+      start_time: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
