@@ -58,6 +58,7 @@ export default defineConfig(({ mode }) => {
         entry: [resolve(__dirname, "index.ts")],
         name: "CalAtoms",
         fileName: "cal-atoms",
+        formats: ["es"],
       },
       rollupOptions: {
         external: [
@@ -73,6 +74,7 @@ export default defineConfig(({ mode }) => {
           "@trigger.dev/sdk",
         ],
         output: {
+          format: "esm",
           globals: {
             react: "React",
             "react-dom": "ReactDOM",
