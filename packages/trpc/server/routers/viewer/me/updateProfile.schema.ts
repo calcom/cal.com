@@ -4,8 +4,6 @@ import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
 
-// Define type first to use with z.ZodType annotation
-// This prevents full Zod generic tree from being emitted in .d.ts files
 export type TUpdateUserMetadataAllowedKeys = {
   sessionTimeout?: number;
   defaultBookerLayouts?: z.infer<typeof bookerLayouts>;
@@ -16,7 +14,6 @@ export const updateUserMetadataAllowedKeys: z.ZodType<TUpdateUserMetadataAllowed
   defaultBookerLayouts: bookerLayouts.optional(),
 });
 
-// Input type - what callers send (isDeleted in secondaryEmails is optional)
 export type TUpdateProfileInputSchemaInput = {
   username?: string;
   name?: string;
@@ -52,7 +49,6 @@ export type TUpdateProfileInputSchemaInput = {
   }[];
 };
 
-// Output type - what handlers receive after parsing (isDeleted has .default(false), so required)
 export type TUpdateProfileInputSchema = {
   username?: string;
   name?: string;

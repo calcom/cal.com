@@ -9,7 +9,6 @@ import {
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 // Define types first to use with z.ZodType annotations
-// This prevents full Zod generic tree from being emitted in .d.ts files
 type TWorkflow = {
   id: number;
   name: string;

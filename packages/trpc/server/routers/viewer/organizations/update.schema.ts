@@ -3,11 +3,8 @@ import { z } from "zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
-// Define type first to use with z.ZodType annotation
-// This prevents full Zod generic tree from being emitted in .d.ts files
 // Note: orgId has .transform() that converts string to number, so input accepts string | number but output is always number
 
-// Input type - what callers send (orgId can be string or number)
 export type TUpdateInputSchemaInput = {
   name?: string;
   orgId?: string | number;
@@ -44,7 +41,6 @@ export type TUpdateInputSchemaInput = {
   disableAttendeeNewEventEmail?: boolean;
 };
 
-// Output type - what handlers receive after parsing (orgId is always number after transform)
 export type TUpdateInputSchema = {
   name?: string;
   orgId?: number;

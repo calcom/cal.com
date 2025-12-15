@@ -9,8 +9,6 @@ const ZListMembersFilter = z.object({
   value: ZFilterValue,
 });
 
-// Define type first to use with z.ZodType annotation
-// This prevents full Zod generic tree from being emitted in .d.ts files
 export type TListMembersSchema = {
   limit: number;
   offset: number;

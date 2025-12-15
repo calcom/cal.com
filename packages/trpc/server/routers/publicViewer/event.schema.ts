@@ -1,10 +1,7 @@
 import z from "zod";
 
-// Define type first to use with z.ZodType annotation
-// This prevents full Zod generic tree from being emitted in .d.ts files
 // Note: fromRedirectOfNonOrgLink has .default(false), so input has it optional but output has it required
 
-// Input type - what callers send (fromRedirectOfNonOrgLink is optional)
 export type TEventInputSchemaInput = {
   username: string;
   eventSlug: string;
@@ -13,7 +10,6 @@ export type TEventInputSchemaInput = {
   fromRedirectOfNonOrgLink?: boolean;
 };
 
-// Output type - what handlers receive after parsing (fromRedirectOfNonOrgLink has default, so required)
 export type TEventInputSchema = {
   username: string;
   eventSlug: string;

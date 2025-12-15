@@ -3,7 +3,6 @@ import { z } from "zod";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 // Define types first to use with z.ZodType annotation
-// This prevents full Zod generic tree from being emitted in .d.ts files
 export type TFilterQuerySchemaStrict = {
   teamIds?: number[];
   upIds?: string[];
@@ -29,7 +28,6 @@ export const ZEventTypeInputSchema: z.ZodType<TEventTypeInputSchema> = z
   })
   .nullish();
 
-// Input type - what callers send (limit is optional)
 export type TGetEventTypesFromGroupSchemaInput = {
   filters?: TFilterQuerySchemaStrict;
   forRoutingForms?: boolean;
@@ -39,7 +37,6 @@ export type TGetEventTypesFromGroupSchemaInput = {
   searchQuery?: string;
 };
 
-// Output type - what handlers receive after parsing (limit has default, so required)
 export type TGetEventTypesFromGroupSchema = {
   filters?: TFilterQuerySchemaStrict;
   forRoutingForms?: boolean;

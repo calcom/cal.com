@@ -2,8 +2,6 @@ import { z } from "zod";
 
 import { ZTextFilterValue } from "@calcom/features/data-table/lib/types";
 
-// Define type first to use with z.ZodType annotation
-// This prevents full Zod generic tree from being emitted in .d.ts files
 // Note: offset has .default(0), so input type has it optional but output type has it required
 type BookingStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 
@@ -24,7 +22,6 @@ type TGetInputSchemaFilters = {
   beforeCreatedDate?: string;
 };
 
-// Input type - what callers send (offset is optional)
 export type TGetInputSchemaInput = {
   filters: TGetInputSchemaFilters;
   limit: number;
@@ -32,7 +29,6 @@ export type TGetInputSchemaInput = {
   cursor?: string;
 };
 
-// Output type - what handlers receive after parsing (offset has default, so required)
 export type TGetInputSchema = {
   filters: TGetInputSchemaFilters;
   limit: number;
