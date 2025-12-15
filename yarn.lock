@@ -2964,7 +2964,7 @@ __metadata:
     "@sentry/nextjs": ^9.15.0
     bcryptjs: ^2.4.3
     memory-cache: ^0.2.0
-    next: 15.4.9
+    next: 15.4.10
     next-api-middleware: ^1.0.1
     next-axiom: ^0.17.0
     next-swagger-doc: ^0.3.6
@@ -3113,7 +3113,7 @@ __metadata:
     "@types/react": ^18
     "@types/react-dom": ^18
     dotenv: ^17.2.1
-    next: 14.2.34
+    next: 14.2.35
     postcss: ^8
     prisma: ^6.7.0
     react: ^18
@@ -3466,7 +3466,7 @@ __metadata:
     "@types/react-dom": ^18
     autoprefixer: ^10.0.1
     dotenv: ^16.3.1
-    next: 14.2.34
+    next: 14.2.35
     postcss: ^8
     prisma: ^6.7.0
     react: ^18
@@ -4506,7 +4506,7 @@ __metadata:
     mime-types: ^2.1.35
     module-alias: ^2.2.2
     msw: ^0.42.3
-    next: 15.5.8
+    next: 15.5.9
     next-auth: ^4.22.1
     next-axiom: ^0.17.0
     next-i18next: ^15.4.2
@@ -10369,24 +10369,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/env@npm:14.2.34":
-  version: 14.2.34
-  resolution: "@next/env@npm:14.2.34"
-  checksum: 2cbb8c434b5babca34b7d69e6ef87f8d355fcee0cc670185feacae2bed314620f2433d93a284ecdc2d83dfc745b53ce294a98f2ef04a44f47113696d8441ff9e
+"@next/env@npm:14.2.35":
+  version: 14.2.35
+  resolution: "@next/env@npm:14.2.35"
+  checksum: d484b5f98abe2862bacb804a5ff70030f1453ec10788136b5f923286d0644c420f695cdca265c74ccdaaee45f0fc8507bf9bb84b5084545485b21543906ad230
   languageName: node
   linkType: hard
 
-"@next/env@npm:15.4.9":
-  version: 15.4.9
-  resolution: "@next/env@npm:15.4.9"
-  checksum: 457bd44fdf0e7efac56a8bb69e1447d287b4b833359a701c9c34426a598ab10e62ced90c5e54130ff3e51ed7fe55e5be519493fc39d0825b09976ba9aa89e940
+"@next/env@npm:15.4.10":
+  version: 15.4.10
+  resolution: "@next/env@npm:15.4.10"
+  checksum: b89dd1279a53c69d86630b63cb550cbacaed28b8e423f73c492581a17cb4c1bda4429ab3c19b3ec24c2a65f06e55d954b553c6553ee94eb2867c628a3d291e04
   languageName: node
   linkType: hard
 
-"@next/env@npm:15.5.8":
-  version: 15.5.8
-  resolution: "@next/env@npm:15.5.8"
-  checksum: e0abf8c84c6cfd59a0a2d64fe61bd7440e6e2c0b742f6015a635baf63c212456e096ce0511c45b6ae4f693f1b01ad903ac0dc86722082a2dc5153874858c1175
+"@next/env@npm:15.5.9":
+  version: 15.5.9
+  resolution: "@next/env@npm:15.5.9"
+  checksum: b7c5e0509c1b2ef6d249bd0f17b9383539bd2b16a8c56f590275bddead6e0ef59a70475f579db1062f14a58fc8da869eb048244c1f2418f5148ce249bb50c6b7
   languageName: node
   linkType: hard
 
@@ -37892,11 +37892,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:14.2.34":
-  version: 14.2.34
-  resolution: "next@npm:14.2.34"
+"next@npm:14.2.35":
+  version: 14.2.35
+  resolution: "next@npm:14.2.35"
   dependencies:
-    "@next/env": 14.2.34
+    "@next/env": 14.2.35
     "@next/swc-darwin-arm64": 14.2.33
     "@next/swc-darwin-x64": 14.2.33
     "@next/swc-linux-arm64-gnu": 14.2.33
@@ -37946,15 +37946,15 @@ __metadata:
       optional: true
   bin:
     next: dist/bin/next
-  checksum: 01c287784719fbf7de6e4ae5d5923f559d4454940b9e45786047f6eb99287be87a87b994168b7717c9373234673bbc72655f7450a5f13f2bc70bb28e36b37274
+  checksum: a5c25e1387a066720273045cd15222e1c1556d394a15624b148be389cf4e9b876d1dc22f50b97d3c7a97f765560a90eae56585b7a80d74dacd25496da09dc96d
   languageName: node
   linkType: hard
 
-"next@npm:15.4.9":
-  version: 15.4.9
-  resolution: "next@npm:15.4.9"
+"next@npm:15.4.10":
+  version: 15.4.10
+  resolution: "next@npm:15.4.10"
   dependencies:
-    "@next/env": 15.4.9
+    "@next/env": 15.4.10
     "@next/swc-darwin-arm64": 15.4.8
     "@next/swc-darwin-x64": 15.4.8
     "@next/swc-linux-arm64-gnu": 15.4.8
@@ -38005,15 +38005,15 @@ __metadata:
       optional: true
   bin:
     next: dist/bin/next
-  checksum: 715eb7348d6e3ec419c542ca0807fa5ee3794cf2e02bde7151e639b775cc5bd393e8ca85147a0c928be074423005413daa502b604728593032d6f2967be1ab0d
+  checksum: 11f76f5de9f0e734dd3925a48821e29291d82191a099d2e35695d51acbcbd4ee965d2842748e4a95cfdf55f38e3edb2180fd3be4adbe36b01936a7130ad60a11
   languageName: node
   linkType: hard
 
-"next@npm:15.5.8":
-  version: 15.5.8
-  resolution: "next@npm:15.5.8"
+"next@npm:15.5.9":
+  version: 15.5.9
+  resolution: "next@npm:15.5.9"
   dependencies:
-    "@next/env": 15.5.8
+    "@next/env": 15.5.9
     "@next/swc-darwin-arm64": 15.5.7
     "@next/swc-darwin-x64": 15.5.7
     "@next/swc-linux-arm64-gnu": 15.5.7
@@ -38064,7 +38064,7 @@ __metadata:
       optional: true
   bin:
     next: dist/bin/next
-  checksum: 17dcef444465226a162cee513896fa6b7e6096a5616a79a63c2e3c20a35ce07890b6a46198f17d83c08eed40b5aa0bc6b6be2ad686d9faf9a8ddb15355a6ffce
+  checksum: ad59f966a28cff60051740391cee8b2d7974283a4f85fb644c38c211f5a294c9bc90479adec25adaec8a89205c4d36cbc8cfc5362d90665da7905b017ab61d44
   languageName: node
   linkType: hard
 
