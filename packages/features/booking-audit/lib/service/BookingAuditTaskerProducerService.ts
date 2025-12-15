@@ -4,7 +4,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
-import type { BookingAuditAction } from "../types/bookingAuditTask";
+import type { BookingAuditAction, BookingAuditTaskProducerActionData } from "../types/bookingAuditTask";
 import type { ActionSource } from "../common/actionSource";
 import { makeActorById, type PIIFreeActor, type Actor, buildActorEmail } from "../../../bookings/lib/types/actor";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
@@ -105,7 +105,27 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         return makeActorById(piiFreeActor.id);
     }
 
-
+    /**
+     * Queue Audit - Legacy method for backwards compatibility
+     * 
+     * @deprecated Use specialized methods (queueCreatedAudit, queueCancelledAudit, etc.) instead
+     */
+    async queueAudit(
+        bookingUid: string,
+        actor: Actor,
+        organizationId: number | null,
+        actionData: BookingAuditTaskProducerActionData
+    ): Promise<void> {
+        // For legacy method, use UNKNOWN source
+        await this.queueTask({
+            bookingUid,
+            actor,
+            organizationId,
+            action: actionData.action,
+            source: "UNKNOWN",
+            data: actionData.data,
+        });
+    }
     /**
      * Internal helper to queue audit task to Tasker
      * @param params.action - Must be a valid BookingAuditAction value (TYPE from action services are string-typed)

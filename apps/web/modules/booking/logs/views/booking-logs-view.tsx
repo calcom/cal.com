@@ -15,6 +15,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
+import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 
 interface BookingLogsViewProps {
     bookingUid: string;
@@ -37,11 +38,11 @@ type AuditLog = {
     type: string;
     timestamp: string;
     source: string;
-    displayJson?: Record<string, unknown> | null;
+    data: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
-        type: string;
+        type: AuditActorType;
         displayName: string | null;
         displayEmail: string | null;
         displayAvatar: string | null;
@@ -51,9 +52,9 @@ type AuditLog = {
 interface BookingLogsFiltersProps {
     searchTerm: string;
     onSearchChange: (value: string) => void;
-    actorFilter: string | null;
-    onActorFilterChange: (value: string | null) => void;
-    actorOptions: Array<{ label: string; value: string }>;
+    actorFilter: AuditActorType | null;
+    onActorFilterChange: (value: AuditActorType | null) => void;
+    actorOptions: Array<{ label: string; value: AuditActorType }>;
 }
 
 interface BookingLogsTimelineProps {
@@ -86,7 +87,7 @@ const getActionIcon = (action: string) => {
     }
 };
 
-const getActorRoleLabel = (actorType: string): string | null => {
+const getActorRoleLabel = (actorType: AuditActorType): string | null => {
     switch (actorType) {
         case "GUEST":
             return "Guest";
@@ -127,7 +128,7 @@ function BookingLogsFilters({
                     value={actorFilter ? { label: `${t("actor")}: ${actorFilter}`, value: actorFilter } : { label: `${t("actor")}: ${t("all")}`, value: "" }}
                     onChange={(option) => {
                         if (!option) return;
-                        onActorFilterChange(option.value || null);
+                        onActorFilterChange((option.value as AuditActorType) || null);
                     }}
                     options={[{ label: t("all"), value: "" }, ...actorOptions]}
                 />
@@ -317,7 +318,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                     {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
                                                 </span>
                                             </div>
-                                            {log.displayJson && Object.keys(log.displayJson).length > 0 && (
+                                            {log.data && Object.keys(log.data).length > 0 && (
                                                 <div>
                                                     <div className="flex flex-col items-start gap-2 py-1 px-3 border-b border-subtle">
                                                         <Button
@@ -330,7 +331,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                         </Button>
                                                     </div>
                                                     <div>
-                                                        {showJson && <JsonViewer data={log.displayJson} />}
+                                                        {showJson && <JsonViewer data={log.data} />}
                                                     </div>
                                                 </div>
                                             )}
@@ -349,7 +350,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
-    const [actorFilter, setActorFilter] = useState<string | null>(null);
+    const [actorFilter, setActorFilter] = useState<AuditActorType | null>(null);
     const { t } = useLocale();
     const { data, isLoading, error } = trpc.viewer.bookings.getAuditLogs.useQuery({
         bookingUid,
@@ -389,18 +390,16 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
             log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
             log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesActor = !actorFilter || log.actor.displayName === actorFilter;
+        const matchesActor = !actorFilter || log.actor.type === actorFilter;
 
         return matchesSearch && matchesActor;
     });
 
-    const uniqueActorNames = Array.from(
-        new Set(auditLogs.map((log) => log.actor.displayName).filter(Boolean))
-    ) as string[];
+    const uniqueActorTypes = Array.from(new Set(auditLogs.map((log) => log.actor.type))) as AuditActorType[];
 
-    const actorOptions = uniqueActorNames.map((actorName) => ({
-        label: actorName,
-        value: actorName,
+    const actorOptions = uniqueActorTypes.map((actorType) => ({
+        label: getActorRoleLabel(actorType) || actorType,
+        value: actorType,
     }));
 
     return (

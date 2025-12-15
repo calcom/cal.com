@@ -1,6 +1,7 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { IAuditActionService } from "../actions/IAuditActionService";
 import type { BookingAuditAction } from "../repository/IBookingAuditRepository";
+
 // Import all action services
 import { CreatedAuditActionService, type CreatedAuditData } from "../actions/CreatedAuditActionService";
 import { CancelledAuditActionService, type CancelledAuditData } from "../actions/CancelledAuditActionService";
@@ -17,6 +18,10 @@ import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAudi
 import { SeatBookedAuditActionService, type SeatBookedAuditData } from "../actions/SeatBookedAuditActionService";
 import { SeatRescheduledAuditActionService, type SeatRescheduledAuditData } from "../actions/SeatRescheduledAuditActionService";
 
+/**
+ * Union type for all audit action data types
+ * Used for type-safe handling of action-specific data
+ */
 export type AuditActionData =
     | CreatedAuditData
     | CancelledAuditData

@@ -66,7 +66,7 @@ export class AcceptedAuditActionService implements IAuditActionService {
     getDisplayJson({
         storedData,
     }: StoredDataParams): AcceptedAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = storedData;
         return {
             previousStatus: fields.status.old ?? null,
             newStatus: fields.status.new ?? null,

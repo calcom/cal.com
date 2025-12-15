@@ -65,7 +65,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     }
 
     async getDisplayTitle({ storedData }: StoredDataParams): Promise<TranslationWithParams> {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = storedData;
         const user = await this.userRepository.findById({ id: fields.assignedToId.new });
         const reassignedToName = user?.name || "Unknown";
         return {
@@ -77,7 +77,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     getDisplayJson({
         storedData,
     }: StoredDataParams): ReassignmentAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = storedData;
         return {
             newAssignedToId: fields.assignedToId.new,
             reassignmentReason: fields.reassignmentReason.new ?? null,
@@ -88,7 +88,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
         labelKey: string;
         valueKey: string;
     }> {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = storedData;
         const typeTranslationKey = `booking_audit_action.assignmentType_${fields.reassignmentType}`;
 
         return [

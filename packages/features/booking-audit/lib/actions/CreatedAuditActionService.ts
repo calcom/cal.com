@@ -66,7 +66,7 @@ export class CreatedAuditActionService implements IAuditActionService {
         storedData,
         userTimeZone,
     }: StoredDataParams): CreatedAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = storedData;
         const timeZone = userTimeZone;
 
         return {

@@ -124,3 +124,5 @@ export function buildActorEmail({ identifier, actorType }: { identifier: string,
   return `${identifier}@${actorType}.internal`;
 }
 
+// System actor ID constant
+export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";

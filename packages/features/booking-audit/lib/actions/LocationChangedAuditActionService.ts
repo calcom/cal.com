@@ -60,7 +60,7 @@ export class LocationChangedAuditActionService implements IAuditActionService {
     }
 
     async getDisplayTitle({ storedData }: StoredDataParams): Promise<TranslationWithParams> {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = storedData;
         // TODO: Ideally we want to translate the location label to the user's locale
         // We currently don't accept requesting user's translate fn here, fix it later.
         const t = await getTranslation("en", "common");

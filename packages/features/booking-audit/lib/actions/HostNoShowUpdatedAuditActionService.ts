@@ -65,7 +65,7 @@ export class HostNoShowUpdatedAuditActionService implements IAuditActionService 
     getDisplayJson({
         storedData,
     }: StoredDataParams): HostNoShowUpdatedAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = storedData;
         return {
             noShowHost: fields.noShowHost.new,
             previousNoShowHost: fields.noShowHost.old ?? null,

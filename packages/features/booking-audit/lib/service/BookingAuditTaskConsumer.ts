@@ -5,7 +5,6 @@ import type { IFeaturesRepository } from "@calcom/features/flags/features.reposi
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import type { PIIFreeActor } from "../../../bookings/lib/types/actor";
-import type { BookingAuditTaskConsumerPayload } from "../types/bookingAuditTask";
 import { BookingAuditTaskConsumerSchema } from "../types/bookingAuditTask";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction } from "../repository/IBookingAuditRepository";
@@ -126,6 +125,7 @@ export class BookingAuditTaskConsumer {
         // Step 2: Validate and migrate data with action-specific schema
         const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload: validatedPayload, taskId });
 
+        // dataInLatestFormat is validated by action-specific schema in migrateIfNeeded
         await this.onBookingAction({ bookingUid, actor, action, source, data: dataInLatestFormat, timestamp });
     }
 
@@ -143,7 +143,7 @@ export class BookingAuditTaskConsumer {
     private async migrateIfNeeded(params: {
         action: BookingAuditAction;
         data: unknown;
-        payload: BookingAuditTaskConsumerPayload;
+        payload: BookingAuditTaskBasePayload;
         taskId: string;
     }) {
         const { action, data, payload, taskId } = params;
@@ -174,7 +174,7 @@ export class BookingAuditTaskConsumer {
      * @param taskId - Task ID (required for DB update)
      */
     private async updateTaskPayload(
-        payload: BookingAuditTaskConsumerPayload,
+        payload: BookingAuditTaskBasePayload,
         latestData: unknown,
         taskId: string
     ): Promise<void> {
@@ -254,11 +254,12 @@ export class BookingAuditTaskConsumer {
     private getRecordType(params: { action: BookingAuditAction }): BookingAuditType {
         const { action } = params;
 
+         
         switch (action) {
             case "CREATED":
                 return "RECORD_CREATED";
 
-            // Status changes
+            // All update actions fall through to return RECORD_UPDATED
             case "CANCELLED":
             case "ACCEPTED":
             case "REJECTED":
@@ -301,6 +302,7 @@ export class BookingAuditTaskConsumer {
             type: recordType,
             action,
             source,
+            // versionedData is { version: number; fields: unknown } which is JsonValue-compatible
             data: versionedData as JsonValue,
             timestamp: new Date(timestamp),
         });

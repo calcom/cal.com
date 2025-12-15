@@ -65,7 +65,7 @@ export class AttendeeAddedAuditActionService implements IAuditActionService {
     getDisplayJson({
         storedData,
     }: StoredDataParams): AttendeeAddedAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = storedData;
         const previousAttendeesSet = new Set(fields.attendees.old ?? []);
         const addedAttendees = fields.attendees.new.filter(
             (email) => !previousAttendeesSet.has(email)
