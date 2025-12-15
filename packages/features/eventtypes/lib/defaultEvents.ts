@@ -90,6 +90,7 @@ const commons = {
   seatsShowAvailabilityCount: null,
   disableCancelling: false,
   disableRescheduling: false,
+  minimumRescheduleNotice: null,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
   allowReschedulingCancelledBookings: false,
@@ -141,15 +142,20 @@ const commons = {
   restrictionScheduleId: null,
   useBookerTimezone: false,
   profileId: null,
+  profile: null,
   requiresConfirmationWillBlockSlot: false,
   canSendCalVideoTranscriptionEmails: false,
   instantMeetingExpiryTimeOffsetInSeconds: 0,
+  autoTranslateInstantMeetingTitleEnabled: true,
   instantMeetingScheduleId: null,
   instantMeetingParameters: [],
   eventTypeColor: null,
   hostGroups: [],
   bookingRequiresAuthentication: false,
   optionalGuestTeamMembers: [],
+  createdAt: null,
+  updatedAt: null,
+  rrHostSubsetEnabled: false,
 };
 
 export const dynamicEvent = {

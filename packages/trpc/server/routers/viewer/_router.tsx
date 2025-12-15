@@ -1,8 +1,6 @@
-import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
-import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
-import { router, mergeRouters } from "../../trpc";
+import { router } from "../../trpc";
 import app_RoutingForms from "../apps/routing-forms/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
@@ -27,6 +25,7 @@ import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_r
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { i18nRouter } from "./i18n/_router";
+import { insightsRouter } from "./insights/_router";
 import { meRouter } from "./me/_router";
 import { oAuthRouter } from "./oAuth/_router";
 import { oooRouter } from "./ooo/_router";
@@ -39,6 +38,7 @@ import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
 import { travelSchedulesRouter } from "./travelSchedules/_router";
+import { userAdminRouter } from "./users/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
 
@@ -53,12 +53,8 @@ export const viewerRouter = router({
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
   credentials: credentialsRouter,
-  eventTypes: mergeRouters(
-    eventTypesRouter,
-    router({
-      heavy: heavyEventTypesRouter,
-    })
-  ),
+  eventTypes: eventTypesRouter,
+  eventTypesHeavy: heavyEventTypesRouter,
   availability: availabilityRouter,
   teams: viewerTeamsRouter,
   timezones: timezonesRouter,

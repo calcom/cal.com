@@ -6,7 +6,7 @@ import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useAppsData from "@calcom/features/apps/hooks/useAppsData";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, EventTypeSetupProps, EventTypeApps } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -18,12 +18,16 @@ import { Section } from "@calcom/ui/components/section";
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
 
-export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
+export const EventAppsTab = ({
+  eventType,
+  eventTypeApps,
+  isPendingApps,
+}: {
+  eventType: EventType;
+  eventTypeApps?: EventTypeApps;
+  isPendingApps: boolean;
+}) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isPending } = trpc.viewer.apps.integrations.useQuery({
-    extendsFeature: "EventType",
-    teamId: eventType.team?.id || eventType.parent?.teamId,
-  });
 
   const utils = trpc.useUtils();
 
@@ -126,7 +130,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               }
             />
           )}
-          {!isPending && !installedApps?.length ? (
+          {!isPendingApps && !installedApps?.length ? (
             <EmptyScreen
               Icon="grid-3x3"
               headline={t("empty_installed_apps_headline")}
@@ -167,8 +171,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       </div>
       {/* TODO: Add back after salesforce v3 dev */}
       {!appsDisableProps.disabled && (
-        <div className="bg-muted mt-4 rounded-2xl p-4">
-          {!isPending && notInstalledApps?.length ? (
+        <div className="bg-cal-muted mt-4 rounded-2xl p-4">
+          {!isPendingApps && notInstalledApps?.length ? (
             <div className="mb-4 flex flex-col">
               <Section.Title>{t("available_apps_lower_case")}</Section.Title>
               <Section.Description>

@@ -131,7 +131,7 @@ test.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
 
-      const submitPromise = page.waitForResponse("/api/trpc/eventTypes/heavy/duplicate?batch=1");
+      const submitPromise = page.waitForResponse("/api/trpc/eventTypesHeavy/duplicate?batch=1");
       await page.getByTestId("continue").click();
       const response = await submitPromise;
       expect(response.status()).toBe(200);
@@ -144,7 +144,7 @@ test.describe("Event Types tests", () => {
       await page.waitForURL((url) => {
         return !!url.pathname.match(/\/event-types\/.+/);
       });
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
     });
@@ -167,7 +167,7 @@ test.describe("Event Types tests", () => {
       await page.locator("[data-testid=add-location]").click();
       await fillLocation(page, locationData[2], 2);
 
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
 
@@ -212,7 +212,9 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("text=+19199999999")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toHaveCount(2);
+        await expect(page.locator("text=+19199999999").first()).toBeVisible();
+        await expect(page.locator("text=+19199999999").nth(1)).toBeVisible();
       });
 
       test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
@@ -239,7 +241,7 @@ test.describe("Event Types tests", () => {
         await gotoFirstEventType(page);
 
         await page.getByTestId("location-select").click();
-        await page.locator(`text="Cal Video (Global)"`).click();
+        await page.locator(`text="Cal Video (Default)"`).click();
 
         await saveEventType(page);
         await gotoBookingPage(page);
@@ -274,7 +276,6 @@ test.describe("Event Types tests", () => {
       });
 
       // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-      // eslint-disable-next-line playwright/no-skipped-test
       test.skip("Can remove location from multiple locations that are saved", async ({ page }) => {
         await gotoFirstEventType(page);
 
@@ -282,7 +283,7 @@ test.describe("Event Types tests", () => {
         await selectAttendeePhoneNumber(page);
 
         // Add Cal Video location
-        await addAnotherLocation(page, "Cal Video (Global)");
+        await addAnotherLocation(page, "Cal Video (Default)");
 
         await saveEventType(page);
 
@@ -314,7 +315,7 @@ test.describe("Event Types tests", () => {
         const locationAddress = "New Delhi";
 
         await fillLocation(page, locationAddress, 0, false);
-        await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+        await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
           action: () => page.locator("[data-testid=update-eventtype]").click(),
         });
 
@@ -419,7 +420,6 @@ test.describe("Event Types tests", () => {
     });
     test("should enable timezone lock in event advanced settings and verify disabled timezone selector on booking page", async ({
       page,
-      users,
     }) => {
       await gotoFirstEventType(page);
       await expect(page.locator("[data-testid=event-title]")).toBeVisible();
@@ -429,7 +429,7 @@ test.describe("Event Types tests", () => {
       await page.locator('[aria-label="Timezone Select"]').fill("New York");
       await page.keyboard.press("Enter");
 
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
       await page.goto("/event-types");
@@ -496,6 +496,9 @@ test.describe("Event Types tests", () => {
       });
       await test.step("should open first eventType and check Interface Language", async () => {
         await gotoFirstEventType(page);
+        // Go to Advanced tab
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         const interfaceLanguageValue = page
           .getByTestId("event-interface-language")
           .locator('div[class$="-singleValue"]');
@@ -518,6 +521,9 @@ test.describe("Event Types tests", () => {
 
       await test.step("should open first eventType and change Interface Language to Deutsche", async () => {
         await gotoFirstEventType(page);
+        // Go to Advanced tab and enable offerSeats
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         await page.getByTestId("event-interface-language").click();
         await page.locator(`text="Deutsch"`).click();
         await saveEventType(page);
@@ -574,6 +580,9 @@ test.describe("Event Types tests", () => {
         await page.goto("/event-types");
         await page.waitForSelector('[data-testid="event-types"]');
         await gotoFirstEventType(page);
+        // Go to Advanced tab and enable offerSeats
+        await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+        await page.click("[data-testid=event-interface-language-toggle]");
         await page.getByTestId("event-interface-language").click();
         await page.getByTestId("select-option-es").click();
         await saveEventType(page);

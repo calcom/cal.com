@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
@@ -34,28 +35,30 @@ const useOrgCreation = () => {
   const session = useSession();
   const utils = trpc.useUtils();
   const [serverErrorMessage, setServerErrorMessage] = useState("");
-  const { useOnboardingStore, isBillingEnabled } = useOnboarding();
+  const { useOnboardingStore } = useOnboarding();
   const { reset } = useOnboardingStore();
 
-  const checkoutMutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
-    onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      }
-    },
-    onError: (error) => {
-      setServerErrorMessage(t(error.message));
-    },
-  });
-
-  const createOrgMutation = trpc.viewer.organizations.createSelfHosted.useMutation({
+  // Single mutation for all flows (billing, self-hosted, admin)
+  const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
-      if (data.organization) {
-        // Invalidate the organizations query to ensure fresh data on the next page
+      reset({
+        onboardingId: data.organizationOnboardingId,
+      });
+
+      if (data.checkoutUrl) {
+        // Billing enabled - redirect to Stripe
+        window.location.href = data.checkoutUrl;
+      } else if (data.organizationId) {
+        // Self-hosted - org already created, redirect to organizations
         await utils.viewer.organizations.listCurrent.invalidate();
         await session.update();
         reset();
-        window.location.href = `${window.location.origin}/settings/organizations/profile`;
+        // Set flag to show welcome modal (using both query param and sessionStorage for reliability)
+        setShowNewOrgModalFlag();
+        window.location.href = `${window.location.origin}/settings/organizations/profile?newOrganizationModal=true`;
+      } else {
+        // Unexpected state
+        setServerErrorMessage("Unexpected response from server");
       }
     },
     onError: (error) => {
@@ -63,12 +66,10 @@ const useOrgCreation = () => {
     },
   });
 
-  const mutationToUse = isBillingEnabled ? checkoutMutation : createOrgMutation;
-
   return {
-    mutation: mutationToUse,
-    mutate: mutationToUse.mutate,
-    isPending: mutationToUse.isPending,
+    mutation: intentToCreateOrgMutation,
+    mutate: intentToCreateOrgMutation.mutate,
+    isPending: intentToCreateOrgMutation.isPending,
     errorMessage: serverErrorMessage,
   };
 };
@@ -84,7 +85,13 @@ export const AddNewTeamMembersForm = () => {
     invitedMembers,
     logo,
     bio,
-    onboardingId,
+    name,
+    slug,
+    billingPeriod,
+    seats,
+    pricePerSeat,
+    brandColor,
+    bannerUrl,
   } = useOnboardingStore();
   const orgCreation = useOrgCreation();
 
@@ -129,7 +136,7 @@ export const AddNewTeamMembersForm = () => {
 
   if (isLoading) {
     return (
-      <SkeletonContainer as="div" className="space-y-6">
+      <SkeletonContainer as="div" className="stack-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
@@ -144,10 +151,10 @@ export const AddNewTeamMembersForm = () => {
           <Alert severity="error" message={orgCreation.errorMessage} />
         </div>
       )}
-      <div className="space-y-6">
+      <div className="stack-y-6">
         <div className="flex space-x-3">
           <form onSubmit={onSubmit} className="flex w-full items-end space-x-2">
-            <div className="flex-grow">
+            <div className="grow">
               <TextField
                 label={t("email")}
                 type="email"
@@ -155,7 +162,7 @@ export const AddNewTeamMembersForm = () => {
                 placeholder="colleague@company.com"
               />
             </div>
-            <Button type="submit" StartIcon="plus" color="secondary">
+            <Button type="submit" StartIcon="plus" color="secondary" data-testid="invite-new-member-button">
               {t("add")}
             </Button>
           </form>
@@ -203,22 +210,31 @@ export const AddNewTeamMembersForm = () => {
         )}
       </div>
 
-      <div className="mt-3 mt-6 flex items-center justify-end">
+      <div className="mt-3 flex items-center justify-end">
         <Button
+          data-testid="publish-button"
           onClick={() => {
-            if (!onboardingId) {
-              console.error("Org owner email and onboardingId are required", {
-                orgOwnerEmail,
-                onboardingId,
-              });
+            // Submit ALL data to intentToCreateOrg
+            if (!name || !slug || !orgOwnerEmail) {
+              console.error("Required fields missing", { name, slug, orgOwnerEmail });
+              showToast(t("required_fields_missing"), "error");
               return;
             }
-            orgCreation.mutation.mutate({
+
+            orgCreation.mutate({
+              name,
+              slug,
+              orgOwnerEmail,
+              seats,
+              pricePerSeat,
+              billingPeriod,
+              creationSource: "WEBAPP" as const,
               logo,
               bio,
+              brandColor,
+              bannerUrl,
               teams,
               invitedMembers,
-              onboardingId,
             });
           }}
           loading={orgCreation.isPending}>

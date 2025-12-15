@@ -7,6 +7,7 @@ import { ZodError } from "zod";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -151,7 +152,7 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <div className="flex items-start justify-between">
-          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">{description}</p>
           {showPhoneAndEmailToggle && (
             <ToggleGroup
               value={(() => {
@@ -209,7 +210,7 @@ export const FormBuilder = function FormBuilder({
         <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
           {t("questions")}
         </p>
-        <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+        <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
           {t("all_info_your_booker_provide")}
         </p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
@@ -269,7 +270,7 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="hover:bg-muted group relative flex items-center justify-between p-4 transition">
+                className="hover:bg-cal-muted group relative flex items-center justify-between p-4 transition">
                 {!disabled && (
                   <>
                     {index >= 1 && (
@@ -312,7 +313,7 @@ export const FormBuilder = function FormBuilder({
                       ))}
                     </div>
                   </div>
-                  <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
+                  <p className="text-subtle max-w-[280px] wrap-break-word pt-1 text-sm sm:max-w-[500px]">
                     {fieldType.label}
                   </p>
                 </div>
@@ -380,6 +381,12 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
+
+            if (data.name === "guests" && type !== "multiemail") {
+              showToast(t("guests_field_must_be_multiemail"), "error");
+              return;
+            }
+
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
@@ -420,7 +427,7 @@ export const FormBuilder = function FormBuilder({
 function Options({
   label = "Options",
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   onChange = () => {},
   className = "",
   readOnly = false,
@@ -453,12 +460,12 @@ function Options({
   return (
     <div className={className}>
       <Label>{label}</Label>
-      <div className="bg-muted rounded-md p-4" data-testid="options-container">
-        <ul ref={animationRef} className="flex flex-col gap-1">
+      <div className="bg-cal-muted rounded-md p-4" data-testid="options-container">
+        <ul ref={animationRef} className="flex flex-col gap-3">
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center gap-2">
-                <div className="flex-grow">
+                <div className="relative grow">
                   <Input
                     required
                     value={option.label}
@@ -474,7 +481,23 @@ function Options({
                     }}
                     readOnly={readOnly}
                     placeholder={t("enter_option", { index: index + 1 })}
+                    className={value.length > 2 && !readOnly ? "pr-8" : ""}
                   />
+                  {value.length > 2 && !readOnly && (
+                    <Button
+                      type="button"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0!"
+                      size="sm"
+                      color="minimal"
+                      StartIcon="x"
+                      onClick={() => {
+                        if (!value) return;
+                        const newOptions = [...(value || [])];
+                        newOptions.splice(index, 1);
+                        onChange(newOptions);
+                      }}
+                    />
+                  )}
                 </div>
                 {showPrice && (
                   <div className="w-24">
@@ -499,21 +522,6 @@ function Options({
                     />
                   </div>
                 )}
-                {value.length > 2 && !readOnly && (
-                  <Button
-                    type="button"
-                    className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
-                    size="sm"
-                    color="minimal"
-                    StartIcon="x"
-                    onClick={() => {
-                      if (!value) return;
-                      const newOptions = [...(value || [])];
-                      newOptions.splice(index, 1);
-                      onChange(newOptions);
-                    }}
-                  />
-                )}
               </div>
             </li>
           ))}
@@ -522,6 +530,7 @@ function Options({
           <Button
             color="minimal"
             data-testid="add-option"
+            className="mt-3"
             onClick={() => {
               const newOptions = [...(value || [])];
               newOptions.push({ label: "", value: "", price: 0 });
@@ -600,14 +609,22 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto">
-            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
+            <DialogHeader
+              title={t("add_a_booking_question")}
+              subtitle={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="booking_questions_description"
+                  href="https://cal.com/help/event-types/booking-questions"
+                />
+              }
+            />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
@@ -692,7 +709,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {!!fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
@@ -875,7 +892,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
             __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
@@ -941,13 +957,13 @@ function VariantFields({
     <>
       {supportsVariantToggle ? (
         <Switch
+          classNames={{ container: "mt-1" }}
           checked={!isDefaultVariant}
           label={variantToggleLabel}
           data-testid="variant-toggle"
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (

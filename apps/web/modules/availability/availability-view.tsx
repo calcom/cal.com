@@ -5,6 +5,7 @@ import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/av
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
+import posthog from "posthog-js";
 
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -141,6 +142,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
             <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
               {availabilities.schedules.map((schedule) => (
                 <ScheduleListItem
+                  redirectUrl={`/availability/${schedule.id}`}
                   displayOptions={{
                     hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,
                     timeZone: user?.timeZone,
@@ -181,15 +183,18 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
 }
 
 type AvailabilityCTAProps = {
-  toggleGroupOptions: {
-    value: string;
-    label: string;
-  }[];
+  canViewTeamAvailability: boolean;
 };
-export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) => {
+export const AvailabilityCTA = ({ canViewTeamAvailability }: AvailabilityCTAProps) => {
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useLocale();
+
+  const toggleGroupOptions = [
+    { value: "mine", label: t("my_availability") },
+    ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability"), onClick: () => { posthog.capture("team_availability_toggle_clicked") } }] : []),
+  ]
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair

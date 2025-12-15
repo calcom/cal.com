@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -10,7 +10,6 @@ import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { EmailField } from "@calcom/ui/components/form";
@@ -35,6 +34,14 @@ interface IAddActionDialog {
     senderId?: string,
     senderName?: string
   ) => void;
+  actionOptions: {
+    label: string;
+    value: WorkflowActions;
+    needsCredits: boolean;
+    creditsTeamId?: number;
+    isOrganization?: boolean;
+    needsTeamsUpgrade?: boolean;
+  }[];
 }
 
 interface ISelectActionOption {
@@ -52,11 +59,10 @@ type AddActionFormValues = {
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction, actionOptions } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
@@ -152,7 +158,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               setIsEmailAddressNeeded(false);
               setIsSenderIdNeeded(false);
             }}>
-            <div className="space-y-1">
+            <div className="stack-y-1">
               <Label htmlFor="label">{t("action")}:</Label>
               <Controller
                 name="action"
@@ -166,8 +172,15 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       defaultValue={actionOptions[0]}
                       onChange={handleSelectAction}
                       options={actionOptions.map((option) => ({
-                        ...option,
+                        label: option.label,
+                        value: option.value,
+                        needsTeamsUpgrade: option.needsTeamsUpgrade,
                       }))}
+                      isOptionDisabled={(option: {
+                        label: string;
+                        value: WorkflowActions;
+                        needsTeamsUpgrade?: boolean;
+                      }) => !!option.needsTeamsUpgrade}
                     />
                   );
                 }}
@@ -177,7 +190,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               )}
             </div>
             {isPhoneNumberNeeded && (
-              <div className="mt-5 space-y-1">
+              <div className="mt-5 stack-y-1">
                 <Label htmlFor="sendTo">{t("phone_number")}</Label>
                 <div className="mb-5 mt-1">
                   <Controller

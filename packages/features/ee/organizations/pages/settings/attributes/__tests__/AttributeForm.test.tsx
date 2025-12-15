@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import React from "react";
 import type { Mock } from "vitest";
 import { vi } from "vitest";
@@ -44,6 +45,10 @@ const AttributeFormActions = {
   },
 
   render: (initialOptions: InitialOption[], mockOnSubmit: Mock) => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Tooltip.Provider>{children}</Tooltip.Provider>
+    );
+
     return render(
       <AttributeForm
         onSubmit={mockOnSubmit}
@@ -53,7 +58,8 @@ const AttributeFormActions = {
           options: initialOptions,
         }}
         header={<Button type="submit">Save</Button>}
-      />
+      />,
+      { wrapper }
     );
   },
 

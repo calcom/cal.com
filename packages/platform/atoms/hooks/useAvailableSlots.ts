@@ -28,8 +28,8 @@ export const useAvailableSlots = ({
       rest.usernameList,
       rest.routedTeamMemberIds,
       rest.skipContactOwner,
-      rest._shouldServeCache,
       rest.teamMemberEmail,
+      rest.rrHostSubsetIds,
     ],
     queryFn: () => {
       return http

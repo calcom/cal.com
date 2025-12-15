@@ -289,7 +289,7 @@ export class UsersRepository {
         user: true,
       },
     });
-    return profiles.map((profile) => profile.user);
+    return profiles.map((profile: Profile & { user: User }) => profile.user);
   }
 
   async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {
@@ -405,6 +405,32 @@ export class UsersRepository {
       },
       select: {
         email: true,
+      },
+    });
+  }
+
+  async getUserEmailsVerifiedForTeam(teamId: number) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        teams: {
+          some: {
+            teamId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        secondaryEmails: {
+          where: {
+            emailVerified: {
+              not: null,
+            },
+          },
+          select: {
+            email: true,
+          },
+        },
       },
     });
   }

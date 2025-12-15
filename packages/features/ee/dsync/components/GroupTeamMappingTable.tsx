@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
@@ -18,8 +19,10 @@ interface TeamGroupMapping {
 }
 
 const GroupTeamMappingTable = () => {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider>
+    <DataTableProvider tableIdentifier={pathname}>
       <GroupTeamMappingTableContent />
     </DataTableProvider>
   );

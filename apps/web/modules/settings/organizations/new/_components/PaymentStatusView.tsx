@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Icon } from "@calcom/ui/components/icon";
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 
 const PaymentStatusView = () => {
   const { t } = useLocale();
@@ -15,9 +15,7 @@ const PaymentStatusView = () => {
   const searchParams = useSearchParams();
   const paymentStatus = searchParams?.get("paymentStatus");
   const paymentError = searchParams?.get("error");
-  const { useOnboardingStore } = useOnboarding({
-    step: "status",
-  });
+  const { useOnboardingStore } = useOnboarding();
   const [organizationCreated, setOrganizationCreated] = useState<boolean>(false);
   const { name } = useOnboardingStore();
 
@@ -30,13 +28,13 @@ const PaymentStatusView = () => {
     if (organization) {
       setOrganizationCreated(true);
       // Organization is created, redirect to next step
-      router.push(`/settings/organizations`);
+      router.push(`/settings/organizations?newOrganizationModal=true`);
     }
   }, [organization, router, useOnboardingStore]);
 
   if (paymentStatus === "failed" || paymentError) {
     return (
-      <div className="flex min-h-[500px] flex-col items-center justify-center space-y-6 px-4 sm:px-6">
+      <div className="flex min-h-[500px] flex-col items-center justify-center stack-y-6 px-4 sm:px-6">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
           <Icon name="x" className="h-6 w-6 text-red-600" />
         </div>
@@ -52,7 +50,7 @@ const PaymentStatusView = () => {
   }
 
   return (
-    <div className="flex min-h-[500px] flex-col items-center justify-center space-y-6 px-4 sm:px-6">
+    <div className="flex min-h-[500px] flex-col items-center justify-center stack-y-6 px-4 sm:px-6">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
         <Icon name="check" className="h-6 w-6 text-green-600 dark:text-green-400" />
       </div>

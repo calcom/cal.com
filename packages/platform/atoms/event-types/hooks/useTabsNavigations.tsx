@@ -71,12 +71,14 @@ export const useTabsNavigations = ({
 
   const enabledWorkflowsNumber = allActiveWorkflows ? allActiveWorkflows.length : 0;
 
+  const eventTypeId = formMethods.getValues("id");
+
   const EventTypeTabs = useMemo(() => {
     const navigation: VerticalTabItemProps[] = getNavigation({
       t,
       length,
       multipleDuration,
-      id: formMethods.getValues("id"),
+      id: eventTypeId,
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
@@ -87,7 +89,7 @@ export const useTabsNavigations = ({
     if (!requirePayment) {
       navigation.splice(3, 0, {
         name: t("recurring"),
-        href: `/event-types/${formMethods.getValues("id")}?tabName=recurring`,
+        href: `/event-types/${eventTypeId}?tabName=recurring`,
         icon: "repeat",
         info: t(`recurring_event_tab_description`),
         "data-testid": "recurring",
@@ -95,7 +97,7 @@ export const useTabsNavigations = ({
     }
     navigation.splice(1, 0, {
       name: t("availability"),
-      href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
+      href: `/event-types/${eventTypeId}?tabName=availability`,
       icon: "calendar",
       info:
         isManagedEventType || isChildrenManagedEventType
@@ -115,7 +117,7 @@ export const useTabsNavigations = ({
     if (team) {
       navigation.splice(2, 0, {
         name: t("assignment"),
-        href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
+        href: `/event-types/${eventTypeId}?tabName=team`,
         icon: "users",
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
@@ -137,21 +139,11 @@ export const useTabsNavigations = ({
     }
     navigation.push({
       name: t("webhooks"),
-      href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
+      href: `/event-types/${eventTypeId}?tabName=webhooks`,
       icon: "webhook",
       info: `${activeWebhooksNumber} ${t("active")}`,
       "data-testid": "webhooks",
     });
-    const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
-    if (team && hidden) {
-      navigation.push({
-        name: "Cal.ai",
-        href: `/event-types/${eventType.id}?tabName=ai`,
-        icon: "sparkles",
-        info: t("cal_ai_event_tab_description"), // todo `cal_ai_event_tab_description`,
-        "data-testid": "Cal.ai",
-      });
-    }
     return navigation;
   }, [
     t,
@@ -165,11 +157,13 @@ export const useTabsNavigations = ({
     length,
     requirePayment,
     multipleDuration,
-    formMethods.getValues("id"),
+    eventTypeId,
     watchSchedulingType,
     watchChildrenCount,
     activeWebhooksNumber,
     canReadWorkflows,
+    eventType.id,
+    formMethods,
   ]);
 
   return { tabsNavigation: EventTypeTabs };

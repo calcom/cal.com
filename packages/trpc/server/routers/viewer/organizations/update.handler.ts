@@ -15,6 +15,38 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
+export const getBannerUrl = async (
+  banner: string | null | undefined,
+  teamId: number
+): Promise<string | null | undefined> => {
+  if (banner === undefined) {
+    // Banner not provided, don't update
+    return undefined;
+  }
+
+  if (banner === null) {
+    // Explicitly set to null, remove banner
+    return null;
+  }
+
+  if (
+    banner.startsWith("data:image/png;base64,") ||
+    banner.startsWith("data:image/jpeg;base64,") ||
+    banner.startsWith("data:image/jpg;base64,")
+  ) {
+    // Valid base64 image, resize and upload
+    const resizedBanner = await resizeBase64Image(banner, { maxSize: 1500 });
+    return await uploadLogo({
+      logo: resizedBanner,
+      teamId,
+      isBanner: true,
+    });
+  }
+
+  // Invalid banner string, don't update
+  return undefined;
+};
+
 type UpdateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -33,24 +65,83 @@ const updateOrganizationSettings = async ({
 }) => {
   const data: Prisma.OrganizationSettingsUpdateInput = {};
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("lockEventTypeCreation")) {
     data.lockEventTypeCreationForUsers = input.lockEventTypeCreation;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("adminGetsNoSlotsNotification")) {
     data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("allowSEOIndexing")) {
     data.allowSEOIndexing = input.allowSEOIndexing;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("disablePhoneOnlySMSNotifications")) {
     data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
+  }
+
+  if (input.hasOwnProperty("disableAutofillOnBookingPage")) {
+    data.disableAutofillOnBookingPage = input.disableAutofillOnBookingPage;
+  }
+  
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("orgAutoJoinOnSignup")) {
+    data.orgAutoJoinOnSignup = input.orgAutoJoinOnSignup;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeConfirmationEmail")) {
+    data.disableAttendeeConfirmationEmail = input.disableAttendeeConfirmationEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeCancellationEmail")) {
+    data.disableAttendeeCancellationEmail = input.disableAttendeeCancellationEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeRescheduledEmail")) {
+    data.disableAttendeeRescheduledEmail = input.disableAttendeeRescheduledEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeRequestEmail")) {
+    data.disableAttendeeRequestEmail = input.disableAttendeeRequestEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeReassignedEmail")) {
+    data.disableAttendeeReassignedEmail = input.disableAttendeeReassignedEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeAwaitingPaymentEmail")) {
+    data.disableAttendeeAwaitingPaymentEmail = input.disableAttendeeAwaitingPaymentEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeRescheduleRequestEmail")) {
+    data.disableAttendeeRescheduleRequestEmail = input.disableAttendeeRescheduleRequestEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeLocationChangeEmail")) {
+    data.disableAttendeeLocationChangeEmail = input.disableAttendeeLocationChangeEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeNewEventEmail")) {
+    data.disableAttendeeNewEventEmail = input.disableAttendeeNewEventEmail;
   }
 
   // If no settings values have changed lets skip this update
@@ -185,21 +276,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: mergeMetadata({ ...input.metadata }),
   };
 
-  if (
-    input.banner &&
-    (input.banner.startsWith("data:image/png;base64,") ||
-      input.banner.startsWith("data:image/jpeg;base64,") ||
-      input.banner.startsWith("data:image/jpg;base64,"))
-  ) {
-    const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
-    data.bannerUrl = await uploadLogo({
-      logo: banner,
-      teamId: currentOrgId,
-      isBanner: true,
-    });
-  } else {
-    data.bannerUrl = null;
-  }
+  data.bannerUrl = await getBannerUrl(input.banner, currentOrgId);
 
   if (
     input.logoUrl &&

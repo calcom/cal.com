@@ -1,9 +1,11 @@
-import { useRef } from "react";
+import { useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import classNames from "@calcom/ui/classNames";
 
 import { useCalendarStore } from "../../state/store";
+import { calculateEventLayouts, createLayoutMap } from "../../utils/overlap";
 import { Event } from "./Event";
 
 type Props = {
@@ -20,110 +22,87 @@ export function EventList({ day }: Props) {
     shallow
   );
 
-  // Use a ref so we dont trigger a re-render
-  const longestRef = useRef<{
-    start: Date;
-    end: Date;
-    duration: number;
-    idx: number;
-  } | null>(null);
+  const [hoveredEventId, setHoveredEventId] = useState<number | null>(null);
+
+  const dayEvents = useMemo(() => {
+    return events.filter((event) => {
+      return dayjs(event.start).isSame(day, "day") && !event.options?.allDay;
+    });
+  }, [events, day]);
+
+  const layoutMap = useMemo(() => {
+    const layouts = calculateEventLayouts(dayEvents);
+    return createLayoutMap(layouts);
+  }, [dayEvents]);
+
+  const eventCalculations = useMemo(() => {
+    return new Map(
+      dayEvents.map((event) => {
+        const eventStart = dayjs(event.start);
+        const eventEnd = dayjs(event.end);
+        const eventDuration = eventEnd.diff(eventStart, "minutes");
+        const eventStartHour = eventStart.hour();
+        const eventStartDiff = (eventStartHour - (startHour || 0)) * 60 + eventStart.minute();
+
+        return [
+          event.id,
+          {
+            eventStart,
+            eventDuration,
+            eventStartDiff,
+          },
+        ];
+      })
+    );
+  }, [dayEvents, startHour]);
+
+  // Find which overlap group the hovered event belongs to
+  const hoveredEventLayout = hoveredEventId ? layoutMap.get(hoveredEventId) : null;
+  const hoveredGroupIndex = hoveredEventLayout?.groupIndex ?? null;
 
   return (
     <>
-      {events
-        .filter((event) => {
-          return dayjs(event.start).isSame(day, "day") && !event.options?.allDay; // Filter all events that are not allDay and that are on the current day
-        })
-        .map((event, idx, eventsArray) => {
-          let width = 90;
-          let marginLeft: string | number = 0;
-          let right = 0;
-          let zIndex = 61;
+      {dayEvents.map((event) => {
+        const layout = layoutMap.get(event.id);
+        if (!layout) return null;
 
-          const eventStart = dayjs(event.start);
-          const eventEnd = dayjs(event.end);
+        const calc = eventCalculations.get(event.id);
+        if (!calc) return null;
 
-          const eventDuration = eventEnd.diff(eventStart, "minutes");
+        const { eventStart, eventDuration, eventStartDiff } = calc;
 
-          const eventStartHour = eventStart.hour();
-          const eventStartDiff = (eventStartHour - (startHour || 0)) * 60 + eventStart.minute();
-          const nextEvent = eventsArray[idx + 1];
-          const prevEvent = eventsArray[idx - 1];
+        const isHovered = hoveredEventId === event.id;
+        const isInHoveredGroup = hoveredGroupIndex !== null && layout.groupIndex === hoveredGroupIndex;
+        const zIndex = isHovered ? 100 : layout.baseZIndex;
 
-          if (!longestRef.current) {
-            longestRef.current = {
-              idx,
-              start: eventStart.toDate(),
-              end: eventEnd.toDate(),
-              duration: eventDuration,
-            };
-          } else if (
-            eventDuration > longestRef.current.duration &&
-            eventStart.isBetween(longestRef.current.start, longestRef.current.end)
-          ) {
-            longestRef.current = {
-              idx,
-              start: eventStart.toDate(),
-              end: eventEnd.toDate(),
-              duration: eventDuration,
-            };
-          }
-          // By default longest event doesnt have any styles applied
-          if (longestRef.current.idx !== idx) {
-            if (nextEvent) {
-              // If we have a next event
-              const nextStart = dayjs(nextEvent.start);
-              // If the next event is inbetween the longest start and end make 65% width
-              if (nextStart.isBetween(longestRef.current.start, longestRef.current.end)) {
-                zIndex = 65;
-                marginLeft = "auto";
-                right = 4;
-                width = width / 2;
-
-                // If not - we check to see if the next starts within 5 mins of this event - allowing us to do side by side events whenwe have
-                // close start times
-              } else if (nextStart.isBetween(eventStart.add(-5, "minutes"), eventStart.add(5, "minutes"))) {
-                zIndex = 65;
-                marginLeft = "auto";
-                right = 4;
-                width = width / 2;
-              }
-            } else if (prevEvent) {
-              const prevStart = dayjs(prevEvent.start);
-
-              // If the next event is inbetween the longest start and end make 65% width
-
-              if (prevStart.isBetween(longestRef.current.start, longestRef.current.end)) {
-                zIndex = 65;
-                marginLeft = "auto";
-                right = 4;
-                // If not - we check to see if the next starts within 5 mins of this event - allowing us to do side by side events whenwe have
-                // close start times (Inverse of above )
-              } else if (eventStart.isBetween(prevStart.add(5, "minutes"), prevStart.add(-5, "minutes"))) {
-                zIndex = 65;
-                right = 4;
-                width = width / 2;
-              }
-            }
-          }
-
-          return (
-            <div
-              key={`${event.id}-${eventStart.toISOString()}`}
-              className="absolute inset-x-1 "
-              data-testid={event.options?.["data-test-id"]}
-              style={{
-                marginLeft,
-                zIndex,
-                right: `calc(${right}% - 1px)`,
-                width: `${width}%`,
-                top: `calc(${eventStartDiff}*var(--one-minute-height))`,
-                height: `calc(${eventDuration}*var(--one-minute-height))`,
-              }}>
-              <Event event={event} eventDuration={eventDuration} onEventClick={eventOnClick} />
-            </div>
-          );
-        })}
+        return (
+          <div
+            key={`${event.id}-${eventStart.toISOString()}`}
+            className={classNames(
+              "absolute transition-all duration-100 ease-out",
+              event.options?.borderOnly && "pointer-events-none"
+            )}
+            data-testid={event.options?.["data-test-id"]}
+            onMouseEnter={() => setHoveredEventId(event.id)}
+            onMouseLeave={() => setHoveredEventId(null)}
+            style={{
+              left: `${layout.leftOffsetPercent}%`,
+              width: `${layout.widthPercent}%`,
+              zIndex,
+              top: `calc(${eventStartDiff}*var(--one-minute-height))`,
+              height: `max(15px, calc(${eventDuration}*var(--one-minute-height)))`,
+              transform: isHovered ? "scale(1.02)" : "scale(1)",
+              opacity: hoveredGroupIndex !== null && !isHovered && isInHoveredGroup ? 0.6 : 1,
+            }}>
+            <Event
+              event={event}
+              eventDuration={eventDuration}
+              onEventClick={eventOnClick}
+              isHovered={isHovered}
+            />
+          </div>
+        );
+      })}
     </>
   );
 }

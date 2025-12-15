@@ -56,9 +56,17 @@ interface RoleSheetProps {
   onOpenChange: (open: boolean) => void;
   teamId: number;
   scope?: Scope;
+  isPrivate?: boolean; // Add isPrivate prop to control permission visibility
 }
 
-export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Organization }: RoleSheetProps) {
+export function RoleSheet({
+  role,
+  open,
+  onOpenChange,
+  teamId,
+  scope = Scope.Organization,
+  isPrivate = false,
+}: RoleSheetProps) {
   const { t } = useLocale();
   const router = useRouter();
   const isEditing = Boolean(role);
@@ -108,7 +116,8 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
   const { isAdvancedMode, permissions, color } = form.watch();
 
   const { filteredResources, scopedRegistry } = useMemo(() => {
-    const scopedRegistry = getPermissionsForScope(scope);
+    // Use privacy-aware filtering if we have privacy information
+    const scopedRegistry = getPermissionsForScope(scope, isPrivate);
     const filteredResources = Object.keys(scopedRegistry).filter((resource) =>
       t(
         scopedRegistry[resource as Resource][CrudAction.All as keyof (typeof scopedRegistry)[Resource]]
@@ -118,7 +127,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
         .includes(searchQuery.toLowerCase())
     );
     return { filteredResources, scopedRegistry };
-  }, [searchQuery, t, scope]);
+  }, [searchQuery, t, scope, isPrivate]);
 
   const createMutation = trpc.viewer.pbac.createRole.useMutation({
     onSuccess: async () => {
@@ -174,7 +183,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
           </SheetTitle>
         </SheetHeader>
         <Form form={form} handleSubmit={onSubmit}>
-          <div className="space-y-4 py-5">
+          <div className="stack-y-4 py-5">
             <div className="flex items-end justify-end gap-2">
               <div className="flex-1">
                 <TextField
@@ -182,6 +191,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                   {...form.register("name")}
                   placeholder={t("role_name_placeholder")}
                   disabled={isSystemRole}
+                  maxLength={50}
                 />
               </div>
               <RoleColorPicker
@@ -193,16 +203,19 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
 
             <div className="">
               {isAdvancedMode ? (
-                <div className="space-y-4">
+                <div className="stack-y-4">
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label className="mb-0">{t("permissions")}</Label>
                       <div className="flex items-center gap-2">
                         <Checkbox
+                          id="advanced_mode_checkbox"
                           checked={form.watch("isAdvancedMode")}
                           onCheckedChange={(checked: boolean) => form.setValue("isAdvancedMode", checked)}
                         />
-                        <span className="text-sm">{t("advanced")}</span>
+                        <label htmlFor="advanced_mode_checkbox" className="text-sm">
+                          {t("advanced")}
+                        </label>
                       </div>
                     </div>
                     <TextField
@@ -221,11 +234,12 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                       disabled={isSystemRole}
                       scope={scope}
+                      isPrivate={isPrivate}
                     />
                   ))}{" "}
                 </div>
               ) : (
-                <div className="bg-muted rounded-xl p-1">
+                <div className="bg-cal-muted rounded-xl p-1">
                   <div className="flex items-center justify-between px-3 py-2">
                     <Label>{t("permissions")}</Label>
                     <div className="flex items-center gap-2">
@@ -245,6 +259,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                         onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                         disabled={isSystemRole}
                         scope={scope}
+                        isPrivate={isPrivate}
                       />
                     ))}
                   </div>{" "}

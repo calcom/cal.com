@@ -35,7 +35,11 @@ type SubmenuItem = {
   enabledForSystemSegment?: boolean;
 };
 
-export function FilterSegmentSelect() {
+interface Props {
+  shortLabel?: boolean;
+}
+
+export function FilterSegmentSelect({ shortLabel }: Props = {}) {
   const { t } = useLocale();
   const session = useSession();
   const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
@@ -155,11 +159,11 @@ export function FilterSegmentSelect() {
             StartIcon="list-filter"
             EndIcon="chevron-down"
             data-testid="filter-segment-select">
-            {selectedSegment?.name || t("segment")}
+            {selectedSegment?.name || (shortLabel ? t("saved") : t("saved_filters"))}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
-          <DropdownMenuContent align="start" className="w-60" data-testid="filter-segment-select-content">
+          <DropdownMenuContent align="end" className="w-60" data-testid="filter-segment-select-content">
             {segmentGroups.length === 0 && <p className="text-subtle px-3 py-1">{t("no_segments")}</p>}
 
             {segmentGroups.map((group, index) => (
@@ -243,7 +247,9 @@ function DropdownItemWithSubmenu({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <DropdownMenuItem className="cursor-pointer" onSelect={onSelect}>
+    <DropdownMenuItem
+      className="cursor-pointer rounded-lg last-of-type:rounded-b-lg"
+      onSelect={onSelect}>
       <div className="flex items-center">
         {children}
         <div className="grow" />

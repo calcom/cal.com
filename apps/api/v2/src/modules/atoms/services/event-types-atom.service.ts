@@ -286,10 +286,9 @@ export class EventTypesAtomService {
         .filter(({ ...app }) => app.slug === slug)
         .map(
           async ({
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             credentials: _,
             credential,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
             key: _2 /* don't leak to frontend */,
             ...app
           }: EnabledAppType) => {
@@ -368,7 +367,7 @@ export class EventTypesAtomService {
       endTime: endTime.toString(),
     };
     if (!eventType) throw new NotFoundException(`Event type with uid ${uid} not found`);
-    if (eventType.users.length === 0 && !!!eventType.team)
+    if (eventType.users.length === 0 && !eventType.team)
       throw new NotFoundException(`No users found or no team present for event type with uid ${uid}`);
     const [user] = eventType?.users.length
       ? eventType.users

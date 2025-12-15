@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { TokensModule } from "@/modules/tokens/tokens.module";
@@ -31,6 +32,7 @@ describe("Platform Billing Controller (e2e)", () => {
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let organization: Team;
+  let organization2: Team;
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -44,8 +46,14 @@ describe("Platform Billing Controller (e2e)", () => {
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
+
     organization = await organizationsRepositoryFixture.create({
       name: `billing-organization-${randomString()}`,
+      isPlatform: true,
+    });
+    organization2 = await organizationsRepositoryFixture.create({
+      name: `billing-organization-2-${randomString()}`,
+      isPlatform: true,
     });
 
     user = await userRepositoryFixture.create({
@@ -87,6 +95,17 @@ describe("Platform Billing Controller (e2e)", () => {
     await app.close();
   });
 
+  it("/billing/webhook (GET) should not get billing plan for org since it's not set yet", () => {
+    return request(app.getHttpServer())
+      .get(`/v2/billing/${organization.id}/check`)
+
+      .expect(200)
+      .then(async (res) => {
+        const data = res.body.data as CheckPlatformBillingResponseDto;
+        expect(data?.plan).toEqual("FREE");
+      });
+  });
+
   it("/billing/webhook (POST) should set billing free plan for org", () => {
     jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(
       () =>
@@ -119,6 +138,21 @@ describe("Platform Billing Controller (e2e)", () => {
         expect(billing?.plan).toEqual("FREE");
       });
   });
+
+  it("/billing/:orgId/check (GET) should check billing plan for org", () => {
+    return request(app.getHttpServer())
+      .get(`/v2/billing/${organization.id}/check`)
+      .expect(200)
+      .then(async (res) => {
+        const data = res.body.data as CheckPlatformBillingResponseDto;
+        expect(data?.plan).toEqual("FREE");
+      });
+  });
+
+  it("/billing/:organizationId/check (GET) should not be able to check other org plan", () => {
+    return request(app.getHttpServer()).get(`/v2/billing/${organization2.id}/check`).expect(403);
+  });
+
   it("/billing/webhook (POST) failed payment should set billing free plan to overdue", () => {
     jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(
       () =>

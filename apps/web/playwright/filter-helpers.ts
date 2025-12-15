@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { submitAndWaitForResponse } from "playwright/lib/testUtils";
 
 // Helper function to get text within a specific table column
 export const getByTableColumnText = (page: Page, columnId: string, text: string) =>
@@ -142,11 +143,14 @@ export async function deleteSegment(page: Page, segmentName: string) {
 
   await page.getByTestId("filter-segment-select-submenu-content").getByText("Delete").click();
 
-  await page
-    .locator('[role="dialog"]')
-    .filter({ hasText: "Delete Segment" })
-    .getByRole("button", { name: "Delete" })
-    .click();
+  await submitAndWaitForResponse(page, "/api/trpc/filterSegments/delete?batch=1", {
+    action: () =>
+      page
+        .locator('[role="dialog"]')
+        .filter({ hasText: "Delete Segment" })
+        .getByRole("button", { name: "Delete" })
+        .click(),
+  });
 
   await page.keyboard.press("Escape");
   await expect(page.getByText("Filter segment deleted")).toBeVisible();
@@ -156,7 +160,7 @@ export async function deleteSegment(page: Page, segmentName: string) {
  * List all available segments
  */
 export async function listSegments(page: Page): Promise<string[]> {
-  await page.getByTestId("filter-segment-select").click();
+  await page.getByTestId("filter-segment-select").nth(0).click();
 
   const menuItems = page.locator('[data-testid="filter-segment-select-content"] [role="menuitem"]');
   const count = await menuItems.count();
@@ -198,7 +202,7 @@ export async function expectSegmentCleared(page: Page) {
   // Check that no segment is selected (button shows default text)
   const segmentSelect = page.getByTestId("filter-segment-select");
   const buttonText = await segmentSelect.textContent();
-  expect(buttonText?.trim()).toEqual("Segment");
+  expect(["Saved filters", "Saved"]).toContain(buttonText?.trim());
 }
 
 /**

@@ -146,6 +146,13 @@ jobs:
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
 
+  build-companion:
+    name: Companion builds
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/companion-build.yml
+    secrets: inherit
+
   build:
     name: Production builds
     needs: [changes, check-label, deps]
@@ -195,13 +202,6 @@ jobs:
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
-  e2e-atoms:
-    name: Tests
-    needs: [changes, check-label, build, build-atoms, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-atoms.yml
-    secrets: inherit
-
   analyze:
     name: Analyze Build
     needs: [build]
@@ -211,7 +211,7 @@ jobs:
   merge-reports:
     name: Merge reports
     if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
+    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
@@ -251,12 +251,12 @@ jobs:
         build-api-v2,
         build-atoms,
         build-docs,
+        build-companion,
         e2e,
         e2e-api-v2,
         e2e-embed,
         e2e-embed-react,
-        e2e-app-store,
-        e2e-atoms,
+        e2e-app-store
       ]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204

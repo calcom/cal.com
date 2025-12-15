@@ -128,6 +128,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     seatsShowAttendees: null,
     disableCancelling: false,
     disableRescheduling: false,
+    minimumRescheduleNotice: null,
     allowReschedulingCancelledBookings: false,
     seatsShowAvailabilityCount: null,
     maxLeadThreshold: null,
@@ -155,6 +156,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     assignRRMembersUsingSegment: false,
     rrSegmentQueryValue: null,
     autoTranslateDescriptionEnabled: false,
+    autoTranslateInstantMeetingTitleEnabled: true,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
     hideOrganizerEmail: false,
@@ -162,6 +164,9 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     restrictionScheduleId: null,
     useBookerTimezone: false,
     bookingRequiresAuthentication: false,
+    createdAt: null,
+    updatedAt: null,
+    rrHostSubsetEnabled: false,
     ...eventType,
   };
 };

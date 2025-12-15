@@ -10,7 +10,7 @@ import { getBookingForReschedule, type GetBookingType } from "@calcom/features/b
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import type { TeamData } from "@calcom/features/ee/teams/lib/getTeamData";
-import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
+import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
@@ -91,15 +91,20 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const profileName = enrichedEventType.profile.name ?? "";
   const profileImage = enrichedEventType.profile.image;
 
+  const teamIsPrivate = teamData.isPrivate;
+
   const meeting = {
     title,
     profile: { name: profileName, image: profileImage },
-    users: [
-      ...(enrichedEventType?.subsetOfUsers || []).map((user) => ({
-        name: `${user.name}`,
-        username: `${user.username}`,
-      })),
-    ],
+    // Hide team member names in preview if team is private
+    users: teamIsPrivate
+      ? []
+      : [
+          ...(enrichedEventType?.subsetOfUsers || []).map((user) => ({
+            name: `${user.name}`,
+            username: `${user.username}`,
+          })),
+        ],
   };
 
   const { hideBranding, isSEOIndexable } = _getTeamMetadataForBooking(teamData, enrichedEventType.id);

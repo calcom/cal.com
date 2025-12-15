@@ -136,7 +136,7 @@ export default class LarkCalendarService implements Calendar {
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
       ? event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
-        event.destinationCalendar[0]
+      event.destinationCalendar[0]
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
@@ -175,7 +175,7 @@ export default class LarkCalendarService implements Calendar {
   private createAttendees = async (event: CalendarEvent, eventId: string, credentialId: number) => {
     const mainHostDestinationCalendar = event.destinationCalendar
       ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-        event.destinationCalendar[0]
+      event.destinationCalendar[0]
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
@@ -403,9 +403,13 @@ export default class LarkCalendarService implements Calendar {
     const attendeeArray: LarkEventAttendee[] = [];
 
     // 1. Create a set of optional guest emails for easy lookup.
-    const optionalGuestEmails = new Set(
-      event.optionalGuestTeamMembers?.map((guest) => guest.email.toLowerCase()) ?? []
-    );
+    // 1. Create a set of optional guest emails for easy lookup.
+    const optionalGuestEmails = new Set<string>();
+    event.optionalGuestTeamMembers?.forEach((guest) => {
+      if (guest?.email) {
+        optionalGuestEmails.add(guest.email.trim().toLowerCase());
+      }
+    });
 
     // 2. Add the main booker as a required attendee.
     event.attendees

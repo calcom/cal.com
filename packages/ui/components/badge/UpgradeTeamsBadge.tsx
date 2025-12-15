@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
+import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Tooltip } from "../tooltip";

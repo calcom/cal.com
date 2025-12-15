@@ -1,4 +1,12 @@
 export enum ErrorCode {
+  // Generic HTTP error codes for transport-agnostic error handling
+  Unauthorized = "unauthorized_error",
+  Forbidden = "forbidden_error",
+  NotFound = "not_found_error",
+  BadRequest = "bad_request_error",
+  InternalServerError = "internal_server_error",
+
+  // Domain-specific error codes
   PaymentCreationFailure = "payment_not_created_error",
   NoAvailableUsersFound = "no_available_users_found_error",
   ChargeCardFailure = "couldnt_charge_card_error",
@@ -26,4 +34,8 @@ export enum ErrorCode {
   EventTypeNoHosts = "event_type_no_hosts",
   RequestBodyInvalid = "request_body_invalid_error",
   PrivateLinkExpired = "private_link_expired",
+  BookerEmailBlocked = "booker_email_blocked",
+  BookerEmailRequiresLogin = "booker_email_requires_login",
+  InvalidVerificationCode = "invalid_verification_code",
+  UnableToValidateVerificationCode = "unable_to_validate_verification_code",
 }

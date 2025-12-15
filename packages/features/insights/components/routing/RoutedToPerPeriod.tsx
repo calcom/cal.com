@@ -3,8 +3,8 @@
 import type { TFunction } from "i18next";
 import { useQueryState } from "nuqs";
 import { type ReactNode, useMemo, useRef, useState } from "react";
+import posthog from "posthog-js";
 
-import { DataTableSkeleton } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,6 +43,7 @@ function DownloadButton({ selectedPeriod, searchQuery }: DownloadButtonProps) {
     e.preventDefault(); // Prevent default form submission
 
     try {
+      posthog.capture("insights_routing_download_clicked", { teamId: routingParams.selectedTeamId });
       const result = await utils.viewer.insights.routedToPerPeriodCsv.fetch({
         ...routingParams,
         period: selectedPeriod,
@@ -85,10 +86,10 @@ function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange,
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle w-full rounded-md border">
+    <div className="w-full rounded-md">
       <div className="flex flex-col">
         <div className="p-4">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between gap-2">
             <ToggleGroup
               options={[
                 { label: t("per_day"), value: "perDay" },
@@ -99,8 +100,8 @@ function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange,
               value={selectedPeriod}
               onValueChange={(value) => value && onPeriodChange(value as "perDay" | "perWeek" | "perMonth")}
             />
-            <div className="flex gap-2">
-              <div className="w-64">
+            <div className="flex items-center gap-2">
+              <div className="max-w-64">
                 <Input
                   type="text"
                   placeholder={t("search")}
@@ -177,7 +178,7 @@ export function RoutedToPerPeriod() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const { data, isLoading } = trpc.viewer.insights.routedToPerPeriod.useQuery(
+  const { data, isLoading, isError } = trpc.viewer.insights.routedToPerPeriod.useQuery(
     {
       ...routingParams,
       period: selectedPeriod,
@@ -238,26 +239,6 @@ export function RoutedToPerPeriod() {
     });
   }, [data?.periodStats.data, flattenedUsers, uniquePeriods]);
 
-  if (isLoading) {
-    return (
-      <div className="w-full text-sm">
-        <div className="flex h-12 items-center">
-          <h2 className="text-emphasis text-md font-semibold">{t("routed_to_per_period")}</h2>
-        </div>
-
-        <FormCard
-          selectedPeriod={selectedPeriod}
-          onPeriodChange={setSelectedPeriod}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}>
-          <div className="mt-6">
-            <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
-          </div>
-        </FormCard>
-      </div>
-    );
-  }
-
   const isCurrentPeriod = (date: Date, today: Date, selectedPeriod: string): boolean => {
     if (selectedPeriod === "perDay") {
       return (
@@ -278,7 +259,7 @@ export function RoutedToPerPeriod() {
   };
 
   return (
-    <ChartCard title={t("routed_to_per_period")}>
+    <ChartCard title={t("routed_to_per_period")} isPending={isLoading} isError={isError}>
       <div className="w-full text-sm">
         <FormCard
           selectedPeriod={selectedPeriod}
@@ -293,7 +274,7 @@ export function RoutedToPerPeriod() {
                 <TableHeader className="bg-subtle sticky top-0 z-10">
                   <TableRow>
                     <TableHead className="bg-subtle sticky left-0 z-30 w-[200px]">{t("user")}</TableHead>
-                    {uniquePeriods.map((period, index) => {
+                    {uniquePeriods.map((period) => {
                       const date = period;
                       const today = new Date();
 
@@ -313,10 +294,10 @@ export function RoutedToPerPeriod() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="relative">
-                  {processedData.map((row, index) => {
+                  {processedData.map((row) => {
                     return (
                       <TableRow key={row.id} className="divide-muted divide-x">
-                        <TableCell className="bg-default w-[200px]">
+                        <TableCell className="w-[200px]">
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="flex cursor-pointer items-center gap-2">

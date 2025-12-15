@@ -61,9 +61,13 @@ export default class ExchangeCalendarService implements Calendar {
     appointment.Location = event.location || "";
     appointment.Body = new MessageBody(event.description || "");
     // Create a set of optional guest emails for easy lookup.
-    const optionalGuestEmails = new Set(
-      event.optionalGuestTeamMembers?.map((guest) => guest.email.toLowerCase()) ?? []
-    );
+    // Create a set of optional guest emails for easy lookup.
+    const optionalGuestEmails = new Set<string>();
+    event.optionalGuestTeamMembers?.forEach((guest) => {
+      if (guest?.email) {
+        optionalGuestEmails.add(guest.email.trim().toLowerCase());
+      }
+    });
 
     // Add the main booker as required
     event.attendees.forEach((attendee: Person) => {
