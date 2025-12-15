@@ -10,8 +10,7 @@ import {
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import classNames from "@calcom/ui/classNames";
 
-import UnconfirmedBookingBadge from "~/bookings/components/UnconfirmedBookingBadge";
-
+import UnconfirmedBookingBadge from "../..//bookings/components/UnconfirmedBookingBadge";
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
