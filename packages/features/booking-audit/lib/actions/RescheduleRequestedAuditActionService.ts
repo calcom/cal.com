@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringChangeSchema, BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Reschedule Requested Audit Action Service
@@ -60,13 +60,13 @@ export class RescheduleRequestedAuditActionService implements IAuditActionServic
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.reschedule_requested" };
     }
 
     getDisplayJson({
         storedData,
-    }: StoredDataParams): RescheduleRequestedAuditDisplayData {
+    }: GetDisplayJsonParams): RescheduleRequestedAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             reason: fields.cancellationReason.new ?? null,

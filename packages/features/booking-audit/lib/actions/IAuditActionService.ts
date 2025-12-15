@@ -27,10 +27,12 @@ export type StoredAuditData = {
     fields: Record<string, unknown>;
 };
 
-/**
- * Common parameter type for methods that accept stored data and timezone
- */
-export type StoredDataParams = {
+export type GetDisplayJsonParams = {
+    storedData: StoredAuditData;
+    userTimeZone: string;
+};
+
+export type GetDisplayTitleParams = {
     storedData: StoredAuditData;
     userTimeZone: string;
 };
@@ -81,7 +83,7 @@ export interface IAuditActionService {
      * @param params.userTimeZone - User's timezone for datetime formatting (required)
      * @returns The fields object without version wrapper and we decide what fields to show to the client
      */
-    getDisplayJson?(params: StoredDataParams): Record<string, unknown>;
+    getDisplayJson?(params: GetDisplayJsonParams): Record<string, unknown>;
 
     /**
      * Get the display title for the audit action
@@ -92,7 +94,7 @@ export interface IAuditActionService {
      * @param params.userTimeZone - User's timezone for date formatting (required)
      * @returns Translation key with optional interpolation params
      */
-    getDisplayTitle(params: StoredDataParams): Promise<TranslationWithParams>;
+    getDisplayTitle(params: GetDisplayTitleParams): Promise<TranslationWithParams>;
 
     /**
      * Returns additional display fields with translation keys for frontend rendering

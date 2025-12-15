@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Host No-Show Updated Audit Action Service
@@ -58,13 +58,13 @@ export class HostNoShowUpdatedAuditActionService implements IAuditActionService 
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.host_no_show_updated" };
     }
 
     getDisplayJson({
         storedData,
-    }: StoredDataParams): HostNoShowUpdatedAuditDisplayData {
+    }: GetDisplayJsonParams): HostNoShowUpdatedAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             noShowHost: fields.noShowHost.new,

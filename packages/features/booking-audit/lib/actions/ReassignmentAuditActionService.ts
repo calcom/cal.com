@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams, StoredAuditData } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, StoredAuditData } from "./IAuditActionService";
 
 /**
  * Reassignment Audit Action Service
@@ -64,7 +64,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle({ storedData }: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
         const { fields } = this.parseStored(storedData);
         const user = await this.userRepository.findById({ id: fields.assignedToId.new });
         const reassignedToName = user?.name || "Unknown";
@@ -76,7 +76,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 
     getDisplayJson({
         storedData,
-    }: StoredDataParams): ReassignmentAuditDisplayData {
+    }: GetDisplayJsonParams): ReassignmentAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             newAssignedToId: fields.assignedToId.new,

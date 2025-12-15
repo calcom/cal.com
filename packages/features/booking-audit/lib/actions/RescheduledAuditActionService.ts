@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams, StoredAuditData } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, StoredAuditData } from "./IAuditActionService";
 
 /**
  * Rescheduled Audit Action Service
@@ -63,7 +63,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
     async getDisplayTitle({
         storedData,
         userTimeZone,
-    }: StoredDataParams): Promise<TranslationWithParams> {
+    }: GetDisplayTitleParams): Promise<TranslationWithParams> {
         const { fields } = this.parseStored(storedData);
         const rescheduledToUid = fields.rescheduledToUid.new;
         const timeZone = userTimeZone;
@@ -119,7 +119,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
     getDisplayJson({
         storedData,
         userTimeZone,
-    }: StoredDataParams): RescheduledAuditDisplayData {
+    }: GetDisplayJsonParams): RescheduledAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         const timeZone = userTimeZone;
 

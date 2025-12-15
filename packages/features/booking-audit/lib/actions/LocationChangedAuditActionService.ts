@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams } from "./IAuditActionService";
 import { getTranslation } from "@calcom/lib/server/i18n";
 /**
  * Location Changed Audit Action Service
@@ -59,7 +59,7 @@ export class LocationChangedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle({ storedData }: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         // TODO: Ideally we want to translate the location label to the user's locale
         // We currently don't accept requesting user's translate fn here, fix it later.

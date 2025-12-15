@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Cancelled Audit Action Service
@@ -60,13 +60,13 @@ export class CancelledAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.cancelled" };
     }
 
     getDisplayJson({
         storedData,
-    }: StoredDataParams): CancelledAuditDisplayData {
+    }: GetDisplayJsonParams): CancelledAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             cancellationReason: fields.cancellationReason.new ?? null,

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Attendee No-Show Updated Audit Action Service
@@ -58,13 +58,13 @@ export class AttendeeNoShowUpdatedAuditActionService implements IAuditActionServ
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.attendee_no_show_updated" };
     }
 
     getDisplayJson({
         storedData,
-    }: StoredDataParams): AttendeeNoShowUpdatedAuditDisplayData {
+    }: GetDisplayJsonParams): AttendeeNoShowUpdatedAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             noShowAttendee: fields.noShowAttendee.new,

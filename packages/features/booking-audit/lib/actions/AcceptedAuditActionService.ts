@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { BookingStatusChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Accepted Audit Action Service
@@ -59,13 +59,13 @@ export class AcceptedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.accepted" };
     }
 
     getDisplayJson({
         storedData,
-    }: StoredDataParams): AcceptedAuditDisplayData {
+    }: GetDisplayJsonParams): AcceptedAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             previousStatus: fields.status.old ?? null,

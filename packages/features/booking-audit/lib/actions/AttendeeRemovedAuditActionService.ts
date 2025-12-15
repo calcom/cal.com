@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringArrayChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Attendee Removed Audit Action Service
@@ -58,13 +58,13 @@ export class AttendeeRemovedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.attendee_removed" };
     }
 
     getDisplayJson({
         storedData,
-    }: StoredDataParams): AttendeeRemovedAuditDisplayData {
+    }: GetDisplayJsonParams): AttendeeRemovedAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         const remainingAttendeesSet = new Set(fields.attendees.new ?? []);
         const removedAttendees = (fields.attendees.old ?? []).filter(

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, StoredDataParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Created Audit Action Service
@@ -58,14 +58,14 @@ export class CreatedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: StoredDataParams): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.created" };
     }
 
     getDisplayJson({
         storedData,
         userTimeZone,
-    }: StoredDataParams): CreatedAuditDisplayData {
+    }: GetDisplayJsonParams): CreatedAuditDisplayData {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         const timeZone = userTimeZone;
 
