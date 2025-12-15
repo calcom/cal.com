@@ -55,6 +55,7 @@ async function main() {
         teamId: org.id,
         featureId: "delegation-credential",
       },
+      enabled: true,
     },
   });
   if (!delegationFeature) {
@@ -79,6 +80,7 @@ async function main() {
         teamId: org.id,
         featureId: "calendar-cache",
       },
+      enabled: true,
     },
   });
   if (!calendarCacheFeature) {
