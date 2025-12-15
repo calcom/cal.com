@@ -1,4 +1,4 @@
-import type { AppFlags, FeatureState } from "./config";
+import type { FeatureId, FeatureState } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 export class MockFeaturesRepository implements IFeaturesRepository {
@@ -10,21 +10,21 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return slug === "mock-feature";
   }
 
-  async checkIfTeamHasFeature(_teamId: number, slug: keyof AppFlags) {
+  async checkIfTeamHasFeature(_teamId: number, slug: FeatureId) {
     return slug === "mock-feature";
   }
 
-  async checkIfFeatureIsEnabledGlobally(_slug: keyof AppFlags) {
+  async checkIfFeatureIsEnabledGlobally(_slug: FeatureId) {
     return true;
   }
 
-  async getTeamsWithFeatureEnabled(_slug: keyof AppFlags): Promise<number[]> {
+  async getTeamsWithFeatureEnabled(_slug: FeatureId): Promise<number[]> {
     return [];
   }
 
   async setUserFeatureState(
     _userId: number,
-    _featureId: keyof AppFlags,
+    _featureId: FeatureId,
     _state: FeatureState,
     _assignedBy: string
   ): Promise<void> {
@@ -33,7 +33,7 @@ export class MockFeaturesRepository implements IFeaturesRepository {
 
   async setTeamFeatureState(
     _teamId: number,
-    _featureId: keyof AppFlags,
+    _featureId: FeatureId,
     _state: FeatureState,
     _assignedBy: string
   ): Promise<void> {
@@ -42,7 +42,7 @@ export class MockFeaturesRepository implements IFeaturesRepository {
 
   async getUserFeatureStates(_input: {
     userId: number;
-    featureIds: string[];
+    featureIds: FeatureId[];
   }): Promise<Record<string, FeatureState>> {
     // Mock implementation - return inherit for all features
     const result: Record<string, FeatureState> = {};
@@ -52,22 +52,10 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return result;
   }
 
-  async getTeamFeatureStates(_input: {
-    teamId: number;
-    featureIds: string[];
-  }): Promise<Record<string, FeatureState>> {
-    // Mock implementation - return inherit for all features
-    const result: Record<string, FeatureState> = {};
-    for (const featureId of _input.featureIds) {
-      result[featureId] = "inherit";
-    }
-    return result;
-  }
-
-  async getFeatureStateForTeams(_input: {
+  async getTeamsFeatureStates(_input: {
     teamIds: number[];
-    featureId: string;
-  }): Promise<Record<number, FeatureState>> {
+    featureIds: FeatureId[];
+  }): Promise<Record<string, Record<number, FeatureState>>> {
     // Mock implementation - return empty (all teams inherit)
     return {};
   }

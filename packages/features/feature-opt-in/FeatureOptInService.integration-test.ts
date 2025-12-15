@@ -1,6 +1,6 @@
 import { describe, expect, beforeAll, afterAll, afterEach, beforeEach, it } from "vitest";
 
-import type { AppFlags } from "@calcom/features/flags/config";
+import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 
@@ -8,7 +8,7 @@ import { FeatureOptInService } from "./FeatureOptInService";
 
 // Helper to generate unique feature slug per test
 const createTestFeature = () =>
-  `test-opt-in-feature-${Date.now()}-${Math.random().toString(36).slice(2, 9)}` as keyof AppFlags;
+  `test-opt-in-feature-${Date.now()}-${Math.random().toString(36).slice(2, 9)}` as FeatureId;
 
 // Access private clearCache method through type assertion
 const clearFeaturesCache = (repo: FeaturesRepository) => {
@@ -120,17 +120,18 @@ describe("FeatureOptInService Integration Tests", () => {
     return featureSlug;
   }
 
-  describe("resolveFeatureStateAcrossTeams", () => {
+  describe("resolveFeatureStatesAcrossTeams", () => {
     describe("global feature disabled", () => {
       it("should return effectiveEnabled=false regardless of other states", async () => {
         const testFeature = await setupFeature(false);
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: testOrg.id,
           teamIds: [testTeam.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.effectiveEnabled).toBe(false);
       });
@@ -170,12 +171,13 @@ describe("FeatureOptInService Integration Tests", () => {
           },
         });
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: testOrg.id,
           teamIds: [testTeam.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.orgState).toBe("disabled");
         expect(status.effectiveEnabled).toBe(false);
@@ -214,12 +216,13 @@ describe("FeatureOptInService Integration Tests", () => {
           },
         });
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: testOrg.id,
           teamIds: [testTeam.id, testTeam2.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual(["disabled", "disabled"]);
@@ -247,12 +250,13 @@ describe("FeatureOptInService Integration Tests", () => {
           ],
         });
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: testOrg.id,
           teamIds: [testTeam.id, testTeam2.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.orgState).toBe("enabled");
         expect(status.userState).toBe("inherit");
@@ -292,12 +296,13 @@ describe("FeatureOptInService Integration Tests", () => {
           },
         });
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: testOrg.id,
           teamIds: [testTeam.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.userState).toBe("disabled");
         expect(status.effectiveEnabled).toBe(false);
@@ -318,12 +323,13 @@ describe("FeatureOptInService Integration Tests", () => {
 
         // Teams inherit (no rows)
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: testOrg.id,
           teamIds: [testTeam.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual(["inherit"]);
@@ -345,12 +351,13 @@ describe("FeatureOptInService Integration Tests", () => {
           },
         });
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: null,
           teamIds: [testTeam.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.orgState).toBe("inherit");
         expect(status.teamStates).toEqual(["disabled"]);
@@ -370,12 +377,13 @@ describe("FeatureOptInService Integration Tests", () => {
           },
         });
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: null,
           teamIds: [testTeam.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.teamStates).toEqual(["enabled"]);
         expect(status.effectiveEnabled).toBe(true);
@@ -385,12 +393,13 @@ describe("FeatureOptInService Integration Tests", () => {
         const testFeature = await setupFeature(true);
 
         // No org, team inherits (no row)
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: null,
           teamIds: [testTeam.id],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.orgState).toBe("inherit");
         expect(status.teamStates).toEqual(["inherit"]);
@@ -412,12 +421,13 @@ describe("FeatureOptInService Integration Tests", () => {
           },
         });
 
-        const status = await service.resolveFeatureStateAcrossTeams({
+        const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: testUser.id,
           orgId: testOrg.id,
           teamIds: [],
-          featureId: testFeature,
+          featureIds: [testFeature],
         });
+        const status = statusMap[testFeature];
 
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual([]);

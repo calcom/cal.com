@@ -1,4 +1,4 @@
-import type { FeatureState } from "./types";
+import type { FeatureState } from "@calcom/features/flags/config";
 
 /**
  * Computes the effective enabled state based on global, org, teams, and user settings.

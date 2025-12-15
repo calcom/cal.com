@@ -1,7 +1,7 @@
-import type { AppFlags } from "@calcom/features/flags/config";
+import type { FeatureId } from "@calcom/features/flags/config";
 
 export interface OptInFeatureConfig {
-  slug: keyof AppFlags;
+  slug: FeatureId;
   titleI18nKey: string;
   descriptionI18nKey: string;
 }
@@ -28,8 +28,8 @@ export function getOptInFeatureConfig(slug: string): OptInFeatureConfig | undefi
 
 /**
  * Check if a feature slug is in the opt-in allowlist.
- * Acts as a type guard, narrowing the slug to keyof AppFlags when true.
+ * Acts as a type guard, narrowing the slug to FeatureId when true.
  */
-export function isOptInFeature(slug: string): slug is keyof AppFlags {
+export function isOptInFeature(slug: string): slug is FeatureId {
   return OPT_IN_FEATURES.some((f) => f.slug === slug);
 }

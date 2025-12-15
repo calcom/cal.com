@@ -1,24 +1,24 @@
-import type { AppFlags, FeatureState } from "./config";
+import type { FeatureId, FeatureState } from "./config";
 
 /**
  * Interface for the core FeaturesRepository.
  * This interface defines methods for checking feature flags and team feature access.
  */
 export interface IFeaturesRepository {
-  checkIfFeatureIsEnabledGlobally(slug: keyof AppFlags): Promise<boolean>;
+  checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean>;
   checkIfUserHasFeature(userId: number, slug: string): Promise<boolean>;
   checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
-  checkIfTeamHasFeature(teamId: number, slug: keyof AppFlags): Promise<boolean>;
-  getTeamsWithFeatureEnabled(slug: keyof AppFlags): Promise<number[]>;
+  checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean>;
+  getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]>;
   setUserFeatureState(
     userId: number,
-    featureId: keyof AppFlags,
+    featureId: FeatureId,
     state: FeatureState,
     assignedBy: string
   ): Promise<void>;
   setTeamFeatureState(
     teamId: number,
-    featureId: keyof AppFlags,
+    featureId: FeatureId,
     state: FeatureState,
     assignedBy: string
   ): Promise<void>;
@@ -26,16 +26,17 @@ export interface IFeaturesRepository {
    * Get user's feature states for multiple features.
    * @returns Record<featureId, 'enabled' | 'disabled' | 'inherit'>
    */
-  getUserFeatureStates(input: { userId: number; featureIds: string[] }): Promise<Record<string, FeatureState>>;
+  getUserFeatureStates(input: {
+    userId: number;
+    featureIds: FeatureId[];
+  }): Promise<Record<string, FeatureState>>;
   /**
-   * Get team's feature states for multiple features.
-   * @returns Record<featureId, 'enabled' | 'disabled' | 'inherit'>
+   * Get multiple features' states across multiple teams.
+   * Optimized for querying many teams for many features.
+   * @returns Record<featureId, Record<teamId, 'enabled' | 'disabled' | 'inherit'>>
    */
-  getTeamFeatureStates(input: { teamId: number; featureIds: string[] }): Promise<Record<string, FeatureState>>;
-  /**
-   * Get a single feature's state across multiple teams.
-   * Optimized for querying many teams for one feature.
-   * @returns Record<teamId, 'enabled' | 'disabled' | 'inherit'>
-   */
-  getFeatureStateForTeams(input: { teamIds: number[]; featureId: string }): Promise<Record<number, FeatureState>>;
+  getTeamsFeatureStates(input: {
+    teamIds: number[];
+    featureIds: FeatureId[];
+  }): Promise<Record<string, Record<number, FeatureState>>>;
 }

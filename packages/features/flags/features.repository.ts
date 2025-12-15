@@ -3,7 +3,7 @@ import { captureException } from "@sentry/nextjs";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import type { AppFlags, FeatureState, TeamFeatures } from "./config";
+import type { FeatureId, FeatureState, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 interface CacheOptions {
@@ -55,7 +55,7 @@ export class FeaturesRepository implements IFeaturesRepository {
   public async getFeatureFlagMap() {
     const flags = await this.getAllFeatures();
     return flags.reduce((acc, flag) => {
-      acc[flag.slug as keyof AppFlags] = flag.enabled;
+      acc[flag.slug as FeatureId] = flag.enabled;
       return acc;
     }, {} as AppFlags);
   }
@@ -96,7 +96,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @throws Error if the feature flag check fails
    */
   async checkIfFeatureIsEnabledGlobally(
-    slug: keyof AppFlags,
+    slug: FeatureId,
     _options: CacheOptions = { ttl: 5 * 60 * 1000 }
   ): Promise<boolean> {
     try {
@@ -293,7 +293,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async setUserFeatureState(
     userId: number,
-    featureId: keyof AppFlags,
+    featureId: FeatureId,
     state: FeatureState,
     assignedBy: string
   ): Promise<void> {
@@ -345,7 +345,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async setTeamFeatureState(
     teamId: number,
-    featureId: keyof AppFlags,
+    featureId: FeatureId,
     state: FeatureState,
     assignedBy: string
   ): Promise<void> {
@@ -395,7 +395,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<boolean> - True if the team or any ancestor has the feature enabled, false otherwise
    * @throws Error if the database query fails
    */
-  async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
+  async checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean> {
     try {
       // Early return if team has feature directly assigned with enabled=true
       const teamFeature = await this.prismaClient.teamFeatures.findUnique({
@@ -450,7 +450,7 @@ export class FeaturesRepository implements IFeaturesRepository {
     }
   }
 
-  async getTeamsWithFeatureEnabled(slug: keyof AppFlags): Promise<number[]> {
+  async getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]> {
     try {
       // If globally disabled, treat as effectively disabled everywhere
       const isGloballyEnabled = await this.checkIfFeatureIsEnabledGlobally(slug);
@@ -485,13 +485,13 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async getUserFeatureStates(input: {
     userId: number;
-    featureIds: string[];
-  }): Promise<Record<string, FeatureState>> {
+    featureIds: FeatureId[];
+  }): Promise<Record<FeatureId, FeatureState>> {
     const { userId, featureIds } = input;
 
     try {
       // Initialize result with all features set to 'inherit'
-      const result: Record<string, FeatureState> = {};
+      const result: Record<FeatureId, FeatureState> = {};
       for (const featureId of featureIds) {
         result[featureId] = "inherit";
       }
@@ -518,84 +518,47 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
-   * Get team's feature states for multiple features.
+   * Get multiple features' states across multiple teams.
+   * Optimized for querying many teams for many features in one call.
    * Uses tri-state semantics:
    * - Row with enabled=true → 'enabled'
    * - Row with enabled=false → 'disabled'
    * - No row → 'inherit' from parent team/org level
    *
-   * @param input - Object containing teamId and featureIds array
-   * @returns Record<featureId, 'enabled' | 'disabled' | 'inherit'>
+   * @param input - Object containing teamIds array and featureIds array
+   * @returns Record<featureId, Record<teamId, 'enabled' | 'disabled' | 'inherit'>>
    */
-  async getTeamFeatureStates(input: {
-    teamId: number;
-    featureIds: string[];
-  }): Promise<Record<string, FeatureState>> {
-    const { teamId, featureIds } = input;
-
-    try {
-      // Initialize result with all features set to 'inherit'
-      const result: Record<string, FeatureState> = {};
-      for (const featureId of featureIds) {
-        result[featureId] = "inherit";
-      }
-
-      // Query all team features in a single call
-      const teamFeatures = await this.prismaClient.teamFeatures.findMany({
-        where: {
-          teamId,
-          featureId: { in: featureIds },
-        },
-        select: { featureId: true, enabled: true },
-      });
-
-      // Update result with actual values from database
-      for (const teamFeature of teamFeatures) {
-        result[teamFeature.featureId] = teamFeature.enabled ? "enabled" : "disabled";
-      }
-
-      return result;
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
-  }
-
-  /**
-   * Get a single feature's state across multiple teams.
-   * Optimized for querying many teams for one feature.
-   * Uses tri-state semantics:
-   * - Row with enabled=true → 'enabled'
-   * - Row with enabled=false → 'disabled'
-   * - No row → 'inherit' from parent team/org level
-   *
-   * @param input - Object containing teamIds array and featureId
-   * @returns Record<teamId, 'enabled' | 'disabled' | 'inherit'>
-   */
-  async getFeatureStateForTeams(input: {
+  async getTeamsFeatureStates(input: {
     teamIds: number[];
-    featureId: string;
-  }): Promise<Record<number, FeatureState>> {
-    const { teamIds, featureId } = input;
+    featureIds: FeatureId[];
+  }): Promise<Record<FeatureId, Record<number, FeatureState>>> {
+    const { teamIds, featureIds } = input;
 
-    if (teamIds.length === 0) {
+    if (teamIds.length === 0 || featureIds.length === 0) {
       return {};
     }
 
     try {
+      // Initialize result with all features present to avoid undefined feature keys
+      const result: Record<FeatureId, Record<number, FeatureState>> = {};
+      for (const featureId of featureIds) {
+        result[featureId] = {};
+      }
+
       // Query all team features in a single call
       const teamFeatures = await this.prismaClient.teamFeatures.findMany({
         where: {
           teamId: { in: teamIds },
-          featureId,
+          featureId: { in: featureIds },
         },
-        select: { teamId: true, enabled: true },
+        select: { teamId: true, featureId: true, enabled: true },
       });
 
       // Build result map - teams not in the result will default to 'inherit'
-      const result: Record<number, FeatureState> = {};
       for (const teamFeature of teamFeatures) {
-        result[teamFeature.teamId] = teamFeature.enabled ? "enabled" : "disabled";
+        const featureStates = result[teamFeature.featureId] ?? {};
+        featureStates[teamFeature.teamId] = teamFeature.enabled ? "enabled" : "disabled";
+        result[teamFeature.featureId] = featureStates;
       }
 
       return result;
