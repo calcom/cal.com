@@ -504,11 +504,13 @@ export default class ZohoCalendarService implements Calendar {
 
     // 4. Add the OPTIONAL team members with the correct attendance code.
     if (event.optionalGuestTeamMembers) {
-      const optionalGuests = event.optionalGuestTeamMembers.map((member) => ({
-        email: member.email,
-        // 2 signifies an optional guest in the Zoho API
-        attendance: 2,
-      }));
+      const optionalGuests = event.optionalGuestTeamMembers
+        .filter((member) => member.email)
+        .map((member) => ({
+          email: member.email,
+          // 2 signifies an optional guest in the Zoho API
+          attendance: 2,
+        }));
       attendees.push(...optionalGuests);
     }
 

@@ -440,11 +440,13 @@ export default class LarkCalendarService implements Calendar {
     // 4. Add the OPTIONAL team members.
     if (event.optionalGuestTeamMembers) {
       event.optionalGuestTeamMembers.forEach(({ email }) => {
-        attendeeArray.push({
-          type: "third_party",
-          is_optional: true,
-          third_party_email: email,
-        });
+        if (email) {
+          attendeeArray.push({
+            type: "third_party",
+            is_optional: true,
+            third_party_email: email,
+          });
+        }
       });
     }
 

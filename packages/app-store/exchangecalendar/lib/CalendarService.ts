@@ -123,7 +123,9 @@ export default class ExchangeCalendarService implements Calendar {
     appointment.OptionalAttendees.Clear();
 
     const optionalGuestEmails = new Set(
-      event.optionalGuestTeamMembers?.map((guest) => guest.email.toLowerCase()) ?? []
+      event.optionalGuestTeamMembers
+        ?.filter((guest) => guest?.email)
+        .map((guest) => guest.email.trim().toLowerCase()) ?? []
     );
 
     // Add the main booker as required
@@ -133,7 +135,7 @@ export default class ExchangeCalendarService implements Calendar {
     // Add team members as required, ONLY if they aren't optional
     if (event.team?.members) {
       event.team.members
-        .filter((member) => member.email && !optionalGuestEmails.has(member.email.toLowerCase()))
+        .filter((member) => member.email && !optionalGuestEmails.has(member.email.trim().toLowerCase()))
         .forEach((member) => {
           appointment.RequiredAttendees.Add(new Attendee(member.email));
         });
@@ -141,10 +143,14 @@ export default class ExchangeCalendarService implements Calendar {
 
     // Add optional members to the optional list
     if (event.optionalGuestTeamMembers) {
-      event.optionalGuestTeamMembers.forEach((member: { email: string }) => {
-        appointment.OptionalAttendees.Add(new Attendee(member.email));
+      event.optionalGuestTeamMembers.forEach((member) => {
+        if (member.email) {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
+        }
       });
     }
+
+
     return appointment
       .Update(
         ConflictResolutionMode.AlwaysOverwrite,

@@ -291,16 +291,9 @@ describe("Date Optimization Benchmarks", () => {
       expect(newChunks).toHaveLength(oldChunks.length);
 
       for (let i = 0; i < oldChunks.length; i++) {
-        // Allow for small timezone differences (up to 1 hour) due to DST handling differences
-        const oldStart = new Date(oldChunks[i].start).getTime();
-        const newStart = new Date(newChunks[i].start).getTime();
-        const oldEnd = new Date(oldChunks[i].end).getTime();
-        const newEnd = new Date(newChunks[i].end).getTime();
-        const startDiff = Math.abs(oldStart - newStart);
-        const endDiff = Math.abs(oldEnd - newEnd);
-        // Allow up to 1 hour difference for timezone/DST handling
-        expect(startDiff).toBeLessThanOrEqual(60 * 60 * 1000); // 1 hour in ms
-        expect(endDiff).toBeLessThanOrEqual(60 * 60 * 1000); // 1 hour in ms
+        // Since inputs are UTC, there should be NO timezone/DST differences
+        expect(startDiff).toBe(0);
+        expect(endDiff).toBe(0);
       }
 
       log.info(`${testCase.name} - Generated ${newChunks.length} functionally equivalent chunks`);

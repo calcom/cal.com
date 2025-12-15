@@ -39,7 +39,7 @@ function OptionalTeamGuestSetting({ team, eventType }: OptionalTeamGuestSettingP
         acc.push({
           value: option.user.id.toString(),
           avatar: option.user.avatarUrl || "",
-          label: option.user.email || "No Email",
+          label: option.user.email || t("no_email"),
           isFixed: true,
           groupId: null,
         });
