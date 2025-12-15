@@ -6,7 +6,6 @@ import { useMemo, useCallback, useEffect, useRef } from "react";
 import React from "react";
 import { shallow } from "zustand/shallow";
 
-import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
   useIsEmbed,
@@ -23,7 +22,6 @@ import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hoo
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
-import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
@@ -39,8 +37,7 @@ export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
-
-const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
+const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,7 +64,6 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduledBy") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const timezone = searchParams?.get("cal.tz") || null;
 
   useEffect(() => {
@@ -95,9 +91,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     timezone,
   });
 
-  const [bookerState, _] = useBookerStoreContext((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
-  const [month] = useBookerStoreContext((state) => [state.month, state.setMonth], shallow);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -142,21 +136,13 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const isEmbed = useIsEmbed();
 
-  const { prefetchNextMonth, monthCount } = usePrefetch({
-    date,
-    month,
-    bookerLayout,
-    bookerState,
-  });
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
   const schedule = useScheduleForEvent({
-    prefetchNextMonth,
     eventId: props.entity.eventTypeId ?? event.data?.id,
     username: props.username,
-    monthCount,
     dayCount,
     eventSlug: props.eventSlug,
     month: props.month,
@@ -166,6 +152,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
     useApiV2: props.useApiV2,
+    bookerLayout,
     ...(props.entity.orgSlug ? { orgSlug: props.entity.orgSlug } : {}),
   });
   const bookings = useBookings({
@@ -280,7 +267,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   return (
     <BookerStoreProvider>
-      <BookerPlatformWrapperComponent {...props} />
+      <BookerWebWrapperComponent {...props} />
     </BookerStoreProvider>
   );
 };
