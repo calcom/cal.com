@@ -64,19 +64,34 @@ export interface IAuditActionService<
     /**
      * Get flattened JSON data for display (fields only, no version wrapper)
      * Optional - implement only if custom display formatting is needed
-     * @param storedData - Parsed stored data { version, fields }
+     * @param params - Object containing storedData and userTimeZone
+     * @param params.storedData - Parsed stored data { version, fields }
+     * @param params.userTimeZone - User's timezone for datetime formatting (required)
      * @returns The fields object without version wrapper and we decide what fields to show to the client
      */
-    getDisplayJson?(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): unknown;
+    getDisplayJson?(params: { storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }; userTimeZone: string }): unknown;
 
     /**
      * Get the display title for the audit action
      * Returns a translation key with optional interpolation params for dynamic titles
      * (e.g., "Booking reassigned to John Doe" instead of just "Reassignment")
-     * @param storedData - Parsed stored data { version, fields }
+     * @param params - Object containing storedData and userTimeZone
+     * @param params.storedData - Parsed stored data { version, fields }
+     * @param params.userTimeZone - User's timezone for date formatting (required)
      * @returns Translation key with optional interpolation params
      */
-    getDisplayTitle(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): Promise<TranslationWithParams>;
+    getDisplayTitle(params: { storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }; userTimeZone: string }): Promise<TranslationWithParams>;
+
+    /**
+     * Returns additional display fields with translation keys for frontend rendering
+     * Optional - implement only if custom display fields are needed
+     * @param storedData - Parsed stored data { version, fields }
+     * @returns Array of field objects with label and value translation keys
+     */
+    getDisplayFields?(storedData: { version: number; fields: z.infer<TStoredFieldsSchema> }): Array<{
+        labelKey: string;  // Translation key for field label
+        valueKey: string;  // Translation key for field value
+    }>;
 
     /**
      * Migrate old version data to latest version
