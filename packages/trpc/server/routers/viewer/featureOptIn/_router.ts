@@ -4,14 +4,13 @@ import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
 import { FeatureOptInService } from "@calcom/features/feature-opt-in/services/FeatureOptInService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { createOrgPbacProcedure, createTeamPbacProcedure } from "./util";
 
 const featureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
 
@@ -61,63 +60,17 @@ export const featureOptInRouter = router({
    * Get all opt-in features with states for a team settings page.
    * Used by team admins to configure feature opt-in for their team.
    */
-  listForTeam: authedProcedure
-    .input(
-      z.object({
-        teamId: z.number(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const permissionCheckService = new PermissionCheckService();
-      const hasPermission = await permissionCheckService.checkPermission({
-        userId: ctx.user.id,
-        teamId: input.teamId,
-        permission: "team.read",
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-      });
-
-      if (!hasPermission) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You do not have permission to view team feature settings.",
-        });
-      }
-
-      return featureOptInService.listFeaturesForTeam({ teamId: input.teamId });
-    }),
+  listForTeam: createTeamPbacProcedure("team.read").query(async ({ input }) => {
+    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId });
+  }),
 
   /**
    * Get all opt-in features with states for organization settings page.
    * Used by org admins to configure feature opt-in for their organization.
-   * Uses the organization from the current user's context.
    */
-  listForOrganization: authedProcedure.query(async ({ ctx }) => {
-    const organizationId = ctx.user.organizationId;
-
-    if (!organizationId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "You are not a member of any organization.",
-      });
-    }
-
-    const permissionCheckService = new PermissionCheckService();
-    const hasPermission = await permissionCheckService.checkPermission({
-      userId: ctx.user.id,
-      teamId: organizationId,
-      permission: "organization.read",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
-
-    if (!hasPermission) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You do not have permission to view organization feature settings.",
-      });
-    }
-
+  listForOrganization: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
     // Organizations use the same listFeaturesForTeam since they're stored in TeamFeatures
-    return featureOptInService.listFeaturesForTeam({ teamId: organizationId });
+    return featureOptInService.listFeaturesForTeam({ teamId: ctx.organizationId });
   }),
 
   /**
@@ -126,21 +79,21 @@ export const featureOptInRouter = router({
   setUserState: authedProcedure
     .input(
       z.object({
-        featureId: z.string(),
+        slug: z.string(),
         state: featureStateSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (!isOptInFeature(input.featureId)) {
+      if (!isOptInFeature(input.slug)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Invalid featureId. This feature is not opt-in configurable.",
+          message: "Invalid slug. This feature is not opt-in configurable.",
         });
       }
 
       await featureOptInService.setUserFeatureState({
         userId: ctx.user.id,
-        featureId: input.featureId,
+        featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
       });
@@ -151,40 +104,24 @@ export const featureOptInRouter = router({
   /**
    * Set team's feature state (requires team admin).
    */
-  setTeamState: authedProcedure
+  setTeamState: createTeamPbacProcedure("team.update")
     .input(
       z.object({
-        teamId: z.number(),
-        featureId: z.string(),
+        slug: z.string(),
         state: featureStateSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (!isOptInFeature(input.featureId)) {
+      if (!isOptInFeature(input.slug)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Invalid featureId. This feature is not opt-in configurable.",
-        });
-      }
-
-      const permissionCheckService = new PermissionCheckService();
-      const hasPermission = await permissionCheckService.checkPermission({
-        userId: ctx.user.id,
-        teamId: input.teamId,
-        permission: "team.update",
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-      });
-
-      if (!hasPermission) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You do not have permission to update team feature settings.",
+          message: "Invalid slug. This feature is not opt-in configurable.",
         });
       }
 
       await featureOptInService.setTeamFeatureState({
         teamId: input.teamId,
-        featureId: input.featureId,
+        featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
       });
@@ -194,55 +131,96 @@ export const featureOptInRouter = router({
 
   /**
    * Set organization's feature state (requires org admin).
-   * Uses the organization from the current user's context.
    */
-  setOrganizationState: authedProcedure
+  setOrganizationState: createOrgPbacProcedure("organization.update")
     .input(
       z.object({
-        featureId: z.string(),
+        slug: z.string(),
         state: featureStateSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (!isOptInFeature(input.featureId)) {
+      if (!isOptInFeature(input.slug)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Invalid featureId. This feature is not opt-in configurable.",
-        });
-      }
-
-      const organizationId = ctx.user.organizationId;
-
-      if (!organizationId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You are not a member of any organization.",
-        });
-      }
-
-      const permissionCheckService = new PermissionCheckService();
-      const hasPermission = await permissionCheckService.checkPermission({
-        userId: ctx.user.id,
-        teamId: organizationId,
-        permission: "organization.update",
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-      });
-
-      if (!hasPermission) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You do not have permission to update organization feature settings.",
+          message: "Invalid slug. This feature is not opt-in configurable.",
         });
       }
 
       // Organizations use the same TeamFeatures table
       await featureOptInService.setTeamFeatureState({
-        teamId: organizationId,
-        featureId: input.featureId,
+        teamId: ctx.organizationId,
+        featureId: input.slug,
         state: input.state,
         assignedBy: ctx.user.id,
       });
 
+      return { success: true };
+    }),
+
+  /**
+   * Get user's auto opt-in preference.
+   */
+  getUserAutoOptIn: authedProcedure.query(async ({ ctx }) => {
+    const autoOptIn = await featuresRepository.getUserAutoOptIn(ctx.user.id);
+    return { autoOptIn };
+  }),
+
+  /**
+   * Set user's auto opt-in preference.
+   */
+  setUserAutoOptIn: authedProcedure
+    .input(
+      z.object({
+        autoOptIn: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await featuresRepository.setUserAutoOptIn(ctx.user.id, input.autoOptIn);
+      return { success: true };
+    }),
+
+  /**
+   * Get team's auto opt-in preference (requires team admin).
+   */
+  getTeamAutoOptIn: createTeamPbacProcedure("team.read").query(async ({ input }) => {
+    const autoOptIn = await featuresRepository.getTeamAutoOptIn(input.teamId);
+    return { autoOptIn };
+  }),
+
+  /**
+   * Set team's auto opt-in preference (requires team admin).
+   */
+  setTeamAutoOptIn: createTeamPbacProcedure("team.update")
+    .input(
+      z.object({
+        autoOptIn: z.boolean(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await featuresRepository.setTeamAutoOptIn(input.teamId, input.autoOptIn);
+      return { success: true };
+    }),
+
+  /**
+   * Get organization's auto opt-in preference (requires org admin).
+   */
+  getOrganizationAutoOptIn: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
+    const autoOptIn = await featuresRepository.getTeamAutoOptIn(ctx.organizationId);
+    return { autoOptIn };
+  }),
+
+  /**
+   * Set organization's auto opt-in preference (requires org admin).
+   */
+  setOrganizationAutoOptIn: createOrgPbacProcedure("organization.update")
+    .input(
+      z.object({
+        autoOptIn: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await featuresRepository.setTeamAutoOptIn(ctx.organizationId, input.autoOptIn);
       return { success: true };
     }),
 });

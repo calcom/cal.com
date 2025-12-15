@@ -1,0 +1,49 @@
+import type { FeatureState } from "@calcom/features/flags/config";
+
+/**
+ * Normalized feature representation used across all scopes (user, team, org).
+ */
+export interface NormalizedFeature {
+  slug: string;
+  globalEnabled: boolean;
+  /** The current state value for this scope (userState, teamState, etc.) */
+  currentState: FeatureState;
+}
+
+/**
+ * Toggle option labels - differ between user and team/org scopes.
+ */
+export interface ToggleLabels {
+  enabled: string;
+  disabled: string;
+  inherit: string;
+}
+
+/**
+ * Common interface returned by all feature opt-in hooks.
+ * This allows a single component to work with any scope.
+ */
+export interface UseFeatureOptInResult {
+  // Query state
+  features: NormalizedFeature[];
+  autoOptIn: boolean;
+  isLoading: boolean;
+
+  // Mutations
+  setFeatureState: (slug: string, state: FeatureState) => void;
+  setAutoOptIn: (checked: boolean) => void;
+  isStateMutationPending: boolean;
+  isAutoOptInMutationPending: boolean;
+
+  // Scope-specific configuration
+  toggleLabels: ToggleLabels;
+
+  /** Description for the auto opt-in toggle, varies by scope */
+  autoOptInDescription: string;
+
+  /**
+   * For user scope: returns a warning message if the feature is blocked by org/team.
+   * Returns null if not blocked or not applicable (team/org scopes).
+   */
+  getBlockedWarning: (feature: NormalizedFeature) => string | null;
+}
