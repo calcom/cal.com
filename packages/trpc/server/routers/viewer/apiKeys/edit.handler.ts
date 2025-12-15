@@ -14,13 +14,13 @@ export const editHandler = async ({ ctx, input }: EditOptions) => {
   const { id, ...data } = input;
 
   const {
-    apiKeys: [updatedApiKey],
+    calIdApiKeys: [updatedApiKey],
   } = await prisma.user.update({
     where: {
       id: ctx.user.id,
     },
     data: {
-      apiKeys: {
+      calIdApiKeys: {
         update: {
           where: {
             id,
@@ -30,7 +30,7 @@ export const editHandler = async ({ ctx, input }: EditOptions) => {
       },
     },
     select: {
-      apiKeys: {
+      calIdApiKeys: {
         where: {
           id,
         },

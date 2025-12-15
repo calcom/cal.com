@@ -453,6 +453,7 @@ model User {
   socialProfiles                 Json?
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
+  calIdApiKeys          CalIdApiKey[]
 
   @@unique([email])
   @@unique([email, username])
@@ -1219,6 +1220,7 @@ model App {
   payments    Payment[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+  CalIdApiKey CalIdApiKey[]
   enabled     Boolean         @default(false)
 
   @@index([enabled])
@@ -2598,6 +2600,7 @@ model CalIdTeam {
   accessCodes              AccessCode[] // Teams can have OAuth access codes
   routingForms             App_RoutingForms_Form[] // Teams can own routing forms
   apiKeys                  ApiKey[] // Teams can have API keys for external access
+  calIdApiKeys             CalIdApiKey[]
   attributes               Attribute[] // Teams can define custom attributes
   roles                    Role[] // Teams can have custom roles
   features                 CalIdTeamFeatures[] // Teams can have feature flags enabled
@@ -2796,4 +2799,38 @@ model WhatsAppBusinessPhone {
   @@index([phoneNumberId])
   @@index([wabaId])
   @@index([credentialId])
+}
+
+model CalIdApiKey {
+  id         String           @id @unique @default(cuid())
+  userId     Int
+  note       String?
+  createdAt  DateTime         @default(now())
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  hashedKey  String           @unique()
+  user       User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app        App?             @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId      String?
+  rateLimits CalIdRateLimit[]
+  calIdTeam  CalIdTeam?       @relation(fields: [teamId], references: [id], onDelete: Cascade) // NEW
+  teamId     Int?
+
+  @@index([userId])
+  @@index([teamId])
+}
+
+model CalIdRateLimit {
+  id            String   @id @default(uuid())
+  name          String
+  calIdApiKeyId String
+  ttl           Int
+  limit         Int
+  blockDuration Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  calIdApiKey CalIdApiKey @relation(fields: [calIdApiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([calIdApiKeyId])
 }

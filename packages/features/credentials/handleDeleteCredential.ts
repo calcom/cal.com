@@ -11,7 +11,6 @@ import { ONEHASH_API_KEY, ONEHASH_CHAT_ORIGIN } from "@calcom/lib/constants";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { DailyLocationType } from "@calcom/lib/location";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
@@ -441,7 +440,7 @@ const handleDeleteCredential = async ({
 
   // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
   if (credential.app?.slug === "zapier") {
-    await prisma.apiKey.deleteMany({
+    await prisma.calIdApiKey.deleteMany({
       where: {
         userId: userId,
         appId: "zapier",

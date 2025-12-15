@@ -1,7 +1,7 @@
+import retrieveValidApiKey from "@calid/features/modules/api-keys/utils/retrieveValidApiKey";
 import type { NextApiRequest } from "next";
 
 import isAuthorized from "@calcom/features/auth/lib/oAuthAuthorization";
-import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { HttpError } from "@calcom/lib/http-error";
 
 export async function validateAccountOrApiKey(req: NextApiRequest, requiredScopes: string[] = []) {
@@ -14,7 +14,7 @@ export async function validateAccountOrApiKey(req: NextApiRequest, requiredScope
     return { account: authorizedAccount, appApiKey: undefined };
   }
 
-  const validKey = await findValidApiKey(apiKey, "zapier");
+  const validKey = await retrieveValidApiKey(apiKey, "zapier");
   if (!validKey) throw new HttpError({ statusCode: 401, message: "API key not valid" });
   return { account: null, appApiKey: validKey };
 }
