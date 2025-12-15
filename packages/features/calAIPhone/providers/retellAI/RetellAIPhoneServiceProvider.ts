@@ -1,3 +1,4 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { TrackingData } from "@calcom/lib/tracking";
 
 import type {
@@ -36,10 +37,11 @@ export class RetellAIPhoneServiceProvider
     agentRepository: AgentRepositoryInterface,
     phoneNumberRepository: PhoneNumberRepositoryInterface,
     transactionManager: TransactionInterface,
+    permissionService: PermissionCheckService,
     service?: RetellAIService
   ) {
     this.service =
-      service || new RetellAIService(repository, agentRepository, phoneNumberRepository, transactionManager);
+      service || new RetellAIService(repository, agentRepository, phoneNumberRepository, transactionManager, permissionService);
   }
 
   async setupConfiguration(
