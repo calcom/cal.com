@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type z from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
@@ -109,7 +110,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (excluded.status !== "completed") {
       throw new HttpCode({ statusCode: 204, message: `Payment is ${excluded.status}` });
     }
-    return await handlePaymentSuccess(payment.id, payment.bookingId);
+    const traceContext = distributedTracing.createTrace("hitpay_webhook", {
+      meta: { paymentId: payment.id, bookingId: payment.bookingId },
+    });
+    return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
