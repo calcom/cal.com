@@ -11,9 +11,10 @@ import { Button } from "@calcom/ui/components/button";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { OnboardingCard } from "../../../components/OnboardingCard";
-import { OnboardingLayout } from "../../../components/OnboardingLayout";
-import { useOnboardingStore } from "../../../store/onboarding-store";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
+import { useMigrationFlow } from "../../hooks/useMigrationFlow";
+import { useOnboardingStore } from "../../store/onboarding-store";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
@@ -92,7 +93,9 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
               className="rounded-[10px]"
               onClick={() => {
                 const migrateParam = searchParams?.get("migrate");
-                const backUrl = `/onboarding/organization/teams${migrateParam ? `?migrate=${migrateParam}` : ""}`;
+                const backUrl = `/onboarding/organization/teams${
+                  migrateParam ? `?migrate=${migrateParam}` : ""
+                }`;
                 router.push(backUrl);
               }}>
               {t("back")}
@@ -134,4 +137,3 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
     </OnboardingLayout>
   );
 };
-

@@ -19,7 +19,7 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
 
   const handleLearnMore = () => {
     const redirectPath = flags["onboarding-v3"]
-      ? "/onboarding/organization/details"
+      ? "/onboarding/organization/details?migrate=true"
       : "/settings/organizations/new";
     router.push(redirectPath);
   };

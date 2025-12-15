@@ -8,6 +8,7 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { Button } from "@calcom/ui/components/button";
+import { Badge } from "@calcom/ui/components/badge";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -138,6 +139,35 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
         <Form id="teams-form" form={form} handleSubmit={handleContinue} className="w-full">
           <div className="w-full ">
             <div className="flex w-full flex-col gap-8 ">
+              {/* Migrated teams section */}
+              {migratedTeams.length > 0 && (
+                <div className="flex w-full flex-col gap-2">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-emphasis text-sm font-medium leading-4">{t("migrated_teams")}</p>
+                    <p className="text-subtle text-xs leading-4">{t("migrated_teams_description")}</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {migratedTeams.map((team) => (
+                      <div key={team.id} className="flex w-full items-end gap-0.5">
+                        <div className="flex-1">
+                          <TextField
+                            labelSrOnly
+                            value={team.name}
+                            disabled
+                            placeholder={t("team")}
+                            className="h-7 w-full rounded-[10px] text-sm opacity-60"
+                          />
+                        </div>
+                        <Badge variant="green" className="text-xs">
+                          {t("migrating")}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* New teams section */}
               <div className="flex w-full flex-col gap-2">
                 <div className="flex flex-col gap-1">
                   <p className="text-emphasis text-sm font-medium leading-4">{t("team")}</p>
@@ -187,7 +217,17 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
 
       {/* Right column - Browser view */}
       <OnboardingTeamsBrowserView
-        teams={form.watch("teams").map((t) => ({ name: t.name }))}
+        teams={[
+          ...migratedTeams.map((team) => ({
+            name: team.name,
+            slug: team.slug,
+            isMigrated: true,
+          })),
+          ...form
+            .watch("teams")
+            .filter((t) => t.name && t.name.trim().length > 0)
+            .map((t) => ({ name: t.name, isMigrated: false })),
+        ]}
         organizationLogo={organizationBrand.logo}
         organizationName={organizationDetails.name}
         organizationBanner={organizationBrand.banner}

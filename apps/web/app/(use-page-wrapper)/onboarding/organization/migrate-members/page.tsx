@@ -9,7 +9,7 @@ import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import LegacyPage from "~/onboarding/organization/migrate-members/organization-migrate-members-view";
+import { OrganizationMigrateMembersView } from "~/onboarding/organization/migrate-members/organization-migrate-members-view";
 
 export default async function MigrateMembersPage() {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
@@ -34,6 +34,5 @@ export default async function MigrateMembersPage() {
     return redirect(gettingStartedPath);
   }
 
-  return <LegacyPage userEmail={userEmail} />;
+  return <OrganizationMigrateMembersView userEmail={userEmail} />;
 }
-

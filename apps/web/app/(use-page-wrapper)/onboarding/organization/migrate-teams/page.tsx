@@ -10,7 +10,7 @@ import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import LegacyPage from "~/onboarding/organization/migrate-teams/organization-migrate-teams-view";
+import { OrganizationMigrateTeamsView } from "~/onboarding/organization/migrate-teams/organization-migrate-teams-view";
 
 type PageProps = {
   searchParams: Promise<{ migrate?: string }>;
@@ -57,5 +57,5 @@ export default async function MigrateTeamsPage({ searchParams }: PageProps) {
     return redirect("/onboarding/organization/teams");
   }
 
-  return <LegacyPage userEmail={userEmail} />;
+  return <OrganizationMigrateTeamsView userEmail={userEmail} />;
 }

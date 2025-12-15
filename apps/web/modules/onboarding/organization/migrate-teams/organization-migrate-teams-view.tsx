@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -11,10 +12,11 @@ import { Button } from "@calcom/ui/components/button";
 import { CheckboxField, TextField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 
-import { OnboardingCard } from "../../../components/OnboardingCard";
-import { OnboardingLayout } from "../../../components/OnboardingLayout";
-import { useMigrationFlow } from "../../../hooks/useMigrationFlow";
-import { useOnboardingStore } from "../../../store/onboarding-store";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
+import { OnboardingMigrateTeamsBrowserView } from "../../components/onboarding-migrate-teams-browser-view";
+import { useMigrationFlow } from "../../hooks/useMigrationFlow";
+import { useOnboardingStore } from "../../store/onboarding-store";
 import { getSuggestedSlug } from "./utils";
 
 type OrganizationMigrateTeamsViewProps = {
@@ -38,23 +40,14 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const { isMigrationFlow, hasTeams, teams, isLoading } = useMigrationFlow();
-  const { organizationDetails, teams: teamsFromStore, setTeams } = useOnboardingStore();
+  const { organizationDetails, organizationBrand, teams: teamsFromStore, setTeams } = useOnboardingStore();
   const orgSlug = organizationDetails.link;
 
   const teamsToMigrateFromStore = teamsFromStore.filter((team) => team.isBeingMigrated);
 
   const form = useForm<FormValues>({
     defaultValues: {
-      moveTeams: teams.map((team) => {
-        const teamToMigrateInStore = teamsToMigrateFromStore.find((t) => t.id === team.id);
-        const slugConflictsWithOrg = team.slug === orgSlug;
-        return {
-          id: team.id,
-          shouldMove: slugConflictsWithOrg || !!teamToMigrateInStore,
-          newSlug: teamToMigrateInStore?.slug || getSuggestedSlug({ teamSlug: team.slug, orgSlug }),
-          name: team.name,
-        };
-      }),
+      moveTeams: [],
     },
     resolver: async (data) => {
       try {
@@ -74,8 +67,28 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
     },
   });
 
-  const { register, control, watch, getValues, setValue } = form;
+  const { register, control, watch, getValues, setValue, reset } = form;
   const moveTeams = watch("moveTeams");
+
+  useEffect(() => {
+    if (teams.length > 0) {
+      const currentMoveTeams = getValues("moveTeams");
+      if (currentMoveTeams.length === 0 || currentMoveTeams.length !== teams.length) {
+        reset({
+          moveTeams: teams.map((team) => {
+            const teamToMigrateInStore = teamsToMigrateFromStore.find((t) => t.id === team.id);
+            const slugConflictsWithOrg = team.slug === orgSlug;
+            return {
+              id: team.id,
+              shouldMove: slugConflictsWithOrg || !!teamToMigrateInStore,
+              newSlug: teamToMigrateInStore?.slug || getSuggestedSlug({ teamSlug: team.slug, orgSlug }),
+              name: team.name,
+            };
+          }),
+        });
+      }
+    }
+  }, [teams, reset, teamsToMigrateFromStore, orgSlug, getValues]);
 
   const handleFormSubmit = () => {
     const moveTeamsData = getValues("moveTeams");
@@ -119,6 +132,16 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
   }
 
   const hasSelectedTeams = moveTeams.some((team) => team.shouldMove);
+
+  const browserViewTeams = teams.map((team) => {
+    const moveTeam = moveTeams.find((mt) => mt.id === team.id);
+    return {
+      id: team.id,
+      name: team.name,
+      slug: moveTeam?.newSlug || team.slug,
+      isSelected: moveTeam?.shouldMove || false,
+    };
+  });
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={6}>
@@ -200,6 +223,15 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
           ) : null}
         </Form>
       </OnboardingCard>
+
+      {/* Right column - Browser view */}
+      <OnboardingMigrateTeamsBrowserView
+        teams={browserViewTeams}
+        organizationLogo={organizationBrand.logo}
+        organizationName={organizationDetails.name}
+        organizationBanner={organizationBrand.banner}
+        slug={organizationDetails.link}
+      />
     </OnboardingLayout>
   );
 };
