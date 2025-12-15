@@ -20,7 +20,7 @@ export const editHandler = async ({ ctx, input }: EditOptions) => {
       id: ctx.user.id,
     },
     data: {
-      apiKeys: {
+      calIdApiKeys: {
         update: {
           where: {
             id,
@@ -30,7 +30,7 @@ export const editHandler = async ({ ctx, input }: EditOptions) => {
       },
     },
     select: {
-      apiKeys: {
+      calIdApiKeys: {
         where: {
           id,
         },

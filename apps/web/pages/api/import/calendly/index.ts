@@ -7,7 +7,6 @@ import type {
   CalendlyUserAvailabilitySchedules,
 } from "@onehash/calendly";
 import { CalendlyAPIService, CalendlyOAuthProvider } from "@onehash/calendly";
-import { inngestClient } from "@pages/api/inngest";
 import { NonRetriableError } from "inngest";
 import type { createStepTools } from "inngest/components/InngestStepTools";
 import type { Logger } from "inngest/middleware/logger";
@@ -27,6 +26,7 @@ import { getServerTimezone } from "@calcom/lib/timezone";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, IntegrationProvider, SchedulingType } from "@calcom/prisma/client";
+import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 export const config = {
   api: {
