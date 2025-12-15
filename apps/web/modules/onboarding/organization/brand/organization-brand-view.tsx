@@ -104,10 +104,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         subtitle={t("onboarding_org_brand_subtitle")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button
-              color="minimal"
-              className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/organization/details")}>
+            <Button color="minimal" className="rounded-[10px]" onClick={() => router.back()}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">

@@ -13,6 +13,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
+import { OnboardingMigrateMembersBrowserView } from "../../components/onboarding-migrate-members-browser-view";
 import { useMigrationFlow } from "../../hooks/useMigrationFlow";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
@@ -26,7 +27,7 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLocale();
-  const { teams, setMigratedMembers } = useOnboardingStore();
+  const { teams, organizationBrand, organizationDetails, setMigratedMembers } = useOnboardingStore();
 
   const teamsToMigrate = teams.filter((team) => team.isBeingMigrated && team.id > 0);
   const teamIds = teamsToMigrate.map((team) => team.id);
@@ -54,14 +55,14 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
     setMigratedMembers(migratedMembersData);
 
     const migrateParam = searchParams?.get("migrate");
-    const nextUrl = `/onboarding/organization/invite${migrateParam ? `?migrate=${migrateParam}` : ""}`;
+    const nextUrl = `/onboarding/organization/invite/email${migrateParam ? `?migrate=${migrateParam}` : ""}`;
     router.push(nextUrl);
   };
 
   const handleSkip = () => {
     setMigratedMembers([]);
     const migrateParam = searchParams?.get("migrate");
-    const nextUrl = `/onboarding/organization/invite${migrateParam ? `?migrate=${migrateParam}` : ""}`;
+    const nextUrl = `/onboarding/organization/invite/email${migrateParam ? `?migrate=${migrateParam}` : ""}`;
     router.push(nextUrl);
   };
 
@@ -88,16 +89,7 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
         subtitle={t("members_from_migrated_teams_will_be_included")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button
-              color="minimal"
-              className="rounded-[10px]"
-              onClick={() => {
-                const migrateParam = searchParams?.get("migrate");
-                const backUrl = `/onboarding/organization/teams${
-                  migrateParam ? `?migrate=${migrateParam}` : ""
-                }`;
-                router.push(backUrl);
-              }}>
+            <Button color="minimal" className="rounded-[10px]" onClick={() => router.back()}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
@@ -134,6 +126,20 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
           )}
         </div>
       </OnboardingCard>
+
+      {/* Right column - Browser view */}
+      <OnboardingMigrateMembersBrowserView
+        members={uniqueMembers.map((member) => ({
+          email: member.email,
+          name: member.name || null,
+          avatarUrl: member.avatarUrl || null,
+          teamId: member.teamId,
+        }))}
+        organizationLogo={organizationBrand.logo}
+        organizationName={organizationDetails.name}
+        organizationBanner={organizationBrand.banner}
+        slug={organizationDetails.link}
+      />
     </OnboardingLayout>
   );
 };

@@ -107,18 +107,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
         subtitle={t("onboarding_org_teams_subtitle")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button
-              type="button"
-              color="minimal"
-              className="rounded-[10px]"
-              onClick={() => {
-                const migrateParam = searchParams?.get("migrate");
-                if (isMigrationFlow && migrateParam) {
-                  router.push(`/onboarding/organization/migrate-teams?migrate=${migrateParam}`);
-                } else {
-                  router.push("/onboarding/organization/brand");
-                }
-              }}>
+            <Button type="button" color="minimal" className="rounded-[10px]" onClick={() => router.back()}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">

@@ -106,12 +106,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   };
 
   const handleBack = () => {
-    const migrateParam = searchParams?.get("migrate");
-    if (isMigrationFlow && migratedTeams.length > 0 && migrateParam) {
-      router.push(`/onboarding/organization/migrate-members?migrate=${migrateParam}`);
-    } else {
-      router.push(`/onboarding/organization/teams${migrateParam ? `?migrate=${migrateParam}` : ""}`);
-    }
+    router.back();
   };
 
   const handleSkip = async () => {

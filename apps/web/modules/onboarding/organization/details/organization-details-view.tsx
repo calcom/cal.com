@@ -86,16 +86,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
         subtitle={t("onboarding_org_details_subtitle")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button
-              color="minimal"
-              className="rounded-[10px]"
-              onClick={() => {
-                const migrateParam = searchParams?.get("migrate");
-                const backUrl = `/onboarding/getting-started${
-                  migrateParam ? `?migrate=${migrateParam}` : ""
-                }`;
-                router.push(backUrl);
-              }}>
+            <Button color="minimal" className="rounded-[10px]" onClick={() => router.back()}>
               {t("back")}
             </Button>
             <Button
