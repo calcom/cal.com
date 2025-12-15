@@ -53,7 +53,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -825,38 +824,33 @@ export default function Success(props: PageProps) {
                             (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
                             canReschedule) ||
                             (!isBookingInPast && canCancel)) && (
-                                   <>
-                                      <hr className="border-subtle mb-8" />
-                                      <div className="text-center last:pb-0">
-                                        <span className="text-emphasis ltr:mr-2 rtl:ml-2">
-                                          {t("need_to_make_a_change")}
-                                        </span>
+                            <>
+                              <hr className="border-subtle mb-8" />
+                              <div className="text-center last:pb-0">
+                                <span className="text-emphasis ltr:mr-2 rtl:ml-2">
+                                  {t("need_to_make_a_change")}
+                                </span>
 
-                                        <>
-                                          {!props.recurringBookings &&
-                                            (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
-                                            canReschedule &&
-                                            !isRescheduleDisabled && (
-                                              <span className="text-default inline">
-                                                <Link
-                                                  href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                                    currentUserEmail
-                                                      ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                                      : ""
-                                                  }`}
-                                                  className="underline"
-                                                  data-testid="reschedule-link"
-                                                >
-                                                  {t("reschedule")}
-                                                </Link>
-                                                {!isBookingInPast && canCancel && (
-                                                  <span className="mx-2">{t("or_lowercase")}</span>
-                                                )}
-                                              </span>
-                                            )}
-                                        </>
-                                      </div>
-
+                                <>
+                                  {!props.recurringBookings &&
+                                    (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                                    canReschedule &&
+                                    !isRescheduleDisabled && (
+                                      <span className="text-default inline">
+                                        <Link
+                                          href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                            currentUserEmail
+                                              ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                              : ""
+                                          }`}
+                                          className="underline"
+                                          data-testid="reschedule-link">
+                                          {t("reschedule")}
+                                        </Link>
+                                        {!isBookingInPast && canCancel && (
+                                          <span className="mx-2">{t("or_lowercase")}</span>
+                                        )}
+                                      </span>
                                     )}
 
                                   {!isBookingInPast && canCancel && (
