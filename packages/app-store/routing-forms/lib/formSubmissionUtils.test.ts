@@ -143,7 +143,7 @@ describe("_onFormSubmission", () => {
         "field-1": { label: "Attendee Name", value: "John Doe" },
       };
 
-      const mockWebhook: GetWebhooksReturnType[number] = {
+      const mockWebhook: WebhookSubscriber = {
         id: "wh-1",
         secret: "secret",
         subscriberUrl: "https://example.com/webhook",
@@ -152,6 +152,7 @@ describe("_onFormSubmission", () => {
         eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
         time: null,
         timeUnit: null,
+        version: "2021-10-20",
       };
       vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
 
