@@ -10,6 +10,7 @@ import { ColorPicker, Label } from "@calcom/ui/components/form";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
+import { useMigrationFlow } from "../../hooks/useMigrationFlow";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationBrandViewProps = {
@@ -20,6 +21,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   const router = useRouter();
   const { t } = useLocale();
   const { organizationDetails, organizationBrand, setOrganizationBrand } = useOnboardingStore();
+  const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
   const [_logoFile, setLogoFile] = useState<File | null>(null);
   const [_bannerFile, setBannerFile] = useState<File | null>(null);
@@ -71,23 +73,31 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
     setOrganizationBrand({ color });
   };
 
+  const getNextStep = () => {
+    // If migration flow and has teams, go to migrate-teams, otherwise go to teams
+    if (isMigrationFlow && hasTeams) {
+      return "/onboarding/organization/migrate-teams?migrate=true";
+    }
+    return "/onboarding/organization/teams";
+  };
+
   const handleContinue = () => {
-    // Save to store (already saved on change, but ensure it's persisted)
     setOrganizationBrand({
       logo: logoPreview,
       banner: bannerPreview,
       color: brandColor,
     });
-    router.push("/onboarding/organization/teams");
+    router.push(getNextStep());
   };
 
   const handleSkip = () => {
-    // Skip brand customization and go to teams
-    router.push("/onboarding/organization/teams");
+    router.push(getNextStep());
   };
 
+  const totalSteps = isMigrationFlow && hasTeams ? 6 : 4;
+
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={totalSteps}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_brand_title")}

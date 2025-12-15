@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
@@ -35,8 +35,12 @@ type FormValues = {
 
 export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEmailViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const flags = useFlags();
+  const { teams } = useOnboardingStore();
+  const migratedTeams = teams.filter((team) => team.isBeingMigrated);
+  const isMigrationFlow = searchParams?.get("migrate") === "true";
 
   const store = useOnboardingStore();
   const usersEmailDomain = userEmail.split("@")[1];
@@ -102,7 +106,12 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   };
 
   const handleBack = () => {
-    router.push("/onboarding/organization/teams");
+    const migrateParam = searchParams?.get("migrate");
+    if (isMigrationFlow && migratedTeams.length > 0 && migrateParam) {
+      router.push(`/onboarding/organization/migrate-members?migrate=${migrateParam}`);
+    } else {
+      router.push(`/onboarding/organization/teams${migrateParam ? `?migrate=${migrateParam}` : ""}`);
+    }
   };
 
   const handleSkip = async () => {
@@ -136,8 +145,12 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
     return email && email.trim().length > 0 && team && team.trim().length > 0;
   });
 
+  // Calculate total steps dynamically
+  const totalSteps = isMigrationFlow && migratedTeams.length > 0 ? 6 : 4;
+  const currentStep = isMigrationFlow && migratedTeams.length > 0 ? 6 : 4;
+
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={4} totalSteps={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={currentStep} totalSteps={totalSteps}>
       <div className="flex h-full w-full flex-col gap-4">
         <OnboardingCard
           title={t("onboarding_org_invite_title")}

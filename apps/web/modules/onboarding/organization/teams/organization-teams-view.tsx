@@ -1,11 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -13,6 +14,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingTeamsBrowserView } from "../../components/onboarding-teams-browser-view";
+import { useMigrationFlow } from "../../hooks/useMigrationFlow";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationTeamsViewProps = {
@@ -25,8 +27,14 @@ type FormValues = {
 
 export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const { teams: storedTeams, setTeams, organizationBrand, organizationDetails } = useOnboardingStore();
+  const { isMigrationFlow } = useMigrationFlow();
+
+  // Filter out migrated teams - only show new teams
+  const newTeams = storedTeams.filter((team) => !team.isBeingMigrated);
+  const migratedTeams = storedTeams.filter((team) => team.isBeingMigrated);
 
   const formSchema = z.object({
     teams: z.array(
@@ -39,7 +47,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      teams: storedTeams.length > 0 ? storedTeams : [{ name: "" }],
+      teams: newTeams.length > 0 ? newTeams.map((team) => ({ name: team.name })) : [{ name: "" }],
     },
   });
 
@@ -48,15 +56,37 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
     name: "teams",
   });
 
+  const getNextStep = () => {
+    const migrateParam = searchParams?.get("migrate");
+    const queryString = migrateParam ? `?migrate=${migrateParam}` : "";
+
+    // If migration flow and teams were migrated, go to migrate-members
+    if (isMigrationFlow && migratedTeams.length > 0) {
+      return `/onboarding/organization/migrate-members${queryString}`;
+    }
+    return `/onboarding/organization/invite/email${queryString}`;
+  };
+
   const handleContinue = (data: FormValues) => {
-    // Save teams to store
-    setTeams(data.teams);
-    router.push("/onboarding/organization/invite/email");
+    // Convert form data to Team structure and combine with migrated teams
+    const newTeamsData = data.teams
+      .filter((team) => team.name && team.name.trim().length > 0)
+      .map((team) => ({
+        id: -1,
+        name: team.name,
+        slug: null,
+        isBeingMigrated: false,
+      }));
+
+    // Combine migrated teams with new teams
+    setTeams([...migratedTeams, ...newTeamsData]);
+    router.push(getNextStep());
   };
 
   const handleSkip = () => {
-    // Skip teams and go to invite
-    router.push("/onboarding/organization/invite/email");
+    // Skip teams - keep migrated teams if any, otherwise empty
+    setTeams(migratedTeams);
+    router.push(getNextStep());
   };
 
   const hasValidTeams = fields.some((_, index) => {
@@ -64,8 +94,12 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
     return teamName && teamName.trim().length > 0;
   });
 
+  // Calculate total steps dynamically
+  const totalSteps = isMigrationFlow && migratedTeams.length > 0 ? 6 : 4;
+  const currentStep = isMigrationFlow && migratedTeams.length > 0 ? 4 : 3;
+
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={currentStep} totalSteps={totalSteps}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_teams_title")}
@@ -76,7 +110,14 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
               type="button"
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/organization/brand")}>
+              onClick={() => {
+                const migrateParam = searchParams?.get("migrate");
+                if (isMigrationFlow && migrateParam) {
+                  router.push(`/onboarding/organization/migrate-teams?migrate=${migrateParam}`);
+                } else {
+                  router.push("/onboarding/organization/brand");
+                }
+              }}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
@@ -146,7 +187,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
 
       {/* Right column - Browser view */}
       <OnboardingTeamsBrowserView
-        teams={form.watch("teams")}
+        teams={form.watch("teams").map((t) => ({ name: t.name }))}
         organizationLogo={organizationBrand.logo}
         organizationName={organizationDetails.name}
         organizationBanner={organizationBrand.banner}

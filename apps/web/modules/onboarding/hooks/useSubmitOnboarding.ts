@@ -24,24 +24,29 @@ export const useSubmitOnboarding = () => {
     setError(null);
 
     try {
-      const { selectedPlan, organizationDetails, organizationBrand, teams, inviteRole, resetOnboarding } =
-        store;
+      const {
+        selectedPlan,
+        organizationDetails,
+        organizationBrand,
+        teams,
+        inviteRole,
+        resetOnboarding,
+        migratedMembers,
+      } = store;
 
       if (selectedPlan !== "organization") {
         throw new Error("Only organization plan is currently supported");
       }
 
-      // Prepare teams data
       const teamsData = teams
         .filter((team) => team.name.trim().length > 0)
         .map((team) => ({
-          id: -1, // New team
+          id: team.id,
           name: team.name,
-          isBeingMigrated: false,
-          slug: null,
+          isBeingMigrated: team.isBeingMigrated,
+          slug: team.slug,
         }));
 
-      // Prepare invites data
       const invitedMembersData = invitesToSubmit
         .filter((invite) => invite.email.trim().length > 0)
         .map((invite) => ({
@@ -50,6 +55,14 @@ export const useSubmitOnboarding = () => {
           teamId: -1,
           role: inviteRole,
         }));
+
+      const migratedMembersData = migratedMembers.map((member) => ({
+        email: member.email,
+        teamId: member.teamId,
+        role: "MEMBER" as const,
+      }));
+
+      const allInvitedMembers = [...invitedMembersData, ...migratedMembersData];
 
       const result = await intentToCreateOrg.mutateAsync({
         name: organizationDetails.name,
@@ -64,7 +77,7 @@ export const useSubmitOnboarding = () => {
         isPlatform: false,
         creationSource: CreationSource.WEBAPP,
         teams: teamsData,
-        invitedMembers: invitedMembersData,
+        invitedMembers: allInvitedMembers,
       });
 
       // If there's a checkout URL, redirect to Stripe (billing enabled flow)

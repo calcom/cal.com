@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,6 +29,7 @@ const slugify = (text: string): string => {
 
 export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const { organizationDetails, setOrganizationDetails } = useOnboardingStore();
 
@@ -67,13 +68,14 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
       return;
     }
 
-    // Save to store
     setOrganizationDetails({
       name: organizationName,
       link: organizationLink,
       bio: organizationBio,
     });
-    router.push("/onboarding/organization/brand");
+    const migrateParam = searchParams?.get("migrate");
+    const nextUrl = `/onboarding/organization/brand${migrateParam ? `?migrate=${migrateParam}` : ""}`;
+    router.push(nextUrl);
   };
 
   return (
@@ -87,7 +89,13 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
             <Button
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/getting-started")}>
+              onClick={() => {
+                const migrateParam = searchParams?.get("migrate");
+                const backUrl = `/onboarding/getting-started${
+                  migrateParam ? `?migrate=${migrateParam}` : ""
+                }`;
+                router.push(backUrl);
+              }}>
               {t("back")}
             </Button>
             <Button
