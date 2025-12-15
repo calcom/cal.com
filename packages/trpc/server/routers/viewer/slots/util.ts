@@ -1042,7 +1042,9 @@ export class AvailableSlotsService {
     const startTimeAsIsoString = input.startTime;
     const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
 
-    // Adjust ROLLING_WINDOW start by 1 month unless disabled or start is in the past.
+    // If startTime is already sent in the past, we don't need to adjust it.
+    // We assume that the client is already sending startTime as per their requirement.
+    // Note: We could optimize it further to go back 1 month in past only for the 2nd month because that is what we are putting a hard limit at.
     const startTimeAdjustedForRollingWindowComputation =
       isStartTimeInPast || !isRollingWindowPeriodType || disableRollingWindowAdjustment
         ? startTimeAsIsoString

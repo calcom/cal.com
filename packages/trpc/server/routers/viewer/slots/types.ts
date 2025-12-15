@@ -34,14 +34,13 @@ export const getScheduleSchemaObject = z.object({
   routedTeamMemberIds: z.array(z.number()).nullish(),
   skipContactOwner: z.boolean().nullish(),
   rrHostSubsetIds: z.array(z.number()).nullish(),
-  disableRollingWindowAdjustment: z.boolean().optional(),
+  disableRollingWindowAdjustment: z.boolean().default(false),
   _enableTroubleshooter: z.boolean().optional(),
   _bypassCalendarBusyTimes: z.boolean().optional(),
   _silentCalendarFailures: z.boolean().optional(),
   routingFormResponseId: z.number().optional(),
   queuedFormResponseId: z.string().nullish(),
   email: z.string().nullish(),
-  disableRollingWindowAdjustment: z.boolean().default(false),
 });
 
 export const getScheduleSchema = getScheduleSchemaObject
