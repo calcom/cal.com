@@ -3,6 +3,7 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -16,7 +17,6 @@ import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -643,7 +643,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isCalVideoLocationActive = locations
     ? locations.some((location) => location.type === DailyLocationType)
     : parsedEventTypeLocations.success &&
-    parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await CalVideoSettingsRepository.deleteCalVideoSettings(id);

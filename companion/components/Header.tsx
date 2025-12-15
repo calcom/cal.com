@@ -7,16 +7,16 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  Modal,
-  Alert,
-  Linking,
   Platform,
   ActionSheetIOS,
+  Alert,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, UserProfile } from "../services/calcom";
 import { CalComLogo } from "./CalComLogo";
 import { FullScreenModal } from "./FullScreenModal";
+import { openInAppBrowser } from "../utils/browser";
 
 export function Header() {
   const router = useRouter();
@@ -40,14 +40,41 @@ export function Header() {
     }
   };
 
+  // Build public page URL
+  const publicPageUrl = userProfile?.username ? `https://cal.com/${userProfile.username}` : null;
+
+  const handleViewPublicPage = () => {
+    if (publicPageUrl) {
+      openInAppBrowser(publicPageUrl, "Public page");
+    }
+  };
+
+  const handleCopyPublicPageLink = async () => {
+    if (!publicPageUrl) return;
+    try {
+      await Clipboard.setStringAsync(publicPageUrl);
+      Alert.alert("Link Copied!", "Your public page link has been copied to clipboard.");
+    } catch (error) {
+      console.error("Failed to copy public page link:", error);
+      Alert.alert("Error", "Failed to copy link. Please try again.");
+    }
+  };
+
   const handleProfile = () => {
     if (Platform.OS === "ios") {
-      const options = ["Cancel", "My Profile", "My Settings", "Out of Office", "Help", "Sign Out"];
+      const options = [
+        "Cancel",
+        "My Profile",
+        "My Settings",
+        "Out of Office",
+        "View public page",
+        "Copy public page link",
+        "Help",
+      ];
 
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options,
-          destructiveButtonIndex: 6, // Sign Out
           cancelButtonIndex: 0,
           title: userProfile?.name || "Profile Menu",
         },
@@ -62,11 +89,14 @@ export function Header() {
             case 3: // Out of Office
               handleMenuOption("outOfOffice");
               break;
-            case 4: // Support
-              handleMenuOption("help");
+            case 4: // View public page
+              handleViewPublicPage();
               break;
-            case 5: // Sign Out
-              handleMenuOption("signOut");
+            case 5: // Copy public page link
+              handleCopyPublicPageLink();
+              break;
+            case 6: // Help
+              handleMenuOption("help");
               break;
           }
         }
@@ -76,55 +106,28 @@ export function Header() {
     }
   };
 
-  const openExternalLink = async (url: string, fallbackMessage: string) => {
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert("Error", `Cannot open ${fallbackMessage} on your device.`);
-      }
-    } catch (error) {
-      console.error(`Failed to open ${url}:`, error);
-      Alert.alert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
-    }
-  };
-
   const handleMenuOption = (option: string) => {
     if (Platform.OS !== "ios") {
       setShowProfileModal(false);
     }
     switch (option) {
       case "profile":
-        openExternalLink("https://app.cal.com/settings/my-account/profile", "Profile page");
+        openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Profile page");
         break;
       case "settings":
-        openExternalLink("https://app.cal.com/settings/my-account", "Settings page");
+        openInAppBrowser("https://app.cal.com/settings/my-account", "Settings page");
         break;
       case "outOfOffice":
-        openExternalLink(
+        openInAppBrowser(
           "https://app.cal.com/settings/my-account/out-of-office",
           "Out of Office page"
         );
         break;
       case "roadmap":
-        openExternalLink("https://cal.com/roadmap", "Roadmap");
+        openInAppBrowser("https://cal.com/roadmap", "Roadmap");
         break;
       case "help":
-        openExternalLink("https://cal.com/help", "Help page");
-        break;
-      case "signOut":
-        Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Sign Out",
-            style: "destructive",
-            onPress: () => {
-              // TODO: Implement sign out
-              console.log("Sign Out pressed");
-            },
-          },
-        ]);
+        openInAppBrowser("https://cal.com/help", "Help page");
         break;
     }
   };
@@ -250,6 +253,37 @@ export function Header() {
 
               <View className="mx-4 my-2 h-px bg-gray-200" />
 
+              {/* View public page */}
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-2 hover:bg-gray-50 md:p-4"
+                onPress={() => {
+                  setShowProfileModal(false);
+                  handleViewPublicPage();
+                }}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="globe-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">View public page</Text>
+                </View>
+                <Ionicons name="open-outline" size={16} color="#6B7280" />
+              </TouchableOpacity>
+
+              {/* Copy public page link */}
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-2 hover:bg-gray-50 md:p-4"
+                onPress={() => {
+                  setShowProfileModal(false);
+                  handleCopyPublicPageLink();
+                }}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="copy-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">Copy public page link</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="mx-4 my-2 h-px bg-gray-200" />
+
               <TouchableOpacity
                 className="flex-row items-center justify-between p-2 hover:bg-gray-50 md:p-4"
                 onPress={() => handleMenuOption("roadmap")}
@@ -270,16 +304,6 @@ export function Header() {
                   <Text className="ml-3 text-base text-gray-900">Help</Text>
                 </View>
                 <Ionicons name="open-outline" size={16} color="#6B7280" />
-              </TouchableOpacity>
-
-              <View className="mx-4 my-2 h-px bg-gray-200" />
-
-              <TouchableOpacity
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
-                onPress={() => handleMenuOption("signOut")}
-              >
-                <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-                <Text className="ml-3 text-base text-red-500">Sign Out</Text>
               </TouchableOpacity>
             </View>
 
