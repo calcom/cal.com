@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useLayoutEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { DataTableFilters } from "@calcom/features/data-table";
@@ -172,6 +172,27 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
   const { canReadOthersBookings } = props.permissions;
   const { userIds } = useBookingFilters();
   const { currentWeekStart, setCurrentWeekStart, userWeekStart } = useCurrentWeekStart();
+
+  // Hide the shell heading when calendar view is mounted
+  // This is needed because the heading/subtitle are rendered in the server component (page.tsx)
+  // but we only want to show them in list view
+  useLayoutEffect(() => {
+    const marker = document.querySelector(".bookings-shell-heading");
+    if (!marker) return;
+
+    // Find the outer header wrapper (the div with md:mb-6 md:mt-0)
+    const headerWrapper = marker.closest("header")?.parentElement;
+    if (!headerWrapper) return;
+
+    // Store the original display value and hide the header
+    const originalDisplay = headerWrapper.style.display;
+    headerWrapper.style.display = "none";
+
+    // Restore on unmount (when switching back to list view)
+    return () => {
+      headerWrapper.style.display = originalDisplay;
+    };
+  }, []);
 
   const allowedFilterIds = useCalendarAllowedFilters({
     canReadOthersBookings,
