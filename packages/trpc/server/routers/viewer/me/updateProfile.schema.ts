@@ -16,7 +16,8 @@ export const updateUserMetadataAllowedKeys: z.ZodType<TUpdateUserMetadataAllowed
   defaultBookerLayouts: bookerLayouts.optional(),
 });
 
-export type TUpdateProfileInputSchema = {
+// Input type - what callers send (isDeleted in secondaryEmails is optional)
+export type TUpdateProfileInputSchemaInput = {
   username?: string;
   name?: string;
   email?: string;
@@ -51,7 +52,43 @@ export type TUpdateProfileInputSchema = {
   }[];
 };
 
-export const ZUpdateProfileInputSchema: z.ZodType<TUpdateProfileInputSchema> = z.object({
+// Output type - what handlers receive after parsing (isDeleted has .default(false), so required)
+export type TUpdateProfileInputSchema = {
+  username?: string;
+  name?: string;
+  email?: string;
+  bio?: string;
+  avatarUrl?: string | null;
+  timeZone?: string;
+  weekStart?: string;
+  hideBranding?: boolean;
+  allowDynamicBooking?: boolean;
+  allowSEOIndexing?: boolean;
+  receiveMonthlyDigestEmail?: boolean;
+  requiresBookerEmailVerification?: boolean;
+  brandColor?: string;
+  darkBrandColor?: string;
+  theme?: string | null;
+  appTheme?: string | null;
+  completedOnboarding?: boolean;
+  locale?: string;
+  timeFormat?: number;
+  disableImpersonation?: boolean;
+  metadata?: z.infer<typeof userMetadata>;
+  travelSchedules?: {
+    id?: number;
+    timeZone: string;
+    endDate?: Date;
+    startDate: Date;
+  }[];
+  secondaryEmails?: {
+    id: number;
+    email: string;
+    isDeleted: boolean;
+  }[];
+};
+
+export const ZUpdateProfileInputSchema: z.ZodType<TUpdateProfileInputSchema, z.ZodTypeDef, TUpdateProfileInputSchemaInput> = z.object({
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),
