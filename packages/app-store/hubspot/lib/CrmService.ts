@@ -6,6 +6,7 @@ import type {
   SimplePublicObject,
   SimplePublicObjectInput,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
+import type { z } from "zod";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
@@ -20,6 +21,7 @@ import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/C
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
+import type { appDataSchema } from "../zod";
 
 export default class HubspotCalendarService implements CRM {
   private url = "";
@@ -29,8 +31,9 @@ export default class HubspotCalendarService implements CRM {
   private client_id = "";
   private client_secret = "";
   private hubspotClient: hubspot.Client;
+  private appOptions: z.infer<typeof appDataSchema>;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, appOptions?: z.infer<typeof appDataSchema>) {
     this.hubspotClient = new hubspot.Client();
 
     this.integrationName = "hubspot_other_calendar";
@@ -38,6 +41,8 @@ export default class HubspotCalendarService implements CRM {
     this.auth = this.hubspotAuth(credential).then((r) => r);
 
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+
+    this.appOptions = appOptions || {};
   }
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
@@ -300,7 +305,7 @@ export default class HubspotCalendarService implements CRM {
   }
 
   getAppOptions() {
-    console.log("No options implemented");
+    return this.appOptions;
   }
 
   async handleAttendeeNoShow() {

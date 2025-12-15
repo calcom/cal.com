@@ -11,6 +11,7 @@ import {
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";
@@ -24,7 +25,6 @@ import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "@c
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type {
   Booking,
   Prisma,
@@ -77,7 +77,7 @@ export type GetUserAvailabilityInitialData = {
       seatsReferences: number;
     };
   })[];
-  outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
+  outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end" | "notes" | "showNotePublicly"> & {
     user: Pick<User, "id" | "name">;
     toUser: Pick<User, "id" | "username" | "name"> | null;
     reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
@@ -144,6 +144,8 @@ export interface IOutOfOfficeData {
     toUser?: IToUser | null;
     reason?: string | null;
     emoji?: string | null;
+    notes?: string | null;
+    showNotePublicly?: boolean;
   };
 }
 
@@ -615,40 +617,45 @@ export class UserAvailabilityService {
       return {};
     }
 
-    return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user, reason }) => {
-      // here we should use startDate or today if start is before today
-      // consider timezone in start and end date range
-      const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
-        ? dayjs().utc().startOf("day")
-        : dayjs(start).utc().startOf("day");
+    return outOfOfficeDays.reduce(
+      (acc: IOutOfOfficeData, { start, end, toUser, user, reason, notes, showNotePublicly }) => {
+        // here we should use startDate or today if start is before today
+        // consider timezone in start and end date range
+        const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
+          ? dayjs().utc().startOf("day")
+          : dayjs(start).utc().startOf("day");
 
-      // get number of day in the week and see if it's on the availability
-      const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
-        (a, b) => a - b
-      );
+        // get number of day in the week and see if it's on the availability
+        const flattenDays = Array.from(
+          new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))
+        ).sort((a, b) => a - b);
 
-      const endDateRange = dayjs(end).utc().endOf("day");
+        const endDateRange = dayjs(end).utc().endOf("day");
 
-      for (let date = startDateRange; date.isBefore(endDateRange); date = date.add(1, "day")) {
-        const dayNumberOnWeek = date.day();
+        for (let date = startDateRange; date.isBefore(endDateRange); date = date.add(1, "day")) {
+          const dayNumberOnWeek = date.day();
 
-        if (!flattenDays?.includes(dayNumberOnWeek)) {
-          continue; // Skip to the next iteration if day not found in flattenDays
+          if (!flattenDays?.includes(dayNumberOnWeek)) {
+            continue; // Skip to the next iteration if day not found in flattenDays
+          }
+
+          acc[date.format("YYYY-MM-DD")] = {
+            // @TODO:  would be good having start and end availability time here, but for now should be good
+            // you can obtain that from user availability defined outside of here
+            fromUser: { id: user.id, displayName: user.name },
+            // optional chaining destructuring toUser
+            toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+            reason: reason ? reason.reason : null,
+            emoji: reason ? reason.emoji : null,
+            notes: showNotePublicly ? notes || null : null,
+            showNotePublicly: showNotePublicly ?? false,
+          };
         }
 
-        acc[date.format("YYYY-MM-DD")] = {
-          // @TODO:  would be good having start and end availability time here, but for now should be good
-          // you can obtain that from user availability defined outside of here
-          fromUser: { id: user.id, displayName: user.name },
-          // optional chaining destructuring toUser
-          toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
-          reason: reason ? reason.reason : null,
-          emoji: reason ? reason.emoji : null,
-        };
-      }
-
-      return acc;
-    }, {});
+        return acc;
+      },
+      {}
+    );
   }
 
   async _getUsersAvailability({ users, query, initialData }: GetUsersAvailabilityProps) {
