@@ -14,24 +14,29 @@ jobs:
     name: Build Companion App & Extension
     runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
+
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: 20
-          cache: npm
+          bun-version: 1.3.0
+          cache: true
           cache-dependency-path: companion/bun.lock
+
       - name: Install dependencies
         working-directory: companion
-        run: npm ci
+        run: bun install --frozen-lockfile
+
       - name: Build Expo web app
         working-directory: companion
         env:
           EXPO_NO_TELEMETRY: 1
           CI: true
-        run: npx expo export --platform web
+        run: bunx expo export --platform web
+
       - name: Build browser extension
         working-directory: companion
-        run: npm run ext:build
+        run: bun run ext:build
