@@ -1,12 +1,22 @@
 import React, { useEffect } from "react";
 import { View, Text, ActivityIndicator, Platform } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { useAuth } from "../../contexts";
 
 export default function OAuthCallback() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const auth = useAuth();
 
   useEffect(() => {
+    if (Platform.OS === "android") {
+      console.log("Android");
+      console.log(auth.userInfo);
+      if (auth.userInfo) {
+        router.replace("/(tabs)");
+      }
+    }
+
     if (Platform.OS !== "web") return;
 
     // Extract code, state, and error parameters from URL
