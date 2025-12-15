@@ -1,7 +1,7 @@
+import retrieveValidApiKey from "@calid/features/modules/api-keys/utils/retrieveValidApiKey";
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
-import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { deleteSubscription } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -18,7 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(401).json({ message: "No API key provided" });
   }
 
-  const validKey = await findValidApiKey(apiKey, "make");
+  const validKey = await retrieveValidApiKey(apiKey, "make");
 
   if (!validKey) {
     return res.status(401).json({ message: "API key not valid" });

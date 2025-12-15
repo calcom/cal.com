@@ -24,7 +24,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
       id: ctx.user.id,
     },
     data: {
-      apiKeys: {
+      calIdApiKeys: {
         delete: {
           id,
         },
