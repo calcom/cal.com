@@ -52,6 +52,7 @@ interface BookingCalendarInnerProps extends BookingCalendarContainerProps {
   hasError: boolean;
   errorMessage?: string;
   hasNextPage: boolean;
+  isFetched: boolean;
   isFetchingNextPage: boolean;
 }
 
@@ -64,6 +65,7 @@ function BookingCalendarInner({
   hasError,
   errorMessage,
   hasNextPage,
+  isFetched,
   isFetchingNextPage,
 }: BookingCalendarInnerProps) {
   const { t } = useLocale();
@@ -80,7 +82,7 @@ function BookingCalendarInner({
   }, [rowData]);
 
   // Handle auto-selection for calendar view
-  useCalendarAutoSelector(bookings, hasNextPage, isFetchingNextPage);
+  useCalendarAutoSelector(bookings, hasNextPage, isFetched, isFetchingNextPage);
 
   const goToPreviousWeek = () => {
     setCurrentWeekStart(currentWeekStart.subtract(1, "week"));
@@ -193,8 +195,9 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
     }
   );
 
+  const { isFetched, hasNextPage, isFetchingNextPage, fetchNextPage } = query;
+
   // Automatically fetch all pages until no more data
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
   useEffect(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -238,6 +241,7 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
         hasError={!!query.error}
         errorMessage={query.error?.message}
         hasNextPage={hasNextPage}
+        isFetched={isFetched}
         isFetchingNextPage={isFetchingNextPage}
       />
     </BookingDetailsSheetStoreProvider>

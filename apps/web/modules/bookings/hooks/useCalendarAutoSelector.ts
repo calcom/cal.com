@@ -13,6 +13,7 @@ import type { BookingsGetOutput } from "../types";
 export function useCalendarAutoSelector(
   bookings: BookingsGetOutput["bookings"],
   hasNextPage: boolean,
+  isFetched: boolean,
   isFetchingNextPage: boolean
 ) {
   const pendingSelection = useBookingDetailsSheetStore((state) => state.pendingSelection);
@@ -32,12 +33,15 @@ export function useCalendarAutoSelector(
 
     if (!hasBookingsChanged) return;
 
-    // For "first", we can select immediately when the first page arrives
-    if (pendingSelection === "first") {
-      if (bookings.length === 0) {
-        return;
-      }
+    if (pendingSelection === "first" && isFetched && bookings.length === 0) {
+      // data fetching is finished but there is no booking to select
+      setIsTransitioning(false);
+      clearPendingSelection();
+      return;
+    }
 
+    // For "first", we can select immediately when the first page arrives
+    if (pendingSelection === "first" && bookings.length > 0) {
       setSelectedBookingUid(bookings[0].uid);
       setIsTransitioning(false);
       clearPendingSelection();
@@ -47,6 +51,13 @@ export function useCalendarAutoSelector(
     // For "last", wait until all pages are loaded to ensure we get the actual last booking
     if (pendingSelection === "last") {
       const isAllDataLoaded = !hasNextPage && !isFetchingNextPage;
+
+      if (isAllDataLoaded && bookings.length === 0) {
+        // data fetching is finished but there is no booking to select
+        setIsTransitioning(false);
+        clearPendingSelection();
+        return;
+      }
 
       // Wait for all data to load AND for bookings to actually arrive
       if (!isAllDataLoaded || bookings.length === 0) {
@@ -63,6 +74,7 @@ export function useCalendarAutoSelector(
   }, [
     bookings,
     hasNextPage,
+    isFetched,
     isFetchingNextPage,
     pendingSelection,
     setSelectedBookingUid,
