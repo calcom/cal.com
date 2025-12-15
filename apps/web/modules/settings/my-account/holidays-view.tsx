@@ -158,7 +158,11 @@ function ConflictWarning({
               {idx < Math.min(conflicts.length, 3) - 1 && ","}
             </span>
           ))}
-          {conflicts.length > 3 && <span className="text-subtle text-sm">+{conflicts.length - 3} more</span>}
+          {conflicts.length > 3 && (
+            <span className="text-subtle text-sm">
+              +{conflicts.length - 3} {t("more")}
+            </span>
+          )}
         </div>
       </div>
     </div>

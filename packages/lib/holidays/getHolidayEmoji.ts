@@ -1,5 +1,6 @@
 const HOLIDAY_EMOJI_MAP: Array<{ keywords: string[]; emoji: string }> = [
   { keywords: ["christmas", "xmas", "noël", "navidad", "natal", "weihnacht"], emoji: "🎄" },
+  { keywords: ["chinese new year", "lunar new year", "spring festival"], emoji: "🐉" },
   { keywords: ["new year", "año nuevo", "nouvel an", "neujahr", "capodanno"], emoji: "🎆" },
   { keywords: ["boxing day", "st. stephen", "saint stephen", "stephen's day"], emoji: "🎁" },
   { keywords: ["epiphany", "three kings", "reyes magos"], emoji: "👑" },
@@ -54,7 +55,6 @@ const HOLIDAY_EMOJI_MAP: Array<{ keywords: string[]; emoji: string }> = [
   { keywords: ["purim"], emoji: "🎭" },
   { keywords: ["shavuot"], emoji: "📜" },
   { keywords: ["vesak", "buddha", "bodhi"], emoji: "🪷" },
-  { keywords: ["chinese new year", "lunar new year", "spring festival"], emoji: "🐉" },
   { keywords: ["mid-autumn", "moon festival", "mooncake"], emoji: "🥮" },
   { keywords: ["dragon boat", "duanwu"], emoji: "🐲" },
   { keywords: ["qingming", "tomb sweeping"], emoji: "🪦" },

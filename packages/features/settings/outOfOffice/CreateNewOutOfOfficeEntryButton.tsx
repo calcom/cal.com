@@ -37,7 +37,7 @@ const CreateNewOutOfOfficeEntryButton = ({
       onClick={onClick}
       data-testid={rest["data-testid"]}
       disabled={selectedTab === OutOfOfficeTab.TEAM && !hasTeamOOOAdminAccess}>
-      <span className="hidden md:inline">{t("add")}</span>
+      <span className="sr-only md:not-sr-only md:inline">{t("add")}</span>
     </Button>
   );
 };
