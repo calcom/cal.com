@@ -94,7 +94,9 @@ export default class ExchangeCalendarService implements Calendar {
       // Add optional members to the optional list
       if (event.optionalGuestTeamMembers) {
         event.optionalGuestTeamMembers.forEach((member) => {
-          appointment.OptionalAttendees.Add(new Attendee(member.email));
+          if (member.email) {
+            appointment.OptionalAttendees.Add(new Attendee(member.email));
+          }
         });
       }
 
@@ -135,7 +137,7 @@ export default class ExchangeCalendarService implements Calendar {
       const optionalGuestEmails = new Set(
         event.optionalGuestTeamMembers
           ?.filter((guest) => guest?.email)
-          .map((guest) => guest.email.toLowerCase()) ?? []
+          .map((guest) => guest.email.trim().toLowerCase()) ?? []
       );
 
       // Add the main booker as required
