@@ -5,6 +5,7 @@ import { memo, useMemo, useCallback } from "react";
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { OutOfOfficeToggleGroup } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
+import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -38,12 +39,8 @@ function HolidaysCTA() {
 type HolidayWithStatus = RouterOutputs["viewer"]["holidays"]["getUserSettings"]["holidays"][number];
 type Country = { code: string; name: string };
 
-// Convert country code to flag emoji using Unicode regional indicator symbols
-// Only works for valid 2-letter ISO country codes
 const getFlagEmoji = (countryCode: string): string | null => {
-  // Only convert valid 2-letter ISO country codes
   if (countryCode.length !== 2) return null;
-
   const codePoints = countryCode
     .toUpperCase()
     .split("")
@@ -110,16 +107,22 @@ const HolidayListItem = memo(function HolidayListItem({
   isToggling: boolean;
 }) {
   const formattedDate = holiday.date ? dayjs(holiday.date).format("D MMM, YYYY") : null;
+  const emoji = getHolidayEmoji(holiday.name);
 
   return (
     <div className="border-subtle flex items-center justify-between border-b px-5 py-4 last:border-b-0">
-      <div>
-        <p className={holiday.enabled ? "text-emphasis font-medium" : "text-muted font-medium"}>
-          {holiday.name}
-        </p>
-        {formattedDate && (
-          <p className={holiday.enabled ? "text-subtle text-sm" : "text-muted text-sm"}>{formattedDate}</p>
-        )}
+      <div className="flex items-center gap-3">
+        <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-lg">
+          <span className="text-xl">{emoji}</span>
+        </div>
+        <div>
+          <p className={holiday.enabled ? "text-emphasis font-medium" : "text-muted font-medium"}>
+            {holiday.name}
+          </p>
+          {formattedDate && (
+            <p className={holiday.enabled ? "text-subtle text-sm" : "text-muted text-sm"}>{formattedDate}</p>
+          )}
+        </div>
       </div>
       <Switch
         checked={holiday.enabled}

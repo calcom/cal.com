@@ -20,6 +20,7 @@ import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getHolidayService } from "@calcom/lib/holidays";
+import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -761,7 +762,7 @@ export class UserAvailabilityService {
         fromUser: null,
         toUser: null,
         reason: holiday.name,
-        emoji: "📆",
+        emoji: getHolidayEmoji(holiday.name),
       };
     }
 
