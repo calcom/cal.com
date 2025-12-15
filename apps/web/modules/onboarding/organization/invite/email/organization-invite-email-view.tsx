@@ -58,11 +58,11 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   const googleWorkspaceEnabled = flags["google-workspace-directory"];
 
   const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
-  const teams =
+  const teamOptions =
     filteredTeams.length > 0
       ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
       : [];
-  const hasTeams = teams.length > 0;
+  const hasTeams = teamOptions.length > 0;
 
   // Conditional form schema - team is optional when there are no teams
   const formSchema = z.object({
@@ -184,7 +184,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
                   remove={remove}
                   defaultRole={inviteRole}
                   showTeamSelect={hasTeams}
-                  teams={teams}
+                  teams={teamOptions}
                   emailPlaceholder={`dave@${usersEmailDomain}`}
                 />
 

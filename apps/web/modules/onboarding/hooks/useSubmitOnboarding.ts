@@ -49,12 +49,32 @@ export const useSubmitOnboarding = () => {
 
       const invitedMembersData = invitesToSubmit
         .filter((invite) => invite.email.trim().length > 0)
-        .map((invite) => ({
-          email: invite.email,
-          teamName: invite.team,
-          teamId: -1,
-          role: inviteRole,
-        }));
+        .map((invite) => {
+          // If invite has a team name, try to find the team ID (for migrated teams)
+          let teamId: number | undefined = undefined;
+          let teamName: string | undefined = undefined;
+
+          if (invite.team && invite.team.trim().length > 0) {
+            const matchingTeam = teams.find(
+              (team) => team.name.toLowerCase() === invite.team.toLowerCase()
+            );
+            if (matchingTeam?.isBeingMigrated && matchingTeam.id !== -1) {
+              // Use team ID for migrated teams
+              teamId = matchingTeam.id;
+            } else {
+              // Use team name for new teams (will be matched after creation)
+              teamName = invite.team;
+              teamId = -1;
+            }
+          }
+
+          return {
+            email: invite.email,
+            teamName,
+            teamId,
+            role: inviteRole,
+          };
+        });
 
       const migratedMembersData = migratedMembers.map((member) => ({
         email: member.email,
