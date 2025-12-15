@@ -14,7 +14,7 @@ export const editHandler = async ({ ctx, input }: EditOptions) => {
   const { id, ...data } = input;
 
   const {
-    apiKeys: [updatedApiKey],
+    calIdApiKeys: [updatedApiKey],
   } = await prisma.user.update({
     where: {
       id: ctx.user.id,
