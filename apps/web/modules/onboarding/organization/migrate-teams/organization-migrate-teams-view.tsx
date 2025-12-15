@@ -82,7 +82,6 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
               id: team.id,
               shouldMove: slugConflictsWithOrg || !!teamToMigrateInStore,
               newSlug: teamToMigrateInStore?.slug || getSuggestedSlug({ teamSlug: team.slug, orgSlug }),
-              name: team.name,
             };
           }),
         });
@@ -96,11 +95,18 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
     const teamsBeingMoved = moveTeamsData
       .filter((team) => team.shouldMove)
       .map((team) => {
+        const originalTeam = teams.find((t) => t.id === team.id);
+        if (!originalTeam) {
+          throw new Error(`Team with id ${team.id} not found`);
+        }
+        // Use newSlug if provided and not empty, otherwise fall back to original team slug
+        // This matches the settings flow behavior - backend will use original slug if newSlug is null
+        const slug = team.newSlug?.trim() || originalTeam.slug || null;
         return {
           id: team.id,
           isBeingMigrated: true,
-          slug: team.newSlug || null,
-          name: team.name,
+          slug,
+          name: originalTeam.name,
         };
       });
 
