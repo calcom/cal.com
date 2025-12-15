@@ -54,6 +54,7 @@ export type DatePickerProps = {
       toUser?: IToUser;
       reason?: string;
       emoji?: string;
+      showNotePublicly?: boolean;
     }[]
   >;
   periodData?: PeriodData;
@@ -271,7 +272,9 @@ const Days = ({
     const isOOOAllDay = daySlots.length > 0 && daySlots.every((slot) => slot.away);
     const away = isOOOAllDay;
 
-    const disabled = away ? !oooInfo?.toUser : isNextMonth ? !hasAvailableSlots : !included || excluded;
+    // OOO dates are selectable only if there's a redirect user OR the note is public
+    const oooIsSelectable = oooInfo?.toUser || oooInfo?.showNotePublicly;
+    const disabled = away ? !oooIsSelectable : isNextMonth ? !hasAvailableSlots : !included || excluded;
 
     return {
       day,
