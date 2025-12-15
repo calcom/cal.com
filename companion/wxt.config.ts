@@ -1,6 +1,15 @@
 import { defineConfig } from "wxt";
 
 export default defineConfig({
+  hooks: {
+    "build:manifestGenerated": (_wxt, manifest) => {
+      manifest.browser_specific_settings ??= {};
+      manifest.browser_specific_settings.gecko ??= {};
+      manifest.browser_specific_settings.gecko.data_collection_permissions = {
+        required: ["none"],
+      };
+    },
+  },
   srcDir: "extension",
   entrypointsDir: "entrypoints",
   publicDir: "extension/public",
@@ -19,6 +28,9 @@ export default defineConfig({
     content_security_policy: {
       extension_pages:
         "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com",
+    },
+    data_collection_permissions: {
+      collects_data: false,
     },
     action: {
       default_title: "Cal.com Companion",

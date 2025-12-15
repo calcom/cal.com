@@ -32,7 +32,7 @@ export function LoginScreen() {
     <View className="flex-1 bg-white">
       {/* Logo centered in the middle */}
       <View className="flex-1 items-center justify-center">
-        <CalComLogo width={240} height={54} color="#111827" />
+        <CalComLogo width={180} height={40} color="#111827" />
       </View>
 
       {/* Bottom section with button */}
