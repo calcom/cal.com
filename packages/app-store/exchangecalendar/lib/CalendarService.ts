@@ -76,7 +76,7 @@ export default class ExchangeCalendarService implements Calendar {
     // Add team members as required, ONLY if they aren't optional
     if (event.team?.members) {
       event.team.members
-        .filter((member) => member.email && !optionalGuestEmails.has(member.email.toLowerCase()))
+        .filter((member) => member.email && !optionalGuestEmails.has(member.email.trim().toLowerCase()))
         .forEach((member: Person) => {
           appointment.RequiredAttendees.Add(new Attendee(member.email));
         });

@@ -157,7 +157,9 @@ export default class ExchangeCalendarService implements Calendar {
       // Add optional members to the optional list
       if (event.optionalGuestTeamMembers) {
         event.optionalGuestTeamMembers.forEach((member) => {
-          appointment.OptionalAttendees.Add(new Attendee(member.email));
+          if (member.email) {
+            appointment.OptionalAttendees.Add(new Attendee(member.email));
+          }
         });
       }
 
