@@ -2812,6 +2812,17 @@ export class RegularBookingService implements IBookingService {
       eventTypeSlug: input.bookingData.eventTypeSlug,
     });
 
+    await validateRescheduleRestrictions({
+      rescheduleUid: input.bookingData.rescheduleUid,
+      userId: input.bookingMeta?.userId ?? null,
+      eventType: eventType
+        ? {
+            seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+            minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+          }
+        : null,
+    });
+
     const reservedSlot = this.getReservedSlotIfNotTeamOrSeatedEvent(input, eventType);
     if (reservedSlot) {
       await this.checkReservedSlotIsEarliest(reservedSlot);
