@@ -141,10 +141,12 @@ export const OnboardingMigrateTeamsBrowserView = ({
                           }
                         />
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-subtle text-sm font-semibold leading-none">{team.name}</h3>
+                          <div className="flex min-w-0 items-center gap-2">
+                            <h3 className="text-subtle line-clamp-1 min-w-0 truncate text-sm font-semibold leading-none">
+                              {team.name}
+                            </h3>
                             {team.isSelected && (
-                              <Badge variant="green" className="text-xs">
+                              <Badge variant="green" className="shrink-0 text-xs">
                                 {t("migrating")}
                               </Badge>
                             )}

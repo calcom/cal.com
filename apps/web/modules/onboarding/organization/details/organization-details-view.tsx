@@ -10,6 +10,7 @@ import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
+import { useMigrationFlow } from "../../hooks/useMigrationFlow";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedOrganizationSlug } from "./validated-organization-slug";
 
@@ -32,6 +33,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const { organizationDetails, setOrganizationDetails } = useOnboardingStore();
+  const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
   const [organizationName, setOrganizationName] = useState("");
   const [organizationLink, setOrganizationLink] = useState("");
@@ -78,8 +80,10 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
     router.push(nextUrl);
   };
 
+  const totalSteps = isMigrationFlow && hasTeams ? 6 : 4;
+
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={totalSteps}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_details_title")}

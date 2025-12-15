@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,6 +19,7 @@ type OrganizationBrandViewProps = {
 
 export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const { organizationDetails, organizationBrand, setOrganizationBrand } = useOnboardingStore();
   const { isMigrationFlow, hasTeams } = useMigrationFlow();
@@ -74,11 +75,14 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const getNextStep = () => {
+    const migrateParam = searchParams?.get("migrate");
+    const queryString = migrateParam ? `?migrate=${migrateParam}` : "";
+    
     // If migration flow and has teams, go to migrate-teams, otherwise go to teams
     if (isMigrationFlow && hasTeams) {
-      return "/onboarding/organization/migrate-teams?migrate=true";
+      return `/onboarding/organization/migrate-teams${queryString}`;
     }
-    return "/onboarding/organization/teams";
+    return `/onboarding/organization/teams${queryString}`;
   };
 
   const handleContinue = () => {

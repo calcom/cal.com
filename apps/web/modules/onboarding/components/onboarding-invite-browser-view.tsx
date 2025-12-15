@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 
 import { useOnboardingStore, type Invite } from "../store/onboarding-store";
 
@@ -26,6 +27,7 @@ type DisplayItem = {
   email: string;
   team: string;
   isReal?: boolean;
+  isMigrated?: boolean;
 };
 
 export const OnboardingInviteBrowserView = ({
@@ -35,8 +37,16 @@ export const OnboardingInviteBrowserView = ({
 }: OnboardingInviteBrowserViewProps) => {
   const pathname = usePathname();
   const { data: user } = trpc.viewer.me.get.useQuery();
-  const { teamBrand, teamInvites, invites, teamDetails, organizationBrand, organizationDetails } =
-    useOnboardingStore();
+  const {
+    teamBrand,
+    teamInvites,
+    invites,
+    teamDetails,
+    organizationBrand,
+    organizationDetails,
+    migratedMembers,
+    teams,
+  } = useOnboardingStore();
   const { t } = useLocale();
 
   // Animation variants for entry and exit
@@ -83,6 +93,32 @@ export const OnboardingInviteBrowserView = ({
   // Filter out empty invites (where email is empty or just whitespace)
   const validInvites = actualInvites.filter((invite) => invite.email && invite.email.trim().length > 0);
 
+  // Add migrated members if using organization invites
+  const migratedInvites: Invite[] = [];
+  if (useOrganizationInvites && migratedMembers.length > 0) {
+    migratedInvites.push(
+      ...migratedMembers.map((member) => {
+        // Find team name from teamId
+        const team = teams.find((t) => t.id === member.teamId);
+        return {
+          email: member.email,
+          team: team?.name || "",
+          role: "MEMBER" as const,
+        };
+      })
+    );
+  }
+
+  // Combine form invites with migrated members, avoiding duplicates
+  const allInvites = [...validInvites];
+  const existingEmails = new Set(validInvites.map((inv) => inv.email.toLowerCase()));
+  migratedInvites.forEach((migratedInvite) => {
+    if (!existingEmails.has(migratedInvite.email.toLowerCase())) {
+      allInvites.push(migratedInvite);
+      existingEmails.add(migratedInvite.email.toLowerCase());
+    }
+  });
+
   // Create empty state items
   const emptyStateItem = {
     name: t("team_member"),
@@ -95,14 +131,21 @@ export const OnboardingInviteBrowserView = ({
   const displayItems: DisplayItem[] = [];
   const maxItems = 9;
 
-  // Add actual invites first
-  for (let i = 0; i < validInvites.length && i < maxItems; i++) {
-    const invite = validInvites[i];
+  // Create a set of migrated member emails for quick lookup
+  const migratedEmails = new Set(
+    migratedMembers.map((member) => member.email.toLowerCase())
+  );
+
+  // Add all invites (form invites + migrated members)
+  for (let i = 0; i < allInvites.length && i < maxItems; i++) {
+    const invite = allInvites[i];
+    const isMigrated = migratedEmails.has(invite.email.toLowerCase());
     displayItems.push({
       name: invite.email.split("@")[0] || t("team_member"),
       email: invite.email,
       team: invite.team || t("team"),
       isReal: true,
+      isMigrated,
     });
   }
 
@@ -192,11 +235,18 @@ export const OnboardingInviteBrowserView = ({
                         {item.email}
                       </p>
                     </div>
-                    {item.team && (
-                      <div className="bg-emphasis text-emphasis rounded-md px-2 py-0.5 text-xs">
-                        {item.team}
-                      </div>
-                    )}
+                    <div className="flex flex-col items-center gap-1">
+                      {item.team && !item.isMigrated && (
+                        <div className="bg-emphasis text-emphasis line-clamp-1 max-w-[86px] truncate rounded-md px-2 py-0.5 text-xs">
+                          {item.team}
+                        </div>
+                      )}
+                      {item.isMigrated && (
+                        <Badge variant="green" className="text-xs">
+                          {t("migrating")}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
