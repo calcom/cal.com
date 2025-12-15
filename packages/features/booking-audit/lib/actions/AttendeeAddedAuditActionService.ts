@@ -59,11 +59,16 @@ export class AttendeeAddedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.attendee_added" };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): AttendeeAddedAuditDisplayData {
+    getDisplayJson({
+        storedData,
+    }: {
+        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        userTimeZone: string;
+    }): AttendeeAddedAuditDisplayData {
         const { fields } = storedData;
         const previousAttendeesSet = new Set(fields.attendees.old ?? []);
         const addedAttendees = fields.attendees.new.filter(
