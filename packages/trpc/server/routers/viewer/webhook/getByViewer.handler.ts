@@ -19,7 +19,7 @@ export type WebhooksByViewer = {
   }[];
 };
 
-export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
+export const getByViewerHandler = async ({ ctx }: GetByViewerOptions): Promise<WebhooksByViewer> => {
   // Use the singleton instance to avoid creating new instances repeatedly
   const webhookRepository = WebhookRepository.getInstance();
   return await webhookRepository.getFilteredWebhooksForUser({
