@@ -403,7 +403,6 @@ export default class LarkCalendarService implements Calendar {
     const attendeeArray: LarkEventAttendee[] = [];
 
     // 1. Create a set of optional guest emails for easy lookup.
-    // 1. Create a set of optional guest emails for easy lookup.
     const optionalGuestEmails = new Set<string>();
     event.optionalGuestTeamMembers?.forEach((guest) => {
       if (guest?.email) {

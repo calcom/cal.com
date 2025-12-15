@@ -292,6 +292,8 @@ describe("Date Optimization Benchmarks", () => {
 
       for (let i = 0; i < oldChunks.length; i++) {
         // Since inputs are UTC, there should be NO timezone/DST differences
+        const startDiff = Math.abs(new Date(newChunks[i].start).getTime() - new Date(oldChunks[i].start).getTime());
+        const endDiff = Math.abs(new Date(newChunks[i].end).getTime() - new Date(oldChunks[i].end).getTime());
         expect(startDiff).toBe(0);
         expect(endDiff).toBe(0);
       }

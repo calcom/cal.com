@@ -417,7 +417,6 @@ export default class FeishuCalendarService implements Calendar {
     };
 
     // 1. Create a Set of optional guest emails for easy lookup
-    // 1. Create a Set of optional guest emails for easy lookup
     const optionalGuestEmails = new Set<string>();
     event.optionalGuestTeamMembers?.forEach((guest) => {
       if (guest?.email) {
@@ -441,7 +440,9 @@ export default class FeishuCalendarService implements Calendar {
 
     // 4. Add the OPTIONAL team members
     event.optionalGuestTeamMembers?.forEach((guest) => {
-      addUniqueAttendee(guest.email, true);
+      if (guest?.email) {
+        addUniqueAttendee(guest.email, true);
+      }
     });
 
     return attendeeArray;

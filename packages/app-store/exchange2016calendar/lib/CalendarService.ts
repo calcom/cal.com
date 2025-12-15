@@ -94,9 +94,11 @@ export default class ExchangeCalendarService implements Calendar {
 
       // Add optional members to the optional list
       if (event.optionalGuestTeamMembers) {
-        event.optionalGuestTeamMembers.forEach((member) => {
-          appointment.OptionalAttendees.Add(new Attendee(member.email));
-        });
+        event.optionalGuestTeamMembers
+          .filter((member) => member.email)
+          .forEach((member) => {
+            appointment.OptionalAttendees.Add(new Attendee(member.email));
+          });
       }
 
       await appointment.Save(SendInvitationsMode.SendToAllAndSaveCopy);

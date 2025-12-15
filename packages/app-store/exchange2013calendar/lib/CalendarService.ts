@@ -70,7 +70,6 @@ export default class ExchangeCalendarService implements Calendar {
       appointment.Location = event.location || "Location not defined!";
       appointment.Body = new MessageBody(event.description || ""); // you can not use any special character or escape the content
       // Create a set of optional guest emails for easy lookup.
-      // Create a set of optional guest emails for easy lookup.
       const optionalGuestEmails = new Set<string>();
       event.optionalGuestTeamMembers?.forEach((guest) => {
         if (guest?.email) {
@@ -134,7 +133,9 @@ export default class ExchangeCalendarService implements Calendar {
       appointment.OptionalAttendees.Clear();
 
       const optionalGuestEmails = new Set(
-        event.optionalGuestTeamMembers?.map((guest) => guest.email.toLowerCase()) ?? []
+        event.optionalGuestTeamMembers
+          ?.filter((guest) => guest?.email)
+          .map((guest) => guest.email.toLowerCase()) ?? []
       );
 
       // Add the main booker as required

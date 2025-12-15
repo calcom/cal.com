@@ -61,7 +61,6 @@ export default class ExchangeCalendarService implements Calendar {
     appointment.Location = event.location || "";
     appointment.Body = new MessageBody(event.description || "");
     // Create a set of optional guest emails for easy lookup.
-    // Create a set of optional guest emails for easy lookup.
     const optionalGuestEmails = new Set<string>();
     event.optionalGuestTeamMembers?.forEach((guest) => {
       if (guest?.email) {
@@ -85,8 +84,10 @@ export default class ExchangeCalendarService implements Calendar {
 
     // Add optional members to the optional list
     if (event.optionalGuestTeamMembers) {
-      event.optionalGuestTeamMembers.forEach((member: { email: string }) => {
-        appointment.OptionalAttendees.Add(new Attendee(member.email));
+      event.optionalGuestTeamMembers.forEach((member: { email: string | null }) => {
+        if (member.email) {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
+        }
       });
     }
     return appointment

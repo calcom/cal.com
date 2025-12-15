@@ -99,7 +99,6 @@ export default class GoogleCalendarService implements Calendar {
     ];
 
     // Create a set of optional guest emails for easy lookup.
-    // Create a set of optional guest emails for easy lookup.
     const optionalGuestEmails = new Set<string>();
     event.optionalGuestTeamMembers?.forEach((guest) => {
       if (guest?.email) {
