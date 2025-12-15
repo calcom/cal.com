@@ -27,12 +27,19 @@ const SystemActorSchema = z.object({
   name: z.string(),
 });
 
+const AppActorSchema = z.object({
+  identifiedBy: z.literal("app"),
+  appSlug: z.string(),
+  name: z.string(),
+});
+
 export const ActorSchema = z.discriminatedUnion("identifiedBy", [
   ActorByIdSchema,
   UserActorSchema,
   AttendeeActorSchema,
   GuestActorSchema,
   SystemActorSchema,
+  AppActorSchema,
 ]);
 
 export const PIIFreeActorSchema = z.discriminatedUnion("identifiedBy", [
@@ -49,6 +56,7 @@ type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
 type GuestActor = z.infer<typeof GuestActorSchema>;
 type SystemActor = z.infer<typeof SystemActorSchema>;
+type AppActor = z.infer<typeof AppActorSchema>;
 /**
  * Creates an Actor representing a User by UUID
  */
@@ -100,10 +108,19 @@ export function makeAttendeeActor(attendeeId: number): AttendeeActor {
   };
 }
 
-export function buildActorEmail({ identifier, actorType }: { identifier: string, actorType: "system" | "guest" }): string {
+/**
+ * Creates an Actor representing an App by app slug
+ * App actors use @app.internal email convention
+ */
+export function makeAppActor(params: { appSlug: string; name: string }): AppActor {
+  return {
+    identifiedBy: "app",
+    appSlug: params.appSlug,
+    name: params.name,
+  };
+}
+
+export function buildActorEmail({ identifier, actorType }: { identifier: string, actorType: "system" | "guest" | "app" }): string {
   return `${identifier}@${actorType}.internal`;
 }
 
-export function makeStripeWebhookActor(): SystemActor {
-  return makeSystemActor({ identifier: "stripe-webhook", name: "Stripe Webhook" });
-}

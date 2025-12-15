@@ -4,6 +4,8 @@ import getRawBody from "raw-body";
 import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import btcpayConfig from "@calcom/app-store/btcpayserver/config.json";
+import { makeAppActor } from "@calcom/features/bookings/lib/types/actor";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
@@ -87,7 +89,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
     if (!isValid) throw new HttpCode({ statusCode: 400, message: "signature mismatch" });
 
-    await handlePaymentSuccess(payment.id, payment.bookingId);
+    const actor = makeAppActor({ appSlug: btcpayConfig.slug, name: btcpayConfig.name });
+    await handlePaymentSuccess({ paymentId: payment.id, bookingId: payment.bookingId, actor });
     return res.status(200).json({ success: true });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);

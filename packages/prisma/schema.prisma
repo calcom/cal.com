@@ -2698,6 +2698,7 @@ enum AuditActorType {
   GUEST    @map("guest") // Non-registered user
   ATTENDEE @map("attendee") // Has Attendee record with us
   SYSTEM   @map("system") // Automated actions
+  APP      @map("app") // App-triggered actions (payment webhooks, integrations)
 }
 
 model AuditActor {

@@ -6,7 +6,7 @@ import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.s
 
 import type { BookingAuditAction } from "../types/bookingAuditTask";
 import type { ActionSource } from "../common/actionSource";
-import { makeActorById, type PIIFreeActor, type Actor } from "../../../bookings/lib/types/actor";
+import { makeActorById, type PIIFreeActor, type Actor, buildActorEmail } from "../../../bookings/lib/types/actor";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
@@ -80,8 +80,17 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
 
 
         if (actor.identifiedBy === "system") {
-            const email = `${actor.identifier}@system.internal`;
+            const email = buildActorEmail({ identifier: actor.identifier, actorType: "system" });
             const piiFreeActor = await this.auditActorRepository.createIfNotExistsSystemActor({
+                email,
+                name: actor.name,
+            });
+            return makeActorById(piiFreeActor.id);
+        }
+
+        if (actor.identifiedBy === "app") {
+            const email = buildActorEmail({ identifier: actor.appSlug, actorType: "app" });
+            const piiFreeActor = await this.auditActorRepository.createIfNotExistsAppActor({
                 email,
                 name: actor.name,
             });

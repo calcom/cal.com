@@ -1,4 +1,4 @@
-export type AuditActorType = "USER" | "GUEST" | "ATTENDEE" | "SYSTEM";
+export type AuditActorType = "USER" | "GUEST" | "ATTENDEE" | "SYSTEM" | "APP";
 
 type AuditActor = {
   id: string;
@@ -16,5 +16,6 @@ export interface IAuditActorRepository {
   createIfNotExistsAttendeeActor(params: { attendeeId: number }): Promise<AuditActor>;
   createIfNotExistsGuestActor(params: { email: string | null; name: string | null; phone: string | null }): Promise<AuditActor>;
   createIfNotExistsSystemActor(params: { email: string; name: string }): Promise<AuditActor>;
+  createIfNotExistsAppActor(params: { email: string; name: string }): Promise<AuditActor>;
 }
 
