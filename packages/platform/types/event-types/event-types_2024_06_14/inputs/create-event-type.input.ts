@@ -3,6 +3,7 @@ import {
   ApiPropertyOptional as DocsPropertyOptional,
   getSchemaPath,
   ApiExtraModels,
+  ApiHideProperty,
 } from "@nestjs/swagger";
 import { Type, Transform, Expose } from "class-transformer";
 import {
@@ -493,7 +494,8 @@ export class BaseCreateEventTypeInput {
   @ValidateNested()
   @Type(() => CalVideoSettings)
   @DocsPropertyOptional({
-    description: "Cal video settings for the event type",
+    description:
+      "Cal video settings for the event type. Platform customers can't manage this property because currently we have no way of determining if managed user is a host or an attendee.",
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings;
@@ -517,7 +519,7 @@ export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @ValidateLocations_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+      "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
     oneOf: [
       { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
       { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
@@ -606,7 +608,7 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @ValidateTeamLocations_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+      "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
     oneOf: [
       { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
       { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
@@ -637,4 +639,13 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
     description: "Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  /* @DocsPropertyOptional({
+    description:
+      "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+  }) */
+  @ApiHideProperty()
+  rrHostSubsetEnabled?: boolean;
 }

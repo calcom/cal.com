@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
@@ -52,7 +53,9 @@ const useOrgCreation = () => {
         await utils.viewer.organizations.listCurrent.invalidate();
         await session.update();
         reset();
-        window.location.href = `${window.location.origin}/settings/organizations/profile`;
+        // Set flag to show welcome modal (using both query param and sessionStorage for reliability)
+        setShowNewOrgModalFlag();
+        window.location.href = `${window.location.origin}/settings/organizations/profile?newOrganizationModal=true`;
       } else {
         // Unexpected state
         setServerErrorMessage("Unexpected response from server");
@@ -133,7 +136,7 @@ export const AddNewTeamMembersForm = () => {
 
   if (isLoading) {
     return (
-      <SkeletonContainer as="div" className="space-y-6">
+      <SkeletonContainer as="div" className="stack-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
@@ -148,10 +151,10 @@ export const AddNewTeamMembersForm = () => {
           <Alert severity="error" message={orgCreation.errorMessage} />
         </div>
       )}
-      <div className="space-y-6">
+      <div className="stack-y-6">
         <div className="flex space-x-3">
           <form onSubmit={onSubmit} className="flex w-full items-end space-x-2">
-            <div className="flex-grow">
+            <div className="grow">
               <TextField
                 label={t("email")}
                 type="email"

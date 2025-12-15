@@ -6,7 +6,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
@@ -61,10 +61,11 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   };
 
   const organizationId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
+  const organizationRepository = getOrganizationRepository();
   const isOrgPrivate = organizationId
-    ? await OrganizationRepository.checkIfPrivate({
-        orgId: organizationId,
-      })
+    ? await organizationRepository.checkIfPrivate({
+      orgId: organizationId,
+    })
     : false;
 
   const permissionService = new PermissionCheckService();
@@ -80,12 +81,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
       heading={t("availability")}
       subtitle={t("configure_availability")}
       CTA={
-        <AvailabilityCTA
-          toggleGroupOptions={[
-            { value: "mine", label: t("my_availability") },
-            ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
-          ]}
-        />
+        <AvailabilityCTA canViewTeamAvailability={canViewTeamAvailability} />
       }>
       {searchParams?.type === "team" && canViewTeamAvailability ? (
         <AvailabilitySliderTable isOrg={!!organizationId} />

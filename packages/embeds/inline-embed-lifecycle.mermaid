@@ -1,0 +1,86 @@
+sequenceDiagram
+    participant Parent as Parent (User Page)
+    participant Embed as Embed (iframe)
+    participant Store as EmbedStore(iframe)
+    participant UI as UI Components(iframe)
+    
+    Note over Parent: embed.js loads
+    Parent->>Parent: Cal.inline() called
+    Parent->>Parent: Create cal-inline element
+    Parent->>Parent: Create iframe (hidden)
+    Parent->>Parent: Show loader
+    
+    Note over Embed: background: transparent
+    Note over Embed: body tag hidden
+    Note over Embed: iframe webpage starts rendering
+    
+    Note over Store: EmbedStore pre-initialized<br/>State: NOT_INITIALIZED
+    Store->>Store: Initialize UI config & theme
+    
+    Note over Parent: Process URL params for prefill
+    Parent->>Store: Set prefill data from URL
+    
+    Embed->>Parent: __iframeReady event
+    Note right of Embed: Purpose: Signals iframe is ready<br/>to receive messages from parent<br/>Action: Makes iframe visible,<br/>processes queued commands
+    Note over Parent: Sets iframeReady flag
+    Note over Parent: Makes iframe visible
+    Note over Store: Set state to INITIALIZED
+    
+    Store->>UI: Apply theme & cssVarsPerTheme
+    
+    Embed->>Parent: __dimensionChanged event
+    Note right of Embed: Purpose: Keeps iframe size<br/>matched to content<br/>Triggers: Content size changes,<br/>page finishes loading
+    Note over Parent: Adjust iframe dimensions
+    Note over Store: Update providedCorrectHeightToParent
+    
+    Embed->>Parent: __windowLoadComplete event
+    Note right of Embed: Purpose: Signals page fully loaded<br/>Ensures dimension calculations<br/>are reliable
+    
+    alt isBookerPage with skeleton
+        Note over Embed: Wait for slotsDone state
+    end
+    
+    Embed->>Parent: linkReady event
+    Note right of Embed: Purpose: Signals iframe content<br/>is fully ready for interaction<br/>Requirements: Height known,<br/>slots loaded (if skeleton)
+    Note over Parent: Remove loader
+    Note over Parent: Set loading="done"
+    Note over Parent: Make iframe visible
+    
+    Parent->>Embed: parentKnowsIframeReady event
+    Note right of Parent: Purpose: Parent acknowledges<br/>iframe readiness<br/>Action: Makes body visible
+    Note over Embed: Makes body visible
+    Note over Store: renderState: "completed"
+    
+    loop Dimension Monitoring
+        Embed->>Embed: Monitor content size changes
+        alt Dimensions Changed
+            Embed->>Parent: __dimensionChanged event
+            Note right of Embed: Purpose: Maintain proper sizing<br/>as content changes
+            Parent->>Parent: Adjust iframe size
+        end
+    end
+    
+    alt Route Changes
+        UI->>Store: Update UI state
+        Store->>Parent: __routeChanged event
+        Note right of Store: Purpose: Notifies parent of<br/>navigation within embed<br/>Action: Scroll into view if needed
+        Note over Parent: Scroll into view if needed
+    end
+    
+    alt Booker Events (Tracking)
+        UI->>Store: Update viewId on linkReady
+        UI->>Parent: bookerViewed event
+        Note right of UI: Purpose: Tracks first view of booker<br/>when booker is first loaded<br/>Includes: Event info, slots status
+        UI->>Parent: bookerReady event
+        Note right of UI: Purpose: Signals booker view is loaded<br/>and slots are ready for interaction<br/>Includes: Event identification<br/>Only fires for booker pages
+        alt User navigates and returns
+            UI->>Parent: bookerReopened event
+            Note right of UI: Purpose: Tracks when booker is<br/>viewed again after navigation<br/>Distinguishes from first view
+        end
+    end
+    
+    alt Error Handling
+        Embed->>Parent: linkFailed event
+        Note right of Embed: Purpose: Signals page load error<br/>Includes: Error code, URL info<br/>Action: Show error state
+        Note over Parent: Set loading="failed"
+    end

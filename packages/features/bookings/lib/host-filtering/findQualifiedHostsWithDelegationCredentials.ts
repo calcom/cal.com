@@ -7,7 +7,7 @@ import {
 import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
@@ -54,6 +54,23 @@ const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isF
   return host.isFixed;
 };
 
+const isWithinRRHostSubset = <T extends { isFixed: boolean; user: { id: number } }>(
+  host: T,
+  rrHostSubsetIds: number[],
+  {
+    rrHostSubsetEnabled,
+    schedulingType,
+  }: { rrHostSubsetEnabled: boolean; schedulingType?: SchedulingType } = {
+    rrHostSubsetEnabled: false,
+    schedulingType: undefined,
+  }
+): host is T & { isFixed: false } => {
+  if (rrHostSubsetIds.length === 0 || !rrHostSubsetEnabled || schedulingType !== SchedulingType.ROUND_ROBIN) {
+    return true;
+  }
+  return rrHostSubsetIds.includes(host.user.id);
+};
+
 export class QualifiedHostsService {
   constructor(public readonly dependencies: IQualifiedHostsService) {}
 
@@ -70,6 +87,7 @@ export class QualifiedHostsService {
     routedTeamMemberIds,
     contactOwnerEmail,
     routingFormResponse,
+    rrHostSubsetIds,
   }: {
     eventType: {
       id: number;
@@ -80,11 +98,13 @@ export class QualifiedHostsService {
       isRRWeightsEnabled: boolean;
       rescheduleWithSameRoundRobinHost: boolean;
       includeNoShowInRRCalculation: boolean;
+      rrHostSubsetEnabled?: boolean;
     } & EventType;
     rescheduleUid: string | null;
     routedTeamMemberIds: number[];
     contactOwnerEmail: string | null;
     routingFormResponse: RoutingFormResponse | null;
+    rrHostSubsetIds?: number[];
   }): Promise<{
     qualifiedRRHosts: {
       isFixed: boolean;
@@ -120,8 +140,18 @@ export class QualifiedHostsService {
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
 
-    const fixedHosts = normalizedHosts.filter(isFixedHost);
-    const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
+    const fixedHosts = normalizedHosts.filter(isFixedHost).filter((host) =>
+      isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
+        rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
+        schedulingType: eventType.schedulingType ?? undefined,
+      })
+    );
+    const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost).filter((host) =>
+      isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
+        rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
+        schedulingType: eventType.schedulingType ?? undefined,
+      })
+    );
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(

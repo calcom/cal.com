@@ -7,6 +7,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useBookerStore, type CountryCode } from "@calcom/features/bookings/Booker/store";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 
@@ -33,6 +34,8 @@ function BasePhoneInput({
   ...rest
 }: PhoneInputProps) {
   const isPlatform = useIsPlatform();
+  const defaultPhoneCountryFromStore = useBookerStore((state) => state.defaultPhoneCountry);
+  const effectiveDefaultCountry = defaultPhoneCountryFromStore || defaultCountry;
 
   // This is to trigger validation on prefill value changes
   useEffect(() => {
@@ -63,7 +66,7 @@ function BasePhoneInput({
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       enableSearch
       disableSearchIcon
-      country={defaultCountry}
+      country={effectiveDefaultCountry}
       inputProps={{
         name,
         required: rest.required,
@@ -74,12 +77,12 @@ function BasePhoneInput({
         onChange(`+${val}`);
       }}
       containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+        "hover:border-emphasis focus-within:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-0 focus-within:ring-brand-default disabled:cursor-not-allowed",
         className
       )}
       inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
-      buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
-      searchClass="!text-default !bg-default hover:!bg-emphasis"
+      buttonClass="text-emphasis !bg-default"
+      searchClass="!text-default !bg-default"
       dropdownClass="!text-default !bg-default"
       inputStyle={{ width: "inherit", border: 0 }}
       searchStyle={{
@@ -125,13 +128,13 @@ function BasePhoneInputWeb({
         onChange(`+${val}`);
       }}
       containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+        "hover:border-emphasis focus-within:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-0 focus-within:ring-brand-default disabled:cursor-not-allowed",
         className
       )}
       inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
-      buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
+      buttonClass="text-emphasis !bg-default"
       buttonStyle={{ ...flagButtonStyle }}
-      searchClass="!text-default !bg-default hover:!bg-emphasis"
+      searchClass="!text-default !bg-default"
       dropdownClass="!text-default !bg-default"
       inputStyle={{ width: "inherit", border: 0, ...inputStyle }}
       searchStyle={{
@@ -150,7 +153,8 @@ function BasePhoneInputWeb({
 }
 
 const useDefaultCountry = () => {
-  const [defaultCountry, setDefaultCountry] = useState("us");
+  const defaultPhoneCountryFromStore = useBookerStore((state) => state.defaultPhoneCountry);
+  const [defaultCountry, setDefaultCountry] = useState<CountryCode>(defaultPhoneCountryFromStore || "us");
   const query = trpc.viewer.public.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -159,16 +163,28 @@ const useDefaultCountry = () => {
 
   useEffect(
     function refactorMeWithoutEffect() {
+      if (defaultPhoneCountryFromStore) {
+        setDefaultCountry(defaultPhoneCountryFromStore);
+        return;
+      }
+
       const data = query.data;
       if (!data?.countryCode) {
         return;
       }
 
-      isSupportedCountry(data?.countryCode)
-        ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+      if (isSupportedCountry(data?.countryCode)) {
+        setDefaultCountry(data.countryCode.toLowerCase() as CountryCode);
+      } else {
+        const navCountry = navigator.language.split("-")[1]?.toUpperCase();
+        if (navCountry && isSupportedCountry(navCountry)) {
+          setDefaultCountry(navCountry.toLowerCase() as CountryCode);
+        } else {
+          setDefaultCountry("us");
+        }
+      }
     },
-    [query.data]
+    [query.data, defaultPhoneCountryFromStore]
   );
 
   return defaultCountry;

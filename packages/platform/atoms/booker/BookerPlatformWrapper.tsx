@@ -15,7 +15,6 @@ import {
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
-import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
@@ -70,12 +69,14 @@ const BookerPlatformWrapperComponent = (
     showNoAvailabilityDialog,
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
+    defaultPhoneCountry,
+    rrHostSubsetIds,
   } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
-  const [bookerState, setBookerState] = useBookerStoreContext(
+  const [_bookerState, setBookerState] = useBookerStoreContext(
     (state) => [state.state, state.setState],
     shallow
   );
@@ -185,6 +186,7 @@ const BookerPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams,
+    defaultPhoneCountry,
   });
   useInitializeBookerStoreContext({
     ...props,
@@ -201,6 +203,7 @@ const BookerPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams,
+    defaultPhoneCountry,
   });
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
@@ -233,22 +236,14 @@ const BookerPlatformWrapperComponent = (
   const extraOptions = useMemo(() => {
     return restFormValues;
   }, [restFormValues]);
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
-  const { prefetchNextMonth, monthCount } = usePrefetch({
-    date,
-    month,
-    bookerLayout,
-    bookerState,
-  });
   const { timezone } = useTimePreferences();
 
   const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
     month,
-    monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
+    bookerLayout,
   });
 
   const startTime =
@@ -259,7 +254,6 @@ const BookerPlatformWrapperComponent = (
 
   const [routingParams, setRoutingParams] = useState<{
     routedTeamMemberIds?: number[];
-    _shouldServeCache?: boolean;
     skipContactOwner?: boolean;
     isBookingDryRun?: boolean;
   }>({});
@@ -272,15 +266,12 @@ const BookerPlatformWrapperComponent = (
     const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
     const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
 
-    const _cacheParam = searchParams?.get("cal.cache");
-    const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
     const isBookingDryRun =
       searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true" ||
       searchParams?.get("cal.sandbox")?.toLowerCase() === "true";
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
-      ...(_shouldServeCache ? { _shouldServeCache } : {}),
       ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
   }, [routingFormSearchParams]);
@@ -297,6 +288,7 @@ const BookerPlatformWrapperComponent = (
       ? {
           isTeamEvent: props.isTeamEvent,
           teamId: teamId,
+          rrHostSubsetIds: rrHostSubsetIds,
         }
       : {}),
     enabled:
@@ -304,7 +296,7 @@ const BookerPlatformWrapperComponent = (
       Boolean(month) &&
       Boolean(timezone) &&
       !event?.isPending &&
-      Boolean(event?.data?.id),
+      event?.data?.id != null,
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
@@ -445,6 +437,11 @@ const BookerPlatformWrapperComponent = (
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
+    ...(props.isTeamEvent
+      ? {
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
+      : {}),
   });
 
   const onOverlaySwitchStateChange = useCallback(

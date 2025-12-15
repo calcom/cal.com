@@ -1,12 +1,14 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps } from "app/_types";
-import { _generateMetadata, getTranslate } from "app/_utils";
+import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -32,7 +34,6 @@ const Page = async ({ params }: PageProps) => {
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }
-  const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   let canReadOthersBookings = false;
@@ -52,12 +53,18 @@ const Page = async ({ params }: PageProps) => {
     canReadOthersBookings = teamIdsWithPermission.length > 0;
   }
 
+  const featuresRepository = new FeaturesRepository(prisma);
+  const bookingsV3Enabled = session?.user?.id
+    ? await featuresRepository.checkIfUserHasFeature(session.user.id, "bookings-v3")
+    : false;
+
   return (
-    <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
+    <ShellMainAppDir>
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}
         permissions={{ canReadOthersBookings }}
+        bookingsV3Enabled={bookingsV3Enabled}
       />
     </ShellMainAppDir>
   );

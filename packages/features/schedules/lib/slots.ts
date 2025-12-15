@@ -122,8 +122,6 @@ function buildSlotsWithDateRanges({
   const slotBoundaries = new Map<number, true>();
 
   orderedDateRanges.forEach((range) => {
-    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
-
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
@@ -182,8 +180,8 @@ function buildSlotsWithDateRanges({
       }
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
-
-      const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
+      const slotDateYYYYMMDD = slotStartTime.utc().format("YYYY-MM-DD");
+      const dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD];
       let slotData: {
         time: Dayjs;
         userIds?: number[];
@@ -192,12 +190,14 @@ function buildSlotsWithDateRanges({
         toUser?: IToUser;
         reason?: string;
         emoji?: string;
+        notes?: string | null;
+        showNotePublicly?: boolean;
       } = {
         time: slotStartTime,
       };
 
       if (dateOutOfOfficeExists) {
-        const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
+        const { toUser, fromUser, reason, emoji, notes, showNotePublicly } = dateOutOfOfficeExists;
 
         slotData = {
           time: slotStartTime,
@@ -206,6 +206,8 @@ function buildSlotsWithDateRanges({
           ...(toUser && { toUser }),
           ...(reason && { reason }),
           ...(emoji && { emoji }),
+          ...(notes && showNotePublicly && { notes }),
+          ...(showNotePublicly !== undefined && { showNotePublicly }),
         };
       }
 

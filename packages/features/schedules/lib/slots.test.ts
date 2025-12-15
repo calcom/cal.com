@@ -840,4 +840,175 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
 
     vi.useRealTimers();
   });
+
+  it("should mark slots as away when OOO is on next day and availability extends past midnight", async () => {
+    // This test reproduces the bug where:
+    // - Day 1 has availability from 00:00 to 23:59
+    // - Day 2 is marked as OOO
+    // - Slots generated after midnight are not marked as away
+
+    vi.setSystemTime(dayjs.utc("2025-11-17T00:00:00Z").toDate());
+
+    const day1Start = dayjs.utc("2025-11-17T00:00:00Z");
+    const day2End = dayjs.utc("2025-11-18T23:59:59Z");
+
+    // OOO data for Day 2 (2025-11-18)
+    const datesOutOfOffice = {
+      "2025-11-18": {
+        fromUser: { id: 1, displayName: "Test User" },
+        toUser: null,
+        reason: "Out of office",
+        emoji: "🏖️",
+      },
+    };
+
+    const slots = getSlots({
+      inviteeDate: day1Start,
+      frequency: 15,
+      minimumBookingNotice: 0,
+      eventLength: 15,
+      dateRanges: [
+        {
+          start: day1Start,
+          end: day2End,
+        },
+      ],
+      datesOutOfOffice,
+    });
+
+    // Filter slots by day
+    const day1Slots = slots.filter((slot) => slot.time.format("YYYY-MM-DD") === "2025-11-17");
+    const day2Slots = slots.filter((slot) => slot.time.format("YYYY-MM-DD") === "2025-11-18");
+
+    // Day 1 slots should NOT be marked as away
+    day1Slots.forEach((slot) => {
+      expect(slot.away).toBeUndefined();
+    });
+
+    expect(day2Slots.length).toBeGreaterThan(0);
+    
+    // Day 2 slots should be marked as away
+    day2Slots.forEach((slot) => {
+      expect(slot.away).toBe(true);
+      expect(slot.reason).toBe("Out of office");
+      expect(slot.emoji).toBe("🏖️");
+    });
+
+    vi.useRealTimers();
+  });
+
+  it("should mark slots as away for cross-timezone OOO (Berlin OOO viewed from Kolkata)", async () => {
+    vi.setSystemTime(dayjs.utc("2024-12-20T00:00:00Z").toDate());
+
+    const datesOutOfOffice = {
+      "2024-12-22": {
+        fromUser: { id: 1, displayName: "Test User" },
+        toUser: null,
+        reason: "Holiday",
+        emoji: "🎄",
+      },
+    };
+
+    const dateRanges = [
+      {
+        start: dayjs.tz("2024-12-22T09:00:00", "Europe/Berlin"),
+        end: dayjs.tz("2024-12-22T18:00:00", "Europe/Berlin"),
+      },
+    ];
+
+    const inviteeDate = dayjs.tz("2024-12-22T13:30:00", "Asia/Kolkata");
+
+    const slots = getSlots({
+      inviteeDate,
+      frequency: 30,
+      minimumBookingNotice: 0,
+      eventLength: 30,
+      dateRanges,
+      datesOutOfOffice,
+    });
+
+    expect(slots.length).toBeGreaterThan(0);
+    slots.forEach((slot) => {
+      expect(slot.away).toBe(true);
+      expect(slot.reason).toBe("Holiday");
+    });
+
+    vi.useRealTimers();
+  });
+
+  it("should correctly handle OOO when slot time crosses UTC date boundary", async () => {
+    vi.setSystemTime(dayjs.utc("2024-12-20T00:00:00Z").toDate());
+
+    const datesOutOfOffice = {
+      "2024-12-22": {
+        fromUser: { id: 1, displayName: "Test User" },
+        toUser: null,
+        reason: "OOO",
+        emoji: "🏖️",
+      },
+    };
+
+    const dateRanges = [
+      {
+        start: dayjs.utc("2024-12-22T22:00:00Z"),
+        end: dayjs.utc("2024-12-22T23:59:59Z"),
+      },
+    ];
+
+    const inviteeDate = dayjs.tz("2024-12-23T03:30:00", "Asia/Kolkata");
+
+    const slots = getSlots({
+      inviteeDate,
+      frequency: 30,
+      minimumBookingNotice: 0,
+      eventLength: 30,
+      dateRanges,
+      datesOutOfOffice,
+    });
+
+    expect(slots.length).toBeGreaterThan(0);
+    slots.forEach((slot) => {
+      expect(slot.away).toBe(true);
+    });
+
+    vi.useRealTimers();
+  });
+
+  it("should NOT mark slots as away when they fall outside OOO UTC date", async () => {
+    vi.setSystemTime(dayjs.utc("2024-12-20T00:00:00Z").toDate());
+
+    const datesOutOfOffice = {
+      "2024-12-22": {
+        fromUser: { id: 1, displayName: "Test User" },
+        toUser: null,
+        reason: "OOO",
+        emoji: "🏖️",
+      },
+    };
+
+    const dateRanges = [
+      {
+        start: dayjs.utc("2024-12-21T17:00:00Z"),
+        end: dayjs.utc("2024-12-21T20:00:00Z"),
+      },
+    ];
+
+    const inviteeDate = dayjs.tz("2024-12-21T22:30:00", "Asia/Kolkata");
+
+    const slots = getSlots({
+      inviteeDate,
+      frequency: 30,
+      minimumBookingNotice: 0,
+      eventLength: 30,
+      dateRanges,
+      datesOutOfOffice,
+    });
+
+    expect(slots.length).toBeGreaterThan(0);
+    slots.forEach((slot) => {
+      expect(slot.away).toBeUndefined();
+    });
+
+    vi.useRealTimers();
+  });
 });

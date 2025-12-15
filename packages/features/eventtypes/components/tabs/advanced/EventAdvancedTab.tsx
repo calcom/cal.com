@@ -1,4 +1,4 @@
-import { useState, Suspense, useMemo } from "react";
+import { useState, Suspense, useMemo, useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -72,6 +72,8 @@ import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmails
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
+import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
+import DisableReschedulingController from "./DisableReschedulingController";
 
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
@@ -85,6 +87,7 @@ export type EventAdvancedTabCustomClassNames = {
     };
   };
   requiresConfirmation?: RequiresConfirmationCustomClassNames;
+  disableRescheduling?: DisableReschedulingCustomClassNames;
   bookerEmailVerification?: SettingsToggleClassNames;
   canSendCalVideoTranscriptionEmails?: SettingsToggleClassNames;
   calendarNotes?: SettingsToggleClassNames;
@@ -176,8 +179,8 @@ const destinationCalendarComponents = {
     );
     const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
     return (
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+      <div className="border-subtle stack-y-6 rounded-lg border p-6">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           {showConnectedCalendarSettings && (
             <div
               className={classNames(
@@ -222,7 +225,7 @@ const destinationCalendarComponents = {
                   color="minimal"
                   size="sm"
                   aria-label="edit custom name"
-                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis py-0! min-w-fit px-0 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
                   <Icon name="pencil" className="h-4 w-4" />
                 </Button>
@@ -230,7 +233,7 @@ const destinationCalendarComponents = {
             />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="stack-y-2">
           {showConnectedCalendarSettings && (
             <div className={classNames("w-full", customClassNames?.addToCalendarEmailOrganizer?.container)}>
               <Switch
@@ -300,8 +303,8 @@ const destinationCalendarComponents = {
   },
   DestinationCalendarSettingsSkeleton() {
     return (
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+      <div className="border-subtle stack-y-6 rounded-lg border p-6">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           <div className="flex w-full flex-col">
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
@@ -312,7 +315,7 @@ const destinationCalendarComponents = {
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="stack-y-2">
           <div className="bg-emphasis h-6 w-64 animate-pulse rounded-md" />
           <div className="bg-emphasis h-10 w-full animate-pulse rounded-md" />
           <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
@@ -434,9 +437,14 @@ export const EventAdvancedTab = ({
     !!formMethods.getValues("multiplePrivateLinks") &&
       formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
+  const watchedInterfaceLanguage = formMethods.watch("interfaceLanguage");
   const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
-    !!formMethods.getValues("interfaceLanguage")
+    watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined
   );
+
+  useEffect(() => {
+    setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
+  }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
 
   const bookingFields: Prisma.JsonObject = {};
@@ -609,7 +617,7 @@ export const EventAdvancedTab = ({
   }, [isPlatform]);
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="stack-y-4 flex flex-col">
       <calendarComponents.CalendarSettings
         verifiedSecondaryEmails={verifiedSecondaryEmails}
         userEmail={userEmail}
@@ -633,12 +641,12 @@ export const EventAdvancedTab = ({
         />
       )}
 
-      <div className="border-subtle bg-muted rounded-lg border p-1">
+      <div className="border-subtle bg-cal-muted rounded-lg border p-1">
         <div className="p-5">
           <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
             {t("booking_questions_title")}
           </div>
-          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+          <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
             <LearnMoreLink
               t={t}
               i18nKey="booking_questions_description"
@@ -710,30 +718,11 @@ export const EventAdvancedTab = ({
             )}
           />
 
-          <Controller
-            name="disableRescheduling"
-            render={({ field: { onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_rescheduling")}
-                data-testid="disable-rescheduling-toggle"
-                {...disableReschedulingLocked}
-                description={
-                  <LearnMoreLink
-                    t={t}
-                    i18nKey="description_disable_rescheduling"
-                    href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-rescheduling"
-                  />
-                }
-                checked={disableRescheduling}
-                onCheckedChange={(val) => {
-                  setDisableRescheduling(val);
-                  onChange(val);
-                }}
-              />
-            )}
+          <DisableReschedulingController
+            eventType={eventType}
+            disableRescheduling={disableRescheduling}
+            onDisableRescheduling={setDisableRescheduling}
+            customClassNames={customClassNames?.disableRescheduling}
           />
         </>
       )}
@@ -784,7 +773,7 @@ export const EventAdvancedTab = ({
         <Controller
           name="interfaceLanguage"
           control={formMethods.control}
-          defaultValue={eventType.interfaceLanguage ?? ""}
+          defaultValue={eventType.interfaceLanguage ?? null}
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
               labelClassName="text-sm"
@@ -817,7 +806,7 @@ export const EventAdvancedTab = ({
                   onChange={(option) => {
                     onChange(option?.value);
                   }}
-                  value={interfaceLanguageOptions.find((option) => option.value === value)}
+                  value={interfaceLanguageOptions.find((option) => option.value === value) || undefined}
                 />
               </div>
             </SettingsToggle>

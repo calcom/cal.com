@@ -234,7 +234,7 @@ const DateOverride = ({
       <p className={cn("text-subtle mb-4 text-sm", classNames?.description)}>
         {t("date_overrides_subtitle")}
       </p>
-      <div className="space-y-2">
+      <div className="stack-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
           replace={replace}
@@ -278,13 +278,11 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
   return (
     <div
       className={classNames(
-        open
-          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
-          : ""
+        open ? "fadeIn fixed inset-0 z-50 bg-neutral-800/70 transition-opacity sm:hidden" : ""
       )}>
       <div
         className={classNames(
-          "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+          "bg-default stack-y-2 fixed right-0 z-20 flex h-screen w-80 flex-col overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
           open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
         )}>
         {open ? children : null}
@@ -429,13 +427,13 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
         }
         CTA={
           <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
-            <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
+            <div className="sm:hover:bg-cal-muted hidden items-center rounded-md px-2 transition sm:flex">
               {!openSidebar && allowSetToDefault ? (
                 <>
                   <Skeleton
                     as={Label}
                     htmlFor="hiddenSwitch"
-                    className="mt-2 cursor-pointer self-center pe-2"
+                    className="pe-2 mt-2 cursor-pointer self-center"
                     loadingClassName="me-4"
                     waitForTranslation={!isPlatform}>
                     {t("set_to_default")}
@@ -459,7 +457,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       />
                     )}
                   />
-                  <VerticalDivider className="hidden sm:inline" />
                 </>
               ) : null}
             </div>
@@ -479,6 +476,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
             {allowDelete && (
               <>
+                <VerticalDivider className="hidden sm:inline" />
                 <DeleteDialogButton
                   buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
                   disabled={schedule.isLastSchedule}
@@ -493,12 +491,12 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <div
                   className={classNames(
                     openSidebar
-                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800/70 transition-opacity sm:hidden"
                       : ""
                   )}>
                   <div
                     className={classNames(
-                      "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+                      "bg-default stack-y-2 fixed right-0 z-20 flex h-screen w-80 flex-col overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
                       openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                     )}>
                     <div className="flex flex-row items-center pt-16">
@@ -561,7 +559,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       )}
                     </div>
 
-                    <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
+                    <div className="min-w-40 stack-y-2 col-span-3 px-2 py-4 lg:col-span-1">
                       <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                         <div>
                           <Skeleton
@@ -593,8 +591,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                         </div>
                         {!isPlatform && (
                           <>
-                            <hr className="border-subtle my-7" />
-                            <div className="rounded-md md:block">
+                            <hr className="border-subtle my-8" />
+                            <div className="border-subtle rounded-md border p-4 md:block">
                               <Skeleton
                                 as="h3"
                                 className="mb-0 inline-block text-sm font-medium"
@@ -645,7 +643,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               handleSubmit(props);
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
-            <div className="flex-1 flex-row xl:mr-0">
+            <div className="flex-1">
               <div
                 className={cn(
                   "border-subtle mb-6 rounded-md border",
@@ -681,25 +679,33 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 </div>
               </div>
               {enableOverrides && (
-                <BookerStoreProvider>
-                  <DateOverride
-                    isDryRun={isDryRun}
-                    workingHours={schedule.workingHours}
-                    userTimeFormat={timeFormat}
-                    handleSubmit={handleSubmit}
-                    travelSchedules={travelSchedules}
-                    weekStart={
-                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                    }
-                    overridesModalClassNames={customClassNames?.overridesModalClassNames}
-                    classNames={customClassNames?.dateOverrideClassNames}
-                  />
-                </BookerStoreProvider>
+                <div className="border-subtle rounded-md border">
+                  <BookerStoreProvider>
+                    <DateOverride
+                      isDryRun={isDryRun}
+                      workingHours={schedule.workingHours}
+                      userTimeFormat={timeFormat}
+                      handleSubmit={handleSubmit}
+                      travelSchedules={travelSchedules}
+                      weekStart={
+                        [
+                          "Sunday",
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                        ].indexOf(weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                      }
+                      overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                      classNames={customClassNames?.dateOverrideClassNames}
+                    />
+                  </BookerStoreProvider>
+                </div>
               )}
             </div>
-            <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
+            <div className="min-w-40 stack-y-2 col-span-3 hidden md:block lg:col-span-1">
               <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                 <div>
                   <Skeleton
@@ -729,8 +735,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   <></>
                 ) : (
                   <>
-                    <hr className="border-subtle my-6 mr-8" />
-                    <div className="rounded-md">
+                    <hr className="border-subtle my-8 mr-8" />
+                    <div className="border-subtle rounded-md border p-4">
                       <Skeleton
                         as="h3"
                         className="mb-0 inline-block text-sm font-medium"
