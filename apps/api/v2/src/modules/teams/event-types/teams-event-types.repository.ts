@@ -157,4 +157,20 @@ export class TeamsEventTypesRepository {
       },
     });
   }
+
+  async getEventTypeHostUserIds(teamId: number, eventTypeId: number): Promise<number[]> {
+    const hosts = await this.dbRead.prisma.host.findMany({
+      where: {
+        eventTypeId,
+        eventType: {
+          teamId,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return hosts.map((host) => host.userId);
+  }
 }

@@ -22,7 +22,7 @@ import type {
   ApiSuccessResponse,
   ScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
-import type { User, Team, Schedule } from "@calcom/prisma/client";
+import type { User, Team, Schedule, EventType } from "@calcom/prisma/client";
 
 describe("Organizations Teams Schedules Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
@@ -253,6 +253,114 @@ describe("Organizations Teams Schedules Endpoints", () => {
           expect(userTwoSchedule?.name).toEqual(user2Schedule.name);
           expect(userOneSchedule?.timeZone).toEqual(user2Schedule.timeZone);
         });
+    });
+
+    describe("Event Type filtering with eventTypeId parameter", () => {
+      let eventType: EventType;
+      let eventTypeWithNoHosts: EventType;
+
+      beforeAll(async () => {
+        // Create event type with user as host
+        const { EventTypesRepositoryFixture } = await import(
+          "test/fixtures/repository/event-types.repository.fixture"
+        );
+        const moduleRef = app.get("ModuleRef");
+        const eventTypeFixture = new EventTypesRepositoryFixture(moduleRef);
+
+        eventType = await eventTypeFixture.createTeamEventType({
+          title: `Test Event Type ${randomString()}`,
+          slug: `test-event-${randomString()}`,
+          length: 30,
+          team: { connect: { id: orgTeam.id } },
+          hosts: {
+            create: [
+              {
+                user: { connect: { id: user.id } },
+                isFixed: true,
+              },
+            ],
+          },
+        });
+
+        eventTypeWithNoHosts = await eventTypeFixture.createTeamEventType({
+          title: `Test Event Type No Hosts ${randomString()}`,
+          slug: `test-event-no-hosts-${randomString()}`,
+          length: 30,
+          team: { connect: { id: orgTeam.id } },
+        });
+      });
+
+      it("should filter schedules by eventTypeId - return only host schedules", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules?eventTypeId=${eventType.id}`)
+          .expect(200)
+          .then((response) => {
+            const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(Array.isArray(responseBody.data)).toBe(true);
+
+            // Should only return user's schedule (the host), not user2's schedule
+            expect(responseBody.data.length).toEqual(1);
+            expect(responseBody.data[0].id).toEqual(userSchedule.id);
+            expect(responseBody.data.find((schedule) => schedule.id === user2Schedule.id)).toBeUndefined();
+          });
+      });
+
+      it("should return empty array when eventTypeId has no hosts", async () => {
+        return request(app.getHttpServer())
+          .get(
+            `/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules?eventTypeId=${eventTypeWithNoHosts.id}`
+          )
+          .expect(200)
+          .then((response) => {
+            const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(Array.isArray(responseBody.data)).toBe(true);
+            expect(responseBody.data.length).toEqual(0);
+          });
+      });
+
+      it("should maintain backward compatibility - work without eventTypeId", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules`)
+          .expect(200)
+          .then((response) => {
+            const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(Array.isArray(responseBody.data)).toBe(true);
+            // Without eventTypeId, should return all team member schedules
+            expect(responseBody.data.length).toEqual(2);
+          });
+      });
+
+      it("should work with pagination when using eventTypeId", async () => {
+        return request(app.getHttpServer())
+          .get(
+            `/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules?eventTypeId=${eventType.id}&skip=0&take=1`
+          )
+          .expect(200)
+          .then((response) => {
+            const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(Array.isArray(responseBody.data)).toBe(true);
+            expect(responseBody.data.length).toBeLessThanOrEqual(1);
+          });
+      });
+
+      it("should return empty array for non-existent eventTypeId", async () => {
+        const nonExistentEventTypeId = 999999;
+        return request(app.getHttpServer())
+          .get(
+            `/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules?eventTypeId=${nonExistentEventTypeId}`
+          )
+          .expect(200)
+          .then((response) => {
+            const responseBody: GetSchedulesOutput_2024_06_11 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(Array.isArray(responseBody.data)).toBe(true);
+            expect(responseBody.data.length).toEqual(0);
+          });
+      });
     });
 
     afterAll(async () => {
