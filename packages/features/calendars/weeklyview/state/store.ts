@@ -10,6 +10,7 @@ import type {
   CalendarPublicActions,
   CalendarState,
   CalendarStoreProps,
+  DragPosition,
 } from "../types/state";
 import { mergeOverlappingDateRanges, weekdayDates } from "../utils";
 
@@ -26,11 +27,22 @@ const defaultState: CalendarComponentProps = {
   showBorder: true,
   borderColor: "default",
   showTimezone: false,
+  // Drag-select defaults (disabled by default for backward compatibility)
+  enableDragSelect: false,
+  selectedRanges: [],
+};
+
+// Default drag state (internal)
+const defaultDragState = {
+  isDragging: false,
+  dragStart: null as DragPosition,
+  dragEnd: null as DragPosition,
 };
 
 export function createCalendarStore(initial?: Partial<CalendarComponentProps>): StoreApi<CalendarStoreProps> {
   return createStore<CalendarStoreProps>((set) => ({
     ...defaultState,
+    ...defaultDragState,
     ...initial,
     setView: (view: CalendarComponentProps["view"]) => set({ view }),
     setStartDate: (startDate: CalendarComponentProps["startDate"]) => set({ startDate }),
@@ -86,6 +98,9 @@ export function createCalendarStore(initial?: Partial<CalendarComponentProps>): 
           endDate: newEndDate,
         };
       }),
+    // Drag-select action
+    setDragState: (isDragging: boolean, start: DragPosition, end: DragPosition) =>
+      set({ isDragging, dragStart: start, dragEnd: end }),
   }));
 }
 

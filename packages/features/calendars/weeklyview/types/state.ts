@@ -5,6 +5,20 @@ import type { BorderColor } from "./common";
 import type { CalendarEvent } from "./events";
 
 export type View = "month" | "week" | "day";
+
+// Drag-select types
+export type SelectedTimeRange = {
+  id: string;
+  date: string; // YYYY-MM-DD format
+  start: Date;
+  end: Date;
+};
+
+export type DragPosition = {
+  day: number;
+  hour: number;
+  minute: number;
+} | null;
 export type Hours =
   | 0
   | 1
@@ -38,6 +52,8 @@ export type CalendarPublicActions = {
   onEventContextMenu?: (event: CalendarEvent) => void;
   onEmptyCellClick?: (date: Date) => void;
   onDateChange?: (startDate: Date, endDate?: Date) => void;
+  /** Callback when a drag selection is completed. Only fires when enableDragSelect is true. */
+  onDragSelectComplete?: (range: { day: Date; start: Date; end: Date }) => void;
 };
 
 // We have private actions here that we want to be available in state but not as component props.
@@ -51,6 +67,11 @@ export type CalendarPrivateActions = {
   selectedEvent?: CalendarEvent;
   setSelectedEvent: (event: CalendarEvent) => void;
   handleDateChange: (payload: "INCREMENT" | "DECREMENT") => void;
+  // Drag-select state (internal)
+  isDragging: boolean;
+  dragStart: DragPosition;
+  dragEnd: DragPosition;
+  setDragState: (isDragging: boolean, start: DragPosition, end: DragPosition) => void;
 };
 type TimeRangeExtended = TimeRange & {
   away?: boolean;
@@ -152,6 +173,16 @@ export type CalendarState = {
    * @default false
    */
   showTimezone?: boolean;
+  /**
+   * Enable drag-to-select functionality for selecting time ranges
+   * @default false
+   */
+  enableDragSelect?: boolean;
+  /**
+   * Array of selected time ranges to display on the calendar
+   * Only used when enableDragSelect is true
+   */
+  selectedRanges?: SelectedTimeRange[];
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };

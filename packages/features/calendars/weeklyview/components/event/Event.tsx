@@ -14,6 +14,7 @@ type EventProps = {
   onEventClick?: (event: CalendarEvent) => void;
   disabled?: boolean;
   isHovered?: boolean;
+  timezone?: string;
 };
 
 const eventClasses = cva(
@@ -66,9 +67,16 @@ export function Event({
   disabled,
   onEventClick,
   isHovered = false,
+  timezone,
 }: EventProps) {
   const selected = currentlySelectedEventId === event.id;
   const { options } = event;
+
+  // Helper to format time with timezone
+  const formatTime = (date: Date) => {
+    const d = timezone ? dayjs(date).tz(timezone) : dayjs(date);
+    return d.format("HH:mm");
+  };
 
   // Use custom color if provided, otherwise derive from status
   const colorClass = !options?.color ? getStatusColorClass(options?.status) : undefined;
@@ -90,7 +98,7 @@ export function Event({
           <div className="font-semibold leading-tight">{event.title}</div>
           {!event.options?.hideTime && (
             <div className="text-inverted-muted mt-1 text-xs">
-              {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+              {formatTime(event.start)} - {formatTime(event.end)}
             </div>
           )}
           {event.description && (
@@ -140,7 +148,7 @@ export function Event({
               <span>{event.title}</span>
               {!event.options?.hideTime && (
                 <p className="text-subtle mt-1 w-full whitespace-nowrap text-left text-[10px] leading-none">
-                  {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+                  {formatTime(event.start)} - {formatTime(event.end)}
                 </p>
               )}
             </div>
@@ -150,7 +158,7 @@ export function Event({
           )}
           {displayType !== "single-line" && !event.options?.hideTime && (
             <p className="text-subtle mt-1 whitespace-nowrap text-left text-[10px] leading-none">
-              {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+              {formatTime(event.start)} - {formatTime(event.end)}
             </p>
           )}
           {displayType === "full" && event.description && (

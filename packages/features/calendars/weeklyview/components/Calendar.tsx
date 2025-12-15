@@ -8,6 +8,7 @@ import type { CalendarComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues";
 import { CurrentTime } from "./currentTime";
+import { DragSelectOverlay, useDragSelect } from "./drag";
 import { AvailableCellsForDay, EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
@@ -35,8 +36,24 @@ function CalendarInner(props: CalendarComponentProps) {
   const showBorder = useCalendarStore((state) => state.showBorder ?? true);
   const borderColor = useCalendarStore((state) => state.borderColor ?? "default");
   const scrollToCurrentTime = useCalendarStore((state) => state.scrollToCurrentTime ?? true);
+  // Drag-select state
+  const enableDragSelect = useCalendarStore((state) => state.enableDragSelect ?? false);
+  const hoverEventDuration = useCalendarStore((state) => state.hoverEventDuration ?? 30);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
+
+  // Get events for busy-time checking
+  const events = useCalendarStore((state) => state.events);
+
+  // Drag-select hook (returns no-op handlers when disabled)
+  const { gridRef: dragGridRef, handlers: dragHandlers } = useDragSelect({
+    enabled: enableDragSelect,
+    timezone,
+    startHour,
+    hoverEventDuration,
+    days,
+    events,
+  });
 
   const hours = useMemo(
     () => getHoursToDisplay(startHour || 0, endHour || 23, timezone),
@@ -64,10 +81,8 @@ function CalendarInner(props: CalendarComponentProps) {
         {props.isPending && <Spinner />}
         <div
           ref={container}
-          className="bg-default dark:bg-cal-muted relative isolate flex h-full flex-auto flex-col">
-          <div
-            style={{ width: "165%" }}
-            className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
+          className="bg-default dark:bg-cal-muted relative isolate flex h-full flex-auto flex-col overflow-auto">
+          <div className="flex min-h-min w-full flex-none flex-col">
             <DateValues
               containerNavRef={containerNav}
               days={days}
@@ -86,16 +101,21 @@ function CalendarInner(props: CalendarComponentProps) {
                 )}
               />
               <div
-                className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
+                ref={enableDragSelect ? dragGridRef : undefined}
+                className={classNames(
+                  "grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]",
+                  enableDragSelect && "select-none"
+                )}
                 style={
                   showBackgroundPattern === false
                     ? undefined
                     : {
-                      backgroundColor: "var(--disabled-gradient-background)",
-                      background:
-                        "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
-                    }
-                }>
+                        backgroundColor: "var(--disabled-gradient-background)",
+                        background:
+                          "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
+                      }
+                }
+                {...(enableDragSelect ? dragHandlers : {})}>
                 <HorizontalLines
                   hours={hours}
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
@@ -163,6 +183,11 @@ function CalendarInner(props: CalendarComponentProps) {
                     ))}
                   </>
                 </SchedulerColumns>
+
+                {/* Drag-select overlay (only renders when enableDragSelect is true) */}
+                {enableDragSelect && (
+                  <DragSelectOverlay days={days} timezone={timezone} startHour={startHour} />
+                )}
               </div>
             </div>
           </div>
