@@ -59,13 +59,6 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
     router.push(nextUrl);
   };
 
-  const handleSkip = () => {
-    setMigratedMembers([]);
-    const migrateParam = searchParams?.get("migrate");
-    const nextUrl = `/onboarding/organization/invite/email${migrateParam ? `?migrate=${migrateParam}` : ""}`;
-    router.push(nextUrl);
-  };
-
   if (isLoading) {
     return (
       <OnboardingLayout userEmail={userEmail} currentStep={5} totalSteps={6}>
@@ -93,9 +86,6 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
-              <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
-                {t("onboarding_skip_for_now")}
-              </Button>
               <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
                 {t("continue")}
               </Button>

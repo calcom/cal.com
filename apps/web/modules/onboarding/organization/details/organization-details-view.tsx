@@ -32,7 +32,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLocale();
-  const { organizationDetails, setOrganizationDetails } = useOnboardingStore();
+  const { organizationDetails, setOrganizationDetails, selectedPlan, setSelectedPlan } = useOnboardingStore();
   const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
   const [organizationName, setOrganizationName] = useState("");
@@ -40,6 +40,13 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   const [organizationBio, setOrganizationBio] = useState("");
   const [isSlugValid, setIsSlugValid] = useState(false);
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+
+  // Ensure selectedPlan is set to "organization" when entering organization onboarding
+  useEffect(() => {
+    if (selectedPlan !== "organization") {
+      setSelectedPlan("organization");
+    }
+  }, [selectedPlan, setSelectedPlan]);
 
   // Load from store on mount
   useEffect(() => {
