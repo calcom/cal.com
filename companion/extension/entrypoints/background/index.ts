@@ -1,5 +1,18 @@
 /// <reference types="chrome" />
 
+// ============================================
+// DEV ONLY: API Key for localhost testing
+// TODO: REMOVE THIS ENTIRE SECTION BEFORE PRODUCTION
+// ============================================
+const DEV_API_KEY = import.meta.env.EXPO_PUBLIC_CAL_API_KEY as string | undefined;
+const IS_DEV_MODE = DEV_API_KEY && DEV_API_KEY.length > 0;
+if (IS_DEV_MODE) {
+  console.log("Cal.com Extension: DEV MODE - API Key authentication enabled for testing");
+}
+// ============================================
+// END DEV ONLY SECTION
+// ============================================
+
 // @ts-ignore - WXT provides this globally
 export default defineBackground(() => {
   chrome.action.onClicked.addListener((tab) => {
@@ -163,19 +176,38 @@ async function handleTokenExchange(
 async function fetchEventTypes() {
   const API_BASE_URL = "https://api.cal.com/v2";
 
+  // Determine authentication method
+  let authHeader: string;
+  let authMethod: "oauth" | "apikey";
+
   const result = await chrome.storage.local.get(["cal_oauth_tokens"]);
   const oauthTokens = result.cal_oauth_tokens
     ? JSON.parse(result.cal_oauth_tokens as string)
     : null;
 
-  if (!oauthTokens?.accessToken) {
+  if (oauthTokens?.accessToken) {
+    // Use OAuth token if available
+    authHeader = `Bearer ${oauthTokens.accessToken}`;
+    authMethod = "oauth";
+  } else if (IS_DEV_MODE && DEV_API_KEY) {
+    // ============================================
+    // DEV ONLY: Fallback to API key for localhost testing
+    // TODO: REMOVE THIS BLOCK BEFORE PRODUCTION
+    // ============================================
+    console.log("Cal.com Extension: Using API Key for authentication (DEV MODE)");
+    authHeader = `Bearer ${DEV_API_KEY}`;
+    authMethod = "apikey";
+    // ============================================
+    // END DEV ONLY BLOCK
+    // ============================================
+  } else {
     throw new Error("No OAuth access token found. Please sign in with OAuth.");
   }
 
   // Get current user to retrieve username
   const userResponse = await fetch(`${API_BASE_URL}/me`, {
     headers: {
-      Authorization: `Bearer ${oauthTokens.accessToken}`,
+      Authorization: authHeader,
       "Content-Type": "application/json",
       "cal-api-version": "2024-06-11",
     },
@@ -198,7 +230,7 @@ async function fetchEventTypes() {
 
   const response = await fetch(endpoint, {
     headers: {
-      Authorization: `Bearer ${oauthTokens.accessToken}`,
+      Authorization: authHeader,
       "Content-Type": "application/json",
       "cal-api-version": "2024-06-14",
     },

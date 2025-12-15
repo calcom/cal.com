@@ -15,7 +15,7 @@ import { useDataTable, useFilterableColumns } from "../../hooks";
 
 export interface AddFilterButtonProps<TData> {
   table: Table<TData>;
-  variant?: "base" | "sm";
+  variant?: "base" | "minimal";
 }
 
 function AddFilterButtonComponent<TData>(
@@ -31,7 +31,7 @@ function AddFilterButtonComponent<TData>(
     (column) => !activeFilters?.some((filter) => filter.f === column.id)
   );
 
-  if (variant === "sm" && availableColumns.length === 0) {
+  if (variant === "minimal" && availableColumns.length === 0) {
     return null;
   }
 
@@ -44,13 +44,13 @@ function AddFilterButtonComponent<TData>(
               ref={ref}
               color="secondary"
               data-testid="add-filter-button"
-              StartIcon="sliders-horizontal"
+              StartIcon="list-filter"
               className="h-full">
               {t("filter")}
             </Button>
           </PopoverTrigger>
         )}
-        {variant === "sm" && (
+        {variant === "minimal" && (
           <Tooltip content={t("add_filter")}>
             <PopoverTrigger asChild>
               <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
@@ -78,7 +78,7 @@ function AddFilterButtonComponent<TData>(
                       addFilter(column.id);
                       setOpen(false);
                     }}
-                    className="flex items-center justify-between px-4 py-2 rounded-none"
+                    className="flex items-center justify-between rounded-none px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>
                     {showHiddenIndicator && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}

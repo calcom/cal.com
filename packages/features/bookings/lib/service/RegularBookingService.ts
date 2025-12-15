@@ -35,8 +35,8 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
-import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
+import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -127,6 +127,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 import { makeGuestActor } from "../types/actor";
 
 const translator = short();
@@ -456,7 +457,6 @@ function buildBookingCreatedPayload({
   };
 }
 
-
 export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
@@ -467,6 +467,57 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+}
+
+async function validateRescheduleRestrictions({
+  rescheduleUid,
+  userId,
+  eventType,
+}: {
+  rescheduleUid: string | null | undefined;
+  userId: number | null;
+  eventType: { seatsPerTimeSlot: number | null; minimumRescheduleNotice: number | null } | null;
+}): Promise<void> {
+  if (!rescheduleUid || !eventType) {
+    return; // Not a reschedule, skip validation
+  }
+
+  const bookingSeat = rescheduleUid ? await getSeatedBooking(rescheduleUid) : null;
+  const actualRescheduleUid = bookingSeat ? bookingSeat.booking.uid : rescheduleUid;
+
+  if (!actualRescheduleUid) {
+    return; // No valid reschedule UID
+  }
+
+  try {
+    const originalRescheduledBooking = await getOriginalRescheduledBooking(
+      actualRescheduleUid,
+      !!eventType.seatsPerTimeSlot
+    );
+
+    // Check if user is the organizer
+    const isUserOrganizer =
+      userId && originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
+
+    // Check minimum reschedule notice (only for non-organizers)
+    const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
+    if (
+      !isUserOrganizer &&
+      isWithinMinimumRescheduleNotice(originalRescheduledBooking.startTime, minimumRescheduleNotice ?? null)
+    ) {
+      throw new HttpError({
+        statusCode: 403,
+        message: "Rescheduling is not allowed within the minimum notice period before the event",
+      });
+    }
+  } catch (error) {
+    // Re-throw HttpError (including our 403 validation error)
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    // For other errors (like booking not found), let the service handle it later
+    // We don't want to fail early validation for these cases
+  }
 }
 
 /**
@@ -548,6 +599,18 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  // Early validation: Check reschedule restrictions if rescheduling
+  await validateRescheduleRestrictions({
+    rescheduleUid: rawBookingData.rescheduleUid,
+    userId: userId ?? null,
+    eventType: eventType
+      ? {
+          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+          minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+        }
+      : null,
+  });
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
@@ -579,6 +642,7 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
+    rrHostSubsetIds,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -829,6 +893,7 @@ async function handler(
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
     routingFormResponse,
+    rrHostSubsetIds: rrHostSubsetIds ?? undefined,
   });
 
   // We filter out users but ensure allHostUsers remain same.
@@ -894,6 +959,7 @@ async function handler(
       users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
@@ -1310,9 +1376,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1358,8 +1424,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1654,6 +1720,7 @@ async function handler(
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
       isDryRun,
+      traceContext,
     });
 
     if (newBooking) {
@@ -1980,18 +2047,18 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    evt.description = eventType.description ?? evt.description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -2288,8 +2355,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   const bookingCreatedPayload = buildBookingCreatedPayload({
@@ -2303,10 +2370,12 @@ async function handler(
 
   const bookingRescheduledPayload: BookingRescheduledPayload = {
     ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking ? {
-      startTime: originalRescheduledBooking.startTime,
-      endTime: originalRescheduledBooking.endTime,
-    } : undefined,
+    oldBooking: originalRescheduledBooking
+      ? {
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        }
+      : undefined,
   };
 
   const bookingEventHandler = deps.bookingEventHandler;
@@ -2382,9 +2451,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2412,6 +2481,7 @@ async function handler(
         paymentId: payment?.id,
       },
       isDryRun,
+      traceContext,
     });
 
     try {
@@ -2549,6 +2619,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2560,6 +2631,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2603,6 +2675,7 @@ async function handler(
       seatReferenceUid: evt.attendeeSeatId,
       isPlatformNoEmail: noEmail && Boolean(platformClientId),
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2718,7 +2791,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
