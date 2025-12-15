@@ -30,14 +30,14 @@ export type BookingWithAttendees = {
     name: string;
     email: string;
     phoneNumber: string | null;
-    noShow: boolean;
+    noShow: boolean | null;
   }[];
   seatsReferences: {
     attendee: {
       name: string;
       email: string;
       phoneNumber: string | null;
-      noShow: boolean;
+      noShow: boolean | null;
     };
   }[];
   responses: unknown;
