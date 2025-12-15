@@ -6,6 +6,7 @@
 
 // Re-export all DTOs from @calcom/lib/dto/bookings for convenience
 export type {
+  BookingStatusDto,
   BookingBasicDto,
   BookingInstantLocationDto,
   BookingExistsDto,
@@ -19,12 +20,17 @@ export type {
   EventTypeWithTeamDto,
   BookingFullContextDto,
   BookingConfirmationUserDto,
+  WorkflowTriggerEventsDto,
+  TimeUnitDto,
+  WorkflowActionsDto,
+  WorkflowTemplatesDto,
   WorkflowStepDto,
   WorkflowDto,
   WorkflowOnEventTypeDto,
   ParentEventTypeDto,
   EventTypeOwnerDto,
   EventTypeForConfirmationDto,
+  PaymentOptionDto,
   PaymentDto,
   BookingForConfirmationDto,
   BookingUpdateResultDto,

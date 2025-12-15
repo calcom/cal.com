@@ -2,8 +2,12 @@
  * Payment DTOs - Data Transfer Objects for payment data
  */
 
-import type { PaymentOption } from "@calcom/prisma/enums";
 import type { JsonValue } from "@calcom/types/JsonObject";
+
+/**
+ * Payment option values (ORM-agnostic string literal union)
+ */
+export type PaymentOptionDto = "ON_BOOKING" | "HOLD";
 
 /**
  * Payment information
@@ -20,5 +24,5 @@ export interface PaymentDto {
   refunded: boolean;
   data: JsonValue;
   externalId: string;
-  paymentOption: PaymentOption | null;
+  paymentOption: PaymentOptionDto | null;
 }

@@ -2,8 +2,17 @@
  * Booking DTOs - Data Transfer Objects for booking data
  */
 
-import type { BookingStatus } from "@calcom/prisma/enums";
 import type { JsonValue } from "@calcom/types/JsonObject";
+
+/**
+ * Booking status values (ORM-agnostic string literal union)
+ */
+export type BookingStatusDto =
+  | "CANCELLED"
+  | "ACCEPTED"
+  | "REJECTED"
+  | "PENDING"
+  | "AWAITING_HOST";
 
 import type { AttendeeDto } from "./AttendeeDto";
 import type { BookingReferenceCreateInput, BookingReferenceDto } from "./BookingReferenceDto";
@@ -21,7 +30,7 @@ export interface BookingBasicDto {
   startTime: Date;
   endTime: Date;
   description: string | null;
-  status: BookingStatus;
+  status: BookingStatusDto;
   paid: boolean;
   eventTypeId: number | null;
 }
@@ -35,7 +44,7 @@ export interface BookingInstantLocationDto {
   location: string | null;
   metadata: Record<string, unknown> | null;
   startTime: Date;
-  status: BookingStatus;
+  status: BookingStatusDto;
   endTime: Date;
   description: string | null;
   eventTypeId: number | null;
@@ -59,7 +68,7 @@ export interface BookingFullContextDto {
   endTime: Date;
   title: string;
   description: string | null;
-  status: BookingStatus;
+  status: BookingStatusDto;
   attendees: AttendeeDto[];
   eventType: EventTypeWithTeamDto | null;
   destinationCalendar: DestinationCalendarDto | null;
@@ -96,7 +105,7 @@ export interface BookingForConfirmationDto {
   destinationCalendar: DestinationCalendarDto | null;
   paid: boolean;
   recurringEventId: string | null;
-  status: BookingStatus;
+  status: BookingStatusDto;
   smsReminderNumber: string | null;
 }
 
@@ -106,7 +115,7 @@ export interface BookingForConfirmationDto {
 export interface BookingUpdateResultDto {
   id: number;
   uid: string;
-  status: BookingStatus;
+  status: BookingStatusDto;
 }
 
 /**

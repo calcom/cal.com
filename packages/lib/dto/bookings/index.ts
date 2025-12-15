@@ -7,6 +7,7 @@ export type { AttendeeDto } from "./AttendeeDto";
 
 // Booking DTOs
 export type {
+  BookingStatusDto,
   BookingBasicDto,
   BookingInstantLocationDto,
   BookingExistsDto,
@@ -35,7 +36,7 @@ export type {
 } from "./EventTypeDto";
 
 // Payment DTOs
-export type { PaymentDto } from "./PaymentDto";
+export type { PaymentOptionDto, PaymentDto } from "./PaymentDto";
 
 // Team DTOs
 export type { TeamSummaryDto } from "./TeamDto";
@@ -44,4 +45,12 @@ export type { TeamSummaryDto } from "./TeamDto";
 export type { UserProfileDto, BookingUserDto, BookingConfirmationUserDto } from "./UserDto";
 
 // Workflow DTOs
-export type { WorkflowStepDto, WorkflowDto, WorkflowOnEventTypeDto } from "./WorkflowDto";
+export type {
+  WorkflowTriggerEventsDto,
+  TimeUnitDto,
+  WorkflowActionsDto,
+  WorkflowTemplatesDto,
+  WorkflowStepDto,
+  WorkflowDto,
+  WorkflowOnEventTypeDto,
+} from "./WorkflowDto";
