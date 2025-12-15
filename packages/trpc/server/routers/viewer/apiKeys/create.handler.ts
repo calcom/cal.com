@@ -1,4 +1,4 @@
-import { createFreshAuthenticationToken } from "@calid/features/modules/api-keys/utils/key";
+import { createFreshAuthenticationToken } from "@calid/features/modules/api-keys/utils/hashKey";
 import { v4 } from "uuid";
 
 import prisma from "@calcom/prisma";

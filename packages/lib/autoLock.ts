@@ -1,4 +1,4 @@
-import { generateSecureHash } from "@calid/features/modules/api-keys/utils/key";
+import { generateSecureHash } from "@calid/features/modules/api-keys/utils/hashKey";
 import type { RatelimitResponse } from "@unkey/ratelimit";
 
 import { RedisService } from "@calcom/features/redis/RedisService";
