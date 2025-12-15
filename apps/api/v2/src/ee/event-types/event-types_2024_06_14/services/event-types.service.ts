@@ -274,16 +274,11 @@ export class EventTypesService_2024_06_14 {
 
   async getDynamicEventType(usernames: string[], orgSlug?: string, orgId?: number) {
     const users = await this.usersService.getByUsernames(usernames, orgSlug, orgId);
-    const usersFiltered: UserWithProfile[] = [];
-    for (const user of users) {
-      if (user) {
-        usersFiltered.push(user);
-      }
-    }
+
     return {
       ownerId: 0,
       ...dynamicEvent,
-      users: usersFiltered,
+      users,
       isInstantEvent: false,
     };
   }
