@@ -4114,8 +4114,25 @@
   "saved": "Saved",
   "booking_history": "Booking History",
   "booking_history_description": "View the history of actions performed on this booking",
-  "audit_action": {
-    "created": "Created"
+  "booking_audit_action": {
+    "created": "Created",
+    "cancelled": "Cancelled",
+    "rescheduled": "Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
+    "rescheduled_from": "Rescheduled <0>{{oldDate}}</0> -> {{newDate}}",
+    "accepted": "Accepted",
+    "reschedule_requested": "Reschedule Requested",
+    "attendee_added": "Attendee Added",
+    "host_no_show_updated": "Host No-Show Updated",
+    "rejected": "Rejected",
+    "attendee_removed": "Attendee Removed",
+    "reassignment": "Reassignment",
+    "booking_reassigned_to_host": "Booking reassigned to {{host}}",
+    "location_changed": "Location Changed",
+    "location_changed_from_to": "Location changed from {{fromLocation}} to {{toLocation}}",
+    "attendee_no_show_updated": "Attendee No-Show Updated",
+    "type": "Assignment Type",
+    "assignmentType_manual": "Manual Assignment",
+    "assignmentType_roundRobin": "Round Robin Assignment"
   },
   "error_loading_booking_logs": "Error loading booking logs",
   "no_audit_logs_found": "No audit logs found",
