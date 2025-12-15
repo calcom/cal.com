@@ -33,6 +33,7 @@ export function isNotACompanyEmail(email: string) {
     "mail.com",
     "protonmail.com",
     "proton.me",
+    "pm.me",
     "zoho.com",
     "yandex.com",
     "gmx.com",

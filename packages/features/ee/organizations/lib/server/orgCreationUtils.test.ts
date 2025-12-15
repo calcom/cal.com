@@ -71,6 +71,7 @@ describe("orgCreationUtils", () => {
         "mail.com",
         "protonmail.com",
         "proton.me",
+        "pm.me",
         "zoho.com",
         "yandex.com",
         "gmx.com",

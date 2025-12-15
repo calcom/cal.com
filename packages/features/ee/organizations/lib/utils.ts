@@ -3,7 +3,7 @@ export function extractDomainFromEmail(email: string) {
   try {
     const match = email.match(/^(?:.*?:\/\/)?.*?([\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
     out = (match && match[1]) ?? "";
-  } catch (ignore) {}
+  } catch { /* empty */ }
   return out.split(".")[0];
 }
 
@@ -22,6 +22,7 @@ export function isCompanyEmail(email: string): boolean {
     "mail.com",
     "protonmail.com",
     "proton.me",
+    "pm.me",
     "zoho.com",
     "yandex.com",
     "gmx.com",
