@@ -305,12 +305,12 @@ export const createUsersFixture = (
              * @default DEFAULT_USER_FEATURE_FLAGS
              * @example
              * ```typescript
-             * // User without feature flags (default)
+             * // Default feature flags
              * const user = await users.create();
              *
-             * // User with specific feature flags
+             * // Specific feature flags
              * const user = await users.create({
-             *   userFeatureFlags: ["calendar-cache", "insights"]
+             *   userFeatureFlags: ["bookings-v3"]
              * });
              * ```
              */
@@ -348,23 +348,20 @@ export const createUsersFixture = (
          * @default DEFAULT_TEAM_FEATURE_FLAGS
          * @example
          * ```typescript
-         * // Use default flags (bookings-v3)
+         * // Default feature flags
          * const user = await users.create({}, { hasTeam: true });
          *
-         * // Disable all feature flags
-         * const user = await users.create({}, { hasTeam: true, teamFeatureFlags: [] });
-         *
-         * // Use custom flags
+         * // Specific feature flags
          * const user = await users.create({}, {
          *   hasTeam: true,
-         *   teamFeatureFlags: ["restriction-schedule", "pbac"]
+         *   teamFeatureFlags: ["pbac"]
          * });
          *
-         * // Organizations also get the flags
+         * // Organizations also get the flags by default
          * const user = await users.create({}, {
          *   hasTeam: true,
          *   isOrg: true
-         * }); // Org gets bookings-v3
+         * }); // Org gets DEFAULT_TEAM_FEATURE_FLAGS
          * ```
          */
         teamFeatureFlags?: Array<keyof AppFlags>;
