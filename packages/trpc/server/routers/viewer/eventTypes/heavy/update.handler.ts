@@ -430,34 +430,44 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
 
-    await Promise.all(
-      hostGroups.map(async (group) => {
-        await ctx.prisma.hostGroup.upsert({
-          where: { id: group.id },
-          update: { name: group.name },
-          create: {
+    const existingGroupsMap = new Map(existingHostGroups.map((group) => [group.id, group]));
+    const newGroupsMap = new Map(hostGroups.map((group) => [group.id, group]));
+
+    const groupsToCreate = hostGroups.filter((group) => !existingGroupsMap.has(group.id));
+    const groupsToUpdate = hostGroups.filter((group) => existingGroupsMap.has(group.id));
+    const groupsToDelete = existingHostGroups.filter((existingGroup) => !newGroupsMap.has(existingGroup.id));
+
+    await ctx.prisma.$transaction(async (tx) => {
+      // Create new groups
+      if (groupsToCreate.length > 0) {
+        await tx.hostGroup.createMany({
+          data: groupsToCreate.map((group) => ({
             id: group.id,
             name: group.name,
             eventTypeId: id,
+          })),
+        });
+      }
+
+      // Update existing groups
+      for (const group of groupsToUpdate) {
+        await tx.hostGroup.update({
+          where: { id: group.id },
+          data: { name: group.name },
+        });
+      }
+
+      // Delete groups that are no longer in the new list
+      if (groupsToDelete.length > 0) {
+        await tx.hostGroup.deleteMany({
+          where: {
+            id: {
+              in: groupsToDelete.map((group) => group.id),
+            },
           },
         });
-      })
-    );
-
-    const newGroupsMap = new Map(hostGroups.map((group) => [group.id, group]));
-
-    // Delete groups that are no longer in the new list
-    const groupsToDelete = existingHostGroups.filter((existingGroup) => !newGroupsMap.has(existingGroup.id));
-
-    if (groupsToDelete.length > 0) {
-      await ctx.prisma.hostGroup.deleteMany({
-        where: {
-          id: {
-            in: groupsToDelete.map((group) => group.id),
-          },
-        },
-      });
-    }
+      }
+    });
   }
 
   if (teamId && hosts) {
