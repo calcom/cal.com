@@ -22,8 +22,7 @@
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
     "seed-insights": "ts-node --transpile-only ./seed-insights.ts",
     "seed-pbac": "ts-node --transpile-only ./seed-pbac-organization.ts",
-    "timezone": "ts-node --transpile-only ./timezone-fix.ts",
-    "api-migrate":"ts-node --transpile-only ./api-migrate.ts"
+    "timezone": "ts-node --transpile-only ./timezone-fix.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "9.2.0",
