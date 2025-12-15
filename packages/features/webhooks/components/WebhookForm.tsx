@@ -247,7 +247,7 @@ export type WebhookFormValues = {
 };
 
 const WebhookForm = (props: {
-  webhook?: WebhookFormData;
+  webhook?: TWebhook | WebhookFormData;
   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
   overrideTriggerOptions?: (typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)["core"];
   onSubmit: (event: WebhookFormSubmitData) => void;
