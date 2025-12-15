@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
+// Context for sharing tab state between header components and content
+import { createContext, useContext } from "react";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -18,6 +20,7 @@ import {
 } from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
+import { SingleUseLinksListing } from "@calcom/features/one-off-meetings";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
@@ -90,8 +93,75 @@ interface InfiniteTeamsTabProps {
 }
 
 const querySchema = z.object({
-  teamId: z.nullable(z.coerce.number()).optional().default(null),
+  teamId: z.nullable(z.coerce.number()).optional(),
 });
+
+type MainTab = "event-types" | "single-use-links";
+
+const MainTabContext = createContext<{
+  activeTab: MainTab;
+  setActiveTab: (tab: MainTab) => void;
+}>({
+  activeTab: "event-types",
+  setActiveTab: () => {},
+});
+
+export function useMainTab() {
+  return useContext(MainTabContext);
+}
+
+// Dynamic heading that changes based on active tab (returns just text, Shell wraps in h3)
+export function DynamicHeading() {
+  const { t } = useLocale();
+  const { activeTab } = useMainTab();
+
+  return <>{activeTab === "event-types" ? t("event_types_page_title") : t("single_use_links")}</>;
+}
+
+// Dynamic subtitle that changes based on active tab (returns just text, Shell wraps in p)
+export function DynamicSubtitle() {
+  const { t } = useLocale();
+  const { activeTab } = useMainTab();
+
+  return (
+    <>{activeTab === "event-types" ? t("event_types_page_subtitle") : t("single_use_links_description")}</>
+  );
+}
+
+// Tabs navigation component for the header
+export function MainTabsNavigation() {
+  const { t } = useLocale();
+  const { activeTab, setActiveTab } = useMainTab();
+
+  return (
+    <div className="mr-4 hidden md:flex">
+      <nav className="no-scrollbar flex space-x-1 overflow-x-scroll rounded-md" aria-label="Tabs">
+        <button
+          onClick={() => setActiveTab("event-types")}
+          className={classNames(
+            activeTab === "event-types"
+              ? "bg-subtle text-emphasis"
+              : "hover:bg-muted hover:text-default text-subtle",
+            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium leading-none transition"
+          )}
+          data-testid="event-types-tab">
+          {t("event_types_page_title")}
+        </button>
+        <button
+          onClick={() => setActiveTab("single-use-links")}
+          className={classNames(
+            activeTab === "single-use-links"
+              ? "bg-subtle text-emphasis"
+              : "hover:bg-muted hover:text-default text-subtle",
+            "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium leading-none transition"
+          )}
+          data-testid="single-use-links-tab">
+          {t("single_use_links")}
+        </button>
+      </nav>
+    </div>
+  );
+}
 
 const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   const { activeEventTypeGroup } = props;
@@ -912,8 +982,7 @@ const EmptyEventTypeList = ({
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
-            variant="button"
-          >
+            variant="button">
             {t("create")}
           </Button>
         }
@@ -922,7 +991,8 @@ const EmptyEventTypeList = ({
   );
 };
 
-const InfiniteScrollMain = ({
+// Inner content component that uses the tab context
+const InfiniteScrollMainContent = ({
   eventTypeGroups,
   profiles,
 }: {
@@ -932,8 +1002,9 @@ const InfiniteScrollMain = ({
   const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
+  const { activeTab } = useMainTab();
 
-  const tabs = eventTypeGroups.map((item) => ({
+  const teamTabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
     avatar: item.profile.image,
@@ -941,8 +1012,12 @@ const InfiniteScrollMain = ({
     matchFullPath: true,
   }));
 
+  // When teamId is not in URL (undefined), show the first group (usually personal)
+  // When teamId is explicitly null or a number, filter by that value
   const activeEventTypeGroup =
-    eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
+    data.teamId !== undefined
+      ? eventTypeGroups.filter((item) => item.teamId === data.teamId)
+      : eventTypeGroups.slice(0, 1); // Default to first group when no teamId specified
 
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
 
@@ -951,6 +1026,7 @@ const InfiniteScrollMain = ({
   // This keeps the app working for personal event types that were not migrated to the org (rare)
   if (
     orgBranding &&
+    activeEventTypeGroup[0] &&
     (activeEventTypeGroup[0].teamId === orgBranding.id || activeEventTypeGroup[0].parentId === orgBranding.id)
   ) {
     activeEventTypeGroup[0].bookerUrl = bookerUrl;
@@ -958,14 +1034,56 @@ const InfiniteScrollMain = ({
 
   return (
     <>
-      {eventTypeGroups.length > 1 && <HorizontalTabs tabs={tabs} />}
-      {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
-      {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
-      <EventTypeEmbedDialog />
-      {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
+      {activeTab === "event-types" ? (
+        <>
+          {/* Team/Profile sub-tabs */}
+          {eventTypeGroups.length > 1 && <HorizontalTabs tabs={teamTabs} />}
+          {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
+          {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
+          <EventTypeEmbedDialog />
+          {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
+        </>
+      ) : (
+        <SingleUseLinksListing />
+      )}
     </>
   );
 };
+
+// Internal wrapper that just renders content (context provided externally)
+const InfiniteScrollMain = ({
+  eventTypeGroups,
+  profiles,
+}: {
+  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"];
+  profiles: GetUserEventGroupsResponse["profiles"];
+}) => {
+  return <InfiniteScrollMainContent eventTypeGroups={eventTypeGroups} profiles={profiles} />;
+};
+
+// Exported provider wrapper for the entire page
+export function EventTypesPageWrapper({ children }: { children: React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams?.get("tab");
+  const initialTab: MainTab = tabParam === "single-use-links" ? "single-use-links" : "event-types";
+  const [activeTab, setActiveTab] = useState<MainTab>(initialTab);
+  const utils = trpc.useUtils();
+
+  // Update tab when URL param changes
+  useEffect(() => {
+    if (tabParam === "single-use-links") {
+      setActiveTab("single-use-links");
+    }
+  }, [tabParam]);
+
+  // Prefetch single-use links data immediately so it's ready when tab is clicked
+  useEffect(() => {
+    utils.viewer.oneOffMeetings.list.prefetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return <MainTabContext.Provider value={{ activeTab, setActiveTab }}>{children}</MainTabContext.Provider>;
+}
 
 type Props = {
   userEventGroupsData: GetUserEventGroupsResponse;
@@ -976,6 +1094,9 @@ type Props = {
 };
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
+  const { t } = useLocale();
+  const { activeTab } = useMainTab();
+
   const profileOptions =
     userEventGroupsData.profiles
       ?.filter((profile) => !profile.readOnly)
@@ -1015,6 +1136,21 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
           permissions,
         };
       }) ?? [];
+
+  // Show different CTA based on active tab
+  if (activeTab === "single-use-links") {
+    return (
+      <Button
+        href="/one-off/create"
+        target="_blank"
+        StartIcon="plus"
+        size="sm"
+        variant="fab"
+        data-testid="new-one-off-meeting">
+        {t("new")}
+      </Button>
+    );
+  }
 
   return <CTA profileOptions={profileOptions} />;
 };

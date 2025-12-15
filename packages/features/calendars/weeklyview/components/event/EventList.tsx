@@ -13,11 +13,12 @@ type Props = {
 };
 
 export function EventList({ day }: Props) {
-  const { startHour, events, eventOnClick } = useCalendarStore(
+  const { startHour, events, eventOnClick, timezone } = useCalendarStore(
     (state) => ({
       startHour: state.startHour,
       events: state.events,
       eventOnClick: state.onEventClick,
+      timezone: state.timezone,
     }),
     shallow
   );
@@ -26,9 +27,10 @@ export function EventList({ day }: Props) {
 
   const dayEvents = useMemo(() => {
     return events.filter((event) => {
-      return dayjs(event.start).isSame(day, "day") && !event.options?.allDay;
+      const eventStart = timezone ? dayjs(event.start).tz(timezone) : dayjs(event.start);
+      return eventStart.isSame(day, "day") && !event.options?.allDay;
     });
-  }, [events, day]);
+  }, [events, day, timezone]);
 
   const layoutMap = useMemo(() => {
     const layouts = calculateEventLayouts(dayEvents);
@@ -38,8 +40,9 @@ export function EventList({ day }: Props) {
   const eventCalculations = useMemo(() => {
     return new Map(
       dayEvents.map((event) => {
-        const eventStart = dayjs(event.start);
-        const eventEnd = dayjs(event.end);
+        // Use timezone for consistent time calculations
+        const eventStart = timezone ? dayjs(event.start).tz(timezone) : dayjs(event.start);
+        const eventEnd = timezone ? dayjs(event.end).tz(timezone) : dayjs(event.end);
         const eventDuration = eventEnd.diff(eventStart, "minutes");
         const eventStartHour = eventStart.hour();
         const eventStartDiff = (eventStartHour - (startHour || 0)) * 60 + eventStart.minute();
@@ -54,7 +57,7 @@ export function EventList({ day }: Props) {
         ];
       })
     );
-  }, [dayEvents, startHour]);
+  }, [dayEvents, startHour, timezone]);
 
   // Find which overlap group the hovered event belongs to
   const hoveredEventLayout = hoveredEventId ? layoutMap.get(hoveredEventId) : null;
@@ -99,6 +102,7 @@ export function EventList({ day }: Props) {
               eventDuration={eventDuration}
               onEventClick={eventOnClick}
               isHovered={isHovered}
+              timezone={timezone}
             />
           </div>
         );
