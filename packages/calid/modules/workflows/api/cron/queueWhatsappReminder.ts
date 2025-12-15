@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
   try {
     const authorizationHeader = request.headers.get("authorization");
 
-    if (!process.env.CRON_SECRET || authorizationHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!process.env.CRON_API_KEY || authorizationHeader !== `${process.env.CRON_API_KEY}`) {
       return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
     }
 

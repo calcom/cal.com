@@ -98,7 +98,7 @@ export function MultiDisconnectIntegration({ categories, credentials, onSuccess 
                   {categories.indexOf("calendar") !== -1 && !isConnectedCalendarQueryPending && (
                     <span>
                       {connectedCalendarData?.connectedCalendars?.find((e) => e.credentialId === cred.id)
-                        ?.primary.email || t("unnamed")}
+                        ?.primary?.email || t("unnamed")}
                     </span>
                   )}
                 </div>
