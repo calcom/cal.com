@@ -143,7 +143,7 @@ export class BookingAuditTaskConsumer {
     private async migrateIfNeeded(params: {
         action: BookingAuditAction;
         data: unknown;
-        payload: BookingAuditTaskBasePayload;
+        payload: BookingAuditTaskConsumerPayload;
         taskId: string;
     }) {
         const { action, data, payload, taskId } = params;
@@ -174,7 +174,7 @@ export class BookingAuditTaskConsumer {
      * @param taskId - Task ID (required for DB update)
      */
     private async updateTaskPayload(
-        payload: BookingAuditTaskBasePayload,
+        payload: BookingAuditTaskConsumerPayload,
         latestData: unknown,
         taskId: string
     ): Promise<void> {
