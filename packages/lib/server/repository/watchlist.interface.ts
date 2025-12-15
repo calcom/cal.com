@@ -43,21 +43,24 @@ export interface CheckWatchlistInput {
 }
 
 export interface FindAllEntriesInput {
-  organizationId: number;
+  organizationId?: number | null;
+  isGlobal?: boolean;
   limit: number;
   offset: number;
   searchTerm?: string;
   filters?: {
     type?: WatchlistType;
+    source?: WatchlistSource;
   };
 }
 
 export interface IWatchlistRepository {
   createEntry(params: CreateWatchlistInput): Promise<WatchlistEntry>;
+  createEntryIfNotExists(params: CreateWatchlistInput): Promise<WatchlistEntry>;
   checkExists(params: CheckWatchlistInput): Promise<WatchlistEntry | null>;
-  findAllEntries(params: FindAllEntriesInput): Promise<{
+  findAllEntriesWithLatestAudit(params: FindAllEntriesInput): Promise<{
     rows: (WatchlistEntry & {
-      audits?: { changedByUserId: number | null }[];
+      latestAudit: { changedByUserId: number | null } | null;
     })[];
     meta: { totalRowCount: number };
   }>;
@@ -74,5 +77,13 @@ export interface IWatchlistRepository {
       | null;
     auditHistory: WatchlistAuditEntry[];
   }>;
+  findEntriesByIds(ids: string[]): Promise<
+    Array<{
+      id: string;
+      isGlobal: boolean;
+      organizationId: number | null;
+    }>
+  >;
   deleteEntry(id: string, userId: number): Promise<void>;
+  bulkDeleteEntries(params: { ids: string[]; userId: number }): Promise<{ deleted: number }>;
 }

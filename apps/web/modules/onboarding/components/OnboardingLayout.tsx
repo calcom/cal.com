@@ -3,6 +3,7 @@
 import classNames from "classnames";
 import { signOut } from "next-auth/react";
 import { Children, type ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -71,6 +72,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
           {t("sign_out")}
         </Button>
       </div>
+      <Toaster position="bottom-right" />
     </div>
   );
 };

@@ -122,6 +122,47 @@ describe("_onFormSubmission", () => {
       });
       expect(sendGenericWebhookPayload).toHaveBeenCalledTimes(1);
     });
+
+    it("should normalize identifiers with spaces to hyphens in rootData for webhook templates", async () => {
+      const formWithSpaces = {
+        ...mockForm,
+        fields: [
+          {
+            id: "field-1",
+            identifier: "attendee name",
+            label: "Attendee Name",
+            type: "text",
+            required: false,
+          },
+        ] as Field[],
+      };
+
+      const responseWithSpaces: FormResponse = {
+        "field-1": { label: "Attendee Name", value: "John Doe" },
+      };
+
+      const mockWebhook: GetWebhooksReturnType[number] = {
+        id: "wh-1",
+        secret: "secret",
+        subscriberUrl: "https://example.com/webhook",
+        payloadTemplate: null,
+        appId: null,
+        eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
+        time: null,
+        timeUnit: null,
+      };
+      vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
+
+      await _onFormSubmission(formWithSpaces, responseWithSpaces, responseId);
+
+      expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rootData: expect.objectContaining({
+            "attendee-name": "John Doe", // Spaces replaced with hyphens for template access
+          }),
+        })
+      );
+    });
   });
 
   describe("Workflows", () => {
