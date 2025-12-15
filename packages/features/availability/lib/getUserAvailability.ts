@@ -11,6 +11,7 @@ import {
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
@@ -26,7 +27,6 @@ import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "@c
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import prisma from "@calcom/prisma";
 import type {
   Booking,
   Prisma,
@@ -165,6 +165,7 @@ export interface IUserAvailabilityService {
   oooRepo: PrismaOOORepository;
   bookingRepo: BookingRepository;
   redisClient: IRedisService;
+  holidayRepo: PrismaHolidayRepository;
 }
 
 export class UserAvailabilityService {
@@ -709,8 +710,8 @@ export class UserAvailabilityService {
     endDate: Date,
     availability: GetUserAvailabilityParamsDTO["availability"]
   ): Promise<IOutOfOfficeData> {
-    const holidaySettings = await prisma.userHolidaySettings.findUnique({
-      where: { userId },
+    const holidaySettings = await this.dependencies.holidayRepo.findUserSettingsSelect({
+      userId,
       select: {
         countryCode: true,
         disabledIds: true,

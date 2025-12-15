@@ -4,6 +4,7 @@ import { memo, useMemo, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { OutOfOfficeToggleGroup } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -14,8 +15,6 @@ import { Label, Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
 function HolidaysCTA() {
   const { t } = useLocale();
@@ -310,3 +309,4 @@ export function HolidaysView() {
     </SettingsHeader>
   );
 }
+

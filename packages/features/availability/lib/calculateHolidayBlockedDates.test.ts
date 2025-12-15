@@ -1,5 +1,3 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -14,10 +12,16 @@ import { getHolidayService } from "@calcom/lib/holidays";
 
 import { UserAvailabilityService } from "./getUserAvailability";
 
+const mockHolidayRepo = {
+  findUserSettingsSelect: vi.fn(),
+};
+
 const mockDependencies = {
   oooRepo: {} as never,
   bookingRepo: {} as never,
   redisClient: {} as never,
+  eventTypeRepo: {} as never,
+  holidayRepo: mockHolidayRepo as never,
 };
 
 describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
@@ -34,7 +38,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
   });
 
   it("should return empty object when user has no holiday settings", async () => {
-    prismaMock.userHolidaySettings.findUnique.mockResolvedValue(null);
+    mockHolidayRepo.findUserSettingsSelect.mockResolvedValue(null);
 
     const result = await service.calculateHolidayBlockedDates(
       123,
@@ -43,8 +47,8 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       [{ days: [1, 2, 3, 4, 5] }] // Monday to Friday
     );
 
-    expect(prismaMock.userHolidaySettings.findUnique).toHaveBeenCalledWith({
-      where: { userId: 123 },
+    expect(mockHolidayRepo.findUserSettingsSelect).toHaveBeenCalledWith({
+      userId: 123,
       select: {
         countryCode: true,
         disabledIds: true,
@@ -54,13 +58,9 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
   });
 
   it("should return empty object when user has no country selected", async () => {
-    prismaMock.userHolidaySettings.findUnique.mockResolvedValue({
-      id: 1,
-      userId: 123,
+    mockHolidayRepo.findUserSettingsSelect.mockResolvedValue({
       countryCode: null,
       disabledIds: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
     const result = await service.calculateHolidayBlockedDates(
@@ -74,13 +74,9 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
   });
 
   it("should return empty object when no holidays in date range", async () => {
-    prismaMock.userHolidaySettings.findUnique.mockResolvedValue({
-      id: 1,
-      userId: 123,
+    mockHolidayRepo.findUserSettingsSelect.mockResolvedValue({
       countryCode: "US",
       disabledIds: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
     mockHolidayService.getHolidayDatesInRange.mockResolvedValue([]);
@@ -108,13 +104,9 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
   });
 
   it("should return holiday data for dates that match user's working days", async () => {
-    prismaMock.userHolidaySettings.findUnique.mockResolvedValue({
-      id: 1,
-      userId: 123,
+    mockHolidayRepo.findUserSettingsSelect.mockResolvedValue({
       countryCode: "US",
       disabledIds: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
     // Wednesday, January 1, 2025 - New Year's Day
@@ -148,13 +140,9 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
   });
 
   it("should skip holidays that fall on non-working days", async () => {
-    prismaMock.userHolidaySettings.findUnique.mockResolvedValue({
-      id: 1,
-      userId: 123,
+    mockHolidayRepo.findUserSettingsSelect.mockResolvedValue({
       countryCode: "US",
       disabledIds: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
     // Saturday, December 25, 2027 - Christmas Day
@@ -187,13 +175,9 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
   });
 
   it("should handle multiple holidays correctly", async () => {
-    prismaMock.userHolidaySettings.findUnique.mockResolvedValue({
-      id: 1,
-      userId: 123,
+    mockHolidayRepo.findUserSettingsSelect.mockResolvedValue({
       countryCode: "US",
       disabledIds: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
     mockHolidayService.getHolidayDatesInRange.mockResolvedValue([
@@ -241,13 +225,9 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
   });
 
   it("should handle availability with multiple schedules", async () => {
-    prismaMock.userHolidaySettings.findUnique.mockResolvedValue({
-      id: 1,
-      userId: 123,
+    mockHolidayRepo.findUserSettingsSelect.mockResolvedValue({
       countryCode: "US",
       disabledIds: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
     // Thursday, July 4, 2024 - Independence Day
@@ -285,13 +265,9 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
   });
 
   it("should respect disabled holidays", async () => {
-    prismaMock.userHolidaySettings.findUnique.mockResolvedValue({
-      id: 1,
-      userId: 123,
+    mockHolidayRepo.findUserSettingsSelect.mockResolvedValue({
       countryCode: "US",
       disabledIds: ["christmas_2025"],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
     // The holiday service should receive the disabledIds and filter them out
@@ -334,4 +310,3 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
     });
   });
 });
-
