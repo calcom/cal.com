@@ -1,4 +1,5 @@
-import type { PrismaClient, Prisma } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 export class PrismaHolidayRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -16,4 +17,3 @@ export class PrismaHolidayRepository {
     });
   }
 }
-
