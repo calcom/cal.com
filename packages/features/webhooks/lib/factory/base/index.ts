@@ -6,7 +6,7 @@
  * When creating a new webhook version:
  * 1. Create a new directory: versioned/v{NEW_VERSION}/
  * 2. Extend base builders and override methods that need changes
- * 3. Register the new version in registry.tsregistry.ts
+ * 3. Register the new version in registry.ts
  */
 export { BaseBookingPayloadBuilder } from "./BaseBookingPayloadBuilder";
 export { BaseFormPayloadBuilder } from "./BaseFormPayloadBuilder";

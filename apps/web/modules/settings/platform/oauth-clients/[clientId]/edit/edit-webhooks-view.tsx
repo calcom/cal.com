@@ -83,6 +83,7 @@ export default function EditOAuthClientWebhooks() {
                       subscriberUrl: data.subscriberUrl,
                       triggers: data.eventTriggers,
                       secret: data.secret ?? undefined,
+                      version: data.version,
                     };
                     if (webhook) {
                       await updateWebhook({
