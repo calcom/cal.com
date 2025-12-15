@@ -135,8 +135,6 @@ const htmlToPlainText = (html: string): string => {
       .replace(/<\/h[1-6]>/gi, "\n")
       // Strip remaining HTML tags
       .replace(/<\/?[^>]+(>|$)/g, "")
-      // Clean up escaped characters
-      .replace(/_/g, " ")
       // Normalize multiple newlines to max 2
       .replace(/\n{3,}/g, "\n\n")
       .trim()
