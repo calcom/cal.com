@@ -31,6 +31,7 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 type: bookingAudit.type,
                 timestamp: bookingAudit.timestamp,
                 source: bookingAudit.source,
+                operationId: bookingAudit.operationId,
                 data: bookingAudit.data === null ? undefined : bookingAudit.data,
             },
         });

@@ -35,6 +35,7 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { v4 as uuidv4 } from "uuid";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -188,6 +189,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       bookingUid: booking.uid,
       actor: makeUserActor(ctx.user.uuid),
       organizationId: paymentConfirmOrgId ?? null,
+      operationId: null,
       auditData: {
         status: {
           old: booking.status,
@@ -410,12 +412,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           rejectionReason: true,
         },
       });
+      const operationId = uuidv4();
       await Promise.all(
         rejectedBookings.map((rejectedBooking) =>
           bookingEventHandlerService.onBookingRejected({
             bookingUid: rejectedBooking.uid,
             actor: makeUserActor(ctx.user.uuid),
             organizationId: orgId ?? null,
+            operationId,
             auditData: {
               rejectionReason: {
                 old: null,
@@ -436,6 +440,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         bookingUid: booking.uid,
         actor: makeUserActor(ctx.user.uuid),
         organizationId: orgId ?? null,
+        operationId: null,
         auditData: {
           rejectionReason: {
             old: null,

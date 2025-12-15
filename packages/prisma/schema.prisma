@@ -2761,11 +2761,15 @@ model BookingAudit {
   // Source of the action (API_V2 or WEBAPP)
   source BookingAuditSource
 
+  // Operation ID for correlating related audit logs across different audit types (BookingAudit, UserAudit, etc.)
+  operationId String
+
   data Json?
 
   @@index([actorId])
   @@index([bookingUid])
   @@index([timestamp])
+  @@index([operationId])
 }
 
 enum PhoneNumberSubscriptionStatus {

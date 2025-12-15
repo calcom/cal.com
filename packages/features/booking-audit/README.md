@@ -31,8 +31,9 @@ The Booking Audit System tracks all actions and changes related to bookings in C
 - `bookingUid` stored as plain string (no foreign key) to preserve audit trail after booking deletion
 - `onDelete: Restrict` prevents actor deletion if audit records exist
 - Explicit `timestamp` field represents business event time (may differ from `createdAt` if processed asynchronously)
+- `operationId` required field (auto-generated if not provided) for correlating audit logs from a single user action across different audit types (BookingAudit, UserAudit, etc.)
 - JSON `data` field stores action-specific contextual data
-- Indexed for efficient queries by `bookingUid`, `actorId`, and `timestamp`
+- Indexed for efficient queries by `bookingUid`, `actorId`, `timestamp`, and `operationId`
 
 **Protecting the Audit Trail:**
 - Database rejects deletion of `AuditActor` records that have associated `BookingAudit` records
@@ -145,6 +146,7 @@ AuditActor (1) ──────< (many) BookingAudit
 - Indexed on `bookingUid` (primary query pattern)
 - Indexed on `actorId` (secondary query pattern)
 - Indexed on `timestamp` (time-based sorting and filtering)
+- Indexed on `operationId` (correlating multi-booking operations)
 
 ## Special Actors
 
@@ -254,6 +256,7 @@ The audit system is designed to work with third-party queue providers (e.g., tri
 - `actor`: ID-only actor object (`userUuid`, `attendeeId`, or `actorId`)
 - `organizationId`: Number (for feature flag checks)
 - `action`: Enum value (e.g., "CREATED", "CANCELLED")
+- `operationId`: Required string (auto-generated if not provided) for correlating related audit logs across different audit types (BookingAudit, UserAudit, etc.)
 - `data`: Action-specific data (may contain booking details but no actor PII)
 - `timestamp`: Number (milliseconds since epoch)
 
@@ -270,7 +273,7 @@ The audit system is designed to work with third-party queue providers (e.g., tri
 - Easy to add features - new side effect = new task definition
 
 ## TODO
-- Rename  StoredDataParams to better reflect the purpose of the parameter.
+- Setup Observability for audit task failures or other things
 - Actor must be created in the controllers
   - This is importnat so that we know whether a webhook triggered the action or a user. Creating actor in the service layer could be wrong because we could have userUuid there which could beprovided by stripe webhook on behalf of a user.
 
@@ -278,65 +281,19 @@ The audit system is designed to work with third-party queue providers (e.g., tri
 - getPiiFreeAuditActor should not exist in types/Actor.ts. Figure out what the write place for it is. Requirement being we pass Actor to BookingEventHandlerService. One approach could be to do have it in Producer service and call it from there itself, differentiating b/w the case when we need to pass actor to task as is and where we need to create Actor first.
 
 
-## Observability
 
-### Production Monitoring Setup
+## Operation ID for Multi-Booking or across different Audit Types Operations
 
-The booking audit system integrates with the following observability tools:
+The `operationId` field provides correlation for audit logs that result from a single user action affecting multiple bookings.
 
-- **Sentry**: Error tracking and performance monitoring
-- **Axiom**: Structured logging and log aggregation (when `AXIOM_TOKEN` and `AXIOM_DATASET` are configured)
-- **Logger**: Application-level logging via `@calcom/lib/logger`
 
-### Critical Metrics to Monitor
+### Benefits
 
-#### Permanent Task Failures
-
-**⚠️ IMPORTANT**: Permanent task failures must be monitored in production.
-
-**Current Configuration:**
-- Tasks have a default `maxAttempts: 3` (configured in `Task` schema)
-- When a task reaches `attempts >= maxAttempts`, it is considered permanently failed
-- Permanently failed tasks are no longer retried and remain in the database
-
-**Why This Matters:**
-- Permanent failures indicate audit records that were not created
-- Missing audit records break the complete audit trail required for compliance (HIPAA §164.312(b))
-- Failed tasks may indicate systemic issues (database connectivity, schema validation errors, etc.)
-
-**Monitoring Queries:**
-
-```typescript
-// Get all permanently failed booking audit tasks
-const failedTasks = await Task.getFailed();
-const failedBookingAuditTasks = failedTasks.filter(task => task.type === "bookingAudit");
-
-// Count permanently failed tasks
-const failedCount = await Task.countFailed();
-```
-
-**Recommended Alerts:**
-- Alert when permanently failed booking audit tasks exceed threshold (e.g., > 0 in last hour)
-- Alert on increasing failure rate trends
-- Alert on specific error patterns (e.g., schema validation failures, actor resolution failures)
-
-**Investigation Steps:**
-1. Query failed tasks: `Task.getFailed()` filtered by `type === "bookingAudit"`
-2. Review `lastError` field for error messages
-3. Check `lastFailedAttemptAt` to identify failure patterns
-4. Review task `payload` to understand what booking action failed
-5. Check application logs around `lastFailedAttemptAt` timestamp for context
-
-**Task Fields for Debugging:**
-- `id`: Task identifier
-- `type`: Task type (should be `"bookingAudit"`)
-- `payload`: JSON payload containing booking audit data
-- `attempts`: Number of retry attempts made
-- `maxAttempts`: Maximum allowed attempts (default: 3)
-- `lastError`: Error message from last failed attempt
-- `lastFailedAttemptAt`: Timestamp of last failure
-- `scheduledAt`: When task was scheduled to run
-- `createdAt`: When task was created
+1. **Clear Correlation**: Easy to identify all audits from a single user action
+2. **Better Analytics**: Track bulk vs individual operations
+3. **Improved Debugging**: Understand scope of user actions
+4. **Future-Proof**: Works for true bulk operations (e.g., "cancel all bookings for user")
+5. **Query Efficient**: Indexed field for fast lookups
 
 ## Summary
 
@@ -350,5 +307,6 @@ The Booking Audit System provides a robust, scalable architecture for tracking a
 - ✅ **HIPAA & GDPR Compliant**: Immutable audit records, anonymized actors, compliance-ready
 - ✅ **Reality-Based Recording**: Captures actual state, aiding in debugging and analysis
 - ✅ **Independent Audit Trail**: No foreign key to bookings ensures audit history persists after booking deletion
+- ✅ **Operation Correlation**: operationId field (required) links related audit logs across different audit types (BookingAudit, UserAudit, etc.)
 
 This architecture supports compliance requirements (HIPAA §164.312(b), GDPR Article 17), debugging, analytics, and provides transparency for both users and administrators.

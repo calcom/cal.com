@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
 
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -477,12 +478,14 @@ async function handler(input: CancelBookingInput) {
       cancelledBy: cancelledBy ?? null,
       bookingUid: bookingToDelete.uid,
     });
+    const operationId = uuidv4();
     await Promise.all(
       allUpdatedBookings.map((updatedRecurringBooking) =>
         bookingEventHandlerService.onBookingCancelled({
           bookingUid: updatedRecurringBooking.uid,
           actor: recurringActorToUse,
           organizationId: orgId ?? null,
+          operationId,
           auditData: {
             cancellationReason: {
               old: bookingToDelete.cancellationReason,
@@ -558,6 +561,7 @@ async function handler(input: CancelBookingInput) {
       bookingUid: updatedBooking.uid,
       actor: actorToUse,
       organizationId: orgId ?? null,
+      operationId: null,
       auditData: {
         cancellationReason: {
           old: bookingToDelete.cancellationReason,

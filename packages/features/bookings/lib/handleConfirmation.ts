@@ -29,6 +29,8 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
+import { v4 as uuidv4 } from "uuid";
+
 import { getCalEventResponses } from "./getCalEventResponses";
 import type { AcceptedAuditData } from "@calcom/features/booking-audit/lib/actions/AcceptedAuditActionService";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
@@ -275,12 +277,14 @@ export async function handleConfirmation(args: {
       memberId: recurringAuditUserId,
       teamId: recurringAuditTeamId,
     });
+    const operationId = uuidv4();
     await Promise.all(
       updatedBookingsResult.map((updatedRecurringBooking) =>
         bookingEventHandlerService.onBookingAccepted({
           bookingUid: updatedRecurringBooking.uid,
           actor: args.actor,
           organizationId: recurringAuditOrgId ?? null,
+          operationId,
           auditData: {
             status: {
               old: BookingStatus.PENDING,
@@ -372,6 +376,7 @@ export async function handleConfirmation(args: {
       bookingUid: updatedBooking.uid,
       actor: args.actor,
       organizationId: auditOrgId ?? null,
+      operationId: null,
       auditData,
       source: args.source,
     });

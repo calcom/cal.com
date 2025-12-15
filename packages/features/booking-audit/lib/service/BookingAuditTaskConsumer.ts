@@ -26,6 +26,7 @@ type CreateBookingAuditInput = {
     type: BookingAuditType;
     action: BookingAuditAction;
     source: ActionSource;
+    operationId: string;
     data: JsonValue;
     timestamp: Date; // Required: actual time of the booking change (business event)
 };
@@ -104,7 +105,7 @@ export class BookingAuditTaskConsumer {
         }
 
         const validatedPayload = parseResult.data;
-        const { action, bookingUid, actor, organizationId, data, timestamp, source } = validatedPayload;
+        const { action, bookingUid, actor, organizationId, data, timestamp, source, operationId } = validatedPayload;
 
         // Skip processing for non-organization bookings
         if (organizationId === null) {
@@ -127,7 +128,7 @@ export class BookingAuditTaskConsumer {
         const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload: validatedPayload, taskId });
 
         // dataInLatestFormat is validated by action-specific schema in migrateIfNeeded
-        await this.onBookingAction({ bookingUid, actor, action, source, data: dataInLatestFormat, timestamp });
+        await this.onBookingAction({ bookingUid, actor, action, source, operationId, data: dataInLatestFormat, timestamp });
     }
 
     /**
@@ -288,10 +289,11 @@ export class BookingAuditTaskConsumer {
         actor: PIIFreeActor;
         action: BookingAuditAction;
         source: ActionSource;
+        operationId: string;
         data: Record<string, unknown>;
         timestamp: number;
     }): Promise<BookingAudit> {
-        const { bookingUid, actor, action, source, data, timestamp } = params;
+        const { bookingUid, actor, action, source, operationId, data, timestamp } = params;
         const actionService = this.actionServiceRegistry.getActionService(action);
         const versionedData = actionService.getVersionedData(data);
         const actorId = await this.resolveActorId(actor);
@@ -303,6 +305,7 @@ export class BookingAuditTaskConsumer {
             type: recordType,
             action,
             source,
+            operationId,
             // versionedData is { version: number; fields: unknown } which is JsonValue-compatible
             data: versionedData as JsonValue,
             timestamp: new Date(timestamp),

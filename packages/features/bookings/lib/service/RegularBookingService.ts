@@ -2368,6 +2368,7 @@ async function handler(
         },
       },
       source: actionSource,
+      operationId: null,
     });
   } else {
     await bookingEventHandler.onBookingCreated({
@@ -2379,6 +2380,7 @@ async function handler(
         status: bookingCreatedPayload.booking.status,
       },
       source: actionSource,
+      operationId: null,
     });
   }
 

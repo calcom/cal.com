@@ -20,6 +20,7 @@ export type BookingAuditCreateInput = {
     type: BookingAuditType;
     timestamp: Date;
     source: ActionSource;
+    operationId: string;
 }
 
 type BookingAudit = {
@@ -33,6 +34,7 @@ type BookingAudit = {
     updatedAt: Date;
     data: JsonValue;
     source: ActionSource;
+    operationId: string;
 }
 
 export type BookingAuditWithActor = BookingAudit & {

@@ -40,6 +40,7 @@ export const BookingAuditTaskConsumerSchema = z.object({
     timestamp: z.number(),
     action: BookingAuditActionSchema,
     source: ActionSourceSchema.default("UNKNOWN"),
+    operationId: z.string(),
     data: z.unknown(),
 });
 
