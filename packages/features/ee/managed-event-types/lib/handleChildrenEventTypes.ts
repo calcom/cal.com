@@ -85,6 +85,46 @@ const checkExistentEventTypes = async ({
   }
 };
 
+function connectUsersToEventTypesQueryWithParams(
+  eventPairs: {
+    userId: number | null;
+    id: number;
+  }[]
+): { sqlQuery: string; parameters: (number | string)[] } {
+  if (eventPairs.length === 0) {
+    throw new Error("No event pairs provided for bulk connection.");
+  }
+
+  // Array to hold the SQL placeholders: ($1, $2), ($3, $4), ...
+  const valuePlaceholders: string[] = [];
+
+  // Flat array of all IDs to be inserted as raw SQL parameters
+  const parameters: (number | string)[] = [];
+
+  let paramIndex = 1;
+
+  // --- Build the parameterized SQL values ---
+  for (const pair of eventPairs) {
+    // Construct the pair of placeholders for the current row
+    valuePlaceholders.push(`($${paramIndex++}, $${paramIndex++})`);
+
+    if (pair.userId != null) {
+      parameters.push(pair.id);
+      parameters.push(pair.userId);
+    }
+  }
+
+  const sqlQuery = `
+        INSERT INTO "_user_eventtype" ("A", "B") 
+        VALUES 
+        ${valuePlaceholders.join(",\n")}
+        ON CONFLICT DO NOTHING;
+    `;
+
+  // sqlQuery and its parameters for execution
+  return { sqlQuery, parameters };
+}
+
 export default async function handleChildrenEventTypes({
   eventTypeId: parentId,
   oldEventType,
@@ -197,35 +237,25 @@ export default async function handleChildrenEventTypes({
         useBookerTimezone: false,
         allowReschedulingCancelledBookings:
           managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
+        rrHostSubsetEnabled: false,
       };
     });
 
     await prisma.$transaction(async (tx) => {
-      await tx.eventType.createMany({
+      const createdEvents = await tx.eventType.createManyAndReturn({
         data: eventTypesToCreateData,
         skipDuplicates: true,
-      });
-
-      // Fetch the newly created event types to connect users and workflows
-      const createdEvents = await tx.eventType.findMany({
-        where: { parentId: parentId, userId: { in: newUserIds } },
         select: { id: true, userId: true },
       });
 
       // Connect users to their event types (many-to-many relation)
       // This is needed because createMany doesn't support nested relations
-      await Promise.all(
-        createdEvents.map((event) =>
-          tx.eventType.update({
-            where: { id: event.id },
-            data: {
-              users: {
-                connect: [{ id: event.userId! }],
-              },
-            },
-          })
-        )
-      );
+      if (createdEvents.length) {
+        const bulkQueryAndParams = connectUsersToEventTypesQueryWithParams(createdEvents);
+        if (bulkQueryAndParams) {
+          await tx.$executeRawUnsafe(bulkQueryAndParams.sqlQuery, ...bulkQueryAndParams.parameters);
+        }
+      }
 
       // Link workflows if any exist
       if (currentWorkflowIds && currentWorkflowIds.length > 0) {
@@ -302,6 +332,7 @@ export default async function handleChildrenEventTypes({
           },
           data: {
             ...updatePayloadFiltered,
+            rrHostSubsetEnabled: false,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
@@ -326,26 +357,49 @@ export default async function handleChildrenEventTypes({
       })
     );
 
-    if (currentWorkflowIds?.length) {
-      await prisma.$transaction(
-        currentWorkflowIds.flatMap((wfId) => {
-          return oldEventTypes.map((oEvTy) => {
-            return prisma.workflowsOnEventTypes.upsert({
-              create: {
-                eventTypeId: oEvTy.id,
-                workflowId: wfId,
-              },
-              update: {},
-              where: {
-                workflowId_eventTypeId: {
-                  eventTypeId: oEvTy.id,
-                  workflowId: wfId,
-                },
-              },
-            });
+    // Link workflows with old users' event types if new workflows were added
+    if (currentWorkflowIds?.length && oldEventTypes.length) {
+      await prisma.$transaction(async (tx) => {
+        const eventTypeIds = oldEventTypes.map((e) => e.id);
+
+        const allDesiredPairs = currentWorkflowIds.flatMap((wfId: number) =>
+          oldEventTypes.map((oEvTy: { id: number }) => ({
+            eventTypeId: oEvTy.id,
+            workflowId: wfId,
+          }))
+        );
+
+        const existingRelationships = await tx.workflowsOnEventTypes.findMany({
+          where: {
+            workflowId: { in: currentWorkflowIds },
+            eventTypeId: { in: eventTypeIds },
+          },
+          select: {
+            workflowId: true,
+            eventTypeId: true,
+          },
+        });
+
+        const existingSet = new Set(
+          existingRelationships.map(
+            (rel: { eventTypeId: number; workflowId: number }) => `${rel.eventTypeId}_${rel.workflowId}`
+          )
+        );
+
+        const newRelationshipsToCreate = allDesiredPairs.filter(
+          (pair: { eventTypeId: number; workflowId: number }) => {
+            const key = `${pair.eventTypeId}_${pair.workflowId}`;
+            return !existingSet.has(key);
+          }
+        );
+
+        if (newRelationshipsToCreate.length > 0) {
+          await tx.workflowsOnEventTypes.createMany({
+            data: newRelationshipsToCreate,
+            skipDuplicates: false,
           });
-        })
-      );
+        }
+      });
     }
   }
 
