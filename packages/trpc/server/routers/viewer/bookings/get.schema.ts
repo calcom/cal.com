@@ -22,7 +22,7 @@ type TGetInputSchemaFilters = {
   beforeCreatedDate?: string;
 };
 
-export type TGetInputSchemaInput = {
+export type TGetInputRawSchema = {
   filters: TGetInputSchemaFilters;
   limit: number;
   offset?: number;
@@ -36,7 +36,7 @@ export type TGetInputSchema = {
   cursor?: string;
 };
 
-export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInputSchemaInput> = z.object({
+export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInputRawSchema> = z.object({
   filters: z.object({
     teamIds: z.number().array().optional(),
     userIds: z.number().array().optional(),

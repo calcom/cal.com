@@ -18,6 +18,7 @@ import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import type { JsonValue } from "@calcom/types/Json";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -247,7 +248,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     email: string;
     identityProvider: string | null;
     identityProviderId: string | null;
-    metadata: Prisma.JsonValue;
+    metadata: JsonValue;
     name: string | null;
     createdDate: Date;
     avatarUrl: string | null;
