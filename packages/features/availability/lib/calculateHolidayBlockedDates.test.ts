@@ -11,6 +11,14 @@ vi.mock("@calcom/lib/holidays", () => ({
   })),
 }));
 
+// Helper to create working hours with proper Date types for startTime/endTime
+// Times are stored as Date objects with only time component (1970-01-01)
+const createWorkingHours = (days: number[]) => ({
+  days,
+  startTime: new Date("1970-01-01T09:00:00.000Z"), // 9 AM
+  endTime: new Date("1970-01-01T17:00:00.000Z"), // 5 PM
+});
+
 const mockHolidayRepo = {
   findUserSettingsSelect: vi.fn(),
 };
@@ -43,7 +51,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       123,
       new Date("2025-01-01"),
       new Date("2025-01-31"),
-      [{ days: [1, 2, 3, 4, 5] }] // Monday to Friday
+      [createWorkingHours([1, 2, 3, 4, 5])] // Monday to Friday, 9am-5pm
     );
 
     expect(mockHolidayRepo.findUserSettingsSelect).toHaveBeenCalledWith({
@@ -66,7 +74,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       123,
       new Date("2025-01-01"),
       new Date("2025-01-31"),
-      [{ days: [1, 2, 3, 4, 5] }]
+      [createWorkingHours([1, 2, 3, 4, 5])]
     );
 
     expect(result).toEqual({});
@@ -84,7 +92,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       123,
       new Date("2025-02-01"),
       new Date("2025-02-28"),
-      [{ days: [1, 2, 3, 4, 5] }]
+      [createWorkingHours([1, 2, 3, 4, 5])]
     );
 
     // Dates are expanded to full day range (startOfDay to endOfDay in UTC)
@@ -125,7 +133,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       123,
       new Date("2025-01-01"),
       new Date("2025-01-31"),
-      [{ days: [1, 2, 3, 4, 5] }] // Monday(1) to Friday(5) - includes Wednesday(3)
+      [createWorkingHours([1, 2, 3, 4, 5])] // Monday(1) to Friday(5) - includes Wednesday(3)
     );
 
     expect(result).toEqual({
@@ -165,7 +173,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       123,
       new Date("2027-12-01"),
       new Date("2027-12-31"),
-      [{ days: [1, 2, 3, 4, 5] }]
+      [createWorkingHours([1, 2, 3, 4, 5])]
     );
 
     // Christmas 2027 is on Saturday (day 6), should be skipped
@@ -204,7 +212,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       123,
       new Date("2025-01-01"),
       new Date("2025-01-31"),
-      [{ days: [1, 2, 3, 4, 5] }]
+      [createWorkingHours([1, 2, 3, 4, 5])]
     );
 
     expect(result).toEqual({
@@ -248,8 +256,8 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       new Date("2024-07-01"),
       new Date("2024-07-31"),
       [
-        { days: [1, 3] }, // Monday, Wednesday only
-        { days: [2, 4] }, // Tuesday, Thursday - includes the holiday
+        createWorkingHours([1, 3]), // Monday, Wednesday only
+        createWorkingHours([2, 4]), // Tuesday, Thursday - includes the holiday
       ]
     );
 
@@ -287,7 +295,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
       123,
       new Date("2025-01-01"),
       new Date("2025-12-31"),
-      [{ days: [1, 2, 3, 4, 5] }]
+      [createWorkingHours([1, 2, 3, 4, 5])]
     );
 
     // Verify disabledIds were passed to the service
