@@ -1,16 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { getHolidayService } from "@calcom/lib/holidays";
+
+import { UserAvailabilityService } from "./getUserAvailability";
 
 vi.mock("@calcom/lib/holidays", () => ({
   getHolidayService: vi.fn(() => ({
     getHolidayDatesInRange: vi.fn(),
   })),
 }));
-
-import { getHolidayService } from "@calcom/lib/holidays";
-
-import { UserAvailabilityService } from "./getUserAvailability";
 
 const mockHolidayRepo = {
   findUserSettingsSelect: vi.fn(),
@@ -134,7 +133,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
         fromUser: null,
         toUser: null,
         reason: "New Year's Day",
-        emoji: "📆",
+        emoji: "🎆",
       },
     });
   });
@@ -213,13 +212,13 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
         fromUser: null,
         toUser: null,
         reason: "New Year's Day",
-        emoji: "📆",
+        emoji: "🎆",
       },
       "2025-01-20": {
         fromUser: null,
         toUser: null,
         reason: "Martin Luther King Jr. Day",
-        emoji: "📆",
+        emoji: "✊",
       },
     });
   });
@@ -259,7 +258,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
         fromUser: null,
         toUser: null,
         reason: "Independence Day",
-        emoji: "📆",
+        emoji: "🎆",
       },
     });
   });
@@ -305,7 +304,7 @@ describe("UserAvailabilityService.calculateHolidayBlockedDates", () => {
         fromUser: null,
         toUser: null,
         reason: "New Year's Day",
-        emoji: "📆",
+        emoji: "🎆",
       },
     });
   });
