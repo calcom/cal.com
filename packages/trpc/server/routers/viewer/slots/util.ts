@@ -279,7 +279,7 @@ export class AvailableSlotsService {
    * cause slots from adjacent days to leak into the response.
    */
   private _filterSlotsByRequestedDateRange<
-    T extends Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
+    T extends Record<string, { time: string; attendees?: number; bookingUid?: string }[]>
   >({
     slotsMappedToDate,
     startTime,
@@ -306,11 +306,7 @@ export class AvailableSlotsService {
     });
 
     const allowedDates = new Set<string>();
-    for (
-      let d = inputStartTime.startOf("day");
-      !d.isAfter(inputEndTime, "day");
-      d = d.add(1, "day")
-    ) {
+    for (let d = inputStartTime.startOf("day"); !d.isAfter(inputEndTime, "day"); d = d.add(1, "day")) {
       allowedDates.add(formatter.format(d.toDate()));
     }
 
@@ -1041,13 +1037,12 @@ export class AvailableSlotsService {
       logger.settings.minLevel = 2;
     }
 
-    // Rolling window adjustment logic: for ROLLING_WINDOW period types, adjust startTime backward by 1 month
-    // unless explicitly disabled via disableRollingWindowAdjustment flag
-    const disableRollingWindowAdjustment = input.disableRollingWindowAdjustment ?? false;
+    const disableRollingWindowAdjustment = input.disableRollingWindowAdjustment;
     const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
     const startTimeAsIsoString = input.startTime;
     const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
 
+    // Adjust ROLLING_WINDOW start by 1 month unless disabled or start is in the past.
     const startTimeAdjustedForRollingWindowComputation =
       isStartTimeInPast || !isRollingWindowPeriodType || disableRollingWindowAdjustment
         ? startTimeAsIsoString

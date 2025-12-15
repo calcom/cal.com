@@ -1957,16 +1957,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       it("should respect start property and return slots only within requested date range for rolling window event type", async () => {
-        // Use dynamic dates in the future to avoid "time bomb" issues
-        // Request slots for a date range starting 30 days from now
         const now = DateTime.utc();
         const startDateObj = now.plus({ days: 30 });
         const endDateObj = startDateObj.plus({ days: 2 });
         const startDate = startDateObj.toFormat("yyyy-MM-dd");
         const endDate = endDateObj.toFormat("yyyy-MM-dd");
 
-        // Calculate the date that would be 1 month before the start date
-        // This is what would have been included without the fix
         const oneMonthBeforeStart = startDateObj.minus({ months: 1 }).toFormat("yyyy-MM-dd");
         const dayBeforeStart = startDateObj.minus({ days: 1 }).toFormat("yyyy-MM-dd");
         const dayAfterEnd = endDateObj.plus({ days: 1 }).toFormat("yyyy-MM-dd");
@@ -1985,36 +1981,18 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(slots).toBeDefined();
         expect(typeof slots).toBe("object");
 
-        // Critical: Verify that slots are actually returned
-        // This prevents false positives where an empty object passes the test
         const returnedDates = Object.keys(slots);
         expect(returnedDates.length).toBeGreaterThan(0);
-        // If the above fails, it means no slots were returned, which could indicate:
-        // - The dates are in the past (API filters them out)
-        // - The user has no availability for those dates
-        // - There's an issue with the schedule setup
 
-        // All returned dates should be within the requested range
         returnedDates.forEach((date) => {
           expect(date >= startDate).toBe(true);
           expect(date <= endDate).toBe(true);
         });
 
-        // Critical: Verify that dates before the start date are NOT included
-        // This is the key test - without the fix, slots from 1 month before
-        // would have been included due to rolling window adjustment
         expect(slots[oneMonthBeforeStart]).toBeUndefined();
         expect(slots[dayBeforeStart]).toBeUndefined();
 
-        // Verify that dates after the end date are NOT included
         expect(slots[dayAfterEnd]).toBeUndefined();
-
-        // Verify that the date range boundaries are respected
-        const sortedDates = returnedDates.sort();
-        const firstDate = sortedDates[0];
-        const lastDate = sortedDates[sortedDates.length - 1];
-        expect(firstDate >= startDate).toBe(true);
-        expect(lastDate <= endDate).toBe(true);
       });
 
       afterAll(async () => {
