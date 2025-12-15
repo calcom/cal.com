@@ -5,6 +5,7 @@ import type { IFeaturesRepository } from "@calcom/features/flags/features.reposi
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import type { PIIFreeActor } from "../../../bookings/lib/types/actor";
+import type { BookingAuditTaskConsumerPayload } from "../types/bookingAuditTask";
 import { BookingAuditTaskConsumerSchema } from "../types/bookingAuditTask";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction } from "../repository/IBookingAuditRepository";
@@ -254,7 +255,7 @@ export class BookingAuditTaskConsumer {
     private getRecordType(params: { action: BookingAuditAction }): BookingAuditType {
         const { action } = params;
 
-         
+
         switch (action) {
             case "CREATED":
                 return "RECORD_CREATED";

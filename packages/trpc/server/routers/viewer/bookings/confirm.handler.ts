@@ -438,7 +438,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         organizationId: orgId ?? null,
         auditData: {
           rejectionReason: {
-            old: booking.rejectionReason ?? null,
+            old: null,
             new: rejectionReason ?? null,
           },
           status: {

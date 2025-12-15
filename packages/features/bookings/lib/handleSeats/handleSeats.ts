@@ -93,7 +93,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   }
 
   // Helper function to get audit actor with logging for guest actors
-  const getAuditActorForSeats = async (): Promise<import("../types/actor").Actor> => {
+  const getAuditActorForSeats = (): import("../types/actor").Actor => {
     return getBookingAuditActorForNewBooking({
       attendeeId: null,
       userUuid: userUuid ?? null,
@@ -127,7 +127,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
     // Log SEAT_RESCHEDULED audit event
     if (bookingEventHandler && resultBooking && originalRescheduledBooking) {
-      const auditActor = await getAuditActorForSeats();
+      const auditActor = getAuditActorForSeats();
       const seatReferenceUid = resultBooking.seatReferenceUid;
       if (seatReferenceUid) {
         // Determine if seat moved to a different booking (different time slot)
@@ -168,7 +168,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
     // Log SEAT_BOOKED audit event
     if (bookingEventHandler && resultBooking) {
-      const auditActor = await getAuditActorForSeats();
+      const auditActor = getAuditActorForSeats();
       const seatReferenceUid = resultBooking.seatReferenceUid;
       if (seatReferenceUid) {
         await bookingEventHandler.onSeatBooked({

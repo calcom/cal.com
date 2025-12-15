@@ -65,7 +65,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     }
 
     async getDisplayTitle({ storedData }: StoredDataParams): Promise<TranslationWithParams> {
-        const { fields } = storedData;
+        const { fields } = this.parseStored(storedData);
         const user = await this.userRepository.findById({ id: fields.assignedToId.new });
         const reassignedToName = user?.name || "Unknown";
         return {
@@ -77,7 +77,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     getDisplayJson({
         storedData,
     }: StoredDataParams): ReassignmentAuditDisplayData {
-        const { fields } = storedData;
+        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             newAssignedToId: fields.assignedToId.new,
             reassignmentReason: fields.reassignmentReason.new ?? null,

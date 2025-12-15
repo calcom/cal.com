@@ -52,9 +52,9 @@ export type Actor = z.infer<typeof ActorSchema>;
 export type PIIFreeActor = z.infer<typeof PIIFreeActorSchema>;
 
 type UserActor = z.infer<typeof UserActorSchema>;
+type GuestActor = z.infer<typeof GuestActorSchema>;
 type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
-type GuestActor = z.infer<typeof GuestActorSchema>;
 type SystemActor = z.infer<typeof SystemActorSchema>;
 type AppActor = z.infer<typeof AppActorSchema>;
 /**
@@ -124,5 +124,3 @@ export function buildActorEmail({ identifier, actorType }: { identifier: string,
   return `${identifier}@${actorType}.internal`;
 }
 
-// System actor ID constant
-export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";

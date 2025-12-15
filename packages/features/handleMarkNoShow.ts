@@ -117,7 +117,7 @@ const handleMarkNoShow = async ({
   const t = await getTranslation(locale ?? "en", "common");
 
   // Helper function to get the appropriate actor
-  const getAuditActor = async (): Promise<Actor> => {
+  const getAuditActor = (): Actor => {
     // Prefer user actor when userUuid is available (authenticated action)
     if (userUuid) {
       return makeUserActor(userUuid);
@@ -373,28 +373,26 @@ const handleMarkNoShow = async ({
         });
 
         if (bookingForAudit) {
-          const actor = await getAuditActor();
-          if (actor) {
-            const bookingEventHandlerService = getBookingEventHandlerService();
-            const orgId = await getOrgIdFromMemberOrTeamId({
-              memberId: bookingForAudit.eventType?.userId ?? null,
-              teamId: bookingForAudit.eventType?.teamId ?? null,
-            });
+          const actor = getAuditActor();
+          const bookingEventHandlerService = getBookingEventHandlerService();
+          const orgId = await getOrgIdFromMemberOrTeamId({
+            memberId: bookingForAudit.eventType?.userId ?? null,
+            teamId: bookingForAudit.eventType?.teamId ?? null,
+          });
 
-            // Track if any attendee was marked as no-show
-            const anyOldNoShow = oldAttendeeValues.some((a) => a.noShow);
-            const anyNewNoShow = payload.attendees.some((a) => a.noShow);
+          // Track if any attendee was marked as no-show
+          const anyOldNoShow = oldAttendeeValues.some((a) => a.noShow);
+          const anyNewNoShow = payload.attendees.some((a) => a.noShow);
 
-            await bookingEventHandlerService.onAttendeeNoShowUpdated({
-              bookingUid,
-              actor,
-              organizationId: orgId ?? null,
-              auditData: {
-                noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
-              },
-              source: actionSource,
-            });
-          }
+          await bookingEventHandlerService.onAttendeeNoShowUpdated({
+            bookingUid,
+            actor,
+            organizationId: orgId ?? null,
+            auditData: {
+              noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
+            },
+            source: actionSource,
+          });
         }
       }
 
@@ -431,7 +429,7 @@ const handleMarkNoShow = async ({
         });
 
         if (bookingForAudit) {
-          const actor = await getAuditActor();
+          const actor = getAuditActor();
           const bookingEventHandlerService = getBookingEventHandlerService();
           const orgId = await getOrgIdFromMemberOrTeamId({
             memberId: bookingForAudit.eventType?.userId ?? null,

@@ -97,7 +97,7 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
         storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
         userTimeZone: string;
     }): SeatRescheduledAuditDisplayData {
-        const { fields } = storedData;
+        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         const timeZone = userTimeZone;
 
         return {

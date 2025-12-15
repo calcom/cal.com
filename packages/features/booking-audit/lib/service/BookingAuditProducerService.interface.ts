@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
 import type { ActionSource } from "../common/actionSource";
-import type { BookingAuditTaskProducerActionData } from "../types/bookingAuditTask";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
@@ -32,123 +31,116 @@ import { SeatRescheduledAuditActionService } from "../actions/SeatRescheduledAud
  * - BookingAuditTriggerProducerService: (Future) Uses Trigger.dev for cloud jobs
  */
 export interface BookingAuditProducerService {
-    /**
-     * Queue Audit - Legacy method for backwards compatibility with existing code
-     * 
-     * @deprecated Use specialized methods (queueCreatedAudit, queueCancelledAudit, etc.) instead
-     */
-    queueAudit(bookingUid: string, actor: Actor, organizationId: number | null, actionData: BookingAuditTaskProducerActionData): Promise<void>;
+        queueCreatedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueCreatedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueRescheduledAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueRescheduledAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueAcceptedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueAcceptedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueCancelledAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueCancelledAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueRescheduleRequestedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueRescheduleRequestedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueAttendeeAddedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueAttendeeAddedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueHostNoShowUpdatedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueHostNoShowUpdatedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueRejectedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueRejectedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueAttendeeRemovedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueAttendeeRemovedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueReassignmentAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueReassignmentAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueLocationChangedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueLocationChangedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueAttendeeNoShowUpdatedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueAttendeeNoShowUpdatedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueSeatBookedAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof SeatBookedAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 
-    queueSeatBookedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof SeatBookedAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
-
-    queueSeatRescheduledAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
-    }): Promise<void>;
+        queueSeatRescheduledAudit(params: {
+                bookingUid: string;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
+        }): Promise<void>;
 }
 

@@ -66,13 +66,13 @@ export class CreatedAuditActionService implements IAuditActionService {
         storedData,
         userTimeZone,
     }: StoredDataParams): CreatedAuditDisplayData {
-        const { fields } = storedData;
+        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         const timeZone = userTimeZone;
 
         return {
             startTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime as number, timeZone),
             endTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime as number, timeZone),
-            status: fields.status as BookingStatus,
+            status: fields.status,
         };
     }
 }

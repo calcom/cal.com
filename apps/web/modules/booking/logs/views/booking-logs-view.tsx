@@ -38,7 +38,7 @@ type AuditLog = {
     type: string;
     timestamp: string;
     source: string;
-    data: Record<string, unknown> | null;
+    displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
@@ -318,7 +318,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                     {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
                                                 </span>
                                             </div>
-                                            {log.data && Object.keys(log.data).length > 0 && (
+                                            {log.displayJson && Object.keys(log.displayJson).length > 0 && (
                                                 <div>
                                                     <div className="flex flex-col items-start gap-2 py-1 px-3 border-b border-subtle">
                                                         <Button
@@ -331,7 +331,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                         </Button>
                                                     </div>
                                                     <div>
-                                                        {showJson && <JsonViewer data={log.data} />}
+                                                        {showJson && <JsonViewer data={log.displayJson} />}
                                                     </div>
                                                 </div>
                                             )}
@@ -390,16 +390,18 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
             log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
             log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesActor = !actorFilter || log.actor.type === actorFilter;
+        const matchesActor = !actorFilter || log.actor.displayName === actorFilter;
 
         return matchesSearch && matchesActor;
     });
 
-    const uniqueActorTypes = Array.from(new Set(auditLogs.map((log) => log.actor.type))) as AuditActorType[];
+    const uniqueActorNames = Array.from(
+        new Set(auditLogs.map((log) => log.actor.displayName).filter(Boolean))
+    ) as string[];
 
-    const actorOptions = uniqueActorTypes.map((actorType) => ({
-        label: getActorRoleLabel(actorType) || actorType,
-        value: actorType,
+    const actorOptions = uniqueActorNames.map((actorName) => ({
+        label: actorName,
+        value: actorName,
     }));
 
     return (

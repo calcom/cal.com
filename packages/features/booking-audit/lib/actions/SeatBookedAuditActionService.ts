@@ -71,7 +71,7 @@ export class SeatBookedAuditActionService implements IAuditActionService {
         storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
         userTimeZone: string;
     }): SeatBookedAuditDisplayData {
-        const { fields } = storedData;
+        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         const timeZone = userTimeZone;
 
         return {

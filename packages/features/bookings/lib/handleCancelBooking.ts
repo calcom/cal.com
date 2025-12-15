@@ -421,6 +421,9 @@ async function handler(input: CancelBookingInput) {
     endTime: Date;
   }[] = [];
 
+  const bookingEventHandlerService = getBookingEventHandlerService();
+
+
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
   if (
@@ -469,8 +472,6 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
 
-    // Audit each recurring booking cancellation
-    const bookingEventHandlerService = getBookingEventHandlerService();
     const recurringActorToUse = getAuditActor({
       userUuid: userUuid ?? null,
       cancelledBy: cancelledBy ?? null,
@@ -547,9 +548,7 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
 
-    const bookingEventHandlerService = getBookingEventHandlerService();
-
-    const actorToUse = await getAuditActor({
+    const actorToUse = getAuditActor({
       userUuid: userUuid ?? null,
       cancelledBy: cancelledBy ?? null,
       bookingUid: updatedBooking.uid,

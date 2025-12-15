@@ -64,15 +64,16 @@ export class RescheduledAuditActionService implements IAuditActionService {
         storedData,
         userTimeZone,
     }: StoredDataParams): Promise<TranslationWithParams> {
-        const rescheduledToUid = storedData.fields.rescheduledToUid.new;
+        const { fields } = this.parseStored(storedData);
+        const rescheduledToUid = fields.rescheduledToUid.new;
         const timeZone = userTimeZone;
 
         // Format dates in user timezone
-        const oldDate = storedData.fields.startTime.old
-            ? AuditActionServiceHelper.formatDateInTimeZone(storedData.fields.startTime.old, timeZone)
+        const oldDate = fields.startTime.old
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.old, timeZone)
             : "";
-        const newDate = storedData.fields.startTime.new
-            ? AuditActionServiceHelper.formatDateInTimeZone(storedData.fields.startTime.new, timeZone)
+        const newDate = fields.startTime.new
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.new, timeZone)
             : "";
 
         return {
@@ -95,13 +96,14 @@ export class RescheduledAuditActionService implements IAuditActionService {
         parsedData: StoredAuditData;
     }): TranslationWithParams {
         const timeZone = userTimeZone;
+        const { fields } = this.helper.parseStored({ version: parsedData.version, fields: parsedData.fields });
 
         // Format dates in user timezone
-        const oldDate = parsedData.fields.startTime.old
-            ? AuditActionServiceHelper.formatDateInTimeZone(parsedData.fields.startTime.old, timeZone)
+        const oldDate = fields.startTime.old
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.old, timeZone)
             : "";
-        const newDate = parsedData.fields.startTime.new
-            ? AuditActionServiceHelper.formatDateInTimeZone(parsedData.fields.startTime.new, timeZone)
+        const newDate = fields.startTime.new
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.new, timeZone)
             : "";
 
         return {
@@ -118,7 +120,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
         storedData,
         userTimeZone,
     }: StoredDataParams): RescheduledAuditDisplayData {
-        const { fields } = storedData;
+        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         const timeZone = userTimeZone;
 
         return {
