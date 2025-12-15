@@ -2,6 +2,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -171,6 +172,31 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
+    // Audit the booking acceptance for payment confirmation
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const paymentConfirmTeamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking.eventType?.parentId ?? null,
+      },
+    });
+    const paymentConfirmOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.userId,
+      teamId: paymentConfirmTeamId,
+    });
+    await bookingEventHandlerService.onBookingAccepted({
+      bookingUid: booking.uid,
+      actor: makeUserActor(ctx.user.uuid),
+      organizationId: paymentConfirmOrgId ?? null,
+      auditData: {
+        status: {
+          old: booking.status,
+          new: BookingStatus.ACCEPTED,
+        },
+      },
+      source: "WEBAPP",
+    });
+
     return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
   }
 
@@ -319,7 +345,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       emailsEnabled,
       platformClientParams,
       source: "WEBAPP",
-      actor: makeUserActor(user.uuid),
+      actor: makeUserActor(ctx.user.uuid),
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -369,6 +395,60 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    // Audit the booking rejection
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    if (recurringEventId) {
+      // For recurring bookings, fetch all affected bookings and audit each one
+      const rejectedBookings = await prisma.booking.findMany({
+        where: {
+          recurringEventId,
+          status: BookingStatus.REJECTED,
+        },
+        select: {
+          uid: true,
+          rejectionReason: true,
+        },
+      });
+      await Promise.all(
+        rejectedBookings.map((rejectedBooking) =>
+          bookingEventHandlerService.onBookingRejected({
+            bookingUid: rejectedBooking.uid,
+            actor: makeUserActor(ctx.user.uuid),
+            organizationId: orgId ?? null,
+            auditData: {
+              rejectionReason: {
+                old: null,
+                new: rejectedBooking.rejectionReason ?? null,
+              },
+              status: {
+                old: BookingStatus.PENDING,
+                new: BookingStatus.REJECTED,
+              },
+            },
+            source: "WEBAPP",
+          })
+        )
+      );
+    } else {
+      // For single booking rejection
+      await bookingEventHandlerService.onBookingRejected({
+        bookingUid: booking.uid,
+        actor: makeUserActor(ctx.user.uuid),
+        organizationId: orgId ?? null,
+        auditData: {
+          rejectionReason: {
+            old: booking.rejectionReason ?? null,
+            new: rejectionReason ?? null,
+          },
+          status: {
+            old: booking.status,
+            new: BookingStatus.REJECTED,
+          },
+        },
+        source: "WEBAPP",
+      });
+    }
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {

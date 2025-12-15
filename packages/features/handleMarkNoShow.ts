@@ -20,7 +20,7 @@ import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enum
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import { makeGuestActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeGuestActor, makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
@@ -118,13 +118,16 @@ const handleMarkNoShow = async ({
 
   // Helper function to get the appropriate actor
   const getAuditActor = async (): Promise<Actor> => {
-    const fallbackEmail = `fallback-${bookingUid}-${Date.now()}@guest.internal`;
-
-    if (!userUuid) {
-      logger.warn("No actor identifier available for mark no-show audit, creating fallback guest actor", {
-        bookingUid,
-      });
+    // Prefer user actor when userUuid is available (authenticated action)
+    if (userUuid) {
+      return makeUserActor(userUuid);
     }
+
+    // Fall back to guest actor for unauthenticated actions
+    logger.warn("No actor identifier available for mark no-show audit, creating fallback guest actor", {
+      bookingUid,
+    });
+    const fallbackEmail = `fallback-${bookingUid}-${Date.now()}@guest.internal`;
     return makeGuestActor({ email: fallbackEmail, name: null });
   };
 

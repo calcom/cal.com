@@ -52,7 +52,7 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { buildActorEmail, makeGuestActor, type Actor } from "./types/actor";
+import { buildActorEmail, makeGuestActor, makeUserActor, type Actor } from "./types/actor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -82,7 +82,13 @@ function getAuditActor({ userUuid, cancelledBy, bookingUid }: {
   cancelledBy: string | null;
   bookingUid: string;
 }): Actor {
-  if (!userUuid && !cancelledBy) {
+  // Prefer user actor when userUuid is available (authenticated action)
+  if (userUuid) {
+    return makeUserActor(userUuid);
+  }
+
+  // Fall back to guest actor for unauthenticated actions (e.g., cancel link)
+  if (!cancelledBy) {
     log.warn("No cancelledBy email available, creating fallback guest actor for audit", safeStringify({
       bookingUid,
     }));
@@ -462,6 +468,47 @@ async function handler(input: CancelBookingInput) {
       },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
+
+    // Audit each recurring booking cancellation
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const recurringActorToUse = getAuditActor({
+      userUuid: userUuid ?? null,
+      cancelledBy: cancelledBy ?? null,
+      bookingUid: bookingToDelete.uid,
+    });
+    await Promise.all(
+      allUpdatedBookings.map((updatedRecurringBooking) =>
+        bookingEventHandlerService.onBookingCancelled({
+          bookingUid: updatedRecurringBooking.uid,
+          actor: recurringActorToUse,
+          organizationId: orgId ?? null,
+          auditData: {
+            cancellationReason: {
+              old: bookingToDelete.cancellationReason,
+              new: cancellationReason ?? null,
+            },
+            cancelledBy: {
+              old: bookingToDelete.cancelledBy,
+              new: cancelledBy ?? null,
+            },
+            status: {
+              old: bookingToDelete.status,
+              new: "CANCELLED",
+            },
+          },
+          source: (() => {
+            const source = input.actionSource ?? "UNKNOWN";
+            if (source === "UNKNOWN") {
+              log.warn("Recurring booking cancellation with unknown actionSource", {
+                bookingUid: updatedRecurringBooking.uid,
+                userUuid: input.userUuid,
+              });
+            }
+            return source;
+          })(),
+        })
+      )
+    );
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
       await prisma.attendee.deleteMany({

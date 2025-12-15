@@ -259,6 +259,38 @@ export async function handleConfirmation(args: {
 
     const updatedBookingsResult = await Promise.all(updateBookingsPromise);
     updatedBookings = updatedBookings.concat(updatedBookingsResult);
+
+    // Audit each recurring booking acceptance
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const recurringAuditTeamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking.eventType?.parentId ?? null,
+      },
+    });
+    const recurringAuditTriggerForUser =
+      !recurringAuditTeamId || (recurringAuditTeamId && booking.eventType?.parentId);
+    const recurringAuditUserId = recurringAuditTriggerForUser ? booking.userId : null;
+    const recurringAuditOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: recurringAuditUserId,
+      teamId: recurringAuditTeamId,
+    });
+    await Promise.all(
+      updatedBookingsResult.map((updatedRecurringBooking) =>
+        bookingEventHandlerService.onBookingAccepted({
+          bookingUid: updatedRecurringBooking.uid,
+          actor: args.actor,
+          organizationId: recurringAuditOrgId ?? null,
+          auditData: {
+            status: {
+              old: BookingStatus.PENDING,
+              new: BookingStatus.ACCEPTED,
+            },
+          },
+          source: args.source,
+        })
+      )
+    );
   } else {
     // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
     // Should perform update on booking (confirm) -> then trigger the rest handlers
