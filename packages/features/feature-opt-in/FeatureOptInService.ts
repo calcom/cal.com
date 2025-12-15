@@ -74,7 +74,7 @@ export class FeatureOptInService {
       // Extract team states from the combined result
       const teamStates = teamIds.map((teamId) => teamStatesById[teamId] ?? "inherit");
 
-      const userState = userStates[featureId];
+      const userState = userStates[featureId] ?? "inherit";
 
       // Compute effective state
       const effectiveEnabled = computeEffectiveStateAcrossTeams({
