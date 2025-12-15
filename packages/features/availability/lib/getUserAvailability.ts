@@ -11,6 +11,7 @@ import {
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";
@@ -24,7 +25,6 @@ import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "@c
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type {
   Booking,
   Prisma,
