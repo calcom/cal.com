@@ -1,4 +1,5 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import type { Webhook } from "@calcom/features/webhooks/lib/dto/types";
 import { WebhookOutputMapper } from "@calcom/features/webhooks/lib/infrastructure/mappers/WebhookOutputMapper";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -14,7 +15,7 @@ type ListOptions = {
   input: TListInputSchema;
 };
 
-export const listHandler = async ({ ctx, input }: ListOptions) => {
+export const listHandler = async ({ ctx, input }: ListOptions): Promise<Webhook[]> => {
   const where: Prisma.WebhookWhereInput = {
     /* Don't mixup zapier webhooks with normal ones */
     AND: [{ appId: !input?.appId ? null : input.appId }],

@@ -419,8 +419,8 @@ export interface Webhook {
   eventTypeId: number | null;
   teamId: number | null;
   userId: number | null;
-  time?: number | null;
-  timeUnit?: TimeUnit | null;
+  time: number | null;
+  timeUnit: TimeUnit | null;
   version: WebhookVersion;
   createdAt: Date;
   platform: boolean;
