@@ -87,23 +87,34 @@ export class OrganizationsDelegationCredentialService {
       const delegatedUserProfiles =
         await this.organizationsDelegationCredentialRepository.findDelegatedUserProfiles(orgId, domain);
 
-      delegatedUserProfiles.forEach(async (profile) => {
-        if (profile.userId) {
-          const job = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${profile.userId}`);
-          if (job) {
-            await job.remove();
-            this.logger.log(`Removed default calendar job for user with id: ${profile.userId}`);
+      const results = await Promise.allSettled(
+        delegatedUserProfiles.map(async (profile) => {
+          if (profile.userId) {
+            const job = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${profile.userId}`);
+            if (job) {
+              await job.remove();
+              this.logger.log(`Removed default calendar job for user with id: ${profile.userId}`);
+            }
+            this.logger.log(`Adding default calendar job for user with id: ${profile.userId}`);
+            await this.calendarsQueue.add(
+              DEFAULT_CALENDARS_JOB,
+              {
+                userId: profile.userId,
+              } satisfies DefaultCalendarsJobDataType,
+              { jobId: `${DEFAULT_CALENDARS_JOB}_${profile.userId}`, removeOnComplete: true }
+            );
           }
-          this.logger.log(`Adding default calendar job for user with id: ${profile.userId}`);
-          await this.calendarsQueue.add(
-            DEFAULT_CALENDARS_JOB,
-            {
-              userId: profile.userId,
-            } satisfies DefaultCalendarsJobDataType,
-            { jobId: `${DEFAULT_CALENDARS_JOB}_${profile.userId}`, removeOnComplete: true }
-          );
-        }
-      });
+        })
+      );
+
+      const failures = results.filter(
+        (result): result is PromiseRejectedResult => result.status === "rejected"
+      );
+      if (failures.length > 0) {
+        this.logger.error(
+          `Failed to ensure default calendars for ${failures.length} users in org ${orgId}: ${failures.map((f) => f.reason).join(", ")}`
+        );
+      }
     } catch (err) {
       this.logger.error(
         err,
