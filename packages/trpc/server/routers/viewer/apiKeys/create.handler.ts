@@ -1,6 +1,6 @@
+import { createFreshAuthenticationToken } from "@calid/features/modules/api-keys/utils/key";
 import { v4 } from "uuid";
 
-import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -16,7 +16,7 @@ type CreateHandlerOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
-  const [hashedApiKey, apiKey] = generateUniqueAPIKey();
+  const [hashedApiKey, apiKey] = createFreshAuthenticationToken();
 
   // Here we snap never expires before deleting it so it's not passed to prisma create call.
   const { neverExpires, teamId, ...rest } = input;
@@ -25,7 +25,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
   await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
 
-  await prisma.apiKey.create({
+  await prisma.calIdApiKey.create({
     data: {
       id: v4(),
       userId: ctx.user.id,

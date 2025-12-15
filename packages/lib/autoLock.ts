@@ -1,6 +1,6 @@
+import { generateSecureHash } from "@calid/features/modules/api-keys/utils/key";
 import type { RatelimitResponse } from "@unkey/ratelimit";
 
-import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import prisma from "@calcom/prisma";
 
@@ -132,8 +132,8 @@ export async function lockUser(identifierType: string, identifier: string, lockR
       });
       break;
     case "apiKey":
-      const hashedApiKey = hashAPIKey(identifier);
-      const apiKey = await prisma.apiKey.findUnique({
+      const hashedApiKey = generateSecureHash(identifier);
+      const apiKey = await prisma.calIdApiKey.findUnique({
         where: { hashedKey: hashedApiKey },
         include: {
           user: {
