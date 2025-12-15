@@ -1,3 +1,9 @@
+## 2.1.0
+
+### Minor Changes
+
+- feat: Booker accepts rrHostSubsetIds to specify round robin hosts
+
 ## 2.0.0
 
 ⚠️ This version contains a breaking change ⚠️. Specifically, the tailwind upgrade under major changes. Atoms now use tailwind at version 4, which means that you have to upgrade your project to use tailwind at version 4.

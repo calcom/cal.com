@@ -60,7 +60,7 @@ export class LocationChangedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Promise<TranslationWithParams> {
+    async getDisplayTitle({ storedData }: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone?: string }): Promise<TranslationWithParams> {
         const { fields } = storedData;
         // TODO: Ideally we want to translate the location label to the user's locale
         // We currently don't accept requesting user's translate fn here, fix it later.

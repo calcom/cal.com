@@ -96,7 +96,7 @@ const ChildrenEventTypesList = ({
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
   return (
-    <div className={classNames("flex flex-col stack-y-5", customClassNames?.assignToSelect?.container)}>
+    <div className={classNames("stack-y-5 flex flex-col", customClassNames?.assignToSelect?.container)}>
       <div>
         <Label className={customClassNames?.assignToSelect?.label}>{t("assign_to")}</Label>
         <ChildrenEventTypeSelect
@@ -213,7 +213,7 @@ const FixedHosts = ({
             </Label>
             <p
               className={classNames(
-                "text-subtle max-w-full wrap-break-word text-sm leading-tight",
+                "text-subtle wrap-break-word max-w-full text-sm leading-tight",
                 customClassNames?.description
               )}>
               <FixedHostHelper t={t} />
@@ -475,7 +475,7 @@ const RoundRobinHosts = ({
             </Label>
             <p
               className={classNames(
-                "text-subtle max-w-full wrap-break-word text-sm leading-tight",
+                "text-subtle wrap-break-word max-w-full text-sm leading-tight",
                 customClassNames?.description
               )}>
               <LearnMoreLink
@@ -578,7 +578,7 @@ const ChildrenEventTypes = ({
   return (
     <div
       className={classNames(
-        "border-subtle mt-6 stack-y-5 rounded-lg border px-4 py-6 sm:px-6",
+        "border-subtle stack-y-5 mt-6 rounded-lg border px-4 py-6 sm:px-6",
         customClassNames?.container
       )}>
       <div className="flex flex-col gap-4">
@@ -830,7 +830,7 @@ export const EventTeamAssignmentTab = ({
               </Label>
               <p
                 className={classNames(
-                  "text-subtle max-w-full wrap-break-word text-sm leading-tight",
+                  "text-subtle wrap-break-word max-w-full text-sm leading-tight",
                   customClassNames?.assignmentType?.description
                 )}>
                 {t("assignment_description")}
@@ -865,7 +865,7 @@ export const EventTeamAssignmentTab = ({
             <div className="border-subtle mt-4 flex flex-col rounded-md">
               <div className="border-subtle rounded-t-md border p-6 pb-5">
                 <Label className="mb-1 text-sm font-semibold">{t("rr_distribution_method")}</Label>
-                <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
+                <p className="text-subtle wrap-break-word max-w-full text-sm leading-tight">
                   {t("rr_distribution_method_description")}
                 </p>
               </div>

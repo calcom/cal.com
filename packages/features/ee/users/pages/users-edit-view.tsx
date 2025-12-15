@@ -1,39 +1,32 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { z } from "zod";
 
-import NoSSR from "@calcom/lib/components/NoSSR";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-import LicenseRequired from "../../common/components/LicenseRequired";
 import { UserForm } from "../components/UserForm";
 import { userBodySchema } from "../schemas/userBodySchema";
-import type { UserAdminRouterOutputs } from "../server/trpc-router";
 
-type User = UserAdminRouterOutputs["get"]["user"];
-const userIdSchema = z.object({ id: z.coerce.number() });
-
-const UsersEditPage = () => {
-  const params = useParamsWithFallback();
-  const input = userIdSchema.safeParse(params);
-
-  if (!input.success) return <div>Invalid input</div>;
-
-  const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId: input.data.id });
-  const { user } = data;
-
-  return (
-    <LicenseRequired>
-      <NoSSR>
-        <UsersEditView user={user} />
-      </NoSSR>
-    </LicenseRequired>
-  );
-};
+interface User {
+  id: number;
+  name: string | null;
+  email: string;
+  username: string | null;
+  bio: string | null;
+  timeZone: string;
+  weekStart: string;
+  theme: string | null;
+  defaultScheduleId: number | null;
+  locale: string;
+  timeFormat: number;
+  allowDynamicBooking: boolean;
+  identityProvider: string;
+  role: string;
+  avatarUrl: string | null;
+  createdDate?: string | Date;
+}
 
 export const UsersEditView = ({ user }: { user: User }) => {
   const pathname = usePathname();

@@ -65,6 +65,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     take,
     skip,
     filters: input.filters,
+    sort: input.sort,
   });
 
   // Generate next cursor for infinite query support
@@ -530,6 +531,7 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.minimumRescheduleNotice",
                 "EventType.teamId",
                 "EventType.parentId",
                 eb

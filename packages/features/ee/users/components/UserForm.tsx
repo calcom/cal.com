@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { Controller, useForm } from "react-hook-form";
 
@@ -13,9 +12,24 @@ import { Button } from "@calcom/ui/components/button";
 import { Form, EmailField, Select, Label, TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
-import type { UserAdminRouterOutputs } from "../server/trpc-router";
-
-type User = UserAdminRouterOutputs["get"]["user"];
+interface User {
+  id: number;
+  name: string | null;
+  email: string;
+  username: string | null;
+  bio: string | null;
+  timeZone: string;
+  weekStart: string;
+  theme: string | null;
+  defaultScheduleId: number | null;
+  locale: string;
+  timeFormat: number;
+  allowDynamicBooking: boolean;
+  identityProvider: string;
+  role: string;
+  avatarUrl: string | null;
+  createdDate?: string | Date;
+}
 
 type Option<T extends string | number = string> = {
   value: T;
@@ -33,7 +47,15 @@ type OptionValues = {
 
 type FormValues = Pick<
   User,
-  "avatarUrl" | "name" | "username" | "email" | "bio" | "createdDate" | "theme" | "defaultScheduleId" | "allowDynamicBooking"
+  | "avatarUrl"
+  | "name"
+  | "username"
+  | "email"
+  | "bio"
+  | "createdDate"
+  | "theme"
+  | "defaultScheduleId"
+  | "allowDynamicBooking"
 > &
   OptionValues;
 

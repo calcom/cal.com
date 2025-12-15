@@ -2,11 +2,12 @@ import type { JsonValue } from "@calcom/types/Json";
 
 import logger from "@calcom/lib/logger";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
-import type { BookingAuditTaskConsumerPayload } from "../types/bookingAuditTask";
-import { BookingAuditTaskConsumerPayloadSchema } from "../types/bookingAuditTask";
-import { CreatedAuditActionService, type CreatedAuditData } from "../actions/CreatedAuditActionService";
+import type { BookingAuditTaskBasePayload } from "../types/bookingAuditTask";
+import { BookingAuditTaskBaseSchema } from "../types/bookingAuditTask";
+import { BookingAuditActionServiceRegistry, type AuditActionData } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction } from "../repository/IBookingAuditRepository";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -15,6 +16,7 @@ interface BookingAuditTaskConsumerDeps {
     bookingAuditRepository: IBookingAuditRepository;
     auditActorRepository: IAuditActorRepository;
     featuresRepository: IFeaturesRepository;
+    userRepository: UserRepository;
 }
 
 type CreateBookingAuditInput = {
@@ -45,44 +47,53 @@ type BookingAudit = {
  * 
  * Note: PENDING and AWAITING_HOST actions are intentionally not implemented.
  * These represent initial booking states captured by the CREATED action.
+ * 
+ * Dependency Injection Note:
+ * - `userRepository` is included in this service's dependencies because it's required by
+ *   ActionServices (e.g., ReassignmentAuditActionService) that need to fetch user data.
+ * - Currently, dependencies are passed down the flow: TaskConsumer → Registry → ActionService
+ * - Future improvement: Consider creating a container/module system for action services
+ *   that can build instances directly with their dependencies, eliminating the need to
+ *   pass dependencies through intermediate layers.
  */
 export class BookingAuditTaskConsumer {
-    private readonly createdActionService: CreatedAuditActionService;
+    private readonly actionServiceRegistry: BookingAuditActionServiceRegistry;
     private readonly bookingAuditRepository: IBookingAuditRepository;
     private readonly auditActorRepository: IAuditActorRepository;
     private readonly featuresRepository: IFeaturesRepository;
+    private readonly userRepository: UserRepository;
 
     constructor(private readonly deps: BookingAuditTaskConsumerDeps) {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.auditActorRepository = deps.auditActorRepository;
         this.featuresRepository = deps.featuresRepository;
+        this.userRepository = deps.userRepository;
 
-        // Each service instantiates its own helper with its specific schema
-        this.createdActionService = new CreatedAuditActionService();
+        // Centralized registry for all action services
+        this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository });
     }
 
     /**
      * Process Audit Task - Entry point for task handler
      * 
      * This method handles:
-     * 1. Schema validation (accepts all supported versions)
+     * 1. Base schema validation (parses data as unknown)
      * 2. Feature flag checks
-     * 3. Schema migration to latest version if needed
+     * 3. Action-specific data validation and migration
      * 4. Routing to appropriate action handlers
      * 
-     * Schema Migration:
-     * - Validates payload against all supported schema versions
-     * - Migrates old versions to latest at task boundary
-     * - Updates task payload in DB if migration occurs
-     * - Ensures retries always use latest schema version
+     * Two-Stage Parsing:
+     * - First validates base fields with lean schema (data as unknown)
+     * - Then validates data with action-specific schema via action service
+     * - This avoids large discriminated unions for better TypeScript performance
      * 
      * @param payload - The booking audit task payload (unknown type, will be validated)
      * @param taskId - Optional task ID for updating migrated payload in DB
      * @returns Promise that resolves when processing is complete
      */
     async processAuditTask(payload: unknown, taskId: string): Promise<void> {
-        // Validate payload schema (accepts all supported versions)
-        const parseResult = BookingAuditTaskConsumerPayloadSchema.safeParse(payload);
+        // Step 1: Parse with lean base schema (data as unknown)
+        const parseResult = BookingAuditTaskBaseSchema.safeParse(payload);
 
         if (!parseResult.success) {
             const errorMsg = `Invalid booking audit payload: ${safeStringify(parseResult.error.errors)}`;
@@ -110,18 +121,18 @@ export class BookingAuditTaskConsumer {
             return;
         }
 
+        // Step 2: Validate and migrate data with action-specific schema
         const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload: validatedPayload, taskId });
 
-        if (action !== "CREATED") {
-            throw new Error(`Unsupported audit action: ${action}`);
-        }
-        await this.onBookingAction({ bookingUid, actor, action, data: dataInLatestFormat, timestamp });
+        // dataInLatestFormat is validated by action-specific schema in migrateIfNeeded
+        await this.onBookingAction({ bookingUid, actor, action, data: dataInLatestFormat as AuditActionData, timestamp });
     }
 
     /**
-     * Migrate If Needed - Migrates data to latest version
+     * Migrate If Needed - Validates and migrates data to latest version
      * 
-     * Calls the action service's migrateToLatest method which:
+     * This is where action-specific data validation happens.
+     * The action service's migrateToLatest method:
      * - Validates the data against all supported versions
      * - Migrates to latest version if needed
      * - Returns validated data with migration status
@@ -129,15 +140,15 @@ export class BookingAuditTaskConsumer {
      * If migration occurred, updates the task payload in DB for retries.
      */
     private async migrateIfNeeded(params: {
-        action: BookingAuditTaskConsumerPayload["action"];
+        action: BookingAuditAction;
         data: unknown;
-        payload: BookingAuditTaskConsumerPayload;
+        payload: BookingAuditTaskBasePayload;
         taskId: string;
     }) {
         const { action, data, payload, taskId } = params;
-        const actionService = this.getActionService(action);
+        const actionService = this.actionServiceRegistry.getActionService(action);
 
-        // migrateToLatest is now required - validates and migrates if needed
+        // migrateToLatest validates data with action-specific schema and migrates if needed
         const migrationResult = actionService.migrateToLatest(data);
 
         // If migrated, update task payload in DB
@@ -151,20 +162,6 @@ export class BookingAuditTaskConsumer {
         return migrationResult.latestData;
     }
 
-
-    /**
-     * Get Action Service - Returns the appropriate action service for the given action type
-     * 
-     * @param action - The booking audit action type
-     * @returns The corresponding action service instance
-     */
-    private getActionService(action: BookingAuditAction) {
-        if (action !== "CREATED") {
-            throw new Error(`Unsupported audit action: ${action}`);
-        }
-        return this.createdActionService;
-    }
-
     /**
      * Update Task Payload - Updates the task payload in DB with migrated data
      * 
@@ -176,7 +173,7 @@ export class BookingAuditTaskConsumer {
      * @param taskId - Task ID (required for DB update)
      */
     private async updateTaskPayload(
-        payload: BookingAuditTaskConsumerPayload,
+        payload: BookingAuditTaskBasePayload,
         latestData: unknown,
         taskId: string
     ): Promise<void> {
@@ -256,7 +253,7 @@ export class BookingAuditTaskConsumer {
      * 
      * Maps booking actions to their corresponding audit record types:
      * - CREATED → RECORD_CREATED
-     * - Future actions like CANCELLED, RESCHEDULED → RECORD_UPDATED
+     * - All other actions (CANCELLED, RESCHEDULED, etc.) → RECORD_UPDATED
      * - Future actions like DELETED → RECORD_DELETED
      * 
      * @param action - The booking audit action
@@ -265,12 +262,29 @@ export class BookingAuditTaskConsumer {
     private getRecordType(params: { action: BookingAuditAction }): BookingAuditType {
         const { action } = params;
 
+         
         switch (action) {
             case "CREATED":
                 return "RECORD_CREATED";
-            // Future actions will map to RECORD_UPDATED or RECORD_DELETED
-            default:
-                throw new Error(`Unsupported action for record type mapping: ${action}`);
+
+            // All update actions fall through to return RECORD_UPDATED
+            case "CANCELLED":
+            case "ACCEPTED":
+            case "REJECTED":
+            case "RESCHEDULED":
+            case "RESCHEDULE_REQUESTED":
+            case "ATTENDEE_ADDED":
+            case "ATTENDEE_REMOVED":
+            case "REASSIGNMENT":
+            case "LOCATION_CHANGED":
+            case "HOST_NO_SHOW_UPDATED":
+            case "ATTENDEE_NO_SHOW_UPDATED":
+                return "RECORD_UPDATED";
+
+            // PENDING and AWAITING_HOST are not implemented as they represent initial states
+            case "PENDING":
+            case "AWAITING_HOST":
+                throw new Error(`Action ${action} is not supported - it represents an initial booking state captured by CREATED`);
         }
     }
 
@@ -278,11 +292,11 @@ export class BookingAuditTaskConsumer {
         bookingUid: string;
         actor: Actor;
         action: BookingAuditAction;
-        data: CreatedAuditData;
+        data: AuditActionData;
         timestamp: number;
     }): Promise<BookingAudit> {
         const { bookingUid, actor, action, data, timestamp } = params;
-        const actionService = this.getActionService(action);
+        const actionService = this.actionServiceRegistry.getActionService(action);
         const versionedData = actionService.getVersionedData(data);
         const actorId = await this.resolveActorId(actor);
         const recordType = this.getRecordType({ action });
@@ -292,7 +306,8 @@ export class BookingAuditTaskConsumer {
             actorId,
             type: recordType,
             action,
-            data: versionedData,
+            // versionedData is { version: number; fields: unknown } which is JsonValue-compatible
+            data: versionedData as JsonValue,
             timestamp: new Date(timestamp),
         });
     }

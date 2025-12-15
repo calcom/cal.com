@@ -32,6 +32,7 @@ export const ActorSchema = z.discriminatedUnion("identifiedBy", [
 export type Actor = z.infer<typeof ActorSchema>;
 type UserActor = z.infer<typeof UserActorSchema>;
 type GuestActor = z.infer<typeof GuestActorSchema>;
+type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
 
 /**
@@ -78,6 +79,16 @@ export function makeActorById(id: string): ActorById {
   return {
     identifiedBy: "id",
     id,
+  };
+}
+
+/**
+ * Creates an Actor representing an Attendee by attendee ID
+ */
+export function makeAttendeeActor(attendeeId: number): AttendeeActor {
+  return {
+    identifiedBy: "attendee",
+    attendeeId,
   };
 }
 

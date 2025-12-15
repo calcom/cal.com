@@ -3,6 +3,7 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -16,7 +17,6 @@ import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -430,34 +430,44 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
 
-    await Promise.all(
-      hostGroups.map(async (group) => {
-        await ctx.prisma.hostGroup.upsert({
-          where: { id: group.id },
-          update: { name: group.name },
-          create: {
+    const existingGroupsMap = new Map(existingHostGroups.map((group) => [group.id, group]));
+    const newGroupsMap = new Map(hostGroups.map((group) => [group.id, group]));
+
+    const groupsToCreate = hostGroups.filter((group) => !existingGroupsMap.has(group.id));
+    const groupsToUpdate = hostGroups.filter((group) => existingGroupsMap.has(group.id));
+    const groupsToDelete = existingHostGroups.filter((existingGroup) => !newGroupsMap.has(existingGroup.id));
+
+    await ctx.prisma.$transaction(async (tx) => {
+      // Create new groups
+      if (groupsToCreate.length > 0) {
+        await tx.hostGroup.createMany({
+          data: groupsToCreate.map((group) => ({
             id: group.id,
             name: group.name,
             eventTypeId: id,
+          })),
+        });
+      }
+
+      // Update existing groups
+      for (const group of groupsToUpdate) {
+        await tx.hostGroup.update({
+          where: { id: group.id },
+          data: { name: group.name },
+        });
+      }
+
+      // Delete groups that are no longer in the new list
+      if (groupsToDelete.length > 0) {
+        await tx.hostGroup.deleteMany({
+          where: {
+            id: {
+              in: groupsToDelete.map((group) => group.id),
+            },
           },
         });
-      })
-    );
-
-    const newGroupsMap = new Map(hostGroups.map((group) => [group.id, group]));
-
-    // Delete groups that are no longer in the new list
-    const groupsToDelete = existingHostGroups.filter((existingGroup) => !newGroupsMap.has(existingGroup.id));
-
-    if (groupsToDelete.length > 0) {
-      await ctx.prisma.hostGroup.deleteMany({
-        where: {
-          id: {
-            in: groupsToDelete.map((group) => group.id),
-          },
-        },
-      });
-    }
+      }
+    });
   }
 
   if (teamId && hosts) {
@@ -643,7 +653,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isCalVideoLocationActive = locations
     ? locations.some((location) => location.type === DailyLocationType)
     : parsedEventTypeLocations.success &&
-    parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await CalVideoSettingsRepository.deleteCalVideoSettings(id);

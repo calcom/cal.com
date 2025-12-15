@@ -105,6 +105,12 @@ export function DataTableWrapper<TData>({
     }));
   }, [table, sorting, columnFilters, columnVisibility, setSorting, setColumnVisibility]);
 
+  // Scroll to top when table data changes
+  useScrollToTopOnDataChange({
+    tableData: table.options.data,
+    paginationMode,
+  });
+
   let view: "loader" | "empty" | "error" | "table" = "table";
   if (hasError && ErrorView) {
     view = "error";
@@ -169,4 +175,34 @@ export function DataTableWrapper<TData>({
       )}
     </>
   );
+}
+
+/**
+ * Scrolls to top when table data changes (pagination, filters, etc.)
+ * Only active for standard pagination mode where we show discrete pages
+ */
+function useScrollToTopOnDataChange<TData>({
+  tableData,
+  paginationMode,
+}: {
+  tableData: TData[];
+  paginationMode: "standard" | "infinite";
+}) {
+  const previousDataRef = useRef(tableData);
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    // Skip on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const hasDataChanged = previousDataRef.current !== tableData;
+    previousDataRef.current = tableData;
+
+    if (paginationMode === "standard" && hasDataChanged) {
+      window.scrollTo(0, 0);
+    }
+  }, [tableData, paginationMode]);
 }

@@ -1,11 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useFocusEffect } from "expo-router";
-import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "expo-router";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
   ActionSheetIOS,
@@ -14,83 +13,76 @@ import {
   Modal,
   TextInput,
   KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 
 import { CalComAPIService, Schedule } from "../../services/calcom";
 import { Header } from "../../components/Header";
 import { FullScreenModal } from "../../components/FullScreenModal";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { EmptyScreen } from "../../components/EmptyScreen";
+import { showErrorAlert } from "../../utils/alerts";
+import { offlineAwareRefresh } from "../../utils/network";
+import {
+  useSchedules,
+  useCreateSchedule,
+  useDeleteSchedule,
+  useDuplicateSchedule,
+  useSetScheduleAsDefault,
+} from "../../hooks";
 
 export default function Availability() {
   const router = useRouter();
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [filteredSchedules, setFilteredSchedules] = useState<Schedule[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newScheduleName, setNewScheduleName] = useState("");
-  const [creating, setCreating] = useState(false);
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
-  const fetchSchedules = async () => {
-    try {
-      setError(null);
+  // Use React Query hooks
+  const {
+    data: schedules = [],
+    isLoading: loading,
+    isFetching,
+    error: queryError,
+    refetch,
+  } = useSchedules();
 
-      // Fetch all schedules
-      const allSchedules = await CalComAPIService.getSchedules();
+  // Show refresh indicator when fetching
+  const refreshing = isFetching && !loading;
 
-      // Sort schedules: default first, then by name
-      const sortedSchedules = allSchedules.sort((a, b) => {
-        // Default schedule first
-        if (a.isDefault && !b.isDefault) return -1;
-        if (!a.isDefault && b.isDefault) return 1;
-        // Then sort by name alphabetically
-        return a.name.localeCompare(b.name);
-      });
+  const { mutate: createScheduleMutation, isPending: creating } = useCreateSchedule();
+  const { mutate: deleteScheduleMutation, isPending: deleting } = useDeleteSchedule();
+  const { mutate: duplicateScheduleMutation } = useDuplicateSchedule();
+  const { mutate: setAsDefaultMutation } = useSetScheduleAsDefault();
 
-      setSchedules(sortedSchedules);
-      setFilteredSchedules(sortedSchedules);
-    } catch (err) {
-      setError("Failed to load availability. Please check your API key and try again.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  // Convert query error to string
+  // Don't show error UI for authentication errors (user will be redirected to login)
+  // Only show error UI in development mode for other errors
+  const isAuthError =
+    queryError?.message?.includes("Authentication") ||
+    queryError?.message?.includes("sign in") ||
+    queryError?.message?.includes("401");
+  const error = queryError && !isAuthError && __DEV__ ? "Failed to load availability." : null;
+
+  // Filter schedules based on search query
+  const filteredSchedules = useMemo(() => {
+    if (searchQuery.trim() === "") {
+      return schedules;
     }
-  };
+    const searchLower = searchQuery.toLowerCase();
+    return schedules.filter((schedule) => schedule.name.toLowerCase().includes(searchLower));
+  }, [schedules, searchQuery]);
 
-  useEffect(() => {
-    fetchSchedules();
-  }, []);
+  // Note: We don't use useFocusEffect here because schedules have Infinity stale time.
+  // Data only refreshes on mutations (create/update/delete) or manual pull-to-refresh.
 
-  // Refresh schedules when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      // Only refresh if not currently loading (to avoid duplicate calls)
-      if (!loading && !refreshing) {
-        fetchSchedules();
-      }
-    }, [loading, refreshing])
-  );
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchSchedules();
-  };
+  // Handle pull-to-refresh (offline-aware)
+  const onRefresh = () => offlineAwareRefresh(refetch);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim() === "") {
-      setFilteredSchedules(schedules);
-    } else {
-      const filtered = schedules.filter((schedule) =>
-        schedule.name.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredSchedules(filtered);
-    }
   };
 
   const handleScheduleLongPress = (schedule: Schedule) => {
@@ -151,22 +143,20 @@ export default function Availability() {
     );
   };
 
-  const handleSetAsDefault = async (schedule: Schedule) => {
-    try {
-      await CalComAPIService.updateSchedule(schedule.id, { isDefault: true });
-      await fetchSchedules();
-    } catch (err) {
-      Alert.alert("Error", "Failed to set schedule as default. Please try again.");
-    }
+  const handleSetAsDefault = (schedule: Schedule) => {
+    setAsDefaultMutation(schedule.id, {
+      onError: () => {
+        showErrorAlert("Error", "Failed to set schedule as default. Please try again.");
+      },
+    });
   };
 
-  const handleDuplicate = async (schedule: Schedule) => {
-    try {
-      await CalComAPIService.duplicateSchedule(schedule.id);
-      await fetchSchedules();
-    } catch (err) {
-      Alert.alert("Error", "Failed to duplicate schedule. Please try again.");
-    }
+  const handleDuplicate = (schedule: Schedule) => {
+    duplicateScheduleMutation(schedule.id, {
+      onError: () => {
+        showErrorAlert("Error", "Failed to duplicate schedule. Please try again.");
+      },
+    });
   };
 
   const handleDelete = (schedule: Schedule) => {
@@ -180,32 +170,30 @@ export default function Availability() {
         {
           text: "Delete",
           style: "destructive",
-          onPress: async () => {
-            try {
-              await CalComAPIService.deleteSchedule(schedule.id);
-              await fetchSchedules();
-            } catch (err) {
-              Alert.alert("Error", "Failed to delete schedule. Please try again.");
-            }
+          onPress: () => {
+            deleteScheduleMutation(schedule.id, {
+              onError: () => {
+                showErrorAlert("Error", "Failed to delete schedule. Please try again.");
+              },
+            });
           },
         },
       ]);
     }
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!selectedSchedule) return;
 
-    try {
-      setDeleting(true);
-      await CalComAPIService.deleteSchedule(selectedSchedule.id);
-      setShowDeleteModal(false);
-      setSelectedSchedule(null);
-      await fetchSchedules();
-    } catch (err) {
-      Alert.alert("Error", "Failed to delete schedule. Please try again.");
-      setDeleting(false);
-    }
+    deleteScheduleMutation(selectedSchedule.id, {
+      onSuccess: () => {
+        setShowDeleteModal(false);
+        setSelectedSchedule(null);
+      },
+      onError: () => {
+        showErrorAlert("Error", "Failed to delete schedule. Please try again.");
+      },
+    });
   };
 
   const handleSchedulePress = (schedule: Schedule) => {
@@ -226,22 +214,20 @@ export default function Availability() {
       return;
     }
 
+    // Get user's timezone (default to America/New_York if not available)
+    let userTimezone = "America/New_York";
     try {
-      setCreating(true);
-
-      // Get user's timezone (default to America/New_York if not available)
-      let userTimezone = "America/New_York";
-      try {
-        const userProfile = await CalComAPIService.getUserProfile();
-        if (userProfile.timeZone) {
-          userTimezone = userProfile.timeZone;
-        }
-      } catch (error) {
-        console.log("Could not get user timezone, using default");
+      const userProfile = await CalComAPIService.getUserProfile();
+      if (userProfile.timeZone) {
+        userTimezone = userProfile.timeZone;
       }
+    } catch (error) {
+      console.log("Could not get user timezone, using default");
+    }
 
-      // Create schedule with Monday-Friday 9 AM - 5 PM default
-      const newSchedule = await CalComAPIService.createSchedule({
+    // Create schedule with Monday-Friday 9 AM - 5 PM default
+    createScheduleMutation(
+      {
         name: newScheduleName.trim(),
         timeZone: userTimezone,
         isDefault: false,
@@ -252,27 +238,26 @@ export default function Availability() {
             endTime: "17:00",
           },
         ],
-      });
+      },
+      {
+        onSuccess: (newSchedule) => {
+          setShowCreateModal(false);
+          setNewScheduleName("");
 
-      setShowCreateModal(false);
-      setNewScheduleName("");
-
-      // Navigate to edit the newly created schedule
-      router.push({
-        pathname: "/availability-detail",
-        params: {
-          id: newSchedule.id.toString(),
+          // Navigate to edit the newly created schedule
+          router.push({
+            pathname: "/availability-detail",
+            params: {
+              id: newSchedule.id.toString(),
+            },
+          });
         },
-      });
-
-      // Refresh the list
-      fetchSchedules();
-    } catch (error) {
-      console.error("Failed to create schedule:", error);
-      Alert.alert("Error", "Failed to create schedule. Please try again.");
-    } finally {
-      setCreating(false);
-    }
+        onError: (error) => {
+          console.error("Failed to create schedule:", error);
+          showErrorAlert("Error", "Failed to create schedule. Please try again.");
+        },
+      }
+    );
   };
 
   const renderSchedule = ({ item: schedule, index }: { item: Schedule; index: number }) => {
@@ -339,8 +324,7 @@ export default function Availability() {
       <View className="flex-1 bg-[#f8f9fa]">
         <Header />
         <View className="flex-1 items-center justify-center p-5">
-          <ActivityIndicator size="large" color="#000000" />
-          <Text className="mt-4 text-base text-[#666]">Loading availability...</Text>
+          <LoadingSpinner size="large" />
         </View>
       </View>
     );
@@ -356,7 +340,7 @@ export default function Availability() {
             Unable to load availability
           </Text>
           <Text className="mb-6 text-center text-base text-[#666]">{error}</Text>
-          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={fetchSchedules}>
+          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
             <Text className="text-base font-semibold text-white">Retry</Text>
           </TouchableOpacity>
         </View>
@@ -364,108 +348,100 @@ export default function Availability() {
     );
   }
 
-  if (schedules.length === 0 && !loading) {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search schedules"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-          <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-            onPress={handleCreateNew}
-          >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
-          </TouchableOpacity>
-        </View>
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="calendar-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-[#333]">No schedules found</Text>
-          <Text className="text-center text-base text-[#666]">
-            Create your availability schedule in Cal.com
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (filteredSchedules.length === 0 && searchQuery.trim() !== "") {
-    return (
-      <View className="flex-1 bg-gray-100">
-        <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-          <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-            placeholder="Search schedules"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-          <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-            onPress={handleCreateNew}
-          >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
-          </TouchableOpacity>
-        </View>
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="search-outline" size={64} color="#666" />
-          <Text className="mb-2 mt-4 text-xl font-bold text-[#333]">No results found</Text>
-          <Text className="text-center text-base text-[#666]">
-            Try searching with different keywords
-          </Text>
-        </View>
-      </View>
-    );
-  }
+  // Determine what content to show
+  const showEmptyState = schedules.length === 0 && !loading;
+  const showSearchEmptyState =
+    filteredSchedules.length === 0 && searchQuery.trim() !== "" && !showEmptyState;
+  const showList = !showEmptyState && !showSearchEmptyState;
 
   return (
     <View className="flex-1 bg-gray-100">
       <Header />
-      <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-        <TextInput
-          className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-          placeholder="Search schedules"
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={handleSearch}
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-        <TouchableOpacity
-          className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-          onPress={handleCreateNew}
-        >
-          <Ionicons name="add" size={18} color="#fff" />
-          <Text className="text-base font-semibold text-white">New</Text>
-        </TouchableOpacity>
-      </View>
-      <View className="flex-1 px-2 pt-4 md:px-4">
-        <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-          <FlatList
-            data={filteredSchedules}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderSchedule}
-            contentContainerStyle={{ paddingBottom: 90 }}
+
+      {/* Empty state - no schedules */}
+      {showEmptyState && (
+        <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 20,
+            }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            showsVerticalScrollIndicator={false}
-          />
+          >
+            <EmptyScreen
+              icon="time-outline"
+              headline="Create an availability schedule"
+              description="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
+              buttonText="New"
+              onButtonPress={handleCreateNew}
+            />
+          </ScrollView>
         </View>
-      </View>
+      )}
+
+      {/* Search bar and content for non-empty states */}
+      {!showEmptyState && (
+        <>
+          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+            <TextInput
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+              placeholder="Search schedules"
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
+            <TouchableOpacity
+              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              onPress={handleCreateNew}
+            >
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text className="text-base font-semibold text-white">New</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Search empty state */}
+          {showSearchEmptyState && (
+            <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
+              <ScrollView
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: 20,
+                }}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+              >
+                <EmptyScreen
+                  icon="search-outline"
+                  headline={`No results found for "${searchQuery}"`}
+                  description="Try searching with different keywords"
+                />
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Schedules list */}
+          {showList && (
+            <View className="flex-1 px-2 pt-4 md:px-4">
+              <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+                <FlatList
+                  data={filteredSchedules}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={renderSchedule}
+                  contentContainerStyle={{ paddingBottom: 90 }}
+                  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                  showsVerticalScrollIndicator={false}
+                />
+              </View>
+            </View>
+          )}
+        </>
+      )}
 
       {/* Create Schedule Modal */}
       <FullScreenModal
@@ -616,8 +592,8 @@ export default function Availability() {
                 }}
                 className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
               >
-                <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                <Text className="ml-3 text-base text-red-500">Delete</Text>
+                <Ionicons name="trash-outline" size={20} color="#800000" />
+                <Text className="ml-3 text-base text-[#800000]">Delete</Text>
               </TouchableOpacity>
             </View>
 
@@ -645,7 +621,7 @@ export default function Availability() {
             {/* Icon */}
             <View className="mb-4 items-center">
               <View className="h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <Ionicons name="trash-outline" size={24} color="#EF4444" />
+                <Ionicons name="trash-outline" size={24} color="#800000" />
               </View>
             </View>
 
