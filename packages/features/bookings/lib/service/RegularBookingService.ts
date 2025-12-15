@@ -2798,6 +2798,18 @@ export class RegularBookingService implements IBookingService {
       eventTypeSlug: input.bookingData.eventTypeSlug,
     });
 
+    // note(Lauris): I know this function is called createBooking but it is called by web booker when rescheduling
+    await validateRescheduleRestrictions({
+      rescheduleUid: input.bookingData.rescheduleUid,
+      userId: input.bookingMeta?.userId ?? null,
+      eventType: eventType
+        ? {
+            seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+            minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+          }
+        : null,
+    });
+
     const reservedSlot = this.getReservedSlotIfNotTeamOrSeatedEvent(input, eventType);
     if (reservedSlot) {
       await this.checkReservedSlotIsEarliest(reservedSlot);
@@ -2893,6 +2905,17 @@ export class RegularBookingService implements IBookingService {
     const eventType = await getEventType({
       eventTypeId: input.bookingData.eventTypeId,
       eventTypeSlug: input.bookingData.eventTypeSlug,
+    });
+    // note(Lauris): I know this function is called createBooking but v1 also uses this when rescheduling
+    await validateRescheduleRestrictions({
+      rescheduleUid: input.bookingData.rescheduleUid,
+      userId: input.bookingMeta?.userId ?? null,
+      eventType: eventType
+        ? {
+            seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+            minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+          }
+        : null,
     });
     return handler(
       {
