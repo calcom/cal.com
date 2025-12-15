@@ -587,7 +587,7 @@ export default class GoogleCalendarService implements Calendar {
 
             const calIdsWithTimeZone = await getCalIdsWithTimeZone();
             const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
-            const freeBusyData = await this.getCacheOrFetchAvailability({
+            const freeBusyData = await this.getFreeBusyData({
               timeMin: dateFrom,
               timeMax: dateTo,
               items: calIds,

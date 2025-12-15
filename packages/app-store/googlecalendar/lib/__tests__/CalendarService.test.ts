@@ -943,7 +943,7 @@ describe("Watching and unwatching calendar", () => {
     );
   });
 });
-||||||| 8d4dd0241a
+
 // disabled as cache is being reworked
 describe.skip("Calendar Cache", () => {
   test("Calendar Cache is being read on cache HIT", async () => {
