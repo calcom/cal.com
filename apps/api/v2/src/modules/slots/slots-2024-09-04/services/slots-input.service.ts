@@ -30,7 +30,7 @@ export type InternalGetSlotsQuery = {
   timeZone: string | undefined;
   orgSlug: string | null | undefined;
   rescheduleUid: string | null;
-  disableRollingWindowAdjustment?: boolean;
+  disableRollingWindowAdjustment: boolean;
   rrHostSubsetIds?: number[];
 };
 

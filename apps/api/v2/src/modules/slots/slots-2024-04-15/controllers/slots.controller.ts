@@ -178,6 +178,7 @@ export class SlotsController_2024_04_15 {
             input: {
               ...query,
               isTeamEvent,
+              disableRollingWindowAdjustment: false,
             },
             ctx: {
               req,
@@ -187,6 +188,7 @@ export class SlotsController_2024_04_15 {
             input: {
               ...query,
               isTeamEvent,
+              disableRollingWindowAdjustment: false,
             },
             ctx: {
               req,
