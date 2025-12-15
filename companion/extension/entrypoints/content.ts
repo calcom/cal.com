@@ -230,6 +230,29 @@ export default defineContentScript({
     toggleButton.style.justifyContent = "center";
     toggleButton.title = "Toggle sidebar";
 
+    // Create reload button
+    const reloadButton = document.createElement("button");
+    reloadButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 4V10H7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M23 20V14H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+    reloadButton.style.width = "40px";
+    reloadButton.style.height = "40px";
+    reloadButton.style.borderRadius = "50%";
+    reloadButton.style.border = "1px solid rgba(255, 255, 255, 0.5)";
+    reloadButton.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+    reloadButton.style.backdropFilter = "blur(10px)";
+    reloadButton.style.color = "white";
+    reloadButton.style.cursor = "pointer";
+    reloadButton.style.fontSize = "16px";
+    reloadButton.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+    reloadButton.style.transition = "all 0.2s ease";
+    reloadButton.style.display = "flex";
+    reloadButton.style.alignItems = "center";
+    reloadButton.style.justifyContent = "center";
+    reloadButton.title = "Reload data";
+
     // Create close button
     const closeButton = document.createElement("button");
     closeButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -268,6 +291,37 @@ export default defineContentScript({
       closeButton.style.transform = "scale(1)";
     });
 
+    reloadButton.addEventListener("mouseenter", () => {
+      reloadButton.style.transform = "scale(1.1)";
+    });
+    reloadButton.addEventListener("mouseleave", () => {
+      reloadButton.style.transform = "scale(1)";
+    });
+
+    // Reload functionality - sends message to iframe to invalidate cache
+    reloadButton.addEventListener("click", () => {
+      // Add spinning animation
+      reloadButton.style.animation = "spin 0.5s ease-in-out";
+      setTimeout(() => {
+        reloadButton.style.animation = "";
+      }, 500);
+
+      // Send message to iframe to reload cache
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: "cal-companion-reload-cache" }, "*");
+      }
+    });
+
+    // Add spin animation style
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+
     // Toggle functionality
     toggleButton.addEventListener("click", () => {
       if (isClosed) return;
@@ -300,6 +354,7 @@ export default defineContentScript({
 
     // Add buttons to container
     buttonsContainer.appendChild(toggleButton);
+    buttonsContainer.appendChild(reloadButton);
     buttonsContainer.appendChild(closeButton);
 
     // Add everything to DOM
@@ -671,7 +726,11 @@ export default defineContentScript({
                       ">
                         ${length}min
                       </span>
-                      ${description ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>` : ""}
+                      ${
+                        description
+                          ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                          : ""
+                      }
                     </div>
                   `;
 
@@ -767,7 +826,9 @@ export default defineContentScript({
 
                   previewBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+                    const bookingUrl = `https://cal.com/${
+                      eventType.users?.[0]?.username || "user"
+                    }/${eventType.slug}`;
                     window.open(bookingUrl, "_blank");
                   });
                   previewBtn.addEventListener("mouseenter", () => {
@@ -807,7 +868,9 @@ export default defineContentScript({
                   copyBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     // Copy to clipboard
-                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+                    const bookingUrl = `https://cal.com/${
+                      eventType.users?.[0]?.username || "user"
+                    }/${eventType.slug}`;
                     navigator.clipboard
                       .writeText(bookingUrl)
                       .then(() => {
@@ -929,7 +992,9 @@ export default defineContentScript({
 
           function insertEventTypeLink(eventType) {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+              eventType.slug
+            }`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -951,7 +1016,9 @@ export default defineContentScript({
 
           function copyEventTypeLink(eventType) {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+              eventType.slug
+            }`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1225,7 +1292,9 @@ export default defineContentScript({
             </div>
             ${datesHTML}
             <div style="margin-top: 13px;">
-              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(timezone)}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(
+          timezone
+        )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
                 See all available times →
               </a>
             </div>
@@ -1509,108 +1578,6 @@ export default defineContentScript({
       }
 
       /**
-       * Auto-remove all Cal.com action bars before sending email
-       */
-      function setupAutoRemoveOnSend() {
-        try {
-          // Helper function to remove all action bars and marked Google chips
-          const removeAllActionBars = () => {
-            // Remove action bars
-            const allActionBars = document.querySelectorAll(".cal-companion-action-bar");
-            if (allActionBars.length > 0) {
-              console.log(`Cal.com: Removing ${allActionBars.length} action bar(s) before send`);
-              allActionBars.forEach((bar) => {
-                try {
-                  // Call cleanup function to remove event listeners before removing DOM node
-                  if ((bar as any).__cleanup) {
-                    (bar as any).__cleanup();
-                  }
-                  bar.remove();
-                } catch (error) {
-                  console.warn("Cal.com: Failed to remove action bar:", error);
-                }
-              });
-            }
-
-            // Remove Google chips that were marked for removal (user used Cal.com)
-            const markedChips = document.querySelectorAll(
-              '.gmail_chip[data-calcom-remove-on-send="true"]'
-            );
-            if (markedChips.length > 0) {
-              console.log(
-                `Cal.com: Removing ${markedChips.length} Google chip(s) before send (user used Cal.com)`
-              );
-              markedChips.forEach((chip) => {
-                try {
-                  chip.remove();
-                } catch (error) {
-                  console.warn("Cal.com: Failed to remove Google chip:", error);
-                }
-              });
-            }
-          };
-
-          // Method 1: Watch for clicks on Send button
-          document.addEventListener(
-            "click",
-            (e) => {
-              const target = e.target as HTMLElement;
-
-              // Check if the clicked element is a Send button
-              const isSendButton =
-                target.getAttribute("data-tooltip")?.includes("Send") ||
-                target.getAttribute("aria-label")?.includes("Send") ||
-                target.textContent?.trim() === "Send" ||
-                target.closest('[data-tooltip*="Send"]') ||
-                target.closest('[aria-label*="Send"]') ||
-                target
-                  .closest('[role="button"][data-tooltip]')
-                  ?.getAttribute("data-tooltip")
-                  ?.includes("Send");
-
-              if (isSendButton) {
-                console.log("Cal.com: Send button clicked");
-                removeAllActionBars();
-              }
-            },
-            true
-          ); // Use capture phase
-
-          // Method 2: Watch for keyboard shortcuts (Ctrl+Enter / Cmd+Enter)
-          document.addEventListener(
-            "keydown",
-            (e) => {
-              const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-              const isEnter = e.key === "Enter";
-
-              if (isCtrlOrCmd && isEnter) {
-                // Check if we're in a compose window
-                const activeElement = document.activeElement;
-                const isInCompose =
-                  activeElement?.getAttribute("role") === "textbox" ||
-                  activeElement?.getAttribute("contenteditable") === "true" ||
-                  activeElement?.closest('[role="textbox"]');
-
-                if (isInCompose) {
-                  console.log("Cal.com: Send keyboard shortcut detected (Ctrl/Cmd+Enter)");
-                  removeAllActionBars();
-                }
-              }
-            },
-            true
-          );
-
-          // Note: Action bars are now overlays (like Grammarly), so they won't be included in emails.
-          // We keep the click and keyboard listeners for clean UI (removing overlays when sending).
-          // Removed the MutationObserver as it was too aggressive and removing action bars prematurely.
-
-          console.log("Cal.com: Auto-remove on send listeners added (click, keyboard)");
-        } catch (error) {
-          console.warn("Cal.com: Failed to setup auto-remove on send:", error);
-        }
-      }
-
-      /**
        * Watch for Google Calendar scheduling chips and add Cal.com suggestion button
        */
       function watchForGoogleChips() {
@@ -1695,7 +1662,9 @@ export default defineContentScript({
           }
 
           console.log(
-            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${parsedData.slots.length > 1 ? "s" : ""} (${parsedData.detectedDuration}min)`
+            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${
+              parsedData.slots.length > 1 ? "s" : ""
+            } (${parsedData.detectedDuration}min)`
           );
 
           // Safely check for parent element
@@ -1973,8 +1942,16 @@ export default defineContentScript({
                 showGmailNotification("Cal.com embed inserted!", "success");
                 console.log("Cal.com: ✅ Email embed inserted successfully");
 
-                // Mark chip for removal on send (don't remove yet - keep it visible for user reference)
-                chipElement.setAttribute("data-calcom-remove-on-send", "true");
+                // Immediately remove the Google chip and action bar
+                try {
+                  chipElement.remove();
+                  if ((actionBar as any).__cleanup) {
+                    (actionBar as any).__cleanup();
+                  }
+                  actionBar.remove();
+                } catch (removeError) {
+                  console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
+                }
               } else {
                 showGmailNotification("Failed to insert embed", "error");
               }
@@ -2235,7 +2212,11 @@ export default defineContentScript({
         header.innerHTML = `
           <div>
             <div style="font-weight: 600; font-size: 16px; color: #000;">📅 Suggest Cal.com Links</div>
-            <div style="font-size: 13px; color: #666; margin-top: 4px;">${parsedData.slots.length} time slot${parsedData.slots.length > 1 ? "s" : ""} • ${parsedData.detectedDuration}min each</div>
+            <div style="font-size: 13px; color: #666; margin-top: 4px;">${
+              parsedData.slots.length
+            } time slot${parsedData.slots.length > 1 ? "s" : ""} • ${
+          parsedData.detectedDuration
+        }min each</div>
           </div>
           <button class="close-menu" style="background: none; border: none; cursor: pointer; font-size: 28px; color: #666; line-height: 1; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">×</button>
         `;
@@ -2487,7 +2468,9 @@ export default defineContentScript({
                 color: #000;
                 cursor: pointer;
                 transition: background-color 0.1s;
-                border-bottom: ${index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"};
+                border-bottom: ${
+                  index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"
+                };
                 pointer-events: auto;
               `;
               option.textContent = `${et.title} (${et.lengthInMinutes}min)`;
@@ -2660,8 +2643,26 @@ export default defineContentScript({
                 showGmailNotification("Cal.com link inserted!", "success");
                 backdrop.remove();
 
-                // Mark chip for removal on send (don't remove yet - keep it visible for user reference)
-                chipElement.setAttribute("data-calcom-remove-on-send", "true");
+                // Immediately remove the Google chip and its action bar
+                try {
+                  const scheduleId = chipElement.getAttribute("data-ad-hoc-schedule-id");
+                  const actionBar = scheduleId
+                    ? document.querySelector(
+                        `.cal-companion-action-bar[data-schedule-id="${scheduleId}"]`
+                      )
+                    : chipElement.parentElement?.querySelector(".cal-companion-action-bar");
+
+                  chipElement.remove();
+
+                  if (actionBar) {
+                    if ((actionBar as any).__cleanup) {
+                      (actionBar as any).__cleanup();
+                    }
+                    actionBar.remove();
+                  }
+                } catch (removeError) {
+                  console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
+                }
               } else {
                 showGmailNotification("Failed to insert link", "error");
               }
@@ -2680,7 +2681,9 @@ export default defineContentScript({
 
           errorDiv.innerHTML = `
             <div style="margin-bottom: 12px;">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${isContextInvalidated ? "#ff6b6b" : "#666"}" stroke-width="1.5" style="margin: 0 auto;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${
+                isContextInvalidated ? "#ff6b6b" : "#666"
+              }" stroke-width="1.5" style="margin: 0 auto;">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
                 <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -2911,9 +2914,6 @@ export default defineContentScript({
 
       // Start watching for Google Calendar chips
       watchForGoogleChips();
-
-      // Setup auto-remove action bars before sending email
-      setupAutoRemoveOnSend();
     }
   },
 });

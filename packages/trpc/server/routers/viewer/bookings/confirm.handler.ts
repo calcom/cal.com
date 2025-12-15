@@ -20,6 +20,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import {
   BookingStatus,
@@ -40,6 +41,7 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 type ConfirmOptions = {
   ctx: {
     user: Pick<NonNullable<TrpcSessionUser>, "id" | "uuid" | "email" | "username" | "role" | "destinationCalendar">;
+    traceContext: TraceContext;
   };
   input: TConfirmInputSchema;
 };
@@ -182,6 +184,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
   }
+const traceContext = {
+    ...ctx.traceContext,
+    bookingUid: booking.uid || "unknown",
+    confirmed: String(confirmed),
+    eventTypeId: booking.eventType?.id?.toString() || "null",
+    userId: user.id.toString(),
+    teamId: booking.eventType?.teamId?.toString() || "null",
+  };
+
   if (recurringEventId && recurringEvent && booking.recurringEventId) {
     const recurringBookingsCount = await bookingRepository.countByRecurringEventId({
       recurringEventId: booking.recurringEventId,
@@ -208,6 +219,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       (booking.eventType?.locations as LocationObject[]) || []
     );
     evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
+
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -217,6 +229,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      traceContext,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -282,7 +295,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
     try {
