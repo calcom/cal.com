@@ -2,8 +2,10 @@ import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/reposito
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException, ForbiddenException } from "@nestjs/common";
 
 import type {
   UpdateBookingLocationInput_2024_08_13,
@@ -20,7 +22,9 @@ export class BookingLocationService_2024_08_13 {
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly bookingsService: BookingsService_2024_08_13,
     private readonly usersRepository: UsersRepository,
-    private readonly inputService: InputBookingsService_2024_08_13
+    private readonly inputService: InputBookingsService_2024_08_13,
+    private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
+    private readonly eventTypeAccessService: EventTypeAccessService
   ) {}
 
   async updateBookingLocation(
@@ -28,10 +32,25 @@ export class BookingLocationService_2024_08_13 {
     input: UpdateBookingLocationInput_2024_08_13,
     user: ApiAuthGuardUser
   ) {
-    const existingBooking = await this.bookingsRepository.getByUid(bookingUid);
+    const existingBooking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
     if (!existingBooking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
+
+    if (existingBooking.eventTypeId && existingBooking.eventType) {
+      const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
+        existingBooking.eventTypeId
+      );
+      if (eventType) {
+        const isAllowed = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(user, eventType);
+        if (!isAllowed) {
+          throw new ForbiddenException(
+            "User is not authorized to update this booking location. User must be the event type owner, host, team admin or owner, or org admin or owner."
+          );
+        }
+      }
+    }
+
     const { location } = input;
 
     if (location) {
