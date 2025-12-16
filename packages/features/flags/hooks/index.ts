@@ -38,6 +38,7 @@ const initialData: AppFlags = {
 if (process.env.NEXT_PUBLIC_IS_E2E) {
   initialData.organizations = true;
   initialData.teams = true;
+  initialData["bookings-v3"] = true;
 }
 
 export function useFlags(): Partial<AppFlags> {

@@ -119,6 +119,10 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async checkIfUserHasFeature(userId: number, slug: string) {
     try {
+      // Enable bookings-v3 for e2e tests
+      if (process.env.NEXT_PUBLIC_IS_E2E && slug === "bookings-v3") {
+        return true;
+      }
       /**
        * findUnique was failing in prismock tests, so I'm using findFirst instead
        * FIXME refactor when upgrading prismock
@@ -300,6 +304,10 @@ export class FeaturesRepository implements IFeaturesRepository {
    */
   async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
     try {
+      // Enable bookings-v3 for e2e tests
+      if (process.env.NEXT_PUBLIC_IS_E2E && featureId === "bookings-v3") {
+        return true;
+      }
       // Early return if team has feature directly assigned
       const teamHasFeature = await this.prismaClient.teamFeatures.findUnique({
         where: {
