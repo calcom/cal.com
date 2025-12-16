@@ -24,7 +24,7 @@ import {
 } from "./testUtils";
 
 function todo(title: string) {
-  // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
+  // eslint-disable-next-line playwright/no-skipped-test
   test.skip(title, () => {});
 }
 
