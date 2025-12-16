@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Schedule } from "../services/calcom";
 import { ScheduleAvailability } from "../services/types";
 import { FullScreenModal } from "../components/FullScreenModal";
+import { showErrorAlert } from "../utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -220,7 +221,7 @@ export default function AvailabilityDetail() {
       }
     } catch (error) {
       console.error("Error fetching schedule:", error);
-      Alert.alert("Error", "Failed to load schedule. Please try again.");
+      showErrorAlert("Error", "Failed to load schedule. Please try again.");
       router.back();
     } finally {
       setLoading(false);
@@ -348,7 +349,7 @@ export default function AvailabilityDetail() {
         { text: "OK", onPress: () => router.back() },
       ]);
     } catch (error) {
-      Alert.alert("Error", "Failed to update schedule. Please try again.");
+      showErrorAlert("Error", "Failed to update schedule. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -362,7 +363,7 @@ export default function AvailabilityDetail() {
       setIsDefault(true);
       Alert.alert("Success", "Schedule set as default successfully");
     } catch (error) {
-      Alert.alert("Error", "Failed to set schedule as default. Please try again.");
+      showErrorAlert("Error", "Failed to set schedule as default. Please try again.");
     }
   };
 
@@ -379,7 +380,7 @@ export default function AvailabilityDetail() {
               { text: "OK", onPress: () => router.back() },
             ]);
           } catch (error) {
-            Alert.alert("Error", "Failed to delete schedule. Please try again.");
+            showErrorAlert("Error", "Failed to delete schedule. Please try again.");
           }
         },
       },

@@ -4,10 +4,10 @@ import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Bill
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 
 import { getTeamBillingServiceFactory } from "../../di/containers/Billing";
