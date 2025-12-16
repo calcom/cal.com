@@ -23,7 +23,6 @@ function HolidaysCTA() {
   return (
     <div className="flex gap-2">
       <OutOfOfficeToggleGroup />
-      {/* Disabled button to prevent layout shift when switching tabs */}
       <Button
         color="primary"
         size="base"
@@ -227,18 +226,13 @@ export function HolidaysView() {
 
   const handleCountryChange = useCallback(
     (countryCode: string) => {
-      // Determine the action type
       if (!settings?.countryCode && countryCode) {
-        // First time selection
         setConfirmAction("select");
       } else if (settings?.countryCode && countryCode && countryCode !== settings.countryCode) {
-        // Changing from one country to another
         setConfirmAction("change");
       } else if (settings?.countryCode && !countryCode) {
-        // Clearing/disabling
         setConfirmAction("clear");
       } else {
-        // Same country selected, no action needed
         return;
       }
 
@@ -352,22 +346,21 @@ export function HolidaysView() {
         </div>
       </div>
 
-      {/* Confirmation dialog for country changes */}
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <ConfirmationDialogContent
           title={
             confirmAction === "select"
               ? t("enable_holiday_blocking")
               : confirmAction === "change"
-                ? t("change_holiday_country")
-                : t("disable_holiday_blocking")
+              ? t("change_holiday_country")
+              : t("disable_holiday_blocking")
           }
           confirmBtnText={
             confirmAction === "select"
               ? t("yes_enable")
               : confirmAction === "change"
-                ? t("yes_change_country")
-                : t("yes_disable")
+              ? t("yes_change_country")
+              : t("yes_disable")
           }
           cancelBtnText={t("cancel")}
           onConfirm={handleConfirmCountryChange}
@@ -376,8 +369,8 @@ export function HolidaysView() {
             {confirmAction === "select"
               ? t("enable_holiday_blocking_description")
               : confirmAction === "change"
-                ? t("change_holiday_country_description")
-                : t("disable_holiday_blocking_description")}
+              ? t("change_holiday_country_description")
+              : t("disable_holiday_blocking_description")}
           </p>
         </ConfirmationDialogContent>
       </Dialog>
