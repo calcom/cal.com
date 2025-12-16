@@ -1,6 +1,6 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps } from "app/_types";
-import { _generateMetadata, getTranslate } from "app/_utils";
+import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -15,8 +15,6 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
 import BookingsList from "~/bookings/views/bookings-view";
-
-import { ViewToggleButton } from "./ViewToggleButton";
 
 const querySchema = z.object({
   status: z.enum(validStatuses),
@@ -36,7 +34,6 @@ const Page = async ({ params }: PageProps) => {
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }
-  const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   let canReadOthersBookings = false;
@@ -56,18 +53,13 @@ const Page = async ({ params }: PageProps) => {
     canReadOthersBookings = teamIdsWithPermission.length > 0;
   }
 
-  const userProfile = session?.user?.profile;
-  const orgId = userProfile?.organizationId ?? session?.user.org?.id;
   const featuresRepository = new FeaturesRepository(prisma);
-  const bookingsV3Enabled = orgId
-    ? await featuresRepository.checkIfTeamHasFeature(orgId, "bookings-v3")
+  const bookingsV3Enabled = session?.user?.id
+    ? await featuresRepository.checkIfUserHasFeature(session.user.id, "bookings-v3")
     : false;
 
   return (
-    <ShellMainAppDir
-      heading={t("bookings")}
-      subtitle={t("bookings_description")}
-      CTA={bookingsV3Enabled ? <ViewToggleButton /> : null}>
+    <ShellMainAppDir>
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}
