@@ -672,7 +672,7 @@ describe("handleChildrenEventTypes", () => {
       // Since findMany returned empty array, all workflow-eventType pairs should be created
       expect(prismaMock.workflowsOnEventTypes.createMany).toHaveBeenCalledWith({
         data: [{ eventTypeId: 2, workflowId: 11 }],
-        skipDuplicates: false,
+        skipDuplicates: true,
       });
     });
   });

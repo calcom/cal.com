@@ -349,7 +349,7 @@ export default async function handleChildrenEventTypes({
     const executeBatch = async (ids: number[]) => {
       const successes: EventType[] = [];
       const failures: { userId: number; error: Error }[] = [];
-      const BATCH_SIZE = 100;
+      const BATCH_SIZE = 50;
 
       for (let i = 0; i < ids.length; i += BATCH_SIZE) {
         const batch = ids.slice(i, i + BATCH_SIZE);
@@ -418,7 +418,7 @@ export default async function handleChildrenEventTypes({
         if (newRelationshipsToCreate.length > 0) {
           await tx.workflowsOnEventTypes.createMany({
             data: newRelationshipsToCreate,
-            skipDuplicates: false,
+            skipDuplicates: true,
           });
         }
       });
