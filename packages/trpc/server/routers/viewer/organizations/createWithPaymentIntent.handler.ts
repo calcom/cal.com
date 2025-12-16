@@ -8,9 +8,9 @@
  * - The new endpoint returns checkoutUrl directly in the response
  */
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 import { TRPCError } from "@trpc/server";
 

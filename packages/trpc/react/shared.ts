@@ -18,6 +18,7 @@ export const ENDPOINTS = [
   "eventTypes",
   "eventTypesHeavy",
   "features",
+  "holidays",
   "i18n",
   "insights",
   "me",

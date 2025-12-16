@@ -400,6 +400,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
 
       const error = err as Error & {
         data: { rescheduleUid: string; startTime: string; attendees: string[] };
+        traceId?: string;
       };
 
       if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
@@ -521,6 +522,11 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
             : event?.data?.forwardParamsSuccessRedirect,
       });
     },
+    onError: (err, _, ctx) => {
+      console.error("Error creating recurring booking", err);
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
+      bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+    },
   });
 
   const handleBookEvent = useHandleBookEvent({
@@ -531,7 +537,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
       const remaining = getInstantCooldownRemainingMs(eventTypeId);
       if (remaining > 0) {
-        showToast(t("please_try_again_later_or_book_another_slot"), "error");
+        showToast(
+          t("please_try_again_later_or_book_another_slot", { remaining: Math.ceil(remaining / 60000) }),
+          "error"
+        );
         return;
       }
       createInstantBookingMutation.mutate(variables);

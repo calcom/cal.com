@@ -245,6 +245,21 @@ export default function InstantEventController({
                             </>
                           )}
                         />
+                        <Controller
+                          name="autoTranslateInstantMeetingTitleEnabled"
+                          render={({ field: { value, onChange } }) => (
+                            <SettingsToggle
+                              labelClassName="text-sm"
+                              title={t("auto_translate_instant_meeting_title")}
+                              checked={value}
+                              onCheckedChange={(e) => onChange(e)}
+                              data-testid="auto-translate-instant-meeting-title-toggle"
+                              toggleSwitchAtTheEnd={true}
+                              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6 mt-4"
+                              description={t("auto_translate_instant_meeting_title_description")}
+                            />
+                          )}
+                        />
                         <InstantMeetingWebhooks eventType={eventType} />
                       </div>
                     )}

@@ -306,13 +306,15 @@ interface IOOOSlotProps {
   toUser?: IOutOfOfficeData["anyDate"]["toUser"];
   reason?: string;
   emoji?: string;
+  notes?: string | null;
+  showNotePublicly?: boolean;
   time?: string;
   className?: string;
 }
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
   const isPlatform = useIsPlatform();
-  const { fromUser, toUser, reason, emoji, time, className = "" } = props;
+  const { fromUser, toUser, reason, emoji, notes, showNotePublicly, time, className = "" } = props;
 
   if (isPlatform) return <></>;
   return (
@@ -322,6 +324,8 @@ const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
       date={dayjs(time).format("YYYY-MM-DD")}
       reason={reason}
       emoji={emoji}
+      notes={notes}
+      showNotePublicly={showNotePublicly}
       borderDashed
       className={className}
     />

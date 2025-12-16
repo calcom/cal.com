@@ -73,7 +73,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
           }>
           <>
             {filteredWorkflows?.totalCount ? (
-              <div className="flex">
+              <div className="flex mb-2">
                 <TeamsFilter />
                 <div className="mb-4 ml-auto">
                   <CreateButtonWithTeamsList

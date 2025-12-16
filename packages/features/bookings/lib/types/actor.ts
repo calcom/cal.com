@@ -1,49 +1,39 @@
-/**
- * Represents the entity that performed a booking action
- * Uses discriminating union for type-safe actor identification
- */
-export type Actor = ActorById | UserActor | AttendeeActor | GuestActor;
+import { z } from "zod";
 
-/**
- * Actor referenced by existing ID in AuditActor table
- * Use this for System actors or when you already have an actor ID
- */
-type ActorById = {
-  identifiedBy: "id";
-  id: string; // UUID of existing actor (including System actor)
-};
+const UserActorSchema = z.object({
+  identifiedBy: z.literal("user"),
+  userUuid: z.string(),
+});
 
-/**
- * Actor identified by user UUID
- * Will be upserted in AuditActor table
- */
-type UserActor = {
-  identifiedBy: "user";
-  userUuid: string;
-};
+const GuestActorSchema = z.object({
+  identifiedBy: z.literal("guest"),
+  email: z.string().optional(),
+  name: z.string().optional(),
+  phone: z.string().optional(),
+});
 
-/**
- * Actor identified by attendee ID
- * Must already exist in AuditActor table
- */
-type AttendeeActor = {
-  identifiedBy: "attendee";
-  attendeeId: number;
-};
+const AttendeeActorSchema = z.object({
+  identifiedBy: z.literal("attendee"),
+  attendeeId: z.number(),
+});
 
-/**
- * Actor identified by guest data (email, name, phone)
- * Will be upserted in AuditActor table
- */
-type GuestActor = {
-  identifiedBy: "guest";
-  email?: string;
-  name?: string;
-  phone?: string;
-};
+const ActorByIdSchema = z.object({
+  identifiedBy: z.literal("id"),
+  id: z.string(),
+});
 
-// System actor ID constant
-export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
+export const ActorSchema = z.discriminatedUnion("identifiedBy", [
+  ActorByIdSchema,
+  UserActorSchema,
+  GuestActorSchema,
+  AttendeeActorSchema,
+]);
+
+export type Actor = z.infer<typeof ActorSchema>;
+type UserActor = z.infer<typeof UserActorSchema>;
+type GuestActor = z.infer<typeof GuestActorSchema>;
+type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
+type ActorById = z.infer<typeof ActorByIdSchema>;
 
 /**
  * Creates an Actor representing a User by UUID
@@ -69,12 +59,16 @@ export function makeSystemActor(): ActorById {
 /**
  * Creates an Actor representing a Guest (non-registered attendee)
  */
-export function makeGuestActor(email: string, name?: string, phone?: string): GuestActor {
+export function makeGuestActor(params: {
+  email: string;
+  name?: string;
+  phone?: string;
+}): GuestActor {
   return {
     identifiedBy: "guest",
-    email,
-    name,
-    phone,
+    email: params.email,
+    name: params.name,
+    phone: params.phone,
   };
 }
 
@@ -87,3 +81,16 @@ export function makeActorById(id: string): ActorById {
     id,
   };
 }
+
+/**
+ * Creates an Actor representing an Attendee by attendee ID
+ */
+export function makeAttendeeActor(attendeeId: number): AttendeeActor {
+  return {
+    identifiedBy: "attendee",
+    attendeeId,
+  };
+}
+
+// System actor ID constant
+export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";

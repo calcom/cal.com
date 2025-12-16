@@ -1,12 +1,11 @@
 /**
  * PAGES ROUTER ONLY - Used exclusively by Next.js Pages Router (_app.tsx)
- * 
+ *
  * Currently only serves the /router endpoint (routing forms redirect page).
  * DO NOT add new features here - this file will be deprecated once we remove apps/web/pages.
- * 
+ *
  * For App Router, use app-providers-app-dir.tsx instead.
  */
-
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
@@ -15,7 +14,6 @@ import { appWithTranslation } from "next-i18next";
 import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import dynamic from "next/dynamic";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
@@ -28,6 +26,7 @@ import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import { useNuqsParams } from "@lib/hooks/useNuqsParams";
 import type { WithLocaleProps } from "@lib/withLocale";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
@@ -60,7 +59,6 @@ export type AppProps = Omit<
   /** Will be defined only is there was an error */
   err?: Error;
 };
-
 
 type AppPropsWithChildren = AppProps & {
   children: ReactNode;
@@ -136,8 +134,8 @@ const enum ThemeSupport {
 
 type CalcomThemeProps = PropsWithChildren<
   Pick<AppProps, "router"> &
-  Pick<AppProps["pageProps"], "themeBasis"> &
-  Pick<AppProps["Component"], "isBookingPage" | "isThemeSupported">
+    Pick<AppProps["pageProps"], "themeBasis"> &
+    Pick<AppProps["Component"], "isBookingPage" | "isThemeSupported">
 >;
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
@@ -211,8 +209,8 @@ function getThemeProviderProps({
     ? ThemeSupport.Booking
     : // if isThemeSupported is explicitly false, we don't use theme there
     props.isThemeSupported === false
-      ? ThemeSupport.None
-      : ThemeSupport.App;
+    ? ThemeSupport.None
+    : ThemeSupport.App;
 
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
   const themeBasis = props.themeBasis;
@@ -236,13 +234,13 @@ function getThemeProviderProps({
 
   const storageKey = isEmbedMode
     ? // Same Namespace, Same Organizer but different themes would still work seamless and not cause theme flicker
-    // Even though it's recommended to use different namespaces when you want to theme differently on the same page but if the embeds are on different pages, the problem can still arise
-    `embed-theme-${embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
+      // Even though it's recommended to use different namespaces when you want to theme differently on the same page but if the embeds are on different pages, the problem can still arise
+      `embed-theme-${embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
     : themeSupport === ThemeSupport.App
-      ? "app-theme"
-      : isBookingPageThemeSupportRequired
-        ? `booking-theme${appearanceIdSuffix}`
-        : undefined;
+    ? "app-theme"
+    : isBookingPageThemeSupportRequired
+    ? `booking-theme${appearanceIdSuffix}`
+    : undefined;
 
   return {
     storageKey,
@@ -278,6 +276,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
     (typeof props.Component.isBookingPage === "function"
       ? props.Component.isBookingPage({ router: props.router })
       : props.Component.isBookingPage) || isBookingPage;
+  const nuqsParams = useNuqsParams();
 
   const RemainingProviders = (
     <CustomI18nextProvider {...props}>
@@ -287,7 +286,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
           isThemeSupported={props.Component.isThemeSupported}
           isBookingPage={props.Component.isBookingPage || isBookingPage}
           router={props.router}>
-          <NuqsAdapter>
+          <NuqsAdapter {...nuqsParams}>
             <FeatureFlagsProvider>
               {_isBookingPage ? (
                 <OrgBrandProvider>{props.children}</OrgBrandProvider>

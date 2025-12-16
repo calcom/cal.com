@@ -1,12 +1,12 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { BillingPeriod } from "@calcom/prisma/enums";
@@ -28,7 +28,7 @@ const teamsSchema = orgOnboardingTeamsSchema;
 /**
  * Handles organization onboarding when billing is disabled (self-hosted admin flow).
  *
-* Flow:
+ * Flow:
  * 1. Create onboarding record
  * 2. Store teams/invites in database
  * 3. Immediately create organization, teams, and invite members

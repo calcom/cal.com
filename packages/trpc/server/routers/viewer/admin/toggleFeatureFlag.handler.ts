@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
+
 import type { TAdminToggleFeatureFlagSchema } from "./toggleFeatureFlag.schema";
 
 type GetOptions = {

@@ -3,7 +3,7 @@ import {
   getCalendarCredentials,
   getConnectedCalendars,
 } from "@calcom/features/calendars/lib/CalendarManager";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
+import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

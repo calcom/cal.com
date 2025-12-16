@@ -55,6 +55,11 @@ export interface BookingReportWithDetails {
     action: string;
     description: string | null;
   } | null;
+  organization: {
+    id: number;
+    name: string;
+    slug: string | null;
+  } | null;
 }
 
 export interface IBookingReportRepository {
@@ -82,6 +87,17 @@ export interface IBookingReportRepository {
     reportId: string;
     status: BookingReportStatus;
     organizationId?: number;
+  }): Promise<void>;
+
+  bulkUpdateReportStatus(params: {
+    reportIds: string[];
+    status: BookingReportStatus;
+    organizationId?: number;
+  }): Promise<{ updated: number }>;
+
+  bulkLinkWatchlistWithStatus(params: {
+    links: Array<{ reportId: string; watchlistId: string }>;
+    status: BookingReportStatus;
   }): Promise<void>;
 
   countPendingReports(params: { organizationId: number }): Promise<number>;

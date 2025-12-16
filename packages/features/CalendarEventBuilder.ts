@@ -7,7 +7,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
 import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -226,12 +226,25 @@ export class CalendarEventBuilder {
 
     // Team & calendars
     if (eventType.team) {
+      // We need to get the team members assigned to the booking
+      // In the DB team members are stored in the Attendee table
+      const bookingAttendees = booking.attendees;
+
+      const hostsToInclude = eventType.hosts.filter((host) =>
+        bookingAttendees.some((attendee) => attendee.email === host.user.email)
+      );
+
+      const hostsWithoutOrganizerData = hostsToInclude.filter(
+        (host) => host.user.email !== user.email
+      );
+
       const hostsWithoutOrganizer = await Promise.all(
-        eventType.hosts.filter((h) => h.user.email !== user.email).map((h) => _buildPersonFromUser(h.user))
+        hostsWithoutOrganizerData.map((host) => _buildPersonFromUser(host.user))
       );
 
       const hostCalendars = [
-        ...eventType.hosts.map((h) => h.user.destinationCalendar).filter(Boolean),
+        user.destinationCalendar,
+        ...hostsWithoutOrganizerData.map((h) => h.user.destinationCalendar).filter(Boolean),
         user.destinationCalendar,
       ].filter(Boolean) as NonNullable<DestinationCalendar>[];
 

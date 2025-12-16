@@ -28,6 +28,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       id: true,
+      isPrivate: true,
       hideBranding: true,
       parent: {
         select: {
@@ -86,6 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         team,
       }),
       themeBasis: null,
+      teamIsPrivate: team.isPrivate,
     },
   };
 };

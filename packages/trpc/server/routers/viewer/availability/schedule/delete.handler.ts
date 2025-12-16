@@ -1,4 +1,4 @@
-import { HostRepository } from "@calcom/lib/server/repository/host";
+import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";

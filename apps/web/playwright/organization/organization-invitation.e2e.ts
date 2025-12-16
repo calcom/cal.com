@@ -582,7 +582,8 @@ async function expectUserToBeAMemberOfTeam({
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
   await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(1000); // Add a small delay to ensure UI is fully loaded
+  // Wait for the member list to be ready instead of fixed 1s wait
+  await page.locator(`[data-testid="member-${username}"]`).waitFor({ state: "visible", timeout: 10000 });
   expect(
     (
       await page
@@ -612,7 +613,8 @@ async function copyInviteLink(page: Page, teamPage?: boolean) {
     if (teamIdMatch && teamIdMatch[1]) {
       await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      // Wait for the new member button to be visible instead of fixed 500ms wait
+      await page.getByTestId("new-member-button").waitFor({ state: "visible" });
     }
     await page.getByTestId("new-member-button").click();
   } else {

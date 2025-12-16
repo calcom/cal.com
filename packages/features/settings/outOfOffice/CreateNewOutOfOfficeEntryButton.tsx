@@ -32,12 +32,12 @@ const CreateNewOutOfOfficeEntryButton = ({
     <Button
       color="primary"
       size={size ?? "base"}
-      className="flex items-center justify-between px-4"
+      className="flex items-center justify-between px-2 md:px-4"
       StartIcon="plus"
       onClick={onClick}
       data-testid={rest["data-testid"]}
       disabled={selectedTab === OutOfOfficeTab.TEAM && !hasTeamOOOAdminAccess}>
-      {t("add")}
+      <span className="sr-only md:not-sr-only md:inline">{t("add")}</span>
     </Button>
   );
 };

@@ -4,6 +4,7 @@ import getRawBody from "raw-body";
 import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
@@ -87,7 +88,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
     if (!isValid) throw new HttpCode({ statusCode: 400, message: "signature mismatch" });
 
-    await handlePaymentSuccess(payment.id, payment.bookingId);
+    const traceContext = distributedTracing.createTrace("btcpayserver_webhook", {
+      meta: { paymentId: payment.id, bookingId: payment.bookingId },
+    });
+    await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
     return res.status(200).json({ success: true });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);

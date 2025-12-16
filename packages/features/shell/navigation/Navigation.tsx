@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import {
   useOrgBranding,
   type OrganizationBranding,
@@ -24,7 +25,11 @@ const preserveBookingsQueryParams = ({
   nextPathname: string;
 }) => Boolean(prevPathname?.startsWith("/bookings/")) && nextPathname.startsWith("/bookings/");
 
-const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
+const getNavigationItems = (
+  orgBranding: OrganizationBranding,
+  hasInsightsAccess: boolean
+): NavigationItemType[] => [
+ 
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -36,38 +41,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "calendar",
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
-    child: [
-      {
-        name: "upcoming",
-        href: "/bookings/upcoming",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/upcoming",
-      },
-      {
-        name: "unconfirmed",
-        href: "/bookings/unconfirmed",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/unconfirmed",
-      },
-      {
-        name: "recurring",
-        href: "/bookings/recurring",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/recurring",
-      },
-      {
-        name: "past",
-        href: "/bookings/past",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/past",
-      },
-      {
-        name: "cancelled",
-        href: "/bookings/cancelled",
-        preserveQueryParams: preserveBookingsQueryParams,
-        isCurrent: ({ pathname }) => pathname === "/bookings/cancelled",
-      },
-    ],
   },
   {
     name: "availability",
@@ -146,29 +119,31 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "chart-bar",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
-    child: [
-      {
-        name: "bookings",
-        href: "/insights",
-        isCurrent: ({ pathname: path }) => path === "/insights",
-      },
-      {
-        name: "routing",
-        href: "/insights/routing",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
-      },
-      {
-        name: "router_position",
-        href: "/insights/router-position",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
-      },
-      {
-        name: "call_history",
-        href: "/insights/call-history",
-        // icon: "phone",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
-      },
-    ],
+    child: hasInsightsAccess
+      ? [
+          {
+            name: "bookings",
+            href: "/insights",
+            isCurrent: ({ pathname: path }) => path === "/insights",
+          },
+          {
+            name: "routing",
+            href: "/insights/routing",
+            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
+          },
+          {
+            name: "router_position",
+            href: "/insights/router-position",
+            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
+          },
+          {
+            name: "call_history",
+            href: "/insights/call-history",
+            // icon: "phone",
+            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
+          },
+        ]
+      : undefined,
   },
 ];
 
@@ -224,8 +199,12 @@ const platformNavigationItems: NavigationItemType[] = [
 
 const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
+  const { hasPaidPlan, isPending } = useHasPaidPlan();
   return useMemo(() => {
-    const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
+    const hasInsightsAccess = !isPending && !!hasPaidPlan;
+    const items = !isPlatformNavigation
+      ? getNavigationItems(orgBranding, hasInsightsAccess)
+      : platformNavigationItems;
 
     const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
     const mobileNavigationBottomItems = items.filter(
@@ -236,7 +215,7 @@ const useNavigationItems = (isPlatformNavigation = false) => {
     );
 
     return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
-  }, [isPlatformNavigation, orgBranding]);
+  }, [hasPaidPlan, isPending, isPlatformNavigation, orgBranding]);
 };
 
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {

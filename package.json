@@ -100,7 +100,7 @@
     "checkly": "latest",
     "dotenv-checker": "^1.1.5",
     "eslint": "9.36.0",
-    "husky": "^8.0.0",
+    "husky": "9.1.7",
     "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
     "jest-summarizing-reporter": "^1.1.4",
@@ -139,7 +139,9 @@
     "dayjs@1.11.2": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
-    "import-in-the-middle": "1.13.1"
+    "import-in-the-middle": "1.13.1",
+    "react@19.2.0": "19.2.2",
+    "react@19.2.1": "19.2.2"
   },
   "engines": {
     "npm": ">=7.0.0",

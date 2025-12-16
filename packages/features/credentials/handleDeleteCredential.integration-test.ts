@@ -132,6 +132,19 @@ describe("handleDeleteCredential Integration Tests - BookingReference Soft Delet
               },
             ],
           },
+          payment: {
+            create: {
+              uid: "payment-uid-123",
+              appId: "stripe",
+              amount: 1000,
+              fee: 0,
+              currency: "usd",
+              success: false,
+              refunded: false,
+              data: {},
+              externalId: "ext-payment-123",
+            },
+          },
         },
       });
       createdBookingIds.push(unpaidBooking.id);
@@ -212,6 +225,19 @@ describe("handleDeleteCredential Integration Tests - BookingReference Soft Delet
               },
             ],
           },
+          payment: {
+            create: {
+              uid: "payment-uid-456",
+              appId: "stripe",
+              amount: 1000,
+              fee: 0,
+              currency: "usd",
+              success: false,
+              refunded: false,
+              data: {},
+              externalId: "ext-payment-456",
+            },
+          },
         },
       });
       createdBookingIds.push(unpaidBooking.id);
@@ -270,6 +296,19 @@ describe("handleDeleteCredential Integration Tests - BookingReference Soft Delet
               },
             ],
           },
+          payment: {
+            create: {
+              uid: "payment-uid-b1",
+              appId: "stripe",
+              amount: 1000,
+              fee: 0,
+              currency: "usd",
+              success: false,
+              refunded: false,
+              data: {},
+              externalId: "ext-payment-b1",
+            },
+          },
         },
       });
       createdBookingIds.push(booking1.id);
@@ -292,6 +331,19 @@ describe("handleDeleteCredential Integration Tests - BookingReference Soft Delet
                 timeZone: "America/New_York",
               },
             ],
+          },
+          payment: {
+            create: {
+              uid: "payment-uid-b2",
+              appId: "stripe",
+              amount: 1000,
+              fee: 0,
+              currency: "usd",
+              success: false,
+              refunded: false,
+              data: {},
+              externalId: "ext-payment-b2",
+            },
           },
         },
       });
@@ -422,6 +474,19 @@ describe("handleDeleteCredential Integration Tests - BookingReference Soft Delet
                 timeZone: "America/New_York",
               },
             ],
+          },
+          payment: {
+            create: {
+              uid: "payment-uid-query-test",
+              appId: "stripe",
+              amount: 1000,
+              fee: 0,
+              currency: "usd",
+              success: false,
+              refunded: false,
+              data: {},
+              externalId: "ext-payment-query-test",
+            },
           },
         },
       });

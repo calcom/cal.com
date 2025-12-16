@@ -5,18 +5,12 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 function SkeletonLoader() {
   return (
     <ul className="divide-subtle border-subtle bg-default animate-pulse divide-y rounded-md border sm:overflow-hidden">
-      {/* TODAY header */}
-      <li className="bg-muted flex items-center px-6 py-4">
-        <SkeletonText className="h-4 w-16" />
-      </li>
+      <SkeletonHeader />
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
 
-      {/* NEXT header */}
-      <li className="bg-muted px-4 py-2">
-        <SkeletonText className="h-4 w-16" />
-      </li>
+      <SkeletonHeader />
       <SkeletonItem />
       <SkeletonItem />
     </ul>
@@ -24,6 +18,14 @@ function SkeletonLoader() {
 }
 
 export default SkeletonLoader;
+
+function SkeletonHeader() {
+  return (
+    <li className="bg-muted flex items-center px-6 py-4">
+      <SkeletonText className="h-4 w-16" />
+    </li>
+  );
+}
 
 function SkeletonItem() {
   return (
