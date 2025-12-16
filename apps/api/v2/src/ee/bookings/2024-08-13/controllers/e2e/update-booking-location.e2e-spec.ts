@@ -358,7 +358,7 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
 
       await request(app.getHttpServer())
         .patch(`/v2/bookings/${bookingUid}/location`)
-        .send({ location: "https://non-organizer.example.com" })
+        .send({ location: { type: "link", link: "https://non-organizer.example.com" } })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
         .expect(403);
