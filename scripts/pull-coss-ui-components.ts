@@ -36,7 +36,13 @@ type TargetDirs = {
 
 async function resolvePaths(): Promise<{ targetDirs: TargetDirs; targetRoot: string }> {
   const cwd = process.cwd();
-  const targetRoot = path.resolve(cwd, 'packages/coss-ui/src');
+
+  // Check if we're running from within packages/coss-ui or from monorepo root
+  const isInPackage = cwd.endsWith('packages/coss-ui') || cwd.endsWith('packages\\coss-ui');
+  const targetRoot = isInPackage
+    ? path.resolve(cwd, 'src')
+    : path.resolve(cwd, 'packages/coss-ui/src');
+
   const targetDirs: TargetDirs = {
     components: path.join(targetRoot, 'components'),
   };
