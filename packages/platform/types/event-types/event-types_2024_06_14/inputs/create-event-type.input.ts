@@ -3,6 +3,7 @@ import {
   ApiPropertyOptional as DocsPropertyOptional,
   getSchemaPath,
   ApiExtraModels,
+  ApiHideProperty,
 } from "@nestjs/swagger";
 import { Type, Transform, Expose } from "class-transformer";
 import {
@@ -650,4 +651,13 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
     example: 1,
   })
   maxRoundRobinHosts?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  /* @DocsPropertyOptional({
+    description:
+      "For round robin event types, enable filtering available hosts to only consider a specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+  }) */
+  @ApiHideProperty()
+  rrHostSubsetEnabled?: boolean;
 }

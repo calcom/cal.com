@@ -115,6 +115,7 @@ export type FormValues = {
   useEventLevelSelectedCalendars: boolean;
   disabledCancelling: boolean;
   disabledRescheduling: boolean;
+  minimumRescheduleNotice: number | null;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)
@@ -263,7 +264,7 @@ const calVideoSettingsSchema = z
 
 export const createEventTypeInput = z
   .object({
-    title: z.string().min(1),
+    title: z.string().trim().min(1),
     slug: eventTypeSlug,
     description: z.string().nullish(),
     length: z.number().int(),

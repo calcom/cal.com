@@ -90,6 +90,7 @@ const commons = {
   seatsShowAvailabilityCount: null,
   disableCancelling: false,
   disableRescheduling: false,
+  minimumRescheduleNotice: null,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
   allowReschedulingCancelledBookings: false,
@@ -154,6 +155,7 @@ const commons = {
   bookingRequiresAuthentication: false,
   createdAt: null,
   updatedAt: null,
+  rrHostSubsetEnabled: false,
 };
 
 export const dynamicEvent = {
