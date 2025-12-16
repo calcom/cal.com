@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import "../../../../../../../ui/components/test-setup";
+import "@calcom/ui/components/test-setup";
 import { getGroupOptionUpdate } from "../AttributesForm";
 
 describe("getGroupOptionUpdate", () => {
