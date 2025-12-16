@@ -1,6 +1,6 @@
 "use client";
 
-import { Toolbar as ToolbarPrimitive } from "@base-ui-components/react/toolbar";
+import { Toolbar as ToolbarPrimitive } from "@base-ui/react/toolbar";
 
 import { cn } from "@coss/ui/lib/utils";
 

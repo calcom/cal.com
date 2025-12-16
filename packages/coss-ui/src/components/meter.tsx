@@ -1,6 +1,6 @@
 "use client";
 
-import { Meter as MeterPrimitive } from "@base-ui-components/react/meter";
+import { Meter as MeterPrimitive } from "@base-ui/react/meter";
 
 import { cn } from "@coss/ui/lib/utils";
 

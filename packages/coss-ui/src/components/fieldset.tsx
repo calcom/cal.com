@@ -1,6 +1,6 @@
 "use client";
 
-import { Fieldset as FieldsetPrimitive } from "@base-ui-components/react/fieldset";
+import { Fieldset as FieldsetPrimitive } from "@base-ui/react/fieldset";
 
 import { cn } from "@coss/ui/lib/utils";
 

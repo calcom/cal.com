@@ -1,7 +1,7 @@
 "use client";
 
-import { Field as FieldPrimitive } from "@base-ui-components/react/field";
-import { mergeProps } from "@base-ui-components/react/merge-props";
+import { Field as FieldPrimitive } from "@base-ui/react/field";
+import { mergeProps } from "@base-ui/react/merge-props";
 import type * as React from "react";
 
 import { cn } from "@coss/ui/lib/utils";

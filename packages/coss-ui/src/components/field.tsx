@@ -1,6 +1,6 @@
 "use client";
 
-import { Field as FieldPrimitive } from "@base-ui-components/react/field";
+import { Field as FieldPrimitive } from "@base-ui/react/field";
 
 import { cn } from "@coss/ui/lib/utils";
 
@@ -17,7 +17,10 @@ function Field({ className, ...props }: FieldPrimitive.Root.Props) {
 function FieldLabel({ className, ...props }: FieldPrimitive.Label.Props) {
   return (
     <FieldPrimitive.Label
-      className={cn("inline-flex items-center gap-2 text-sm/4", className)}
+      className={cn(
+        "inline-flex items-center gap-2 font-medium text-base/4.5 sm:text-sm/4",
+        className,
+      )}
       data-slot="field-label"
       {...props}
     />

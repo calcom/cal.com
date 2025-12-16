@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertDialog as AlertDialogPrimitive } from "@base-ui-components/react/alert-dialog";
+import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog";
 
 import { cn } from "@coss/ui/lib/utils";
 
@@ -93,7 +93,7 @@ function AlertDialogFooter({
   return (
     <div
       className={cn(
-        "flex flex-col-reverse gap-2 px-6 sm:flex-row sm:justify-end sm:rounded-b-xl",
+        "flex flex-col-reverse gap-2 px-6 sm:flex-row sm:justify-end sm:rounded-b-[calc(var(--radius-2xl)-1px)]",
         variant === "default" && "border-t bg-muted/50 py-4",
         variant === "bare" && "pt-4 pb-6",
         className,

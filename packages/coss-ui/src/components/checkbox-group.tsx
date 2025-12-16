@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckboxGroup as CheckboxGroupPrimitive } from "@base-ui-components/react/checkbox-group";
+import { CheckboxGroup as CheckboxGroupPrimitive } from "@base-ui/react/checkbox-group";
 
 import { cn } from "@coss/ui/lib/utils";
 
