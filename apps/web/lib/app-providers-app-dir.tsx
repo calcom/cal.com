@@ -8,6 +8,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
+import DynamicPostHogPageView from "@calcom/features/ee/event-tracking/lib/posthog/web/pageViewDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
@@ -16,11 +17,10 @@ import { useFlags } from "@calcom/features/flags/hooks";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
+import { useNuqsParams } from "@lib/hooks/useNuqsParams";
 import type { WithLocaleProps } from "@lib/withLocale";
 
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
-
-import DynamicPostHogPageView from "@calcom/features/ee/event-tracking/lib/posthog/web/pageViewDynamic";
 
 import { getThemeProviderProps } from "./getThemeProviderProps";
 
@@ -112,6 +112,7 @@ const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
   const isThemeSupported = useIsThemeSupported();
+  const nuqsParams = useNuqsParams();
 
   const RemainingProviders = (
     <>
@@ -121,7 +122,7 @@ const AppProviders = (props: PageWrapperProps) => {
           nonce={props.nonce}
           isThemeSupported={isThemeSupported}
           isBookingPage={props.isBookingPage || isBookingPage}>
-          <NuqsAdapter>
+          <NuqsAdapter {...nuqsParams}>
             <FeatureFlagsProvider>
               {props.isBookingPage || isBookingPage ? (
                 <OrgBrandProvider>{props.children}</OrgBrandProvider>

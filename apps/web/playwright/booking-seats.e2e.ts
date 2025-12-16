@@ -555,7 +555,8 @@ test.describe("Reschedule for booking with seats", () => {
     await page.waitForSelector('[data-testid="bookings"]');
 
     await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-    await page.waitForTimeout(2000);
+    // Wait for the dropdown menu to appear instead of fixed 2s wait
+    await page.locator('[data-testid="reschedule"]').waitFor({ state: "visible" });
     const href = await page.locator('[data-testid="reschedule"]').getAttribute("href");
     const url = new URL(href!, page.url());
     const seatReferenceUid = url.searchParams.get('seatReferenceUid');
@@ -563,7 +564,8 @@ test.describe("Reschedule for booking with seats", () => {
       await page.reload();
       await page.waitForSelector('[data-testid="bookings"]');
       await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-      await page.waitForTimeout(2000);
+      // Wait for the dropdown menu to appear instead of fixed 2s wait
+      await page.locator('[data-testid="reschedule"]').waitFor({ state: "visible" });
     }
     await page.locator('[data-testid="reschedule"]').click();
     await expect(page.getByText("Seats available").first()).toBeVisible();

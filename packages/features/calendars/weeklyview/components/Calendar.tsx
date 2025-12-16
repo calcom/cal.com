@@ -67,7 +67,7 @@ function CalendarInner(props: CalendarComponentProps) {
           className="bg-default dark:bg-cal-muted relative isolate flex h-full flex-auto flex-col">
           <div
             style={{ width: "165%" }}
-            className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
+            className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
             <DateValues
               containerNavRef={containerNav}
               days={days}
@@ -129,6 +129,7 @@ function CalendarInner(props: CalendarComponentProps) {
                         className="relative"
                         key={i}
                         style={{
+                          gridColumnStart: i + 1,
                           gridRow: `1 / span ${numberOfGridStopsPerDay}`,
                         }}>
                         {/* While startDate < endDate:  */}
