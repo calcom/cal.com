@@ -10,8 +10,8 @@
     "url": "https://github.com/calcom/cal.com"
   },
   "scripts": {
-    "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "build": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify",
+    "dev": "yarn vite build --watch & npx postcss ./globals.css -o ./globals.min.css",
+    "build": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx postcss ./globals.css -o ./globals.min.css",
     "publish-npm": "yarn build && npm publish --access public",
     "test": "jest",
     "dev-on": "node scripts/dev-on.js",
