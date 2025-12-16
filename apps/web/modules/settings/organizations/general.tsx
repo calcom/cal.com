@@ -7,6 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { DisableAutofillOnBookingPageSwitch } from "@calcom/features/ee/organizations/pages/components/DisableAutofillOnBookingPageSwitch";
+import { DisablePhoneOnlySMSNotificationsSwitch } from "@calcom/features/ee/organizations/pages/components/DisablePhoneOnlySMSNotificationsSwitch";
+import { LockEventTypeSwitch } from "@calcom/features/ee/organizations/pages/components/LockEventTypeSwitch";
+import { NoSlotsNotificationSwitch } from "@calcom/features/ee/organizations/pages/components/NoSlotsNotificationSwitch";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -20,15 +24,10 @@ import { Select } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { DisableAutofillOnBookingPageSwitch } from "@calcom/features/ee/organizations/pages/components/DisableAutofillOnBookingPageSwitch";
-import { DisablePhoneOnlySMSNotificationsSwitch } from "@calcom/features/ee/organizations/pages/components/DisablePhoneOnlySMSNotificationsSwitch";
-import { LockEventTypeSwitch } from "@calcom/features/ee/organizations/pages/components/LockEventTypeSwitch";
-import { NoSlotsNotificationSwitch } from "@calcom/features/ee/organizations/pages/components/NoSlotsNotificationSwitch";
-
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mb-8 mt-6 stack-y-6">
+      <div className="stack-y-6 mb-8 mt-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -73,7 +72,7 @@ const OrgGeneralView = ({
         router.replace("/enterprise");
       }
     },
-    [error, router]
+    [error]
   );
 
   if (isPending) return <SkeletonLoader />;
