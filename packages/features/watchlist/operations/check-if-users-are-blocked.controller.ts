@@ -34,13 +34,14 @@ export async function checkIfUsersAreBlocked(params: CheckUsersBlockedParams): P
       let normalizedEmail: string;
       try {
         normalizedEmail = normalizeEmail(user.email);
-      } catch (error) {
+      } catch {
         // If email normalization fails (e.g., email contains characters like % that don't match our regex),
         // log the issue and skip watchlist check for this user. This prevents booking failures
         // when host users have emails with unusual but valid characters.
+        // Note: We intentionally don't log the error message as it contains the full email (PII).
         log.warn("Failed to normalize email for watchlist check, skipping user", {
           username: user.username,
-          error: error instanceof Error ? error.message : "Unknown error",
+          reason: "invalid_email_format",
         });
         continue;
       }
