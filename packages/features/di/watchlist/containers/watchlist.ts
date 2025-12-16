@@ -13,6 +13,7 @@ import {
 } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
 import type { IGlobalWatchlistRepository } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
 import type { IOrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
+import { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import { AdminWatchlistOperationsService } from "@calcom/features/watchlist/lib/service/AdminWatchlistOperationsService";
 import { AdminWatchlistQueryService } from "@calcom/features/watchlist/lib/service/AdminWatchlistQueryService";
 import type { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/GlobalBlockingService";
@@ -21,7 +22,6 @@ import { OrganizationWatchlistOperationsService } from "@calcom/features/watchli
 import { OrganizationWatchlistQueryService } from "@calcom/features/watchlist/lib/service/OrganizationWatchlistQueryService";
 import type { WatchlistAuditService } from "@calcom/features/watchlist/lib/service/WatchlistAuditService";
 import type { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { prisma } from "@calcom/prisma";
 
 import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
