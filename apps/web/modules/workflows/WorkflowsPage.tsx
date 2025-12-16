@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import LicenseRequired from "@calcom/features/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import EmptyScreen from "@calcom/features/ee/workflows/components/EmptyScreen";
 import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderList";

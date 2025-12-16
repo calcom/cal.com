@@ -7,6 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -35,8 +36,6 @@ import {
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { useOrgBranding } from "~/organizations/context/provider";
 
 import OrgAppearanceViewWrapper from "./appearance";
 
