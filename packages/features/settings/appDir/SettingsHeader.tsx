@@ -1,5 +1,6 @@
 import { Profile } from "@calid/features/ui/Profile";
 import { Icon } from "@calid/features/ui/components/icon";
+import { useRouter } from "next/navigation";
 import React, { Suspense } from "react";
 
 import classNames from "@calcom/ui/classNames";
@@ -23,6 +24,8 @@ export default function Header({
   borderInShellHeader,
   backButton,
 }: HeaderProps) {
+  const router = useRouter();
+
   return (
     <div>
       <header
@@ -34,9 +37,9 @@ export default function Header({
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
           <div className="flex w-full items-center">
             {backButton && (
-              <a href="javascript:history.back()">
+              <button type="button" onClick={() => router.back()}>
                 <Icon name="arrow-left" className="mr-7" />
-              </a>
+              </button>
             )}
             <div>
               {title ? (
