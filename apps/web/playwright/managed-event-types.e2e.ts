@@ -243,9 +243,37 @@ test.describe("Managed Event Types", () => {
     }
 
     await hiddenSwitch.click();
-    
+
     await expect(hiddenLabel).toBeVisible();
     await expect(hiddenLabel).toContainText("Hidden");
+  });
+
+  test("Hidden toggle value propagates from parent to child events", async ({ page, users, browser }) => {
+    const { adminUser, memberUser } = await setupManagedEvent({ users });
+    
+    await adminUser.apiLogin();
+    const managedEvent = await adminUser.getFirstTeamEvent();
+    await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
+    await page.getByTestId("update-eventtype").waitFor();
+
+    const hiddenSwitch = page.locator("#hiddenSwitch");
+    const lockIndicator = page.getByTestId("locked-indicator-hidden");
+    
+    if (await lockIndicator.isVisible()) {
+      await lockIndicator.click();
+    }
+    
+    await hiddenSwitch.click();
+    await saveAndWaitForResponse(page);
+
+    const [memberContext, memberPage] = await memberUser.apiLoginOnNewBrowser(browser);
+    const memberEvent = await memberUser.getFirstEventAsOwner();
+    await memberPage.goto(`/event-types/${memberEvent.id}?tabName=setup`);
+    await memberPage.waitForURL("event-types/**");
+
+    const memberHiddenSwitch = memberPage.locator("#hiddenSwitch");
+    await expect(memberHiddenSwitch).toBeChecked({ checked: false });
+    await memberContext.close();
   });
 
   const MANAGED_EVENT_TABS: { slug: string; locator: (page: Page) => Locator | Promise<Locator> }[] = [

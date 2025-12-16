@@ -238,6 +238,7 @@ export default async function handleChildrenEventTypes({
         allowReschedulingCancelledBookings:
           managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
         rrHostSubsetEnabled: false,
+        hidden: managedEventTypeValues.hidden,
       };
     });
 
@@ -333,7 +334,9 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             rrHostSubsetEnabled: false,
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            ...("hidden" in unlockedFieldProps
+              ? { hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false }
+              : {}),
             ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
             useBookerTimezone: false,
