@@ -570,7 +570,57 @@ export const InfiniteEventTypeList = ({
                           />
                         )}
                         <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                          {!isManagedEventType && (
+                          <div className="flex items-center">
+                            {isManagedEventType && (
+                              <Tooltip
+                                content={
+                                  !type.metadata?.managedEventConfig?.unlockedFields?.hidden
+                                    ? t("locked")
+                                    : t("unlocked")
+                                }>
+                                <Button
+                                  className="mr-2"
+                                  variant="icon"
+                                  StartIcon={
+                                    !type.metadata?.managedEventConfig?.unlockedFields?.hidden
+                                      ? "lock"
+                                      : "unlock"
+                                  }
+                                  color="secondary"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const currentMetadata = (type.metadata as object) || {};
+                                    // @ts-ignore
+                                    const currentManagedConfig = currentMetadata.managedEventConfig || {};
+                                    // @ts-ignore
+                                    const currentUnlocked = currentManagedConfig.unlockedFields || {};
+                                    const isHiddenLocked = !currentUnlocked.hidden;
+
+                                    const newUnlocked = { ...currentUnlocked };
+                                    if (isHiddenLocked) {
+                                      // @ts-ignore
+                                      newUnlocked.hidden = true;
+                                    } else {
+                                      // @ts-ignore
+                                      delete newUnlocked.hidden;
+                                    }
+
+                                    setHiddenMutation.mutate({
+                                      id: type.id,
+                                      // @ts-ignore
+                                      metadata: {
+                                        ...currentMetadata,
+                                        managedEventConfig: {
+                                          ...currentManagedConfig,
+                                          unlockedFields: newUnlocked,
+                                        },
+                                      },
+                                    });
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
                             <>
                               {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                               <Tooltip
@@ -589,7 +639,7 @@ export const InfiniteEventTypeList = ({
                                 </div>
                               </Tooltip>
                             </>
-                          )}
+                          </div>
 
                           <ButtonGroup combined>
                             {!isManagedEventType && (
