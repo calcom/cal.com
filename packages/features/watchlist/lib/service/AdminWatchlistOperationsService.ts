@@ -1,5 +1,5 @@
+import type { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import logger from "@calcom/lib/logger";
-import type { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { BookingReportStatus } from "@calcom/prisma/enums";
 

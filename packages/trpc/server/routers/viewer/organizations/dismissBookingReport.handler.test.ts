@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { MembershipRole, BookingReportReason } from "@calcom/prisma/enums";
 
 import { dismissBookingReportHandler } from "./dismissBookingReport.handler";
