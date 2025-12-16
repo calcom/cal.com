@@ -132,33 +132,13 @@ export class CalComOAuthService {
       }
 
       return { type: "error" };
-    }
-
-    if (Platform.OS === "web") {
-      const discovery = await this.getDiscoveryEndpoints();
-      const request = new AuthSession.AuthRequest({
-        clientId: this.config.clientId,
-        redirectUri: this.config.redirectUri,
-        responseType: AuthSession.ResponseType.Code,
-        state,
-        codeChallenge,
-        codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
-      });
-
-      const result = await request.promptAsync(discovery);
-
-      if (result.type === "success") {
-        return { type: "success", params: result.params ?? {} };
+    } else {
+      try {
+        const responseUrl = await this.launchExtensionAuthFlow(authUrl);
+        return { type: "success", params: this.parseCallbackUrl(responseUrl) };
+      } catch {
+        return { type: "error" };
       }
-
-      return { type: "error" };
-    }
-
-    try {
-      const responseUrl = await this.launchExtensionAuthFlow(authUrl);
-      return { type: "success", params: this.parseCallbackUrl(responseUrl) };
-    } catch {
-      return { type: "error" };
     }
   }
 

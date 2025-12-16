@@ -157,7 +157,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                     "text-left",
                     "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
                     "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
-                    isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
+                    isLocaleReady ? "hover:bg-subtle hover:text-emphasis" : "",
                     index === 0 && "mt-3"
                   )}
                   onClick={item.onClick}>
