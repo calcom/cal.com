@@ -9,6 +9,8 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -17,8 +19,6 @@ import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
@@ -96,7 +96,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   ]);
 
   if (!profile) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Profile not found");
   }
 
   const memberships = profileMemberships.map((membership) => ({
@@ -118,31 +118,27 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   const mapEventType = async (eventType: UserEventTypes) => {
     const userRepo = new UserRepository(prisma);
+    const eventTypeUsers = eventType?.hosts?.length
+      ? eventType.hosts.map((host) => host.user)
+      : eventType.users;
+    const enrichedUsers = await userRepo.enrichUsersWithTheirProfiles(eventTypeUsers);
+
+    const children = eventType.children || [];
+    const allChildUsers = children.flatMap((c) => c.users);
+    const enrichedAllChildUsers = await userRepo.enrichUsersWithTheirProfiles(allChildUsers);
+    const enrichedUsersMap = new Map(enrichedAllChildUsers.map((user) => [user.id, user]));
+
+    const enrichedChildren = children.map((c) => ({
+      ...c,
+      users: c.users.map((user) => enrichedUsersMap.get(user.id)).filter((user) => !!user),
+    }));
+
     return {
       ...eventType,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-      users: await Promise.all(
-        (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-          async (u) =>
-            await userRepo.enrichUserWithItsProfile({
-              user: u,
-            })
-        )
-      ),
+      users: enrichedUsers,
       metadata: eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null,
-      children: await Promise.all(
-        (eventType.children || []).map(async (c) => ({
-          ...c,
-          users: await Promise.all(
-            c.users.map(
-              async (u) =>
-                await userRepo.enrichUserWithItsProfile({
-                  user: u,
-                })
-            )
-          ),
-        }))
-      ),
+      children: enrichedChildren,
     };
   };
 

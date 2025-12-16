@@ -60,7 +60,7 @@ describe("substituteVariables", () => {
 
     const result = substituteVariables(routeValue, response, fields);
 
-    expect(result).toBe("/team/sales-team/meeting");
+    expect(result).toBe("/team/Sales%20Team/meeting");
     expect(result).not.toBe("/team/sales-123/meeting");
     expect(result).not.toBe("/team/department/meeting");
   });
@@ -78,10 +78,10 @@ describe("substituteVariables", () => {
 
     const result = substituteVariables(routeValue, response, fields);
 
-    expect(result).toBe("/engineering/backend-team/book");
+    expect(result).toBe("/Engineering/Backend%20Team/book");
   });
 
-  it("should handle special characters in labels by slugifying them", () => {
+  it("should handle special characters in labels by encoding them", () => {
     const fields = [
       createSelectField("field1", "department", "Department", [{ id: "hr_dept", label: "HR & Recruitment" }]),
     ];
@@ -89,7 +89,7 @@ describe("substituteVariables", () => {
     const response = createFormResponse("field1", "hr_dept", "Department");
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/meeting/hr-recruitment");
+    expect(result).toBe("/meeting/HR%20%26%20Recruitment");
   });
 
   it("should handle case-insensitive variable matching", () => {
@@ -102,7 +102,7 @@ describe("substituteVariables", () => {
     const response = createFormResponse("field1", "support-001", "Department");
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/team/customer-support/schedule");
+    expect(result).toBe("/team/Customer%20Support/schedule");
   });
 
   it("should not substitute variables that don't have matching fields", () => {
@@ -125,7 +125,7 @@ describe("substituteVariables", () => {
     const response = createFormResponse("field3", ["high", "urgent"], "Priority Level");
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/priorities/high-urgent");
+    expect(result).toBe("/priorities/High%2CUrgent");
   });
 
   it("should handle numeric labels", () => {
@@ -136,7 +136,7 @@ describe("substituteVariables", () => {
     const response = createFormResponse("field1", "room-id-123", "Department");
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/room/room-404");
+    expect(result).toBe("/room/Room%20404");
   });
 
   it("should not modify the URL if no variables are present", () => {
@@ -158,7 +158,7 @@ describe("substituteVariables", () => {
     const response = createFormResponse("field1", "marketing-789", "Department");
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/event/marketing-pr?type=meeting&priority=high");
+    expect(result).toBe("/event/Marketing%20%26%20PR?type=meeting&priority=high");
   });
 
   it("should substitute text field values directly", () => {
@@ -167,7 +167,7 @@ describe("substituteVariables", () => {
     const response = createFormResponse("field1", "John Doe", "Username");
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/user/john-doe/profile");
+    expect(result).toBe("/user/John%20Doe/profile");
   });
 
   it("should handle number field values", () => {
@@ -195,7 +195,7 @@ describe("substituteVariables", () => {
     };
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/tower-a/floor/404/engineering");
+    expect(result).toBe("/Tower%20A/floor/404/Engineering");
   });
 
   it("should handle text fields with special characters", () => {
@@ -204,7 +204,7 @@ describe("substituteVariables", () => {
     const response = createFormResponse("field1", "Cal.com Platform & API", "Project Name");
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/project/cal.com-platform-api/board");
+    expect(result).toBe("/project/Cal.com%20Platform%20%26%20API/board");
   });
 
   it("should handle empty text field values", () => {
@@ -224,6 +224,6 @@ describe("substituteVariables", () => {
     const response = createFormResponse("field1", "Bug Report Summary", "Description");
 
     const result = substituteVariables(routeValue, response, fields);
-    expect(result).toBe("/ticket/bug-report-summary");
+    expect(result).toBe("/ticket/Bug%20Report%20Summary");
   });
 });

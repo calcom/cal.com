@@ -9,6 +9,7 @@ import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builde
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -207,9 +208,13 @@ export class EmailWorkflowService {
         }
     }
 
-    // The evt builder already validates the bookerUrl exists
-    if (!evt || typeof evt.bookerUrl !== "string") {
+    // Only check for bookerUrl when evt is provided (not for form submissions)
+    if (evt && typeof evt.bookerUrl !== "string") {
       throw new Error("bookerUrl not a part of the evt");
+    }
+
+    if (!evt && !formData) {
+      throw new Error("Either evt or formData must be provided");
     }
 
     const contextData: WorkflowContextData = evt
@@ -311,7 +316,7 @@ export class EmailWorkflowService {
         sendToEmail: sendTo[0],
       });
       const meetingUrl =
-        evt.videoCallData?.url || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+        getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
@@ -406,19 +411,22 @@ export class EmailWorkflowService {
 
     const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
 
-    const attendeeT = await getTranslation(evt.attendees[0].language.locale || "en", "common");
-
-    const attendee = {
-      ...evt.attendees[0],
-      name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
-      language: { ...evt.attendees[0].language, translate: attendeeT },
-    };
+    const processedAttendees = await Promise.all(
+      evt.attendees.map(async (attendee) => {
+        const attendeeT = await getTranslation(attendee.language.locale || "en", "common");
+        return {
+          ...attendee,
+          name: preprocessNameFieldDataWithVariant("fullName", attendee.name) as string,
+          language: { ...attendee.language, translate: attendeeT },
+        };
+      })
+    );
 
     const emailEvent = {
       ...evt,
       type: evt.eventType?.slug || "",
       organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
-      attendees: [attendee],
+      attendees: processedAttendees,
       location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
@@ -437,11 +445,14 @@ export class EmailWorkflowService {
         ]
       : undefined;
 
+    const customReplyToEmail =
+      evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
+
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && {
-        replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email,
+        replyTo: customReplyToEmail || evt.organizer.email,
       }),
       attachments,
       sender,
