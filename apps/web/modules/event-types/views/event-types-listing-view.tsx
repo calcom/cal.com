@@ -596,26 +596,22 @@ export const InfiniteEventTypeList = ({
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    const currentMetadata = (type.metadata as object) || {};
-                                    // @ts-ignore
-                                    const currentManagedConfig = currentMetadata.managedEventConfig || {};
-                                    // @ts-ignore
-                                    const currentUnlocked = currentManagedConfig.unlockedFields || {};
-                                    const isHiddenLocked = !currentUnlocked.hidden;
+
+                                    const currentMetadata = type.metadata || {};
+                                    const currentManagedConfig = type.metadata?.managedEventConfig || {};
+                                    const currentUnlocked = currentManagedConfig?.unlockedFields || {};
+                                    const isHiddenLocked = !currentUnlocked?.hidden;
 
                                     const newUnlocked = { ...currentUnlocked };
                                     if (isHiddenLocked) {
-                                      // @ts-ignore
                                       newUnlocked.hidden = true;
                                     } else {
-                                      // @ts-ignore
                                       delete newUnlocked.hidden;
                                     }
 
                                     setHiddenMutation.mutate({
                                       id: type.id,
                                       hidden: type.hidden,
-                                      // @ts-ignore
                                       metadata: {
                                         ...currentMetadata,
                                         managedEventConfig: {
