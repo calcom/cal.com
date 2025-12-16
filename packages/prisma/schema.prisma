@@ -1704,6 +1704,8 @@ model UserFeatures {
   assignedAt DateTime @default(now())
   assignedBy String
   updatedAt  DateTime @updatedAt
+  // Tri-state: true = enabled, false = disabled, null = inherit
+  enabled    Boolean?
 
   @@id([userId, featureId])
   @@index([userId, featureId])
@@ -1717,6 +1719,8 @@ model TeamFeatures {
   assignedAt DateTime @default(now())
   assignedBy String
   updatedAt  DateTime @updatedAt
+  // Tri-state: true = enabled, false = disabled, null = inherit
+  enabled    Boolean?
 
   @@id([teamId, featureId])
   @@index([teamId, featureId])
