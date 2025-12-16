@@ -57,7 +57,7 @@ const handlePayment = async ({
   bookingSeat?: {
     id: number;
   };
-  response: Prisma.JsonValue;
+  responses: Prisma.JsonValue;
 }) => {
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
@@ -116,11 +116,26 @@ const handlePayment = async ({
   try {
     // Schedule Inngest function to verify payment and trigger afterPayment after 10 minutes
     const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
-
+    //removing translate fn as  it wasn't being serialized properly when passed through Inngest
+    const serializableEvt = {
+      ...evt,
+      organizer: {
+        ...evt.organizer,
+        language: {
+          locale: evt.organizer.language.locale,
+        },
+      },
+      attendees: evt.attendees.map((attendee) => ({
+        ...attendee,
+        language: {
+          locale: attendee.language.locale,
+        },
+      })),
+    };
     await inngestClient.send({
       name: `booking/payment-reminder-${key}`,
       data: {
-        evt,
+        evt: serializableEvt,
         booking: {
           user: booking.user,
           id: booking.id,
