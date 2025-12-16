@@ -233,6 +233,10 @@ describe("handleChildrenEventTypes", () => {
         metadata: { managedEventConfig: {} },
         locations: [],
       });
+
+      // Mock findMany for existing records lookup (new batch update optimization)
+      prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
+
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
@@ -301,6 +305,10 @@ describe("handleChildrenEventTypes", () => {
         metadata: { managedEventConfig: {} },
         locations: [],
       });
+
+      // Mock findMany for existing records lookup (new batch update optimization)
+      prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
+
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }, { userId: 1 }], team: { name: "" } },
@@ -437,6 +445,10 @@ describe("handleChildrenEventTypes", () => {
         metadata: { managedEventConfig: {} },
         locations: [],
       });
+
+      // Mock findMany for existing records lookup (new batch update optimization)
+      prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
+
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -534,6 +546,9 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
+
+      // Mock findMany for existing records lookup (new batch update optimization)
+      prismaMock.eventType.findMany.mockResolvedValue([{ userId: 4, metadata: {} }]);
 
       // Mock the event type that will be returned for existing users
       const mockUpdatedEventType = {
