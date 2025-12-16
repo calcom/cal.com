@@ -226,7 +226,6 @@ export default async function handleChildrenEventTypes({
         onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
         userId,
         parentId,
-        hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
         /**
          * RR Segment isn't applicable for managed event types.
          */
