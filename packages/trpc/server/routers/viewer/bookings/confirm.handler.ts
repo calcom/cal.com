@@ -20,6 +20,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import {
@@ -44,6 +45,7 @@ type ConfirmOptions = {
       NonNullable<TrpcSessionUser>,
       "id" | "uuid" | "email" | "username" | "role" | "destinationCalendar"
     >;
+    traceContext: TraceContext;
   };
   input: TConfirmInputSchema;
 };
@@ -280,6 +282,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
   }
+  const traceContext = {
+    ...ctx.traceContext,
+    bookingUid: booking.uid || "unknown",
+    confirmed: String(confirmed),
+    eventTypeId: booking.eventType?.id?.toString() || "null",
+    userId: user.id.toString(),
+    teamId: booking.eventType?.teamId?.toString() || "null",
+  };
+
   if (recurringEventId && recurringEvent) {
     const groupedRecurringBookings = await prisma.booking.groupBy({
       where: {
@@ -310,6 +321,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       (booking.eventType?.locations as LocationObject[]) || []
     );
     evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
+
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
@@ -319,6 +331,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      traceContext,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -395,7 +408,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
     try {

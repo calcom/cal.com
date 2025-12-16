@@ -42,10 +42,7 @@ import { BookingActionsDropdown } from "../../../components/booking/actions/Book
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
-import {
-  useBookingDetailsSheetStore,
-  useBookingDetailsSheetStoreApi,
-} from "../store/bookingDetailsSheetStore";
+import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
 
@@ -103,35 +100,38 @@ function BookingDetailsSheetInner({
   const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
     { uid: booking.uid },
     {
-      enabled: Boolean(booking.rescheduled || booking.fromReschedule),
       // Keep data fresh but don't refetch too aggressively
       staleTime: 5 * 60 * 1000, // 5 minutes
     }
   );
 
-  // Get navigation state directly from the store
-  const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
-  const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
-  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
+  // Get navigation state from the store in a single selector
+  const navigation = useBookingDetailsSheetStore((state) => {
+    const hasNextInArray = state.hasNextInArray();
+    const hasPreviousInArray = state.hasPreviousInArray();
+    const isLastInArray = state.isLastInArray();
+    const isFirstInArray = state.isFirstInArray();
+
+    return {
+      navigateNext: state.navigateNext,
+      navigatePrevious: state.navigatePrevious,
+      isTransitioning: state.isTransitioning,
+      setSelectedBookingUid: state.setSelectedBookingUid,
+      canGoNext: hasNextInArray || (isLastInArray && state.capabilities?.canNavigateToNextPeriod()),
+      canGoPrev: hasPreviousInArray || (isFirstInArray && state.capabilities?.canNavigateToPreviousPeriod()),
+    };
+  });
 
   const handleClose = () => {
-    setSelectedBookingUid(null);
+    navigation.setSelectedBookingUid(null);
   };
 
-  const storeApi = useBookingDetailsSheetStoreApi();
-
   const handleNext = () => {
-    const nextUid = storeApi.getState().getNextBookingUid();
-    if (nextUid !== null) {
-      setSelectedBookingUid(nextUid);
-    }
+    navigation.navigateNext();
   };
 
   const handlePrevious = () => {
-    const prevUid = storeApi.getState().getPreviousBookingUid();
-    if (prevUid !== null) {
-      setSelectedBookingUid(prevUid);
-    }
+    navigation.navigatePrevious();
   };
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
@@ -214,7 +214,7 @@ function BookingDetailsSheetInner({
                 size="sm"
                 color="secondary"
                 StartIcon="chevron-up"
-                disabled={!hasPrevious}
+                disabled={!navigation.canGoPrev || navigation.isTransitioning}
                 onClick={(e) => {
                   e.preventDefault();
                   handlePrevious();
@@ -225,7 +225,7 @@ function BookingDetailsSheetInner({
                 size="sm"
                 color="secondary"
                 StartIcon="chevron-down"
-                disabled={!hasNext}
+                disabled={!navigation.canGoNext || navigation.isTransitioning}
                 onClick={(e) => {
                   e.preventDefault();
                   handleNext();
@@ -289,6 +289,8 @@ function BookingDetailsSheetInner({
               customResponses={customResponses}
               bookingFields={booking.eventType?.bookingFields}
             />
+
+            <TrackingSection tracking={bookingDetails?.tracking} />
           </div>
         </SheetBody>
 
@@ -838,6 +840,43 @@ function BookingHeaderBadges({
         </Badge>
       )}
     </div>
+  );
+}
+
+function TrackingSection({
+  tracking,
+}: {
+  tracking?: {
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_term: string | null;
+    utm_content: string | null;
+  } | null;
+}) {
+  const { t } = useLocale();
+
+  if (!tracking) {
+    return null;
+  }
+
+  const utmEntries = Object.entries(tracking).filter(([_, value]) => Boolean(value));
+
+  if (utmEntries.length === 0) {
+    return null;
+  }
+
+  return (
+    <Section title={t("utm_params")}>
+      <div className="text-default text-sm">
+        {utmEntries.map(([key, value]) => (
+          <div key={key} className="mb-1 last:mb-0">
+            <span className="font-medium">{key}</span>:{" "}
+            <code className="bg-subtle text-default rounded px-1 py-0.5 font-mono text-xs">{value}</code>
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 }
 
