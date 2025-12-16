@@ -2,21 +2,25 @@
 
 import { useParams } from "next/navigation";
 import { useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateAttributesList } from "~/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
 
 import { AttributeForm } from "./AttributesForm";
 
-type FormValues = {
-  attrName: string;
-  type: "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT";
-  options: { value: string; id: string }[];
-};
+const CreateAttributeSchema = z.object({
+  // Calling this name would make sense but conflicts with rhf "watch" "name" field
+  attrName: z.string().min(1),
+  type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
+  options: z.array(z.object({ value: z.string(), id: z.string() })),
+});
+
+type FormValues = z.infer<typeof CreateAttributeSchema>;
 
 function CreateAttributesPage() {
   const utils = trpc.useUtils();
