@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import dayjs from "@calcom/dayjs";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -61,46 +61,29 @@ interface BookingLogsTimelineProps {
     logs: AuditLog[];
 }
 
-const getActionIcon = (action: string) => {
-    switch (action) {
-        case "CREATED":
-            return "calendar";
-        case "CANCELLED":
-        case "REJECTED":
-            return "ban";
-        case "ACCEPTED":
-            return "check";
-        case "RESCHEDULED":
-        case "RESCHEDULE_REQUESTED":
-            return "pencil";
-        case "REASSIGNMENT":
-        case "ATTENDEE_ADDED":
-        case "ATTENDEE_REMOVED":
-            return "user-check";
-        case "LOCATION_CHANGED":
-            return "map-pin";
-        case "HOST_NO_SHOW_UPDATED":
-        case "ATTENDEE_NO_SHOW_UPDATED":
-            return "ban";
-        default:
-            return "sparkles";
-    }
-};
+const ACTION_ICON_MAP: Record<string, IconName> = {
+    CREATED: "calendar",
+    CANCELLED: "ban",
+    REJECTED: "ban",
+    ACCEPTED: "check",
+    RESCHEDULED: "pencil",
+    RESCHEDULE_REQUESTED: "pencil",
+    REASSIGNMENT: "user-check",
+    ATTENDEE_ADDED: "user-check",
+    ATTENDEE_REMOVED: "user-check",
+    LOCATION_CHANGED: "map-pin",
+    HOST_NO_SHOW_UPDATED: "ban",
+    ATTENDEE_NO_SHOW_UPDATED: "ban",
+} as const;
 
-const getActorRoleLabel = (actorType: AuditActorType): string | null => {
-    switch (actorType) {
-        case "GUEST":
-            return "Guest";
-        case "ATTENDEE":
-            return "Attendee";
-        case "SYSTEM":
-            return null;
-        case "USER":
-            return null;
-        default:
-            return null;
-    }
-};
+
+const ACTOR_ROLE_LABEL_MAP: Record<AuditActorType, string | null> = {
+    GUEST: "Guest",
+    ATTENDEE: "Attendee",
+    SYSTEM: null,
+    USER: null,
+    APP: null,
+} as const;
 
 function BookingLogsFilters({
     searchTerm,
@@ -237,14 +220,13 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                 const isLast = index === logs.length - 1;
                 const isExpanded = expandedLogIds.has(log.id);
                 const showJson = showJsonMap[log.id] || false;
-                const actorRole = getActorRoleLabel(log.actor.type);
-
+                const actorRole = ACTOR_ROLE_LABEL_MAP[log.actor.type] ?? null;
                 return (
                     <div key={log.id} className="flex gap-1">
                         <div className="flex flex-col items-center self-stretch">
                             <div className="pt-2 shrink-0">
                                 <div className="bg-subtle rounded-[3.556px] p-1 flex items-center justify-center w-4 h-4">
-                                    <Icon name={getActionIcon(log.action)} className="h-3 w-3 text-subtle" />
+                                    <Icon name={ACTION_ICON_MAP[log.action] ?? "sparkles"} className="h-3 w-3 text-subtle" />
                                 </div>
                             </div>
                             {!isLast && (

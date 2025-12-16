@@ -6,8 +6,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 import type { BookingAuditAction } from "../types/bookingAuditTask";
-import type { ActionSource } from "../common/actionSource";
-import { makeActorById, type PIIFreeActor, type Actor, buildActorEmail } from "../../../bookings/lib/types/actor";
+import type { ActionSource } from "../types/actionSource";
+import { makeActorById, type PiiFreeActor, type Actor, buildActorEmail } from "../../../bookings/lib/types/actor";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
@@ -51,42 +51,13 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         this.auditActorRepository = deps.auditActorRepository;
     }
 
-    /**
-     * Producer-side actor resolution - creates PII-free actors for queueing
-     * 
-     * For guests: Creates AuditActor record in DB upfront, returns ActorById
-     * For users/attendees: Returns ID-only actors
-     * For system actors: Creates AuditActor record with .internal email convention, returns ActorById
-     * 
-     * Priority order: userUuid > attendeeId > systemActor > guestActor
-     * 
-     * Callers must provide userUuid (not userId) - if user is known, userUuid must be available
-     * Callers must provide attendeeId if they want AttendeeActor - no automatic lookup
-     * 
-     * @param params.userUuid - User UUID (required, nullable)
-     * @param params.attendeeId - Attendee ID (required, nullable)
-     * @param params.systemActor - System actor info with identifier and name (required, nullable)
-     * @param params.guestActor - Guest actor info with email and optional name (required, nullable)
-     * @param params.auditActorRepository - Repository for creating actors
-     * @returns Actor with no PII (only IDs)
-     */
     private async getPIIFreeBookingAuditActor(params: {
         actor: Actor;
-    }): Promise<PIIFreeActor> {
+    }): Promise<PiiFreeActor> {
         const { actor } = params;
 
         if (actor.identifiedBy === "user" || actor.identifiedBy === "attendee" || actor.identifiedBy === "id") {
             return actor;
-        }
-
-
-        if (actor.identifiedBy === "system") {
-            const email = buildActorEmail({ identifier: actor.identifier, actorType: "system" });
-            const piiFreeActor = await this.auditActorRepository.createIfNotExistsSystemActor({
-                email,
-                name: actor.name,
-            });
-            return makeActorById(piiFreeActor.id);
         }
 
         if (actor.identifiedBy === "app") {
@@ -132,11 +103,8 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
                 actor: params.actor,
             });
 
-            // Auto-generate operationId if not provided (for single operations)
-            // For bulk operations, callers should provide the same operationId for correlation
             const operationId = params.operationId ?? uuidv4();
 
-            // Cast action to BookingAuditAction since action service TYPE constants are typed as string
             await this.tasker.create("bookingAudit", {
                 isBulk: false,
                 bookingUid: params.bookingUid,
@@ -349,10 +317,6 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         });
     }
 
-    /**
-     * Internal helper to queue bulk audit task to Tasker
-     * Creates a single task with an array of bookings
-     */
     private async queueBulkTask(params: {
         bookings: Array<{
             bookingUid: string;
@@ -376,10 +340,8 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
                 actor: params.actor,
             });
 
-            // Auto-generate operationId if not provided
             const operationId = params.operationId ?? uuidv4();
 
-            // Create a single bulk task with array of bookings
             await this.tasker.create("bookingAudit", {
                 isBulk: true,
                 bookings: params.bookings,

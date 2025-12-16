@@ -21,12 +21,6 @@ const GuestActorSchema = z.object({
   name: z.string().nullable(),
 });
 
-const SystemActorSchema = z.object({
-  identifiedBy: z.literal("system"),
-  identifier: z.string(),
-  name: z.string(),
-});
-
 const AppActorSchema = z.object({
   identifiedBy: z.literal("app"),
   appSlug: z.string(),
@@ -38,24 +32,22 @@ export const ActorSchema = z.discriminatedUnion("identifiedBy", [
   UserActorSchema,
   AttendeeActorSchema,
   GuestActorSchema,
-  SystemActorSchema,
   AppActorSchema,
 ]);
 
-export const PIIFreeActorSchema = z.discriminatedUnion("identifiedBy", [
+export const PiiFreeActorSchema = z.discriminatedUnion("identifiedBy", [
   ActorByIdSchema,
   UserActorSchema,
   AttendeeActorSchema,
 ]);
 
 export type Actor = z.infer<typeof ActorSchema>;
-export type PIIFreeActor = z.infer<typeof PIIFreeActorSchema>;
+export type PiiFreeActor = z.infer<typeof PiiFreeActorSchema>;
 
 type UserActor = z.infer<typeof UserActorSchema>;
 type GuestActor = z.infer<typeof GuestActorSchema>;
 type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
-type SystemActor = z.infer<typeof SystemActorSchema>;
 type AppActor = z.infer<typeof AppActorSchema>;
 /**
  * Creates an Actor representing a User by UUID
@@ -79,11 +71,10 @@ export function makeGuestActor({ email, name }: { email: string, name: string | 
  * Creates an Actor representing the System
  * System actors must be referenced by ID (requires migration)
  */
-export function makeSystemActor({ identifier, name }: { identifier: string, name: string }): SystemActor {
+export function makeSystemActor(): ActorById {
   return {
-    identifiedBy: "system",
-    identifier,
-    name,
+    identifiedBy: "id",
+    id: SYSTEM_ACTOR_ID,
   };
 }
 
@@ -124,3 +115,4 @@ export function buildActorEmail({ identifier, actorType }: { identifier: string,
   return `${identifier}@${actorType}.internal`;
 }
 
+export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";

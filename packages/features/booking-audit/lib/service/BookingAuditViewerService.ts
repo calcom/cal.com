@@ -8,7 +8,7 @@ import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
 import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type { TranslationWithParams } from "../actions/IAuditActionService";
-import type { ActionSource } from "../common/actionSource";
+import type { ActionSource } from "../types/actionSource";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 
 interface BookingAuditViewerServiceDeps {
@@ -88,26 +88,27 @@ export class BookingAuditViewerService {
         userTimeZone: string;
         organizationId: number | null;
     }): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
+        const { bookingUid, userId, userTimeZone, organizationId } = params;
         await this.accessService.assertPermissions({
-            bookingUid: params.bookingUid,
-            userId: params.userId,
-            organizationId: params.organizationId
+            bookingUid,
+            userId,
+            organizationId
         });
 
-        const auditLogs = await this.bookingAuditRepository.findAllForBooking(params.bookingUid);
+        const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
         const enrichedAuditLogs = await Promise.all(
-            auditLogs.map((log) => this.enrichAuditLog(log, params.userTimeZone))
+            auditLogs.map((log) => this.enrichAuditLog(log, userTimeZone))
         );
 
-        const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(params.bookingUid);
+        const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
 
         // Check if this booking was created from a reschedule
         if (fromRescheduleUid) {
             const rescheduledFromLog = await this.buildRescheduledFromLog({
                 fromRescheduleUid,
-                currentBookingUid: params.bookingUid,
-                userTimeZone: params.userTimeZone,
+                currentBookingUid: bookingUid,
+                userTimeZone,
             });
             if (rescheduledFromLog) {
                 // Add the rescheduled log from the previous booking as the first entry

@@ -156,8 +156,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
     }): T | null {
         return rescheduledLogs.find((log) => {
             const parsedData = this.parseStored(log.data);
-            const typedData = parsedData.fields as z.infer<typeof fieldsSchemaV1>;
-            return typedData.rescheduledToUid.new === rescheduledToBookingUid;
+            return parsedData.fields.rescheduledToUid.new === rescheduledToBookingUid;
         }) ?? null;
     }
 }

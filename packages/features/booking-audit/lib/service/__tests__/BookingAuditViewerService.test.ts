@@ -4,6 +4,8 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 import { BookingAuditViewerService } from "../BookingAuditViewerService";
 import { BookingAuditPermissionError, BookingAuditErrorCode } from "../BookingAuditAccessService";
@@ -59,7 +61,9 @@ const createMockAuditLog = (
   createdAt: overrides?.createdAt ?? new Date("2024-01-15T10:00:00Z"),
   updatedAt: overrides?.updatedAt ?? new Date("2024-01-15T10:00:00Z"),
   actorId: overrides?.actorId ?? "actor-1",
-  data: overrides?.data ?? { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED", source: "WEBAPP" } },
+  data: overrides?.data ?? { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" } },
+  source: "WEBAPP" as const,
+  operationId: "operation-id-123",
   actor: {
     id: overrides?.actorId ?? "actor-1",
     type: overrides?.actorType ?? "USER" as const,
@@ -98,6 +102,12 @@ describe("BookingAuditViewerService - Integration Tests", () => {
   let mockPermissionCheckService: {
     checkPermission: Mock<PermissionCheckService["checkPermission"]>;
   };
+  let mockAttendeeRepository: {
+    findById: Mock;
+  };
+  let mockLog: {
+    error: Mock;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -126,6 +136,14 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       checkPermission: vi.fn(),
     };
 
+    mockAttendeeRepository = {
+      findById: vi.fn(),
+    };
+
+    mockLog = {
+      error: vi.fn(),
+    };
+
     vi.mocked(BookingRepository).mockImplementation(() => mockBookingRepository as unknown as BookingRepository);
     vi.mocked(UserRepository).mockImplementation(() => mockUserRepository as unknown as UserRepository);
     vi.mocked(MembershipRepository).mockImplementation(() => mockMembershipRepository as unknown as MembershipRepository);
@@ -136,6 +154,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       userRepository: mockUserRepository as unknown as UserRepository,
       bookingRepository: mockBookingRepository as unknown as BookingRepository,
       membershipRepository: mockMembershipRepository as unknown as MembershipRepository,
+      attendeeRepository: mockAttendeeRepository as unknown as IAttendeeRepository,
+      log: mockLog as unknown as ISimpleLogger,
     });
   });
 
@@ -225,13 +245,13 @@ describe("BookingAuditViewerService - Integration Tests", () => {
             id: "log-1",
             action: "CREATED",
             timestamp: new Date("2024-01-15T10:00:00Z"),
-            data: { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED", source: "WEBAPP" } }
+            data: { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED" } }
           }),
           createMockAuditLog({
             id: "log-2",
             action: "ACCEPTED",
             timestamp: new Date("2024-01-15T11:00:00Z"),
-            data: { version: 1, fields: { status: { old: "PENDING", new: "ACCEPTED" }, source: "WEBAPP" } }
+            data: { version: 1, fields: { status: { old: "PENDING", new: "ACCEPTED" } } }
           }),
           createMockAuditLog({
             id: "log-3",
@@ -243,7 +263,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
                 status: { old: "ACCEPTED", new: "CANCELLED" },
                 cancellationReason: { old: null, new: "User requested" },
                 cancelledBy: { old: null, new: "user-123" },
-                source: "WEBAPP"
               }
             }
           }),
@@ -439,7 +458,21 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           actorName: null,
         });
 
-        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        // Update the mock to include attendeeId in the actor
+        const logWithAttendeeId = {
+          ...mockLog,
+          actor: {
+            ...mockLog.actor,
+            attendeeId: 999,
+          },
+        };
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([logWithAttendeeId]);
+        mockAttendeeRepository.findById.mockResolvedValue({
+          id: 999,
+          name: null,
+          email: "attendee@example.com",
+        });
 
         const result = await service.getAuditLogsForBooking({
           bookingUid: "booking-uid-123",
@@ -449,10 +482,11 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
+        expect(mockAttendeeRepository.findById).toHaveBeenCalledWith(999);
         expect(result.auditLogs[0].actor).toMatchObject({
           type: "ATTENDEE",
-          displayName: "Attendee",
-          displayEmail: null,
+          displayName: "attendee@example.com",
+          displayEmail: "attendee@example.com",
           displayAvatar: null,
         });
       });
@@ -464,7 +498,21 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           actorName: "Meeting Participant",
         });
 
-        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([mockLog]);
+        // Update the mock to include attendeeId in the actor
+        const logWithAttendeeId = {
+          ...mockLog,
+          actor: {
+            ...mockLog.actor,
+            attendeeId: 888,
+          },
+        };
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([logWithAttendeeId]);
+        mockAttendeeRepository.findById.mockResolvedValue({
+          id: 888,
+          name: "Meeting Participant",
+          email: "participant@example.com",
+        });
 
         const result = await service.getAuditLogsForBooking({
           bookingUid: "booking-uid-123",
@@ -474,7 +522,45 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
+        expect(mockAttendeeRepository.findById).toHaveBeenCalledWith(888);
         expect(result.auditLogs[0].actor.displayName).toBe("Meeting Participant");
+        expect(result.auditLogs[0].actor.displayEmail).toBe("participant@example.com");
+      });
+
+      it("should show 'Deleted Attendee' when attendee not found in repository", async () => {
+        const mockLog = createMockAuditLog({
+          actorType: "ATTENDEE",
+          actorUserUuid: null,
+          actorName: null,
+        });
+
+        // Update the mock to include attendeeId in the actor
+        const logWithAttendeeId = {
+          ...mockLog,
+          actor: {
+            ...mockLog.actor,
+            attendeeId: 777,
+          },
+        };
+
+        mockBookingAuditRepository.findAllForBooking.mockResolvedValue([logWithAttendeeId]);
+        mockAttendeeRepository.findById.mockResolvedValue(null);
+
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
+
+        expect(mockAttendeeRepository.findById).toHaveBeenCalledWith(777);
+        expect(result.auditLogs[0].actor).toMatchObject({
+          type: "ATTENDEE",
+          displayName: "Deleted Attendee",
+          displayEmail: null,
+          displayAvatar: null,
+        });
       });
     });
 
@@ -503,7 +589,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               startTime: { old: "2024-01-15T10:00:00Z", new: "2024-01-16T10:00:00Z" },
               endTime: { old: "2024-01-15T11:00:00Z", new: "2024-01-16T11:00:00Z" },
               rescheduledToUid: { old: null, new: "new-booking-uid" },
-              source: "WEBAPP",
             },
           },
         });
@@ -525,7 +610,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(result.auditLogs[0].id).toBe("rescheduled-log");
         expect(result.auditLogs[0].bookingUid).toBe("new-booking-uid");
         expect(result.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.rescheduled_from");
-        expect(result.auditLogs[0].data).toHaveProperty("rescheduledFromUid", "old-booking-uid");
+        expect(result.auditLogs[0].displayJson).toHaveProperty("rescheduledFromUid", "old-booking-uid");
         expect(result.auditLogs[1].id).toBe("current-log");
       });
 
@@ -563,7 +648,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               startTime: { old: "2024-01-15T10:00:00Z", new: "2024-01-16T10:00:00Z" },
               endTime: { old: "2024-01-15T11:00:00Z", new: "2024-01-16T11:00:00Z" },
               rescheduledToUid: { old: null, new: "different-booking-uid" },
-              source: "WEBAPP",
             },
           },
         });
@@ -572,8 +656,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         mockBookingRepository.getFromRescheduleUid.mockResolvedValue("old-booking-uid");
         mockBookingAuditRepository.findRescheduledLogsOfBooking.mockResolvedValue([rescheduledLog]);
         mockUserRepository.findByUuid.mockResolvedValue(createMockUser());
-
-        const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => { });
 
         const result = await service.getAuditLogsForBooking({
           bookingUid: "new-booking-uid",
@@ -585,11 +667,9 @@ describe("BookingAuditViewerService - Integration Tests", () => {
 
         expect(result.auditLogs).toHaveLength(1);
         expect(result.auditLogs[0].id).toBe("audit-log-1");
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(mockLog.error).toHaveBeenCalledWith(
           "No rescheduled log found for booking old-booking-uid -> new-booking-uid"
         );
-
-        consoleErrorSpy.mockRestore();
       });
     });
 
@@ -662,7 +742,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               startTime: { old: "2024-01-15T10:00:00Z", new: "2024-01-16T10:00:00Z" },
               endTime: { old: "2024-01-15T11:00:00Z", new: "2024-01-16T11:00:00Z" },
               rescheduledToUid: { old: null, new: "new-booking-uid" },
-              source: "WEBAPP",
             },
           },
         });
@@ -679,7 +758,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(result.auditLogs[0].actionDisplayTitle).toHaveProperty("params");
-        expect(result.auditLogs[0].data).toBeDefined();
+        expect(result.auditLogs[0].displayJson).toBeDefined();
       });
     });
 
@@ -703,7 +782,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               attendeeName: "Jane Attendee",
               startTime: 1705315200000,
               endTime: 1705318800000,
-              source: "WEBAPP",
             },
           },
         });
@@ -722,7 +800,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(result.auditLogs).toHaveLength(1);
         expect(result.auditLogs[0].action).toBe("SEAT_BOOKED");
         expect(result.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.seat_booked");
-        expect(result.auditLogs[0].data).toBeDefined();
+        expect(result.auditLogs[0].displayJson).toBeDefined();
       });
 
       it("should handle SEAT_RESCHEDULED action with time changes", async () => {
@@ -746,7 +824,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
                 old: null,
                 new: "new-booking-uid",
               },
-              source: "WEBAPP",
             },
           },
         });
@@ -767,7 +844,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(result.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.seat_rescheduled");
         expect(result.auditLogs[0].actionDisplayTitle.params).toBeDefined();
         expect(result.auditLogs[0].actionDisplayTitle.components).toBeDefined();
-        expect(result.auditLogs[0].data).toBeDefined();
+        expect(result.auditLogs[0].displayJson).toBeDefined();
       });
 
       it("should handle SEAT_RESCHEDULED action without moving to different booking", async () => {
@@ -791,7 +868,6 @@ describe("BookingAuditViewerService - Integration Tests", () => {
                 old: null,
                 new: null,
               },
-              source: "WEBAPP",
             },
           },
         });

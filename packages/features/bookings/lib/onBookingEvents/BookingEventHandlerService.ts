@@ -13,7 +13,7 @@ import type { SeatBookedAuditData } from "@calcom/features/booking-audit/lib/act
 import type { SeatRescheduledAuditData } from "@calcom/features/booking-audit/lib/actions/SeatRescheduledAuditActionService";
 import type { CreatedAuditData } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionService";
 import type { RescheduledAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduledAuditActionService";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -93,6 +93,9 @@ export class BookingEventHandlerService {
   async onBookingRescheduled(params: OnBookingRescheduledParams) {
     const { payload, actor, auditData, source, operationId } = params;
     this.log.debug("onBookingRescheduled", safeStringify(payload));
+    if (payload.config.isDryRun) {
+      return;
+    }
     await this.onBookingCreatedOrRescheduled(payload);
 
     await this.bookingAuditProducerService.queueRescheduledAudit({

@@ -2794,7 +2794,6 @@ model BookingAudit {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Source of the action (API_V2 or WEBAPP)
   source BookingAuditSource
 
   // Operation ID for correlating related audit logs across different audit types (BookingAudit, UserAudit, etc.) or for bulk operations
