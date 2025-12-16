@@ -1,5 +1,7 @@
 import type { NextResponse } from "next/server";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
@@ -131,7 +133,14 @@ const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | nu
         id: true,
       },
     });
-    organizationId = organization?.id ?? null;
+    if (!organization) {
+      throw new ErrorWithCode(
+        ErrorCode.NotFound,
+        `Organization with domain "${currentOrgDomain}" not found`,
+        { currentOrgDomain }
+      );
+    }
+    organizationId = organization.id;
   }
 
   const user = await prisma.user.findFirst({
