@@ -5,8 +5,19 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import LicenseRequired from "@calcom/features/common/components/LicenseRequired";
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import EmptyScreen from "@calcom/features/ee/workflows/components/EmptyScreen";
+import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderList";
+import {
+  WorkflowCreationDialog,
+  useWorkflowCreation,
+} from "@calcom/features/ee/workflows/components/WorkflowCreationDialog";
+import WorkflowList from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { FilterResults } from "@calcom/features/filters/components/FilterResults";
+import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -15,15 +26,6 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import Shell, { ShellMain } from "@calcom/web/modules/shell/Shell";
-
-import { FilterResults } from "../../../filters/components/FilterResults";
-import { TeamsFilter } from "../../../filters/components/TeamsFilter";
-import { getTeamsFiltersFromQuery } from "../../../filters/lib/getTeamsFiltersFromQuery";
-import LicenseRequired from "../../common/components/LicenseRequired";
-import EmptyScreen from "../components/EmptyScreen";
-import SkeletonLoader from "../components/SkeletonLoaderList";
-import { WorkflowCreationDialog, useWorkflowCreation } from "../components/WorkflowCreationDialog";
-import WorkflowList from "../components/WorkflowListPage";
 
 type PageProps = {
   filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;
