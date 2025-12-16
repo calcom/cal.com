@@ -4,7 +4,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { EventType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
@@ -276,7 +276,7 @@ export default async function handleChildrenEventTypes({
 
   // Old users updated
   if (oldUserIds?.length) {
-    // Check if there are children with existent homonym event types to send notifications
+    // 1. Initial Checks and Setup
     deletedExistentEventTypes = await checkExistentEventTypes({
       updatedEventType,
       children,
@@ -286,78 +286,100 @@ export default async function handleChildrenEventTypes({
     });
 
     const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig ?? {};
-    const unlockedFieldProps = !unlockedFields
-      ? {}
-      : Object.keys(unlockedFields).reduce((acc, key) => {
-          const filteredKey =
-            key === "afterBufferTime"
-              ? "afterEventBuffer"
-              : key === "beforeBufferTime"
-              ? "beforeEventBuffer"
-              : key;
-          // @ts-expect-error Element implicitly has any type
-          acc[filteredKey] = true;
-          return acc;
-        }, {});
 
-    // Add to payload all eventType values that belong to locked fields, changed or unchanged
-    // Ignore from payload any eventType values that belong to unlocked fields
+    // Transform unlocked fields into a lookup object with mapped keys
+    const unlockedFieldProps = Object.keys(unlockedFields ?? {}).reduce((acc, key) => {
+      const mappedKey =
+        key === "afterBufferTime"
+          ? "afterEventBuffer"
+          : key === "beforeBufferTime"
+          ? "beforeEventBuffer"
+          : key;
+      acc[mappedKey] = true;
+      return acc;
+    }, {} as Record<string, boolean>);
+
+    // Prepare payload: Omit unlocked fields and the "children" property
     const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
-    // Update event types for old users
-    const oldEventTypes = await Promise.all(
-      oldUserIds.map(async (userId) => {
-        const existingEventType = await prisma.eventType.findUnique({
-          where: {
-            userId_parentId: {
-              userId,
-              parentId,
-            },
-          },
-          select: {
-            metadata: true,
-          },
-        });
 
-        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(existingEventType?.metadata || {});
+    // 2. Data Fetching Optimization
+    const existingRecords = await prisma.eventType.findMany({
+      where: { parentId, userId: { in: oldUserIds } },
+      select: { userId: true, metadata: true },
+    });
+
+    const metadataMap = new Map(existingRecords.map((rec) => [rec.userId, rec.metadata]));
+
+    // 3. Define Reusable Update Logic
+    const performUpdate = async (userId: number) => {
+      try {
+        const rawMetadata = metadataMap.get(userId);
+        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(rawMetadata || {});
 
         return await prisma.eventType.update({
-          where: {
-            userId_parentId: {
-              userId,
-              parentId,
-            },
-          },
+          where: { userId_parentId: { userId, parentId } },
           data: {
             ...updatePayloadFiltered,
             rrHostSubsetEnabled: false,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
+            ...(!unlockedFieldProps.schedule ? { scheduleId: eventType.scheduleId || null } : {}),
             restrictionScheduleId: null,
             useBookerTimezone: false,
-            hashedLink:
-              "multiplePrivateLinks" in unlockedFieldProps
-                ? undefined
-                : {
-                    deleteMany: {},
-                  },
+            hashedLink: unlockedFieldProps.multiplePrivateLinks ? undefined : { deleteMany: {} },
             allowReschedulingCancelledBookings:
               managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
             metadata: {
               ...(eventType.metadata as Prisma.JsonObject),
-              ...(metadata?.multipleDuration && "length" in unlockedFieldProps
+              ...(metadata?.multipleDuration && unlockedFieldProps.length
                 ? { multipleDuration: metadata.multipleDuration }
                 : {}),
-              ...(metadata?.apps && "apps" in unlockedFieldProps ? { apps: metadata.apps } : {}),
+              ...(metadata?.apps && unlockedFieldProps.apps ? { apps: metadata.apps } : {}),
             },
           },
         });
-      })
-    );
+      } catch (error) {
+        throw { userId, error };
+      }
+    };
 
-    // Link workflows with old users' event types if new workflows were added
+    // 4. Batch Execution Handler
+    const executeBatch = async (ids: number[]) => {
+      const successes: EventType[] = [];
+      const failures: { userId: number; error: Error }[] = [];
+      const BATCH_SIZE = 100;
+
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(batch.map(performUpdate));
+
+        results.forEach((res) => {
+          if (res.status === "fulfilled") successes.push(res.value);
+          else failures.push(res.reason);
+        });
+      }
+      return { successes, failures };
+    };
+
+    // 5. Run Updates & Retries
+    const { successes: oldEventTypes, failures: failedUpdates } = await executeBatch(oldUserIds);
+
+    if (failedUpdates.length > 0) {
+      console.log(`Retrying ${failedUpdates.length} failed updates...`);
+      const retry = await executeBatch(failedUpdates.map((f) => f.userId));
+      oldEventTypes.push(...retry.successes);
+      // Any remaining failures in retry.failures are permanent
+      if (retry.failures.length > 0) {
+        console.log("handleChildrenEventType - Could not update managed event-type", {
+          parentId,
+          userIds: retry.failures.map((failure) => failure.userId),
+        });
+      }
+    }
+
+    // 6. Workflow Linkage
     if (currentWorkflowIds?.length && oldEventTypes.length) {
       await prisma.$transaction(async (tx) => {
         const eventTypeIds = oldEventTypes.map((e) => e.id);
