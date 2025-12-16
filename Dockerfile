@@ -50,7 +50,7 @@ RUN --mount=type=cache,target=/root/.cache/turbo \
     npx turbo prune --scope=@calcom/web --scope=@calcom/trpc --docker
 
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    yarn install --immutable
+    yarn install --immutable-cache
 
 # Build and make embed servable from web/public/embed folder
 RUN --mount=type=cache,target=/root/.cache/turbo \
