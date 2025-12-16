@@ -278,4 +278,58 @@ export class BookingEventHandlerService {
       data: auditData,
     });
   }
+
+  /**
+   * Handles bulk booking acceptance for recurring bookings
+   * Creates a single task that will be processed to create multiple audit logs atomically
+   */
+  async onBulkBookingsAccepted(params: {
+    bookings: Array<{
+      bookingUid: string;
+      auditData: AcceptedAuditData;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    operationId?: string | null;
+    source: ActionSource;
+  }) {
+    const { bookings, actor, organizationId, operationId, source } = params;
+    await this.bookingAuditProducerService.queueBulkAcceptedAudit({
+      bookings: bookings.map((booking) => ({
+        bookingUid: booking.bookingUid,
+        data: booking.auditData,
+      })),
+      actor,
+      organizationId,
+      source,
+      operationId,
+    });
+  }
+
+  /**
+   * Handles bulk booking cancellation for recurring bookings
+   * Creates a single task that will be processed to create multiple audit logs atomically
+   */
+  async onBulkBookingsCancelled(params: {
+    bookings: Array<{
+      bookingUid: string;
+      auditData: CancelledAuditData;
+    }>;
+    actor: Actor;
+    organizationId: number | null;
+    operationId?: string | null;
+    source: ActionSource;
+  }) {
+    const { bookings, actor, organizationId, operationId, source } = params;
+    await this.bookingAuditProducerService.queueBulkCancelledAudit({
+      bookings: bookings.map((booking) => ({
+        bookingUid: booking.bookingUid,
+        data: booking.auditData,
+      })),
+      actor,
+      organizationId,
+      source,
+      operationId,
+    });
+  }
 }

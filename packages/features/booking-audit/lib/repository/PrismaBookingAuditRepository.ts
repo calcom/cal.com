@@ -37,6 +37,22 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
         });
     }
 
+    async createMany(bookingAudits: BookingAuditCreateInput[]) {
+        const result = await this.deps.prismaClient.bookingAudit.createMany({
+            data: bookingAudits.map((bookingAudit) => ({
+                bookingUid: bookingAudit.bookingUid,
+                actorId: bookingAudit.actorId,
+                action: bookingAudit.action,
+                type: bookingAudit.type,
+                timestamp: bookingAudit.timestamp,
+                source: bookingAudit.source,
+                operationId: bookingAudit.operationId,
+                data: bookingAudit.data === null ? undefined : bookingAudit.data,
+            })),
+        });
+        return { count: result.count };
+    }
+
     async findAllForBooking(bookingUid: string): Promise<BookingAuditWithActor[]> {
         return this.deps.prismaClient.bookingAudit.findMany({
             where: {

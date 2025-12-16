@@ -52,9 +52,9 @@ type AuditLog = {
 interface BookingLogsFiltersProps {
     searchTerm: string;
     onSearchChange: (value: string) => void;
-    actorFilter: AuditActorType | null;
-    onActorFilterChange: (value: AuditActorType | null) => void;
-    actorOptions: Array<{ label: string; value: AuditActorType }>;
+    actorFilter: string | null;
+    onActorFilterChange: (value: string | null) => void;
+    actorOptions: Array<{ label: string; value: string }>;
 }
 
 interface BookingLogsTimelineProps {
@@ -128,7 +128,7 @@ function BookingLogsFilters({
                     value={actorFilter ? { label: `${t("actor")}: ${actorFilter}`, value: actorFilter } : { label: `${t("actor")}: ${t("all")}`, value: "" }}
                     onChange={(option) => {
                         if (!option) return;
-                        onActorFilterChange((option.value as AuditActorType) || null);
+                        onActorFilterChange(option.value || null);
                     }}
                     options={[{ label: t("all"), value: "" }, ...actorOptions]}
                 />
@@ -350,7 +350,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
-    const [actorFilter, setActorFilter] = useState<AuditActorType | null>(null);
+    const [actorFilter, setActorFilter] = useState<string | null>(null);
     const { t } = useLocale();
     const { data, isLoading, error } = trpc.viewer.bookings.getAuditLogs.useQuery({
         bookingUid,

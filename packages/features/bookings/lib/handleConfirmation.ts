@@ -278,23 +278,21 @@ export async function handleConfirmation(args: {
       teamId: recurringAuditTeamId,
     });
     const operationId = uuidv4();
-    await Promise.all(
-      updatedBookingsResult.map((updatedRecurringBooking) =>
-        bookingEventHandlerService.onBookingAccepted({
-          bookingUid: updatedRecurringBooking.uid,
-          actor: args.actor,
-          organizationId: recurringAuditOrgId ?? null,
-          operationId,
-          auditData: {
-            status: {
-              old: BookingStatus.PENDING,
-              new: BookingStatus.ACCEPTED,
-            },
+    await bookingEventHandlerService.onBulkBookingsAccepted({
+      bookings: updatedBookingsResult.map((updatedRecurringBooking) => ({
+        bookingUid: updatedRecurringBooking.uid,
+        auditData: {
+          status: {
+            old: BookingStatus.PENDING,
+            new: BookingStatus.ACCEPTED,
           },
-          source: args.source,
-        })
-      )
-    );
+        },
+      })),
+      actor: args.actor,
+      organizationId: recurringAuditOrgId ?? null,
+      operationId,
+      source: args.source,
+    });
   } else {
     // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
     // Should perform update on booking (confirm) -> then trigger the rest handlers

@@ -54,6 +54,8 @@ export interface IBookingAuditRepository {
      */
     create(bookingAudit: BookingAuditCreateInput): Promise<BookingAudit>;
 
+    createMany(bookingAudits: BookingAuditCreateInput[]): Promise<{ count: number }>;
+
     /**
      * Retrieves all audit logs for a specific booking
      * @param bookingUid - The unique identifier of the booking

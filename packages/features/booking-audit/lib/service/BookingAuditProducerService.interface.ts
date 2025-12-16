@@ -156,5 +156,35 @@ export interface BookingAuditProducerService {
                 operationId?: string | null;
                 data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
         }): Promise<void>;
+
+        /**
+         * Queues a bulk accepted audit task for multiple bookings
+         * Used for recurring booking operations where a single action affects multiple bookings
+         */
+        queueBulkAcceptedAudit(params: {
+                bookings: Array<{
+                        bookingUid: string;
+                        data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
+                }>;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                operationId?: string | null;
+        }): Promise<void>;
+
+        /**
+         * Queues a bulk cancelled audit task for multiple bookings
+         * Used for recurring booking operations where a single action affects multiple bookings
+         */
+        queueBulkCancelledAudit(params: {
+                bookings: Array<{
+                        bookingUid: string;
+                        data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
+                }>;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                operationId?: string | null;
+        }): Promise<void>;
 }
 

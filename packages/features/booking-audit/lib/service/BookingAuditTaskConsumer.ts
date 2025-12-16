@@ -5,13 +5,17 @@ import type { IFeaturesRepository } from "@calcom/features/flags/features.reposi
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import type { PIIFreeActor } from "../../../bookings/lib/types/actor";
-import type { BookingAuditTaskConsumerPayload } from "../types/bookingAuditTask";
-import { BookingAuditTaskConsumerSchema } from "../types/bookingAuditTask";
+import type {
+    SingleBookingAuditTaskConsumerPayload,
+    BulkBookingAuditTaskConsumerPayload,
+    BookingAuditTaskConsumerPayload
+} from "../types/bookingAuditTask";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
-import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction } from "../repository/IBookingAuditRepository";
+import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction, BookingAuditCreateInput } from "../repository/IBookingAuditRepository";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import type { ActionSource } from "../common/actionSource";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { Task } from "@calcom/features/tasker/repository";
 
 interface BookingAuditTaskConsumerDeps {
     bookingAuditRepository: IBookingAuditRepository;
@@ -79,56 +83,54 @@ export class BookingAuditTaskConsumer {
     /**
      * Process Audit Task - Entry point for task handler
      * 
-     * This method handles:
-     * 1. Base schema validation (parses data as unknown)
-     * 2. Feature flag checks
-     * 3. Action-specific data validation and migration
-     * 4. Routing to appropriate action handlers
-     * 
-     * Two-Stage Parsing:
-     * - First validates base fields with lean schema (data as unknown)
-     * - Then validates data with action-specific schema via action service
-     * - This avoids large discriminated unions for better TypeScript performance
-     * 
-     * @param payload - The booking audit task payload (unknown type, will be validated)
-     * @param taskId - Optional task ID for updating migrated payload in DB
+     * @param payload - The validated single booking audit task payload
+     * @param taskId - Task ID for updating migrated payload in DB
      * @returns Promise that resolves when processing is complete
      */
-    async processAuditTask(payload: unknown, taskId: string): Promise<void> {
-        // Step 1: Parse with lean base schema (data as unknown)
-        const parseResult = BookingAuditTaskConsumerSchema.safeParse(payload);
+    async processAuditTask(payload: SingleBookingAuditTaskConsumerPayload, taskId: string): Promise<void> {
+        const { action, bookingUid, actor, organizationId, data, timestamp, source, operationId } = payload;
 
-        if (!parseResult.success) {
-            const errorMsg = `Invalid booking audit payload: ${safeStringify(parseResult.error.errors)}`;
-            logger.error(errorMsg);
-            throw new Error(errorMsg);
-        }
-
-        const validatedPayload = parseResult.data;
-        const { action, bookingUid, actor, organizationId, data, timestamp, source, operationId } = validatedPayload;
-
-        // Skip processing for non-organization bookings
-        if (organizationId === null) {
-            logger.info(
-                `Skipping audit for non-organization booking: action=${action}, bookingUid=${bookingUid}`
-            );
+        if (!await this.shouldProcessAudit({
+            organizationId,
+            action,
+            bookingUids: [bookingUid],
+        })) {
             return;
         }
 
-        const isFeatureEnabled = await this.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit");
+        const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload, taskId });
 
-        if (!isFeatureEnabled) {
-            logger.info(
-                `booking-audit feature is disabled for organization, skipping audit processing: action=${action}, bookingUid=${bookingUid}, organizationId=${organizationId}`
-            );
-            return;
-        }
-
-        // Step 2: Validate and migrate data with action-specific schema
-        const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload: validatedPayload, taskId });
-
-        // dataInLatestFormat is validated by action-specific schema in migrateIfNeeded
         await this.onBookingAction({ bookingUid, actor, action, source, operationId, data: dataInLatestFormat, timestamp });
+    }
+
+    /**
+     * Process Bulk Audit Task - Entry point for bulk task handler
+     * 
+     * @param payload - The validated bulk booking audit task payload
+     * @param _taskId - Task ID (currently unused for bulk operations)
+     * @returns Promise that resolves when processing is complete
+     */
+    async processBulkAuditTask(payload: BulkBookingAuditTaskConsumerPayload, taskId: string): Promise<void> {
+        const { bookings, action, actor, organizationId, timestamp, source, operationId } = payload;
+
+        if (!await this.shouldProcessAudit({
+            organizationId,
+            action,
+            bookingUids: bookings.map((booking) => booking.bookingUid),
+        })) {
+            return;
+        }
+
+        await this.onBulkBookingActions({
+            bookings,
+            actor,
+            action,
+            source,
+            operationId,
+            timestamp,
+            payload,
+            taskId,
+        });
     }
 
     /**
@@ -145,7 +147,7 @@ export class BookingAuditTaskConsumer {
     private async migrateIfNeeded(params: {
         action: BookingAuditAction;
         data: unknown;
-        payload: BookingAuditTaskConsumerPayload;
+        payload: SingleBookingAuditTaskConsumerPayload;
         taskId: string;
     }) {
         const { action, data, payload, taskId } = params;
@@ -181,10 +183,7 @@ export class BookingAuditTaskConsumer {
         taskId: string
     ): Promise<void> {
         try {
-            const { Task } = await import("@calcom/features/tasker/repository");
-
             const updatedPayload = { ...payload, data: latestData };
-
             await Task.updatePayload(taskId, JSON.stringify(updatedPayload));
 
             logger.info(
@@ -196,6 +195,106 @@ export class BookingAuditTaskConsumer {
                 `Failed to update task payload in DB: taskId=${taskId}, error=${safeStringify(error)}`
             );
         }
+    }
+
+    /**
+     * Bulk Migrate If Needed - Migrates all bookings in a bulk operation
+     * 
+     * Since all bookings in a bulk operation share the same action type,
+     * they all use the same action service and schema version.
+     * If any booking is migrated, updates the DB task payload for retry consistency.
+     * 
+     * @param params - Bookings, action, payload, and task ID
+     * @returns Array of migrated bookings with latest data
+     */
+    private async bulkMigrateIfNeeded(params: {
+        bookings: BulkBookingAuditTaskConsumerPayload["bookings"];
+        action: BookingAuditAction;
+        payload: BulkBookingAuditTaskConsumerPayload;
+        taskId: string;
+    }): Promise<Array<{ bookingUid: string; data: Record<string, unknown> }>> {
+        const { bookings, action, payload, taskId } = params;
+        const actionService = this.actionServiceRegistry.getActionService(action);
+
+        let anyMigrated = false;
+        const migratedBookings = await Promise.all(
+            bookings.map(async (booking) => {
+                const migrationResult = actionService.migrateToLatest(booking.data);
+                if (migrationResult.isMigrated) {
+                    anyMigrated = true;
+                }
+                return {
+                    bookingUid: booking.bookingUid,
+                    data: migrationResult.latestData,
+                };
+            })
+        );
+
+        if (anyMigrated) {
+            logger.info(`Schema migration performed for bulk audit: action=${action}`);
+            await this.updateBulkTaskPayload(payload, migratedBookings, taskId);
+        }
+
+        return migratedBookings;
+    }
+
+    /**
+     * Update Bulk Task Payload - Updates the bulk task payload in DB with migrated bookings
+     * 
+     * @param payload - Original bulk task payload
+     * @param migratedBookings - Migrated bookings with latest data
+     * @param taskId - Task ID (required for DB update)
+     */
+    private async updateBulkTaskPayload(
+        payload: BulkBookingAuditTaskConsumerPayload,
+        migratedBookings: Array<{ bookingUid: string; data: Record<string, unknown> }>,
+        taskId: string
+    ): Promise<void> {
+        try {
+            const updatedPayload = { ...payload, bookings: migratedBookings };
+            await Task.updatePayload(taskId, JSON.stringify(updatedPayload));
+
+            logger.info(
+                `Successfully updated bulk task payload in DB: taskId=${taskId}, action=${payload.action}`
+            );
+        } catch (error) {
+            logger.error(
+                `Failed to update bulk task payload in DB: taskId=${taskId}, error=${safeStringify(error)}`
+            );
+        }
+    }
+
+    /**
+     * Check if audit should be processed based on organization and feature flag
+     * 
+     * @param params - Organization ID, action, and context for logging
+     * @returns true if audit should be processed, false otherwise
+     */
+    private async shouldProcessAudit(params: {
+        organizationId: number | null;
+        action: BookingAuditAction;
+        bookingUids: string[];
+    }): Promise<boolean> {
+        const { organizationId, action, bookingUids } = params;
+
+        if (organizationId === null) {
+            logger.info(`Skipping audit for non-organization booking: action=${action}, bookingUids=${bookingUids.join(",")}`);
+            return false;
+        }
+
+        const isFeatureEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+            organizationId,
+            "booking-audit"
+        );
+
+        if (!isFeatureEnabled) {
+            logger.info(
+                `booking-audit feature is disabled for organization: action=${action}, bookingUids=${bookingUids.join(",")}, organizationId=${organizationId}`
+            );
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -238,6 +337,7 @@ export class BookingAuditTaskConsumer {
             action: input.action,
             source: input.source,
             timestamp: input.timestamp,
+            operationId: input.operationId,
             data: input.data ?? null,
         });
     }
@@ -282,6 +382,50 @@ export class BookingAuditTaskConsumer {
             case "AWAITING_HOST":
                 throw new Error(`Action ${action} is not supported - it represents an initial booking state captured by CREATED`);
         }
+    }
+
+    private async onBulkBookingActions(params: {
+        bookings: BulkBookingAuditTaskConsumerPayload["bookings"];
+        actor: PIIFreeActor;
+        action: BookingAuditAction;
+        source: ActionSource;
+        operationId: string;
+        timestamp: number;
+        payload: BulkBookingAuditTaskConsumerPayload;
+        taskId: string;
+    }): Promise<void> {
+        const { bookings, actor, action, source, operationId, timestamp, payload, taskId } = params;
+
+        const migratedBookings = await this.bulkMigrateIfNeeded({
+            bookings,
+            action,
+            payload,
+            taskId,
+        });
+
+        const actorId = await this.resolveActorId(actor);
+        const recordType = this.getRecordType({ action });
+        const actionService = this.actionServiceRegistry.getActionService(action);
+
+        const auditRecordsToCreate: BookingAuditCreateInput[] = migratedBookings.map((booking) => {
+            const versionedData = actionService.getVersionedData(booking.data);
+            return {
+                bookingUid: booking.bookingUid,
+                actorId,
+                type: recordType,
+                action,
+                source,
+                operationId,
+                data: versionedData as JsonValue,
+                timestamp: new Date(timestamp),
+            };
+        });
+
+        await this.bookingAuditRepository.createMany(auditRecordsToCreate);
+
+        logger.info(
+            `Successfully created ${auditRecordsToCreate.length} bulk audit records: action=${action}, operationId=${operationId}`
+        );
     }
 
     async onBookingAction(params: {

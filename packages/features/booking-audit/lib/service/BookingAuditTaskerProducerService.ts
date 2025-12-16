@@ -138,6 +138,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
 
             // Cast action to BookingAuditAction since action service TYPE constants are typed as string
             await this.tasker.create("bookingAudit", {
+                isBulk: false,
                 bookingUid: params.bookingUid,
                 actor: piiFreeActor,
                 organizationId: params.organizationId,
@@ -345,6 +346,84 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         await this.queueTask({
             ...params,
             action: SeatRescheduledAuditActionService.TYPE,
+        });
+    }
+
+    /**
+     * Internal helper to queue bulk audit task to Tasker
+     * Creates a single task with an array of bookings
+     */
+    private async queueBulkTask(params: {
+        bookings: Array<{
+            bookingUid: string;
+            data: unknown;
+        }>;
+        actor: Actor;
+        organizationId: number | null;
+        action: string;
+        source: ActionSource;
+        operationId?: string | null;
+    }): Promise<void> {
+        // Skip queueing for non-organization bookings
+        if (params.organizationId === null) {
+            return;
+        }
+        if (IS_PRODUCTION) {
+            return;
+        }
+        try {
+            const piiFreeActor = await this.getPIIFreeBookingAuditActor({
+                actor: params.actor,
+            });
+
+            // Auto-generate operationId if not provided
+            const operationId = params.operationId ?? uuidv4();
+
+            // Create a single bulk task with array of bookings
+            await this.tasker.create("bookingAudit", {
+                isBulk: true,
+                bookings: params.bookings,
+                actor: piiFreeActor,
+                organizationId: params.organizationId,
+                timestamp: Date.now(),
+                action: params.action as BookingAuditAction,
+                source: params.source,
+                operationId,
+            });
+        } catch (error) {
+            this.log.error(`Error while queueing bulk ${params.action} audit`, safeStringify(error));
+        }
+    }
+
+    async queueBulkAcceptedAudit(params: {
+        bookings: Array<{
+            bookingUid: string;
+            data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
+        }>;
+        actor: Actor;
+        organizationId: number | null;
+        source: ActionSource;
+        operationId?: string | null;
+    }): Promise<void> {
+        await this.queueBulkTask({
+            ...params,
+            action: AcceptedAuditActionService.TYPE,
+        });
+    }
+
+    async queueBulkCancelledAudit(params: {
+        bookings: Array<{
+            bookingUid: string;
+            data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
+        }>;
+        actor: Actor;
+        organizationId: number | null;
+        source: ActionSource;
+        operationId?: string | null;
+    }): Promise<void> {
+        await this.queueBulkTask({
+            ...params,
+            action: CancelledAuditActionService.TYPE,
         });
     }
 }

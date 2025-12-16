@@ -26,22 +26,49 @@ const BookingAuditActionSchema = z.enum([
 
 export type BookingAuditAction = z.infer<typeof BookingAuditActionSchema>;
 
-/**
- * Lean base schema for booking audit task payload
- * 
- * Uses `data: z.unknown()` to avoid large discriminated union.
- * The consumer parses with this first, then validates `data` 
- * with the action-specific schema based on the `action` field.
- */
-export const BookingAuditTaskConsumerSchema = z.object({
+const actionAgnosticDataSchema = z.unknown();
+
+const bookingAuditPayloadSchema = z.object({
     bookingUid: z.string(),
+    data: actionAgnosticDataSchema,
+});
+
+export const SingleBookingAuditTaskConsumerSchema = z.object({
+    isBulk: z.literal(false),
+    ...bookingAuditPayloadSchema.shape,
     actor: PIIFreeActorSchema,
     organizationId: z.number().nullable(),
     timestamp: z.number(),
     action: BookingAuditActionSchema,
     source: ActionSourceSchema.default("UNKNOWN"),
     operationId: z.string(),
-    data: z.unknown(),
 });
+
+export type SingleBookingAuditTaskConsumerPayload = z.infer<typeof SingleBookingAuditTaskConsumerSchema>;
+
+/**
+ * Bulk booking audit task payload schema
+ * 
+ * Used for operations that affect multiple bookings in a single action.
+ * Contains an array of bookings, each with bookingUid and action-specific data.
+ * All bookings share the same actor, organizationId, timestamp, action, source, and operationId.
+ */
+export const BulkBookingAuditTaskConsumerSchema = z.object({
+    isBulk: z.literal(true),
+    bookings: z.array(bookingAuditPayloadSchema).min(1),
+    actor: PIIFreeActorSchema,
+    organizationId: z.number().nullable(),
+    timestamp: z.number(),
+    action: BookingAuditActionSchema,
+    source: ActionSourceSchema.default("UNKNOWN"),
+    operationId: z.string(),
+});
+
+export type BulkBookingAuditTaskConsumerPayload = z.infer<typeof BulkBookingAuditTaskConsumerSchema>;
+
+export const BookingAuditTaskConsumerSchema = z.discriminatedUnion("isBulk", [
+    SingleBookingAuditTaskConsumerSchema,
+    BulkBookingAuditTaskConsumerSchema,
+]);
 
 export type BookingAuditTaskConsumerPayload = z.infer<typeof BookingAuditTaskConsumerSchema>;

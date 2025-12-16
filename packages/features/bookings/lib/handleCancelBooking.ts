@@ -122,6 +122,22 @@ async function handler(input: CancelBookingInput) {
     arePlatformEmailsEnabled,
   } = input;
 
+  // Extract action source once for reuse
+  const actionSource = input.actionSource ?? "UNKNOWN";
+  if (actionSource === "UNKNOWN") {
+    log.warn("Booking cancellation with unknown actionSource", {
+      bookingUid: bookingToDelete.uid,
+      userUuid: input.userUuid,
+    });
+  }
+
+  // Extract actor once for reuse
+  const actorToUse = getAuditActor({
+    userUuid: userUuid ?? null,
+    cancelledBy: cancelledBy ?? null,
+    bookingUid: bookingToDelete.uid,
+  });
+
   /**
    * Important: We prevent cancelling an already cancelled booking.
    * A booking could have been CANCELLED due to a reschedule,
@@ -473,46 +489,30 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
 
-    const recurringActorToUse = getAuditActor({
-      userUuid: userUuid ?? null,
-      cancelledBy: cancelledBy ?? null,
-      bookingUid: bookingToDelete.uid,
-    });
     const operationId = uuidv4();
-    await Promise.all(
-      allUpdatedBookings.map((updatedRecurringBooking) =>
-        bookingEventHandlerService.onBookingCancelled({
-          bookingUid: updatedRecurringBooking.uid,
-          actor: recurringActorToUse,
-          organizationId: orgId ?? null,
-          operationId,
-          auditData: {
-            cancellationReason: {
-              old: bookingToDelete.cancellationReason,
-              new: cancellationReason ?? null,
-            },
-            cancelledBy: {
-              old: bookingToDelete.cancelledBy,
-              new: cancelledBy ?? null,
-            },
-            status: {
-              old: bookingToDelete.status,
-              new: "CANCELLED",
-            },
+    await bookingEventHandlerService.onBulkBookingsCancelled({
+      bookings: allUpdatedBookings.map((updatedRecurringBooking) => ({
+        bookingUid: updatedRecurringBooking.uid,
+        auditData: {
+          cancellationReason: {
+            old: bookingToDelete.cancellationReason,
+            new: cancellationReason ?? null,
           },
-          source: (() => {
-            const source = input.actionSource ?? "UNKNOWN";
-            if (source === "UNKNOWN") {
-              log.warn("Recurring booking cancellation with unknown actionSource", {
-                bookingUid: updatedRecurringBooking.uid,
-                userUuid: input.userUuid,
-              });
-            }
-            return source;
-          })(),
-        })
-      )
-    );
+          cancelledBy: {
+            old: bookingToDelete.cancelledBy,
+            new: cancelledBy ?? null,
+          },
+          status: {
+            old: bookingToDelete.status,
+            new: "CANCELLED",
+          },
+        },
+      })),
+      actor: actorToUse,
+      organizationId: orgId ?? null,
+      operationId,
+      source: actionSource,
+    });
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
       await prisma.attendee.deleteMany({
@@ -551,12 +551,6 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
 
-    const actorToUse = getAuditActor({
-      userUuid: userUuid ?? null,
-      cancelledBy: cancelledBy ?? null,
-      bookingUid: updatedBooking.uid,
-    });
-
     await bookingEventHandlerService.onBookingCancelled({
       bookingUid: updatedBooking.uid,
       actor: actorToUse,
@@ -576,16 +570,7 @@ async function handler(input: CancelBookingInput) {
           new: "CANCELLED",
         },
       },
-      source: (() => {
-        const source = input.actionSource ?? "UNKNOWN";
-        if (source === "UNKNOWN") {
-          log.warn("Booking cancellation with unknown actionSource", {
-            bookingUid: updatedBooking.uid,
-            userUuid: input.userUuid,
-          });
-        }
-        return source;
-      })(),
+      source: actionSource,
     });
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {

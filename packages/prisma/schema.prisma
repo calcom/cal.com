@@ -2761,7 +2761,7 @@ model BookingAudit {
   // Source of the action (API_V2 or WEBAPP)
   source BookingAuditSource
 
-  // Operation ID for correlating related audit logs across different audit types (BookingAudit, UserAudit, etc.)
+  // Operation ID for correlating related audit logs across different audit types (BookingAudit, UserAudit, etc.) or for bulk operations
   operationId String
 
   data Json?
