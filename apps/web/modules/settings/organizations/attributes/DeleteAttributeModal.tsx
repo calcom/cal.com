@@ -6,7 +6,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateAttributesList } from "~/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
 

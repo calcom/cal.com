@@ -8,6 +8,8 @@ import { useState, useEffect } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import MemberListItem from "@calcom/features/ee/organizations/pages/components/MemberListItem";
+import MakeTeamPrivateSwitch from "@calcom/features/ee/teams/components/MakeTeamPrivateSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -15,11 +17,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
-import MakeTeamPrivateSwitch from "@calcom/features/ee/teams/components/MakeTeamPrivateSwitch";
-
-import { revalidateTeamsList } from "~/app/(use-page-wrapper)/(main-nav)/teams/actions";
-
-import MemberListItem from "@calcom/features/ee/organizations/pages/components/MemberListItem";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 type Members = RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"];
 type Team = RouterOutputs["viewer"]["organizations"]["getOtherTeam"];
