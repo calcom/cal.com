@@ -25,6 +25,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
     fromUser,
     toUser,
     emoji = "🏝️",
+    reason,
     borderDashed = true,
     date,
     className,
@@ -35,7 +36,12 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
 
   const router = useRouter();
 
-  if (!fromUser) return null;
+  // Check if this is a holiday (no fromUser but has reason)
+  const isHoliday = !fromUser && reason;
+
+  // For regular OOO, require fromUser (toUser is optional for redirect)
+  // For holidays, we just need the reason
+  if (!isHoliday && !fromUser) return null;
   return (
     <div className={classNames("relative h-full pb-5", className)}>
       <div
@@ -47,28 +53,37 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
           <span className="m-auto text-center text-lg">{emoji}</span>
         </div>
         <div className="stack-y-2 max-h-[300px] w-full overflow-y-auto text-center">
-          <p className="mt-2 text-base font-bold">
-            {t("ooo_user_is_ooo", { displayName: fromUser.displayName })}
-          </p>
+          {isHoliday ? (
+            <>
+              <p className="mt-2 text-base font-bold">{reason}</p>
+              <p className="text-subtle text-center text-sm">{t("holiday_no_availability")}</p>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-base font-bold">
+                {t("ooo_user_is_ooo", { displayName: fromUser?.displayName })}
+              </p>
 
-          {notes && showNotePublicly && (
-            <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm italic">
-              {notes}
-            </p>
-          )}
+              {notes && showNotePublicly && (
+                <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm italic">
+                  {notes}
+                </p>
+              )}
 
-          {fromUser?.displayName && toUser?.displayName && (
-            <p className="text-center text-sm">
-              <ServerTrans
-                t={t}
-                i18nKey="ooo_slots_returning"
-                values={{ displayName: toUser.displayName }}
-                components={[<strong key="username">username</strong>]}
-              />
-            </p>
+              {fromUser?.displayName && toUser?.displayName && (
+                <p className="text-center text-sm">
+                  <ServerTrans
+                    t={t}
+                    i18nKey="ooo_slots_returning"
+                    values={{ displayName: toUser.displayName }}
+                    components={[<strong key="username">username</strong>]}
+                  />
+                </p>
+              )}
+            </>
           )}
         </div>
-        {toUser?.id && (
+        {!isHoliday && toUser?.id && (
           <Button
             className="mt-8 max-w-[90%]"
             variant="button"
