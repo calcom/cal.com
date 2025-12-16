@@ -64,5 +64,18 @@ export async function checkOnboardingRedirect(
   // Determine which onboarding path to use
   const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
+  // Check if user has pending team invites - if so, skip plan selection and go straight to personal onboarding
+  const pendingInvites = await prisma.membership.findMany({
+    where: {
+      userId: userId,
+      accepted: false,
+    },
+  });
+
+  if (pendingInvites.length > 0 && onboardingV3Enabled) {
+    // User has pending invites, redirect directly to personal onboarding
+    return "/onboarding/personal/settings";
+  }
+
   return onboardingV3Enabled ? "/onboarding/getting-started" : "/getting-started";
 }
