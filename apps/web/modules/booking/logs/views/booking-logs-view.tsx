@@ -37,9 +37,10 @@ type AuditLog = {
     action: string;
     type: string;
     timestamp: string;
-    data: Record<string, unknown> | null;
+    source: string;
+    displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
-    displayFields?: Array<{ labelKey: string; valueKey: string }>;
+    displayFields?: Array<{ labelKey: string; valueKey: string }> | null;
     actor: {
         type: AuditActorType;
         displayName: string | null;
@@ -51,9 +52,9 @@ type AuditLog = {
 interface BookingLogsFiltersProps {
     searchTerm: string;
     onSearchChange: (value: string) => void;
-    actorFilter: AuditActorType | null;
-    onActorFilterChange: (value: AuditActorType | null) => void;
-    actorOptions: Array<{ label: string; value: AuditActorType }>;
+    actorFilter: string | null;
+    onActorFilterChange: (value: string | null) => void;
+    actorOptions: Array<{ label: string; value: string }>;
 }
 
 interface BookingLogsTimelineProps {
@@ -127,9 +128,9 @@ function BookingLogsFilters({
                     value={actorFilter ? { label: `${t("actor")}: ${actorFilter}`, value: actorFilter } : { label: `${t("actor")}: ${t("all")}`, value: "" }}
                     onChange={(option) => {
                         if (!option) return;
-                        onActorFilterChange((option.value as AuditActorType) || null);
+                        onActorFilterChange(option.value || null);
                     }}
-                    options={[{ label: `${t("actor")}: ${t("all")}`, value: "" }, ...actorOptions.map(opt => ({ ...opt, label: `${t("actor")}: ${opt.label}` }))]}
+                    options={[{ label: t("all"), value: "" }, ...actorOptions]}
                 />
             </div>
         </div>
@@ -305,6 +306,10 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                 <span className="font-medium text-emphasis min-w-[80px]">{t("actor")}</span>
                                                 <span className="text-default">{log.actor.displayName || log.actor.type}</span>
                                             </div>
+                                            <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                                                <span className="font-medium text-emphasis min-w-[80px]">{t("source")}</span>
+                                                <span className="text-default">{log.source}</span>
+                                            </div>
                                             <div className="flex items-start gap-2 py-2 px-3 border-b border-subtle">
                                                 <span className="font-medium text-emphasis min-w-[80px]">
                                                     {t("timestamp")}
@@ -313,7 +318,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                     {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
                                                 </span>
                                             </div>
-                                            {log.data && Object.keys(log.data).length > 0 && (
+                                            {log.displayJson && Object.keys(log.displayJson).length > 0 && (
                                                 <div>
                                                     <div className="flex flex-col items-start gap-2 py-1 px-3 border-b border-subtle">
                                                         <Button
@@ -326,7 +331,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                         </Button>
                                                     </div>
                                                     <div>
-                                                        {showJson && <JsonViewer data={log.data} />}
+                                                        {showJson && <JsonViewer data={log.displayJson} />}
                                                     </div>
                                                 </div>
                                             )}
@@ -342,14 +347,54 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
     );
 }
 
+function useBookingLogsFilters(
+    auditLogs: AuditLog[],
+    searchTerm: string,
+    actorFilter: string | null
+) {
+    const filteredLogs = auditLogs.filter((log) => {
+        const matchesSearch =
+            !searchTerm ||
+            log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesActor = !actorFilter || log.actor.displayName === actorFilter;
+
+        return matchesSearch && matchesActor;
+    });
+
+    const uniqueActorNames = Array.from(
+        new Set(
+            auditLogs
+                .map((log) => log.actor.displayName)
+                .filter((name): name is string => Boolean(name))
+        )
+    );
+
+    const actorOptions = uniqueActorNames.map((actorName) => ({
+        label: actorName,
+        value: actorName,
+    }));
+
+    return { filteredLogs, actorOptions };
+}
+
 export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
-    const [actorFilter, setActorFilter] = useState<AuditActorType | null>(null);
+    const [actorFilter, setActorFilter] = useState<string | null>(null);
     const { t } = useLocale();
     const { data, isLoading, error } = trpc.viewer.bookings.getAuditLogs.useQuery({
         bookingUid,
     });
+
+    const auditLogs = data?.auditLogs || [];
+
+    const { filteredLogs, actorOptions } = useBookingLogsFilters(
+        auditLogs,
+        searchTerm,
+        actorFilter
+    );
 
     if (error) {
         return (
@@ -375,27 +420,6 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
             </div>
         );
     }
-
-    const auditLogs = data?.auditLogs || [];
-
-    // Apply filters
-    const filteredLogs = auditLogs.filter((log) => {
-        const matchesSearch =
-            !searchTerm ||
-            log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesActor = !actorFilter || log.actor.type === actorFilter;
-
-        return matchesSearch && matchesActor;
-    });
-
-    const uniqueActorTypes = Array.from(new Set(auditLogs.map((log) => log.actor.type))) as AuditActorType[];
-
-    const actorOptions = uniqueActorTypes.map((actorType) => ({
-        label: actorType,
-        value: actorType,
-    }));
 
     return (
         <div className="space-y-6">

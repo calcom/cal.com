@@ -19,6 +19,20 @@ const safeActorSelect = {
     createdAt: true,
 } as const;
 
+const safeBookingAuditSelect = {
+    id: true,
+    bookingUid: true,
+    actorId: true,
+    action: true,
+    type: true,
+    timestamp: true,
+    source: true,
+    operationId: true,
+    data: true,
+    createdAt: true,
+    updatedAt: true,
+} as const;
+
 export class PrismaBookingAuditRepository implements IBookingAuditRepository {
     constructor(private readonly deps: Dependencies) { }
 
@@ -30,9 +44,27 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 action: bookingAudit.action,
                 type: bookingAudit.type,
                 timestamp: bookingAudit.timestamp,
+                source: bookingAudit.source,
+                operationId: bookingAudit.operationId,
                 data: bookingAudit.data === null ? undefined : bookingAudit.data,
             },
         });
+    }
+
+    async createMany(bookingAudits: BookingAuditCreateInput[]) {
+        const result = await this.deps.prismaClient.bookingAudit.createMany({
+            data: bookingAudits.map((bookingAudit) => ({
+                bookingUid: bookingAudit.bookingUid,
+                actorId: bookingAudit.actorId,
+                action: bookingAudit.action,
+                type: bookingAudit.type,
+                timestamp: bookingAudit.timestamp,
+                source: bookingAudit.source,
+                operationId: bookingAudit.operationId,
+                data: bookingAudit.data === null ? undefined : bookingAudit.data,
+            })),
+        });
+        return { count: result.count };
     }
 
     async findAllForBooking(bookingUid: string): Promise<BookingAuditWithActor[]> {
@@ -40,7 +72,8 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
             where: {
                 bookingUid,
             },
-            include: {
+            select: {
+                ...safeBookingAuditSelect,
                 actor: {
                     select: safeActorSelect,
                 },
@@ -57,14 +90,13 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 bookingUid,
                 action: "RESCHEDULED",
             },
-            include: {
+            select: {
+                ...safeBookingAuditSelect,
                 actor: {
-                    select: safeActorSelect,
+                    select: safeActorSelect
                 },
             },
-            orderBy: {
-                timestamp: "desc",
-            },
+            orderBy: { timestamp: "desc" },
         });
     }
 }

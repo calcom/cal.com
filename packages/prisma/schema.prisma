@@ -1940,18 +1940,18 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id              Int                @id @default(autoincrement())
-  uuid            String             @unique
-  start           DateTime
-  end             DateTime
-  notes           String?
-  showNotePublicly Boolean           @default(false)
-  userId          Int
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId        Int?
-  toUser          User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  reasonId        Int?
-  reason          OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  id               Int                @id @default(autoincrement())
+  uuid             String             @unique
+  start            DateTime
+  end              DateTime
+  notes            String?
+  showNotePublicly Boolean            @default(false)
+  userId           Int
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId         Int?
+  toUser           User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId         Int?
+  reason           OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2715,6 +2715,18 @@ enum BookingAuditAction {
 
   // Rescheduling
   RESCHEDULE_REQUESTED @map("reschedule_requested")
+
+  // Seat management
+  SEAT_BOOKED      @map("seat_booked")
+  SEAT_RESCHEDULED @map("seat_rescheduled")
+}
+
+enum BookingAuditSource {
+  API_V1  @map("api_v1")
+  API_V2  @map("api_v2")
+  WEBAPP  @map("webapp")
+  WEBHOOK @map("webhook")
+  UNKNOWN @map("unknown")
 }
 
 enum AuditActorType {
@@ -2722,6 +2734,7 @@ enum AuditActorType {
   GUEST    @map("guest") // Non-registered user
   ATTENDEE @map("attendee") // Has Attendee record with us
   SYSTEM   @map("system") // Automated actions
+  APP      @map("app") // App-triggered actions (payment webhooks, integrations)
 }
 
 model AuditActor {
@@ -2781,11 +2794,18 @@ model BookingAudit {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Source of the action (API_V2 or WEBAPP)
+  source BookingAuditSource
+
+  // Operation ID for correlating related audit logs across different audit types (BookingAudit, UserAudit, etc.) or for bulk operations
+  operationId String
+
   data Json?
 
   @@index([actorId])
   @@index([bookingUid])
   @@index([timestamp])
+  @@index([operationId])
 }
 
 enum PhoneNumberSubscriptionStatus {

@@ -5,13 +5,6 @@ const UserActorSchema = z.object({
   userUuid: z.string(),
 });
 
-const GuestActorSchema = z.object({
-  identifiedBy: z.literal("guest"),
-  email: z.string().optional(),
-  name: z.string().optional(),
-  phone: z.string().optional(),
-});
-
 const AttendeeActorSchema = z.object({
   identifiedBy: z.literal("attendee"),
   attendeeId: z.number(),
@@ -22,19 +15,48 @@ const ActorByIdSchema = z.object({
   id: z.string(),
 });
 
+const GuestActorSchema = z.object({
+  identifiedBy: z.literal("guest"),
+  email: z.string(),
+  name: z.string().nullable(),
+});
+
+const SystemActorSchema = z.object({
+  identifiedBy: z.literal("system"),
+  identifier: z.string(),
+  name: z.string(),
+});
+
+const AppActorSchema = z.object({
+  identifiedBy: z.literal("app"),
+  appSlug: z.string(),
+  name: z.string(),
+});
+
 export const ActorSchema = z.discriminatedUnion("identifiedBy", [
   ActorByIdSchema,
   UserActorSchema,
+  AttendeeActorSchema,
   GuestActorSchema,
+  SystemActorSchema,
+  AppActorSchema,
+]);
+
+export const PIIFreeActorSchema = z.discriminatedUnion("identifiedBy", [
+  ActorByIdSchema,
+  UserActorSchema,
   AttendeeActorSchema,
 ]);
 
 export type Actor = z.infer<typeof ActorSchema>;
+export type PIIFreeActor = z.infer<typeof PIIFreeActorSchema>;
+
 type UserActor = z.infer<typeof UserActorSchema>;
 type GuestActor = z.infer<typeof GuestActorSchema>;
 type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
-
+type SystemActor = z.infer<typeof SystemActorSchema>;
+type AppActor = z.infer<typeof AppActorSchema>;
 /**
  * Creates an Actor representing a User by UUID
  */
@@ -45,32 +67,26 @@ export function makeUserActor(userUuid: string): UserActor {
   };
 }
 
-/**
- * Creates an Actor representing the System
- * System actors must be referenced by ID (requires migration)
- */
-export function makeSystemActor(): ActorById {
+export function makeGuestActor({ email, name }: { email: string, name: string | null }): GuestActor {
   return {
-    identifiedBy: "id",
-    id: SYSTEM_ACTOR_ID,
+    identifiedBy: "guest",
+    email,
+    name: name ?? null,
   };
 }
 
 /**
- * Creates an Actor representing a Guest (non-registered attendee)
+ * Creates an Actor representing the System
+ * System actors must be referenced by ID (requires migration)
  */
-export function makeGuestActor(params: {
-  email: string;
-  name?: string;
-  phone?: string;
-}): GuestActor {
+export function makeSystemActor({ identifier, name }: { identifier: string, name: string }): SystemActor {
   return {
-    identifiedBy: "guest",
-    email: params.email,
-    name: params.name,
-    phone: params.phone,
+    identifiedBy: "system",
+    identifier,
+    name,
   };
 }
+
 
 /**
  * Creates an Actor by existing actor ID
@@ -92,5 +108,19 @@ export function makeAttendeeActor(attendeeId: number): AttendeeActor {
   };
 }
 
-// System actor ID constant
-export const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
+/**
+ * Creates an Actor representing an App by app slug
+ * App actors use @app.internal email convention
+ */
+export function makeAppActor(params: { appSlug: string; name: string }): AppActor {
+  return {
+    identifiedBy: "app",
+    appSlug: params.appSlug,
+    name: params.name,
+  };
+}
+
+export function buildActorEmail({ identifier, actorType }: { identifier: string, actorType: "system" | "guest" | "app" }): string {
+  return `${identifier}@${actorType}.internal`;
+}
+
