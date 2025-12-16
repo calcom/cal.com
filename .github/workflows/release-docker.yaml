@@ -10,11 +10,11 @@ on:
   push:
     tags:
       - "v*"
-  # in case manual trigger is needed
   workflow_dispatch:
     inputs:
       RELEASE_TAG:
         description: "v{Major}.{Minor}.{Patch}"
+        required: true
 
 jobs:
   release-amd64:
@@ -25,7 +25,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Determine tag"
-        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> "$GITHUB_ENV"
+          fi
 
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test
@@ -39,7 +44,8 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "false"
+          push-image: "true"
+          push-latest: "false"
 
       - name: Notify Slack on Success
         if: success()
@@ -71,12 +77,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Determine tag"
-        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> "$GITHUB_ENV"
+          fi
 
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test
         with:
-          platform: "arm64"
+          platform: "linux/arm64"
           platform-suffix: "-arm"
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -85,7 +96,8 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "false"
+          push-image: "true"
+          push-latest: "false"
 
       - name: Notify Slack on Success
         if: success()
@@ -119,11 +131,8 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
-          elif [[ -n "${{ inputs.RELEASE_TAG }}" ]]; then
-            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> "$GITHUB_ENV"
           else
-            echo "::error::RELEASE_TAG input is required when running workflow_dispatch from a branch"
-            exit 1
+            echo "RELEASE_TAG=${{ inputs.RELEASE_TAG }}" >> "$GITHUB_ENV"
           fi
 
       - name: Log in to the Docker Hub registry
@@ -158,16 +167,16 @@ jobs:
             docker.io/calcom/cal.com:${{ env.RELEASE_TAG }}-arm
           docker buildx imagetools create -t docker.io/calcom/cal.com:latest \
             docker.io/calcom/cal.com:${{ env.RELEASE_TAG }} \
-            docker.io/calcom/calcom:${{ env.RELEASE_TAG }}-arm
+            docker.io/calcom/cal.com:${{ env.RELEASE_TAG }}-arm
 
       - name: Create and push manifest for ghcr.io/calcom/cal.com
         run: |
           docker buildx imagetools create -t ghcr.io/calcom/cal.com:${{ env.RELEASE_TAG }} \
             ghcr.io/calcom/cal.com:${{ env.RELEASE_TAG }} \
-            ghcr.io/calcom/calcom:${{ env.RELEASE_TAG }}-arm
+            ghcr.io/calcom/cal.com:${{ env.RELEASE_TAG }}-arm
           docker buildx imagetools create -t ghcr.io/calcom/cal.com:latest \
-            ghcr.io/calcom/calcom:${{ env.RELEASE_TAG }} \
-            ghcr.io/calcom/calcom:${{ env.RELEASE_TAG }}-arm
+            ghcr.io/calcom/cal.com:${{ env.RELEASE_TAG }} \
+            ghcr.io/calcom/cal.com:${{ env.RELEASE_TAG }}-arm
 
       - name: Notify Slack on Success
         if: success()

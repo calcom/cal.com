@@ -3,7 +3,7 @@ description: "Reusable action to build and test Docker images for Cal.com"
 
 inputs:
   platform:
-    description: "Target platform (linux/amd64 or arm64)"
+    description: "Target platform (linux/amd64 or linux/arm64)"
     required: true
   platform-suffix:
     description: "Suffix to add to image tags (e.g., -arm)"
@@ -34,6 +34,10 @@ inputs:
     description: "Whether to push the built image"
     required: false
     default: "false"
+  push-latest:
+    description: "Whether to include latest tag"
+    required: false
+    default: "true"
 
 runs:
   using: "composite"
@@ -61,14 +65,14 @@ runs:
           docker.io/calcom/cal.com
           ghcr.io/calcom/cal.com
         flavor: |
-          latest=${{ !github.event.release.prerelease }}
+          latest=${{ inputs.push-latest }}
           suffix=${{ inputs.platform-suffix }}
 
     - name: Copy env
       shell: bash
       run: |
-        grep -o '^[^#]*' .env.example > .env
-        cat .env >> $GITHUB_ENV
+        grep -v '^\s*#' .env.example > .env
+        grep -v '^\s*#' .env >> $GITHUB_ENV
         echo "DATABASE_HOST=localhost:5432" >> $GITHUB_ENV
         eval $(sed -e '/^#/d' -e 's/^/export /' -e 's/$/;/' .env) ;
 
@@ -100,11 +104,13 @@ runs:
       with:
         context: ./
         file: ./Dockerfile
-        load: true
-        push: false
+        push: ${{ inputs.push-image == 'true' }}
+        load: ${{ inputs.push-image != 'true' }}
         platforms: ${{ inputs.platform }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
         build-args: |
           NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
           NEXT_PUBLIC_API_V2_URL=http://localhost:5555/api/v2
@@ -119,10 +125,10 @@ runs:
         IFS=',' read -ra ADDR <<< "$tags"
         tag=${ADDR[0]}
 
-        docker run --rm --network stack \
+        docker run --rm --network container:database \
           -p 3000:3000 \
-          -e DATABASE_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@database/${{ inputs.postgres-db }} \
-          -e DATABASE_DIRECT_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@database/${{ inputs.postgres-db }} \
+          -e DATABASE_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@localhost:5432/${{ inputs.postgres-db }} \
+          -e DATABASE_DIRECT_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@localhost:5432/${{ inputs.postgres-db }} \
           -e NEXTAUTH_SECRET=${{ env.NEXTAUTH_SECRET }} \
           -e CALENDSO_ENCRYPTION_KEY=${{ env.CALENDSO_ENCRYPTION_KEY }} \
           $tag &
@@ -152,24 +158,6 @@ runs:
       env:
         NEXTAUTH_SECRET: "EI4qqDpcfdvf4A+0aQEEx8JjHxHSy4uWiZw/F32K+pA="
         CALENDSO_ENCRYPTION_KEY: "0zfLtY99wjeLnsM7qsa8xsT+Q0oSgnOL"
-
-    - name: Push image
-      id: docker_push
-      uses: docker/build-push-action@v6
-      if: ${{ inputs.push-image == 'true' && !github.event.release.prerelease }}
-      with:
-        context: ./
-        file: ./Dockerfile
-        push: true
-        platforms: ${{ inputs.platform }}
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        build-args: |
-          NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
-          NEXT_PUBLIC_API_V2_URL=http://localhost:5555/api/v2
-          NEXT_PUBLIC_LICENSE_CONSENT=agree
-          DATABASE_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@${{ inputs.database-host }}/${{ inputs.postgres-db }}
-          DATABASE_DIRECT_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@${{ inputs.database-host }}/${{ inputs.postgres-db }}
 
     - name: Image digest
       shell: bash
