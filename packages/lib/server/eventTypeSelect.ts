@@ -64,6 +64,7 @@ export const eventTypeSelect = {
   aiPhoneCallConfig: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
+  enablePerHostLocations: true,
   rescheduleWithSameRoundRobinHost: true,
   recurringEvent: true,
   locations: true,

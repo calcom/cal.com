@@ -17,6 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
 import { TextAreaField } from "@calcom/ui/components/form";
@@ -26,6 +27,7 @@ import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
+import HostLocations from "../../locations/HostLocations";
 import Locations from "../../locations/Locations";
 import type { LocationCustomClassNames } from "../../locations/types";
 
@@ -376,6 +378,11 @@ export const EventSetupTab = (
             />
           </div>
         </div>
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && (
+          <div className="border-subtle rounded-lg border p-6">
+            <HostLocations eventTypeId={eventType.id} locationOptions={props.locationOptions} />
+          </div>
+        )}
       </div>
     </div>
   );

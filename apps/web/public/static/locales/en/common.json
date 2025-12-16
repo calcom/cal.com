@@ -4162,5 +4162,11 @@
   "timestamp": "Timestamp",
   "json": "JSON",
   "hubspot_ignore_guests": "Do not create new records for guests added to the booking",
+  "enable_custom_host_locations": "Enable custom host locations",
+  "enable_custom_host_locations_description": "Allow each round-robin host to have their own meeting location",
+  "host_locations": "Host Locations",
+  "apply_to_all_hosts": "Apply to all hosts",
+  "select_location": "Select location",
+  "host_locations_fallback_description": "When a host doesn't have the selected app installed, Cal Video will be used as a fallback",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

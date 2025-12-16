@@ -100,6 +100,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     restrictionScheduleId,
     calVideoSettings,
     hostGroups,
+    enablePerHostLocations,
     ...rest
   } = input;
 
@@ -253,6 +254,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }),
     seatsPerTimeSlot,
     maxLeadThreshold: isLoadBalancingDisabled ? null : rest.maxLeadThreshold,
+    ...(enablePerHostLocations !== undefined && { enablePerHostLocations }),
   };
   data.locations = locations ?? undefined;
 
@@ -497,30 +499,117 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         })),
       },
       create: newHosts.map((host) => {
-        return {
-          ...host,
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        const hostData: {
+          userId: number;
+          isFixed: boolean;
+          priority: number;
+          weight: number;
+          groupId: string | null | undefined;
+          location?: {
+            create: {
+              type: string;
+              credentialId: number | null | undefined;
+              link: string | null | undefined;
+              address: string | null | undefined;
+              phoneNumber: string | null | undefined;
+            };
+          };
+        } = {
+          userId: host.userId,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           groupId: host.groupId,
         };
+        if (host.location) {
+          hostData.location = {
+            create: {
+              type: host.location.type,
+              credentialId: host.location.credentialId,
+              link: host.location.link,
+              address: host.location.address,
+              phoneNumber: host.location.phoneNumber,
+            },
+          };
+        }
+        return hostData;
       }),
-      update: existingHosts.map((host) => ({
-        where: {
-          userId_eventTypeId: {
-            userId: host.userId,
-            eventTypeId: id,
-          },
-        },
-        data: {
+      update: existingHosts.map((host) => {
+        const updateData: {
+          isFixed: boolean | undefined;
+          priority: number;
+          weight: number;
+          scheduleId: number | null | undefined;
+          groupId: string | null | undefined;
+          location?: {
+            upsert: {
+              create: {
+                type: string;
+                credentialId: number | null | undefined;
+                link: string | null | undefined;
+                address: string | null | undefined;
+                phoneNumber: string | null | undefined;
+              };
+              update: {
+                type: string;
+                credentialId: number | null | undefined;
+                link: string | null | undefined;
+                address: string | null | undefined;
+                phoneNumber: string | null | undefined;
+              };
+            };
+          };
+        } = {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           scheduleId: host.scheduleId ?? null,
           groupId: host.groupId,
-        },
-      })),
+        };
+        if (host.location) {
+          updateData.location = {
+            upsert: {
+              create: {
+                type: host.location.type,
+                credentialId: host.location.credentialId,
+                link: host.location.link,
+                address: host.location.address,
+                phoneNumber: host.location.phoneNumber,
+              },
+              update: {
+                type: host.location.type,
+                credentialId: host.location.credentialId,
+                link: host.location.link,
+                address: host.location.address,
+                phoneNumber: host.location.phoneNumber,
+              },
+            },
+          };
+        }
+        return {
+          where: {
+            userId_eventTypeId: {
+              userId: host.userId,
+              eventTypeId: id,
+            },
+          },
+          data: updateData,
+        };
+      }),
     };
+
+    // Delete host locations for hosts that no longer have locations
+    const hostsWithoutLocations = existingHosts.filter((host) => !host.location);
+    if (hostsWithoutLocations.length > 0) {
+      await ctx.prisma.hostLocation.deleteMany({
+        where: {
+          OR: hostsWithoutLocations.map((host) => ({
+            userId: host.userId,
+            eventTypeId: id,
+          })),
+        },
+      });
+    }
   }
 
   if (input.metadata?.disableStandardEmails?.all) {
