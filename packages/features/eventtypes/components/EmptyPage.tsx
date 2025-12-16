@@ -26,7 +26,7 @@ function EmptyPage({ name }: { name: string }) {
   const { t } = useLocale();
   return (
     <div className="relative text-center">
-      <div className="flex flex-col divide-y-2 blur-[3px] dark:blur-xs dark:opacity-70">
+      <div className="flex flex-col divide-y-2 blur-[3px] dark:opacity-70">
         <SkeletonEventType />
         <SkeletonEventType />
         <SkeletonEventType />
