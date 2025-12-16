@@ -18,7 +18,7 @@ import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { KBarTrigger } from "../kbar/Kbar";
+import { KBarTrigger } from "./Kbar";
 import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
@@ -112,19 +112,13 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 color="minimal"
                 onClick={() => window.history.back()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon
-                  name="arrow-left"
-                  className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0"
-                />
+                <Icon name="arrow-left" className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon
-                  name="arrow-right"
-                  className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0"
-                />
+                <Icon name="arrow-right" className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
               </button>
               {!!user?.org && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
