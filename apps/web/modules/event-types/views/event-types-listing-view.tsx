@@ -312,7 +312,13 @@ export const InfiniteEventTypeList = ({
               pages: oldData.pages.map((page) => ({
                 ...page,
                 eventTypes: page.eventTypes.map((eventType) =>
-                  eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
+                  eventType.id === data.id
+                    ? {
+                        ...eventType,
+                        hidden: data.hidden !== undefined ? data.hidden : !eventType.hidden,
+                        metadata: data.metadata ? (data.metadata as typeof eventType.metadata) : eventType.metadata,
+                      }
+                    : eventType
                 ),
               })),
             };
@@ -608,6 +614,7 @@ export const InfiniteEventTypeList = ({
 
                                     setHiddenMutation.mutate({
                                       id: type.id,
+                                      hidden: type.hidden,
                                       // @ts-ignore
                                       metadata: {
                                         ...currentMetadata,
