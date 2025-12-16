@@ -80,6 +80,7 @@ export interface IGetAvailableSlots {
       toUser?: IToUser | undefined;
       reason?: string | undefined;
       emoji?: string | undefined;
+      availableHosts?: number | undefined;
     }[]
   >;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -113,36 +114,28 @@ function withSlotsCache(
   func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>
 ) {
   return async (args: GetScheduleOptions): Promise<IGetAvailableSlots> => {
-    const cacheKey = `${JSON.stringify(args.input)}`;
-    let success = false;
-    let cachedResult: IGetAvailableSlots | null = null;
-    const startTime = process.hrtime();
+    const { input, ctx } = args;
+    const bookerClientUid = ctx?.req?.cookies?.uid || 'anonymous';
+    
+    const cacheKey = `slots:${input.eventTypeId || 'dynamic'}:${input.startTime}:${input.endTime}:${bookerClientUid}`;
+    
     try {
-      cachedResult = await redisClient.get(cacheKey);
-      success = true;
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === "TimeoutError") {
-        const endTime = process.hrtime(startTime);
-        log.error(`Redis request timed out after ${endTime[0]}${endTime[1] / 1e6}ms`);
-      } else {
-        throw err;
+      const cached = await redisClient.get<string>(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
       }
+    } catch (error) {
+      log.warn('Failed to get cached slots result', { error, cacheKey });
     }
-
-    if (!success) {
-      // If the cache request fails, we proceed to call the function directly
-      return await func(args);
-    }
-    if (cachedResult) {
-      log.info("[CACHE HIT] Available slots", { cacheKey });
-      return cachedResult;
-    }
+    
     const result = await func(args);
-    const ttl = parseInt(process.env.SLOTS_CACHE_TTL ?? "", 10) || DEFAULT_SLOTS_CACHE_TTL;
-    // we do not wait for the cache to complete setting; we fire and forget, and hope it'll finish.
-    // this is to already start responding to the client.
-    redisClient.set(cacheKey, result, { ttl });
-    log.info("[CACHE MISS] Available slots", { cacheKey, ttl });
+    
+    try {
+      await redisClient.set(cacheKey, JSON.stringify(result), { ttl: DEFAULT_SLOTS_CACHE_TTL });
+    } catch (error) {
+      log.warn('Failed to cache slots result', { error, cacheKey });
+    }
+    
     return result;
   };
 }
@@ -168,8 +161,15 @@ export class AvailableSlotsService {
         currentTimeInUtc,
       })) || [];
 
-    const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => slot.uid !== bookerClientUid);
-
+    // For capacity-based logic, we need ALL reservations, not just from other users
+    const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => {
+      // For generic Round-Robin reservations (userId: -1), include ALL reservations for capacity calculation
+      if (slot.userId === -1) {
+        return true;
+      }
+      // For regular reservations, exclude current user's reservations
+      return slot.uid !== bookerClientUid;
+    });
     await _cleanupExpiredSlots({ eventTypeId });
 
     const reservedSlots = slotsSelectedByOtherUsers;
@@ -1312,7 +1312,26 @@ export class AvailableSlotsService {
       }
       const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
         if (!c.isSeat) {
-          r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+          if (eventType?.schedulingType === "ROUND_ROBIN") {
+            // For Round-Robin, count all reservations for this slot (including generic userId: -1)
+            const reservationsForSlot = reservedSlots.filter(
+              slot => slot.slotUtcStartDate.getTime() === c.slotUtcStartDate.getTime() &&
+                     slot.slotUtcEndDate.getTime() === c.slotUtcEndDate.getTime() &&
+                     !slot.isSeat &&
+                     (slot.userId === -1 || usersWithCredentials.some(u => u.id === slot.userId))
+            );
+                    
+            // Block slot if capacity is exceeded
+            if (reservationsForSlot.length >= usersWithCredentials.length) {
+              r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+            }
+          } else if (eventType?.schedulingType === "COLLECTIVE") {
+            // For Collective, any reservation blocks the slot (all hosts must be available)
+            r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+          } else {
+            // For regular events, any reservation blocks the slot
+            r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+          }
         }
         return r;
       }, []);
@@ -1370,7 +1389,7 @@ export class AvailableSlotsService {
 
       return availableTimeSlots.reduce(
         (
-          r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
+          r: Record<string, { time: string; attendees?: number; bookingUid?: string; availableHosts?: number }[]>,
           { time, ...passThroughProps }
         ) => {
           // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
@@ -1384,10 +1403,30 @@ export class AvailableSlotsService {
           }
 
           const existingBooking = currentSeatsMap.get(timeISO);
+          
+          // Calculate available hosts for this time slot
+          let availableHosts = usersWithCredentials.length;
+          if (eventType?.schedulingType === "ROUND_ROBIN") {
+            const reservationsForSlot = reservedSlots.filter(
+              slot => slot.slotUtcStartDate.getTime() === time.toDate().getTime() && 
+                     !slot.isSeat &&
+                     (slot.userId === -1 || usersWithCredentials.some(u => u.id === slot.userId))
+            );
+            availableHosts = Math.max(0, usersWithCredentials.length - reservationsForSlot.length);
+            
+
+          } else if (eventType?.schedulingType === "COLLECTIVE") {
+            // For Collective, if any reservation exists, no hosts are available
+            const hasReservation = reservedSlots.some(
+              slot => slot.slotUtcStartDate.getTime() === time.toDate().getTime() && !slot.isSeat
+            );
+            availableHosts = hasReservation ? 0 : usersWithCredentials.length;
+          }
 
           r[dateString].push({
             ...passThroughProps,
             time: timeISO,
+            availableHosts,
             ...(existingBooking && {
               attendees: existingBooking.attendees,
               bookingUid: existingBooking.uid,
