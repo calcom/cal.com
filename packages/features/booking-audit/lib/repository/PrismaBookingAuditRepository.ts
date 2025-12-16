@@ -50,5 +50,22 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
             },
         });
     }
+
+    async findRescheduledLogsOfBooking(bookingUid: string): Promise<BookingAuditWithActor[]> {
+        return this.deps.prismaClient.bookingAudit.findMany({
+            where: {
+                bookingUid,
+                action: "RESCHEDULED",
+            },
+            include: {
+                actor: {
+                    select: safeActorSelect,
+                },
+            },
+            orderBy: {
+                timestamp: "desc",
+            },
+        });
+    }
 }
 
