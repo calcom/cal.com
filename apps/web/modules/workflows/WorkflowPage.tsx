@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 
-import LicenseRequired from "@calcom/features/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { DeleteDialog } from "@calcom/features/ee/workflows/components/DeleteDialog";
 import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "@calcom/features/ee/workflows/components/WorkflowDetailsPage";
