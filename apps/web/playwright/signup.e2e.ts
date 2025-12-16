@@ -266,19 +266,18 @@ test.describe("Email Signup Flow Test", async () => {
     await prisma.verificationToken.deleteMany({ where: { identifier: createdtoken.identifier } });
     await prisma.team.deleteMany({ where: { id: createdtoken.teamId! } });
   });
-  test("Email verification sent if enabled", async ({ page, prisma, emails, users, features }) => {
+  test("Email verification sent if enabled", async ({ page, emails, users, features }) => {
     const EmailVerifyFlag = features.get("email-verification")?.enabled;
 
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!EmailVerifyFlag || !IS_MAILHOG_ENABLED, "Skipping check - Email verify disabled");
-    // Ensure email verification before testing (TODO: this could break other tests but we can fix that later)
-    await prisma.feature.update({
-      where: { slug: "email-verification" },
-      data: { enabled: true },
-    });
+    // Use the features fixture to set the flag - it will be reset in beforeEach via features.reset()
+    await features.set("email-verification", true);
+    // Use unique username with timestamp to avoid collisions with parallel tests
+    const uniqueUsername = `email-verify-${Date.now()}`;
     const userToCreate = users.buildForSignup({
-      email: users.trackEmail({ username: "email-verify", domain: "example.com" }),
-      username: "email-verify",
+      email: users.trackEmail({ username: uniqueUsername, domain: "example.com" }),
+      username: uniqueUsername,
       password: "Password99!",
     });
 
@@ -378,9 +377,11 @@ test.describe("Email Signup Flow Test", async () => {
     // Navigate to email form
     await page.getByTestId("continue-with-email-button").click();
 
-    // Fill form
-    await page.locator('input[name="username"]').fill("pro");
-    await page.locator('input[name="email"]').fill("pro@example.com");
+    // Fill form with unique username to avoid collisions with parallel tests
+    // Note: This test doesn't submit the form, so we don't need to create a real user
+    const uniqueUsername = `cookie-test-${Date.now()}`;
+    await page.locator('input[name="username"]').fill(uniqueUsername);
+    await page.locator('input[name="email"]').fill(`${uniqueUsername}@example.com`);
     await page.locator('input[name="password"]').fill("Password99!");
 
     const submitButton = page.getByTestId("signup-submit-button");

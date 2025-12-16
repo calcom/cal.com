@@ -30,7 +30,8 @@ test.describe("Team", () => {
       });
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      // Wait for the new member button to be visible and clickable instead of fixed 500ms wait
+      await page.getByTestId("new-member-button").waitFor({ state: "visible" });
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.getByText(t("send_invite")).click();
@@ -84,14 +85,16 @@ test.describe("Team", () => {
 
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      // Wait for the new member button to be visible and clickable instead of fixed 500ms wait
+      await page.getByTestId("new-member-button").waitFor({ state: "visible" });
       await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
       await inviteLinkPage.goto(inviteLink);
-      await inviteLinkPage.waitForTimeout(3000);
+      // Wait for the form to be fully loaded instead of fixed 3s wait
+      await inviteLinkPage.locator("button[type=submit]").waitFor({ state: "visible" });
 
       await inviteLinkPage.locator("button[type=submit]").click();
       await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
@@ -118,7 +121,8 @@ test.describe("Team", () => {
       });
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      // Wait for the new member button to be visible and clickable instead of fixed 500ms wait
+      await page.getByTestId("new-member-button").waitFor({ state: "visible" });
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.getByText(t("send_invite")).click();
@@ -166,7 +170,8 @@ test.describe("Team", () => {
     await page.goto(`/settings/teams/${team.id}/settings`);
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+    // Wait for the new member button to be visible and clickable instead of fixed 500ms wait
+    await page.getByTestId("new-member-button").waitFor({ state: "visible" });
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     await page.getByText(t("send_invite")).click();
@@ -210,7 +215,8 @@ test.describe("Team", () => {
 
     await test.step("Send invitation to existing user", async () => {
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500);
+      // Wait for the new member button to be visible instead of fixed 500ms wait
+      await page.getByTestId("new-member-button").waitFor({ state: "visible" });
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
       await page.getByText(t("send_invite")).click();
@@ -274,7 +280,8 @@ test.describe("Team", () => {
 
     await test.step("Send invitation to specific user", async () => {
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500);
+      // Wait for the new member button to be visible instead of fixed 500ms wait
+      await page.getByTestId("new-member-button").waitFor({ state: "visible" });
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
       await page.getByText(t("send_invite")).click();
