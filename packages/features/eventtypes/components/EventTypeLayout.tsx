@@ -78,11 +78,12 @@ function EventTypeSingleLayout({
     formMethods.getValues("schedulingType") === SchedulingType.MANAGED ||
     isUserOrganizationAdmin;
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
+  const { isManagedEventType, isChildrenManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
     formMethods,
   });
+  const hiddenLockedProps = shouldLockDisableProps("hidden");
   const EventTypeTabs = tabsNavigation;
   const permalink = `${bookerUrl}/${
     team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
@@ -105,43 +106,42 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          {!formMethods.getValues("metadata")?.managedEventConfig && (
-            <>
-              <div
-                className={classNames(
-                  "sm:hover:bg-cal-muted hidden cursor-pointer items-center rounded-md transition",
-                  formMethods.watch("hidden") ? "pl-2" : "",
-                  "lg:flex"
-                )}>
-                {formMethods.watch("hidden") && (
-                  <Skeleton
-                    as={Label}
-                    htmlFor="hiddenSwitch"
-                    className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
-                    {t("hidden")}
-                  </Skeleton>
-                )}
-                <Tooltip
-                  sideOffset={4}
-                  content={
-                    formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
-                  }
-                  side="bottom">
-                  <div className="self-center rounded-md p-2">
-                    <Switch
-                      id="hiddenSwitch"
-                      disabled={eventTypesLockedByOrg}
-                      checked={!formMethods.watch("hidden")}
-                      onCheckedChange={(e) => {
-                        formMethods.setValue("hidden", !e, { shouldDirty: true });
-                      }}
-                    />
-                  </div>
-                </Tooltip>
-              </div>
-              <VerticalDivider className="hidden lg:block" />
-            </>
-          )}
+          <>
+            <div
+              className={classNames(
+                "sm:hover:bg-cal-muted hidden cursor-pointer items-center rounded-md transition",
+                formMethods.watch("hidden") ? "pl-2" : "",
+                "lg:flex"
+              )}>
+              {formMethods.watch("hidden") && (
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
+                  {t("hidden")}
+                  {(isManagedEventType || isChildrenManagedEventType) && hiddenLockedProps.LockedIcon}
+                </Skeleton>
+              )}
+              <Tooltip
+                sideOffset={4}
+                content={
+                  formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
+                }
+                side="bottom">
+                <div className="self-center rounded-md p-2">
+                  <Switch
+                    id="hiddenSwitch"
+                    disabled={eventTypesLockedByOrg || hiddenLockedProps.disabled}
+                    checked={!formMethods.watch("hidden")}
+                    onCheckedChange={(e) => {
+                      formMethods.setValue("hidden", !e, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+              </Tooltip>
+            </div>
+            <VerticalDivider className="hidden lg:block" />
+          </>
 
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "border-default hidden lg:flex" }}>
@@ -252,9 +252,11 @@ function EventTypeSingleLayout({
                   htmlFor="hiddenSwitch"
                   className="mt-2 inline cursor-pointer self-center pr-2 ">
                   {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+                  {(isManagedEventType || isChildrenManagedEventType) && hiddenLockedProps.LockedIcon}
                 </Skeleton>
                 <Switch
                   id="hiddenSwitch"
+                  disabled={eventTypesLockedByOrg || hiddenLockedProps.disabled}
                   checked={!formMethods.watch("hidden")}
                   onCheckedChange={(e) => {
                     formMethods.setValue("hidden", !e, { shouldDirty: true });
