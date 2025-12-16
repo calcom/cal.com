@@ -57,6 +57,7 @@ const OrgGeneralView = ({
     canEdit: boolean;
   };
 }) => {
+  const { t } = useLocale();
   const router = useRouter();
   const session = useSession();
 
