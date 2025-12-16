@@ -14,3 +14,14 @@ export class GetTeamSchedulesQuery extends SkipTakePagination {
   @IsOptional()
   eventTypeId?: number;
 }
+
+export class GetUserSchedulesQuery {
+  @ApiPropertyOptional({
+    description: "Filter schedules by event type ID",
+    example: 1,
+  })
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  eventTypeId?: number;
+}
