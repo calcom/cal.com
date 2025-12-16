@@ -39,7 +39,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "true"
+          push-image: "false"
 
       - name: Notify Slack on Success
         if: success()
@@ -85,7 +85,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "true"
+          push-image: "false"
 
       - name: Notify Slack on Success
         if: success()
@@ -148,8 +148,8 @@ jobs:
             docker.io/calendso/calendso:${{ env.RELEASE_TAG }} \
             docker.io/calendso/calendso:${{ env.RELEASE_TAG }}-arm
           docker buildx imagetools create -t docker.io/calendso/calendso:latest \
-            docker.io/calendso/calendso:latest \
-            docker.io/calendso/calendso:latest-arm
+            docker.io/calendso/calendso:${{ env.RELEASE_TAG }} \
+            docker.io/calendso/calendso:${{ env.RELEASE_TAG }}-arm
 
       - name: Create and push manifest for docker.io/calcom/cal.com
         run: |
@@ -157,17 +157,17 @@ jobs:
             docker.io/calcom/cal.com:${{ env.RELEASE_TAG }} \
             docker.io/calcom/cal.com:${{ env.RELEASE_TAG }}-arm
           docker buildx imagetools create -t docker.io/calcom/cal.com:latest \
-            docker.io/calcom/cal.com:latest \
-            docker.io/calcom/cal.com:latest-arm
+            docker.io/calcom/cal.com:${{ env.RELEASE_TAG }} \
+            docker.io/calcom/calcom:${{ env.RELEASE_TAG }}-arm
 
       - name: Create and push manifest for ghcr.io/calcom/cal.com
         run: |
           docker buildx imagetools create -t ghcr.io/calcom/cal.com:${{ env.RELEASE_TAG }} \
             ghcr.io/calcom/cal.com:${{ env.RELEASE_TAG }} \
-            ghcr.io/calcom/cal.com:${{ env.RELEASE_TAG }}-arm
+            ghcr.io/calcom/calcom:${{ env.RELEASE_TAG }}-arm
           docker buildx imagetools create -t ghcr.io/calcom/cal.com:latest \
-            ghcr.io/calcom/cal.com:latest \
-            ghcr.io/calcom/cal.com:latest-arm
+            ghcr.io/calcom/calcom:${{ env.RELEASE_TAG }} \
+            ghcr.io/calcom/calcom:${{ env.RELEASE_TAG }}-arm
 
       - name: Notify Slack on Success
         if: success()
