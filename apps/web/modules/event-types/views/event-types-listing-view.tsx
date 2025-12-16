@@ -597,7 +597,15 @@ export const InfiniteEventTypeList = ({
                                     e.preventDefault();
                                     e.stopPropagation();
 
-                                    const currentMetadata = (type.metadata as any) || {};
+                                    interface EventTypeMetadata {
+                                      managedEventConfig?: {
+                                        unlockedFields?: {
+                                          hidden?: boolean;
+                                        };
+                                      };
+                                    }
+
+                                    const currentMetadata = (type.metadata || {}) as EventTypeMetadata;
                                     const currentManagedConfig = currentMetadata.managedEventConfig || {};
                                     const currentUnlocked = currentManagedConfig.unlockedFields || {};
                                     const isHiddenLocked = !currentUnlocked.hidden;
