@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { formatInTimeZone } from "date-fns-tz";
 
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -56,24 +57,7 @@ describe("Booking Audit Integration", () => {
     });
     testEventTypeId = eventType.id;
 
-    // Create test booking
-    const startTime = new Date();
-    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
-    testBookingUid = `test-booking-${timestamp}-${randomSuffix}`;
-
-    const testBooking = await prisma.booking.create({
-      data: {
-        uid: testBookingUid,
-        title: "Test Booking",
-        startTime,
-        endTime,
-        userId: testUserId,
-        eventTypeId: testEventTypeId,
-        status: BookingStatus.ACCEPTED,
-      },
-    });
-
-    // Create test attendee user for permission tests
+    // Create test attendee user for permission tests (needed before booking creation)
     const attendeeUser = await prisma.user.create({
       data: {
         email: `test-attendee-${timestamp}-${randomSuffix}@example.com`,
@@ -84,13 +68,29 @@ describe("Booking Audit Integration", () => {
     testAttendeeUserId = attendeeUser.id;
     testAttendeeEmail = attendeeUser.email;
 
-    // Add attendee to booking
-    await prisma.attendee.create({
+    // Create test booking with attendee in single atomic operation
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+    testBookingUid = `test-booking-${timestamp}-${randomSuffix}`;
+
+    await prisma.booking.create({
       data: {
-        email: testAttendeeEmail,
-        name: "Test Attendee",
-        timeZone: "UTC",
-        bookingId: testBooking.id,
+        uid: testBookingUid,
+        title: "Test Booking",
+        startTime,
+        endTime,
+        userId: testUserId,
+        eventTypeId: testEventTypeId,
+        status: BookingStatus.ACCEPTED,
+        attendees: {
+          create: [
+            {
+              email: testAttendeeEmail,
+              name: "Test Attendee",
+              timeZone: "UTC",
+            },
+          ],
+        },
       },
     });
   });
@@ -185,10 +185,13 @@ describe("Booking Audit Integration", () => {
       expect(auditLog.type).toBe("RECORD_CREATED");
 
       // Verify audit data matches (getDisplayJson returns fields only, not versioned wrapper)
+      // getDisplayJson formats dates using formatDateTimeInTimeZone (yyyy-MM-dd HH:mm:ss format)
       const displayData = auditLog.data
-      expect(displayData.startTime).toBe(booking!.startTime.toISOString());
-      expect(displayData.endTime).toBe(booking!.endTime.toISOString());
-      expect(displayData.status).toBe(booking!.status);
+      const expectedStartTime = formatInTimeZone(booking!.startTime, "UTC", "yyyy-MM-dd HH:mm:ss");
+      const expectedEndTime = formatInTimeZone(booking!.endTime, "UTC", "yyyy-MM-dd HH:mm:ss");
+      expect(displayData?.startTime).toBe(expectedStartTime);
+      expect(displayData?.endTime).toBe(expectedEndTime);
+      expect(displayData?.status).toBe(booking!.status);
     });
 
     it("should enrich actor information with user details", async () => {

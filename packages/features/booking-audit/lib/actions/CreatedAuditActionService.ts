@@ -2,7 +2,7 @@ import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
 /**
  * Created Audit Action Service
@@ -22,7 +22,7 @@ export class CreatedAuditActionService implements IAuditActionService<
     typeof fieldsSchemaV1
 > {
     readonly VERSION = 1;
-    public static readonly TYPE = "CREATED";
+    public static readonly TYPE = "CREATED" as const;
     private static dataSchemaV1 = z.object({
         version: z.literal(1),
         fields: fieldsSchemaV1,
@@ -61,11 +61,24 @@ export class CreatedAuditActionService implements IAuditActionService<
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): CreatedAuditDisplayData {
+    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
+        return { key: "booking_audit_action.created" };
+    }
+
+    getDisplayJson({
+        storedData,
+        userTimeZone,
+    }: {
+        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        userTimeZone: string;
+    }): CreatedAuditDisplayData {
+        const { fields } = storedData;
+        const timeZone = userTimeZone;
+
         return {
-            startTime: new Date(storedData.fields.startTime).toISOString(),
-            endTime: new Date(storedData.fields.endTime).toISOString(),
-            status: storedData.fields.status,
+            startTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime, timeZone),
+            endTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime, timeZone),
+            status: fields.status,
         };
     }
 }

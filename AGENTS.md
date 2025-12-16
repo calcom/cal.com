@@ -7,7 +7,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Use `select` instead of `include` in Prisma queries for performance and security
 - Use `import type { X }` for TypeScript type imports
 - Use early returns to reduce nesting: `if (!booking) return null;`
-- Use TRPCError with proper error codes for API errors
+- Use `ErrorWithCode` for errors in non-tRPC files (services, repositories, utilities); use `TRPCError` only in tRPC routers
 - Use conventional commits: `feat:`, `fix:`, `refactor:`
 - Create PRs in draft mode by default
 - Run `yarn type-check:ci --force` before concluding CI failures are unrelated to your changes
@@ -15,6 +15,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Add translations to `apps/web/public/static/locales/en/common.json` for all UI strings
 - Use `date-fns` or native `Date` instead of Day.js when timezone awareness isn't needed
 - Put permission checks in `page.tsx`, never in `layout.tsx`
+- Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
 
 ## Don't
 
@@ -44,11 +45,20 @@ yarn prettier --write path/to/file.tsx
 # Unit test specific file
 yarn vitest run path/to/file.test.ts
 
+# Unit test specific file + specific test
+yarn vitest run path/to/file.test.ts --testNamePattern="specific test name"
+
 # Integration test specific file
 yarn test path/to/file.integration-test.ts -- --integrationTestsOnly
 
+# Integration test specific file + specific test
+yarn test path/to/file.integration-test.ts --testNamePattern="specific test name" -- --integrationTestsOnly
+
 # E2E test specific file
 PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts
+
+# E2E test specific file + specific test
+PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts --grep "specific test name"
 ```
 
 ### Project-wide (use sparingly)
@@ -130,14 +140,13 @@ packages/lib/                # Shared utilities
 
 ```typescript
 // Good - Descriptive error with context
-throw new TRPCError({
-  code: "BAD_REQUEST",
-  message: `Unable to create booking: User ${userId} has no available time slots for ${date}`,
-});
+throw new Error(`Unable to create booking: User ${userId} has no available time slots for ${date}`);
 
 // Bad - Generic error
 throw new Error("Booking failed");
 ```
+
+For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [Error Types in knowledge-base.md](agents/knowledge-base.md#error-types).
 
 ### Good Prisma query
 

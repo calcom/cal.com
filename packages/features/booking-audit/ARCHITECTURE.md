@@ -361,20 +361,20 @@ Used when a booking status changes to accepted.
 #### ATTENDEE_ADDED
 ```typescript
 {
-  addedAttendees  // { old: null, new: ["email@example.com", ...] }
+  attendees  // { old: ["email1@example.com", ...], new: ["email1@example.com", "email2@example.com", ...] }
 }
 ```
 
-Tracks attendee(s) that were added in this action. Old value is null since we're tracking the delta, not full state.
+Tracks attendee(s) that were added in this action. The field stores the state change: `old` contains attendees before addition, `new` contains attendees after addition. The actual added attendees are computed as the difference (new - old).
 
 #### ATTENDEE_REMOVED
 ```typescript
 {
-  removedAttendees  // { old: null, new: ["email@example.com", ...] }
+  attendees  // { old: ["email1@example.com", ...], new: ["email2@example.com", ...] }
 }
 ```
 
-Tracks attendee(s) that were removed in this action. Old value is null since we're tracking the delta, not full state.
+Tracks attendee(s) that were removed in this action. The field stores the state change: `old` contains attendees before removal, `new` contains remaining attendees after removal. The actual removed attendees are computed as the difference (old - new).
 
 ---
 
