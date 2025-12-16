@@ -172,9 +172,10 @@ export function HolidaysView() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [pendingCountryCode, setPendingCountryCode] = useState<string | null>(null);
-  const [confirmAction, setConfirmAction] = useState<"select" | "change" | "clear">("select");
+  const [confirmState, setConfirmState] = useState<{
+    action: "select" | "change" | "clear";
+    countryCode: string;
+  } | null>(null);
 
   const {
     data: countries,
@@ -227,31 +228,25 @@ export function HolidaysView() {
   const handleCountryChange = useCallback(
     (countryCode: string) => {
       if (!settings?.countryCode && countryCode) {
-        setConfirmAction("select");
+        setConfirmState({ action: "select", countryCode });
       } else if (settings?.countryCode && countryCode && countryCode !== settings.countryCode) {
-        setConfirmAction("change");
+        setConfirmState({ action: "change", countryCode });
       } else if (settings?.countryCode && !countryCode) {
-        setConfirmAction("clear");
-      } else {
-        return;
+        setConfirmState({ action: "clear", countryCode });
       }
-
-      setPendingCountryCode(countryCode);
-      setConfirmDialogOpen(true);
     },
     [settings?.countryCode]
   );
 
   const handleConfirmCountryChange = useCallback(() => {
-    if (pendingCountryCode !== null) {
+    if (confirmState) {
       updateSettingsMutation.mutate({
-        countryCode: pendingCountryCode || null,
+        countryCode: confirmState.countryCode || null,
         resetDisabledHolidays: true,
       });
     }
-    setConfirmDialogOpen(false);
-    setPendingCountryCode(null);
-  }, [pendingCountryCode, updateSettingsMutation]);
+    setConfirmState(null);
+  }, [confirmState, updateSettingsMutation]);
 
   const handleToggleHoliday = useCallback(
     (holidayId: string, enabled: boolean) => {
@@ -346,19 +341,19 @@ export function HolidaysView() {
         </div>
       </div>
 
-      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+      <Dialog open={confirmState !== null} onOpenChange={() => setConfirmState(null)}>
         <ConfirmationDialogContent
           title={
-            confirmAction === "select"
+            confirmState?.action === "select"
               ? t("enable_holiday_blocking")
-              : confirmAction === "change"
+              : confirmState?.action === "change"
               ? t("change_holiday_country")
               : t("disable_holiday_blocking")
           }
           confirmBtnText={
-            confirmAction === "select"
+            confirmState?.action === "select"
               ? t("yes_enable")
-              : confirmAction === "change"
+              : confirmState?.action === "change"
               ? t("yes_change_country")
               : t("yes_disable")
           }
@@ -366,9 +361,9 @@ export function HolidaysView() {
           onConfirm={handleConfirmCountryChange}
           isPending={updateSettingsMutation.isPending}>
           <p className="mt-4">
-            {confirmAction === "select"
+            {confirmState?.action === "select"
               ? t("enable_holiday_blocking_description")
-              : confirmAction === "change"
+              : confirmState?.action === "change"
               ? t("change_holiday_country_description")
               : t("disable_holiday_blocking_description")}
           </p>
