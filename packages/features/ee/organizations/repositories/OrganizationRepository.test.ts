@@ -6,7 +6,7 @@ import { OrganizationRepository } from "@calcom/features/ee/organizations/reposi
 import type { Prisma } from "@calcom/prisma/client";
 
 vi.mock("@calcom/features/ee/teams/lib/getParsedTeam", () => ({
-  getParsedTeam: vi.fn().mockImplementation((org: T) => org),
+  getParsedTeam: <T>(org: T) => org,
 }));
 
 const organizationRepository = new OrganizationRepository({ prismaClient: prismock });
