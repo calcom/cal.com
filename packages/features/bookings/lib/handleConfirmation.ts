@@ -5,10 +5,6 @@ import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManage
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -111,23 +107,12 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      let isHostConfirmationEmailsDisabled = false;
-      let isAttendeeConfirmationEmailDisabled = false;
-
-      if (workflows) {
-        isHostConfirmationEmailsDisabled =
-          eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
-        isAttendeeConfirmationEmailDisabled =
-          eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
-
-        if (isHostConfirmationEmailsDisabled) {
-          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-        }
-
-        if (isAttendeeConfirmationEmailDisabled) {
-          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-        }
-      }
+      // allowDisabling* checks belong in UI/validation layer, not here.
+      // Once saved, the user's preference should be honored unconditionally.
+      const isHostConfirmationEmailsDisabled =
+        eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
+      const isAttendeeConfirmationEmailDisabled =
+        eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
 
       if (emailsEnabled) {
         await sendScheduledEmailsAndSMS(

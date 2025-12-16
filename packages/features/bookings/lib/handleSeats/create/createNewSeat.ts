@@ -1,16 +1,11 @@
- 
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails/email-manager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -39,7 +34,6 @@ const createNewSeat = async (
     fullName,
     bookerEmail,
     responses,
-    workflows,
     bookerPhoneNumber,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
@@ -127,20 +121,13 @@ const createNewSeat = async (
   const copyEvent = cloneDeep(evt);
   copyEvent.uid = seatedBooking.uid;
   if (noEmail !== true) {
-    let isHostConfirmationEmailsDisabled = false;
-    let isAttendeeConfirmationEmailDisabled = false;
-
-    isHostConfirmationEmailsDisabled = eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
-    isAttendeeConfirmationEmailDisabled =
+    // allowDisabling* checks belong in UI/validation layer, not here.
+    // Once saved, the user's preference should be honored unconditionally.
+    const isHostConfirmationEmailsDisabled =
+      eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+    const isAttendeeConfirmationEmailDisabled =
       eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
 
-    if (isHostConfirmationEmailsDisabled) {
-      isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-    }
-
-    if (isAttendeeConfirmationEmailDisabled) {
-      isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-    }
     await sendScheduledSeatsEmailsAndSMS(
       copyEvent,
       inviteeToAdd,
