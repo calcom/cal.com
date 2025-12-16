@@ -78,8 +78,8 @@ const ACTION_ICON_MAP: Record<string, IconName> = {
 
 
 const ACTOR_ROLE_LABEL_MAP: Record<AuditActorType, string | null> = {
-    GUEST: "Guest",
-    ATTENDEE: "Attendee",
+    GUEST: "guest",
+    ATTENDEE: "attendee",
     SYSTEM: null,
     USER: null,
     APP: null,
@@ -251,7 +251,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                             )}
                                             <span>
                                                 {log.actor.displayName}
-                                                {actorRole && ` (${actorRole})`}
+                                                {actorRole && <span>{` (${t(actorRole)})`}</span>}
                                             </span>
                                             <span>•</span>
                                             <span>{dayjs(log.timestamp).fromNow()}</span>

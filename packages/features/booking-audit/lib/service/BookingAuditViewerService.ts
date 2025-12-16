@@ -28,6 +28,7 @@ type EnrichedAuditLog = {
     timestamp: string;
     createdAt: string;
     source: ActionSource;
+    operationId: string;
     displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
     displayFields?: Array<{ labelKey: string; valueKey: string }> | null;
@@ -150,6 +151,7 @@ export class BookingAuditViewerService {
             timestamp: log.timestamp.toISOString(),
             createdAt: log.createdAt.toISOString(),
             source: log.source,
+            operationId: log.operationId,
             displayJson,
             actionDisplayTitle,
             displayFields,

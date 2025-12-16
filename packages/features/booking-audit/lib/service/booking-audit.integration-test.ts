@@ -472,6 +472,11 @@ describe("Booking Audit Integration", () => {
       expect(result2.auditLogs[0].action).toBe("CREATED");
       expect(result3.auditLogs[0].action).toBe("CREATED");
 
+      // Verify all bookings share the same operationId
+      expect(result1.auditLogs[0].operationId).toBe(operationId);
+      expect(result2.auditLogs[0].operationId).toBe(operationId);
+      expect(result3.auditLogs[0].operationId).toBe(operationId);
+
       await cleanupTestData({
         bookingUid: booking2.uid,
       });

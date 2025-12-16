@@ -309,6 +309,7 @@
   "unconfirmed": "Unconfirmed",
   "guests": "Guests",
   "guest": "Guest",
+  "attendee": "Attendee",
   "web_conferencing_details_to_follow": "Web conferencing details to follow in the confirmation email.",
   "confirmation": "Confirmation",
   "cancellation": "Cancellation",
