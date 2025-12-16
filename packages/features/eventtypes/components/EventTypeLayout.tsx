@@ -109,19 +109,16 @@ function EventTypeSingleLayout({
           <>
             <div
               className={classNames(
-                "sm:hover:bg-cal-muted hidden cursor-pointer items-center rounded-md transition",
-                formMethods.watch("hidden") ? "pl-2" : "",
+                "sm:hover:bg-cal-muted hidden cursor-pointer items-center rounded-md pl-2 transition",
                 "lg:flex"
               )}>
-              {formMethods.watch("hidden") && (
-                <Skeleton
-                  as={Label}
-                  htmlFor="hiddenSwitch"
-                  className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
-                  {t("hidden")}
-                  {(isManagedEventType || isChildrenManagedEventType) && hiddenLockedProps.LockedIcon}
-                </Skeleton>
-              )}
+              <Skeleton
+                as={Label}
+                htmlFor="hiddenSwitch"
+                className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
+                {t("hidden")}
+                {(isManagedEventType || isChildrenManagedEventType) && hiddenLockedProps.LockedIcon}
+              </Skeleton>
               <Tooltip
                 sideOffset={4}
                 content={
