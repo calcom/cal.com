@@ -3,14 +3,13 @@
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
@@ -241,7 +240,7 @@ const DeleteOrgDialog = ({
     return null;
   }
   return (
-     
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
     <Dialog name="delete-user" open={!!org.id} onOpenChange={(open) => (open ? () => {} : onClose())}>
       <ConfirmationDialogContent
         title={t("admin_delete_organization_title", {
@@ -251,7 +250,7 @@ const DeleteOrgDialog = ({
         cancelBtnText={t("cancel")}
         variety="danger"
         onConfirm={onConfirm}>
-        <ul className="ml-4 mt-5 list-disc stack-y-2">
+        <ul className="stack-y-2 ml-4 mt-5 list-disc">
           <li>{t("admin_delete_organization_description_1")}</li>
           <li>{t("admin_delete_organization_description_2")}</li>
           <li>{t("admin_delete_organization_description_3")}</li>
