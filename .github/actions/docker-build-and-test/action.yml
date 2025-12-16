@@ -72,9 +72,9 @@ runs:
       shell: bash
       run: |
         grep -v '^\s*#' .env.example > .env
-        grep -v '^\s*#' .env >> $GITHUB_ENV
-        echo "DATABASE_HOST=localhost:5432" >> $GITHUB_ENV
-        eval $(sed -e '/^#/d' -e 's/^/export /' -e 's/$/;/' .env) ;
+        grep -v '^\s*#' .env >> "$GITHUB_ENV"
+        echo "DATABASE_HOST=localhost:5432" >> "$GITHUB_ENV"
+        eval "$(sed -e '/^#/d' -e 's/^/export /' -e 's/$/;/' .env)"
 
     - name: Start database
       shell: bash
@@ -99,14 +99,13 @@ runs:
           --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
 
     - name: Build image
-      id: docker_build
+      id: docker_build_test
       uses: docker/build-push-action@v6
       with:
         context: ./
         file: ./Dockerfile
-        push: ${{ inputs.push-image == 'true' }}
-        load: ${{ inputs.push-image != 'true' }}
-        platforms: ${{ inputs.platform }}
+        push: false
+        load: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
@@ -133,35 +132,60 @@ runs:
           -e CALENDSO_ENCRYPTION_KEY=${{ env.CALENDSO_ENCRYPTION_KEY }} \
           $tag &
 
-          server_pid=$!
+        server_pid=$!
 
-          echo "Waiting for the server to start..."
-          sleep 120
+        echo "Waiting for the server to start..."
+        sleep 120
 
-          echo http://localhost:3000/auth/login
+        echo http://localhost:3000/auth/login
 
-          for i in {1..60}; do
-            echo "Checking server health ($i/60)..."
-            response=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:3000/auth/login)
-            echo "HTTP Status Code: $response"
-            if [[ "$response" == "200" ]] || [[ "$response" == "307" ]]; then
-              echo "Server is healthy"
-              kill $server_pid
-              exit 0
-            fi
-            sleep 1
-          done
+        for i in {1..60}; do
+          echo "Checking server health ($i/60)..."
+          response=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:3000/auth/login)
+          echo "HTTP Status Code: $response"
+          if [[ "$response" == "200" ]] || [[ "$response" == "307" ]]; then
+            echo "Server is healthy"
+            kill $server_pid
+            exit 0
+          fi
+          sleep 1
+        done
 
-          echo "Server health check failed"
-          kill $server_pid
-          exit 1
+        echo "Server health check failed"
+        kill $server_pid
+        exit 1
       env:
         NEXTAUTH_SECRET: "EI4qqDpcfdvf4A+0aQEEx8JjHxHSy4uWiZw/F32K+pA="
         CALENDSO_ENCRYPTION_KEY: "0zfLtY99wjeLnsM7qsa8xsT+Q0oSgnOL"
 
+    - name: Push image
+      id: docker_build_push
+      if: ${{ inputs.push-image == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ./
+        file: ./Dockerfile
+        push: true
+        platforms: ${{ inputs.platform }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
+          NEXT_PUBLIC_API_V2_URL=http://localhost:5555/api/v2
+          NEXT_PUBLIC_LICENSE_CONSENT=agree
+          DATABASE_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@${{ inputs.database-host }}/${{ inputs.postgres-db }}
+          DATABASE_DIRECT_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@${{ inputs.database-host }}/${{ inputs.postgres-db }}
+
     - name: Image digest
       shell: bash
-      run: echo ${{ steps.docker_build.outputs.digest }}
+      run: |
+        if [[ "${{ inputs.push-image }}" == "true" ]]; then
+          echo "${{ steps.docker_build_push.outputs.digest }}"
+        else
+          echo "${{ steps.docker_build_test.outputs.digest }}"
+        fi
 
     - name: Cleanup
       shell: bash
