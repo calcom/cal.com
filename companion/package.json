@@ -39,7 +39,6 @@
     "expo-secure-store": "15.0.9-canary-20251211-7da85ea",
     "expo-status-bar": "3.0.10-canary-20251211-7da85ea",
     "expo-web-browser": "15.0.11-canary-20251211-7da85ea",
-    "glob": "10.3.10",
     "nativewind": "^4.2.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -56,6 +55,7 @@
   "private": true,
   "devDependencies": {
     "@types/chrome": "^0.1.31",
+    "glob": "10.3.10",
     "@types/react": "19.2.3",
     "@types/react-dom": "19.2.3",
     "babel-preset-expo": "^54.0.7",

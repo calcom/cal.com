@@ -219,6 +219,10 @@ export class CalComOAuthService {
     }, OAUTH_TIMEOUT_MS);
 
     const messageHandler = (event: MessageEvent) => {
+      // Validate message source - must come from parent window (content script)
+      if (event.source !== window.parent) {
+        return;
+      }
       if (event.data.type !== EXTENSION_MESSAGE_TYPES.OAUTH_RESULT) {
         return;
       }
@@ -234,6 +238,8 @@ export class CalComOAuthService {
     };
 
     window.addEventListener("message", messageHandler);
+    // Using "*" for targetOrigin because parent is the host page (e.g., gmail.com).
+    // Security: source validation above ensures responses only come from parent window.
     window.parent.postMessage({ type: EXTENSION_MESSAGE_TYPES.OAUTH_REQUEST, authUrl }, "*");
   }
 
@@ -299,6 +305,10 @@ export class CalComOAuthService {
       }, TOKEN_EXCHANGE_TIMEOUT_MS);
 
       const messageHandler = (event: MessageEvent) => {
+        // Validate message source - must come from parent window (content script)
+        if (event.source !== window.parent) {
+          return;
+        }
         if (event.data.type !== EXTENSION_MESSAGE_TYPES.TOKEN_EXCHANGE_RESULT) {
           return;
         }
@@ -314,6 +324,7 @@ export class CalComOAuthService {
       };
 
       window.addEventListener("message", messageHandler);
+      // See comment in requestOAuthViaPostMessage for security rationale
       window.parent.postMessage(
         {
           type: EXTENSION_MESSAGE_TYPES.TOKEN_EXCHANGE_REQUEST,
