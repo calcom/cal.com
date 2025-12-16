@@ -257,9 +257,9 @@ test.describe("Managed Event Types", () => {
     await page.getByTestId("update-eventtype").waitFor();
 
     const hiddenSwitch = page.locator("#hiddenSwitch");
-    
+
     await expect(hiddenSwitch).toBeChecked({ checked: true });
-    
+
     await hiddenSwitch.click();
     await saveAndWaitForResponse(page);
 
