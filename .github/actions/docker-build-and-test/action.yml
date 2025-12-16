@@ -124,7 +124,7 @@ runs:
         IFS=',' read -ra ADDR <<< "$tags"
         tag=${ADDR[0]}
 
-        docker run --rm --network container:database \
+        docker run --rm --network stack \
           -p 3000:3000 \
           -e DATABASE_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@localhost:5432/${{ inputs.postgres-db }} \
           -e DATABASE_DIRECT_URL=postgresql://${{ inputs.postgres-user }}:${{ inputs.postgres-password }}@localhost:5432/${{ inputs.postgres-db }} \
