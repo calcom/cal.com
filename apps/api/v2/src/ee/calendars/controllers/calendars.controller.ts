@@ -122,7 +122,6 @@ export class CalendarsController {
   ): Promise<GetBusyTimesOutput> {
     const { loggedInUsersTz, timeZone, dateFrom, dateTo, calendarsToLoad } = queryParams;
 
-    // Prefer timeZone, fallback to loggedInUsersTz for backward compatibility
     const timezone = timeZone || loggedInUsersTz;
 
     if (!timezone) {
@@ -212,7 +211,7 @@ export class CalendarsController {
     try {
       // First try to parse as JSON
       stateObj = JSON.parse(state) as CalendarState;
-    } catch (e) {
+    } catch {
       // If JSON parsing fails, try URL params
       const stateParams = new URLSearchParams(state);
 
