@@ -1,6 +1,5 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-location.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -27,7 +26,7 @@ import {
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
 import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types";
-import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
+import type { BookingOutput_2024_08_13 } from "@calcom/platform-types";
 import { Booking } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 
@@ -458,37 +457,32 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
 
   async function createBooking(location?: string) {
     const bookingLocation = location ?? `https://initial-${randomString()}.example.com`;
-    const createBookingBody: CreateBookingInput_2024_08_13 = {
-      start: new Date(Date.UTC(2035, 0, 9, 13, 0, 0)).toISOString(),
-      eventTypeId: testSetup.eventTypeId,
-      attendee: {
-        name: "Update Location Booker",
-        email: `update-location-booker-${randomString()}@example.com`,
-        timeZone: "Europe/Rome",
-        language: "en",
+    const bookingUid = `booking-uid-${randomString(10)}`;
+
+    await bookingsRepositoryFixture.create({
+      uid: bookingUid,
+      title: "booking title",
+      startTime: new Date(Date.UTC(2035, 0, 9, 13, 0, 0)).toISOString(),
+      endTime: new Date(Date.UTC(2035, 0, 9, 13, 45, 0)).toISOString(),
+      eventType: {
+        connect: {
+          id: testSetup.eventTypeId,
+        },
       },
+      status: "ACCEPTED",
+      metadata: {},
+      responses: "null",
       location: bookingLocation,
-      metadata: {
-        integrationRequestId: randomString(),
+      user: {
+        connect: {
+          id: testSetup.organizer.id,
+        },
       },
-    };
-
-    const createBookingResponse = await request(app.getHttpServer())
-      .post("/v2/bookings")
-      .send(createBookingBody)
-      .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-      .expect(201);
-
-    const createBookingResponseBody: CreateBookingOutput_2024_08_13 = createBookingResponse.body;
-    if (!responseDataIsBooking(createBookingResponseBody.data)) {
-      throw new Error(
-        "Invalid response data - expected booking but received array of possibly recurring bookings"
-      );
-    }
+    });
 
     return {
-      bookingUid: createBookingResponseBody.data.uid,
-      location: createBookingBody.location,
+      bookingUid,
+      location: bookingLocation,
     };
   }
 
