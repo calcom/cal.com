@@ -8,6 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -30,7 +31,6 @@ import { TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 
 import { revalidateTeamDataCache } from "~/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
@@ -96,7 +96,7 @@ const OtherTeamProfileView = () => {
         router.replace("/enterprise");
       }
     },
-    [teamError, router]
+    [teamError]
   );
 
   useEffect(
@@ -111,7 +111,7 @@ const OtherTeamProfileView = () => {
         }
       }
     },
-    [team, form]
+    [team]
   );
 
   // This page can only be accessed by team admins (owner/admin)
@@ -267,7 +267,7 @@ const OtherTeamProfileView = () => {
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
                       className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                       
+                      // eslint-disable-next-line react/no-danger
                       dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio) }}
                     />
                   </>
