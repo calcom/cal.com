@@ -6,7 +6,7 @@ import { WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
 import { deleteWatchlistEntryHandler } from "./deleteWatchlistEntry.handler";
 
 vi.mock("@calcom/features/di/watchlist/containers/watchlist");
-vi.mock("@calcom/lib/server/repository/watchlist.repository");
+vi.mock("@calcom/features/watchlist/lib/repository/WatchlistRepository");
 
 describe("deleteWatchlistEntryHandler", () => {
   const mockUser = {
