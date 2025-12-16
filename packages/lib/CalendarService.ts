@@ -100,11 +100,11 @@ const getDuration = (start: string, end: string): DurationObject => ({
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
-const unfoldIcal = (ical: string): string => {
+export const unfoldIcal = (ical: string): string => {
   return ical.replace(/\r\n[ \t]/g, "");
 };
 
-const foldIcal = (ical: string): string => {
+export const foldIcal = (ical: string): string => {
   return ical
     .split("\r\n")
     .map((line) => {
@@ -209,7 +209,7 @@ export default abstract class BaseCalendarService implements Calendar {
 
       const mainHostDestinationCalendar = event.destinationCalendar
         ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-          event.destinationCalendar[0]
+        event.destinationCalendar[0]
         : undefined;
 
       // We create the event directly on iCal
@@ -444,6 +444,7 @@ export default abstract class BaseCalendarService implements Calendar {
 
         const event = new ICAL.Event(vevent);
         const dtstartProperty = vevent.getFirstProperty("dtstart");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
         const timezone = dtstart ? dtstart["timezone"] : undefined;
@@ -697,9 +698,9 @@ export default abstract class BaseCalendarService implements Calendar {
         timeRange:
           dateFrom && dateTo
             ? {
-                start: dayjs(dateFrom).utc().format(TIMEZONE_FORMAT),
-                end: dayjs(dateTo).utc().format(TIMEZONE_FORMAT),
-              }
+              start: dayjs(dateFrom).utc().format(TIMEZONE_FORMAT),
+              end: dayjs(dateTo).utc().format(TIMEZONE_FORMAT),
+            }
             : undefined,
         headers: this.headers,
       });
