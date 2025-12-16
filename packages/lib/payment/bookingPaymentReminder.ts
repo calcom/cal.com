@@ -47,7 +47,7 @@ const bookingPaymentReminderHandler = async ({ event, step }) => {
   await step.sleep("wait-for-payment", "10m");
 
   // Check if payment is completed
-  const shouldSendPaymentReminder = await step.run("check-payment-status", async () => {
+  const shouldProcessAfterPayment = await step.run("should-send-payment-reminder", async () => {
     const bookingData = await prisma.booking.findFirst({
       where: {
         id: booking.id,
@@ -74,7 +74,7 @@ const bookingPaymentReminderHandler = async ({ event, step }) => {
   });
 
   // If paid, trigger afterPayment reminder
-  if (shouldSendPaymentReminder) {
+  if (shouldProcessAfterPayment) {
     await step.run("process-after-payment", async () => {
       // Reconstruct the translate functions for the event
       const reconstructedEvt = {
