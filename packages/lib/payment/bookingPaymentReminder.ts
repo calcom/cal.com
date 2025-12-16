@@ -1,6 +1,7 @@
 import type { BookingSeat, Payment, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -30,6 +31,7 @@ type BookingData = {
   startTime: { toISOString: () => string };
   uid: string;
 };
+
 const bookingPaymentReminderHandler = async ({ event, step }) => {
   const { evt, booking, paymentData, eventTypeMetadata, bookingSeatId, paymentAppCredentials } =
     event.data as {
@@ -74,6 +76,27 @@ const bookingPaymentReminderHandler = async ({ event, step }) => {
   // If paid, trigger afterPayment reminder
   if (shouldSendPaymentReminder) {
     await step.run("process-after-payment", async () => {
+      // Reconstruct the translate functions for the event
+      const reconstructedEvt = {
+        ...evt,
+        organizer: {
+          ...evt.organizer,
+          language: {
+            locale: evt.organizer.language.locale,
+            translate: await getTranslation(evt.organizer.language.locale ?? "en", "common"),
+          },
+        },
+        attendees: await Promise.all(
+          evt.attendees.map(async (attendee) => ({
+            ...attendee,
+            language: {
+              locale: attendee.language.locale,
+              translate: await getTranslation(attendee.language.locale ?? "en", "common"),
+            },
+          }))
+        ),
+      };
+
       // Get payment app instance
       const key = paymentAppCredentials.appDirName;
       if (!key || !isKeyOf(appStore, key)) {
@@ -88,11 +111,18 @@ const bookingPaymentReminderHandler = async ({ event, step }) => {
       const PaymentService = paymentApp.lib.PaymentService;
       const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
-      // Trigger afterPayment with all the parameters
-      await paymentInstance.afterPayment(evt, booking, paymentData, eventTypeMetadata, bookingSeatId);
+      // Trigger afterPayment with reconstructed event
+      await paymentInstance.afterPayment(
+        reconstructedEvt,
+        booking,
+        paymentData,
+        eventTypeMetadata,
+        bookingSeatId
+      );
 
       return { success: true, bookingId: booking.id };
     });
   }
 };
+
 export default bookingPaymentReminderHandler;
