@@ -597,10 +597,10 @@ export const InfiniteEventTypeList = ({
                                     e.preventDefault();
                                     e.stopPropagation();
 
-                                    const currentMetadata = type.metadata || {};
-                                    const currentManagedConfig = type.metadata?.managedEventConfig || {};
-                                    const currentUnlocked = currentManagedConfig?.unlockedFields || {};
-                                    const isHiddenLocked = !currentUnlocked?.hidden;
+                                    const currentMetadata = (type.metadata as any) || {};
+                                    const currentManagedConfig = currentMetadata.managedEventConfig || {};
+                                    const currentUnlocked = currentManagedConfig.unlockedFields || {};
+                                    const isHiddenLocked = !currentUnlocked.hidden;
 
                                     const newUnlocked = { ...currentUnlocked };
                                     if (isHiddenLocked) {
