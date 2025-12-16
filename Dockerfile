@@ -32,7 +32,8 @@ ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     ORGANIZATIONS_ENABLED=$ORGANIZATIONS_ENABLED \
     NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE} \
     BUILD_STANDALONE=true \
-    CSP_POLICY=$CSP_POLICY
+    CSP_POLICY=$CSP_POLICY \
+    CI=true
 
 COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json i18n.json ./
 COPY .yarn ./.yarn
@@ -47,7 +48,7 @@ RUN yarn install
 # Build and make embed servable from web/public/embed folder
 RUN yarn workspace @calcom/trpc run build
 RUN yarn --cwd packages/embeds/embed-core workspace @calcom/embed-core run build
-RUN NEXT_DISABLE_ESLINT=1 yarn --cwd apps/web workspace @calcom/web run build
+RUN yarn --cwd apps/web workspace @calcom/web run build
 RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache
 
 FROM node:20 AS builder-two
