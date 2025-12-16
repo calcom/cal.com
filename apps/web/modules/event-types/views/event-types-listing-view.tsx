@@ -312,7 +312,13 @@ export const InfiniteEventTypeList = ({
               pages: oldData.pages.map((page) => ({
                 ...page,
                 eventTypes: page.eventTypes.map((eventType) =>
-                  eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
+                  eventType.id === data.id
+                    ? {
+                        ...eventType,
+                        hidden: data.hidden !== undefined ? data.hidden : !eventType.hidden,
+                        metadata: data.metadata ? (data.metadata as typeof eventType.metadata) : eventType.metadata,
+                      }
+                    : eventType
                 ),
               })),
             };
@@ -570,7 +576,62 @@ export const InfiniteEventTypeList = ({
                           />
                         )}
                         <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                          {!isManagedEventType && (
+                          <div className="flex items-center">
+                            {isManagedEventType && (
+                              <Tooltip
+                                content={
+                                  !type.metadata?.managedEventConfig?.unlockedFields?.hidden
+                                    ? t("locked")
+                                    : t("unlocked")
+                                }>
+                                <Button
+                                  className="mr-2"
+                                  variant="icon"
+                                  StartIcon={
+                                    !type.metadata?.managedEventConfig?.unlockedFields?.hidden
+                                      ? "lock"
+                                      : "unlock"
+                                  }
+                                  color="secondary"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+
+                                    interface EventTypeMetadata {
+                                      managedEventConfig?: {
+                                        unlockedFields?: {
+                                          hidden?: boolean;
+                                        };
+                                      };
+                                    }
+
+                                    const currentMetadata = (type.metadata || {}) as EventTypeMetadata;
+                                    const currentManagedConfig = currentMetadata.managedEventConfig || {};
+                                    const currentUnlocked = currentManagedConfig.unlockedFields || {};
+                                    const isHiddenLocked = !currentUnlocked.hidden;
+
+                                    const newUnlocked = { ...currentUnlocked };
+                                    if (isHiddenLocked) {
+                                      newUnlocked.hidden = true;
+                                    } else {
+                                      delete newUnlocked.hidden;
+                                    }
+
+                                    setHiddenMutation.mutate({
+                                      id: type.id,
+                                      hidden: type.hidden,
+                                      metadata: {
+                                        ...currentMetadata,
+                                        managedEventConfig: {
+                                          ...currentManagedConfig,
+                                          unlockedFields: newUnlocked,
+                                        },
+                                      },
+                                    });
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
                             <>
                               {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                               <Tooltip
@@ -589,7 +650,7 @@ export const InfiniteEventTypeList = ({
                                 </div>
                               </Tooltip>
                             </>
-                          )}
+                          </div>
 
                           <ButtonGroup combined>
                             {!isManagedEventType && (

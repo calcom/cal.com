@@ -226,7 +226,7 @@ export default async function handleChildrenEventTypes({
         onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
         userId,
         parentId,
-        hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+        hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? eventType.hidden,
         /**
          * RR Segment isn't applicable for managed event types.
          */
@@ -333,7 +333,9 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             rrHostSubsetEnabled: false,
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            ...(children?.find((ch) => ch.owner.id === userId)
+              ? { hidden: children.find((ch) => ch.owner.id === userId)?.hidden }
+              : {}),
             ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
             useBookerTimezone: false,
