@@ -4,26 +4,33 @@ import { memo, useMemo, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { OutOfOfficeToggleGroup } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
+import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Label, Select } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
 function HolidaysCTA() {
   const { t } = useLocale();
   return (
     <div className="flex gap-2">
       <OutOfOfficeToggleGroup />
-      <Button color="primary" StartIcon="plus" className="invisible" aria-hidden="true" tabIndex={-1}>
-        {t("add")}
+      {/* Invisible placeholder to match OOO button width and prevent layout shift */}
+      <Button
+        color="primary"
+        size="base"
+        StartIcon="plus"
+        className="invisible flex items-center justify-between px-2 md:px-4"
+        aria-hidden="true"
+        tabIndex={-1}>
+        <span className="hidden md:inline">{t("add")}</span>
       </Button>
     </div>
   );
@@ -31,6 +38,15 @@ function HolidaysCTA() {
 
 type HolidayWithStatus = RouterOutputs["viewer"]["holidays"]["getUserSettings"]["holidays"][number];
 type Country = { code: string; name: string };
+
+const getFlagEmoji = (countryCode: string): string | null => {
+  if (countryCode.length !== 2) return null;
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
 
 const CountrySelector = memo(function CountrySelector({
   countries,
@@ -47,11 +63,14 @@ const CountrySelector = memo(function CountrySelector({
 
   const options = useMemo(
     () => [
-      { value: "", label: t("no_holidays") },
-      ...countries.map((country) => ({
-        value: country.code,
-        label: country.name,
-      })),
+      { value: "", label: t("select_country") },
+      ...countries.map((country) => {
+        const flag = getFlagEmoji(country.code);
+        return {
+          value: country.code,
+          label: flag ? `${flag} ${country.name}` : country.name,
+        };
+      }),
     ],
     [countries, t]
   );
@@ -59,16 +78,18 @@ const CountrySelector = memo(function CountrySelector({
   const selectedOption = useMemo(() => {
     if (!value) return { value: "", label: t("select_country") };
     const country = countries.find((c) => c.code === value);
-    return { value, label: country?.name || value };
+    if (!country) return { value, label: value };
+    const flag = getFlagEmoji(country.code);
+    return { value, label: flag ? `${flag} ${country.name}` : country.name };
   }, [value, countries, t]);
 
   if (isLoading) {
-    return <SkeletonText className="mt-1 h-10 w-full max-w-xs" />;
+    return <SkeletonText className="h-9 w-36" />;
   }
 
   return (
     <Select
-      className="mt-1 w-full max-w-xs"
+      className="w-auto min-w-[180px]"
       value={selectedOption}
       onChange={(option) => onChange(option?.value || "")}
       options={options}
@@ -85,15 +106,22 @@ const HolidayListItem = memo(function HolidayListItem({
   onToggle: (holidayId: string, enabled: boolean) => void;
   isToggling: boolean;
 }) {
-  const formattedDate = holiday.date ? dayjs(holiday.date).format("D MMM YYYY") : null;
+  const formattedDate = holiday.date ? dayjs(holiday.date).format("D MMM, YYYY") : null;
+  const emoji = getHolidayEmoji(holiday.name);
 
   return (
-    <div className="border-subtle flex items-center justify-between border-b px-4 py-4 last:border-b-0">
+    <div className="border-subtle flex items-center justify-between border-b px-5 py-4 last:border-b-0">
       <div className="flex items-center gap-3">
-        <div className="text-2xl">📆</div>
+        <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-lg">
+          <span className="text-xl">{emoji}</span>
+        </div>
         <div>
-          <p className="text-emphasis font-medium">{holiday.name}</p>
-          {formattedDate && <p className="text-subtle text-sm">{formattedDate}</p>}
+          <p className={holiday.enabled ? "text-emphasis font-medium" : "text-muted font-medium"}>
+            {holiday.name}
+          </p>
+          {formattedDate && (
+            <p className={holiday.enabled ? "text-subtle text-sm" : "text-muted text-sm"}>{formattedDate}</p>
+          )}
         </div>
       </div>
       <Switch
@@ -104,35 +132,6 @@ const HolidayListItem = memo(function HolidayListItem({
     </div>
   );
 });
-
-function HolidaysList({
-  holidays,
-  onToggle,
-  togglingId,
-}: {
-  holidays: HolidayWithStatus[];
-  onToggle: (holidayId: string, enabled: boolean) => void;
-  togglingId: string | null;
-}) {
-  const { t } = useLocale();
-
-  if (holidays.length === 0) {
-    return <div className="text-subtle py-8 text-center">{t("no_holidays_found_for_country")}</div>;
-  }
-
-  return (
-    <div className="border-subtle divide-subtle divide-y rounded-md border">
-      {holidays.map((holiday) => (
-        <HolidayListItem
-          key={holiday.id}
-          holiday={holiday}
-          onToggle={onToggle}
-          isToggling={togglingId === holiday.id}
-        />
-      ))}
-    </div>
-  );
-}
 
 function ConflictWarning({
   conflicts,
@@ -145,27 +144,28 @@ function ConflictWarning({
 
   const totalBookings = conflicts.reduce((sum, c) => sum + c.bookings.length, 0);
 
-  const conflictMessage = (
-    <ul className="mt-1 space-y-1">
-      {conflicts.slice(0, 3).map((conflict) => (
-        <li key={conflict.holidayId}>
-          {conflict.holidayName} ({dayjs(conflict.date).format("D MMM")}) -{" "}
-          {t("booking_count", { count: conflict.bookings.length })}
-        </li>
-      ))}
-      {conflicts.length > 3 && (
-        <li>{t("and_more_holidays_with_conflicts", { count: conflicts.length - 3 })}</li>
-      )}
-    </ul>
-  );
-
   return (
-    <Alert
-      severity="warning"
-      title={t("holiday_booking_conflict_warning", { count: totalBookings })}
-      message={conflictMessage}
-      className="mb-4"
-    />
+    <div className="bg-semantic-attention-subtle rounded-md px-3 py-2">
+      <div className="flex items-center gap-2">
+        <Icon name="triangle-alert" className="text-semantic-attention h-4 w-4 shrink-0" />
+        <p className="text-emphasis text-sm font-medium">
+          {t("holiday_booking_conflict_warning", { count: totalBookings })}:
+        </p>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {conflicts.slice(0, 3).map((conflict, idx) => (
+            <span key={conflict.holidayId} className="text-default text-sm">
+              {conflict.holidayName} ({conflict.bookings.length})
+              {idx < Math.min(conflicts.length, 3) - 1 && ","}
+            </span>
+          ))}
+          {conflicts.length > 3 && (
+            <span className="text-subtle text-sm">
+              +{conflicts.length - 3} {t("more")}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -267,45 +267,61 @@ export function HolidaysView() {
   }
 
   return (
-    <SettingsHeader title={t("holidays")} description={t("holidays_description")} CTA={<HolidaysCTA />}>
+    <SettingsHeader
+      title={t("out_of_office")}
+      description={t("out_of_office_description")}
+      CTA={<HolidaysCTA />}>
       <div className="space-y-6">
-        <div className="border-subtle bg-default rounded-md border p-6">
-          <Label>{t("country_for_holidays")}</Label>
-          <CountrySelector
-            countries={countries || []}
-            value={settings?.countryCode || ""}
-            onChange={handleCountryChange}
-            isLoading={isLoadingCountries}
-          />
-        </div>
-
         {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
           <ConflictWarning conflicts={conflictsData.conflicts} />
         )}
 
-        {settings?.countryCode ? (
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-emphasis font-medium">
-                {t("holidays_list")} ({settings.holidays?.filter((h) => h.enabled).length || 0} {t("enabled")}
-                )
-              </h3>
+        <div className="border-subtle bg-muted overflow-hidden rounded-lg border p-5">
+          {/* Header with title and country selector */}
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-emphasis font-semibold">{t("holidays")}</h3>
+              <p className="text-subtle text-sm">{t("holidays_description")}</p>
             </div>
-            <HolidaysList
-              holidays={settings.holidays || []}
-              onToggle={handleToggleHoliday}
-              togglingId={
-                toggleHolidayMutation.isPending ? toggleHolidayMutation.variables?.holidayId || null : null
-              }
+            <CountrySelector
+              countries={countries || []}
+              value={settings?.countryCode || ""}
+              onChange={handleCountryChange}
+              isLoading={isLoadingCountries}
             />
           </div>
-        ) : (
-          <EmptyScreen
-            Icon="calendar"
-            headline={t("no_holidays_selected")}
-            description={t("select_country_to_see_holidays")}
-          />
-        )}
+
+          {/* Holidays list - inner container */}
+          {settings?.countryCode ? (
+            <div className="border-subtle bg-default overflow-hidden rounded-md border">
+              {settings.holidays && settings.holidays.length > 0 ? (
+                settings.holidays.map((holiday) => (
+                  <HolidayListItem
+                    key={holiday.id}
+                    holiday={holiday}
+                    onToggle={handleToggleHoliday}
+                    isToggling={
+                      toggleHolidayMutation.isPending &&
+                      toggleHolidayMutation.variables?.holidayId === holiday.id
+                    }
+                  />
+                ))
+              ) : (
+                <div className="text-subtle py-8 text-center text-sm">
+                  {t("no_holidays_found_for_country")}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-default flex flex-col items-center rounded-md py-14 text-center">
+              <div className="bg-emphasis mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                <Icon name="calendar" className="text-default h-8 w-8" />
+              </div>
+              <h4 className="text-emphasis mb-1 font-medium">{t("no_holidays_selected")}</h4>
+              <p className="text-subtle text-sm">{t("select_country_to_see_holidays")}</p>
+            </div>
+          )}
+        </div>
       </div>
     </SettingsHeader>
   );

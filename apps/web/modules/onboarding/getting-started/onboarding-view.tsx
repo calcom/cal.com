@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useTransition } from "react";
 
+import { useTeamInvites } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -28,11 +29,22 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { listInvites, isPending: isPendingInvites } = useTeamInvites();
 
   // Reset onboarding data when visiting this page, but preserve the selected plan
   useEffect(() => {
     resetOnboardingPreservingPlan();
   }, []);
+
+  // If user has pending team invites, redirect them directly to personal onboarding
+  useEffect(() => {
+    if (!isPendingInvites && listInvites && listInvites.length > 0) {
+      setSelectedPlan("personal");
+      startTransition(() => {
+        router.push("/onboarding/personal/settings");
+      });
+    }
+  }, [isPendingInvites, listInvites, router, setSelectedPlan]);
 
   // Plan order mapping for determining direction
   const planOrder: Record<PlanType, number> = {
@@ -110,6 +122,15 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   });
 
   const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
+
+  // Show loading state while checking for invites or if redirecting
+  if (isPendingInvites || (listInvites && listInvites.length > 0)) {
+    return (
+      <OnboardingLayout userEmail={userEmail}>
+        <OnboardingCard title={t("loading")} subtitle="" />
+      </OnboardingLayout>
+    );
+  }
 
   return (
     <>

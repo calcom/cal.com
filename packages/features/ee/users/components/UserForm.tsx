@@ -22,11 +22,11 @@ interface User {
   weekStart: string;
   theme: string | null;
   defaultScheduleId: number | null;
-  locale: string;
-  timeFormat: number;
-  allowDynamicBooking: boolean;
-  identityProvider: string;
-  role: string;
+  locale: string | null;
+  timeFormat: number | null;
+  allowDynamicBooking: boolean | null;
+  identityProvider: string | null;
+  role: string | null;
   avatarUrl: string | null;
   createdDate?: string | Date;
 }

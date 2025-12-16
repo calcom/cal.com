@@ -11,6 +11,7 @@ import {
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
@@ -19,6 +20,7 @@ import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getHolidayService } from "@calcom/lib/holidays";
+import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -26,7 +28,6 @@ import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "@c
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import prisma from "@calcom/prisma";
 import type {
   Booking,
   Prisma,
@@ -165,6 +166,7 @@ export interface IUserAvailabilityService {
   oooRepo: PrismaOOORepository;
   bookingRepo: BookingRepository;
   redisClient: IRedisService;
+  holidayRepo: PrismaHolidayRepository;
 }
 
 export class UserAvailabilityService {
@@ -709,8 +711,8 @@ export class UserAvailabilityService {
     endDate: Date,
     availability: GetUserAvailabilityParamsDTO["availability"]
   ): Promise<IOutOfOfficeData> {
-    const holidaySettings = await prisma.userHolidaySettings.findUnique({
-      where: { userId },
+    const holidaySettings = await this.dependencies.holidayRepo.findUserSettingsSelect({
+      userId,
       select: {
         countryCode: true,
         disabledIds: true,
@@ -760,7 +762,7 @@ export class UserAvailabilityService {
         fromUser: null,
         toUser: null,
         reason: holiday.name,
-        emoji: "📆",
+        emoji: getHolidayEmoji(holiday.name),
       };
     }
 
