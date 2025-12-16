@@ -6,6 +6,9 @@ import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
+import { inngestClient } from "@calcom/web/pages/api/inngest";
+
+import { INNGEST_ID } from "../constants";
 
 const isPaymentApp = (x: unknown): x is PaymentApp =>
   !!x &&
@@ -92,17 +95,17 @@ const handlePayment = async ({
         currency: apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
-      bookingSeat?.id,
       booking.userId,
       booking.user?.username ?? null,
       bookerName,
       paymentOption,
       bookerEmail,
       booking.uid,
+      bookingSeat?.id,
       bookerPhoneNumber,
       selectedEventType.title,
       evt.title,
-      booking.responses ?? responses,
+      booking.responses ?? responses
     );
   }
 
@@ -111,7 +114,30 @@ const handlePayment = async ({
     throw new Error("Payment data is null");
   }
   try {
-    await paymentInstance.afterPayment(evt, booking, bookingSeat?.id, paymentData, selectedEventType?.metadata);
+    // Schedule Inngest function to verify payment and trigger afterPayment after 10 minutes
+    const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
+
+    await inngestClient.send({
+      name: `booking/payment-reminder-${key}`,
+      data: {
+        evt,
+        booking: {
+          user: booking.user,
+          id: booking.id,
+          startTime: booking.startTime,
+          uid: booking.uid,
+        },
+        paymentData,
+        eventTypeMetadata: selectedEventType?.metadata,
+        bookingSeatId: bookingSeat?.id,
+        // Include payment app credentials for afterPayment execution
+        paymentAppCredentials: {
+          key: paymentAppCredentials.key,
+          appId: paymentAppCredentials.appId,
+          appDirName: paymentAppCredentials.app?.dirName,
+        },
+      },
+    });
   } catch (e) {
     console.error(e);
   }

@@ -45,17 +45,16 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
-    bookingSeat?: BookingSeat["id"],
     userId: Booking["userId"],
     username: string | null,
     bookerName: string | null,
     paymentOption: PaymentOption,
     bookerEmail: string,
     bookingUid: string,
+    bookingSeat?: BookingSeat["id"],
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
-    bookingTitle?: string,
-    responses: Prisma.JsonValue
+    bookingTitle?: string
   ) {
     try {
       if (!this.credentials) {
@@ -200,9 +199,9 @@ export class PaymentService implements IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
-    bookingSeat: BookingSeat["id"],
     paymentData: Payment,
-    eventTypeMetadata?: EventTypeMetadata
+    eventTypeMetadata?: EventTypeMetadata,
+    bookingSeat?: BookingSeat["id"]
   ): Promise<void> {
     const paymentLink = isPrismaObjOrUndefined(paymentData.data)?.paymentLink;
 
