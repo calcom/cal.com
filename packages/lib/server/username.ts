@@ -116,11 +116,29 @@ const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | nu
 
   const username = slugify(usernameRaw);
 
+  let organizationId: number | null = null;
+  if (currentOrgDomain) {
+    // Get organizationId from orgSlug
+    const organization = await prisma.team.findFirst({
+      where: {
+        isOrganization: true,
+        OR: [
+          { slug: currentOrgDomain },
+          { metadata: { path: ["requestedSlug"], equals: currentOrgDomain } },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    organizationId = organization?.id ?? null;
+  }
+
   const user = await prisma.user.findFirst({
     where: {
       username,
-      // Simply remove it when we drop organizationId column
-      organizationId: null,
+      // Check in the specific organization context, or global namespace if no org
+      organizationId: organizationId ?? null,
     },
     select: {
       id: true,
@@ -140,12 +158,13 @@ const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | nu
     response.premium = true;
   }
 
-  // get list of similar usernames in the db
+  // get list of similar usernames in the db (scoped to organization if checking in org context)
   const users = await prisma.user.findMany({
     where: {
       username: {
         contains: username,
       },
+      ...(organizationId !== null ? { organizationId } : { organizationId: null }),
     },
     select: {
       username: true,
