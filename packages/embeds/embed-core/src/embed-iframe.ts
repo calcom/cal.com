@@ -3,13 +3,16 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { mapOldToNewCssVars } from "./ui/cssVarsMap";
 import type { Message } from "./embed";
-import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
+import { embedStore, EMBED_IFRAME_STATE, resetPageData, setReloadInitiated, incrementView } from "./embed-iframe/lib/embedStore";
 import {
   runAsap,
   isBookerReady,
   isLinkReady,
   recordResponseIfQueued,
   keepParentInformedAboutDimensionChanges,
+  isPrerendering,
+  isBrowser,
+  log,
 } from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
@@ -24,6 +27,7 @@ import type {
   setNonStylesConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
+export { useBookerEmbedEvents } from "./embed-iframe/react-hooks";
 
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
@@ -34,9 +38,10 @@ const eventsAllowedInPrerendering = [
   "__iframeReady",
   // so that iframe height is adjusted according to the content, and iframe is ready to be shown when needed
   "__dimensionChanged",
-
   // When this event is fired, the iframe is still in prerender state but is going to be moved out of prerender state
   "__connectInitiated",
+
+  "linkPrerendered",
 
   // For other events, we should consider introducing prerender specific events and not reuse existing events
 ];
@@ -54,7 +59,6 @@ declare global {
 }
 
 let isSafariBrowser = false;
-const isBrowser = typeof window !== "undefined";
 
 if (isBrowser) {
   window.CalEmbed = window?.CalEmbed || {};
@@ -63,24 +67,6 @@ if (isBrowser) {
   isSafariBrowser = ua.includes("safari") && !ua.includes("chrome");
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
-  }
-}
-
-function log(...args: unknown[]) {
-  if (isBrowser) {
-    const namespace = getNamespace();
-
-    const searchParams = new URL(document.URL).searchParams;
-    const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
-    args.push({
-      ns: namespace,
-      url: document.URL,
-    });
-    args.unshift("CAL:");
-    logQueue.push(args);
-    if (searchParams.get("debug")) {
-      console.log("Child:", ...args);
-    }
   }
 }
 
@@ -431,7 +417,11 @@ export const methods = {
       makeBodyVisible();
       log("renderState is 'completed'");
       embedStore.renderState = "completed";
-      sdkActionManager?.fire("linkReady", {});
+      if (isPrerendering()) {
+        sdkActionManager?.fire("linkPrerendered", {});
+      } else {
+        sdkActionManager?.fire("linkReady", {});
+      }
     });
   },
   /**
@@ -495,6 +485,10 @@ export const methods = {
       toBeThereParams,
       toRemoveParams,
     });
+  },
+  __reloadInitiated: function __reloadInitiated(_unused: unknown) {
+    log("Method: __reloadInitiated called");
+    setReloadInitiated(true);
   },
 };
 
@@ -566,6 +560,15 @@ function main() {
       // Because the iframe can take the entire width but the actual content could still be smaller and everything beyond that would be considered backdrop
       sdkActionManager?.fire("__closeIframe", {});
     }
+  });
+
+  sdkActionManager?.on("linkReady", () => {
+    // Even though linkReady isn't fired in prerendering phase, this is a safe guard for future
+    if (isPrerendering()) {
+      return;
+    }
+    resetPageData();
+    incrementView();
   });
 
   sdkActionManager?.on("*", (e) => {
@@ -675,10 +678,6 @@ async function connectPreloadedEmbed({
     stopEnsuringQueryParamsInUrl,
   };
 }
-
-const isPrerendering = () => {
-  return new URL(document.URL).searchParams.get("prerender") === "true";
-};
 
 export function getEmbedBookerState({
   bookerState,

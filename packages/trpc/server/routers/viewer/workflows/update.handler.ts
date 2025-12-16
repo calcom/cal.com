@@ -1,4 +1,5 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { deleteRemindersOfActiveOnIds } from "@calcom/features/ee/workflows/lib/deleteRemindersOfActiveOnIds";
@@ -13,7 +14,6 @@ import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositorie
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import { WorkflowRelationsRepository } from "@calcom/lib/server/repository/workflowRelations";
 import { WorkflowStepRepository } from "@calcom/lib/server/repository/workflowStep";
 import { prisma, type PrismaClient } from "@calcom/prisma";
@@ -253,6 +253,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const agentRepo = new PrismaAgentRepository(prisma);
 
+  const stepIds = userWorkflow.steps.map((step) => step.id);
+  const allReminders = await WorkflowReminderRepository.findWorkflowRemindersByStepIds(stepIds);
+
+  const remindersByStepId = new Map<number, (typeof allReminders)[number][]>();
+  for (const reminder of allReminders) {
+    const stepId = reminder.workflowStepId;
+    if (stepId === null) continue;
+
+    let list = remindersByStepId.get(stepId);
+    if (!list) {
+      list = [];
+      remindersByStepId.set(stepId, list);
+    }
+    list.push(reminder);
+  }
+
   // handle deleted and edited workflow steps
   await Promise.all(
     userWorkflow.steps.map(async (oldStep) => {
@@ -271,7 +287,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         };
       }
 
-      const remindersFromStep = await WorkflowReminderRepository.findWorkflowRemindersByStepId(oldStep.id);
+      const remindersFromStep = remindersByStepId.get(oldStep.id) || [];
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {
