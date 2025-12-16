@@ -1,8 +1,9 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
-import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -19,6 +20,8 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -73,6 +76,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  traceContext: TraceContext;
 }) {
   const {
     user,
@@ -84,6 +88,7 @@ export async function handleConfirmation(args: {
     paid,
     emailsEnabled = true,
     platformClientParams,
+    traceContext,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -95,13 +100,17 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
+  const spanContext = distributedTracing.createSpan(traceContext, "handle_confirmation");
+
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
+
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
       errorCode: "BookingCreatingMeetingFailed",
       message: "Booking failed",
     };
 
-    log.error(`Booking ${user.username} failed`, safeStringify({ error, results }));
+    tracingLogger.error(`Booking ${user.username} failed`, safeStringify({ error, results }));
   } else {
     if (results.length) {
       // TODO: Handle created event metadata more elegantly
@@ -110,8 +119,6 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
-
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
@@ -140,7 +147,7 @@ export async function handleConfirmation(args: {
         );
       }
     } catch (error) {
-      log.error(error);
+      tracingLogger.error(error);
     }
   }
   let updatedBookings: {
@@ -359,8 +366,11 @@ export async function handleConfirmation(args: {
           hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
           seatReferenceUid: evt.attendeeSeatId,
           isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
+          traceContext: spanContext,
         });
       }
+
+      const creditService = new CreditService();
 
       await WorkflowService.scheduleWorkflowsForNewBooking({
         workflows,
@@ -370,6 +380,7 @@ export async function handleConfirmation(args: {
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     }
   } catch (error) {
@@ -485,7 +496,7 @@ export async function handleConfirmation(args: {
         sub,
         payload
       ).catch((e) => {
-        log.error(
+        tracingLogger.error(
           `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
           safeStringify(e)
         );
@@ -545,7 +556,7 @@ export async function handleConfirmation(args: {
           sub,
           payload
         ).catch((e) => {
-          log.error(
+          tracingLogger.error(
             `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
             safeStringify(e)
           );
@@ -573,15 +584,21 @@ export async function handleConfirmation(args: {
           metadata: { videoCallUrl: meetingUrl },
         };
 
+        const creditService = new CreditService();
+
         await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
           workflows,
           smsReminderNumber: booking.smsReminderNumber,
           calendarEvent: calendarEventForWorkflow,
           hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       } catch (error) {
-        log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));
+        tracingLogger.error(
+          "Error while scheduling workflow reminders for booking paid",
+          safeStringify(error)
+        );
       }
     }
   } catch (error) {

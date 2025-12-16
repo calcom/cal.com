@@ -1,5 +1,6 @@
 export { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-export { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+export { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
+export { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 export { ScheduleRepository as PrismaScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 export { BookingRepository as PrismaBookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 export { EventTypeRepository as PrismaEventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
@@ -9,7 +10,7 @@ export { TeamRepository as PrismaTeamRepository } from "@calcom/features/ee/team
 export { UserRepository as PrismaUserRepository } from "@calcom/features/users/repositories/UserRepository";
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 export { MembershipRepository as PrismaMembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-export { HostRepository as PrismaHostRepository } from "@calcom/lib/server/repository/host";
+export { HostRepository as PrismaHostRepository } from "@calcom/features/host/repositories/HostRepository";
 export { BookingReferenceRepository as PrismaBookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 export { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
 export { ProfileRepository as PrismaProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";

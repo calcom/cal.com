@@ -4,11 +4,12 @@ import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -31,6 +32,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
@@ -69,6 +71,7 @@ export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
 export type CancelBookingInput = {
   userId?: number;
+  userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
 
@@ -171,8 +174,18 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
-      throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
+    const userIsOrgAdminOfBookingUser =
+      userId &&
+      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+        userId,
+        bookingToDelete.userId
+      ));
+
+    if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
+      throw new HttpError({
+        statusCode: 401,
+        message: "User not a host of this event or an admin of the booking user",
+      });
     }
   }
 
@@ -315,6 +328,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
+    organizationId: ownerProfile?.organizationId ?? null,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -356,6 +370,8 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
+  const creditService = new CreditService();
+
   await sendCancelledReminders({
     workflows,
     smsReminderNumber: bookingToDelete.smsReminderNumber,
@@ -374,6 +390,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       },
     },
     hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 
   let updatedBookings: {

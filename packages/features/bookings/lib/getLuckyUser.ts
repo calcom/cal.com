@@ -4,14 +4,14 @@ import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
+import type { HostRepository } from "@calcom/features/host/repositories/HostRepository";
+import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import { mergeOverlappingRanges } from "@calcom/features/schedules/lib/date-ranges";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import type { HostRepository } from "@calcom/lib/server/repository/host";
-import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { Prisma } from "@calcom/prisma/client";
 import type { User, Booking, SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
@@ -300,6 +300,11 @@ export class LuckyUserService implements ILuckyUserService {
     const oooCalibration = new Map<number, number>();
 
     oooData.forEach(({ userId, oooEntries }) => {
+      // Skip OOO calibration if there's only one host (division by zero would occur)
+      if (hosts.length <= 1) {
+        return;
+      }
+
       let calibration = 0;
 
       oooEntries.forEach((oooEntry) => {
@@ -911,6 +916,11 @@ export class LuckyUserService implements ILuckyUserService {
       weight?: number | null;
     }
   >(getLuckyUserParams: GetLuckyUserParams<T>) {
+    // Early return if only one available user to avoid unnecessary data fetching
+    if (getLuckyUserParams.availableUsers.length === 1) {
+      return getLuckyUserParams.availableUsers[0];
+    }
+
     const fetchedData = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
 
     const { luckyUser } = this.getLuckyUser_requiresDataToBePreFetched({

@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
-import { WatchlistSource } from "@calcom/prisma/enums";
+import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
 
 import type {
   IWatchlistRepository,
@@ -14,16 +14,6 @@ export class WatchlistRepository implements IWatchlistRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
   async createEntry(params: CreateWatchlistInput): Promise<WatchlistEntry> {
-    const existing = await this.checkExists({
-      type: params.type,
-      value: params.value,
-      organizationId: params.organizationId,
-    });
-
-    if (existing) {
-      throw new Error("Watchlist entry already exists for this organization");
-    }
-
     const watchlist = await this.prismaClient.$transaction(async (tx) => {
       const created = await tx.watchlist.create({
         data: {
@@ -33,7 +23,7 @@ export class WatchlistRepository implements IWatchlistRepository {
           action: params.action,
           description: params.description,
           source: WatchlistSource.MANUAL,
-          isGlobal: false,
+          isGlobal: params.isGlobal ?? false,
         },
       });
 
@@ -54,26 +44,60 @@ export class WatchlistRepository implements IWatchlistRepository {
     return watchlist;
   }
 
-  async checkExists(params: CheckWatchlistInput): Promise<WatchlistEntry | null> {
-    const entry = await this.prismaClient.watchlist.findUnique({
-      where: {
-        type_value_organizationId: {
-          type: params.type,
-          value: params.value,
-          organizationId: params.organizationId,
-        },
-      },
+  async createEntryIfNotExists(params: CreateWatchlistInput): Promise<WatchlistEntry> {
+    const existing = await this.checkExists({
+      type: params.type,
+      value: params.value,
+      organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
     });
 
-    return entry;
+    if (existing) {
+      return existing;
+    }
+
+    return this.createEntry(params);
   }
 
-  async findAllEntries(params: FindAllEntriesInput): Promise<{
-    rows: (WatchlistEntry & { audits?: { changedByUserId: number | null }[] })[];
+  async checkExists(params: CheckWatchlistInput): Promise<WatchlistEntry | null> {
+    if (!params.isGlobal && !params.organizationId) {
+      throw new Error("Both isGlobal and organizationId are missing");
+    }
+
+    if (params.isGlobal) {
+      const entry = await this.prismaClient.watchlist.findFirst({
+        where: {
+          type: params.type,
+          value: params.value,
+          isGlobal: true,
+          organizationId: null,
+        },
+      });
+      return entry;
+    } else if (params.organizationId) {
+      const entry = await this.prismaClient.watchlist.findUnique({
+        where: {
+          type_value_organizationId: {
+            type: params.type,
+            value: params.value,
+            organizationId: params.organizationId,
+          },
+        },
+      });
+
+      return entry;
+    }
+
+    return null;
+  }
+
+  async findAllEntriesWithLatestAudit(params: FindAllEntriesInput): Promise<{
+    rows: (WatchlistEntry & { latestAudit: { changedByUserId: number | null } | null })[];
     meta: { totalRowCount: number };
   }> {
     const where = {
       organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
       ...(params.searchTerm && {
         value: {
           contains: params.searchTerm,
@@ -83,9 +107,12 @@ export class WatchlistRepository implements IWatchlistRepository {
       ...(params.filters?.type && {
         type: params.filters.type,
       }),
+      ...(params.filters?.source && {
+        source: params.filters.source,
+      }),
     };
 
-    const [rows, totalRowCount] = await Promise.all([
+    const [entries, totalRowCount] = await Promise.all([
       this.prismaClient.watchlist.findMany({
         where,
         take: params.limit,
@@ -117,14 +144,29 @@ export class WatchlistRepository implements IWatchlistRepository {
       this.prismaClient.watchlist.count({ where }),
     ]);
 
+    const rows = entries.map((entry) => ({
+      ...entry,
+      latestAudit: entry.audits[0] ?? null,
+      audits: undefined,
+    }));
+
     return {
       rows,
       meta: { totalRowCount },
     };
   }
 
-  async findEntryWithAudit(id: string): Promise<{
-    entry: WatchlistEntry | null;
+  async findEntryWithAuditAndReports(id: string): Promise<{
+    entry:
+      | (WatchlistEntry & {
+          bookingReports?: Array<{
+            booking: {
+              uid: string;
+              title: string | null;
+            };
+          }>;
+        })
+      | null;
     auditHistory: WatchlistAuditEntry[];
   }> {
     const entry = await this.prismaClient.watchlist.findUnique({
@@ -139,6 +181,16 @@ export class WatchlistRepository implements IWatchlistRepository {
         isGlobal: true,
         source: true,
         lastUpdatedAt: true,
+        bookingReports: {
+          select: {
+            booking: {
+              select: {
+                uid: true,
+                title: true,
+              },
+            },
+          },
+        },
         audits: {
           select: {
             id: true,
@@ -169,10 +221,28 @@ export class WatchlistRepository implements IWatchlistRepository {
             isGlobal: entry.isGlobal,
             source: entry.source,
             lastUpdatedAt: entry.lastUpdatedAt,
+            bookingReports: entry.bookingReports,
           }
         : null,
       auditHistory: entry?.audits || [],
     };
+  }
+
+  async findEntriesByIds(ids: string[]): Promise<
+    Array<{
+      id: string;
+      isGlobal: boolean;
+      organizationId: number | null;
+    }>
+  > {
+    return this.prismaClient.watchlist.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        isGlobal: true,
+        organizationId: true,
+      },
+    });
   }
 
   async deleteEntry(id: string, userId: number): Promise<void> {
@@ -207,5 +277,62 @@ export class WatchlistRepository implements IWatchlistRepository {
         where: { id },
       });
     });
+  }
+
+  async bulkDeleteEntries(params: { ids: string[]; userId: number }): Promise<{ deleted: number }> {
+    const entries = await this.prismaClient.watchlist.findMany({
+      where: { id: { in: params.ids } },
+      select: {
+        id: true,
+        type: true,
+        value: true,
+        description: true,
+        action: true,
+      },
+    });
+
+    if (entries.length === 0) {
+      return { deleted: 0 };
+    }
+
+    await this.prismaClient.$transaction(async (tx) => {
+      await tx.watchlistAudit.createMany({
+        data: entries.map((entry) => ({
+          watchlistId: entry.id,
+          type: entry.type,
+          value: entry.value,
+          description: entry.description,
+          action: entry.action,
+          changedByUserId: params.userId,
+        })),
+      });
+
+      await tx.watchlist.deleteMany({
+        where: { id: { in: entries.map((e) => e.id) } },
+      });
+    });
+
+    return { deleted: entries.length };
+  }
+
+  async createEntryFromReport(params: {
+    type: CreateWatchlistInput["type"];
+    value: string;
+    organizationId: number | null;
+    isGlobal: boolean;
+    userId: number;
+    description?: string;
+  }): Promise<{ watchlistEntry: WatchlistEntry; value: string }> {
+    const watchlistEntry = await this.createEntryIfNotExists({
+      type: params.type,
+      value: params.value,
+      organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
+      action: WatchlistAction.BLOCK,
+      description: params.description,
+      userId: params.userId,
+    });
+
+    return { watchlistEntry, value: params.value };
   }
 }

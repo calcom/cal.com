@@ -11,6 +11,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { getEventTypeIdForCalAiTest } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 
 interface TestPhoneCallDialogProps {
@@ -19,9 +20,19 @@ interface TestPhoneCallDialogProps {
   agentId: string;
   teamId?: number;
   form: UseFormReturn<FormValues>;
+  eventTypeIds?: number[];
+  outboundEventTypeId?: number | null;
 }
 
-export function TestPhoneCallDialog({ open, onOpenChange, agentId, teamId, form }: TestPhoneCallDialogProps) {
+export function TestPhoneCallDialog({
+  open,
+  onOpenChange,
+  agentId,
+  teamId,
+  form,
+  eventTypeIds = [],
+  outboundEventTypeId,
+}: TestPhoneCallDialogProps) {
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
 
@@ -41,9 +52,17 @@ export function TestPhoneCallDialog({ open, onOpenChange, agentId, teamId, form 
       showToast(t("please_enter_phone_number"), "error");
       return;
     }
-    const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
-    if (!firstEventTypeId) {
-      showToast(t("choose_at_least_one_event_type_test_call"), "error");
+
+    const eventTypeValidation = getEventTypeIdForCalAiTest({
+      trigger: form.getValues("trigger"),
+      outboundEventTypeId,
+      eventTypeIds,
+      activeOnEventTypeId: form.getValues("activeOn")?.[0]?.value,
+      t,
+    });
+
+    if (eventTypeValidation.error || !eventTypeValidation.eventTypeId) {
+      showToast(eventTypeValidation.error || t("no_event_type_selected"), "error");
       return;
     }
 
@@ -52,7 +71,7 @@ export function TestPhoneCallDialog({ open, onOpenChange, agentId, teamId, form 
         agentId: agentId,
         phoneNumber: testPhoneNumber,
         teamId: teamId,
-        eventTypeId: parseInt(firstEventTypeId, 10),
+        eventTypeId: eventTypeValidation.eventTypeId,
       });
     }
   };

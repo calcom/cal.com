@@ -8,6 +8,7 @@ import { shallow } from "zustand/shallow";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { SheetFooterControls } from "@calcom/features/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/features/users/components/UserTable/EditSheet/store";
+import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -34,11 +35,13 @@ export function EditMemberSheet({
   dispatch,
   currentMember,
   teamId,
+  permissions,
 }: {
   state: State;
   dispatch: Dispatch<Action>;
   currentMember: MembershipRole;
   teamId: number;
+  permissions?: MemberPermissions;
 }) {
   const { t } = useLocale();
   const { user } = state.editSheet;
@@ -189,7 +192,7 @@ export function EditMemberSheet({
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent className="bg-muted">
+      <SheetContent className="bg-cal-muted">
         {!isPending && !isLoadingRoles ? (
           <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
             <SheetHeader showCloseButton={false} className="w-full">
@@ -216,8 +219,8 @@ export function EditMemberSheet({
                 </Skeleton>
               </div>
             </SheetHeader>
-            <SheetBody className="flex flex-col space-y-4 p-4">
-              <div className="mb-4 flex flex-col space-y-4">
+            <SheetBody className="stack-y-4 flex flex-col p-4">
+              <div className="stack-y-4 mb-4 flex flex-col">
                 <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
                 <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
                 <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
@@ -277,7 +280,10 @@ export function EditMemberSheet({
               </div>
             </SheetBody>
             <SheetFooter className="mt-auto">
-              <SheetFooterControls />
+              <SheetFooterControls
+                canChangeMemberRole={permissions?.canChangeMemberRole}
+                canEditAttributesForUser={permissions?.canEditAttributesForUser}
+              />
             </SheetFooter>
           </Form>
         ) : (

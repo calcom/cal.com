@@ -12,7 +12,7 @@ type OnboardingCardProps = {
 
 export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }: OnboardingCardProps) => {
   return (
-    <div className="bg-muted border-muted relative rounded-xl border p-1">
+    <div className="bg-cal-muted border-muted relative rounded-xl border p-1">
       <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
         {/* Card Header */}
         <div className="flex w-full gap-1.5 px-5 py-4">
@@ -23,7 +23,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
         </div>
 
         {/* Content */}
-        <div className="flex w-full flex-col gap-4 px-5 py-5">
+        <div className="flex w-full flex-col gap-4">
           {isLoading ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <SkeletonText className="h-40 w-full" />
