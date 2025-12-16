@@ -209,7 +209,7 @@ test.describe("Out of office", () => {
     await goToOOOPage(page);
     await openOOODialog(page);
 
-    await selectToAndFromDates(page, "13", "22", true);
+    await selectToAndFromDates(page, "13", "22", "previous");
 
     // send request
     await saveAndWaitForResponse(page);
@@ -694,11 +694,14 @@ async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
   });
 }
 
-async function selectToAndFromDates(page: Page, fromDate: string, toDate: string, isRangeInPast = false) {
+async function selectToAndFromDates(
+  page: Page,
+  fromDate: string,
+  toDate: string,
+  month: "previous" | "next" = "next"
+) {
   await page.getByTestId("date-range").click();
   await page.locator(".rdp").waitFor({ state: "visible" });
-
-  const month = isRangeInPast ? "previous" : "next";
 
   await page.locator(`button[name="${month}-month"]`).click();
 
@@ -720,17 +723,8 @@ async function selectDateAndCreateOOO(
 ) {
   const t = await localize("en");
 
-  await page.getByTestId("date-range").click();
-  await page.locator(".rdp").waitFor({ state: "visible" });
+  await selectToAndFromDates(page, fromDate, toDate, month);
 
-  // Look for month navigation button
-  const monthButtonSelector = `button[name="${month}-month"]`;
-
-  await page.locator(monthButtonSelector).click();
-
-  await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
-
-  await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
   if (editMode) {
     await page.locator(`text=${t("edit_an_out_of_office")}`).click();
   } else if (forTeamMember) {
