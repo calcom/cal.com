@@ -27,7 +27,6 @@ import {
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
-import { slugify } from "@calcom/platform-libraries";
 import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import {
   validateCustomEventName,
@@ -130,7 +129,6 @@ export class InputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail,
       disableGuests,
       bookerActiveBookingsLimit,
-      slug,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -146,8 +144,6 @@ export class InputEventTypesService_2024_06_14 {
       ? this.transformInputBookerActiveBookingsLimit(bookerActiveBookingsLimit)
       : {};
 
-    const slugifiedSlug = slugify(slug);
-
     const metadata: EventTypeMetadata = {
       bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
       requiresConfirmationThreshold:
@@ -157,7 +153,6 @@ export class InputEventTypesService_2024_06_14 {
 
     const eventType = {
       ...rest,
-      slug: slugifiedSlug,
       length: lengthInMinutes,
       locations: locationsTransformed,
       bookingFields: this.transformInputBookingFields(effectiveBookingFields),
@@ -214,7 +209,6 @@ export class InputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail,
       disableGuests,
       bookerActiveBookingsLimit,
-      slug,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -249,7 +243,6 @@ export class InputEventTypesService_2024_06_14 {
 
     const eventType = {
       ...rest,
-      ...(slug ? { slug: slugify(slug) } : {}),
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
       bookingFields: effectiveBookingFields
