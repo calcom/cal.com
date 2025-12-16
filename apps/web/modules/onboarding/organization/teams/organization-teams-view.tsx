@@ -7,8 +7,8 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { Button } from "@calcom/ui/components/button";
 import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -127,7 +127,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
         }>
         <Form id="teams-form" form={form} handleSubmit={handleContinue} className="w-full">
           <div className="w-full ">
-            <div className="flex w-full flex-col gap-8 ">
+            <div className="flex w-full flex-col gap-6">
               {/* Migrated teams section */}
               {migratedTeams.length > 0 && (
                 <div className="flex w-full flex-col gap-2">
@@ -137,7 +137,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                   </div>
                   <div className="flex flex-col gap-2">
                     {migratedTeams.map((team) => (
-                      <div key={team.id} className="flex w-full items-end gap-0.5">
+                      <div key={team.id} className="flex w-full items-center gap-1">
                         <div className="flex-1">
                           <TextField
                             labelSrOnly

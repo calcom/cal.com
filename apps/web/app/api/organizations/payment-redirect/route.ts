@@ -5,9 +5,11 @@ import { z } from "zod";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
+import { orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -43,6 +45,19 @@ async function getHandler(req: NextRequest) {
 
     // If onboarding-v3 is enabled AND organizationOnboardingId exists, redirect to onboarding flow
     if (isOnboardingV3Enabled && organizationOnboardingId) {
+      // Check if this is a migration flow (user has already completed onboarding)
+      const onboarding = await OrganizationOnboardingRepository.findById(organizationOnboardingId);
+      const hasMigratedTeams =
+        onboarding?.teams &&
+        orgOnboardingTeamsSchema.parse(onboarding.teams).some((team) => team.isBeingMigrated);
+
+      if (hasMigratedTeams) {
+        // Migration flow - user already completed onboarding, redirect to event-types
+        const redirectUrl = new URL("/event-types?newOrganizationModal=true", WEBAPP_URL).toString();
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      // Regular flow - redirect to personal onboarding
       params.append("fromTeamOnboarding", "true");
       const redirectUrl = new URL(
         `/onboarding/personal/settings?${params.toString()}`,

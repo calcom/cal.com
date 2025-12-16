@@ -109,9 +109,19 @@ export const useSubmitOnboarding = () => {
       // No checkout URL means billing is disabled (self-hosted flow)
       // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
-      // Set flag to show welcome modal after personal onboarding redirect
+      // Set flag to show welcome modal after redirect
       setShowNewOrgModalFlag();
-      skipToPersonal(resetOnboarding);
+      
+      // Check if this is a migration flow (user has already completed onboarding)
+      const hasMigratedTeams = teams.some((team) => team.isBeingMigrated);
+      if (hasMigratedTeams) {
+        // Migration flow - user already completed onboarding, redirect to event-types
+        resetOnboarding();
+        window.location.href = "/event-types?newOrganizationModal=true";
+      } else {
+        // Regular flow - redirect to personal onboarding
+        skipToPersonal(resetOnboarding);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create organization";
       setError(errorMessage);

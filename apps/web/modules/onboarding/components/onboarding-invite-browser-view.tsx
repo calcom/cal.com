@@ -179,19 +179,23 @@ export const OnboardingInviteBrowserView = ({
             <div className="bg-default border-subtle flex flex-col rounded-2xl border">
               <div className="relative p-1">
                 {/* Banner Image */}
-                {organizationBrand.banner && (
+                {useOrganizationInvites && (
                   <div className="border-subtle relative h-36 w-full overflow-hidden rounded-xl border">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={organizationBrand.banner}
-                      alt={displayName}
-                      className="h-full w-full object-cover"
-                    />
+                    {organizationBrand.banner ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={organizationBrand.banner}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-emphasis h-full w-full" />
+                    )}
                   </div>
                 )}
 
                 {/* Organization Avatar - Overlaying the banner */}
-                {organizationBrand.banner && avatar && (
+                {useOrganizationInvites && avatar && (
                   <div className="absolute -bottom-6 left-4">
                     <Avatar size="lg" imageSrc={avatar} alt={displayName} className="h-12 w-12 border" />
                   </div>
@@ -200,7 +204,7 @@ export const OnboardingInviteBrowserView = ({
 
               {/* Organization Info */}
               <div className={`flex flex-col items-start gap-1 px-4 pb-4 pt-8`}>
-                {!organizationBrand.banner && avatar && (
+                {!useOrganizationInvites && avatar && (
                   <Avatar
                     size="lg"
                     imageSrc={avatar}
