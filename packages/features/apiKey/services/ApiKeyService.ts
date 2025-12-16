@@ -1,4 +1,4 @@
-import type { PrismaApiKeyRepository } from "../repository/PrismaApiKeyRepository";
+import type { PrismaApiKeyRepository } from "@calcom/features/apiKey/repositories/PrismaApiKeyRepository";
 
 type Deps = {
   apiKeyRepo: PrismaApiKeyRepository;
