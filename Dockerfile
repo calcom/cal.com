@@ -1,5 +1,22 @@
 # syntax=docker/dockerfile:1.6
 
+FROM --platform=$BUILDPLATFORM node:20 AS pruner
+
+WORKDIR /calcom
+
+COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json i18n.json ./
+COPY .yarn ./.yarn
+COPY apps/web ./apps/web
+COPY apps/api/v2 ./apps/api/v2
+COPY packages ./packages
+COPY tests ./tests
+
+RUN corepack enable
+RUN yarn config set httpTimeout 1200000
+
+RUN --mount=type=cache,target=/root/.cache/turbo \
+    npx turbo prune --scope=@calcom/web --scope=@calcom/trpc --docker
+
 FROM --platform=$BUILDPLATFORM node:20 AS builder
 
 WORKDIR /calcom
@@ -36,21 +53,17 @@ ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     BUILD_STANDALONE=true \
     CSP_POLICY=$CSP_POLICY
 
-COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json i18n.json ./
-COPY .yarn ./.yarn
-COPY apps/web ./apps/web
-COPY apps/api/v2 ./apps/api/v2
-COPY packages ./packages
-COPY tests ./tests
-
 RUN corepack enable
 RUN yarn config set httpTimeout 1200000
 
-RUN --mount=type=cache,target=/root/.cache/turbo \
-    npx turbo prune --scope=@calcom/web --scope=@calcom/trpc --docker
+# Install using the pruned workspace graph (json) then copy the pruned sources (full)
+COPY --from=pruner /calcom/out/json/ ./
+COPY --from=pruner /calcom/out/yarn.lock ./yarn.lock
 
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    yarn install --immutable-cache
+    yarn install --immutable
+
+COPY --from=pruner /calcom/out/full/ ./
 
 # Build and make embed servable from web/public/embed folder
 RUN --mount=type=cache,target=/root/.cache/turbo \
