@@ -18,13 +18,13 @@ export interface IAbstractPaymentService {
   create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
-    bookingSeat?: BookingSeat["id"],
     userId: Booking["userId"],
     username: string | null,
     bookerName: string | null,
     paymentOption: PaymentOption,
     bookerEmail: string,
     bookingUid: string,
+    bookingSeat?: BookingSeat["id"],
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string,
@@ -55,9 +55,9 @@ export interface IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
-    bookingSeat?: BookingSeat["id"],
     paymentData: Payment,
-    eventTypeMetadata?: EventTypeMetadata
+    eventTypeMetadata?: EventTypeMetadata,
+    bookingSeat?: BookingSeat["id"]
   ): Promise<void>;
   deletePayment(paymentId: Payment["id"]): Promise<boolean>;
   isSetupAlready(): boolean;
