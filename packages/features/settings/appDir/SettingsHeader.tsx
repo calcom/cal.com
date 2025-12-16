@@ -1,3 +1,5 @@
+"use client";
+
 import { Profile } from "@calid/features/ui/Profile";
 import { Icon } from "@calid/features/ui/components/icon";
 import { useRouter } from "next/navigation";
@@ -58,7 +60,9 @@ export default function Header({
         </div>
         <Profile />
       </header>
-      <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
+      <Suspense fallback={<Icon name="loader-circle" className="mx-auto my-5 animate-spin" />}>
+        {children}
+      </Suspense>
     </div>
   );
 }
