@@ -151,7 +151,7 @@ const OrgProfileView = ({
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
                   <div
                     className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                     
+                    // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
                       __html: markdownToSafeHTML(currentOrganisation.bio || ""),
                     }}
@@ -222,7 +222,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     try {
       await navigator.clipboard.writeText(value);
       showToast(t("organization_id_copied"), "success");
-    } catch {
+    } catch (error) {
       showToast(t("error_copying_to_clipboard"), "error");
     }
   };
@@ -290,7 +290,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                 <>
                   <OrgBanner
                     data-testid="profile-upload-banner"
-                    alt={`${defaultValues.name} Banner`}
+                    alt={`${defaultValues.name} Banner` || ""}
                     className="grid min-h-[150px] w-full place-items-center rounded-md sm:min-h-[200px]"
                     fallback={t("no_target", { target: "banner" })}
                     imageSrc={value}
