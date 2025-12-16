@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryState } from "nuqs";
 import { useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,14 +7,15 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { viewParser, type BookingView } from "../lib/viewParser";
+import { useBookingsView } from "../hooks/useBookingsView";
 
-export function ViewToggleButton() {
+type ViewToggleButtonProps = {
+  bookingsV3Enabled: boolean;
+};
+
+export function ViewToggleButton({ bookingsV3Enabled }: ViewToggleButtonProps) {
   const { t } = useLocale();
-  const [view, setView] = useQueryState(
-    "view",
-    viewParser.withDefault("list").withOptions({ clearOnDefault: true })
-  );
+  const [view, setView] = useBookingsView({ bookingsV3Enabled });
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
@@ -33,9 +33,9 @@ export function ViewToggleButton() {
     <div className="hidden sm:block">
       <ToggleGroup
         value={view}
-        onValueChange={(value) => {
+        onValueChange={(value: "list" | "calendar") => {
           if (!value) return;
-          setView(value as BookingView);
+          setView(value);
         }}
         options={[
           {

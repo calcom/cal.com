@@ -105,7 +105,7 @@ export const NavigationItem: React.FC<{
                 <span className="text-subtle px-2 text-xs font-semibold uppercase tracking-wide">
                   {t(item.name)}
                 </span>
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                   {item.child?.map((childItem) => {
                     const childIsCurrent =
                       typeof childItem.isCurrent === "function"
@@ -196,7 +196,7 @@ export const NavigationItem: React.FC<{
                 : `[&[aria-current='page']]:bg-emphasis`,
               isChild
                 ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
-                    props.index === 0 ? "mt-0" : "mt-px"
+                    props.index === 0 ? "mt-0" : "mt-1  hover:mt-1 [&[aria-current='page']]:mt-1"
                   }`
                 : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
               isLocaleReady
