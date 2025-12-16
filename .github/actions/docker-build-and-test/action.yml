@@ -108,8 +108,8 @@ runs:
         load: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=calcom-${{ inputs.platform }}
+        cache-to: type=gha,scope=calcom-${{ inputs.platform }},mode=max
         build-args: |
           NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
           NEXT_PUBLIC_API_V2_URL=http://localhost:5555/api/v2
@@ -137,21 +137,15 @@ runs:
         echo "Waiting for the server to start..."
         sleep 120
 
-        echo http://localhost:3000/auth/login
-
         for i in {1..60}; do
-          echo "Checking server health ($i/60)..."
           response=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:3000/auth/login)
-          echo "HTTP Status Code: $response"
           if [[ "$response" == "200" ]] || [[ "$response" == "307" ]]; then
-            echo "Server is healthy"
             kill $server_pid
             exit 0
           fi
           sleep 1
         done
 
-        echo "Server health check failed"
         kill $server_pid
         exit 1
       env:
@@ -169,8 +163,8 @@ runs:
         platforms: ${{ inputs.platform }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=calcom-${{ inputs.platform }}
+        cache-to: type=gha,scope=calcom-${{ inputs.platform }},mode=max
         build-args: |
           NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
           NEXT_PUBLIC_API_V2_URL=http://localhost:5555/api/v2
