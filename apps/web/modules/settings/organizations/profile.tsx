@@ -106,7 +106,7 @@ const OrgProfileView = ({
         router.replace("/enterprise");
       }
     },
-    [error, router]
+    [error]
   );
 
   if (isPending || !orgBranding || !currentOrganisation) {

@@ -208,7 +208,7 @@ const OrgAppearanceViewWrapper = () => {
         router.replace("/enterprise");
       }
     },
-    [error, router]
+    [error]
   );
 
   if (isPending) {
