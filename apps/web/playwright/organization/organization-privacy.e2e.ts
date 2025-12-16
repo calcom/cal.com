@@ -128,7 +128,8 @@ test.describe("Organization - Privacy", () => {
 
     await page.goto(`/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+    // Wait for the page content to be ready instead of fixed 500ms wait
+    await page.waitForLoadState("networkidle");
 
     // As a user we can not see the member list when a team is private
     const hiddenTableLocator = await page.getByTestId("team-member-list-container");
@@ -187,7 +188,8 @@ test.describe("Organization - Privacy", () => {
     // 1) All team members can see members in team
     await page.goto(`/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500);
+    // Wait for the member list to be ready instead of fixed 500ms wait
+    await page.getByTestId("team-member-list-container").waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
     const memberTableLocator = await page.getByTestId("team-member-list-container");
     await expect(memberTableLocator).toBeVisible();
 
@@ -201,7 +203,8 @@ test.describe("Organization - Privacy", () => {
     // 3) Admin/Owner can see members in team
     await page.goto(`/settings/teams/${teamId}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500);
+    // Wait for the member list to be ready instead of fixed 500ms wait
+    await page.getByTestId("team-member-list-container").waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
     const adminTableLocator = await page.getByTestId("team-member-list-container");
     await expect(adminTableLocator).toBeVisible();
 

@@ -33,8 +33,8 @@ export function createAppsFixture(page: Page) {
       await page.click('[data-testid="install-app-button-personal"]');
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000);
+      // Wait for event type checkboxes to be visible instead of fixed 1s wait
+      await page.locator('[data-testid^="select-event-type-"]').first().waitFor({ state: "visible" });
       for (const id of eventTypeIds) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
@@ -81,8 +81,8 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000);
+      // Wait for event type checkboxes to be visible instead of fixed 1s wait
+      await page.locator('[data-testid^="select-event-type-"]').first().waitFor({ state: "visible" });
       for (const id of eventTypeIds) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
