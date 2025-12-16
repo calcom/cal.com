@@ -1,5 +1,6 @@
 import type { Session } from "next-auth";
 
+import { PolicyService } from "@calcom/features/policies/lib/service/policy.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -79,20 +80,20 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
 
   const profileData = user.organization?.isPlatform
     ? {
-        organizationId: null,
-        organization: { id: -1, isPlatform: true, slug: "", isOrgAdmin: false },
-        username: user.username ?? null,
-        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
-        profiles: [],
-      }
+      organizationId: null,
+      organization: { id: -1, isPlatform: true, slug: "", isOrgAdmin: false },
+      username: user.username ?? null,
+      profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+      profiles: [],
+    }
     : {
-        organizationId: user.profile?.organizationId ?? null,
-        organization: user.organization,
-        username: user.profile?.username ?? user.username ?? null,
-        profile: user.profile ?? null,
-        profiles: allUserEnrichedProfiles,
-        organizationSettings: user?.profile?.organization?.organizationSettings,
-      };
+      organizationId: user.profile?.organizationId ?? null,
+      organization: user.organization,
+      username: user.profile?.username ?? user.username ?? null,
+      profile: user.profile ?? null,
+      profiles: allUserEnrichedProfiles,
+      organizationSettings: user?.profile?.organization?.organizationSettings,
+    };
 
   const isTeamAdminOrOwner =
     (await prisma.membership.findFirst({
@@ -105,6 +106,9 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
         id: true,
       },
     })) !== null;
+
+  const policyService = new PolicyService();
+  const policyAcceptance = await policyService.getAnyUnacceptedPolicyForUser(user.id);
 
   return {
     id: user.id,
@@ -146,5 +150,6 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
     isTeamAdminOrOwner,
+    policyAcceptance,
   };
 };

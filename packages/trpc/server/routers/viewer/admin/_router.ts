@@ -18,6 +18,7 @@ import {
   workspacePlatformUpdateServiceAccountSchema,
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
+import { adminPolicyRouter } from "./policy/_router";
 import { watchlistRouter } from "./watchlist/_router";
 
 const NAMESPACE = "admin";
@@ -106,5 +107,6 @@ export const adminRouter = router({
       return handler(opts);
     }),
   }),
+  policy: adminPolicyRouter,
   watchlist: watchlistRouter,
 });

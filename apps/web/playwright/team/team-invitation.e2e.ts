@@ -62,6 +62,8 @@ test.describe("Team", () => {
 
       // Check required fields
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+      const checkbox = newPage.getByTestId("signup-cookie-content-checkbox");
+      await checkbox.check();
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
       await newPage.close();

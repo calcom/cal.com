@@ -230,6 +230,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "users" },
         },
         {
+          name: "policies",
+          href: "/settings/admin/policies",
+          trackingMetadata: { section: "admin", page: "policies" },
+        },
+        {
           name: "organizations",
           href: "/settings/admin/organizations",
           trackingMetadata: { section: "admin", page: "organizations" },

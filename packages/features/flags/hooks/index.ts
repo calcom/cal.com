@@ -33,6 +33,7 @@ const initialData: AppFlags = {
   "booking-email-sms-tasker": false,
   "bookings-v3": false,
   "booking-audit": false,
+  "policy-acceptance-modal": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
