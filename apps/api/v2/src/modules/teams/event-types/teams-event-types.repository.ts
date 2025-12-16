@@ -157,4 +157,28 @@ export class TeamsEventTypesRepository {
       },
     });
   }
+
+  async getByIdIncludeHostsAndUserDefaultSchedule(eventTypeId: number, teamId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        id: eventTypeId,
+        teamId,
+      },
+      select: {
+        id: true,
+        scheduleId: true,
+        hosts: {
+          select: {
+            scheduleId: true,
+            userId: true,
+            user: {
+              select: {
+                defaultScheduleId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
