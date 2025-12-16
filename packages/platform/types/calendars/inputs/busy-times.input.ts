@@ -8,10 +8,9 @@ import {
   ValidateNested,
   IsDateString,
   IsOptional,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
   registerDecorator,
   type ValidationOptions,
+  type ValidationArguments,
   IsTimeZone,
 } from "class-validator";
 
@@ -28,29 +27,28 @@ export class Calendar {
   externalId!: string;
 }
 
-@ValidatorConstraint({ name: "TimezoneRequired", async: false })
-export class TimezoneRequiredValidator implements ValidatorConstraintInterface {
-  validate(value: { timeZone?: string; loggedInUsersTz?: string }) {
-    return !!value.timeZone || !!value.loggedInUsersTz;
-  }
-
-  defaultMessage() {
-    return "Either timeZone or loggedInUsersTz must be provided";
-  }
-}
-
 function ValidateTimezoneRequired(validationOptions?: ValidationOptions) {
-  return function (object: object, propertyName: string) {
+  return function (object: new () => object) {
     registerDecorator({
       name: "validateTimezoneRequired",
-      target: object.constructor,
-      propertyName: propertyName,
+      target: object,
+      propertyName: "timezone",
       options: validationOptions,
-      validator: TimezoneRequiredValidator,
+      constraints: [],
+      validator: {
+        validate(_: unknown, args: ValidationArguments) {
+          const obj = args.object as CalendarBusyTimesInput;
+          return !!obj.timeZone || !!obj.loggedInUsersTz;
+        },
+        defaultMessage(): string {
+          return "Either timeZone or loggedInUsersTz must be provided";
+        },
+      },
     });
   };
 }
 
+@ValidateTimezoneRequired()
 export class CalendarBusyTimesInput {
   @ApiProperty({
     required: false,
@@ -71,7 +69,6 @@ export class CalendarBusyTimesInput {
   @IsString()
   @IsTimeZone()
   @Transform(({ value }) => normalizeTimezone(value))
-  @ValidateTimezoneRequired()
   timeZone?: string;
 
   @ApiProperty({
