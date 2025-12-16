@@ -14,7 +14,10 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsUserInOrgTeam } from "@/modules/auth/guards/users/is-user-in-org-team.guard";
-import { GetTeamSchedulesQuery } from "@/modules/organizations/teams/schedules/inputs/teams-schedules.input";
+import {
+  GetTeamSchedulesQuery,
+  GetUserSchedulesQuery,
+} from "@/modules/organizations/teams/schedules/inputs/teams-schedules.input";
 import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-schedules.service";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
@@ -71,9 +74,11 @@ export class OrganizationsTeamsSchedulesController {
     // note(Lauris): putting orgId and teamId so swagger is generacted correctly
     @Param("orgId", ParseIntPipe) _orgId: number,
     @Param("teamId", ParseIntPipe) _teamId: number,
-    @Param("userId", ParseIntPipe) userId: number
+    @Param("userId", ParseIntPipe) userId: number,
+    @Query() queryParams: GetUserSchedulesQuery
   ): Promise<GetSchedulesOutput_2024_06_11> {
-    const schedules = await this.schedulesService.getUserSchedules(userId);
+    const { eventTypeId } = queryParams;
+    const schedules = await this.schedulesService.getUserSchedules(userId, eventTypeId);
 
     return {
       status: SUCCESS_STATUS,
