@@ -14,13 +14,12 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { MintlifyChat } from "@calcom/features/mintlify-chat/MintlifyChat";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { MintlifyChat } from "../mintlify-chat/MintlifyChat";
 
 type shortcutArrayType = {
   shortcuts?: string[];
@@ -249,18 +248,17 @@ export const KBarContent = () => {
   const [inputText, setInputText] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const showAiChat =
-    process.env.NEXT_PUBLIC_ENABLE_MINTLIFY_CHAT === "true" &&
-    !!process.env.NEXT_PUBLIC_CHAT_API_URL;
+    process.env.NEXT_PUBLIC_ENABLE_MINTLIFY_CHAT === "true" && !!process.env.NEXT_PUBLIC_CHAT_API_URL;
 
   return (
     <KBarPortal>
       <KBarPositioner className="overflow-scroll">
-        <KBarAnimator className="bg-default z-10 w-full max-w-(--breakpoint-sm) overflow-hidden rounded-md shadow-lg">
+        <KBarAnimator className="bg-default max-w-(--breakpoint-sm) z-10 w-full overflow-hidden rounded-md shadow-lg">
           <div className="border-subtle flex items-center justify-center border-b">
             <Icon name="search" className="text-default mx-3 h-4 w-4" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
-              className="bg-default placeholder:text-subtle text-default w-full rounded-sm py-2.5 focus-visible:outline-none px-0 border-0 focus:ring-0"
+              className="bg-default placeholder:text-subtle text-default w-full rounded-sm border-0 py-2.5 px-0 focus:ring-0 focus-visible:outline-none"
               value={inputText}
               onChange={(e) => {
                 setInputText(e.currentTarget.value.trim());
