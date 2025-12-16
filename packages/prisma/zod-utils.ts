@@ -506,6 +506,9 @@ export const userMetadata = z
         revertTime: z.string().optional(),
       })
       .optional(),
+    // Google Calendar OOO sync settings
+    googleCalendarOOOSyncEnabled: z.boolean().optional(),
+    googleCalendarOOOSyncCredentialId: z.number().optional(),
   })
   .nullable();
 
