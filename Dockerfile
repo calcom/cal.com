@@ -61,7 +61,8 @@ COPY --from=pruner /calcom/out/json/ ./
 COPY --from=pruner /calcom/out/yarn.lock ./yarn.lock
 
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    yarn install --immutable
+    (yarn install --immutable || (echo "Yarn build log:" && cat /tmp/xfs-*/build.log && exit 1))
+
 
 COPY --from=pruner /calcom/out/full/ ./
 
