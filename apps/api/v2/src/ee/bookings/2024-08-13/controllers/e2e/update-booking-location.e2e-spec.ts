@@ -2,7 +2,6 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-location.output";
-import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -26,11 +25,9 @@ import {
   ERROR_STATUS,
   SUCCESS_STATUS,
   VERSION_2024_08_13,
-  VERSION_2024_06_14,
 } from "@calcom/platform-constants";
 import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types";
 import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import { Booking } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 
@@ -113,53 +110,23 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
       let eventTypeWithAllLocationsId: number;
 
       beforeAll(async () => {
-        const eventTypeBody: CreateEventTypeInput_2024_06_14 = {
-          title: "book using any location",
-          slug: "book-using-any-location",
-          lengthInMinutes: 15,
-          locations: [
-            {
-              type: "integration",
-              integration: "cal-video",
-            },
-            {
-              type: "address",
-              address: "123 Main St",
-              public: true,
-            },
-            {
-              type: "link",
-              link: "https://cal.com/join/123456",
-              public: true,
-            },
-            {
-              type: "phone",
-              phone: "+37121999999",
-              public: true,
-            },
-            {
-              type: "attendeeAddress",
-            },
-            {
-              type: "attendeePhone",
-            },
-            {
-              type: "attendeeDefined",
-            },
-          ],
-        };
-
-        const eventTypeResponse = await request(app.getHttpServer())
-          .post("/api/v2/event-types")
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-          .send(eventTypeBody)
-          .expect(201);
-        const eventTypeResponseBody: CreateEventTypeOutput_2024_06_14 = eventTypeResponse.body;
-        const createdEventType = eventTypeResponseBody.data;
-
-        expect(createdEventType).toHaveProperty("id");
-        expect(createdEventType.locations).toHaveLength(7);
-        expect(createdEventType.locations).toEqual(eventTypeBody.locations);
+        const createdEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: "book using any location",
+            slug: `book-using-any-location-${randomString()}`,
+            length: 15,
+            locations: [
+              { type: "integrations:daily" },
+              { type: "inPerson", address: "123 Main St", displayLocationPublicly: true },
+              { type: "link", link: "https://cal.com/join/123456", displayLocationPublicly: true },
+              { type: "userPhone", hostPhoneNumber: "+37121999999", displayLocationPublicly: true },
+              { type: "attendeeInPerson" },
+              { type: "phone" },
+              { type: "somewhereElse" },
+            ],
+          },
+          testSetup.organizer.id
+        );
 
         eventTypeWithAllLocationsId = createdEventType.id;
 
