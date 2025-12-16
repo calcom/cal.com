@@ -12,7 +12,7 @@
     "@calcom/atoms": "workspace:*",
     "@calcom/eslint-config": "workspace:*",
     "@prisma/client": "6.7.0",
-    "next": "14.2.34",
+    "next": "14.2.35",
     "prisma": "^6.7.0",
     "react": "^18",
     "react-dom": "^18"
