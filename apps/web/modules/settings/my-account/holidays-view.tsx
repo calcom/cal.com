@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useCallback } from "react";
+import { memo, useMemo, useCallback, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -11,6 +11,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
+import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -22,15 +23,14 @@ function HolidaysCTA() {
   return (
     <div className="flex gap-2">
       <OutOfOfficeToggleGroup />
-      {/* Invisible placeholder to match OOO button width and prevent layout shift */}
+      {/* Disabled button to prevent layout shift when switching tabs */}
       <Button
         color="primary"
         size="base"
         StartIcon="plus"
-        className="invisible flex items-center justify-between px-2 md:px-4"
-        aria-hidden="true"
-        tabIndex={-1}>
-        <span className="hidden md:inline">{t("add")}</span>
+        className="flex items-center justify-between px-2 md:px-4"
+        disabled>
+        <span className="sr-only md:not-sr-only md:inline">{t("add")}</span>
       </Button>
     </div>
   );
@@ -173,6 +173,10 @@ export function HolidaysView() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [pendingCountryCode, setPendingCountryCode] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"select" | "change" | "clear">("select");
+
   const {
     data: countries,
     isLoading: isLoadingCountries,
@@ -223,13 +227,37 @@ export function HolidaysView() {
 
   const handleCountryChange = useCallback(
     (countryCode: string) => {
+      // Determine the action type
+      if (!settings?.countryCode && countryCode) {
+        // First time selection
+        setConfirmAction("select");
+      } else if (settings?.countryCode && countryCode && countryCode !== settings.countryCode) {
+        // Changing from one country to another
+        setConfirmAction("change");
+      } else if (settings?.countryCode && !countryCode) {
+        // Clearing/disabling
+        setConfirmAction("clear");
+      } else {
+        // Same country selected, no action needed
+        return;
+      }
+
+      setPendingCountryCode(countryCode);
+      setConfirmDialogOpen(true);
+    },
+    [settings?.countryCode]
+  );
+
+  const handleConfirmCountryChange = useCallback(() => {
+    if (pendingCountryCode !== null) {
       updateSettingsMutation.mutate({
-        countryCode: countryCode || null,
+        countryCode: pendingCountryCode || null,
         resetDisabledHolidays: true,
       });
-    },
-    [updateSettingsMutation]
-  );
+    }
+    setConfirmDialogOpen(false);
+    setPendingCountryCode(null);
+  }, [pendingCountryCode, updateSettingsMutation]);
 
   const handleToggleHoliday = useCallback(
     (holidayId: string, enabled: boolean) => {
@@ -323,6 +351,36 @@ export function HolidaysView() {
           )}
         </div>
       </div>
+
+      {/* Confirmation dialog for country changes */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <ConfirmationDialogContent
+          title={
+            confirmAction === "select"
+              ? t("enable_holiday_blocking")
+              : confirmAction === "change"
+                ? t("change_holiday_country")
+                : t("disable_holiday_blocking")
+          }
+          confirmBtnText={
+            confirmAction === "select"
+              ? t("yes_enable")
+              : confirmAction === "change"
+                ? t("yes_change_country")
+                : t("yes_disable")
+          }
+          cancelBtnText={t("cancel")}
+          onConfirm={handleConfirmCountryChange}
+          isPending={updateSettingsMutation.isPending}>
+          <p className="mt-4">
+            {confirmAction === "select"
+              ? t("enable_holiday_blocking_description")
+              : confirmAction === "change"
+                ? t("change_holiday_country_description")
+                : t("disable_holiday_blocking_description")}
+          </p>
+        </ConfirmationDialogContent>
+      </Dialog>
     </SettingsHeader>
   );
 }
