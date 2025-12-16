@@ -15,7 +15,7 @@ import {
   IsTimeZone,
 } from "class-validator";
 
-import { CapitalizeTimeZone } from "@calcom/api-v2/src/lib/inputs/capitalize-timezone";
+import { normalizeTimezone } from "../../utils/normalizeTimezone";
 
 export class Calendar {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
@@ -70,7 +70,7 @@ export class CalendarBusyTimesInput {
   @IsOptional()
   @IsString()
   @IsTimeZone()
-  @CapitalizeTimeZone()
+  @Transform(({ value }) => normalizeTimezone(value))
   @ValidateTimezoneRequired()
   timeZone?: string;
 
