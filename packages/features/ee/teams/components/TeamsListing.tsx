@@ -14,7 +14,8 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { UpgradeTip } from "../../../tips";
+import { UpgradeTip } from "~/shell/UpgradeTip";
+
 import TeamList from "./TeamList";
 
 type TeamsListingProps = {
