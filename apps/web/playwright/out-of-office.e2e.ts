@@ -704,6 +704,8 @@ async function selectToAndFromDates(page: Page, fromDate: string, toDate: string
 
   await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
   await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
+
+  await page.keyboard.press("Escape");
 }
 
 async function selectDateAndCreateOOO(
@@ -757,12 +759,5 @@ async function goToOOOPage(page: Page, type: "individual" | "team" = "individual
 }
 
 async function openOOODialog(page: Page) {
-  const reasonListRespPromise = page.waitForResponse(
-    (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-  );
-  const hasTeamPlanRespPromise = page.waitForResponse(
-    (response) => response.url().includes("hasTeamPlan?batch=1") && response.status() === 200
-  );
   await page.getByTestId("add_entry_ooo").click();
-  await Promise.all([reasonListRespPromise, hasTeamPlanRespPromise]);
 }
