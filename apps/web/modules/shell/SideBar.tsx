@@ -25,7 +25,7 @@ import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
 import { UserDropdown } from "./user-dropdown/UserDropdown";
 
 // need to import without ssr to prevent hydration errors
-const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
+const Tips = dynamic(() => import("@calcom/web/modules/shell/Tips").then((mod) => mod.Tips), {
   ssr: false,
 });
 
