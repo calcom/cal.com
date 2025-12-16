@@ -1,6 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -44,7 +45,7 @@ const buildResultPayload = async (
   };
 };
 
-const logFailedResults = (results: PromiseSettledResult<any>[]) => {
+const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
   if (failed.length < 1) return;
   const failedMessage = failed.map((r) => r.reason);
@@ -88,10 +89,12 @@ const handleMarkNoShow = async ({
   attendees,
   noShowHost,
   userId,
+  userUuid: _userUuid,
   locale,
   platformClientParams,
 }: TNoShowInputSchema & {
   userId?: number;
+  userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
 }) => {
@@ -293,12 +296,15 @@ const handleMarkNoShow = async ({
               team,
             };
 
+            const creditService = new CreditService();
+
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
               workflows,
               smsReminderNumber: booking.smsReminderNumber,
               hideBranding: booking.eventType.owner?.hideBranding,
               calendarEvent,
               triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
+              creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             });
           } catch (error) {
             logger.error("Error while scheduling workflow reminders for booking no-show updated", error);

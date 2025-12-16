@@ -59,8 +59,8 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: null,
         });
 
-        // To prevent early timeouts
-        await page.waitForTimeout(1000);
+        // Wait for the preview iframe to be ready instead of fixed 1s wait
+        await page.locator('iframe[data-testid="embed-preview"]').waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: `${pro.username}/multiple-duration`,
@@ -96,8 +96,8 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: null,
         });
 
-        // To prevent early timeouts
-        await page.waitForTimeout(1000);
+        // Wait for the preview iframe to be ready instead of fixed 1s wait
+        await page.locator('iframe[data-testid="embed-preview"]').waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
           calLink: `${pro.username}/multiple-duration`,
@@ -133,8 +133,8 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: null,
         });
 
-        // To prevent early timeouts
-        await page.waitForTimeout(1000);
+        // Wait for the preview iframe to be ready instead of fixed 1s wait
+        await page.locator('iframe[data-testid="embed-preview"]').waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
           calLink: `${pro.username}/multiple-duration`,
@@ -172,8 +172,8 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: null,
         });
 
-        // To prevent early timeouts
-        await page.waitForTimeout(1000);
+        // Wait for the preview iframe to be ready instead of fixed 1s wait
+        await page.locator('iframe[data-testid="embed-preview"]').waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: decodeURIComponent(embedUrl),
@@ -229,8 +229,8 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: org.slug,
         });
 
-        // To prevent early timeouts
-        await page.waitForTimeout(1000);
+        // Wait for the preview iframe to be ready instead of fixed 1s wait
+        await page.locator('iframe[data-testid="embed-preview"]').waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: `${user.username}/multiple-duration`,
@@ -269,8 +269,8 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: org.slug,
         });
 
-        // To prevent early timeouts
-        await page.waitForTimeout(1000);
+        // Wait for the preview iframe to be ready instead of fixed 1s wait
+        await page.locator('iframe[data-testid="embed-preview"]').waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
           calLink: `${user.username}/multiple-duration`,
@@ -308,8 +308,8 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: org.slug,
         });
 
-        // To prevent early timeouts
-        await page.waitForTimeout(1000);
+        // Wait for the preview iframe to be ready instead of fixed 1s wait
+        await page.locator('iframe[data-testid="embed-preview"]').waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
           calLink: `${user.username}/multiple-duration`,
@@ -326,8 +326,8 @@ function chooseEmbedType(page: Page, embedType: EmbedType) {
 }
 
 async function goToReactCodeTab(page: Page) {
-  // To prevent early timeo
-  await page.waitForTimeout(1000);
+  // Wait for the React tab to be visible instead of fixed 1s wait
+  await page.locator("[data-testid=horizontal-tab-react]").waitFor({ state: "visible" });
   await page.locator("[data-testid=horizontal-tab-react]").click();
 }
 

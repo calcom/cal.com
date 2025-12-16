@@ -122,6 +122,47 @@ describe("_onFormSubmission", () => {
       });
       expect(sendGenericWebhookPayload).toHaveBeenCalledTimes(1);
     });
+
+    it("should normalize identifiers with spaces to hyphens in rootData for webhook templates", async () => {
+      const formWithSpaces = {
+        ...mockForm,
+        fields: [
+          {
+            id: "field-1",
+            identifier: "attendee name",
+            label: "Attendee Name",
+            type: "text",
+            required: false,
+          },
+        ] as Field[],
+      };
+
+      const responseWithSpaces: FormResponse = {
+        "field-1": { label: "Attendee Name", value: "John Doe" },
+      };
+
+      const mockWebhook: GetWebhooksReturnType[number] = {
+        id: "wh-1",
+        secret: "secret",
+        subscriberUrl: "https://example.com/webhook",
+        payloadTemplate: null,
+        appId: null,
+        eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
+        time: null,
+        timeUnit: null,
+      };
+      vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
+
+      await _onFormSubmission(formWithSpaces, responseWithSpaces, responseId);
+
+      expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rootData: expect.objectContaining({
+            "attendee-name": "John Doe", // Spaces replaced with hyphens for template access
+          }),
+        })
+      );
+    });
   });
 
   describe("Workflows", () => {
@@ -158,25 +199,28 @@ describe("_onFormSubmission", () => {
       await _onFormSubmission(mockForm, mockResponse, responseId);
 
       expect(WorkflowService.getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
-      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
-        workflows: mockWorkflows,
-        responses: {
-          email: {
-            value: "test@response.com",
-            response: "test@response.com",
+      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workflows: mockWorkflows,
+          responses: {
+            email: {
+              value: "test@response.com",
+              response: "test@response.com",
+            },
+            name: { value: "Test Name", response: "Test Name" },
           },
-          name: { value: "Test Name", response: "Test Name" },
-        },
-        responseId,
-        routedEventTypeId: null,
-        form: {
-          ...mockForm,
-          fields: mockForm.fields.map((field) => ({
-            type: field.type,
-            identifier: field.identifier,
-          })),
-        },
-      });
+          responseId,
+          routedEventTypeId: null,
+          form: {
+            ...mockForm,
+            fields: mockForm.fields.map((field) => ({
+              type: field.type,
+              identifier: field.identifier,
+            })),
+          },
+          creditCheckFn: expect.any(Function),
+        })
+      );
     });
 
     it("should call WorkflowService.scheduleFormWorkflows for FORM_SUBMITTED_NO_EVENT workflows", async () => {
@@ -212,25 +256,28 @@ describe("_onFormSubmission", () => {
       await _onFormSubmission(mockForm, mockResponse, responseId);
 
       expect(WorkflowService.getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
-      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
-        workflows: mockWorkflows,
-        responses: {
-          email: {
-            value: "test@response.com",
-            response: "test@response.com",
+      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workflows: mockWorkflows,
+          responses: {
+            email: {
+              value: "test@response.com",
+              response: "test@response.com",
+            },
+            name: { value: "Test Name", response: "Test Name" },
           },
-          name: { value: "Test Name", response: "Test Name" },
-        },
-        routedEventTypeId: null,
-        responseId,
-        form: {
-          ...mockForm,
-          fields: mockForm.fields.map((field) => ({
-            type: field.type,
-            identifier: field.identifier,
-          })),
-        },
-      });
+          routedEventTypeId: null,
+          responseId,
+          form: {
+            ...mockForm,
+            fields: mockForm.fields.map((field) => ({
+              type: field.type,
+              identifier: field.identifier,
+            })),
+          },
+          creditCheckFn: expect.any(Function),
+        })
+      );
     });
 
     it("should pass routedEventTypeId when chosenAction is eventTypeRedirectUrl", async () => {
@@ -271,25 +318,28 @@ describe("_onFormSubmission", () => {
 
       await _onFormSubmission(mockForm, mockResponse, responseId, chosenAction);
 
-      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
-        workflows: mockWorkflows,
-        responses: {
-          email: {
-            value: "test@response.com",
-            response: "test@response.com",
+      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workflows: mockWorkflows,
+          responses: {
+            email: {
+              value: "test@response.com",
+              response: "test@response.com",
+            },
+            name: { value: "Test Name", response: "Test Name" },
           },
-          name: { value: "Test Name", response: "Test Name" },
-        },
-        routedEventTypeId: 42,
-        responseId,
-        form: {
-          ...mockForm,
-          fields: mockForm.fields.map((field) => ({
-            type: field.type,
-            identifier: field.identifier,
-          })),
-        },
-      });
+          routedEventTypeId: 42,
+          responseId,
+          form: {
+            ...mockForm,
+            fields: mockForm.fields.map((field) => ({
+              type: field.type,
+              identifier: field.identifier,
+            })),
+          },
+          creditCheckFn: expect.any(Function),
+        })
+      );
     });
   });
 
