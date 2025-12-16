@@ -250,18 +250,15 @@ test.describe("Managed Event Types", () => {
 
   test("Hidden toggle value propagates from parent to child events", async ({ page, users, browser }) => {
     const { adminUser, memberUser } = await setupManagedEvent({ users });
-    
+
     await adminUser.apiLogin();
     const managedEvent = await adminUser.getFirstTeamEvent();
     await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
     await page.getByTestId("update-eventtype").waitFor();
 
     const hiddenSwitch = page.locator("#hiddenSwitch");
-    const lockIndicator = page.getByTestId("locked-indicator-hidden");
     
-    if (await lockIndicator.isVisible()) {
-      await lockIndicator.click();
-    }
+    await expect(hiddenSwitch).toBeChecked({ checked: true });
     
     await hiddenSwitch.click();
     await saveAndWaitForResponse(page);
