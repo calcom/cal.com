@@ -58,6 +58,8 @@ type TimeRangeExtended = TimeRange & {
   toUser?: IToUser;
   reason?: string;
   emoji?: string;
+  notes?: string | null;
+  showNotePublicly?: boolean;
 };
 
 export type CalendarAvailableTimeslots = {
@@ -152,6 +154,10 @@ export type CalendarState = {
    * @default false
    */
   showTimezone?: boolean;
+  /**
+   * Selected booking UID to highlight the corresponding event
+   */
+  selectedBookingUid?: string | null;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };

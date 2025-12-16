@@ -59,11 +59,16 @@ export class HostNoShowUpdatedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.host_no_show_updated" };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): HostNoShowUpdatedAuditDisplayData {
+    getDisplayJson({
+        storedData,
+    }: {
+        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
+        userTimeZone: string;
+    }): HostNoShowUpdatedAuditDisplayData {
         const { fields } = storedData;
         return {
             noShowHost: fields.noShowHost.new,

@@ -3,6 +3,7 @@ import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/token
 import { moduleLoader as bookingAuditRepositoryModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditRepository.module";
 import { moduleLoader as auditActorRepositoryModuleLoader } from "@calcom/features/booking-audit/di/AuditActorRepository.module";
 import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/Features";
+import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
 
 import { createModule, bindModuleToClassOnToken } from "../../di/di";
 
@@ -19,6 +20,7 @@ const loadModule = bindModuleToClassOnToken({
     bookingAuditRepository: bookingAuditRepositoryModuleLoader,
     auditActorRepository: auditActorRepositoryModuleLoader,
     featuresRepository: featuresRepositoryModuleLoader,
+    userRepository: userRepositoryModuleLoader,
   },
 });
 

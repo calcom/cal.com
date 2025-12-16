@@ -109,19 +109,30 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) 
   // Let current month dates fully render.
   await page.getByTestId("incrementMonth").click();
 
-  // Waiting for full month increment
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+  // Wait for the calendar to update after month increment before clicking
+  const availableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(0);
+  await availableDay.waitFor({ state: "visible" });
+  await availableDay.click();
 
-  await page.locator('[data-testid="time"]').nth(0).click();
+  // Wait for time slots to load after selecting a day
+  const timeSlot = page.locator('[data-testid="time"]').nth(0);
+  await timeSlot.waitFor({ state: "visible" });
+  await timeSlot.click();
 }
 
 export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Let current month dates fully render.
   await page.getByTestId("incrementMonth").click();
 
-  await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+  // Wait for the calendar to update after month increment before clicking
+  const availableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(1);
+  await availableDay.waitFor({ state: "visible" });
+  await availableDay.click();
 
-  await page.locator('[data-testid="time"]').nth(0).click();
+  // Wait for time slots to load after selecting a day
+  const timeSlot = page.locator('[data-testid="time"]').nth(0);
+  await timeSlot.waitFor({ state: "visible" });
+  await timeSlot.click();
 }
 
 export async function bookEventOnThisPage(page: Page) {
@@ -253,8 +264,9 @@ export async function gotoRoutingLink({
 
   await page.goto(`${previewLink}${queryString ? `?${queryString}` : ""}`);
 
-  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  // Wait for the form to be fully loaded and stable before interacting
+  // This replaces the previous hardcoded 2s wait with a proper Playwright wait
+  await page.waitForLoadState("networkidle");
 }
 
 export async function installAppleCalendar(page: Page) {
@@ -274,21 +286,31 @@ export async function getInviteLink(page: Page) {
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
-  waitForEmailMs = 5000,
+  maxRetries = 10,
+  retryIntervalMs = 500,
 }: {
   emails?: ReturnType<typeof createEmailsFixture>;
   userEmail: string;
-  waitForEmailMs?: number;
+  maxRetries?: number;
+  retryIntervalMs?: number;
 }): Promise<Messages | null> {
   if (!emails) return null;
 
-  // Wait for email to be sent/received
-  await new Promise((resolve) => setTimeout(resolve, waitForEmailMs));
+  // Use retry logic instead of a fixed wait to handle email delivery timing
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const matchingEmails = await emails.search(userEmail, "to");
+    if (matchingEmails?.total) {
+      return matchingEmails;
+    }
+    // Wait before retrying
+    await new Promise((resolve) => setTimeout(resolve, retryIntervalMs));
+  }
 
+  // Final attempt after all retries
   const matchingEmails = await emails.search(userEmail, "to");
   if (!matchingEmails?.total) {
     console.log(
-      `No emails received by ${userEmail}. All emails sent to:`,
+      `No emails received by ${userEmail} after ${maxRetries} retries. All emails sent to:`,
       (await emails.messages())?.items.map((e) => e.to)
     );
   }
