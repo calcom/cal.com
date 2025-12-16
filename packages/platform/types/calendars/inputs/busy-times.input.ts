@@ -1,7 +1,21 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { Transform } from "class-transformer";
-import { IsNumber, IsString, IsArray, ValidateNested, IsDateString, IsOptional, ValidatorConstraint, ValidatorConstraintInterface, Validate } from "class-validator";
+import {
+  IsNumber,
+  IsString,
+  IsArray,
+  ValidateNested,
+  IsDateString,
+  IsOptional,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  registerDecorator,
+  type ValidationOptions,
+  IsTimeZone,
+} from "class-validator";
+
+import { CapitalizeTimeZone } from "@calcom/api-v2/src/lib/inputs/capitalize-timezone";
 
 export class Calendar {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
@@ -16,7 +30,7 @@ export class Calendar {
 
 @ValidatorConstraint({ name: "TimezoneRequired", async: false })
 export class TimezoneRequiredValidator implements ValidatorConstraintInterface {
-  validate(value: any) {
+  validate(value: { timeZone?: string; loggedInUsersTz?: string }) {
     return !!value.timeZone || !!value.loggedInUsersTz;
   }
 
@@ -25,7 +39,18 @@ export class TimezoneRequiredValidator implements ValidatorConstraintInterface {
   }
 }
 
-@Validate(TimezoneRequiredValidator)
+function ValidateTimezoneRequired(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: "validateTimezoneRequired",
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: TimezoneRequiredValidator,
+    });
+  };
+}
+
 export class CalendarBusyTimesInput {
   @ApiProperty({
     required: false,
@@ -37,13 +62,16 @@ export class CalendarBusyTimesInput {
   @IsString()
   loggedInUsersTz?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     required: false,
     description: "The timezone for the busy times query represented as a string",
     example: "America/New_York",
   })
   @IsOptional()
   @IsString()
+  @IsTimeZone()
+  @CapitalizeTimeZone()
+  @ValidateTimezoneRequired()
   timeZone?: string;
 
   @ApiProperty({
