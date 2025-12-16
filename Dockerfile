@@ -17,11 +17,12 @@ RUN yarn config set httpTimeout 1200000
 RUN --mount=type=cache,target=/root/.cache/turbo \
     npx turbo prune --scope=@calcom/web --scope=@calcom/trpc --docker
 
+
 FROM --platform=$BUILDPLATFORM node:20 AS builder
 
 WORKDIR /calcom
 
-## If we want to read any ENV variable from .env file, we need to first accept and pass it as an argument to the Dockerfile
+## Build args
 ARG NEXT_PUBLIC_LICENSE_CONSENT
 ARG NEXT_PUBLIC_WEBSITE_TERMS_URL
 ARG NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL
@@ -32,11 +33,10 @@ ARG CALENDSO_ENCRYPTION_KEY=secret
 ARG MAX_OLD_SPACE_SIZE=6144
 ARG NEXT_PUBLIC_API_V2_URL
 ARG CSP_POLICY
-
-## We need these variables as required by Next.js build to create rewrites
 ARG NEXT_PUBLIC_SINGLE_ORG_SLUG
 ARG ORGANIZATIONS_ENABLED
 
+## Runtime env needed for build
 ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     NEXT_PUBLIC_API_V2_URL=$NEXT_PUBLIC_API_V2_URL \
     NEXT_PUBLIC_LICENSE_CONSENT=$NEXT_PUBLIC_LICENSE_CONSENT \
@@ -51,22 +51,29 @@ ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     ORGANIZATIONS_ENABLED=$ORGANIZATIONS_ENABLED \
     NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE} \
     BUILD_STANDALONE=true \
-    CSP_POLICY=$CSP_POLICY
+    CSP_POLICY=$CSP_POLICY \
+    CI=true \
+    HUSKY=0 \
+    TURBO_TELEMETRY_DISABLED=1 \
+    YARN_ENABLE_GLOBAL_CACHE=false \
+    YARN_INSTALL_STATE_PATH=.yarn/ci-cache/install-state.gz \
+    YARN_NM_MODE=hardlinks-local
 
 RUN corepack enable
 RUN yarn config set httpTimeout 1200000
 
-# Install using the pruned workspace graph (json) then copy the pruned sources (full)
+# --- install deps (NO scripts) ---
 COPY --from=pruner /calcom/out/json/ ./
 COPY --from=pruner /calcom/out/yarn.lock ./yarn.lock
+COPY --from=pruner /calcom/.yarnrc.yml ./.yarnrc.yml
+COPY --from=pruner /calcom/.yarn ./.yarn
 
 RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    (yarn install --immutable || (echo "Yarn build log:" && cat /tmp/xfs-*/build.log && exit 1))
+    yarn install --immutable --mode=skip-build
 
-
+# --- bring full pruned sources ---
 COPY --from=pruner /calcom/out/full/ ./
 
-# Build and make embed servable from web/public/embed folder
 RUN --mount=type=cache,target=/root/.cache/turbo \
     yarn workspace @calcom/trpc run build
 
@@ -77,6 +84,7 @@ RUN --mount=type=cache,target=/root/.cache/turbo \
     CI=true yarn --cwd apps/web workspace @calcom/web run build
 
 RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache
+
 
 FROM node:20 AS builder-two
 
@@ -93,27 +101,30 @@ COPY --from=builder /calcom/packages ./packages
 COPY --from=builder /calcom/apps/web ./apps/web
 COPY --from=builder /calcom/packages/prisma/schema.prisma ./prisma/schema.prisma
 COPY scripts scripts
+
 RUN chmod +x scripts/*
 
-# Save value used during this build stage. If NEXT_PUBLIC_WEBAPP_URL and BUILT_NEXT_PUBLIC_WEBAPP_URL differ at
-# run-time, then start.sh will find/replace static values again.
 ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
 
 RUN scripts/replace-placeholder.sh http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${NEXT_PUBLIC_WEBAPP_URL}
 
+
 FROM node:20 AS runner
 
 WORKDIR /calcom
 
-RUN apt-get update && apt-get install -y --no-install-recommends netcat-openbsd wget && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends netcat-openbsd wget \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder-two /calcom ./
+
 ARG NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
 ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
-    BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
+    BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
+    NODE_ENV=production
 
-ENV NODE_ENV=production
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
