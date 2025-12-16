@@ -65,6 +65,8 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
   let knownIframeWidth: number | null = null;
   let isInitialDimensionPass = true;
   let isWindowLoadComplete = false;
+  let loadCompleteTimeout: ReturnType<typeof setTimeout> | null = null;
+
   runAsap(function informAboutScroll() {
     if (document.readyState !== "complete") {
       // Wait for window to load to correctly calculate the initial scroll height.
@@ -75,7 +77,10 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
     if (!isWindowLoadComplete) {
       // On Safari, even though document.readyState is complete, still the page is not rendered and we can't compute documentElement.scrollHeight correctly
       // Postponing to just next cycle allow us to fix this.
-      setTimeout(() => {
+      if (loadCompleteTimeout) {
+        clearTimeout(loadCompleteTimeout);
+      }
+      loadCompleteTimeout = setTimeout(() => {
         isWindowLoadComplete = true;
         informAboutScroll();
       }, 100);
@@ -104,13 +109,13 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
     // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
     const contentHeight = Math.ceil(
       parseFloat(mainElementStyles.height) +
-      parseFloat(mainElementStyles.marginTop) +
-      parseFloat(mainElementStyles.marginBottom)
+        parseFloat(mainElementStyles.marginTop) +
+        parseFloat(mainElementStyles.marginBottom)
     );
     const contentWidth = Math.ceil(
       parseFloat(mainElementStyles.width) +
-      parseFloat(mainElementStyles.marginLeft) +
-      parseFloat(mainElementStyles.marginRight)
+        parseFloat(mainElementStyles.marginLeft) +
+        parseFloat(mainElementStyles.marginRight)
     );
 
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
