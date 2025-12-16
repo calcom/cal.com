@@ -150,6 +150,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
         organizationLogo={organizationBrand.logo}
         organizationName={organizationDetails.name}
         organizationBanner={organizationBrand.banner}
+        slug={organizationDetails.link}
       />
     </OnboardingLayout>
   );
