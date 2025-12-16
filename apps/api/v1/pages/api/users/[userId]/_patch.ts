@@ -134,7 +134,7 @@ export async function patchHandler(req: NextApiRequest) {
 
   const currentUser = await prisma.user.findUnique({
     where: { id: query.userId },
-    select: { email: true, username: true, metadata: true },
+    select: { email: true, username: true, metadata: true, emailVerified: true },
   });
 
   if (!currentUser) {
@@ -172,6 +172,18 @@ export async function patchHandler(req: NextApiRequest) {
         };
 
         delete prismaData.email;
+      } else {
+        // When changing to a verified secondary email, swap the emails:
+        await prisma.secondaryEmail.update({
+          where: {
+            id: secondaryEmail.id,
+            userId: query.userId,
+          },
+          data: {
+            email: currentUser.email,
+            emailVerified: currentUser.emailVerified,
+          },
+        });
       }
     }
   }

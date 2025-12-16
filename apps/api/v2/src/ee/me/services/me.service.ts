@@ -26,15 +26,15 @@ export class MeService {
     const { user, updateData } = params;
     const update = { ...updateData };
 
-    const emailVerification = await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
-      "email-verification"
-    );
+    const isEmailVerificationEnabled = user.isPlatformManaged
+      ? false
+      : await this.featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
     const hasEmailBeenChanged = update.email && user.email !== update.email;
     const newEmail = update.email;
     let sendEmailVerification = false;
 
-    if (hasEmailBeenChanged && newEmail && !user.isPlatformManaged && emailVerification) {
+    if (hasEmailBeenChanged && newEmail && isEmailVerificationEnabled) {
       const secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
 
       if (!secondaryEmail?.emailVerified) {
@@ -46,10 +46,30 @@ export class MeService {
 
         delete update.email;
         sendEmailVerification = true;
+      } else {
+        // When changing to a verified secondary email, swap the emails:
+        await this.usersRepository.swapPrimaryAndSecondaryEmail(
+          user.id,
+          secondaryEmail.id,
+          user.email,
+          user.emailVerified
+        );
       }
     }
 
-    const updatedUser = await this.usersRepository.update(user.id, update);
+    // Filter out undefined values and only update if there are actual fields to update
+    const filteredUpdate = Object.entries(update).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        // @ts-expect-error Element implicitly has any type
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as UpdateManagedUserInput);
+
+    const updatedUser =
+      Object.keys(filteredUpdate).length > 0
+        ? await this.usersRepository.update(user.id, filteredUpdate)
+        : user;
 
     if (update.timeZone && user.defaultScheduleId) {
       await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {

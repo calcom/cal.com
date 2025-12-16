@@ -449,4 +449,22 @@ export class UsersRepository {
       },
     });
   }
+
+  async swapPrimaryAndSecondaryEmail(
+    userId: number,
+    secondaryEmailId: number,
+    oldPrimaryEmail: string,
+    oldPrimaryEmailVerified: Date | null
+  ) {
+    return this.dbWrite.prisma.secondaryEmail.update({
+      where: {
+        id: secondaryEmailId,
+        userId: userId,
+      },
+      data: {
+        email: oldPrimaryEmail,
+        emailVerified: oldPrimaryEmailVerified,
+      },
+    });
+  }
 }
