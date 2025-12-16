@@ -6,6 +6,9 @@ import { sessionStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { trackOnboardingCompleted } from "../lib/posthog-tracking";
+import { useOnboardingStore } from "../store/onboarding-store";
+
 const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";
 
 const DEFAULT_EVENT_TYPES = [
@@ -31,8 +34,10 @@ export const useSubmitPersonalOnboarding = () => {
   const router = useRouter();
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const { selectedPlan, teamInvites, invites } = useOnboardingStore();
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
+  const { data: connectedCalendars } = trpc.viewer.connectedCalendars.useQuery();
   const createEventType = trpc.viewer.eventTypesHeavy.create.useMutation();
 
   const mutation = trpc.viewer.me.updateProfile.useMutation({
@@ -77,7 +82,18 @@ export const useSubmitPersonalOnboarding = () => {
   });
 
   const submitPersonalOnboarding = () => {
-    // telemetry.event(telemetryEventTypes.onboardingFinished);
+    // Determine flow and calculate invites sent
+    const flow = selectedPlan || "personal";
+    const invitesSent = flow === "team" ? teamInvites.length : flow === "organization" ? invites.length : 0;
+    const hasConnectedCalendar = (connectedCalendars?.connectedCalendars?.length ?? 0) > 0;
+
+    // Track onboarding completion
+    trackOnboardingCompleted({
+      flow,
+      connected_calendar: hasConnectedCalendar,
+      invites_sent: invitesSent,
+    });
+
     mutation.mutate({
       completedOnboarding: true,
     });

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,6 +17,12 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { RoleSelector } from "../../../components/RoleSelector";
 import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
 import { useCreateTeam } from "../../../hooks/useCreateTeam";
+import {
+  trackInvitesSent,
+  trackStepContinued,
+  trackStepSkipped,
+  trackStepViewed,
+} from "../../../lib/posthog-tracking";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
 
 type TeamInviteEmailViewProps = {
@@ -39,6 +45,15 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   const { teamInvites, setTeamInvites, teamDetails, setTeamId, teamId } = store;
   const [inviteRole, setInviteRole] = React.useState<InviteRole>("MEMBER");
   const { inviteMembers, isSubmitting } = useCreateTeam();
+  const hasTrackedPageView = useRef(false);
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "team_invite_email", flow: "team" });
+    }
+  }, []);
 
   // Read teamId from query params and store it (from payment callback or redirect)
   useEffect(() => {
@@ -100,6 +115,12 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
 
     if (validInvites.length > 0) {
       try {
+        trackStepContinued({ step: "team_invite_email", flow: "team" });
+        trackInvitesSent({
+          invites_count: validInvites.length,
+          role: inviteRole,
+          method: "email",
+        });
         await inviteMembers(
           validInvites.map((invite) => ({
             email: invite.email,
@@ -115,12 +136,14 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     } else {
       // No invites, skip to personal settings
       console.log("No invites, skipping to personal settings");
+      trackStepSkipped({ step: "team_invite_email", flow: "team", skipped_action: "member_invites" });
       const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
       router.replace(gettingStartedPath);
     }
   };
 
   const handleSkip = async () => {
+    trackStepSkipped({ step: "team_invite_email", flow: "team", skipped_action: "member_invites" });
     setTeamInvites([]);
     // Skip inviting members and go to personal settings
     const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";

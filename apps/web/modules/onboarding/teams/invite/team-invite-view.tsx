@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,6 +12,7 @@ import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingInviteBrowserView } from "../../components/onboarding-invite-browser-view";
 import { useCreateTeam } from "../../hooks/useCreateTeam";
+import { trackStepBack, trackStepSkipped, trackStepViewed } from "../../lib/posthog-tracking";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { CSVUploadModal } from "./csv-upload-modal";
 
@@ -29,6 +30,15 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
   const { setTeamInvites, teamDetails, setTeamId } = store;
   const { createTeam, isSubmitting } = useCreateTeam();
   const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
+  const hasTrackedPageView = useRef(false);
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "team_invite", flow: "team" });
+    }
+  }, []);
 
   // Read teamId from query params and store it (from payment callback)
   useEffect(() => {
@@ -62,9 +72,15 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
   };
 
   const handleSkip = async () => {
+    trackStepSkipped({ step: "team_invite", flow: "team", skipped_action: "member_invites" });
     setTeamInvites([]);
     // Create the team without invites (will handle checkout redirect if needed)
     await createTeam(store);
+  };
+
+  const handleBack = () => {
+    trackStepBack({ step: "team_invite", flow: "team" });
+    router.push("/onboarding/teams/details");
   };
 
   return (
@@ -77,11 +93,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
             subtitle={t("onboarding_invite_subtitle")}
             footer={
               <div className="flex w-full items-center justify-between gap-4">
-                <Button
-                  color="minimal"
-                  className="rounded-[10px]"
-                  onClick={() => router.push("/onboarding/teams/details")}
-                  disabled={isSubmitting}>
+                <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
                   {t("back")}
                 </Button>
                 <div className="flex items-center gap-2">

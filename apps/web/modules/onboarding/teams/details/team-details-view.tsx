@@ -14,6 +14,7 @@ import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { useCreateTeam } from "../../hooks/useCreateTeam";
+import { trackStepBack, trackStepContinued, trackStepViewed } from "../../lib/posthog-tracking";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedTeamSlug } from "./validated-team-slug";
 
@@ -29,12 +30,21 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
   const { createTeam, isSubmitting } = useCreateTeam();
 
   const logoRef = useRef<HTMLInputElement>(null);
+  const hasTrackedPageView = useRef(false);
   const [teamName, setTeamName] = useState("");
   const [teamSlug, setTeamSlug] = useState("");
   const [teamBio, setTeamBio] = useState("");
   const [teamLogo, setTeamLogo] = useState<string>("");
   const [isSlugValid, setIsSlugValid] = useState(false);
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "team_details", flow: "team" });
+    }
+  }, []);
 
   useEffect(() => {
     setTeamName(teamDetails.name);
@@ -82,9 +92,16 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
       logo: teamLogo || null,
     });
 
+    trackStepContinued({ step: "team_details", flow: "team" });
+
     // Create the team (will handle payment redirect if needed)
     // Don't pass store - let createTeam read the latest state from the store
     await createTeam();
+  };
+
+  const handleBack = () => {
+    trackStepBack({ step: "team_details", flow: "team" });
+    router.push("/onboarding/getting-started");
   };
 
   return (
@@ -98,11 +115,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
               subtitle={t("team_onboarding_details_subtitle")}
               footer={
                 <div className="flex w-full items-center justify-end gap-4">
-                  <Button
-                    type="button"
-                    color="minimal"
-                    className="rounded-[10px]"
-                    onClick={() => router.push("/onboarding/getting-started")}>
+                  <Button type="button" color="minimal" className="rounded-[10px]" onClick={handleBack}>
                     {t("back")}
                   </Button>
                   <Button

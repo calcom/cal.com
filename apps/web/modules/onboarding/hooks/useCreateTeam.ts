@@ -6,6 +6,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
+import { trackPaymentRedirect, trackTeamCreated } from "../lib/posthog-tracking";
 import type { OnboardingState } from "../store/onboarding-store";
 import { useOnboardingStore } from "../store/onboarding-store";
 
@@ -33,6 +34,14 @@ export function useCreateTeam() {
         return;
       }
 
+      // Track team creation
+      trackTeamCreated({
+        team_name: teamDetails.name,
+        team_slug: teamDetails.slug,
+        has_logo: !!teamBrand.logo,
+        has_bio: !!teamDetails.bio,
+      });
+
       // Create the team
       const result = await createTeamMutation.mutateAsync({
         name: teamDetails.name,
@@ -44,6 +53,7 @@ export function useCreateTeam() {
 
       // If there's a checkout URL, redirect to Stripe payment
       if (result.url && !result.team) {
+        trackPaymentRedirect("team", "team");
         window.location.href = result.url;
         return;
       }

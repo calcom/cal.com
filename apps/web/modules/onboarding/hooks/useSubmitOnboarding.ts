@@ -6,6 +6,7 @@ import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { trackOrganizationCreated, trackPaymentRedirect } from "../lib/posthog-tracking";
 import type { OnboardingState } from "../store/onboarding-store";
 
 export const useSubmitOnboarding = () => {
@@ -51,6 +52,17 @@ export const useSubmitOnboarding = () => {
           role: inviteRole,
         }));
 
+      // Track organization creation attempt
+      trackOrganizationCreated({
+        org_name: organizationDetails.name,
+        org_slug: organizationDetails.link,
+        has_logo: !!organizationBrand.logo,
+        has_banner: !!organizationBrand.banner,
+        has_bio: !!organizationDetails.bio,
+        teams_count: teamsData.length,
+        invites_count: invitedMembersData.length,
+      });
+
       const result = await intentToCreateOrg.mutateAsync({
         name: organizationDetails.name,
         slug: organizationDetails.link,
@@ -69,6 +81,7 @@ export const useSubmitOnboarding = () => {
 
       // If there's a checkout URL, redirect to Stripe (billing enabled flow)
       if (result.checkoutUrl) {
+        trackPaymentRedirect("organization", "organization");
         window.location.href = result.checkoutUrl;
         return;
       }

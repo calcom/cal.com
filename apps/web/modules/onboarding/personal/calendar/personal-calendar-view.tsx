@@ -11,6 +11,8 @@ import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingCalendarBrowserView } from "../../components/onboarding-calendar-browser-view";
 import { useSubmitPersonalOnboarding } from "../../hooks/useSubmitPersonalOnboarding";
+import { trackStepBack, trackStepSkipped, trackStepViewed } from "../../lib/posthog-tracking";
+import { useOnboardingStore } from "../../store/onboarding-store";
 import { InstallableAppCard } from "../_components/InstallableAppCard";
 import { useAppInstallation } from "../_components/useAppInstallation";
 
@@ -24,7 +26,12 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   const { installingAppSlug, setInstallingAppSlug, createInstallHandlers } = useAppInstallation();
   const { submitPersonalOnboarding, isSubmitting } = useSubmitPersonalOnboarding();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const hasTrackedPageView = useRef(false);
   const [showFadeGradient, setShowFadeGradient] = useState(false);
+  const { selectedPlan } = useOnboardingStore();
+
+  // Determine the flow
+  const flow = selectedPlan || "personal";
 
   const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
@@ -32,6 +39,14 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
     sortByMostPopular: true,
     sortByInstalledFirst: true,
   });
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "personal_calendar", flow });
+    }
+  }, [flow]);
 
   const checkOverflow = () => {
     const element = scrollContainerRef.current;
@@ -88,10 +103,12 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   };
 
   const handleSkip = () => {
+    trackStepSkipped({ step: "personal_calendar", flow, skipped_action: "calendar_connection" });
     submitPersonalOnboarding();
   };
 
   const handleBack = () => {
+    trackStepBack({ step: "personal_calendar", flow });
     router.push("/onboarding/personal/settings");
   };
 

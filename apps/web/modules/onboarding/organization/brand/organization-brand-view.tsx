@@ -10,6 +10,12 @@ import { ColorPicker, Label } from "@calcom/ui/components/form";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
+import {
+  trackStepBack,
+  trackStepContinued,
+  trackStepSkipped,
+  trackStepViewed,
+} from "../../lib/posthog-tracking";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationBrandViewProps = {
@@ -21,11 +27,20 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   const { t } = useLocale();
   const { organizationDetails, organizationBrand, setOrganizationBrand } = useOnboardingStore();
 
+  const hasTrackedPageView = useRef(false);
   const [_logoFile, setLogoFile] = useState<File | null>(null);
   const [_bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [brandColor, setBrandColor] = useState("#000000");
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "organization_brand", flow: "organization" });
+    }
+  }, []);
 
   // Load from store on mount
   useEffect(() => {
@@ -78,12 +93,19 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
       banner: bannerPreview,
       color: brandColor,
     });
+    trackStepContinued({ step: "organization_brand", flow: "organization" });
     router.push("/onboarding/organization/teams");
   };
 
   const handleSkip = () => {
+    trackStepSkipped({ step: "organization_brand", flow: "organization", skipped_action: "branding" });
     // Skip brand customization and go to teams
     router.push("/onboarding/organization/teams");
+  };
+
+  const handleBack = () => {
+    trackStepBack({ step: "organization_brand", flow: "organization" });
+    router.push("/onboarding/organization/details");
   };
 
   return (
@@ -94,10 +116,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         subtitle={t("onboarding_org_brand_subtitle")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button
-              color="minimal"
-              className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/organization/details")}>
+            <Button color="minimal" className="rounded-[10px]" onClick={handleBack}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">

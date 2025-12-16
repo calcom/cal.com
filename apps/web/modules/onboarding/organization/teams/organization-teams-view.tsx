@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
@@ -13,6 +14,12 @@ import { Icon } from "@calcom/ui/components/icon";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingTeamsBrowserView } from "../../components/onboarding-teams-browser-view";
+import {
+  trackStepBack,
+  trackStepContinued,
+  trackStepSkipped,
+  trackStepViewed,
+} from "../../lib/posthog-tracking";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationTeamsViewProps = {
@@ -27,6 +34,15 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   const router = useRouter();
   const { t } = useLocale();
   const { teams: storedTeams, setTeams, organizationBrand, organizationDetails } = useOnboardingStore();
+  const hasTrackedPageView = useRef(false);
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "organization_teams", flow: "organization" });
+    }
+  }, []);
 
   const formSchema = z.object({
     teams: z.array(
@@ -51,12 +67,19 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   const handleContinue = (data: FormValues) => {
     // Save teams to store
     setTeams(data.teams);
+    trackStepContinued({ step: "organization_teams", flow: "organization" });
     router.push("/onboarding/organization/invite/email");
   };
 
   const handleSkip = () => {
+    trackStepSkipped({ step: "organization_teams", flow: "organization", skipped_action: "create_teams" });
     // Skip teams and go to invite
     router.push("/onboarding/organization/invite/email");
+  };
+
+  const handleBack = () => {
+    trackStepBack({ step: "organization_teams", flow: "organization" });
+    router.push("/onboarding/organization/brand");
   };
 
   const hasValidTeams = fields.some((_, index) => {
@@ -72,11 +95,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
         subtitle={t("onboarding_org_teams_subtitle")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button
-              type="button"
-              color="minimal"
-              className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/organization/brand")}>
+            <Button type="button" color="minimal" className="rounded-[10px]" onClick={handleBack}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">

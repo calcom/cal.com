@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
@@ -18,6 +18,13 @@ import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { RoleSelector } from "../../../components/RoleSelector";
 import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
 import { useSubmitOnboarding } from "../../../hooks/useSubmitOnboarding";
+import {
+  trackInvitesSent,
+  trackStepBack,
+  trackStepContinued,
+  trackStepSkipped,
+  trackStepViewed,
+} from "../../../lib/posthog-tracking";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
 import { OrganizationCSVUploadModal } from "../csv-upload-modal";
 
@@ -50,6 +57,15 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   } = store;
   const { submitOnboarding, isSubmitting } = useSubmitOnboarding();
   const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
+  const hasTrackedPageView = useRef(false);
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "organization_invite_email", flow: "organization" });
+    }
+  }, []);
 
   const googleWorkspaceEnabled = flags["google-workspace-directory"];
 
@@ -98,14 +114,29 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
 
   const handleContinue = async (data: FormValues) => {
     setInvites(data.invites);
+    const validInvites = data.invites.filter((inv) => inv.email && inv.email.trim().length > 0);
+    if (validInvites.length > 0) {
+      trackStepContinued({ step: "organization_invite_email", flow: "organization" });
+      trackInvitesSent({
+        invites_count: validInvites.length,
+        role: inviteRole,
+        method: "email",
+      });
+    }
     await submitOnboarding(store, userEmail, data.invites);
   };
 
   const handleBack = () => {
+    trackStepBack({ step: "organization_invite_email", flow: "organization" });
     router.push("/onboarding/organization/teams");
   };
 
   const handleSkip = async () => {
+    trackStepSkipped({
+      step: "organization_invite_email",
+      flow: "organization",
+      skipped_action: "member_invites",
+    });
     setInvites([]);
     await submitOnboarding(store, userEmail, []);
   };

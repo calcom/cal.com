@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -10,6 +10,7 @@ import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
+import { trackStepBack, trackStepContinued, trackStepViewed } from "../../lib/posthog-tracking";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedOrganizationSlug } from "./validated-organization-slug";
 
@@ -32,11 +33,20 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   const { t } = useLocale();
   const { organizationDetails, setOrganizationDetails } = useOnboardingStore();
 
+  const hasTrackedPageView = useRef(false);
   const [organizationName, setOrganizationName] = useState("");
   const [organizationLink, setOrganizationLink] = useState("");
   const [organizationBio, setOrganizationBio] = useState("");
   const [isSlugValid, setIsSlugValid] = useState(false);
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "organization_details", flow: "organization" });
+    }
+  }, []);
 
   // Load from store on mount
   useEffect(() => {
@@ -73,7 +83,13 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
       link: organizationLink,
       bio: organizationBio,
     });
+    trackStepContinued({ step: "organization_details", flow: "organization" });
     router.push("/onboarding/organization/brand");
+  };
+
+  const handleBack = () => {
+    trackStepBack({ step: "organization_details", flow: "organization" });
+    router.push("/onboarding/getting-started");
   };
 
   return (
@@ -84,10 +100,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
         subtitle={t("onboarding_org_details_subtitle")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button
-              color="minimal"
-              className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/getting-started")}>
+            <Button color="minimal" className="rounded-[10px]" onClick={handleBack}>
               {t("back")}
             </Button>
             <Button

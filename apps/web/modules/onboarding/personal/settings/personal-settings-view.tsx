@@ -21,6 +21,7 @@ import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
+import { trackStepBack, trackStepContinued, trackStepViewed } from "../../lib/posthog-tracking";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type PersonalSettingsViewProps = {
@@ -37,16 +38,28 @@ export const PersonalSettingsView = ({
   const router = useRouter();
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.get.useQuery();
-  const { personalDetails, setPersonalDetails } = useOnboardingStore();
+  const { personalDetails, setPersonalDetails, selectedPlan } = useOnboardingStore();
 
   const avatarRef = useRef<HTMLInputElement>(null);
+  const hasTrackedPageView = useRef(false);
   const [imageSrc, setImageSrc] = useState<string>("");
+
+  // Determine the flow based on context
+  const flow = fromTeamOnboarding ? "team" : selectedPlan || "personal";
 
   useEffect(() => {
     if (user) {
       setImageSrc(personalDetails.avatar || user.avatar || "");
     }
   }, [personalDetails.avatar, user]);
+
+  // Track step viewed on mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackStepViewed({ step: "personal_settings", flow });
+    }
+  }, [flow]);
 
   const formSchema = z.object({
     name: z
@@ -106,8 +119,14 @@ export const PersonalSettingsView = ({
       bio: data.bio || "",
     });
 
+    trackStepContinued({ step: "personal_settings", flow });
     router.push("/onboarding/personal/calendar");
   });
+
+  const handleBack = () => {
+    trackStepBack({ step: "personal_settings", flow });
+    router.push("/onboarding/getting-started");
+  };
 
   if (!user) {
     return null;
@@ -123,10 +142,7 @@ export const PersonalSettingsView = ({
           footer={
             <div className="flex w-full items-center justify-end gap-4">
               {!fromTeamOnboarding && (
-                <Button
-                  color="minimal"
-                  className="rounded-[10px]"
-                  onClick={() => router.push("/onboarding/getting-started")}>
+                <Button color="minimal" className="rounded-[10px]" onClick={handleBack}>
                   {t("back")}
                 </Button>
               )}

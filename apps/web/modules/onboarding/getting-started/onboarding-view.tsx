@@ -17,6 +17,12 @@ import { OnboardingCard } from "../components/OnboardingCard";
 import { OnboardingLayout } from "../components/OnboardingLayout";
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
 import { PlanIcon } from "../components/plan-icon";
+import {
+  trackOnboardingStarted,
+  trackPlanSelected,
+  trackStepContinued,
+  trackStepViewed,
+} from "../lib/posthog-tracking";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
@@ -28,13 +34,24 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const { t } = useLocale();
   const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
+  const hasTrackedPageView = useRef(false);
   const [isPending, startTransition] = useTransition();
   const { listInvites, isPending: isPendingInvites } = useTeamInvites();
+  const isUserCompanyEmail = isCompanyEmail(userEmail);
 
   // Reset onboarding data when visiting this page, but preserve the selected plan
   useEffect(() => {
     resetOnboardingPreservingPlan();
   }, []);
+
+  // Track onboarding started on initial mount
+  useEffect(() => {
+    if (!hasTrackedPageView.current) {
+      hasTrackedPageView.current = true;
+      trackOnboardingStarted(isUserCompanyEmail);
+      trackStepViewed({ step: "getting_started" });
+    }
+  }, [isUserCompanyEmail]);
 
   // If user has pending team invites, redirect them directly to personal onboarding
   useEffect(() => {
@@ -68,7 +85,21 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     previousPlanRef.current = selectedPlan;
   }, [selectedPlan]);
 
+  const handlePlanChange = (plan: PlanType) => {
+    setSelectedPlan(plan);
+    trackPlanSelected({
+      plan,
+      is_company_email: isUserCompanyEmail,
+    });
+  };
+
   const handleContinue = () => {
+    if (selectedPlan) {
+      trackStepContinued({
+        step: "getting_started",
+        flow: selectedPlan,
+      });
+    }
     startTransition(() => {
       if (selectedPlan === "organization") {
         router.push("/onboarding/organization/details");
@@ -157,7 +188,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
               {/* Plan options */}
               <RadioAreaGroup.Group
                 value={selectedPlan ?? undefined}
-                onValueChange={(value) => setSelectedPlan(value as PlanType)}
+                onValueChange={(value) => handlePlanChange(value as PlanType)}
                 className="flex w-full flex-col gap-1 rounded-[10px]">
                 {plans.map((plan) => {
                   const isSelected = selectedPlan === plan.id;
