@@ -228,12 +228,12 @@ export class CreateBookingInput_2024_04_15 {
   @ApiPropertyOptional()
   crmOwnerRecordType?: string;
 
-  @ApiPropertyOptional({
+  /* @ApiPropertyOptional({
     type: [Number],
     description:
       "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
     example: [1, 2, 3],
-  })
+  }) */
   @ApiHideProperty()
   @IsOptional()
   @IsArray()
