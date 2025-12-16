@@ -108,9 +108,9 @@ export function useCreateTeam() {
 
       // Redirect to personal settings after successful invite
       const gettingStartedPath = flags["onboarding-v3"]
-        ? "/onboarding/personal/settings"
+        ? "/onboarding/personal/settings?fromTeamOnboarding=true"
         : "/getting-started";
-      router.push(gettingStartedPath);
+      router.replace(gettingStartedPath);
     } catch (error) {
       console.error("Failed to invite members:", error);
       // Extract error message from TRPC error

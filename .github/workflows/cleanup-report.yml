@@ -11,12 +11,20 @@ jobs:
   cleanup-report:
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
+        with:
+          app-id: ${{ secrets.CI_CAL_APP_ID }}
+          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+          repositories: 'test-results-2'
+
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v4
         with:
           repository: calcom/test-results-2
           ref: gh-pages
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
 
       - name: Set Git User
         run: |
