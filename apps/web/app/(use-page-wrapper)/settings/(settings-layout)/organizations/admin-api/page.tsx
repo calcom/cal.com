@@ -1,7 +1,7 @@
 import { getTranslate, _generateMetadata } from "app/_utils";
 
-import { AdminAPIView } from "@calcom/features/ee/organizations/pages/settings/admin-api";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { AdminAPIView } from "@calcom/web/modules/settings/admin-api";
 
 import { validateUserHasOrg } from "../actions/validateUserHasOrg";
 
