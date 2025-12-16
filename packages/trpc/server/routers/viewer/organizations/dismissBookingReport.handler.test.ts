@@ -7,7 +7,7 @@ import { MembershipRole, BookingReportReason } from "@calcom/prisma/enums";
 import { dismissBookingReportHandler } from "./dismissBookingReport.handler";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/lib/server/repository/bookingReport");
+vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
 
 describe("dismissBookingReportHandler", () => {
   const mockUser = {

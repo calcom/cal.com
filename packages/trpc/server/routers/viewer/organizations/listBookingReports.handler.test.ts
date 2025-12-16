@@ -7,7 +7,7 @@ import { MembershipRole, BookingReportReason, BookingReportStatus } from "@calco
 import { listBookingReportsHandler } from "./listBookingReports.handler";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/lib/server/repository/bookingReport");
+vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
 
 describe("listBookingReportsHandler (Organization)", () => {
   const mockUser = {

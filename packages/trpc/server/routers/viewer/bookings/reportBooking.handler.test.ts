@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
 
 import { reportBookingHandler } from "./reportBooking.handler";
 
-vi.mock("@calcom/lib/server/repository/bookingReport");
+vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
 vi.mock("@calcom/features/bookings/lib/handleCancelBooking");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/bookings/services/BookingAccessService");
