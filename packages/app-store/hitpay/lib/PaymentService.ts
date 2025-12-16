@@ -34,12 +34,13 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
-    bookingSeat?: BookingSeat["id"],
     userId: Booking["userId"],
     username: string | null,
-    bookerName: string,
+    bookerName: string | null,
     paymentOption: PaymentOption,
-    bookerEmail: string
+    bookerEmail: string,
+    bookingUid: string,
+    bookingSeat?: BookingSeat["id"]
   ) {
     try {
       const booking: PaidBooking | null = await prisma.booking.findUnique({

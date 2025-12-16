@@ -35,6 +35,12 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    userId: Booking["userId"],
+    username: string | null,
+    bookerName: string | null,
+    paymentOption: PaymentOption,
+    bookerEmail: string,
+    bookingUid: string,
     bookingSeat?: BookingSeat["id"]
   ) {
     try {
