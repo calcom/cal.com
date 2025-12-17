@@ -54,6 +54,7 @@ const Page = async () => {
         initalIntegrationAttributeSyncs={integrationAttributeSyncs}
         organizationTeams={organizationTeams}
         attributes={attributes}
+        organizationId={organizationId}
       />
     </SettingsHeader>
   );
