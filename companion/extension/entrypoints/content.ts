@@ -46,9 +46,10 @@ export default defineContentScript({
     iframeContainer.style.justifyContent = "flex-end";
     iframeContainer.style.pointerEvents = "none";
 
-    // Create iframe
     const iframe = document.createElement("iframe");
-    iframe.src = "https://companion.cal.com";
+    const COMPANION_URL =
+      (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
+    iframe.src = COMPANION_URL;
     iframe.style.width = "400px";
     iframe.style.height = "100%";
     iframe.style.border = "none";
