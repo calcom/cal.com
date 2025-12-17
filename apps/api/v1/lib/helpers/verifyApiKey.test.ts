@@ -11,9 +11,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyService";
 import LicenseKeyService, { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { PrismaApiKeyRepository } from "@calcom/features/apiKey/repositories/PrismaApiKeyRepository";
-import { ApiKeyService } from "@calcom/features/apiKey/services/ApiKeyService";
 import type { IDeploymentRepository } from "@calcom/features/deployment/repositories/IDeploymentRepository";
+import { PrismaApiKeyRepository } from "@calcom/features/ee/api-keys/repositories/PrismaApiKeyRepository";
+import { ApiKeyService } from "@calcom/features/ee/api-keys/services/ApiKeyService";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { isAdminGuard } from "../utils/isAdmin";
@@ -21,11 +21,11 @@ import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 import { verifyApiKey } from "./verifyApiKey";
 
-vi.mock("@calcom/features/apiKey/services/ApiKeyService", () => ({
+vi.mock("@calcom/features/ee/api-keys/services/ApiKeyService", () => ({
   ApiKeyService: vi.fn(),
 }));
 
-vi.mock("@calcom/features/apiKey/repositories/PrismaApiKeyRepository", () => ({
+vi.mock("@calcom/features/ee/api-keys/repositories/PrismaApiKeyRepository", () => ({
   PrismaApiKeyRepository: vi.fn(),
 }));
 
