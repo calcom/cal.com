@@ -27,18 +27,18 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import LicenseRequired from "../../common/components/LicenseRequired";
-import { DeleteDialog } from "../components/DeleteDialog";
-import SkeletonLoader from "../components/SkeletonLoaderEdit";
-import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { DeleteDialog } from "@calcom/features/ee/workflows/components/DeleteDialog";
+import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderEdit";
+import WorkflowDetailsPage from "@calcom/features/ee/workflows/components/WorkflowDetailsPage";
 import {
   isSMSAction,
   isSMSOrWhatsappAction,
   isCalAIAction,
   isFormTrigger,
-} from "../lib/actionHelperFunctions";
-import { formSchema } from "../lib/schema";
-import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { formSchema } from "@calcom/features/ee/workflows/lib/schema";
+import { getTranslatedText, translateVariablesToEnglish } from "@calcom/features/ee/workflows/lib/variableTranslations";
 
 export type FormValues = {
   name: string;
