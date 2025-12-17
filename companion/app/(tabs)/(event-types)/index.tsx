@@ -22,6 +22,7 @@ import { LoadingSpinner } from "../../../components/LoadingSpinner";
 import { EmptyScreen } from "../../../components/EmptyScreen";
 import { slugify } from "../../../utils/slugify";
 import { showErrorAlert } from "../../../utils/alerts";
+import { shadows } from "../../../utils/shadows";
 import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
 import { offlineAwareRefresh } from "../../../utils/network";
 import { openInAppBrowser } from "../../../utils/browser";
@@ -570,13 +571,7 @@ export default function EventTypes() {
             className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 20 },
-              shadowOpacity: 0.25,
-              shadowRadius: 25,
-              elevation: 24,
-            }}
+            style={shadows.xl()}
           >
             {/* Header */}
             <View className="px-8 pb-4 pt-6">
