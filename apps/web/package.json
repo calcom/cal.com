@@ -32,9 +32,9 @@
   },
   "dependencies": {
     "@boxyhq/saml-jackson": "1.52.2",
-    "@calcom/atoms": "^2.3.0",
     "@calcom/app-store": "workspace:*",
     "@calcom/app-store-cli": "workspace:*",
+    "@calcom/atoms": "^2.3.0",
     "@calcom/dayjs": "workspace:*",
     "@calcom/embed-core": "workspace:*",
     "@calcom/embed-react": "workspace:*",

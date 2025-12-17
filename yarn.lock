@@ -3028,7 +3028,31 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/atoms@workspace:*, @calcom/atoms@workspace:packages/platform/atoms":
+"@calcom/atoms@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "@calcom/atoms@npm:2.3.0"
+  dependencies:
+    "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@^1.0.4"
+    "@radix-ui/react-slot": ^1.0.2
+    "@radix-ui/react-switch": ^1.1.0
+    "@radix-ui/react-toast": ^1.1.5
+    "@radix-ui/react-tooltip-atoms": "npm:@radix-ui/react-tooltip@^1.0.0"
+    "@tanstack/react-query": ^5.17.15
+    class-variance-authority: ^0.4.0
+    clsx: ^2.0.0
+    dompurify: ^3.2.3
+    marked: ^15.0.3
+    react-use: ^17.4.2
+    tailwind-merge: ^1.13.2
+    tailwindcss: ^4
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    typescript: ^5.0.0
+  checksum: e9ca7a196545ace7fb594719d08a8aa17d4717333dcc684989d8ab70bd0e4758a01ed8afee977da639629156ac76ca1d44db902cfd91c5ab18402d9aae598327
+  languageName: node
+  linkType: hard
+
+"@calcom/atoms@workspace:packages/platform/atoms":
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
@@ -3106,7 +3130,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/base@workspace:packages/platform/examples/base"
   dependencies:
-    "@calcom/atoms": "workspace:*"
+    "@calcom/atoms": ^2.3.0
     "@calcom/eslint-config": "workspace:*"
     "@playwright/test": ^1.45.3
     "@prisma/client": 6.7.0
@@ -3460,7 +3484,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/example-app-credential-sync@workspace:example-apps/credential-sync"
   dependencies:
-    "@calcom/atoms": "workspace:*"
+    "@calcom/atoms": ^2.3.0
     "@calcom/eslint-config": "workspace:*"
     "@prisma/client": 6.7.0
     "@types/node": ^20.3.1
@@ -3558,7 +3582,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/features@workspace:packages/features"
   dependencies:
-    "@calcom/atoms": "workspace:*"
+    "@calcom/atoms": ^2.3.0
     "@calcom/dayjs": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/trpc": "workspace:*"
@@ -4395,6 +4419,7 @@ __metadata:
     "@boxyhq/saml-jackson": 1.52.2
     "@calcom/app-store": "workspace:*"
     "@calcom/app-store-cli": "workspace:*"
+    "@calcom/atoms": ^2.3.0
     "@calcom/config": "workspace:*"
     "@calcom/dayjs": "workspace:*"
     "@calcom/embed-core": "workspace:*"
