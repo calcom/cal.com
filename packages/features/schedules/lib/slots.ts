@@ -184,7 +184,7 @@ function buildSlotsWithDateRanges({
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
 
-      const dateOutOfOfficeExists = false;
+      let dateOutOfOfficeExists = false;
       if (datesOutOfOffice) {
         const slotDateYYYYMMDD = datesOutOfOfficeTimeZone
           ? slotStartTime.tz(datesOutOfOfficeTimeZone).format("YYYY-MM-DD")

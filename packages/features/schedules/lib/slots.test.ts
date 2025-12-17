@@ -877,9 +877,8 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       datesOutOfOfficeTimeZone: "UTC",
     });
 
-    // Filter slots by day using UTC to be timezone-independent
-    const day1Slots = slots.filter((slot) => slot.time.utc().format("YYYY-MM-DD") === "2025-11-17");
-    const day2Slots = slots.filter((slot) => slot.time.utc().format("YYYY-MM-DD") === "2025-11-18");
+    const day1Slots = slots.filter((slot) => slot.time.format("YYYY-MM-DD") === "2025-11-17");
+    const day2Slots = slots.filter((slot) => slot.time.format("YYYY-MM-DD") === "2025-11-18");
 
     // Day 1 slots should NOT be marked as away
     day1Slots.forEach((slot) => {
