@@ -184,8 +184,8 @@ export const featureOptInRouter = router({
    * Get team's auto opt-in preference (requires team admin).
    */
   getTeamAutoOptIn: createTeamPbacProcedure("team.read").query(async ({ input }) => {
-    const autoOptIn = await featuresRepository.getTeamAutoOptIn(input.teamId);
-    return { autoOptIn };
+    const result = await featuresRepository.getTeamsAutoOptIn([input.teamId]);
+    return { autoOptIn: result[input.teamId] ?? false };
   }),
 
   /**
@@ -206,8 +206,8 @@ export const featureOptInRouter = router({
    * Get organization's auto opt-in preference (requires org admin).
    */
   getOrganizationAutoOptIn: createOrgPbacProcedure("organization.read").query(async ({ ctx }) => {
-    const autoOptIn = await featuresRepository.getTeamAutoOptIn(ctx.organizationId);
-    return { autoOptIn };
+    const result = await featuresRepository.getTeamsAutoOptIn([ctx.organizationId]);
+    return { autoOptIn: result[ctx.organizationId] ?? false };
   }),
 
   /**
