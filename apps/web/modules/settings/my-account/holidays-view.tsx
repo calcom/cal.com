@@ -314,12 +314,12 @@ export function HolidaysView() {
       <div className="space-y-6">
         <div className="border-subtle bg-muted overflow-hidden rounded-lg border p-5">
           {/* Header with title and country selector */}
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-emphasis font-semibold">{t("holidays")}</h3>
               <p className="text-subtle text-sm">{t("holidays_description")}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
               <ConflictIndicatorButton
                 conflicts={conflictsData?.conflicts}
                 hasHolidaysConfigured={!!settings?.countryCode}

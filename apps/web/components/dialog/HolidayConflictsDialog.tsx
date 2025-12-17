@@ -70,7 +70,7 @@ const BookingItem = memo(function BookingItem({
   const participantsText = getParticipantsText();
 
   return (
-    <div className="bg-default border-subtle dark:bg-subtle dark:border-default relative ml-4 flex items-center justify-between gap-3 rounded-lg border p-3">
+    <div className="bg-default border-subtle dark:bg-subtle dark:border-default relative ml-2 flex items-center justify-between gap-2 rounded-lg border p-2 sm:ml-4 sm:gap-3 sm:p-3">
       {/* Left accent bar */}
       <div className="bg-attention absolute left-0 top-2 h-[calc(100%-16px)] w-1 rounded-full dark:bg-orange-300" />
       <div className="min-w-0 flex-1 pl-2">
