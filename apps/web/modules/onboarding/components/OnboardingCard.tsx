@@ -9,8 +9,8 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 type OnboardingCardProps = {
   title: string;
   subtitle: string;
-  children: ReactNode;
-  footer: ReactNode | null;
+  children?: ReactNode;
+  footer?: ReactNode;
   isLoading?: boolean;
   floatingFooter?: boolean;
 };
@@ -19,8 +19,8 @@ export const OnboardingCard = ({
   title,
   subtitle,
   children,
-  footer = null,
-  isLoading = false,
+  footer,
+  isLoading,
   floatingFooter = false,
 }: OnboardingCardProps) => {
   const pathname = usePathname();
