@@ -3,13 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { Button } from "@coss/ui/components/button";
 
 import { EmailInviteForm } from "../../../components/EmailInviteForm";
 import { OnboardingCard } from "../../../components/OnboardingCard";
@@ -138,56 +137,59 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
       {/* Left column - Main content */}
       <div className="flex h-full w-full flex-col gap-4">
-        <Form form={form} handleSubmit={handleContinue} className="flex h-full w-full flex-col gap-4">
-          <OnboardingCard
-            title={t("invite")}
-            subtitle={t("team_invite_subtitle")}
-            footer={
-              <div className="flex w-full items-center justify-end gap-4">
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    color="minimal"
-                    className="rounded-[10px]"
-                    onClick={handleSkip}
-                    disabled={isSubmitting}>
-                    {t("onboarding_skip_for_now")}
-                  </Button>
-                  <Button
-                    type="submit"
-                    color="primary"
-                    className="rounded-[10px]"
-                    disabled={!hasValidInvites || isSubmitting}
-                    loading={isSubmitting}>
-                    {t("continue")}
-                  </Button>
+        <FormProvider {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleContinue)}
+            className="flex h-full w-full flex-col gap-4">
+            <OnboardingCard
+              title={t("invite")}
+              subtitle={t("team_invite_subtitle")}
+              footer={
+                <div className="flex w-full items-center justify-end gap-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="rounded-[10px]"
+                      onClick={handleSkip}
+                      disabled={isSubmitting}>
+                      {t("onboarding_skip_for_now")}
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="default"
+                      className="rounded-[10px]"
+                      disabled={!hasValidInvites || isSubmitting}>
+                      {isSubmitting ? t("loading") : t("continue")}
+                    </Button>
+                  </div>
+                </div>
+              }>
+              <div className="flex w-full flex-col gap-4 px-1">
+                <div className="flex w-full flex-col gap-4">
+                  <EmailInviteForm
+                    fields={fields}
+                    append={append}
+                    remove={remove}
+                    defaultRole={inviteRole}
+                    emailPlaceholder="rick@cal.com"
+                  />
+
+                  <RoleSelector
+                    value={inviteRole}
+                    onValueChange={(value) => {
+                      setInviteRole(value);
+                      fields.forEach((_, index) => {
+                        form.setValue(`invites.${index}.role`, value);
+                      });
+                    }}
+                    showInfoBadge
+                  />
                 </div>
               </div>
-            }>
-            <div className="flex w-full flex-col gap-4 px-1">
-              <div className="flex w-full flex-col gap-4">
-                <EmailInviteForm
-                  fields={fields}
-                  append={append}
-                  remove={remove}
-                  defaultRole={inviteRole}
-                  emailPlaceholder="rick@cal.com"
-                />
-
-                <RoleSelector
-                  value={inviteRole}
-                  onValueChange={(value) => {
-                    setInviteRole(value);
-                    fields.forEach((_, index) => {
-                      form.setValue(`invites.${index}.role`, value);
-                    });
-                  }}
-                  showInfoBadge
-                />
-              </div>
-            </div>
-          </OnboardingCard>
-        </Form>
+            </OnboardingCard>
+          </form>
+        </FormProvider>
       </div>
 
       {/* Right column - Browser view */}

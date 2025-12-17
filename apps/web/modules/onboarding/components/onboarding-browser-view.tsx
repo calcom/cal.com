@@ -1,6 +1,7 @@
 "use client";
 
 import classNames from "classnames";
+import { ArrowRightIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
@@ -9,8 +10,8 @@ import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomain
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
+import { Button } from "@coss/ui/components/button";
 
 type OnboardingBrowserViewProps = {
   avatar?: string | null;
@@ -173,8 +174,9 @@ export const OnboardingBrowserView = ({
                       </div>
                       <p className="text-subtle text-sm font-medium leading-tight">{event.description}</p>
                     </div>
-                    <Button color="secondary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
+                    <Button variant="secondary" size="sm" tabIndex={-1}>
                       {t("book_now")}
+                      <ArrowRightIcon className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

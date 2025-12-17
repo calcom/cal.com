@@ -1,9 +1,10 @@
 "use client";
 
+import { Button } from "@coss/ui/components/button";
+import { LinkIcon, MailIcon, UploadIcon } from "lucide-react";
+
 import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -45,11 +46,11 @@ export const InviteOptions = ({
       {googleWorkspaceEnabled && onConnectGoogleWorkspace && (
         <>
           <Button
-            color="secondary"
+            variant="secondary"
             className="h-8 w-full rounded-[10px]"
-            CustomStartIcon={<GoogleIcon />}
             onClick={onConnectGoogleWorkspace}
             disabled={isSubmitting}>
+            <GoogleIcon />
             {t("connect_google_workspace")}
           </Button>
 
@@ -63,39 +64,33 @@ export const InviteOptions = ({
 
       <div className="flex w-full flex-1 flex-col gap-4">
         <Button
-          color="primary"
+          variant="default"
           className="h-8 w-full justify-center rounded-[10px]"
           onClick={onInviteViaEmail}
           disabled={isSubmitting}>
-          <div className="flex items-center gap-1">
-            <Icon name="mail" className="h-4 w-4" />
-            <span>{t("invite_via_email")}</span>
-          </div>
+          <MailIcon className="h-4 w-4" />
+          <span>{t("invite_via_email")}</span>
         </Button>
 
         {onUploadCSV && (
           <Button
-            color="secondary"
+            variant="secondary"
             className="h-8 w-full justify-center rounded-[10px]"
             onClick={onUploadCSV}
             disabled={isSubmitting}>
-            <div className="flex items-center gap-1">
-              <Icon name="upload" className="h-4 w-4" />
-              <span>{t("upload_csv_file")}</span>
-            </div>
+            <UploadIcon className="h-4 w-4" />
+            <span>{t("upload_csv_file")}</span>
           </Button>
         )}
 
         {onCopyInviteLink && (
           <Button
-            color="secondary"
+            variant="secondary"
             className="h-8 w-full justify-center rounded-[10px]"
             onClick={onCopyInviteLink}
             disabled>
-            <div className="flex items-center gap-1">
-              <Icon name="link" className="h-4 w-4" />
-              <span>{t("copy_invite_link")}</span>
-            </div>
+            <LinkIcon className="h-4 w-4" />
+            <span>{t("copy_invite_link")}</span>
           </Button>
         )}
       </div>

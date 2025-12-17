@@ -4,8 +4,8 @@ import { signOut } from "next-auth/react";
 import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
+import { Button } from "@coss/ui/components/button";
 
 type OnboardingLayoutProps = {
   userEmail: string;
@@ -50,7 +50,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
 
       {/* Footer with signout button */}
       <div className="flex w-full items-center justify-center px-6 py-6">
-        <Button onClick={handleSignOut} color="minimal">
+        <Button onClick={handleSignOut} variant="ghost">
           {t("sign_out")}
         </Button>
       </div>

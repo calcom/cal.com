@@ -1,6 +1,7 @@
 "use client";
 
 import classNames from "classnames";
+import { ArrowRightIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -8,8 +9,8 @@ import { useEffect, useRef } from "react";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
+import { Button } from "@coss/ui/components/button";
 
 // Helper function to darken a hex color
 const darkenColor = (hex: string, amount: number): string => {
@@ -188,8 +189,9 @@ export const OnboardingOrganizationBrowserView = ({
                       </div>
                       <p className="text-subtle text-sm font-medium leading-tight">{event.description}</p>
                     </div>
-                    <Button color="primary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
+                    <Button variant="default" size="sm" tabIndex={-1}>
                       {t("book_now")}
+                      <ArrowRightIcon className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

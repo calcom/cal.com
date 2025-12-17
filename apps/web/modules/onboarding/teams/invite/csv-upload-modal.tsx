@@ -1,14 +1,14 @@
 "use client";
 
+import { DownloadIcon, FileTextIcon, UploadIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 import { showToast } from "@calcom/ui/components/toast";
+import { Button } from "@coss/ui/components/button";
 
 import { useOnboardingStore, type Invite } from "../../store/onboarding-store";
 
@@ -156,7 +156,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
               {selectedFile ? (
                 <div className="flex flex-col items-center gap-3">
                   <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-4 shadow-sm">
-                    <Icon name="file-text" className="text-emphasis" style={{ width: 32, height: 32 }} />
+                    <FileTextIcon className="text-emphasis" style={{ width: 32, height: 32 }} />
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <p className="text-emphasis text-sm font-medium">{selectedFile.name}</p>
@@ -166,11 +166,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
               ) : (
                 <div className="flex flex-col items-center gap-3">
                   <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-4 shadow-sm">
-                    <Icon
-                      name="upload"
-                      className="text-emphasis opacity-70"
-                      style={{ width: 32, height: 32 }}
-                    />
+                    <UploadIcon className="text-emphasis opacity-70" style={{ width: 32, height: 32 }} />
                   </div>
                   <p className="text-subtle text-center text-sm">{t("upload_csv_subtitle")}</p>
                 </div>
@@ -187,13 +183,14 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
             {/* Download template */}
             <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
-                <Icon name="download" className="text-emphasis" style={{ width: 16, height: 16 }} />
+                <DownloadIcon className="text-emphasis" style={{ width: 16, height: 16 }} />
               </div>
               <div className="flex-1">
                 <p className="text-emphasis text-sm font-medium">{t("need_template")}</p>
                 <p className="text-subtle text-xs">{t("download_csv_template_description")}</p>
               </div>
-              <Button color="secondary" StartIcon="download" size="sm" onClick={handleDownloadTemplate}>
+              <Button variant="secondary" size="sm" onClick={handleDownloadTemplate}>
+                <DownloadIcon className="h-4 w-4" />
                 {t("download_template")}
               </Button>
             </div>
@@ -201,7 +198,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
             {/* File upload */}
             <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
-                <Icon name="upload" className="text-emphasis" style={{ width: 16, height: 16 }} />
+                <UploadIcon className="text-emphasis" style={{ width: 16, height: 16 }} />
               </div>
               <div className="flex-1">
                 <p className="text-emphasis text-sm font-medium">{t("upload_your_file")}</p>
@@ -216,11 +213,8 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <Button
-                color="secondary"
-                StartIcon={selectedFile ? "file-text" : "upload"}
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}>
+              <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+                {selectedFile ? <FileTextIcon className="h-4 w-4" /> : <UploadIcon className="h-4 w-4" />}
                 {t("choose_file")}
               </Button>
             </div>
@@ -228,15 +222,14 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
         </div>
 
         <div className="bg-cal-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
-          <Button color="minimal" onClick={handleClose} disabled={isUploading}>
+          <Button variant="ghost" onClick={handleClose} disabled={isUploading}>
             {t("cancel")}
           </Button>
           <Button
-            color="primary"
+            variant="default"
             onClick={handleUpload}
-            disabled={!selectedFile || isUploading}
-            loading={isUploading}>
-            {t("upload")}
+            disabled={!selectedFile || isUploading}>
+            {isUploading ? t("loading") : t("upload")}
           </Button>
         </div>
       </DialogContent>

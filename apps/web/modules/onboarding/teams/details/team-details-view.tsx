@@ -6,9 +6,11 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { Button } from "@coss/ui/components/button";
+import { Input } from "@coss/ui/components/input";
+import { Label } from "@coss/ui/components/label";
+import { Textarea } from "@coss/ui/components/textarea";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -100,14 +102,14 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                 <div className="flex w-full items-center justify-end gap-4">
                   <Button
                     type="button"
-                    color="minimal"
+                    variant="ghost"
                     className="rounded-[10px]"
                     onClick={() => router.push("/onboarding/getting-started")}>
                     {t("back")}
                   </Button>
                   <Button
                     type="submit"
-                    color="primary"
+                    variant="default"
                     className="rounded-[10px]"
                     disabled={!isSlugValid || !teamName || !teamSlug || isSubmitting}>
                     {t("continue")}
@@ -144,11 +146,10 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                 {/* Team Name */}
                 <div className="flex w-full flex-col gap-1.5">
                   <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_name")}</Label>
-                  <TextField
+                  <Input
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     placeholder="Acme Inc."
-                    className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
                   />
                 </div>
 
@@ -162,12 +163,10 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                 {/* Team Bio */}
                 <div className="flex w-full flex-col gap-1.5">
                   <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_bio")}</Label>
-                  <TextArea
+                  <Textarea
                     value={teamBio}
                     onChange={(e) => setTeamBio(e.target.value)}
                     placeholder={t("team_bio_placeholder")}
-                    className="border-default max-h-[150px] min-h-[80px] rounded-[10px] border px-2 py-1.5 text-sm"
-                    rows={3}
                   />
                 </div>
               </div>

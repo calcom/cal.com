@@ -1,11 +1,13 @@
 "use client";
 
+import { Button } from "@coss/ui/components/button";
+import { Input } from "@coss/ui/components/input";
+import { Label } from "@coss/ui/components/label";
+import { XIcon, PlusIcon } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Label, TextField, Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Select } from "@calcom/ui/components/form";
 
 import type { InviteRole } from "../store/onboarding-store";
 
@@ -69,8 +71,7 @@ export function EmailInviteForm({
           {fields.map((field, index) => (
             <div key={field.id} className="flex items-start gap-2">
               <div className={showTeamSelect ? "grid flex-1 items-start gap-2 md:grid-cols-2" : "flex-1"}>
-                <TextField
-                  labelSrOnly
+                <Input
                   {...register(`invites.${index}.email`)}
                   placeholder={emailPlaceholder || `rick@cal.com`}
                   type="email"
@@ -92,13 +93,11 @@ export function EmailInviteForm({
               </div>
               <Button
                 type="button"
-                color="minimal"
-                variant="icon"
-                size="sm"
-                className="h-7 w-7"
+                variant="ghost"
+                size="icon-sm"
                 disabled={fields.length === 1}
                 onClick={() => remove(index)}>
-                <Icon name="x" className="h-4 w-4" />
+                <XIcon className="h-4 w-4" />
               </Button>
             </div>
           ))}
@@ -106,15 +105,15 @@ export function EmailInviteForm({
 
         <Button
           type="button"
-          color="secondary"
+          variant="secondary"
           size="sm"
-          StartIcon="plus"
           className={showTeamSelect ? "mt-2 w-fit" : "w-fit"}
           onClick={() =>
             append(
               showTeamSelect ? { email: "", team: "", role: defaultRole } : { email: "", role: defaultRole }
             )
           }>
+          <PlusIcon className="h-4 w-4" />
           {t("add")}
         </Button>
       </div>

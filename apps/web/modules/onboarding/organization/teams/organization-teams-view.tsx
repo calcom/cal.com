@@ -1,14 +1,14 @@
 "use client";
 
+import { Button } from "@coss/ui/components/button";
+import { Input } from "@coss/ui/components/input";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { XIcon, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Form, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -74,19 +74,19 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
           <div className="flex w-full items-center justify-between gap-4">
             <Button
               type="button"
-              color="minimal"
+              variant="ghost"
               className="rounded-[10px]"
               onClick={() => router.push("/onboarding/organization/brand")}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
-              <Button type="button" color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+              <Button type="button" variant="ghost" className="rounded-[10px]" onClick={handleSkip}>
                 {t("onboarding_skip_for_now")}
               </Button>
               <Button
                 type="submit"
                 form="teams-form"
-                color="primary"
+                variant="default"
                 className="rounded-[10px]"
                 disabled={!hasValidTeams}>
                 {t("continue")}
@@ -94,54 +94,49 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
             </div>
           </div>
         }>
-        <Form id="teams-form" form={form} handleSubmit={handleContinue} className="w-full">
-          <div className="w-full ">
-            <div className="flex w-full flex-col gap-8 ">
-              <div className="flex w-full flex-col gap-2">
-                <div className="flex flex-col gap-1">
-                  <p className="text-emphasis text-sm font-medium leading-4">{t("team")}</p>
-                </div>
+        <FormProvider {...form}>
+          <form id="teams-form" onSubmit={form.handleSubmit(handleContinue)} className="w-full">
+            <div className="w-full ">
+              <div className="flex w-full flex-col gap-8 ">
+                <div className="flex w-full flex-col gap-2">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-emphasis text-sm font-medium leading-4">{t("team")}</p>
+                  </div>
 
-                {/* Team fields */}
-                <div className="flex flex-col gap-2">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="flex w-full items-end gap-0.5">
-                      <div className="flex-1">
-                        <TextField
-                          labelSrOnly
-                          {...form.register(`teams.${index}.name`)}
-                          placeholder={t("team")}
-                          className="h-7 w-full rounded-[10px] text-sm"
-                        />
+                  {/* Team fields */}
+                  <div className="flex flex-col gap-2">
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="flex w-full items-end gap-0.5">
+                        <div className="flex-1">
+                          <Input {...form.register(`teams.${index}.name`)} placeholder={t("team")} />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          disabled={fields.length === 1}
+                          onClick={() => remove(index)}>
+                          <XIcon className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        color="minimal"
-                        variant="icon"
-                        size="sm"
-                        className="h-7 w-7"
-                        disabled={fields.length === 1}
-                        onClick={() => remove(index)}>
-                        <Icon name="x" className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
 
-                {/* Add button */}
-                <Button
-                  type="button"
-                  color="secondary"
-                  size="sm"
-                  StartIcon="plus"
-                  className="w-fit"
-                  onClick={() => append({ name: "" })}>
-                  {t("add")}
-                </Button>
+                  {/* Add button */}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="w-fit"
+                    onClick={() => append({ name: "" })}>
+                    <PlusIcon className="h-4 w-4" />
+                    {t("add")}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </Form>
+          </form>
+        </FormProvider>
       </OnboardingCard>
 
       {/* Right column - Browser view */}

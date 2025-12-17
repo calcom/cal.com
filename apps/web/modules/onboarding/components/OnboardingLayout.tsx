@@ -1,12 +1,12 @@
 "use client";
 
+import { Button } from "@coss/ui/components/button";
 import classNames from "classnames";
 import { signOut } from "next-auth/react";
 import { Children, type ReactNode } from "react";
 import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
 
 type OnboardingLayoutProps = {
@@ -68,7 +68,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
             <div className="h-[6px]" aria-hidden="true" />
           )}
         </div>
-        <Button onClick={handleSignOut} color="minimal" className="text-subtle h-7">
+        <Button onClick={handleSignOut} variant="ghost" size="sm" className="text-subtle">
           {t("sign_out")}
         </Button>
       </div>
