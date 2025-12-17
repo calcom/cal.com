@@ -1,7 +1,10 @@
 import type { PrismaClient } from "@calcom/prisma";
 
 import { AttributeSyncUserRuleOutputMapper } from "../mappers/AttributeSyncUserRuleOutputMapper";
-import type { IIntegrationAttributeSyncRepository } from "./IIntegrationAttributeSyncRepository";
+import type {
+  IIntegrationAttributeSyncRepository,
+  IIntegrationAttributeSyncUpdateParams,
+} from "./IIntegrationAttributeSyncRepository";
 
 export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAttributeSyncRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
@@ -14,18 +17,19 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
       select: {
         id: true,
         organizationId: true,
+        integration: true,
         credentialId: true,
         enabled: true,
-        attributeSyncRules: true,
+        attributeSyncRule: true,
         syncFieldMappings: true,
       },
     });
     return integrationAttributeSyncQuery.map((integrationAttributeSync) => {
       return {
         ...integrationAttributeSync,
-        attributeSyncRules: AttributeSyncUserRuleOutputMapper.toDomainList(
-          integrationAttributeSync.attributeSyncRules
-        ),
+        attributeSyncRules: integrationAttributeSync.attributeSyncRule
+          ? [AttributeSyncUserRuleOutputMapper.toDomain(integrationAttributeSync.attributeSyncRule)]
+          : [],
       };
     });
   }
@@ -38,9 +42,10 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
       select: {
         id: true,
         organizationId: true,
+        integration: true,
         credentialId: true,
         enabled: true,
-        attributeSyncRules: true,
+        attributeSyncRule: true,
         syncFieldMappings: true,
       },
     });
@@ -49,9 +54,9 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
 
     return {
       ...integrationAttributeSyncQuery,
-      attributeSyncRules: AttributeSyncUserRuleOutputMapper.toDomainList(
-        integrationAttributeSyncQuery.attributeSyncRules
-      ),
+      attributeSyncRules: integrationAttributeSyncQuery.attributeSyncRule
+        ? [AttributeSyncUserRuleOutputMapper.toDomain(integrationAttributeSyncQuery.attributeSyncRule)]
+        : [],
     };
   }
 
@@ -75,7 +80,59 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
     return result?.syncFieldMappings || [];
   }
 
-  // async updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams) {
-  //   const { integrationAttributeSync, attributeSyncRule, syncFieldMappings } = params;
-  // }
+  async updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams) {
+    const {
+      integrationAttributeSync,
+      attributeSyncRule,
+      fieldMappingsToCreate,
+      fieldMappingsToUpdate,
+      fieldMappingsToDelete,
+    } = params;
+
+    return this.prismaClient.$transaction([
+      this.prismaClient.integrationAttributeSync.update({
+        where: {
+          id: integrationAttributeSync.id,
+        },
+        data: {
+          ...integrationAttributeSync,
+        },
+      }),
+      this.prismaClient.attributeSyncRule.update({
+        where: {
+          id: attributeSyncRule.id,
+        },
+        data: {
+          ...attributeSyncRule,
+        },
+      }),
+      ...fieldMappingsToUpdate.map((mapping) =>
+        this.prismaClient.attributeSyncFieldMapping.update({
+          where: {
+            id: mapping.id,
+          },
+          data: {
+            ...mapping,
+          },
+        })
+      ),
+      ...(fieldMappingsToCreate.length > 0
+        ? [
+            this.prismaClient.attributeSyncFieldMapping.createMany({
+              data: fieldMappingsToCreate.map((mapping) => ({
+                ...mapping,
+                integrationAttributeSyncId: integrationAttributeSync.id,
+              })),
+            }),
+          ]
+        : []),
+      ...(fieldMappingsToDelete.length > 0
+        ? [
+            this.prismaClient.attributeSyncFieldMapping.deleteMany({
+              where: { id: { in: fieldMappingsToDelete } },
+            }),
+          ]
+        : []),
+    ]);
+  }
 }
