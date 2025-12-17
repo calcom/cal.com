@@ -1,12 +1,13 @@
 import type { z } from "zod";
 
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
-import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
@@ -437,6 +438,84 @@ export class OrganizationRepository {
     });
 
     return organization;
+  }
+
+  async adminFindByIdForUpdate({ id }: { id: number }) {
+    return this.prismaClient.team.findUnique({
+      where: {
+        id,
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+        slug: true,
+        metadata: true,
+        organizationSettings: true,
+      },
+    });
+  }
+
+  async adminUpdateForAdminPanel({
+    id,
+    data,
+    organizationSettingsData,
+    oldSlug,
+    newSlug,
+  }: {
+    id: number;
+    data: Prisma.TeamUpdateArgs["data"];
+    organizationSettingsData?: Prisma.OrganizationSettingsUpdateArgs["data"];
+    oldSlug?: string | null;
+    newSlug?: string | null;
+  }) {
+    return this.prismaClient.$transaction(async (tx) => {
+      const updatedOrganization = await tx.team.update({
+        where: { id, isOrganization: true },
+        data,
+      });
+
+      const isSlugChanged = !!oldSlug && !!newSlug && oldSlug !== newSlug;
+
+      if (isSlugChanged) {
+        const oldOrgUrlPrefix = getOrgFullOrigin(oldSlug);
+        const newOrgUrlPrefix = getOrgFullOrigin(newSlug);
+
+        const redirectsToUpdate = await tx.tempOrgRedirect.findMany({
+          where: {
+            toUrl: {
+              startsWith: oldOrgUrlPrefix,
+            },
+          },
+          select: {
+            id: true,
+            toUrl: true,
+          },
+        });
+
+        for (const redirect of redirectsToUpdate) {
+          const newToUrl = redirect.toUrl.replace(oldOrgUrlPrefix, newOrgUrlPrefix);
+          await tx.tempOrgRedirect.update({
+            where: {
+              id: redirect.id,
+            },
+            data: {
+              toUrl: newToUrl,
+            },
+          });
+        }
+      }
+
+      if (organizationSettingsData) {
+        await tx.organizationSettings.update({
+          where: {
+            organizationId: updatedOrganization.id,
+          },
+          data: organizationSettingsData,
+        });
+      }
+
+      return updatedOrganization;
+    });
   }
 
   async findCalVideoLogoByOrgId({ id }: { id: number }) {
