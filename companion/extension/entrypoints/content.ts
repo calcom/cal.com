@@ -362,43 +362,95 @@ export default defineContentScript({
     document.body.appendChild(sidebarContainer);
     document.body.appendChild(buttonsContainer);
 
+    // Function to open the sidebar
+    function openSidebar() {
+      if (isClosed) {
+        isClosed = false;
+        isVisible = true;
+        sidebarContainer.style.display = "block";
+        buttonsContainer.style.display = "flex";
+        sidebarContainer.style.transform = "translateX(0)";
+        buttonsContainer.style.right = "420px";
+        toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 11L6 6L1 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8 11L13 6L8 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+      } else if (!isVisible) {
+        isVisible = true;
+        sidebarContainer.style.transform = "translateX(0)";
+        buttonsContainer.style.right = "420px";
+        toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 11L6 6L1 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8 11L13 6L8 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+      }
+    }
+
+    // Function to close/hide the sidebar
+    function hideSidebar() {
+      if (isVisible) {
+        isVisible = false;
+        sidebarContainer.style.transform = "translateX(100%)";
+        buttonsContainer.style.right = "20px";
+        toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 1L8 6L13 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6 1L1 6L6 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+      }
+    }
+
     // Listen for extension icon click
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === "icon-clicked") {
         if (isClosed) {
-          // Reopen closed sidebar
-          isClosed = false;
-          isVisible = true;
-          sidebarContainer.style.display = "block";
-          buttonsContainer.style.display = "flex";
-          sidebarContainer.style.transform = "translateX(0)";
-          buttonsContainer.style.right = "420px";
-          toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 11L6 6L1 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M8 11L13 6L8 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
+          openSidebar();
         } else {
           // Toggle visible sidebar
-          isVisible = !isVisible;
           if (isVisible) {
-            sidebarContainer.style.transform = "translateX(0)";
-            buttonsContainer.style.right = "420px";
-            toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 11L6 6L1 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M8 11L13 6L8 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
+            hideSidebar();
           } else {
-            sidebarContainer.style.transform = "translateX(100%)";
-            buttonsContainer.style.right = "20px";
-            toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M13 1L8 6L13 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M6 1L1 6L6 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
+            openSidebar();
           }
         }
         sendResponse({ success: true }); // Send response to acknowledge
       }
     });
+
+    // Auto-open sidebar when redirected from restricted pages (like new tab)
+    // Detects ?openExtension=true parameter on cal.com/app or companion.cal.com
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldAutoOpen =
+      urlParams.get("openExtension") === "true" || window.location.hostname === "companion.cal.com";
+
+    if (shouldAutoOpen) {
+      // Function to open sidebar and clean up URL
+      const autoOpenAndCleanup = () => {
+        openSidebar();
+        // Clean up the URL parameter without triggering a reload
+        if (urlParams.get("openExtension")) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("openExtension");
+          window.history.replaceState({}, document.title, url.toString());
+        }
+      };
+
+      // Wait for page to fully load before auto-opening
+      // This handles Framer pages which load dynamically
+      if (document.readyState === "complete") {
+        // Page already loaded (cached), use small delay
+        setTimeout(autoOpenAndCleanup, 300);
+      } else {
+        // Page still loading (first visit), wait for load event
+        window.addEventListener(
+          "load",
+          () => {
+            // Additional delay after load for Framer's JS to initialize
+            setTimeout(autoOpenAndCleanup, 500);
+          },
+          { once: true }
+        );
+      }
+    }
 
     // Gmail integration function
     function initGmailIntegration() {
