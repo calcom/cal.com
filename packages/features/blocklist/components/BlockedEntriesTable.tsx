@@ -1,9 +1,11 @@
 "use client";
 
+import type { RowSelectionState } from "@tanstack/react-table";
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 
-import { DataTableWrapper } from "@calcom/features/data-table";
+import { DataTableSelectionBar, DataTableWrapper } from "@calcom/features/data-table";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -46,6 +48,8 @@ export interface BlockedEntriesTableProps<T extends BlocklistEntry> {
   };
   selectedEntryId?: string;
   onSelectEntry?: (id: string | null) => void;
+  enableRowSelection?: boolean;
+  renderBulkActions?: (selectedEntries: T[], clearSelection: () => void) => ReactNode;
 }
 
 export function BlockedEntriesTable<T extends BlocklistEntry>({
@@ -62,10 +66,13 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
   detailsQuery,
   selectedEntryId,
   onSelectEntry,
+  enableRowSelection = false,
+  renderBulkActions,
 }: BlockedEntriesTableProps<T>) {
   const { t } = useLocale();
   const isSystem = scope === "system";
 
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [showDetailsSheet, setShowDetailsSheet] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<T | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<T | null>(null);
@@ -102,6 +109,7 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
     t,
     scope,
     canDelete,
+    enableRowSelection,
     onViewDetails: handleViewDetails,
     onDelete: handleDelete,
   });
@@ -115,7 +123,17 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
     pageCount: Math.ceil(totalRowCount / limit),
+    enableRowSelection,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      rowSelection,
+    },
+    getRowId: (row) => row.id,
   });
+
+  const numberOfSelectedRows = table.getFilteredSelectedRowModel().rows.length;
+  const selectedEntries = table.getSelectedRowModel().flatRows.map((row) => row.original);
+  const clearSelection = () => table.toggleAllPageRowsSelected(false);
 
   return (
     <>
@@ -159,8 +177,16 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
             }
           />
         }
-        totalRowCount={totalRowCount}
-      />
+        totalRowCount={totalRowCount}>
+        {enableRowSelection && numberOfSelectedRows > 0 && renderBulkActions && (
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
+            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
+            </p>
+            {renderBulkActions(selectedEntries, clearSelection)}
+          </DataTableSelectionBar.Root>
+        )}
+      </DataTableWrapper>
 
       <BlocklistEntryDetailsSheet
         scope={scope}

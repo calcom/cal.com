@@ -98,8 +98,8 @@ export function BlocklistEntryDetailsSheet<T extends BlocklistEntry>({
                           {detailsData.entry.source === "MANUAL"
                             ? t("manual")
                             : detailsData.entry.source === "FREE_DOMAIN_POLICY"
-                              ? t("free_domain_policy")
-                              : t("automatic")}
+                            ? t("free_domain_policy")
+                            : t("automatic")}
                         </p>
                       </div>
                     </>
@@ -121,26 +121,24 @@ export function BlocklistEntryDetailsSheet<T extends BlocklistEntry>({
                     </p>
                   </div>
 
-                  {!isSystem &&
-                    detailsData.entry.bookingReports &&
-                    detailsData.entry.bookingReports.length > 0 && (
-                      <div>
-                        <label className="text-default block text-sm font-semibold">
-                          {t("related_booking")}
-                        </label>
+                  {detailsData.entry.bookingReports && detailsData.entry.bookingReports.length > 0 && (
+                    <div>
+                      <label className="text-default block text-sm font-semibold">
+                        {t("related_booking")}
+                      </label>
 
-                        {detailsData.entry.bookingReports.map((report) => {
-                          return (
-                            <Link key={report.booking.uid} href={`/booking/${report.booking.uid}`}>
-                              <div className="text-subtle flex items-center gap-1 text-sm">
-                                {report.booking.title}
-                                <Icon name="external-link" className="h-4 w-4" />
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
+                      {detailsData.entry.bookingReports.map((report) => {
+                        return (
+                          <Link key={report.booking.uid} href={`/booking/${report.booking.uid}`}>
+                            <div className="text-subtle flex items-center gap-1 text-sm">
+                              {report.booking.title}
+                              <Icon name="external-link" className="h-4 w-4" />
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 

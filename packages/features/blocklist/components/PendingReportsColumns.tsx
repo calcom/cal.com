@@ -12,42 +12,70 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { Checkbox } from "@calcom/ui/components/form";
 
 import type { BookingReport, BlocklistScope } from "../types";
 
 interface UsePendingReportsColumnsProps<T extends BookingReport> {
   t: (key: string) => string;
   scope: BlocklistScope;
+  enableRowSelection?: boolean;
   onViewDetails: (entry: T) => void;
 }
 
 export function usePendingReportsColumns<T extends BookingReport>({
   t,
   scope,
+  enableRowSelection = false,
   onViewDetails,
 }: UsePendingReportsColumnsProps<T>) {
   const isSystem = scope === "system";
 
   return useMemo<ColumnDef<T>[]>(() => {
-    const columns: ColumnDef<T>[] = [
-      {
-        id: "emailOrDomain",
-        header: t("email_slash_domain"),
-        accessorKey: "bookerEmail",
+    const columns: ColumnDef<T>[] = [];
+
+    if (enableRowSelection) {
+      columns.push({
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
         enableHiding: false,
-        size: isSystem ? 200 : 250,
-        cell: ({ row }) => {
-          const email = row.original.bookerEmail;
-          return (
-            <div className="flex flex-col">
-              <span className={`text-emphasis ${isSystem ? "break-words text-sm" : ""} font-medium`}>
-                {email}
-              </span>
-            </div>
-          );
-        },
+        size: 24,
+        minSize: 24,
+        maxSize: 24,
+      });
+    }
+
+    columns.push({
+      id: "emailOrDomain",
+      header: t("email_slash_domain"),
+      accessorKey: "bookerEmail",
+      enableHiding: false,
+      size: isSystem ? 200 : 250,
+      cell: ({ row }) => {
+        const email = row.original.bookerEmail;
+        return (
+          <div className="flex flex-col">
+            <span className={`text-emphasis ${isSystem ? "break-words text-sm" : ""} font-medium`}>
+              {email}
+            </span>
+          </div>
+        );
       },
-    ];
+    });
 
     if (isSystem) {
       columns.push({
@@ -123,5 +151,5 @@ export function usePendingReportsColumns<T extends BookingReport>({
     });
 
     return columns;
-  }, [t, scope, isSystem, onViewDetails]);
+  }, [t, scope, isSystem, enableRowSelection, onViewDetails]);
 }

@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { Checkbox } from "@calcom/ui/components/form";
 
 import type { BlocklistEntry, BlocklistScope } from "../types";
 
@@ -19,6 +20,7 @@ interface UseBlockedEntriesColumnsProps<T extends BlocklistEntry> {
   t: (key: string) => string;
   scope: BlocklistScope;
   canDelete?: boolean;
+  enableRowSelection?: boolean;
   onViewDetails: (entry: T) => void;
   onDelete: (entry: T) => void;
 }
@@ -27,13 +29,41 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
   t,
   scope,
   canDelete = true,
+  enableRowSelection = false,
   onViewDetails,
   onDelete,
 }: UseBlockedEntriesColumnsProps<T>) {
   const isSystem = scope === "system";
 
   return useMemo<ColumnDef<T>[]>(() => {
-    const columns: ColumnDef<T>[] = [
+    const columns: ColumnDef<T>[] = [];
+
+    if (enableRowSelection) {
+      columns.push({
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        size: 24,
+        minSize: 24,
+        maxSize: 24,
+      });
+    }
+
+    columns.push(
       {
         id: "email_slash_domain",
         header: t("email_slash_domain"),
@@ -49,8 +79,8 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
         cell: ({ row }) => (
           <Badge variant="blue">{row.original.type === "EMAIL" ? t("email") : t("domain")}</Badge>
         ),
-      },
-    ];
+      }
+    );
 
     if (isSystem) {
       columns.push({
@@ -122,5 +152,5 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
     });
 
     return columns;
-  }, [t, scope, isSystem, canDelete, onViewDetails, onDelete]);
+  }, [t, scope, isSystem, canDelete, enableRowSelection, onViewDetails, onDelete]);
 }

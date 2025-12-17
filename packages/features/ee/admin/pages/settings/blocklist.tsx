@@ -17,6 +17,9 @@ import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { BulkDeleteBlocklistEntries } from "./blocklist/BulkDeleteBlocklistEntries";
+import { BulkDismissReports } from "./blocklist/BulkDismissReports";
+
 type ViewType = "blocked" | "pending";
 
 function SystemBlocklistContent() {
@@ -137,6 +140,10 @@ function SystemBlocklistContent() {
           detailsQuery={{ data: entryDetails, isLoading: isDetailsLoading }}
           selectedEntryId={selectedEntryId ?? undefined}
           onSelectEntry={setSelectedEntryId}
+          enableRowSelection
+          renderBulkActions={(selectedEntries, clearSelection) => (
+            <BulkDeleteBlocklistEntries entries={selectedEntries} onRemove={clearSelection} />
+          )}
         />
       ) : (
         <PendingReportsTable
@@ -145,10 +152,16 @@ function SystemBlocklistContent() {
           totalRowCount={reportsData?.meta?.totalRowCount ?? 0}
           isPending={isReportsPending}
           limit={limit}
-          onAddToBlocklist={(reportIds, type) => addToWatchlist.mutate({ reportIds, type })}
-          onDismiss={(reportId) => dismissReport.mutate({ reportId })}
+          onAddToBlocklist={(reportIds, type, onSuccess) =>
+            addToWatchlist.mutate({ reportIds, type }, { onSuccess })
+          }
+          onDismiss={(reportId, onSuccess) => dismissReport.mutate({ reportId }, { onSuccess })}
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}
+          enableRowSelection
+          renderBulkActions={(selectedReports, clearSelection) => (
+            <BulkDismissReports reports={selectedReports} onRemove={clearSelection} />
+          )}
         />
       )}
 

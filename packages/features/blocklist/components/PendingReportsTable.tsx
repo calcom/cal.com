@@ -1,9 +1,11 @@
 "use client";
 
+import type { RowSelectionState } from "@tanstack/react-table";
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 
-import { DataTableWrapper } from "@calcom/features/data-table";
+import { DataTableSelectionBar, DataTableWrapper } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
@@ -17,10 +19,12 @@ export interface PendingReportsTableProps<T extends BookingReport> {
   totalRowCount: number;
   isPending: boolean;
   limit: number;
-  onAddToBlocklist: (reportIds: string[], type: "EMAIL" | "DOMAIN") => void;
-  onDismiss: (reportId: string) => void;
+  onAddToBlocklist: (reportIds: string[], type: "EMAIL" | "DOMAIN", onSuccess: () => void) => void;
+  onDismiss: (reportId: string, onSuccess: () => void) => void;
   isAddingToBlocklist?: boolean;
   isDismissing?: boolean;
+  enableRowSelection?: boolean;
+  renderBulkActions?: (selectedReports: T[], clearSelection: () => void) => ReactNode;
 }
 
 export function PendingReportsTable<T extends BookingReport>({
@@ -33,9 +37,12 @@ export function PendingReportsTable<T extends BookingReport>({
   onDismiss,
   isAddingToBlocklist = false,
   isDismissing = false,
+  enableRowSelection = false,
+  renderBulkActions,
 }: PendingReportsTableProps<T>) {
   const { t } = useLocale();
 
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [selectedReport, setSelectedReport] = useState<T | null>(null);
 
@@ -52,6 +59,7 @@ export function PendingReportsTable<T extends BookingReport>({
   const columns = usePendingReportsColumns<T>({
     t,
     scope,
+    enableRowSelection,
     onViewDetails: handleViewDetails,
   });
 
@@ -64,7 +72,17 @@ export function PendingReportsTable<T extends BookingReport>({
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
     pageCount: Math.ceil(totalRowCount / limit),
+    enableRowSelection,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      rowSelection,
+    },
+    getRowId: (row) => row.id,
   });
+
+  const numberOfSelectedRows = table.getFilteredSelectedRowModel().rows.length;
+  const selectedReports = table.getSelectedRowModel().flatRows.map((row) => row.original);
+  const clearSelection = () => table.toggleAllPageRowsSelected(false);
 
   return (
     <>
@@ -82,16 +100,24 @@ export function PendingReportsTable<T extends BookingReport>({
             dashedBorder={false}
           />
         }
-        totalRowCount={totalRowCount}
-      />
+        totalRowCount={totalRowCount}>
+        {enableRowSelection && numberOfSelectedRows > 0 && renderBulkActions && (
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
+            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
+            </p>
+            {renderBulkActions(selectedReports, clearSelection)}
+          </DataTableSelectionBar.Root>
+        )}
+      </DataTableWrapper>
 
       <BookingReportDetailsModal
         scope={scope}
         entry={selectedReport}
         isOpen={showReviewDialog}
         onClose={handleCloseModal}
-        onAddToBlocklist={onAddToBlocklist}
-        onDismiss={onDismiss}
+        onAddToBlocklist={(reportIds, type) => onAddToBlocklist(reportIds, type, handleCloseModal)}
+        onDismiss={(reportId) => onDismiss(reportId, handleCloseModal)}
         isAddingToBlocklist={isAddingToBlocklist}
         isDismissing={isDismissing}
       />
