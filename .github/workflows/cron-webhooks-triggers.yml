@@ -22,7 +22,7 @@ jobs:
             -X POST \
             -H 'content-type: application/json' \
             -H 'authorization: ${{ env.CRON_API_KEY_US }}' \
-            --fail
+            -sSf
       - name: cURL request EU
         if: ${{ env.APP_URL_EU && env.CRON_API_KEY_EU }}
         run: |
@@ -30,4 +30,4 @@ jobs:
             -X POST \
             -H 'content-type: application/json' \
             -H 'authorization: ${{ env.CRON_API_KEY_EU }}' \
-            --fail
+            -sSf

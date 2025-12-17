@@ -23,7 +23,6 @@ jobs:
             -H 'content-type: application/json' \
             -H 'authorization: ${{ env.CRON_API_KEY_EU }}' \
             -sSf
-            - name: cURL request
       - name: cURL request US
         if: ${{ env.APP_URL_US && env.CRON_API_KEY_US }}
         run: |
