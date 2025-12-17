@@ -269,7 +269,7 @@ test.describe("Booking limits", () => {
       });
 
       // Pre-create bookings for day limit (1 booking)
-      // Create on Monday to satisfy day limit, then test week limit on Tuesday
+      // Create on Monday to satisfy day limit, then test week limit in the following week
       const baseBookingDate = firstMondayInBookingMonth;
       const eventTypeId = user.eventTypes.at(-1)?.id;
       if (!eventTypeId) throw new Error("Event type not found");
@@ -282,8 +282,8 @@ test.describe("Booking limits", () => {
       });
 
       // Test week limit - need to book 1 more (total 2, but 1 already exists)
-      // Book on Tuesday (different day, same week) to test week limit
-      const bookingDate = baseBookingDate.add(1, "day");
+      // Move to next week for week limit test (similar to year limit test moving to next month)
+      const bookingDate = baseBookingDate.add(1, "week");
       const weekLimitValue = BOOKING_LIMITS_MULTIPLE.PER_WEEK;
       const bookingsToMake = weekLimitValue - 1; // 1 already exists from day limit
 
@@ -345,14 +345,14 @@ test.describe("Booking limits", () => {
       });
 
       // Pre-create bookings for day (1) and week (2 total, so 1 more) limits
-      const bookingDate = firstMondayInBookingMonth;
+      const baseBookingDate = firstMondayInBookingMonth;
       const eventTypeId = user.eventTypes.at(-1)?.id;
       if (!eventTypeId) throw new Error("Event type not found");
 
       // Create 2 bookings (day limit: 1, week limit: 2 total)
       // First booking on Monday at 10:00, second on Tuesday at 10:00
       for (let i = 0; i < 2; i++) {
-        const date = bookingDate.add(i, "day").hour(10).minute(0);
+        const date = baseBookingDate.add(i, "day").hour(10).minute(0);
         await bookings.create(user.id, user.username, eventTypeId, {
           startTime: date.toDate(),
           endTime: date.add(EVENT_LENGTH, "minutes").toDate(),
@@ -360,6 +360,8 @@ test.describe("Booking limits", () => {
       }
 
       // Test month limit - need to book 1 more (total 3, but 2 already exist)
+      // Move to next week for month limit test (similar to week limit test)
+      const bookingDate = baseBookingDate.add(1, "week");
       const monthLimitValue = BOOKING_LIMITS_MULTIPLE.PER_MONTH;
       const bookingsToMake = monthLimitValue - 2; // 2 already exist from previous limits
 

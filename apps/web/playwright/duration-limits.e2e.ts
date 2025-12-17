@@ -234,7 +234,8 @@ test.describe("Duration limits", () => {
         endTime: preBookingDate.add(EVENT_LENGTH, "minutes").toDate(),
       });
 
-      const bookingDate = baseBookingDate.add(1, "day");
+      // Move to next week for week limit test (similar to booking-limits test)
+      const bookingDate = baseBookingDate.add(1, "week");
       const weekLimitValue = BOOKING_LIMITS_MULTIPLE.PER_WEEK;
       const bookingsToMake = weekLimitValue - 1;
 
@@ -300,18 +301,20 @@ test.describe("Duration limits", () => {
         durationLimits,
       });
 
-      const bookingDate = firstMondayInBookingMonth;
+      const baseBookingDate = firstMondayInBookingMonth;
       const eventTypeId = user.eventTypes.at(-1)?.id;
       if (!eventTypeId) throw new Error("Event type not found");
 
       for (let i = 0; i < 2; i++) {
-        const date = bookingDate.add(i, "day").hour(10).minute(0);
+        const date = baseBookingDate.add(i, "day").hour(10).minute(0);
         await bookings.create(user.id, user.username, eventTypeId, {
           startTime: date.toDate(),
           endTime: date.add(EVENT_LENGTH, "minutes").toDate(),
         });
       }
 
+      // Move to next week for month limit test (similar to booking-limits test)
+      const bookingDate = baseBookingDate.add(1, "week");
       const monthLimitValue = BOOKING_LIMITS_MULTIPLE.PER_MONTH;
       const bookingsToMake = monthLimitValue - 2;
 
