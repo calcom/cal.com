@@ -151,7 +151,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                   className="w-fit"
                   onClick={() => {
                     posthog.capture("onboarding_organization_teams_add_clicked", {
-                      current_team_count: fields.length,
+                      team_count: fields.length,
                     });
                     append({ name: "" });
                   }}>
