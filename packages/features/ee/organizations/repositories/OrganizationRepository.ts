@@ -228,6 +228,7 @@ export class OrganizationRepository {
       },
       select: {
         ...orgSelect,
+        metadata: true,
         organizationSettings: true,
       },
     });
@@ -438,21 +439,6 @@ export class OrganizationRepository {
     });
 
     return organization;
-  }
-
-  async adminFindByIdForUpdate({ id }: { id: number }) {
-    return this.prismaClient.team.findUnique({
-      where: {
-        id,
-        isOrganization: true,
-      },
-      select: {
-        id: true,
-        slug: true,
-        metadata: true,
-        organizationSettings: true,
-      },
-    });
   }
 
   async adminUpdateForAdminPanel({

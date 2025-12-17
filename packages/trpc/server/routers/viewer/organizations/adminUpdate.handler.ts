@@ -19,7 +19,7 @@ type AdminUpdateOptions = {
 export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
   const { id, organizationSettings, ...restInput } = input;
   const organizationRepository = getOrganizationRepository();
-  const existingOrg = await organizationRepository.adminFindByIdForUpdate({ id });
+  const existingOrg = await organizationRepository.findByIdIncludeOrganizationSettings({ id });
 
   if (!existingOrg) {
     throw new HttpError({
