@@ -6,7 +6,7 @@ import type { AdapterFactory } from "@calcom/features/calendar-subscription/adap
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
+import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository.interface";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
 import { CalendarSubscriptionService } from "../CalendarSubscriptionService";

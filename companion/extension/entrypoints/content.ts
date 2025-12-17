@@ -46,9 +46,10 @@ export default defineContentScript({
     iframeContainer.style.justifyContent = "flex-end";
     iframeContainer.style.pointerEvents = "none";
 
-    // Create iframe
     const iframe = document.createElement("iframe");
-    iframe.src = "https://companion.cal.com";
+    const COMPANION_URL =
+      (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
+    iframe.src = COMPANION_URL;
     iframe.style.width = "400px";
     iframe.style.height = "100%";
     iframe.style.border = "none";
@@ -230,6 +231,29 @@ export default defineContentScript({
     toggleButton.style.justifyContent = "center";
     toggleButton.title = "Toggle sidebar";
 
+    // Create reload button
+    const reloadButton = document.createElement("button");
+    reloadButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 4V10H7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M23 20V14H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+    reloadButton.style.width = "40px";
+    reloadButton.style.height = "40px";
+    reloadButton.style.borderRadius = "50%";
+    reloadButton.style.border = "1px solid rgba(255, 255, 255, 0.5)";
+    reloadButton.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+    reloadButton.style.backdropFilter = "blur(10px)";
+    reloadButton.style.color = "white";
+    reloadButton.style.cursor = "pointer";
+    reloadButton.style.fontSize = "16px";
+    reloadButton.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+    reloadButton.style.transition = "all 0.2s ease";
+    reloadButton.style.display = "flex";
+    reloadButton.style.alignItems = "center";
+    reloadButton.style.justifyContent = "center";
+    reloadButton.title = "Reload data";
+
     // Create close button
     const closeButton = document.createElement("button");
     closeButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -268,6 +292,37 @@ export default defineContentScript({
       closeButton.style.transform = "scale(1)";
     });
 
+    reloadButton.addEventListener("mouseenter", () => {
+      reloadButton.style.transform = "scale(1.1)";
+    });
+    reloadButton.addEventListener("mouseleave", () => {
+      reloadButton.style.transform = "scale(1)";
+    });
+
+    // Reload functionality - sends message to iframe to invalidate cache
+    reloadButton.addEventListener("click", () => {
+      // Add spinning animation
+      reloadButton.style.animation = "spin 0.5s ease-in-out";
+      setTimeout(() => {
+        reloadButton.style.animation = "";
+      }, 500);
+
+      // Send message to iframe to reload cache
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: "cal-companion-reload-cache" }, "*");
+      }
+    });
+
+    // Add spin animation style
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+
     // Toggle functionality
     toggleButton.addEventListener("click", () => {
       if (isClosed) return;
@@ -300,49 +355,102 @@ export default defineContentScript({
 
     // Add buttons to container
     buttonsContainer.appendChild(toggleButton);
+    buttonsContainer.appendChild(reloadButton);
     buttonsContainer.appendChild(closeButton);
 
     // Add everything to DOM
     document.body.appendChild(sidebarContainer);
     document.body.appendChild(buttonsContainer);
 
+    // Function to open the sidebar
+    function openSidebar() {
+      if (isClosed) {
+        isClosed = false;
+        isVisible = true;
+        sidebarContainer.style.display = "block";
+        buttonsContainer.style.display = "flex";
+        sidebarContainer.style.transform = "translateX(0)";
+        buttonsContainer.style.right = "420px";
+        toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 11L6 6L1 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8 11L13 6L8 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+      } else if (!isVisible) {
+        isVisible = true;
+        sidebarContainer.style.transform = "translateX(0)";
+        buttonsContainer.style.right = "420px";
+        toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 11L6 6L1 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M8 11L13 6L8 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+      }
+    }
+
+    // Function to close/hide the sidebar
+    function hideSidebar() {
+      if (isVisible) {
+        isVisible = false;
+        sidebarContainer.style.transform = "translateX(100%)";
+        buttonsContainer.style.right = "20px";
+        toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 1L8 6L13 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6 1L1 6L6 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+      }
+    }
+
     // Listen for extension icon click
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === "icon-clicked") {
         if (isClosed) {
-          // Reopen closed sidebar
-          isClosed = false;
-          isVisible = true;
-          sidebarContainer.style.display = "block";
-          buttonsContainer.style.display = "flex";
-          sidebarContainer.style.transform = "translateX(0)";
-          buttonsContainer.style.right = "420px";
-          toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 11L6 6L1 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M8 11L13 6L8 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
+          openSidebar();
         } else {
           // Toggle visible sidebar
-          isVisible = !isVisible;
           if (isVisible) {
-            sidebarContainer.style.transform = "translateX(0)";
-            buttonsContainer.style.right = "420px";
-            toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 11L6 6L1 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M8 11L13 6L8 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
+            hideSidebar();
           } else {
-            sidebarContainer.style.transform = "translateX(100%)";
-            buttonsContainer.style.right = "20px";
-            toggleButton.innerHTML = `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M13 1L8 6L13 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M6 1L1 6L6 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
+            openSidebar();
           }
         }
         sendResponse({ success: true }); // Send response to acknowledge
       }
     });
+
+    // Auto-open sidebar when redirected from restricted pages (like new tab)
+    // Detects ?openExtension=true parameter on cal.com/app or companion.cal.com
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldAutoOpen =
+      urlParams.get("openExtension") === "true" || window.location.hostname === "companion.cal.com";
+
+    if (shouldAutoOpen) {
+      // Function to open sidebar and clean up URL
+      const autoOpenAndCleanup = () => {
+        openSidebar();
+        // Clean up the URL parameter without triggering a reload
+        if (urlParams.get("openExtension")) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("openExtension");
+          window.history.replaceState({}, document.title, url.toString());
+        }
+      };
+
+      // Wait for page to fully load before auto-opening
+      // This handles Framer pages which load dynamically
+      if (document.readyState === "complete") {
+        // Page already loaded (cached), use small delay
+        setTimeout(autoOpenAndCleanup, 300);
+      } else {
+        // Page still loading (first visit), wait for load event
+        window.addEventListener(
+          "load",
+          () => {
+            // Additional delay after load for Framer's JS to initialize
+            setTimeout(autoOpenAndCleanup, 500);
+          },
+          { once: true }
+        );
+      }
+    }
 
     // Gmail integration function
     function initGmailIntegration() {
@@ -1509,108 +1617,6 @@ export default defineContentScript({
       }
 
       /**
-       * Auto-remove all Cal.com action bars before sending email
-       */
-      function setupAutoRemoveOnSend() {
-        try {
-          // Helper function to remove all action bars and marked Google chips
-          const removeAllActionBars = () => {
-            // Remove action bars
-            const allActionBars = document.querySelectorAll(".cal-companion-action-bar");
-            if (allActionBars.length > 0) {
-              console.log(`Cal.com: Removing ${allActionBars.length} action bar(s) before send`);
-              allActionBars.forEach((bar) => {
-                try {
-                  // Call cleanup function to remove event listeners before removing DOM node
-                  if ((bar as any).__cleanup) {
-                    (bar as any).__cleanup();
-                  }
-                  bar.remove();
-                } catch (error) {
-                  console.warn("Cal.com: Failed to remove action bar:", error);
-                }
-              });
-            }
-
-            // Remove Google chips that were marked for removal (user used Cal.com)
-            const markedChips = document.querySelectorAll(
-              '.gmail_chip[data-calcom-remove-on-send="true"]'
-            );
-            if (markedChips.length > 0) {
-              console.log(
-                `Cal.com: Removing ${markedChips.length} Google chip(s) before send (user used Cal.com)`
-              );
-              markedChips.forEach((chip) => {
-                try {
-                  chip.remove();
-                } catch (error) {
-                  console.warn("Cal.com: Failed to remove Google chip:", error);
-                }
-              });
-            }
-          };
-
-          // Method 1: Watch for clicks on Send button
-          document.addEventListener(
-            "click",
-            (e) => {
-              const target = e.target as HTMLElement;
-
-              // Check if the clicked element is a Send button
-              const isSendButton =
-                target.getAttribute("data-tooltip")?.includes("Send") ||
-                target.getAttribute("aria-label")?.includes("Send") ||
-                target.textContent?.trim() === "Send" ||
-                target.closest('[data-tooltip*="Send"]') ||
-                target.closest('[aria-label*="Send"]') ||
-                target
-                  .closest('[role="button"][data-tooltip]')
-                  ?.getAttribute("data-tooltip")
-                  ?.includes("Send");
-
-              if (isSendButton) {
-                console.log("Cal.com: Send button clicked");
-                removeAllActionBars();
-              }
-            },
-            true
-          ); // Use capture phase
-
-          // Method 2: Watch for keyboard shortcuts (Ctrl+Enter / Cmd+Enter)
-          document.addEventListener(
-            "keydown",
-            (e) => {
-              const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-              const isEnter = e.key === "Enter";
-
-              if (isCtrlOrCmd && isEnter) {
-                // Check if we're in a compose window
-                const activeElement = document.activeElement;
-                const isInCompose =
-                  activeElement?.getAttribute("role") === "textbox" ||
-                  activeElement?.getAttribute("contenteditable") === "true" ||
-                  activeElement?.closest('[role="textbox"]');
-
-                if (isInCompose) {
-                  console.log("Cal.com: Send keyboard shortcut detected (Ctrl/Cmd+Enter)");
-                  removeAllActionBars();
-                }
-              }
-            },
-            true
-          );
-
-          // Note: Action bars are now overlays (like Grammarly), so they won't be included in emails.
-          // We keep the click and keyboard listeners for clean UI (removing overlays when sending).
-          // Removed the MutationObserver as it was too aggressive and removing action bars prematurely.
-
-          console.log("Cal.com: Auto-remove on send listeners added (click, keyboard)");
-        } catch (error) {
-          console.warn("Cal.com: Failed to setup auto-remove on send:", error);
-        }
-      }
-
-      /**
        * Watch for Google Calendar scheduling chips and add Cal.com suggestion button
        */
       function watchForGoogleChips() {
@@ -1973,8 +1979,16 @@ export default defineContentScript({
                 showGmailNotification("Cal.com embed inserted!", "success");
                 console.log("Cal.com: ✅ Email embed inserted successfully");
 
-                // Mark chip for removal on send (don't remove yet - keep it visible for user reference)
-                chipElement.setAttribute("data-calcom-remove-on-send", "true");
+                // Immediately remove the Google chip and action bar
+                try {
+                  chipElement.remove();
+                  if ((actionBar as any).__cleanup) {
+                    (actionBar as any).__cleanup();
+                  }
+                  actionBar.remove();
+                } catch (removeError) {
+                  console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
+                }
               } else {
                 showGmailNotification("Failed to insert embed", "error");
               }
@@ -2660,8 +2674,26 @@ export default defineContentScript({
                 showGmailNotification("Cal.com link inserted!", "success");
                 backdrop.remove();
 
-                // Mark chip for removal on send (don't remove yet - keep it visible for user reference)
-                chipElement.setAttribute("data-calcom-remove-on-send", "true");
+                // Immediately remove the Google chip and its action bar
+                try {
+                  const scheduleId = chipElement.getAttribute("data-ad-hoc-schedule-id");
+                  const actionBar = scheduleId
+                    ? document.querySelector(
+                        `.cal-companion-action-bar[data-schedule-id="${scheduleId}"]`
+                      )
+                    : chipElement.parentElement?.querySelector(".cal-companion-action-bar");
+
+                  chipElement.remove();
+
+                  if (actionBar) {
+                    if ((actionBar as any).__cleanup) {
+                      (actionBar as any).__cleanup();
+                    }
+                    actionBar.remove();
+                  }
+                } catch (removeError) {
+                  console.warn("Cal.com: Failed to remove chip/action bar:", removeError);
+                }
               } else {
                 showGmailNotification("Failed to insert link", "error");
               }
@@ -2911,9 +2943,6 @@ export default defineContentScript({
 
       // Start watching for Google Calendar chips
       watchForGoogleChips();
-
-      // Setup auto-remove action bars before sending email
-      setupAutoRemoveOnSend();
     }
   },
 });
