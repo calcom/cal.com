@@ -24,11 +24,7 @@ export const constructVariablesForTemplate = (
 
   try {
     const data = {
-      eventDate: formatTimestamp(eventData?.startTime, "YYYY MMM D"),
-      eventTime: `${formatTimestamp(
-        eventData?.startTime,
-        eventData?.organizer?.timeFormat
-      )} ${targetTimezone}`,
+      eventTime: formatTimestamp(eventData?.startTime, "ddd, MMM D, YYYY h:mma"),
     };
   } catch (e) {
     console.log("Error formatting timestamp", e);
@@ -58,6 +54,6 @@ export const constructVariablesForTemplate = (
     attendeeTimezone: eventData.attendees[0].timeZone,
     eventStartTimeInAttendeeTimezone: dayjs(eventStartTime).tz(eventData.attendees[0].timeZone),
     eventEndTimeInAttendeeTimezone: dayjs(eventEndTime).tz(eventData.attendees[0].timeZone),
-    eventTime: `${formatTimestamp(eventStartTime, eventData?.organizer?.timeFormat)} ${targetTimezone}`,
+    eventTime: formatTimestamp(eventData?.startTime, "ddd, MMM D, YYYY h:mma"),
   };
 };
