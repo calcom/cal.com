@@ -276,10 +276,10 @@ function EventTypeSingleLayout({
         </div>
       }>
       <Suspense fallback={
-          <div className="flex h-64 items-center justify-center">
-            <Icon name="loader" className="h-5 w-5 animate-spin" />
-          </div>
-        }>
+        <div className="flex h-64 items-center justify-center">
+          <Icon name="loader" className="h-5 w-5 animate-spin" />
+        </div>
+      }>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
