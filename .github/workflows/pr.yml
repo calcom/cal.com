@@ -242,7 +242,7 @@ jobs:
 
   required:
     name: Required core
-    needs: [changes, deps, lint, type-check, unit-test, integration-tests]
+    needs: [changes, deps, lint, type-check, unit-test, integration-test]
     if: always() && needs.changes.outputs.has-files-requiring-all-checks == 'true'
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
