@@ -29,6 +29,7 @@ import {
 } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
+import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
 
 // Meta error is retriable, other errors shouldn't be retried by inngest else we risk spamming
@@ -58,8 +59,8 @@ interface MetaMessageConfiguration {
 
 interface MetaScheduledMessageConfig extends MetaMessageConfiguration {
   deliveryTimestamp: Date;
-  workflowStepId?: number;
-  bookingUid?: string;
+  workflowStepId: number;
+  bookingUid: string;
 }
 
 interface ContentVariableInput {
@@ -311,7 +312,9 @@ export interface WhatsAppTemplate {
 }
 
 const snakeToCamel = (str: string): string => {
-  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+  const mapped = META_DYNAMIC_TEXT_VARIABLES[str as keyof typeof META_DYNAMIC_TEXT_VARIABLES] || str;
+  const cameled = mapped.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+  return cameled;
 };
 
 // Key changes to handle only snake_case variable names for Meta
@@ -846,39 +849,25 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
   // Create a reminder record first (if not exists)
   let reminderId: number;
 
-  if (config.workflowStepId && config.bookingUid) {
-    // Check if reminder already exists
-    const existingReminder = await prisma.calIdWorkflowReminder.findFirst({
-      where: {
+  // Check if reminder already exists
+  const existingReminder = await prisma.calIdWorkflowReminder.findFirst({
+    where: {
+      bookingUid: config.bookingUid,
+      workflowStepId: config.workflowStepId,
+      method: "WHATSAPP",
+    },
+  });
+
+  if (existingReminder) {
+    reminderId = existingReminder.id;
+  } else {
+    const newReminder = await prisma.calIdWorkflowReminder.create({
+      data: {
         bookingUid: config.bookingUid,
         workflowStepId: config.workflowStepId,
         method: "WHATSAPP",
-      },
-    });
-
-    if (existingReminder) {
-      reminderId = existingReminder.id;
-    } else {
-      const newReminder = await prisma.calIdWorkflowReminder.create({
-        data: {
-          bookingUid: config.bookingUid,
-          workflowStepId: config.workflowStepId,
-          method: "WHATSAPP",
-          scheduledDate: config.deliveryTimestamp,
-          scheduled: false, // Will be marked true after Inngest scheduling
-        },
-      });
-      reminderId = newReminder.id;
-    }
-  } else {
-    // For ad-hoc scheduling without workflow context
-    const newReminder = await prisma.calIdWorkflowReminder.create({
-      data: {
-        bookingUid: config.bookingUid || "",
-        workflowStepId: config.workflowStepId,
-        method: "WHATSAPP",
         scheduledDate: config.deliveryTimestamp,
-        scheduled: false,
+        scheduled: false, // Will be marked true after Inngest scheduling
       },
     });
     reminderId = newReminder.id;

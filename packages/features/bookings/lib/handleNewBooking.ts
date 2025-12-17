@@ -2184,6 +2184,7 @@ async function handler(
       responses: reqBody.responses,
       bookingSeat: newBookingSeat ?? undefined,
     });
+
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,

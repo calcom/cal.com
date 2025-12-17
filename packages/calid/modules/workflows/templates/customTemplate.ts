@@ -14,19 +14,19 @@ export type VariablesType = {
   attendeeEmail?: string;
   eventDate?: Dayjs;
   eventEndTime?: Dayjs;
-  timeZone?: string;
+  timezone?: string;
   location?: string | null;
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   meetingUrl?: string;
-  cancelLink?: string;
-  rescheduleLink?: string;
+  cancelUrl?: string;
+  rescheduleUrl?: string;
   ratingUrl?: string;
   noShowUrl?: string;
   attendeeTimezone?: string;
-  eventTimeInAttendeeTimezone?: Dayjs;
+  eventStartTimeInAttendeeTimezone?: Dayjs;
   eventEndTimeInAttendeeTimezone?: Dayjs;
-  eventTime?: Dayjs;
+  eventTime?: string;
 };
 
 interface ProcessingConfiguration {
@@ -84,8 +84,8 @@ const performBasicTokenSubstitution = (
   localizedDate: string,
   locationValue: string
 ): string => {
-  const cancellationUrl = variables.cancelLink ?? "";
-  const reschedulingUrl = variables.rescheduleLink ?? "";
+  const cancellationUrl = variables.cancelUrl ?? "";
+  const reschedulingUrl = variables.rescheduleUrl ?? "";
 
   return textContent
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
@@ -102,7 +102,7 @@ const performBasicTokenSubstitution = (
     .replaceAll("{LOCATION}", locationValue)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
     .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")
-    .replaceAll("{TIMEZONE}", variables.timeZone || "")
+    .replaceAll("{TIMEZONE}", variables.timezone || "")
     .replaceAll("{CANCEL_URL}", cancellationUrl)
     .replaceAll("{RESCHEDULE_URL}", reschedulingUrl)
     .replaceAll("{MEETING_URL}", variables.meetingUrl || "")
@@ -111,7 +111,7 @@ const performBasicTokenSubstitution = (
     .replaceAll("{ATTENDEE_TIMEZONE}", variables.attendeeTimezone || "")
     .replaceAll(
       "{EVENT_START_TIME_IN_ATTENDEE_TIMEZONE}",
-      variables.eventTimeInAttendeeTimezone?.format(timeFormat) || ""
+      variables.eventStartTimeInAttendeeTimezone?.format(timeFormat) || ""
     )
     .replaceAll(
       "{EVENT_END_TIME_IN_ATTENDEE_TIMEZONE}",
@@ -211,7 +211,7 @@ const processTemplateContent = (config: ProcessingConfiguration): TemplateOutput
   const localizedDateString = generateLocalizedDateString(
     config.culturalLocale,
     config.dataVariables.eventDate,
-    config.dataVariables.timeZone
+    config.dataVariables.timezone
   );
 
   const locationDisplayValue = resolveLocationDisplayValue(

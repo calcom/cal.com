@@ -95,11 +95,11 @@ const VARIABLE_DOCUMENTATION: VariableDoc[] = [
     description: "The timezone of the attendee",
   },
   {
-    variable: "{{event_start_time_in_attendee_timezone}}",
+    variable: "{{start_time_tz_booker}}",
     description: "The event start time converted to the attendee's timezone",
   },
   {
-    variable: "{{event_end_time_in_attendee_timezone}}",
+    variable: "{{end_time_tz_booker}}",
     description: "The event end time converted to the attendee's timezone",
   },
 ];

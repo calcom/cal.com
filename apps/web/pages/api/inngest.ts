@@ -72,7 +72,7 @@ const handleWhatsappReminderScheduled = inngestClient.createFunction(
     retries: 1,
     cancelOn: [
       {
-        event: "whatsapp/reminder.cancelled",
+        event: `whatsapp/reminder.cancelled-${key}`,
         match: "data.reminderId",
       },
       {

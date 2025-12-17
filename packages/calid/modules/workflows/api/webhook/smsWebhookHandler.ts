@@ -60,10 +60,12 @@ async function optOutPhoneNumber(phoneNumber: string) {
     });
   };
 
+  // Preserving workflow reminders for analytics
+
   // Get not twilio scheduled yet workflows
-  await deleteWorkflowReminders(
-    scheduledReminders.filter((reminder) => !reminder.referenceId).map((reminder) => reminder.id)
-  );
+  // await deleteWorkflowReminders(
+  //   scheduledReminders.filter((reminder) => !reminder.referenceId).map((reminder) => reminder.id)
+  // );
 }
 
 const SMSWebhookHandler = async (incomingRequest: NextRequest) => {
