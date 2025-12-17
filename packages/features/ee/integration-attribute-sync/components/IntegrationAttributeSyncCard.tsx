@@ -33,10 +33,13 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
   // Initialize form with sync data
   const form = useForm<ISyncFormData>({
     defaultValues: {
+      id: sync.id,
       credentialId: sync.credentialId ?? 0,
       enabled: sync.enabled,
+      organizationId: sync.organizationId,
+      ruleId: sync.attributeSyncRules[0]?.id || "",
       rule: sync.attributeSyncRules[0]?.rule || { operator: "AND", conditions: [] },
-      syncFieldMappings: sync.syncFieldMappings || [],
+      syncFieldMappings: Array.isArray(sync.syncFieldMappings) ? sync.syncFieldMappings : [],
     },
   });
 
@@ -62,14 +65,9 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
   });
 
   const onSubmit = (data: ISyncFormData) => {
-    console.log("Form data:", data);
     updateMutation.mutate({
-      id: sync.id,
-      credentialId: data.credentialId,
-      enabled: data.enabled,
-      organizationId: sync.organizationId,
-      rule: data.rule,
-      syncFieldMappings: data.syncFieldMappings || [],
+      ...data,
+      syncFieldMappings: Array.isArray(data.syncFieldMappings) ? data.syncFieldMappings : [],
     });
   };
 
@@ -156,12 +154,31 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
               <Controller
                 name="syncFieldMappings"
                 control={form.control}
-                render={({ field }) => (
-                  <FieldMappingBuilder
-                    value={{ mappings: field.value || [] }}
-                    onChange={(fieldMappings) => field.onChange(fieldMappings.mappings)}
-                    attributes={attributes ?? []}
-                  />
+                rules={{
+                  validate: (mappings) => {
+                    // Check for duplicate field name + attribute combinations
+                    const seen = new Set<string>();
+                    for (const mapping of mappings || []) {
+                      const key = `${mapping.integrationFieldName}-${mapping.attributeId}`;
+                      if (seen.has(key)) {
+                        return "Duplicate field name and attribute combination found";
+                      }
+                      seen.add(key);
+                    }
+                    return true;
+                  },
+                }}
+                render={({ field, fieldState }) => (
+                  <>
+                    <FieldMappingBuilder
+                      value={{ mappings: field.value || [] }}
+                      onChange={(fieldMappings) => field.onChange(fieldMappings.mappings)}
+                      attributes={attributes ?? []}
+                    />
+                    {fieldState.error && (
+                      <p className="mt-1 text-xs text-red-600">{fieldState.error.message}</p>
+                    )}
+                  </>
                 )}
               />
               <p className="text-subtle mt-1 text-xs">
