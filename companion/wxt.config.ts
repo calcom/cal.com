@@ -67,7 +67,7 @@ export default defineConfig({
         process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI
       ),
       "import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL": JSON.stringify(
-        process.env.EXPO_PUBLIC_COMPANION_DEV_URL
+        process.env.EXPO_PUBLIC_COMPANION_DEV_URL || ""
       ),
       "import.meta.env.EXPO_PUBLIC_CACHE_STALE_TIME_MINUTES": JSON.stringify(
         process.env.EXPO_PUBLIC_CACHE_STALE_TIME_MINUTES
