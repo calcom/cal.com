@@ -10,7 +10,7 @@ type OnboardingCardProps = {
   title: string;
   subtitle: string;
   children: ReactNode;
-  footer: ReactNode;
+  footer: ReactNode | null;
   isLoading?: boolean;
   floatingFooter?: boolean;
 };
@@ -19,8 +19,8 @@ export const OnboardingCard = ({
   title,
   subtitle,
   children,
-  footer,
-  isLoading,
+  footer = null,
+  isLoading = false,
   floatingFooter = false,
 }: OnboardingCardProps) => {
   const pathname = usePathname();
