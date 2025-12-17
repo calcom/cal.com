@@ -2,7 +2,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 
-import type { PrismaClient } from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
@@ -49,7 +49,20 @@ const filterWebhooks = (webhook: Webhook) => {
 };
 
 export class WebhookRepository implements IWebhookRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  private static _instance: WebhookRepository;
+
+  constructor(private readonly prisma: typeof defaultPrisma = defaultPrisma) {}
+
+  /**
+   * Singleton accessor for backward compatibility.
+   * @deprecated Use DI container (getWebhookFeature().repository) instead
+   */
+  static getInstance(): WebhookRepository {
+    if (!WebhookRepository._instance) {
+      WebhookRepository._instance = new WebhookRepository(defaultPrisma);
+    }
+    return WebhookRepository._instance;
+  }
 
   async getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]> {
     const teamId = options.teamId;
@@ -415,4 +428,10 @@ export class WebhookRepository implements IWebhookRepository {
     };
   }
 }
+
+/**
+ * Singleton instance export for backward compatibility.
+ * @deprecated Use DI container (getWebhookFeature().repository) instead
+ */
+export const webhookRepository = WebhookRepository.getInstance();
 

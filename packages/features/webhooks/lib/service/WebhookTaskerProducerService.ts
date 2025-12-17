@@ -2,8 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import type { ITasker } from "../interface";
-import type { ILogger } from "../interface/infrastructure";
+import type { ITasker, ILogger } from "../interface/infrastructure";
 import type { IWebhookProducerService, QueueWebhookParams } from "../interface/WebhookProducerService";
 
 /**
@@ -36,6 +35,12 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED });
   }
 
+  /**
+   * Queue a webhook for confirmed bookings.
+   * 
+   * Note: Uses BOOKING_REQUESTED trigger event, as this is the webhook event
+   * that fires when bookings are confirmed/requested. 
+   */
   async queueBookingConfirmedWebhook(params: QueueWebhookParams): Promise<void> {
     await this.queueWebhook({ ...params, triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED });
   }

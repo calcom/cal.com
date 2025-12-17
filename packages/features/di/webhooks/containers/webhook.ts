@@ -17,8 +17,10 @@ import { taskerServiceModule } from "../../shared/services/tasker.service";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 import { webhookModule } from "../modules/Webhook.module";
-import { getWebhookProducerService } from "./WebhookProducerService.container";
-import { getWebhookTaskConsumer } from "./WebhookTaskConsumer.container";
+import { webhookProducerServiceModule } from "../modules/WebhookProducerService.module";
+import { webhookTaskConsumerModule } from "../modules/WebhookTaskConsumer.module";
+import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
+import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
 
 export const webhookContainer = createContainer();
 
@@ -43,6 +45,10 @@ webhookContainer.load(WEBHOOK_TOKENS.INSTANT_MEETING_BUILDER, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_NOTIFICATION_HANDLER, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER, webhookModule);
 
+// Load Producer/Consumer modules
+webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE, webhookProducerServiceModule);
+webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER, webhookTaskConsumerModule);
+
 // Service getters (DEPRECATED: Use getWebhookFeature() facade instead)
 // These will be kept for backward compatibility during migration
 export function getBookingWebhookService(): IBookingWebhookService {
@@ -59,6 +65,26 @@ export function getRecordingWebhookService(): IRecordingWebhookService {
 
 export function getWebhookNotifier(): IWebhookNotifier {
   return webhookContainer.get<IWebhookNotifier>(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER);
+}
+
+/**
+ * Get the Webhook Producer Service.
+ * 
+ * This is the lightweight service for queueing webhook delivery tasks.
+ * It has NO heavy dependencies (no Prisma, no repositories).
+ */
+export function getWebhookProducerService(): IWebhookProducerService {
+  return webhookContainer.get<IWebhookProducerService>(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE);
+}
+
+/**
+ * Get the Webhook Task Consumer.
+ * 
+ * This is the heavy service for processing webhook delivery tasks.
+ * It fetches data from database, builds payloads, and sends HTTP requests.
+ */
+export function getWebhookTaskConsumer(): WebhookTaskConsumer {
+  return webhookContainer.get<WebhookTaskConsumer>(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER);
 }
 
 /**

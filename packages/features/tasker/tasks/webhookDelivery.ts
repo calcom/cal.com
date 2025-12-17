@@ -1,5 +1,5 @@
 import { webhookTaskPayloadSchema } from "@calcom/features/webhooks/lib/types/webhookTask";
-import { getWebhookTaskConsumer } from "@calcom/features/di/webhooks/containers/WebhookTaskConsumer.container";
+import { getWebhookTaskConsumer } from "@calcom/features/di/webhooks/containers/webhook";
 
 /**
  * Webhook Delivery Task Handler
