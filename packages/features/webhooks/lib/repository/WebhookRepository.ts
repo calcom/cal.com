@@ -1,8 +1,7 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { withReporting } from "@calcom/lib/sentryWrapper";
-import { prisma as defaultPrisma } from "@calcom/prisma";
+
 import type { PrismaClient } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -50,16 +49,7 @@ const filterWebhooks = (webhook: Webhook) => {
 };
 
 export class WebhookRepository implements IWebhookRepository {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
-
-  private static _instance: WebhookRepository;
-
-  static getInstance(): WebhookRepository {
-    if (!WebhookRepository._instance) {
-      WebhookRepository._instance = new WebhookRepository();
-    }
-    return WebhookRepository._instance;
-  }
+  constructor(private readonly prisma: PrismaClient) {}
 
   async getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]> {
     const teamId = options.teamId;
@@ -426,7 +416,3 @@ export class WebhookRepository implements IWebhookRepository {
   }
 }
 
-export const webhookRepository = withReporting(
-  (options: GetSubscribersOptions) => WebhookRepository.getInstance().getSubscribers(options),
-  "WebhookRepository.getSubscribers"
-);
