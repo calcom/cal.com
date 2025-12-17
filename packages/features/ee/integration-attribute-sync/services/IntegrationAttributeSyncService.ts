@@ -57,4 +57,7 @@ export class IntegrationAttributeSyncService {
       fieldMappingsToDelete,
     });
   }
+  async deleteById(id: string) {
+    return this.deps.integrationAttributeSyncRepository.deleteById(id);
+  }
 }
