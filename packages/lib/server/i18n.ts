@@ -34,8 +34,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
   const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "common";
   const cacheKey = `${locale}-${ns}`;
 
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey);
+  const cached = translationCache.get(cacheKey);
+  if (cached) {
+    return cached;
   }
 
   if (locale === "en") {
@@ -43,17 +44,14 @@ export async function loadTranslations(_locale: string, _ns: string) {
     return englishTranslations;
   }
 
-  try {
-    const { default: localeTranslations } = await import(
-      `../../../apps/web/public/static/locales/${locale}/${ns}.json`
-    );
+  let localeTranslations: Record<string, string> | null = null;
 
-    translationCache.set(cacheKey, localeTranslations);
-    return localeTranslations;
+  try {
+    const imported = await import(`../../../apps/web/public/static/locales/${locale}/${ns}.json`);
+    localeTranslations = imported.default;
   } catch (dynamicImportErr) {
     log.warn(`Dynamic import failed for locale ${locale}:`, dynamicImportErr);
 
-    // Try HTTP fallback as second option
     try {
       const response = await fetchWithTimeout(
         `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`,
@@ -63,17 +61,22 @@ export async function loadTranslations(_locale: string, _ns: string) {
         3000
       );
       if (response.ok) {
-        const httpTranslations = await response.json();
-        translationCache.set(cacheKey, httpTranslations);
-        return httpTranslations;
+        localeTranslations = await response.json();
       }
     } catch (httpErr) {
       log.error(`HTTP fallback also failed for locale ${locale}:`, httpErr);
     }
+  }
 
+  if (!localeTranslations) {
     log.info(`Falling back to English for locale: ${locale}`);
+    translationCache.set(cacheKey, englishTranslations);
     return englishTranslations;
   }
+
+  const mergedTranslations = { ...englishTranslations, ...localeTranslations };
+  translationCache.set(cacheKey, mergedTranslations);
+  return mergedTranslations;
 }
 
 /**
