@@ -144,7 +144,7 @@ export const FieldMappingBuilder = ({
         ) : (
           value.mappings.map((mapping, index) => (
             <MappingRow
-              key={index}
+              key={mapping.id || `new-${index}`}
               mapping={mapping}
               onChange={(newMapping) => handleMappingChange(index, newMapping)}
               onRemove={() => handleRemoveMapping(index)}
