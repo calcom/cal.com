@@ -137,20 +137,42 @@ export default class ICSFeedCalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    _shouldServeCache?: boolean,
+    allowFallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
     const startISOString = new Date(dateFrom).toISOString();
 
     const calendars = await this.fetchCalendars();
+
+    const selectedExternalIds = new Set(
+      selectedCalendars.map((calendar) => calendar.externalId).filter((externalId): externalId is string => !!externalId)
+    );
+
+    const calendarsToProcess =
+      selectedExternalIds.size > 0
+        ? calendars.filter(({ url }) => selectedExternalIds.has(url))
+        : allowFallbackToPrimary
+        ? calendars
+        : [];
+
+    if (!calendarsToProcess.length) {
+      return Promise.resolve([]);
+    }
 
     const userId = this.getUserId(selectedCalendars);
     // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
     const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string; title: string }[] = [];
 
-    calendars.forEach(({ vcalendar }) => {
+    calendarsToProcess.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
       vevents.forEach((vevent) => {
+        const status = vevent.getFirstPropertyValue("status");
+        if (typeof status === "string" && status.toUpperCase() === "CANCELLED") {
+          return;
+        }
+
         // if event status is free or transparent, DON'T return (unlike usual getAvailability)
         //
         // commented out because a lot of public ICS feeds that describe stuff like
