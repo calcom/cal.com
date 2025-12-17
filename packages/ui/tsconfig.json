@@ -1,8 +1,7 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "experimentalDecorators": true
   },
