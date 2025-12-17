@@ -135,4 +135,3 @@ export { getTasker } from "@calcom/features/tasker/tasker-factory";
 export type { Tasker } from "@calcom/features/tasker/tasker";
 export { verifyCodeChallenge } from "@calcom/lib/pkce";
 export { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
-export { OAuthService } from "@calcom/features/oauth/services/OAuthService";

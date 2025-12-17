@@ -1,7 +1,7 @@
 import { OAuth2Repository } from "@/modules/auth/oauth2/oauth2.repository";
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 
-import { OAuthService } from "@calcom/platform-libraries";
+import { generateSecret, verifyCodeChallenge } from "@calcom/platform-libraries";
 import type { AccessScope } from "@calcom/prisma/enums";
 
 export interface OAuth2Client {
@@ -108,11 +108,7 @@ export class OAuth2Service {
       throw new BadRequestException("invalid_grant");
     }
 
-    const isValidClient = OAuthService.validateClient(
-      { clientType: client.clientType as "CONFIDENTIAL" | "PUBLIC", clientSecret: client.clientSecret },
-      clientSecret
-    );
-    if (!isValidClient) {
+    if (!this.validateClient(client, clientSecret)) {
       throw new UnauthorizedException("invalid_client");
     }
 
@@ -124,13 +120,9 @@ export class OAuth2Service {
       throw new BadRequestException("invalid_grant");
     }
 
-    const pkceError = OAuthService.verifyPKCE(
-      { clientType: client.clientType as "CONFIDENTIAL" | "PUBLIC" },
-      accessCode,
-      codeVerifier
-    );
+    const pkceError = this.verifyPKCE(client, accessCode, codeVerifier);
     if (pkceError) {
-      throw new BadRequestException(pkceError.error);
+      throw new BadRequestException(pkceError);
     }
 
     const tokens = await this.oauth2Repository.createTokens({
@@ -157,11 +149,7 @@ export class OAuth2Service {
       throw new UnauthorizedException("invalid_client");
     }
 
-    const isValidClient = OAuthService.validateClient(
-      { clientType: client.clientType as "CONFIDENTIAL" | "PUBLIC", clientSecret: client.clientSecret },
-      clientSecret
-    );
-    if (!isValidClient) {
+    if (!this.validateClient(client, clientSecret)) {
       throw new UnauthorizedException("invalid_client");
     }
 
@@ -175,13 +163,9 @@ export class OAuth2Service {
       throw new BadRequestException("invalid_grant");
     }
 
-    const pkceError = OAuthService.verifyPKCE(
-      { clientType: client.clientType as "CONFIDENTIAL" | "PUBLIC" },
-      decodedToken,
-      codeVerifier
-    );
+    const pkceError = this.verifyPKCE(client, decodedToken, codeVerifier);
     if (pkceError) {
-      throw new BadRequestException(pkceError.error);
+      throw new BadRequestException(pkceError);
     }
 
     const tokens = await this.oauth2Repository.createTokens({
@@ -194,5 +178,41 @@ export class OAuth2Service {
     });
 
     return tokens;
+  }
+
+  private validateClient(
+    client: { clientType: string; clientSecret?: string | null },
+    clientSecret?: string
+  ): boolean {
+    if (client.clientType === "CONFIDENTIAL") {
+      if (!clientSecret) return false;
+
+      const [hashedSecret] = generateSecret(clientSecret);
+      if (client.clientSecret !== hashedSecret) return false;
+    }
+    return true;
+  }
+
+  private verifyPKCE(
+    client: { clientType: string },
+    source: { codeChallenge?: string | null; codeChallengeMethod?: string | null },
+    codeVerifier?: string
+  ): string | null {
+    const shouldEnforcePKCE =
+      client.clientType === "PUBLIC" || (client.clientType === "CONFIDENTIAL" && source.codeChallenge);
+
+    if (!shouldEnforcePKCE) return null;
+
+    const method = source.codeChallengeMethod || "S256";
+
+    if (!source.codeChallenge || !codeVerifier || method !== "S256") {
+      return "invalid_request";
+    }
+
+    if (!verifyCodeChallenge(codeVerifier, source.codeChallenge, method)) {
+      return "invalid_grant";
+    }
+
+    return null;
   }
 }
