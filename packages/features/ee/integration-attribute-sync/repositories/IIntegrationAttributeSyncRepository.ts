@@ -6,6 +6,8 @@ export enum AttributeSyncIntegrations {
 
 export interface IntegrationAttributeSync {
   id: string;
+  organizationId: number;
+  name: string;
   integration: AttributeSyncIntegrations;
   credentialId?: number;
   enabled: boolean;
@@ -32,11 +34,16 @@ export interface IIntegrationAttributeSyncRepository {
   updateTransactionWithRuleAndMappings(
     params: IIntegrationAttributeSyncUpdateParams
   ): Promise<IntegrationAttributeSync>;
-  delete(id: string): Promise<void>;
+  deleteById(id: string): Promise<void>;
 }
 
 export interface IIntegrationAttributeSyncUpdateParams {
-  integrationAttributeSync: IntegrationAttributeSync;
+  integrationAttributeSync: Omit<
+    IntegrationAttributeSync,
+    "attributeSyncRules" | "syncFieldMappings" | "integration"
+  >;
   attributeSyncRule: AttributeSyncRule;
-  syncFieldMappings: AttributeSyncFieldMapping;
+  fieldMappingsToCreate: Omit<AttributeSyncFieldMapping, "id">[];
+  fieldMappingsToUpdate: AttributeSyncFieldMapping[];
+  fieldMappingsToDelete: string[];
 }

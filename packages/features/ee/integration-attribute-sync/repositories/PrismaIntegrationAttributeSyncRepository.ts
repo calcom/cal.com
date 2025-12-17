@@ -16,6 +16,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
       },
       select: {
         id: true,
+        name: true,
         organizationId: true,
         integration: true,
         credentialId: true,
@@ -41,6 +42,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
       },
       select: {
         id: true,
+        name: true,
         organizationId: true,
         integration: true,
         credentialId: true,
@@ -134,5 +136,13 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
           ]
         : []),
     ]);
+  }
+
+  async deleteById(id: string) {
+    return this.prismaClient.integrationAttributeSync.delete({
+      where: {
+        id,
+      },
+    });
   }
 }
