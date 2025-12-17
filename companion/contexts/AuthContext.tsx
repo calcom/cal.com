@@ -1,8 +1,4 @@
-/// <reference types="chrome" />
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
 import { WebAuthService } from "../services/webAuth";
 import { CalComAPIService } from "../services/calcom";
 import {
@@ -10,6 +6,7 @@ import {
   OAuthTokens,
   CalComOAuthService,
 } from "../services/oauthService";
+import { secureStorage } from "../utils/storage";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -36,98 +33,8 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Check if chrome.storage is available (browser extension context)
-const isChromeStorageAvailable = (): boolean => {
-  return (
-    Platform.OS === "web" &&
-    typeof chrome !== "undefined" &&
-    chrome.storage !== undefined &&
-    chrome.storage.local !== undefined
-  );
-};
-
-// Unified storage helper to abstract web/mobile/extension differences
-const storage = {
-  get: async (key: string): Promise<string | null> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve) => {
-        chrome.storage.local.get([key], (result) => {
-          resolve(result[key] || null);
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      return localStorage.getItem(key);
-    }
-    // Use SecureStore for mobile
-    return await SecureStore.getItemAsync(key);
-  },
-  set: async (key: string, value: string): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.set({ [key]: value }, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      localStorage.setItem(key, value);
-      return;
-    }
-    // Use SecureStore for mobile
-    await SecureStore.setItemAsync(key, value);
-  },
-  remove: async (key: string): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.remove(key, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      localStorage.removeItem(key);
-      return;
-    }
-    // Use SecureStore for mobile
-    await SecureStore.deleteItemAsync(key);
-  },
-  removeAll: async (keys: string[]): Promise<void> => {
-    // Use chrome.storage in browser extension context (most secure)
-    if (isChromeStorageAvailable()) {
-      return new Promise((resolve, reject) => {
-        chrome.storage.local.remove(keys, () => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    // Fall back to localStorage for regular web apps
-    if (Platform.OS === "web") {
-      keys.forEach((key) => localStorage.removeItem(key));
-      return;
-    }
-    // Use SecureStore for mobile
-    await Promise.all(keys.map((key) => SecureStore.deleteItemAsync(key)));
-  },
-};
+// Use the shared secure storage adapter
+const storage = secureStorage;
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -161,7 +68,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     CalComAPIService.setAccessToken(token, refreshToken);
 
     try {
-      await CalComAPIService.getUserProfile();
+      const profile = await CalComAPIService.getUserProfile();
+      // Store user info for use in the app (e.g., to display "You" in bookings)
+      if (profile) {
+        setUserInfo({
+          email: profile.email,
+          name: profile.name,
+          id: profile.id,
+          username: profile.username,
+        });
+      }
     } catch (profileError) {
       console.error("Failed to fetch user profile:", profileError);
       // Don't fail login if profile fetch fails

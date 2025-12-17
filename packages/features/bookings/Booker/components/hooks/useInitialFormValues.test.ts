@@ -1,8 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
-import { renderHook, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import type { BookerEvent } from "@calcom/features/bookings/types";
 
@@ -47,6 +47,10 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   describe("when organization has NOT disabled autofill", () => {
