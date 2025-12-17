@@ -3,7 +3,7 @@ import type { Prisma } from "@calcom/prisma/client";
 
 interface RecordFormResponseInput {
   formId: string;
-  response: Record<string, any> | Prisma.JsonValue;
+  response: Record<string, unknown> | Prisma.JsonValue;
   chosenRouteId: string | null;
 }
 
@@ -158,5 +158,10 @@ export class RoutingFormResponseRepository {
         response: true,
       },
     });
+  }
+
+  async update(args: Prisma.App_RoutingForms_FormResponseUpdateArgs, tx?: Prisma.TransactionClient) {
+    const db = tx ?? this.prismaClient;
+    return db.app_RoutingForms_FormResponse.update(args);
   }
 }

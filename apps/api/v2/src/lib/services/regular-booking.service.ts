@@ -1,4 +1,6 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
+import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
+import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected-slot.repository";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
@@ -18,9 +20,11 @@ export class RegularBookingService extends BaseRegularBookingService {
     checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService,
     prismaWriteService: PrismaWriteService,
     bookingRepository: PrismaBookingRepository,
+    selectedSlotsRepository: PrismaSelectedSlotRepository,
     hashedLinkService: HashedLinkService,
     luckyUserService: LuckyUserService,
     userRepository: PrismaUserRepository,
+    routingFormResponseRepository: PrismaRoutingFormResponseRepository,
     bookingEmailAndSmsTasker: BookingEmailAndSmsTasker,
     featuresRepository: PrismaFeaturesRepository,
     bookingEventHandler: BookingEventHandlerService
@@ -29,9 +33,11 @@ export class RegularBookingService extends BaseRegularBookingService {
       checkBookingAndDurationLimitsService,
       prismaClient: prismaWriteService.prisma as unknown as PrismaClient,
       bookingRepository,
+      selectedSlotsRepository,
       hashedLinkService,
       luckyUserService,
       userRepository,
+      routingFormResponseRepository,
       bookingEmailAndSmsTasker,
       featuresRepository,
       bookingEventHandler,

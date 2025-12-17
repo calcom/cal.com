@@ -6,10 +6,11 @@ import { moduleLoader as checkBookingAndDurationLimitsModuleLoader } from "@calc
 import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/Features";
 import { moduleLoader as luckyUserServiceModuleLoader } from "@calcom/features/di/modules/LuckyUser";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { moduleLoader as routingFormResponseRepositoryModuleLoader } from "@calcom/features/di/modules/RoutingFormResponse";
+import { moduleLoader as selectedSlotsRepositoryModuleLoader } from "@calcom/features/di/modules/SelectedSlots";
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { moduleLoader as hashedLinkServiceModuleLoader } from "@calcom/features/hashedLink/di/HashedLinkService.module";
-
 import { moduleLoader as bookingEmailAndSmsTaskerModuleLoader } from "./tasker/BookingEmailAndSmsTasker.module";
 
 const thisModule = createModule();
@@ -25,9 +26,11 @@ const loadModule = bindModuleToClassOnToken({
     prismaClient: prismaModuleLoader,
     checkBookingAndDurationLimitsService: checkBookingAndDurationLimitsModuleLoader,
     bookingRepository: bookingRepositoryModuleLoader,
+    selectedSlotsRepository: selectedSlotsRepositoryModuleLoader,
     luckyUserService: luckyUserServiceModuleLoader,
     userRepository: userRepositoryModuleLoader,
     hashedLinkService: hashedLinkServiceModuleLoader,
+    routingFormResponseRepository: routingFormResponseRepositoryModuleLoader,
     bookingEmailAndSmsTasker: bookingEmailAndSmsTaskerModuleLoader,
     featuresRepository: featuresRepositoryModuleLoader,
     bookingEventHandler: bookingEventHandlerModuleLoader,

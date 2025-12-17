@@ -4,6 +4,8 @@ import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repos
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
+import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
+import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected-slot.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BookingAuditProducerService } from "@/lib/services/booking-audit-producer.service";
 import { BookingEmailSmsService } from "@/lib/services/booking-emails-sms-service";
@@ -29,6 +31,7 @@ import { Module, Scope } from "@nestjs/common";
     PrismaFeaturesRepository,
     PrismaHostRepository,
     PrismaOOORepository,
+    PrismaSelectedSlotRepository,
     PrismaUserRepository,
     {
       provide: Logger,
@@ -50,6 +53,7 @@ import { Module, Scope } from "@nestjs/common";
     BookingEmailAndSmsTasker,
     TaskerService,
     RegularBookingService,
+    PrismaRoutingFormResponseRepository,
   ],
   exports: [RegularBookingService],
 })

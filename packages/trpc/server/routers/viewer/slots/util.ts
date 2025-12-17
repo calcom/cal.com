@@ -53,6 +53,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
+import { getReservedSlotUidFromCookies } from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -1206,7 +1207,7 @@ export class AvailableSlotsService {
     });
 
     let availableTimeSlots: typeof timeSlots = [];
-    const bookerClientUid = ctx?.req?.cookies?.uid;
+    const bookerClientUid = getReservedSlotUidFromCookies(ctx?.req);
     const isRestrictionScheduleFeatureEnabled = await this.checkRestrictionScheduleEnabled(
       eventType.team?.id
     );

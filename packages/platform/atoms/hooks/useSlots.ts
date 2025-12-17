@@ -3,7 +3,6 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import type {
@@ -42,11 +41,14 @@ export const useSlots = (
     shallow
   );
 
-  const [slotReservationId, setSlotReservationId] = useSlotReservationId();
+  const [reservedSlotUid, setReservedSlotUid] = useBookerStoreContext(
+    (state) => [state.reservedSlotUid, state.setReservedSlotUid],
+    shallow
+  );
 
   const reserveSlotMutation = useReserveSlot({
     onSuccess: (res) => {
-      setSlotReservationId(res.data);
+      setReservedSlotUid(res.data);
       onReserveSlotSuccess?.(res);
     },
     onError: onReserveSlotError,
@@ -61,7 +63,7 @@ export const useSlots = (
 
   const handleRemoveSlot = () => {
     if (event?.data) {
-      removeSelectedSlot.mutate({ uid: slotReservationId ?? undefined });
+      removeSelectedSlot.mutate({ uid: reservedSlotUid ?? undefined });
     }
   };
 
@@ -98,14 +100,13 @@ export const useSlots = (
       handleRemoveSlot();
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.data?.id, timeslot]);
 
   return {
     selectedTimeslot,
     setSelectedTimeslot,
-    setSlotReservationId,
-    slotReservationId,
+    setReservedSlotUid,
+    reservedSlotUid,
     handleReserveSlot,
     handleRemoveSlot,
     // TODO: implement slot no longer available feature

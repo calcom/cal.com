@@ -38,6 +38,7 @@ export type CreateBookingMeta = {
   hostname?: string;
   forcedSlug?: string;
   noEmail?: boolean;
+  reservedSlotUid?: string;
   traceContext?: TraceContext;
 } & PlatformParams;
 

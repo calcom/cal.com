@@ -4,7 +4,7 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi, beforeEach } from "vitest";
+import { describe, expect, test, vi, beforeEach, type Mock } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
@@ -67,8 +67,15 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
 
 const mockFindOriginalRescheduledBooking = vi.fn();
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
-  BookingRepository: vi.fn().mockImplementation(() => ({
+  BookingRepository: vi.fn().mockImplementation((prismaClient) => ({
     findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
+    create: vi.fn().mockImplementation((args, tx) => {
+      return (tx || prismaClient).booking.create(args);
+    }),
+    update: vi.fn().mockImplementation((args, tx) => {
+      return (tx || prismaClient).booking.update(args);
+    }),
+    getValidBookingFromEventTypeForAttendee: vi.fn().mockResolvedValue(null),
   })),
 }));
 
@@ -166,7 +173,7 @@ vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType", () => 
 }));
 
 vi.mock("@calcom/lib/server/i18n", () => {
-  const mockT = (key: string, options?: any) => {
+  const mockT = (key: string, options?: Record<string, unknown>) => {
     if (key === "event_between_users") {
       return `${options?.eventName} between ${options?.host} and ${options?.attendeeName}`;
     }
@@ -236,12 +243,12 @@ describe("POST /api/bookings", () => {
     vi.clearAllMocks();
     mockFindOriginalRescheduledBooking.mockResolvedValue(null);
 
-    (getEventTypesFromDB as any).mockResolvedValue(mockEventTypeData.eventType);
+    (getEventTypesFromDB as Mock).mockResolvedValue(mockEventTypeData.eventType);
   });
 
   describe("Errors", () => {
     test("Missing required data", async () => {
-      (getEventTypesFromDB as any).mockRejectedValue(new Error(ErrorCode.RequestBodyInvalid));
+      (getEventTypesFromDB as Mock).mockRejectedValue(new Error(ErrorCode.RequestBodyInvalid));
 
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
@@ -259,7 +266,7 @@ describe("POST /api/bookings", () => {
     });
 
     test("Invalid eventTypeId", async () => {
-      (getEventTypesFromDB as any).mockRejectedValue(new Error(ErrorCode.EventTypeNotFound));
+      (getEventTypesFromDB as Mock).mockRejectedValue(new Error(ErrorCode.EventTypeNotFound));
 
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
@@ -439,10 +446,11 @@ describe("POST /api/bookings", () => {
           oneTimePassword: null,
           creationSource: "API_V1",
         });
+        prismaMock.booking.create.mockResolvedValue(mockBooking);
         prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
+          const _mockTx = {
             booking: {
-              create: prismaMock.booking.create.mockResolvedValue(mockBooking),
+              create: prismaMock.booking.create,
               update: vi.fn().mockResolvedValue({}),
             },
             app_RoutingForms_FormResponse: {
@@ -516,10 +524,13 @@ describe("POST /api/bookings", () => {
           oneTimePassword: null,
           fromReschedule: "original-booking-uid",
         });
+
+        prismaMock.booking.create.mockResolvedValue(mockBooking);
+
         prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
+          const _mockTx = {
             booking: {
-              create: prismaMock.booking.create.mockResolvedValue(mockBooking),
+              create: prismaMock.booking.create,
               update: vi.fn().mockResolvedValue({}),
             },
             app_RoutingForms_FormResponse: {
@@ -580,10 +591,11 @@ describe("POST /api/bookings", () => {
           oneTimePassword: null,
           creationSource: "API_V1",
         });
+        prismaMock.booking.create.mockResolvedValue(mockBooking);
         prismaMock.$transaction.mockImplementation(async (callback) => {
-          const mockTx = {
+          const _mockTx = {
             booking: {
-              create: prismaMock.booking.create.mockResolvedValue(mockBooking),
+              create: prismaMock.booking.create,
               update: vi.fn().mockResolvedValue({}),
             },
             app_RoutingForms_FormResponse: {
@@ -639,7 +651,7 @@ describe("POST /api/bookings", () => {
           users: [buildUser()],
         });
 
-        const mockBookings = Array.from(Array(12).keys()).map((i) =>
+        const _mockBookings = Array.from(Array(12).keys()).map((i) =>
           buildBooking({ id: i + 1, uid: `recurring-booking-${i}` })
         );
 
@@ -698,7 +710,7 @@ describe("POST /api/bookings", () => {
       });
 
       const createdAt = new Date();
-      const mockBookings = Array.from(Array(12).keys()).map((i) =>
+      const _mockBookings = Array.from(Array(12).keys()).map((i) =>
         buildBooking({ id: i + 1, uid: `webhook-booking-${i}`, createdAt })
       );
 

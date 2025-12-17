@@ -302,6 +302,7 @@ const getError = ({
 
   let date = "";
   let count = 0;
+  let secondsUntilRelease = 0;
 
   if (error.message === ErrorCode.BookerLimitExceededReschedule) {
     const formattedDate = formatEventFromTime({
@@ -317,12 +318,16 @@ const getError = ({
     count = error.data.count;
   }
 
+  if (error.message === "reserved_slot_not_first_in_line" && error.data?.secondsUntilRelease) {
+    secondsUntilRelease = error.data.secondsUntilRelease;
+  }
+
   const messageKey =
     error.message === ErrorCode.BookerLimitExceeded ? "booker_upcoming_limit_reached" : error.message;
 
   return error?.message ? (
     <>
-      {responseVercelIdHeader ?? ""} {t(messageKey, { date, count })}
+      {responseVercelIdHeader ?? ""} {t(messageKey, { date, count, secondsUntilRelease })}
       {error.data?.traceId && (
         <div className="text-subtle mt-2 text-xs">
           <span className="font-medium">{t("trace_reference_id")}:</span>

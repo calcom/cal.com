@@ -3864,6 +3864,7 @@
   "collapse_panel": "Collapse Panel",
   "email_verification_required": "Email verification is required for this event type",
   "invalid_verification_code": "Invalid verification code provided",
+  "reserved_slot_not_first_in_line": "Another guest reserved this booking time slot before you. Try again in {{secondsUntilRelease}} seconds or pick a different time.",
   "you_have_one_team": "You have one team",
   "consider_consolidating_one_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your team.",
   "consider_consolidating_multi_team_org": "Consider setting up an organization to unify billing, admin tools, and analytics across your teams.",

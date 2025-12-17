@@ -29,6 +29,7 @@ export const handleNewRecurringBooking = async (
   // for round robin, the first slot needs to be handled first to define the lucky user
   const firstBooking = data[0];
   const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
+  const isTeamEvent = !!firstBooking.schedulingType;
 
   let luckyUsers = undefined;
 
@@ -60,6 +61,8 @@ export const handleNewRecurringBooking = async (
         hostname: input.hostname || "",
         forcedSlug: input.forcedSlug as string | undefined,
         ...handleBookingMeta,
+        // note(Lauris): RegularBookingService.ts does not handle team event slot reservation - once it does here we need to pass input.reservedSlotUid
+        reservedSlotUid: undefined,
       },
     });
     luckyUsers = firstBookingResult.luckyUsers;
@@ -97,12 +100,17 @@ export const handleNewRecurringBooking = async (
       luckyUsers,
     };
 
+    const isFirstNonTeamEventRecurrence = !isTeamEvent && key === 0;
+
     const promiseEachRecurringBooking = regularBookingService.createBooking({
       bookingData: recurringEventData,
       bookingMeta: {
         hostname: input.hostname || "",
         forcedSlug: input.forcedSlug as string | undefined,
         ...handleBookingMeta,
+        // note(Lauris): recurring event reserves only 1 slot currently while technically it should reserve slot for each recurrence. When / if it does, we need to have reservedSlotUids array for recurring event types and for each
+        // pass the reservedSlotUid here. Probably it would be an array of objects where each object has key of reservedSlotUid and then identifier connecting it to specific slot probably based on start time.
+        reservedSlotUid: isFirstNonTeamEventRecurrence ? input.reservedSlotUid : undefined,
       },
     });
 

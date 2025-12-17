@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 
 import { CreateBookingInput } from "@calcom/platform-types";
@@ -34,7 +34,7 @@ export class ErrorsBookingsService_2024_08_13 {
   handleBookingError(error: unknown, bookingTeamEventType: boolean): never {
     const hostsUnavaile = "One of the hosts either already has booking at this time or is not available";
 
-    if (error instanceof Error) {
+    if (error instanceof Error || (typeof error === "object" && error !== null && "message" in error)) {
       if (error.message === "no_available_users_found_error") {
         if (bookingTeamEventType) {
           throw new BadRequestException(hostsUnavaile);
@@ -61,6 +61,11 @@ export class ErrorsBookingsService_2024_08_13 {
           message += ` You can reschedule your existing booking (${errorData.rescheduleUid}) to a new timeslot instead.`;
         }
         throw new BadRequestException(message);
+      } else if (error.message === "reserved_slot_not_first_in_line") {
+        const errorData =
+          "data" in error ? (error.data as { secondsUntilRelease: number }) : { secondsUntilRelease: 300 };
+        const message = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${errorData.secondsUntilRelease} seconds.`;
+        throw new ConflictException(message);
       }
     }
     throw error;

@@ -23,4 +23,6 @@ const _getEventType = async ({
   };
 };
 
+export type GetEventTypeResult = Awaited<ReturnType<typeof _getEventType>>;
+
 export const getEventType = withReporting(_getEventType, "getEventType");

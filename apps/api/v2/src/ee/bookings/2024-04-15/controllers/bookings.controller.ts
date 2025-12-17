@@ -68,6 +68,7 @@ import {
 } from "@calcom/platform-libraries";
 import { CreationSource } from "@calcom/platform-libraries";
 import { type InstantBookingCreateResult } from "@calcom/platform-libraries/bookings";
+import { getReservedSlotUidFromRequest } from "@calcom/platform-libraries/slots";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
@@ -208,6 +209,7 @@ export class BookingsController_2024_04_15 {
       await this.checkBookingRequiresAuthentication(req, body.eventTypeId, body.rescheduleUid);
 
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
+      const reservedSlotUid = getReservedSlotUidFromRequest(req);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
@@ -220,6 +222,7 @@ export class BookingsController_2024_04_15 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+          reservedSlotUid,
         },
       });
       if (booking.userId && booking.uid && booking.startTime) {
@@ -338,6 +341,7 @@ export class BookingsController_2024_04_15 {
         }
       }
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+      const reservedSlotUid = getReservedSlotUidFromRequest(req);
       const createdBookings: BookingResponse[] = await this.recurringBookingService.createBooking({
         bookingData: body.map((booking) => ({ ...booking, creationSource: CreationSource.API_V2 })),
         bookingMeta: {
@@ -349,6 +353,7 @@ export class BookingsController_2024_04_15 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           noEmail: bookingRequest.body.noEmail,
+          reservedSlotUid,
         },
       });
 
@@ -675,6 +680,19 @@ export class BookingsController_2024_04_15 {
       type === "no-show"
         ? `Error while marking no-show.`
         : `Error while creating ${type ? type + " " : ""}booking.`;
+
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "message" in err &&
+      err.message === "reserved_slot_not_first_in_line"
+    ) {
+      const secondsUntilRelease =
+        ("data" in err && (err.data as { secondsUntilRelease?: number })?.secondsUntilRelease) ?? 300;
+      const message = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${secondsUntilRelease} seconds.`;
+      throw new HttpException(message, 409);
+    }
+
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
       throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
