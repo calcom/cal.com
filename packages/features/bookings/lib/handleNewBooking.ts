@@ -1592,7 +1592,6 @@ async function handler(
               attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
         );
 
-
         const currentEventAttendee = evt.attendees.find(
           (attendee) =>
             attendee.email === input.bookingData.responses.email ||
@@ -2183,7 +2182,7 @@ async function handler(
       bookerPhoneNumber,
       isDryRun,
       responses: reqBody.responses,
-      bookingSeat: newBookingSeat,
+      bookingSeat: newBookingSeat ?? undefined,
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,

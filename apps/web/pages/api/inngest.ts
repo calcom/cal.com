@@ -4,6 +4,7 @@ import { serve } from "inngest/next";
 import { appRevokedHandler, paymentLinkPaidHandler } from "@calcom/app-store/razorpay/lib/webhookHandlers";
 import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
 import { INNGEST_ID } from "@calcom/lib/constants";
+import bookingPaymentReminderHandler from "@calcom/lib/payment/bookingPaymentReminder";
 import { handleBookingExportEvent } from "@calcom/trpc/server/routers/viewer/bookings/export.handler";
 import { handleCalendlyImportEvent } from "@calcom/web/pages/api/import/calendly";
 
@@ -117,6 +118,15 @@ const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
   paymentLinkPaidHandler
 );
 
+export const triggerBookingPaymentReminder = inngestClient.createFunction(
+  {
+    id: `booking-payment-reminder-${key}`,
+    name: "Send Booking payment reminder",
+  },
+  { event: `booking/payment-reminder-${key}` },
+  bookingPaymentReminderHandler
+);
+
 export default serve({
   client: inngestClient,
   functions: [
@@ -127,6 +137,7 @@ export default serve({
     handleCancelWhatsappReminder,
     handleRazorpayPaymentLinkPaid,
     handleRazorpayAppRevoked,
+    triggerBookingPaymentReminder,
   ],
   signingKey: process.env.INNGEST_SIGNING_KEY || "",
 });
