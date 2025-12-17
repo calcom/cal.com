@@ -1957,15 +1957,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       it("should respect start property and return slots only within requested date range for rolling window event type", async () => {
-        const now = DateTime.utc();
-        const startDateObj = now.plus({ days: 30 });
-        const endDateObj = startDateObj.plus({ days: 2 });
-        const startDate = startDateObj.toFormat("yyyy-MM-dd");
-        const endDate = endDateObj.toFormat("yyyy-MM-dd");
-
-        const oneMonthBeforeStart = startDateObj.minus({ months: 1 }).toFormat("yyyy-MM-dd");
-        const dayBeforeStart = startDateObj.minus({ days: 1 }).toFormat("yyyy-MM-dd");
-        const dayAfterEnd = endDateObj.plus({ days: 1 }).toFormat("yyyy-MM-dd");
+        const mockNow = DateTime.fromISO("2050-08-10T12:00:00.000Z", { zone: "UTC" }).toJSDate();
+        advanceTo(mockNow);
+        const startDate = "2050-09-05";
+        const endDate = "2050-09-07";
 
         const response = await request(app.getHttpServer())
           .get(
@@ -1982,17 +1977,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(typeof slots).toBe("object");
 
         const returnedDates = Object.keys(slots);
-        expect(returnedDates.length).toBeGreaterThan(0);
+        expect(returnedDates.length).toEqual(3);
 
         returnedDates.forEach((date) => {
           expect(date >= startDate).toBe(true);
           expect(date <= endDate).toBe(true);
         });
-
-        expect(slots[oneMonthBeforeStart]).toBeUndefined();
-        expect(slots[dayBeforeStart]).toBeUndefined();
-
-        expect(slots[dayAfterEnd]).toBeUndefined();
       });
 
       afterAll(async () => {
