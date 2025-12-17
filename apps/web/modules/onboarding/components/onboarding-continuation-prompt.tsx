@@ -1,11 +1,11 @@
 "use client";
 
+import { XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { Button } from "@coss/ui/components/button";
 
 import { useOnboardingStore } from "../store/onboarding-store";
 
@@ -68,7 +68,7 @@ export const OnboardingContinuationPrompt = () => {
         <button
           onClick={() => setIsVisible(false)}
           className="text-muted hover:text-emphasis absolute right-2 top-2 rounded-md p-1 transition-colors">
-          <Icon name="x" className="h-4 w-4" />
+          <XIcon className="h-4 w-4" />
         </button>
 
         <div className="mb-3 pr-6">
@@ -81,10 +81,10 @@ export const OnboardingContinuationPrompt = () => {
         </div>
 
         <div className="ml-auto flex gap-2">
-          <Button onClick={handleStartOver} color="secondary">
+          <Button onClick={handleStartOver} variant="secondary">
             {t("onboarding_start_over")}
           </Button>
-          <Button onClick={handleContinue} color="primary">
+          <Button onClick={handleContinue} variant="default">
             {t("continue")}
           </Button>
         </div>

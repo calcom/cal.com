@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Skeleton } from "@coss/ui/components/skeleton";
 
 type OnboardingCardProps = {
   title: string;
@@ -26,8 +26,8 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
         <div className="flex w-full flex-col gap-4">
           {isLoading ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <SkeletonText className="h-40 w-full" />
-              <SkeletonText className="h-40 w-full" />
+              <Skeleton className="h-40 w-full" />
+              <Skeleton className="h-40 w-full" />
             </div>
           ) : (
             children

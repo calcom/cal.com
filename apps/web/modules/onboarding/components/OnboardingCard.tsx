@@ -1,10 +1,9 @@
 "use client";
 
+import { Skeleton } from "@coss/ui/components/skeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 type OnboardingCardProps = {
   title: string;
@@ -70,8 +69,8 @@ export const OnboardingCard = ({
             }`}>
             {isLoading ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <SkeletonText className="h-40 w-full" />
-                <SkeletonText className="h-40 w-full" />
+                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-40 w-full" />
               </div>
             ) : (
               children

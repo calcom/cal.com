@@ -1,5 +1,9 @@
 "use client";
 
+import { Button } from "@coss/ui/components/button";
+import { Input } from "@coss/ui/components/input";
+import { Label } from "@coss/ui/components/label";
+import { Textarea } from "@coss/ui/components/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -10,8 +14,6 @@ import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Label, TextArea, TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -124,7 +126,7 @@ export const PersonalSettingsView = ({
             <div className="flex w-full items-center justify-end gap-4">
               {!fromTeamOnboarding && (
                 <Button
-                  color="minimal"
+                  variant="ghost"
                   className="rounded-[10px]"
                   onClick={() => router.push("/onboarding/getting-started")}>
                   {t("back")}
@@ -133,11 +135,10 @@ export const PersonalSettingsView = ({
               <Button
                 type="submit"
                 form="personal-settings-form"
-                color="primary"
+                variant="default"
                 className="rounded-[10px]"
-                loading={mutation.isPending}
                 disabled={mutation.isPending || !form.formState.isValid}>
-                {t("continue")}
+                {mutation.isPending ? t("loading") : t("continue")}
               </Button>
             </div>
           }>
@@ -181,7 +182,8 @@ export const PersonalSettingsView = ({
 
               {/* Name */}
               <div className="flex w-full flex-col gap-1.5">
-                <TextField label={t("your_name")} {...form.register("name")} placeholder="John Doe" />
+                <Label className="text-emphasis text-sm font-medium leading-4">{t("your_name")}</Label>
+                <Input {...form.register("name")} placeholder="John Doe" />
                 {form.formState.errors.name && (
                   <p className="text-error text-sm">{form.formState.errors.name.message}</p>
                 )}
@@ -204,7 +206,7 @@ export const PersonalSettingsView = ({
               {/* Bio */}
               <div className="flex w-full flex-col gap-1.5">
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("bio")}</Label>
-                <TextArea {...form.register("bio")} className="min-h-[108px]" />
+                <Textarea {...form.register("bio")} className="min-h-[108px]" />
                 {form.formState.errors.bio && (
                   <p className="text-error text-sm">{form.formState.errors.bio.message}</p>
                 )}

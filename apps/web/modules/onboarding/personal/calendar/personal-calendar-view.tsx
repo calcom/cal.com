@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@coss/ui/components/button";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -105,24 +105,23 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
         floatingFooter={true}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
+            <Button variant="ghost" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
               <Button
-                color="minimal"
+                variant="ghost"
                 className="rounded-[10px]"
                 onClick={handleSkip}
                 disabled={queryIntegrations.isPending || isSubmitting}>
                 {t("onboarding_skip_for_now")}
               </Button>
               <Button
-                color="primary"
+                variant="default"
                 className="rounded-[10px]"
                 onClick={handleContinue}
-                loading={isSubmitting}
                 disabled={queryIntegrations.isPending || isSubmitting}>
-                {t("continue")}
+                {isSubmitting ? t("loading") : t("continue")}
               </Button>
             </div>
           </div>

@@ -5,7 +5,7 @@ import React, { useEffect } from "react";
 
 import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@coss/ui/components/button";
 
 import { InviteOptions } from "../../components/InviteOptions";
 import { OnboardingCard } from "../../components/OnboardingCard";
@@ -78,7 +78,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
             footer={
               <div className="flex w-full items-center justify-between gap-4">
                 <Button
-                  color="minimal"
+                  variant="ghost"
                   className="rounded-[10px]"
                   onClick={() => router.push("/onboarding/teams/details")}
                   disabled={isSubmitting}>
@@ -86,7 +86,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
                 </Button>
                 <div className="flex items-center gap-2">
                   <Button
-                    color="minimal"
+                    variant="ghost"
                     className="rounded-[10px]"
                     onClick={handleSkip}
                     disabled={isSubmitting}>

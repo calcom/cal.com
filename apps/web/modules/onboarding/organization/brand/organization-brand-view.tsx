@@ -1,11 +1,12 @@
 "use client";
 
+import { Button } from "@coss/ui/components/button";
+import { Label } from "@coss/ui/components/label";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { ColorPicker, Label } from "@calcom/ui/components/form";
+import { ColorPicker } from "@calcom/ui/components/form";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -95,16 +96,16 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         footer={
           <div className="flex w-full items-center justify-between gap-4">
             <Button
-              color="minimal"
+              variant="ghost"
               className="rounded-[10px]"
               onClick={() => router.push("/onboarding/organization/details")}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
-              <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+              <Button variant="ghost" className="rounded-[10px]" onClick={handleSkip}>
                 {t("onboarding_skip_for_now")}
               </Button>
-              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+              <Button variant="default" className="rounded-[10px]" onClick={handleContinue}>
                 {t("continue")}
               </Button>
             </div>
@@ -130,7 +131,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button
-                      color="secondary"
+                      variant="secondary"
                       size="sm"
                       className="w-fit"
                       onClick={() => document.getElementById("banner-upload")?.click()}>
@@ -164,7 +165,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button
-                      color="secondary"
+                      variant="secondary"
                       size="sm"
                       onClick={() => document.getElementById("logo-upload")?.click()}>
                       {t("upload")}

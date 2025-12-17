@@ -1,11 +1,13 @@
 "use client";
 
+import { Button } from "@coss/ui/components/button";
+import { Input } from "@coss/ui/components/input";
+import { Label } from "@coss/ui/components/label";
+import { Textarea } from "@coss/ui/components/textarea";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -85,13 +87,13 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
         footer={
           <div className="flex w-full items-center justify-between gap-4">
             <Button
-              color="minimal"
+              variant="ghost"
               className="rounded-[10px]"
               onClick={() => router.push("/onboarding/getting-started")}>
               {t("back")}
             </Button>
             <Button
-              color="primary"
+              variant="default"
               className="rounded-[10px]"
               onClick={handleContinue}
               disabled={!isSlugValid || !organizationName || !organizationLink}>
@@ -108,7 +110,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
                   {t("organization_name")}
                 </Label>
-                <TextField
+                <Input
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
                   placeholder={t("organization_name")}
@@ -127,12 +129,10 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
                   {t("onboarding_org_bio_label")}
                 </Label>
-                <TextArea
+                <Textarea
                   value={organizationBio}
                   onChange={(e) => setOrganizationBio(e.target.value)}
                   placeholder={t("onboarding_org_bio_placeholder")}
-                  rows={4}
-                  className="border-default max-h-[200px] rounded-lg border px-2 py-2 text-sm leading-tight"
                 />
               </div>
             </div>

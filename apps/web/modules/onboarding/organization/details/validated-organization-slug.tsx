@@ -1,10 +1,15 @@
 "use client";
 
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@coss/ui/components/input-group";
+import { Label } from "@coss/ui/components/label";
+import { cn } from "@coss/ui/lib/utils";
+import { LoaderIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-
-import classNames from "@calcom/ui/classNames";
-import { Label, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { checkSlugAvailability } from "./action/check-slug-availability";
 
@@ -77,20 +82,15 @@ export function ValidatedOrganizationSlug({
   return (
     <div className="flex w-full flex-col gap-1.5">
       <Label className="text-emphasis mb-0 text-sm font-medium leading-4">Organization link</Label>
-      <TextField
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="acme"
-        addOnSuffix={
+      <InputGroup className={cn(validationState === "taken" && "border-destructive")}>
+        <InputGroupInput value={value} onChange={(e) => onChange(e.target.value)} placeholder="acme" />
+        <InputGroupAddon align="inline-end">
           <div className="flex items-center gap-2">
-            {validationState === "checking" && (
-              <Icon name="loader" className="text-subtle h-3 w-3 animate-spin" />
-            )}
-            <span className="text-subtle text-sm">.cal.com</span>
+            {validationState === "checking" && <LoaderIcon className="text-subtle h-3 w-3 animate-spin" />}
+            <InputGroupText className="text-muted-foreground text-sm">.cal.com</InputGroupText>
           </div>
-        }
-        className={classNames(validationState === "taken" ? "border-error" : "")}
-      />
+        </InputGroupAddon>
+      </InputGroup>
       {validationState === "taken" && <p className="text-error text-sm">{errorMessage}</p>}
     </div>
   );

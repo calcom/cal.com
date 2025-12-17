@@ -1,15 +1,14 @@
 "use client";
 
+import { Button } from "@coss/ui/components/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { z } from "zod";
 
 import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
 
 import { EmailInviteForm } from "../../../components/EmailInviteForm";
 import { InviteOptions } from "../../../components/InviteOptions";
@@ -144,12 +143,12 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
           subtitle={t("onboarding_org_invite_subtitle_email")}
           footer={
             <div className="flex w-full items-center justify-between gap-4">
-              <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
+              <Button variant="ghost" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
                 {t("back")}
               </Button>
               <div className="flex items-center gap-2">
                 <Button
-                  color="minimal"
+                  variant="ghost"
                   className="rounded-[10px]"
                   onClick={handleSkip}
                   disabled={isSubmitting}>
@@ -157,41 +156,42 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
                 </Button>
                 <Button
                   type="submit"
-                  color="primary"
+                  variant="default"
                   className="rounded-[10px]"
                   disabled={!hasValidInvites || isSubmitting}
-                  loading={isSubmitting}
                   onClick={form.handleSubmit(handleContinue)}>
-                  {t("continue")}
+                  {isSubmitting ? t("loading") : t("continue")}
                 </Button>
               </div>
             </div>
           }>
           <div className="flex w-full flex-col gap-4">
-            <Form form={form} handleSubmit={handleContinue} className="w-full">
-              <div className="flex w-full flex-col gap-4">
-                <EmailInviteForm
-                  fields={fields}
-                  append={append}
-                  remove={remove}
-                  defaultRole={inviteRole}
-                  showTeamSelect={hasTeams}
-                  teams={teams}
-                  emailPlaceholder={`dave@${usersEmailDomain}`}
-                />
+            <FormProvider {...form}>
+              <form onSubmit={form.handleSubmit(handleContinue)} className="w-full">
+                <div className="flex w-full flex-col gap-4">
+                  <EmailInviteForm
+                    fields={fields}
+                    append={append}
+                    remove={remove}
+                    defaultRole={inviteRole}
+                    showTeamSelect={hasTeams}
+                    teams={teams}
+                    emailPlaceholder={`dave@${usersEmailDomain}`}
+                  />
 
-                <RoleSelector
-                  value={inviteRole}
-                  showInfoBadge={true}
-                  onValueChange={(value) => {
-                    setInviteRole(value);
-                    fields.forEach((_, index) => {
-                      form.setValue(`invites.${index}.role`, value);
-                    });
-                  }}
-                />
-              </div>
-            </Form>
+                  <RoleSelector
+                    value={inviteRole}
+                    showInfoBadge={true}
+                    onValueChange={(value) => {
+                      setInviteRole(value);
+                      fields.forEach((_, index) => {
+                        form.setValue(`invites.${index}.role`, value);
+                      });
+                    }}
+                  />
+                </div>
+              </form>
+            </FormProvider>
           </div>
         </OnboardingCard>
       </div>

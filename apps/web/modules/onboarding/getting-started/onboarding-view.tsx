@@ -1,5 +1,7 @@
 "use client";
 
+import { Badge } from "@coss/ui/components/badge";
+import { Button } from "@coss/ui/components/button";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useTransition } from "react";
@@ -8,8 +10,6 @@ import { useTeamInvites } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import { type IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
@@ -143,7 +143,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
           footer={
             <div className="flex w-full justify-end gap-2">
               <Button
-                color="primary"
+                variant="default"
                 className="rounded-[10px]"
                 onClick={handleContinue}
                 disabled={isPending}>
@@ -178,13 +178,16 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
                         <div className="flex flex-wrap items-center gap-1">
                           <p className="text-emphasis text-sm font-semibold leading-4">{plan.title}</p>
                           <Badge
-                            variant="gray"
-                            size="md"
+                            variant="secondary"
+                            size="sm"
                             className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center">
                             <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
                           </Badge>
                         </div>
-                        <Badge variant="gray" size="md" className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
+                        <Badge
+                          variant="secondary"
+                          size="sm"
+                          className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
                           <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
                         </Badge>
                         <p className="text-subtle max-w-full text-sm font-medium leading-[1.25]">
