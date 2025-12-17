@@ -365,8 +365,10 @@
         "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
         "BUILD_STANDALONE",
         "NEXT_PUBLIC_API_HITPAY_PRODUCTION",
-        "NEXT_PUBLIC_API_HITPAY_SANDBOX"
-      ]
+        "NEXT_PUBLIC_API_HITPAY_SANDBOX",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
     },
     "@calcom/web#dx": {
       "cache": false,
@@ -389,8 +391,11 @@
         "LOG_LEVEL",
         "NEXTAUTH_SECRET",
         "USE_POOL",
-        "LOGGER_BRIDGE_LOG_LEVEL"
-      ]
+        "LOGGER_BRIDGE_LOG_LEVEL",
+        "REDIS_URL",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
     },
     "@calcom/ai#build": {
       "env": [
