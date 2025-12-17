@@ -34,6 +34,10 @@ inputs:
     description: "Whether to push the built image"
     required: false
     default: "false"
+  use-as-latest:
+    description: "Publish as latest"
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -61,7 +65,7 @@ runs:
           docker.io/calcom/cal.com
           ghcr.io/calcom/cal.com
         flavor: |
-          latest=${{ !github.event.release.prerelease }}
+          latest=${{ !github.event.release.prerelease && inputs.use-as-latest == 'true' }}
           suffix=${{ inputs.platform-suffix }}
 
     - name: Copy env
