@@ -471,7 +471,7 @@ export default function EventTypes() {
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
+          headerShown: Platform.OS !== "web",
           title: "Event Types",
           headerLargeTitleEnabled: true,
           headerStyle: {
