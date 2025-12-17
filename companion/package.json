@@ -55,6 +55,7 @@
   "private": true,
   "devDependencies": {
     "@types/chrome": "^0.1.31",
+    "glob": "10.3.10",
     "@types/react": "19.2.3",
     "@types/react-dom": "19.2.3",
     "babel-preset-expo": "^54.0.7",

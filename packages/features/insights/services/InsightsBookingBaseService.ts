@@ -17,11 +17,11 @@ import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { SYSTEM_PHONE_FIELDS } from "@calcom/lib/bookings/SystemField";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+
+import { transformBookingsForCsv, type BookingTimeStatusData } from "./csvDataTransformer";
 
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
@@ -485,8 +485,6 @@ export class InsightsBookingBaseService {
     offset?: number;
     timeZone: string;
   }) {
-    const DATE_FORMAT = "YYYY-MM-DD";
-    const TIME_FORMAT = "HH:mm:ss";
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -593,142 +591,8 @@ export class InsightsBookingBaseService {
       },
     });
 
-    // 3. Process bookings: extract phone data and build attendee map
-    const phoneFieldsCache = new Map<number, { name: string; label: string }[]>();
-    const allPhoneFieldLabels = new Set<string>();
-    let maxAttendees = 0;
-    const finalBookingMap = new Map<
-      string,
-      {
-        noShowGuests: string | null;
-        noShowGuestsCount: number;
-        attendeeList: string[];
-        attendeePhoneNumbers: (string | null)[];
-        phoneQuestionResponses: Record<string, string | null>;
-      }
-    >();
-
-    const extractPhoneValue = (value: unknown): string | null => {
-      if (typeof value === "string" && value.trim()) return value;
-      if (value && typeof value === "object" && "value" in value) {
-        const val = (value as { value: unknown }).value;
-        if (typeof val === "string" && val.trim()) return val;
-      }
-      return null;
-    };
-
-    for (const booking of bookings) {
-      const eventTypeId = booking.eventTypeId;
-      let phoneFields: { name: string; label: string }[] | null = null;
-
-      if (eventTypeId) {
-        if (phoneFieldsCache.has(eventTypeId)) {
-          phoneFields = phoneFieldsCache.get(eventTypeId) || null;
-        } else if (booking.eventType?.bookingFields) {
-          const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
-          if (parsed.success) {
-            phoneFields = parsed.data
-              .filter((field) => field.type === "phone" && !SYSTEM_PHONE_FIELDS.has(field.name))
-              .map((field) => ({ name: field.name, label: field.label || field.name }));
-            phoneFieldsCache.set(eventTypeId, phoneFields);
-            phoneFields.forEach((field) => allPhoneFieldLabels.add(field.label));
-          }
-        }
-      }
-
-      const attendeeList =
-        booking.seatsReferences.length > 0
-          ? booking.seatsReferences.map((ref) => ref.attendee)
-          : booking.attendees;
-
-      const formattedAttendees: string[] = [];
-      const noShowAttendees: string[] = [];
-      const attendeePhoneNumbers: (string | null)[] = [];
-      let noShowGuestsCount = 0;
-
-      const phoneQuestionResponses: Record<string, string | null> = {};
-      let systemPhoneValue: string | null = null;
-
-      if (booking.responses && typeof booking.responses === "object") {
-        const responses = booking.responses as Record<string, unknown>;
-
-        systemPhoneValue =
-          extractPhoneValue(responses.attendeePhoneNumber) ||
-          extractPhoneValue(responses.smsReminderNumber) ||
-          null;
-
-        if (phoneFields) {
-          for (const field of phoneFields) {
-            phoneQuestionResponses[field.label] = extractPhoneValue(responses[field.name]);
-          }
-        }
-      }
-
-      const firstPhoneQuestionValue = Object.values(phoneQuestionResponses).find((v) => v !== null) || null;
-      const phoneFallback = systemPhoneValue || firstPhoneQuestionValue;
-
-      for (const attendee of attendeeList) {
-        if (attendee) {
-          const formatted = `${attendee.name} (${attendee.email})`;
-          formattedAttendees.push(formatted);
-          attendeePhoneNumbers.push(attendee.phoneNumber || phoneFallback);
-          if (attendee.noShow) {
-            noShowAttendees.push(formatted);
-            noShowGuestsCount++;
-          }
-        }
-      }
-
-      if (formattedAttendees.length > maxAttendees) {
-        maxAttendees = formattedAttendees.length;
-      }
-
-      // List all no-show guests (name and email)
-      const noShowGuests = noShowAttendees.length > 0 ? noShowAttendees.join("; ") : null;
-
-      finalBookingMap.set(booking.uid, {
-        noShowGuests,
-        noShowGuestsCount,
-        attendeeList: formattedAttendees,
-        attendeePhoneNumbers,
-        phoneQuestionResponses,
-      });
-    }
-
-    // 4. Combine booking data with attendee data and format for CSV
-    const data = csvData.map((bookingTimeStatus) => {
-      const dateAndTime = {
-        createdAt: bookingTimeStatus.createdAt.toISOString(),
-        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(DATE_FORMAT),
-        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(TIME_FORMAT),
-        startTime: bookingTimeStatus.startTime.toISOString(),
-        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(DATE_FORMAT),
-        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(TIME_FORMAT),
-        endTime: bookingTimeStatus.endTime.toISOString(),
-        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
-        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
-      };
-
-      const attendeeData = bookingTimeStatus.uid ? finalBookingMap.get(bookingTimeStatus.uid) : null;
-
-      const result: Record<string, unknown> = {
-        ...bookingTimeStatus,
-        ...dateAndTime,
-        noShowGuests: attendeeData?.noShowGuests || null,
-        noShowGuestsCount: attendeeData?.noShowGuestsCount || 0,
-      };
-
-      for (let i = 1; i <= maxAttendees; i++) {
-        result[`attendee${i}`] = attendeeData?.attendeeList[i - 1] || null;
-        result[`attendeePhone${i}`] = attendeeData?.attendeePhoneNumbers[i - 1] || null;
-      }
-
-      allPhoneFieldLabels.forEach((label) => {
-        result[label] = attendeeData?.phoneQuestionResponses[label] || null;
-      });
-
-      return result;
-    });
+    // 3. Transform bookings data for CSV export
+    const data = transformBookingsForCsv(csvData as BookingTimeStatusData[], bookings, timeZone);
 
     return { data, total: totalCount };
   }

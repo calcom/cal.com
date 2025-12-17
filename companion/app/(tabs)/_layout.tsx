@@ -53,7 +53,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="event-types"
+        name="(event-types)"
         options={{
           title: "Event Types",
           tabBarIcon: ({ color, focused }) => (

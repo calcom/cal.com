@@ -2,20 +2,20 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const SkeletonEventType = () => {
   return (
-    <div className="bg-default h-24 w-full">
+    <div className="bg-default dark:bg-cal-muted h-24 w-full">
       <div className="p-5">
         <div className="flex space-x-2 rtl:space-x-reverse">
-          <div className="bg-subtle h-2 w-1/6 rounded-md" />
-          <div className="bg-subtle h-2 w-1/6 rounded-md" />
+          <div className="bg-subtle dark:bg-default h-2 w-1/6 rounded-md" />
+          <div className="bg-subtle dark:bg-default h-2 w-1/6 rounded-md" />
         </div>
         <div className="flex space-x-2 py-2 rtl:space-x-reverse">
-          <div className="bg-subtle h-2 w-1/12 rounded-md" />
-          <div className="bg-subtle h-2 w-1/6 rounded-md" />
-          <div className="bg-subtle h-2 w-1/12 rounded-md" />
+          <div className="bg-subtle dark:bg-default h-2 w-1/12 rounded-md" />
+          <div className="bg-subtle dark:bg-default h-2 w-1/6 rounded-md" />
+          <div className="bg-subtle dark:bg-default h-2 w-1/12 rounded-md" />
         </div>
         <div className="flex space-x-2 py-1 rtl:space-x-reverse">
-          <div className="bg-subtle h-6 w-1/6 rounded-md" />
-          <div className="bg-subtle h-6 w-1/6 rounded-md" />
+          <div className="bg-subtle dark:bg-default h-6 w-1/6 rounded-md" />
+          <div className="bg-subtle dark:bg-default h-6 w-1/6 rounded-md" />
         </div>
       </div>
     </div>
@@ -26,7 +26,7 @@ function EmptyPage({ name }: { name: string }) {
   const { t } = useLocale();
   return (
     <div className="relative text-center">
-      <div className="flex flex-col divide-y-2 blur-[3px]">
+      <div className="flex flex-col divide-y-2 blur-[3px] dark:divide-subtle dark:opacity-70">
         <SkeletonEventType />
         <SkeletonEventType />
         <SkeletonEventType />

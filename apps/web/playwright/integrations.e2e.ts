@@ -99,10 +99,13 @@ const addLocationIntegrationToFirstEvent = async function ({ user }: { user: { u
 };
 
 async function bookEvent(page: Page, calLink: string) {
-  // Navigate to the booking page and wait for calendar to be ready
+  // Let current month dates fully render.
+  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month gets rendered
+  // This doesn't seem to be replicable with the speed of a person, only during automation.
+  // It would also allow correct snapshot to be taken for current month.
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(1000);
   await page.goto(`/${calLink}`);
-  // Wait for the calendar day elements to be visible instead of fixed 1s wait
-  await page.locator('[data-testid="day"][data-disabled="false"]').first().waitFor({ state: "visible" });
 
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
   page.locator('[data-testid="time"]').nth(0).click();
