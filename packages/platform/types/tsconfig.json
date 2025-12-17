@@ -1,8 +1,6 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
     "target": "ES5",
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,
