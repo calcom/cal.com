@@ -21,7 +21,7 @@ jobs:
           curl ${{ env.APP_URL_US }}/api/cron/webhookTriggers \
             -X POST \
             -H 'content-type: application/json' \
-            -H 'authorization: ${{ secrets.CRON_API_KEY_US }}' \
+            -H 'authorization: ${{ env.CRON_API_KEY_US }}' \
             --fail
       - name: cURL request EU
         if: ${{ env.APP_URL_EU && env.CRON_API_KEY_EU }}
@@ -29,5 +29,5 @@ jobs:
           curl ${{ env.APP_URL_EU }}/api/cron/webhookTriggers \
             -X POST \
             -H 'content-type: application/json' \
-            -H 'authorization: ${{ secrets.CRON_API_KEY_EU }}' \
+            -H 'authorization: ${{ env.CRON_API_KEY_EU }}' \
             --fail

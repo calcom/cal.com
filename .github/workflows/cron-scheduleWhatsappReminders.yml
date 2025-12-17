@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: cURL request EU
-        if: ${{ env.APP_URL_EU && env.API_KEY_EU }}
+        if: ${{ env.APP_URL_EU && env.CRON_API_KEY_EU }}
         run: |
           curl ${{ env.APP_URL_EU }}/api/cron/workflows/scheduleWhatsappReminders \
             -X POST \
