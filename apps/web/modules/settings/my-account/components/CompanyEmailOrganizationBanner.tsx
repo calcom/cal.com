@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,6 +22,9 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
     const redirectPath = flags["onboarding-v3"]
       ? "/onboarding/organization/details"
       : "/settings/organizations/new";
+
+    posthog.capture("company_email_banner_upgrade_clicked");
+
     router.push(redirectPath);
   };
 
