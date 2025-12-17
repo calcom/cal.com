@@ -264,7 +264,7 @@ jobs:
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
-      - name: fail if required jobs failed
+      - name: fail if conditional jobs failed
         run: exit 1
         if: |
           (
