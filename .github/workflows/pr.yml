@@ -245,8 +245,6 @@ jobs:
     needs:
       [
         changes,
-        check-label,
-        deps,
         lint,
         type-check,
         unit-test,
