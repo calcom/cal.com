@@ -2857,7 +2857,7 @@ export class RegularBookingService implements IBookingService {
     input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta },
     eventType: GetEventTypeResult
   ) {
-    const isTeamEvent = eventType.schedulingType;
+    const isTeamEvent = !!eventType?.teamId;
     if (!input.bookingMeta?.reservedSlotUid || eventType.seatsPerTimeSlot || isTeamEvent) {
       return undefined;
     }
