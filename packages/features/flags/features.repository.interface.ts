@@ -39,4 +39,14 @@ export interface IFeaturesRepository {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, Record<number, FeatureState>>>;
+  /**
+   * Get user's autoOptInFeatures flag.
+   * @returns Promise<boolean> - True if user has auto opt-in enabled
+   */
+  getUserAutoOptIn(userId: number): Promise<boolean>;
+  /**
+   * Get autoOptInFeatures for multiple teams (batch).
+   * @returns Promise<Record<number, boolean>> - Map of teamId to autoOptInFeatures value
+   */
+  getTeamsAutoOptIn(teamIds: number[]): Promise<Record<number, boolean>>;
 }

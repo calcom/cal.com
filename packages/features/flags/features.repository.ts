@@ -567,4 +567,49 @@ export class FeaturesRepository implements IFeaturesRepository {
       throw err;
     }
   }
+
+  /**
+   * Get user's autoOptInFeatures flag.
+   * @param userId - The ID of the user
+   * @returns Promise<boolean> - True if user has auto opt-in enabled, false otherwise
+   */
+  async getUserAutoOptIn(userId: number): Promise<boolean> {
+    try {
+      const user = await this.prismaClient.user.findUnique({
+        where: { id: userId },
+        select: { autoOptInFeatures: true },
+      });
+      return user?.autoOptInFeatures ?? false;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Get autoOptInFeatures for multiple teams (batch).
+   * @param teamIds - Array of team IDs to query
+   * @returns Promise<Record<number, boolean>> - Map of teamId to autoOptInFeatures value
+   */
+  async getTeamsAutoOptIn(teamIds: number[]): Promise<Record<number, boolean>> {
+    if (teamIds.length === 0) {
+      return {};
+    }
+
+    try {
+      const teams = await this.prismaClient.team.findMany({
+        where: { id: { in: teamIds } },
+        select: { id: true, autoOptInFeatures: true },
+      });
+
+      const result: Record<number, boolean> = {};
+      for (const team of teams) {
+        result[team.id] = team.autoOptInFeatures;
+      }
+      return result;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }

@@ -1094,7 +1094,7 @@ describe("FeaturesRepository Integration Tests", () => {
     });
 
     it("should return states for multiple features in a single query", async () => {
-      const testFeature2 = "organizations" as FeatureId;
+      const testFeature2 = `${testFeature}2` as FeatureId;
 
       await prisma.feature.createMany({
         data: [
@@ -1289,6 +1289,90 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.feature.deleteMany({
         where: { slug: secondFeature },
       });
+    });
+  });
+
+  describe("getUserAutoOptIn", () => {
+    it("should return false when user has autoOptInFeatures=false (default)", async () => {
+      const result = await featuresRepository.getUserAutoOptIn(testUser.id);
+      expect(result).toBe(false);
+    });
+
+    it("should return true when user has autoOptInFeatures=true", async () => {
+      await prisma.user.update({
+        where: { id: testUser.id },
+        data: { autoOptInFeatures: true },
+      });
+
+      const result = await featuresRepository.getUserAutoOptIn(testUser.id);
+      expect(result).toBe(true);
+
+      // Reset
+      await prisma.user.update({
+        where: { id: testUser.id },
+        data: { autoOptInFeatures: false },
+      });
+    });
+
+    it("should return false for non-existent user", async () => {
+      const result = await featuresRepository.getUserAutoOptIn(999999);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("getTeamsAutoOptIn", () => {
+    it("should return empty object for empty teamIds array", async () => {
+      const result = await featuresRepository.getTeamsAutoOptIn([]);
+      expect(result).toEqual({});
+    });
+
+    it("should return false for team with autoOptInFeatures=false (default)", async () => {
+      const result = await featuresRepository.getTeamsAutoOptIn([testTeam.id]);
+      expect(result[testTeam.id]).toBe(false);
+    });
+
+    it("should return true for team with autoOptInFeatures=true", async () => {
+      await prisma.team.update({
+        where: { id: testTeam.id },
+        data: { autoOptInFeatures: true },
+      });
+
+      const result = await featuresRepository.getTeamsAutoOptIn([testTeam.id]);
+      expect(result[testTeam.id]).toBe(true);
+
+      // Reset
+      await prisma.team.update({
+        where: { id: testTeam.id },
+        data: { autoOptInFeatures: false },
+      });
+    });
+
+    it("should return values for multiple teams in a single query", async () => {
+      const secondTeam = await prisma.team.create({
+        data: {
+          name: `Second Team ${Date.now()}`,
+          slug: `second-team-auto-opt-in-${Date.now()}`,
+          autoOptInFeatures: true,
+        },
+      });
+
+      // testTeam has autoOptInFeatures=false (default)
+      // secondTeam has autoOptInFeatures=true
+
+      const result = await featuresRepository.getTeamsAutoOptIn([testTeam.id, secondTeam.id]);
+      expect(result[testTeam.id]).toBe(false);
+      expect(result[secondTeam.id]).toBe(true);
+
+      // Clean up
+      await prisma.team.delete({
+        where: { id: secondTeam.id },
+      });
+    });
+
+    it("should not include non-existent teams in result", async () => {
+      const result = await featuresRepository.getTeamsAutoOptIn([testTeam.id, 999999]);
+      expect(result[testTeam.id]).toBe(false);
+      expect(result[999999]).toBeUndefined();
     });
   });
 });

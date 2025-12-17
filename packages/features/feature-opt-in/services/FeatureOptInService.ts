@@ -7,10 +7,14 @@ import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
 type ResolvedFeatureState = {
   featureId: FeatureId;
   globalEnabled: boolean;
-  orgState: FeatureState;
-  teamStates: FeatureState[];
-  userState: FeatureState | undefined;
+  orgState: FeatureState; // Raw state (before auto-opt-in transform)
+  teamStates: FeatureState[]; // Raw states
+  userState: FeatureState | undefined; // Raw state
   effectiveEnabled: boolean;
+  // Auto-opt-in flags for UI to show checkbox state
+  orgAutoOptIn: boolean;
+  teamAutoOptIns: boolean[];
+  userAutoOptIn: boolean;
 };
 
 /**
@@ -32,6 +36,10 @@ export class FeatureOptInService {
    * 6. At least one team enabled OR inherits → allowed at team level, continue to user
    * 7. User explicitly disabled → false
    * 8. User explicitly enabled OR inherits → true
+   *
+   * Auto-opt-in transformation:
+   * - If autoOptInFeatures=true at a level AND state is "inherit", transform to "enabled"
+   * - This transformation happens before computing effectiveEnabled
    */
   async resolveFeatureStatesAcrossTeams({
     userId,
@@ -62,35 +70,58 @@ export class FeatureOptInService {
       featureIds,
     });
 
+    // Fetch auto-opt-in flags
+    const userAutoOptIn = await this.featuresRepository.getUserAutoOptIn(userId);
+    const teamsAutoOptIn = await this.featuresRepository.getTeamsAutoOptIn(allTeamIds);
+
     const resolvedStates: Record<string, ResolvedFeatureState> = {};
 
     for (const featureId of featureIds) {
       const globalEnabled = globalEnabledMap.get(featureId) ?? false;
       const teamStatesById = allTeamStates[featureId] ?? {};
 
-      // Extract org state from the combined result
+      // Extract raw org state from the combined result
       const orgState: FeatureState = orgId !== null ? teamStatesById[orgId] ?? "inherit" : "inherit";
 
-      // Extract team states from the combined result
+      // Extract raw team states from the combined result
       const teamStates = teamIds.map((teamId) => teamStatesById[teamId] ?? "inherit");
 
       const userState = userStates[featureId] ?? "inherit";
 
-      // Compute effective state
+      // Get auto-opt-in flags for this feature's hierarchy
+      const orgAutoOptIn = orgId !== null ? teamsAutoOptIn[orgId] ?? false : false;
+      const teamAutoOptIns = teamIds.map((teamId) => teamsAutoOptIn[teamId] ?? false);
+
+      // Apply auto-opt-in transformation: if state is "inherit" AND autoOptIn is true → convert to "enabled"
+      const effectiveOrgState: FeatureState = orgState === "inherit" && orgAutoOptIn ? "enabled" : orgState;
+
+      const effectiveTeamStates: FeatureState[] = teamStates.map((state, index) => {
+        const autoOptIn = teamAutoOptIns[index];
+        return state === "inherit" && autoOptIn ? "enabled" : state;
+      });
+
+      const effectiveUserState: FeatureState =
+        userState === "inherit" && userAutoOptIn ? "enabled" : userState;
+
+      // Compute effective state with transformed states
       const effectiveEnabled = computeEffectiveStateAcrossTeams({
         globalEnabled,
-        orgState,
-        teamStates,
-        userState,
+        orgState: effectiveOrgState,
+        teamStates: effectiveTeamStates,
+        userState: effectiveUserState,
       });
 
       resolvedStates[featureId] = {
         featureId,
         globalEnabled,
-        orgState,
-        teamStates,
-        userState,
+        orgState, // Raw state (before auto-opt-in transform)
+        teamStates, // Raw states
+        userState, // Raw state
         effectiveEnabled,
+        // Auto-opt-in flags for UI
+        orgAutoOptIn,
+        teamAutoOptIns,
+        userAutoOptIn,
       };
     }
 
