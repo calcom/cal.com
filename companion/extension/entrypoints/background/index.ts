@@ -11,6 +11,34 @@ const devLog = {
   error: (...args: unknown[]) => console.error("[Cal.com]", ...args),
 };
 
+// Check if the URL is a restricted page where content scripts can't run
+function isRestrictedUrl(url: string | undefined): boolean {
+  if (!url) return true;
+
+  // List of restricted URL patterns
+  const restrictedPatterns = [
+    /^chrome:\/\//i, // Chrome internal pages (newtab, settings, extensions, etc.)
+    /^chrome-extension:\/\//i, // Other extension pages
+    /^edge:\/\//i, // Edge internal pages
+    /^about:/i, // about:blank, about:newtab, etc.
+    /^brave:\/\//i, // Brave internal pages
+    /^opera:\/\//i, // Opera internal pages
+    /^vivaldi:\/\//i, // Vivaldi internal pages
+    /^file:\/\//i, // Local files (content scripts often blocked)
+    /^view-source:/i, // View source pages
+    /^devtools:\/\//i, // DevTools pages
+    /^data:/i, // Data URLs
+    /^blob:/i, // Blob URLs
+  ];
+
+  return restrictedPatterns.some((pattern) => pattern.test(url));
+}
+
+// Open cal.com/app (Framer marketing page) in a new tab with auto-open parameter
+function openAppPage(): void {
+  chrome.tabs.create({ url: "https://cal.com/app?openExtension=true" });
+}
+
 // @ts-ignore - WXT provides this globally
 export default defineBackground(() => {
   if (IS_DEV_MODE) {
@@ -18,9 +46,17 @@ export default defineBackground(() => {
   }
 
   chrome.action.onClicked.addListener((tab) => {
+    // Check if this is a restricted URL where content scripts can't run
+    if (isRestrictedUrl(tab.url)) {
+      devLog.log("Restricted URL detected, opening app page:", tab.url);
+      openAppPage();
+      return;
+    }
+
     if (tab.id) {
       chrome.tabs.sendMessage(tab.id, { action: "icon-clicked" }, () => {
-        // Ignore errors - expected on pages where content script isn't loaded
+        // Ignore errors - expected on pages where content script hasn't loaded yet
+        // The restricted URL check above handles pages where content scripts can't run
         void chrome.runtime.lastError;
       });
     }
