@@ -80,6 +80,7 @@ export interface IGetAvailableSlots {
       toUser?: IToUser | undefined;
       reason?: string | undefined;
       emoji?: string | undefined;
+      showNotePublicly?: boolean | undefined;
     }[]
   >;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,11 +1,23 @@
 /// <reference types="chrome" />
 import { fromByteArray } from "base64-js";
-import * as AuthSession from "expo-auth-session";
+import type * as AuthSession from "expo-auth-session";
 import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 
 WebBrowser.maybeCompleteAuthSession();
+
+// Message types for extension communication
+const EXTENSION_MESSAGE_TYPES = {
+  OAUTH_REQUEST: "cal-extension-oauth-request",
+  OAUTH_RESULT: "cal-extension-oauth-result",
+  TOKEN_EXCHANGE_REQUEST: "cal-extension-token-exchange-request",
+  TOKEN_EXCHANGE_RESULT: "cal-extension-token-exchange-result",
+} as const;
+
+// Timeouts
+const OAUTH_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes for user interaction
+const TOKEN_EXCHANGE_TIMEOUT_MS = 30 * 1000; // 30 seconds for API call
 
 export interface OAuthTokens {
   accessToken: string;
@@ -47,16 +59,13 @@ export class CalComOAuthService {
       codeVerifier,
       { encoding: Crypto.CryptoEncoding.BASE64 }
     );
-
     return base64Hash.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
   }
 
   private generateRandomBase64Url(): string {
     const bytes = new Uint8Array(Crypto.getRandomBytes(32));
-
     const base64 =
       typeof btoa !== "undefined" ? btoa(String.fromCharCode(...bytes)) : fromByteArray(bytes);
-
     return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
   }
 
@@ -73,26 +82,30 @@ export class CalComOAuthService {
     return `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
   }
 
+  private parseCallbackUrl(url: string): Record<string, string> {
+    const parsed = new URL(url);
+    const params: Record<string, string> = {};
+    parsed.searchParams.forEach((v, k) => {
+      params[k] = v;
+    });
+    return params;
+  }
+
   private isMobileApp(): boolean {
     return Platform.OS !== "web";
+  }
+
+  private isRunningInIframe(): boolean {
+    return Platform.OS === "web" && typeof window !== "undefined" && window.parent !== window;
   }
 
   async startAuthorizationFlow(): Promise<OAuthTokens> {
     const { codeChallenge, state } = await this.generatePKCEParams();
 
     if (Platform.OS === "web" && typeof window !== "undefined") {
-      const storedCode = window.localStorage.getItem(`oauth_callback_code_${state}`);
-      const storedState = window.localStorage.getItem(`oauth_callback_state_${state}`);
-
-      if (storedCode && storedState) {
-        if (storedState !== state) {
-          throw new Error("Invalid state parameter");
-        }
-
-        window.localStorage.removeItem(`oauth_callback_code_${state}`);
-        window.localStorage.removeItem(`oauth_callback_state_${state}`);
-
-        return this.exchangeCodeForTokens(storedCode, state);
+      const storedTokens = this.checkForStoredCallback(state);
+      if (storedTokens) {
+        return storedTokens;
       }
     }
 
@@ -102,8 +115,7 @@ export class CalComOAuthService {
       throw new Error("OAuth flow failed");
     }
 
-    const code = result.params.code;
-    const returnedState = result.params.state;
+    const { code, state: returnedState } = result.params;
 
     if (!code) {
       throw new Error("No authorization code received");
@@ -113,7 +125,25 @@ export class CalComOAuthService {
       throw new Error("Invalid state parameter");
     }
 
-    return this.exchangeCodeForTokens(code, state);
+    return this.exchangeCodeForTokens(code, returnedState);
+  }
+
+  private checkForStoredCallback(state: string): Promise<OAuthTokens> | null {
+    const storedCode = window.localStorage.getItem(`oauth_callback_code_${state}`);
+    const storedState = window.localStorage.getItem(`oauth_callback_state_${state}`);
+
+    if (!storedCode || !storedState) {
+      return null;
+    }
+
+    if (storedState !== state) {
+      throw new Error("Invalid state parameter");
+    }
+
+    window.localStorage.removeItem(`oauth_callback_code_${state}`);
+    window.localStorage.removeItem(`oauth_callback_state_${state}`);
+
+    return this.exchangeCodeForTokens(storedCode, storedState);
   }
 
   private async getAuthorizationResult(
@@ -123,22 +153,34 @@ export class CalComOAuthService {
     const authUrl = this.buildAuthorizationUrl(codeChallenge, state);
 
     if (this.isMobileApp()) {
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri, {
-        preferEphemeralSession: false,
-      });
+      return this.getMobileAuthResult(authUrl);
+    }
 
-      if (result.type === "success") {
-        return { type: "success", params: this.parseCallbackUrl(result.url) };
-      }
+    return this.getExtensionAuthResult(authUrl);
+  }
 
+  private async getMobileAuthResult(
+    authUrl: string
+  ): Promise<{ type: "success"; params: Record<string, string> } | { type: "error" }> {
+    const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri, {
+      preferEphemeralSession: false,
+    });
+
+    if (result.type === "success") {
+      return { type: "success", params: this.parseCallbackUrl(result.url) };
+    }
+
+    return { type: "error" };
+  }
+
+  private async getExtensionAuthResult(
+    authUrl: string
+  ): Promise<{ type: "success"; params: Record<string, string> } | { type: "error" }> {
+    try {
+      const responseUrl = await this.launchExtensionAuthFlow(authUrl);
+      return { type: "success", params: this.parseCallbackUrl(responseUrl) };
+    } catch {
       return { type: "error" };
-    } else {
-      try {
-        const responseUrl = await this.launchExtensionAuthFlow(authUrl);
-        return { type: "success", params: this.parseCallbackUrl(responseUrl) };
-      } catch {
-        return { type: "error" };
-      }
     }
   }
 
@@ -157,49 +199,83 @@ export class CalComOAuthService {
         return;
       }
 
+      if (this.isRunningInIframe()) {
+        this.requestOAuthViaPostMessage(authUrl, resolve, reject);
+        return;
+      }
+
       reject(new Error("Extension context not available"));
     });
   }
 
-  private async getDiscoveryEndpoints(): Promise<AuthSession.DiscoveryDocument> {
-    return {
-      authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
-      tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
-      revocationEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/revoke`,
+  private requestOAuthViaPostMessage(
+    authUrl: string,
+    resolve: (url: string) => void,
+    reject: (error: Error) => void
+  ): void {
+    const timeoutId = setTimeout(() => {
+      window.removeEventListener("message", messageHandler);
+      reject(new Error("OAuth flow timed out"));
+    }, OAUTH_TIMEOUT_MS);
+
+    const messageHandler = (event: MessageEvent) => {
+      // Validate message source - must come from parent window (content script)
+      if (event.source !== window.parent) {
+        return;
+      }
+      if (event.data.type !== EXTENSION_MESSAGE_TYPES.OAUTH_RESULT) {
+        return;
+      }
+
+      clearTimeout(timeoutId);
+      window.removeEventListener("message", messageHandler);
+
+      if (event.data.success && event.data.responseUrl) {
+        resolve(event.data.responseUrl);
+      } else {
+        reject(new Error(event.data.error || "OAuth flow failed"));
+      }
     };
+
+    window.addEventListener("message", messageHandler);
+    // Using "*" for targetOrigin because parent is the host page (e.g., gmail.com).
+    // Security: source validation above ensures responses only come from parent window.
+    window.parent.postMessage({ type: EXTENSION_MESSAGE_TYPES.OAUTH_REQUEST, authUrl }, "*");
   }
 
-  private parseCallbackUrl(url: string): Record<string, string> {
-    const parsed = new URL(url);
-    const params: Record<string, string> = {};
-
-    parsed.searchParams.forEach((v, k) => {
-      params[k] = v;
-    });
-
-    return params;
-  }
-
-  private async exchangeCodeForTokens(code: string): Promise<OAuthTokens> {
+  private async exchangeCodeForTokens(code: string, state?: string): Promise<OAuthTokens> {
     if (!this.codeVerifier) {
       throw new Error("Missing code verifier");
     }
 
-    const body = new URLSearchParams({
+    const tokenRequest = {
       grant_type: "authorization_code",
       client_id: this.config.clientId,
       code,
       redirect_uri: this.config.redirectUri,
       code_verifier: this.codeVerifier,
-    });
+    };
 
-    const response = await fetch(`${this.config.calcomBaseUrl}/api/auth/oauth/token`, {
+    const tokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/token`;
+
+    if (this.isRunningInIframe()) {
+      return this.exchangeCodeForTokensViaExtension(tokenRequest, tokenEndpoint, state);
+    }
+
+    return this.exchangeCodeForTokensDirect(tokenRequest, tokenEndpoint);
+  }
+
+  private async exchangeCodeForTokensDirect(
+    tokenRequest: Record<string, string>,
+    tokenEndpoint: string
+  ): Promise<OAuthTokens> {
+    const response = await fetch(tokenEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
       },
-      body: body.toString(),
+      body: new URLSearchParams(tokenRequest).toString(),
     });
 
     if (!response.ok) {
@@ -217,12 +293,64 @@ export class CalComOAuthService {
     };
   }
 
+  private async exchangeCodeForTokensViaExtension(
+    tokenRequest: Record<string, string>,
+    tokenEndpoint: string,
+    state?: string
+  ): Promise<OAuthTokens> {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        reject(new Error("Token exchange timed out"));
+      }, TOKEN_EXCHANGE_TIMEOUT_MS);
+
+      const messageHandler = (event: MessageEvent) => {
+        // Validate message source - must come from parent window (content script)
+        if (event.source !== window.parent) {
+          return;
+        }
+        if (event.data.type !== EXTENSION_MESSAGE_TYPES.TOKEN_EXCHANGE_RESULT) {
+          return;
+        }
+
+        clearTimeout(timeoutId);
+        window.removeEventListener("message", messageHandler);
+
+        if (event.data.success && event.data.tokens) {
+          resolve(event.data.tokens);
+        } else {
+          reject(new Error(event.data.error || "Token exchange failed"));
+        }
+      };
+
+      window.addEventListener("message", messageHandler);
+      // See comment in requestOAuthViaPostMessage for security rationale
+      window.parent.postMessage(
+        {
+          type: EXTENSION_MESSAGE_TYPES.TOKEN_EXCHANGE_REQUEST,
+          tokenRequest,
+          tokenEndpoint,
+          state,
+        },
+        "*"
+      );
+    });
+  }
+
+  getDiscoveryEndpoints(): AuthSession.DiscoveryDocument {
+    return {
+      authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
+      tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
+      revocationEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/revoke`,
+    };
+  }
+
   isTokenExpired(tokens: OAuthTokens): boolean {
     if (!tokens.expiresAt) return false;
     return Date.now() >= tokens.expiresAt - 5 * 60 * 1000;
   }
 
-  clearPKCEParams() {
+  clearPKCEParams(): void {
     this.codeVerifier = null;
     this.state = null;
   }
