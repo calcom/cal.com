@@ -2,13 +2,7 @@
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
     "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "baseUrl": ".",
-    "paths": {
-      "@coss/ui/*": ["../coss-ui/src/*"]
-    }
+    "experimentalDecorators": true
   },
   "include": [
     "../types/window.d.ts",
