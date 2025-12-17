@@ -27,7 +27,7 @@ import {
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
-import { slugify } from "@calcom/platform-libraries";
+import { slugifyLenient } from "@calcom/platform-libraries";
 import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import {
   validateCustomEventName,
@@ -146,7 +146,7 @@ export class InputEventTypesService_2024_06_14 {
       ? this.transformInputBookerActiveBookingsLimit(bookerActiveBookingsLimit)
       : {};
 
-    const slugifiedSlug = slugify(slug);
+    const slugifiedSlug = slugifyLenient(slug);
 
     const metadata: EventTypeMetadata = {
       bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
@@ -249,7 +249,7 @@ export class InputEventTypesService_2024_06_14 {
 
     const eventType = {
       ...rest,
-      ...(slug ? { slug: slugify(slug) } : {}),
+      ...(slug ? { slug: slugifyLenient(slug) } : {}),
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
       bookingFields: effectiveBookingFields
