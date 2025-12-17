@@ -5,7 +5,6 @@ import { memo, useMemo, useCallback, useState } from "react";
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { OutOfOfficeToggleGroup } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
-import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -22,6 +21,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { HolidayConflictsDialog } from "@components/dialog/HolidayConflictsDialog";
+import { HolidayEmojiBox } from "@components/holidays/HolidayEmojiBox";
 
 function HolidaysCTA() {
   const { t } = useLocale();
@@ -111,14 +111,11 @@ const HolidayListItem = memo(function HolidayListItem({
   isToggling: boolean;
 }) {
   const formattedDate = holiday.date ? dayjs(holiday.date).format("D MMM, YYYY") : null;
-  const emoji = getHolidayEmoji(holiday.name);
 
   return (
     <div className="border-subtle hover:bg-subtle/50 flex items-center justify-between border-b px-5 py-4 transition-colors last:border-b-0">
       <div className="flex items-center gap-3">
-        <div className="bg-subtle dark:bg-emphasis flex h-10 w-10 items-center justify-center rounded-lg">
-          <span className="text-xl">{emoji}</span>
-        </div>
+        <HolidayEmojiBox holidayName={holiday.name} />
         <div>
           <p className={holiday.enabled ? "text-emphasis font-medium" : "text-muted font-medium"}>
             {holiday.name}
@@ -402,8 +399,8 @@ export function HolidaysView() {
 
       {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
         <HolidayConflictsDialog
-          isOpen={conflictsDialogOpen}
-          setIsOpen={setConflictsDialogOpen}
+          isOpenDialog={conflictsDialogOpen}
+          setIsOpenDialog={setConflictsDialogOpen}
           conflicts={conflictsData.conflicts}
           userTimeZone={user?.timeZone}
           userTimeFormat={user?.timeFormat}

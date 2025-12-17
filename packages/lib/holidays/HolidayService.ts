@@ -16,7 +16,9 @@ export interface ConflictingBooking {
   startTime: Date;
   endTime: Date;
   hostName: string | null;
-  attendees: string[];
+  hostEmail: string | null;
+  hostUsername: string | null;
+  attendees: Array<{ name: string | null; email: string }>;
 }
 
 export interface HolidayConflict {
@@ -258,7 +260,9 @@ export class HolidayService {
             startTime: b.startTime,
             endTime: b.endTime,
             hostName: b.user?.name || null,
-            attendees: b.attendees.map((a) => a.name),
+            hostEmail: b.user?.email || null,
+            hostUsername: b.user?.username || null,
+            attendees: b.attendees.map((a) => ({ name: a.name, email: a.email })),
           })),
         });
       }

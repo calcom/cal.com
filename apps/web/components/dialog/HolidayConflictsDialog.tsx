@@ -1,10 +1,9 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { memo, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { formatTime } from "@calcom/lib/dayjs";
-import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -19,15 +18,17 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 
+import { HolidayEmojiBox } from "@components/holidays/HolidayEmojiBox";
+
 import { CancelBookingDialog } from "./CancelBookingDialog";
 import { RescheduleDialog } from "./RescheduleDialog";
 
 type HolidayConflict = RouterOutputs["viewer"]["holidays"]["checkConflicts"]["conflicts"][number];
 type ConflictingBooking = HolidayConflict["bookings"][number];
 
-interface HolidayConflictsDialogProps {
-  isOpen: boolean;
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
+interface IHolidayConflictsDialog {
+  isOpenDialog: boolean;
+  setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   conflicts: HolidayConflict[];
   userTimeZone?: string;
   userTimeFormat?: number | null;
@@ -41,7 +42,7 @@ interface BookingItemProps {
   onCancel: (booking: ConflictingBooking) => void;
 }
 
-function BookingItem({
+const BookingItem = memo(function BookingItem({
   booking,
   userTimeZone,
   userTimeFormat,
@@ -63,8 +64,8 @@ function BookingItem({
     if (!booking.attendees || booking.attendees.length === 0) {
       return t("you");
     }
-    // Show "You and attendee1, attendee2, ..."
-    const attendeeNames = booking.attendees.join(", ");
+    // Show "You and attendee1, attendee2, ..." - use name if available, otherwise email
+    const attendeeNames = booking.attendees.map((a) => a.name || a.email).join(", ");
     return `${t("you")} ${t("and")} ${attendeeNames}`;
   };
 
@@ -127,9 +128,9 @@ function BookingItem({
       </div>
     </div>
   );
-}
+});
 
-function HolidaySection({
+const HolidaySection = memo(function HolidaySection({
   conflict,
   userTimeZone,
   userTimeFormat,
@@ -142,16 +143,13 @@ function HolidaySection({
   onRescheduleRequest: (bookingUid: string) => void;
   onCancel: (booking: ConflictingBooking) => void;
 }) {
-  const emoji = getHolidayEmoji(conflict.holidayName);
   const formattedDate = dayjs(conflict.date).format("ddd, D MMM YYYY");
 
   return (
     <div className="mb-5 last:mb-0">
       {/* Holiday header */}
       <div className="mb-2 flex items-center gap-3">
-        <div className="bg-subtle dark:bg-emphasis flex h-10 w-10 items-center justify-center rounded-lg">
-          <span className="text-xl">{emoji}</span>
-        </div>
+        <HolidayEmojiBox holidayName={conflict.holidayName} />
         <div>
           <p className="text-emphasis text-sm font-semibold">{conflict.holidayName}</p>
           <p className="text-subtle dark:text-default text-xs">{formattedDate}</p>
@@ -172,15 +170,15 @@ function HolidaySection({
       </div>
     </div>
   );
-}
+});
 
 export function HolidayConflictsDialog({
-  isOpen,
-  setIsOpen,
+  isOpenDialog,
+  setIsOpenDialog,
   conflicts,
   userTimeZone,
   userTimeFormat,
-}: HolidayConflictsDialogProps) {
+}: IHolidayConflictsDialog) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -223,7 +221,7 @@ export function HolidayConflictsDialog({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
         <DialogContent
           enableOverflow
           preventCloseOnOutsideClick
@@ -247,7 +245,7 @@ export function HolidayConflictsDialog({
             ))}
           </div>
           <DialogFooter showDivider className="mt-6">
-            <Button color="secondary" onClick={() => setIsOpen(false)}>
+            <Button color="secondary" onClick={() => setIsOpenDialog(false)}>
               {t("close")}
             </Button>
           </DialogFooter>
@@ -273,15 +271,15 @@ export function HolidayConflictsDialog({
             startTime: new Date(cancelBooking.startTime),
           }}
           profile={{
-            name: null,
-            slug: null,
+            name: cancelBooking.hostName,
+            slug: cancelBooking.hostUsername,
           }}
           recurringEvent={null}
           bookingCancelledEventProps={{
             booking: cancelBooking,
             organizer: {
-              name: "Organizer",
-              email: "",
+              name: cancelBooking.hostName || "Organizer",
+              email: cancelBooking.hostEmail || "",
             },
             eventType: null,
           }}

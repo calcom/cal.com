@@ -208,10 +208,10 @@ export class HolidayRepository {
         startTime: true,
         endTime: true,
         user: {
-          select: { name: true },
+          select: { name: true, email: true, username: true },
         },
         attendees: {
-          select: { name: true },
+          select: { name: true, email: true },
         },
       },
     });
