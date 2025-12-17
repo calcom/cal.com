@@ -6,16 +6,27 @@ on:
     tags:
       - "*"
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
+        with:
+          app-id: ${{ secrets.CI_CAL_APP_ID }}
+          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+          repositories: 'cal.com'
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: 'main'
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
 
       - name: Configure git
         run: |
