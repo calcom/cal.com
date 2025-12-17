@@ -3,16 +3,13 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { BookingWebhookEventDTO, EventTypeInfo } from "../../dto/types";
-import { BaseBookingPayloadBuilder } from "./BaseBookingPayloadBuilder";
-
-class TestBookingPayloadBuilder extends BaseBookingPayloadBuilder {}
-
+import { BookingPayloadBuilder } from "../versioned/v2021-10-20/BookingPayloadBuilder";
 
 vi.mock("@calcom/lib/dayjs", () => ({
   getUTCOffsetByTimezone: vi.fn(() => 0),
 }));
 
-describe("BaseBookingPayloadBuilder", () => {
+describe("BookingPayloadBuilder (v2021-10-20)", () => {
   const mockEventType: EventTypeInfo = {
     eventTitle: "Test Event",
     eventDescription: "Test Description",
@@ -68,7 +65,7 @@ describe("BaseBookingPayloadBuilder", () => {
     ...extra,
   });
 
-  const builder = new TestBookingPayloadBuilder();
+  const builder = new BookingPayloadBuilder();
 
   describe("BOOKING_CREATED", () => {
     it("should build payload with ACCEPTED status", () => {
@@ -214,4 +211,3 @@ describe("BaseBookingPayloadBuilder", () => {
     });
   });
 });
-

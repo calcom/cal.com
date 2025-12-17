@@ -2,13 +2,10 @@ import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { FormSubmittedDTO, FormSubmittedNoEventDTO } from "../../dto/types";
-import { BaseFormPayloadBuilder } from "./BaseFormPayloadBuilder";
+import { FormPayloadBuilder } from "../versioned/v2021-10-20/FormPayloadBuilder";
 
-// Concrete implementation for testing
-class TestFormPayloadBuilder extends BaseFormPayloadBuilder {}
-
-describe("BaseFormPayloadBuilder", () => {
-  const builder = new TestFormPayloadBuilder();
+describe("FormPayloadBuilder (v2021-10-20)", () => {
+  const builder = new FormPayloadBuilder();
 
   const createMockDTO = (
     triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT
@@ -84,4 +81,3 @@ describe("BaseFormPayloadBuilder", () => {
     });
   });
 });
-

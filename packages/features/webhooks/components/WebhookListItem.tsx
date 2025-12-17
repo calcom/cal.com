@@ -3,6 +3,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { Webhook } from "../lib/dto/types";
+import { getWebhookVersionLabel } from "../lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -88,7 +89,7 @@ export default function WebhookListItem(props: {
           <Tooltip content={t("webhook_version")}>
             <div className="flex items-center">
               <Badge variant="blue" className="ml-2">
-                {webhook.version.replace("V_", "").replace(/_/g, "-")}
+                {getWebhookVersionLabel(webhook.version)}
               </Badge>
             </div>
           </Tooltip>

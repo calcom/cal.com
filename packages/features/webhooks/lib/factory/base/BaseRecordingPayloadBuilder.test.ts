@@ -2,13 +2,10 @@ import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { RecordingReadyDTO, TranscriptionGeneratedDTO } from "../../dto/types";
-import { BaseRecordingPayloadBuilder } from "./BaseRecordingPayloadBuilder";
+import { RecordingPayloadBuilder } from "../versioned/v2021-10-20/RecordingPayloadBuilder";
 
-// Concrete implementation for testing
-class TestRecordingPayloadBuilder extends BaseRecordingPayloadBuilder {}
-
-describe("BaseRecordingPayloadBuilder", () => {
-  const builder = new TestRecordingPayloadBuilder();
+describe("RecordingPayloadBuilder (v2021-10-20)", () => {
+  const builder = new RecordingPayloadBuilder();
 
   describe("RECORDING_READY", () => {
     it("should build payload with download link", () => {
@@ -47,4 +44,3 @@ describe("BaseRecordingPayloadBuilder", () => {
     });
   });
 });
-

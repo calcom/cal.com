@@ -3,20 +3,18 @@ import type { WebhookPayload } from "../types";
 import type { IOOOPayloadBuilder } from "../versioned/PayloadBuilderFactory";
 
 /**
- * Base OOO (Out of Office) payload builder with shared logic.
- * Version-specific builders can extend this and override methods as needed.
+ * Abstract base class for OOO (Out of Office) payload builders.
+ *
+ * This class defines the interface that all version-specific OOO payload
+ * builders must implement. It does NOT contain any version-specific payload logic.
+ *
+ * Each webhook version should have its own concrete implementation in
+ * versioned/v{VERSION}/OOOPayloadBuilder.ts
  */
 export abstract class BaseOOOPayloadBuilder implements IOOOPayloadBuilder {
   /**
    * Build the OOO webhook payload.
-   * Override this method in version-specific builders to modify the payload structure.
+   * Each version must implement this method with its specific payload structure.
    */
-  build(dto: OOOCreatedDTO): WebhookPayload {
-    return {
-      triggerEvent: dto.triggerEvent,
-      createdAt: dto.createdAt,
-      payload: { oooEntry: dto.oooEntry },
-    };
-  }
+  abstract build(dto: OOOCreatedDTO): WebhookPayload;
 }
-

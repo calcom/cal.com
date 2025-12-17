@@ -2,13 +2,10 @@ import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { InstantMeetingDTO } from "../../dto/types";
-import { BaseInstantMeetingBuilder } from "./BaseInstantMeetingBuilder";
+import { InstantMeetingBuilder } from "../versioned/v2021-10-20/InstantMeetingBuilder";
 
-// Concrete implementation for testing
-class TestInstantMeetingBuilder extends BaseInstantMeetingBuilder {}
-
-describe("BaseInstantMeetingBuilder", () => {
-  const builder = new TestInstantMeetingBuilder();
+describe("InstantMeetingBuilder (v2021-10-20)", () => {
+  const builder = new InstantMeetingBuilder();
 
   describe("INSTANT_MEETING", () => {
     it("should build payload with all instant meeting fields", () => {
@@ -41,4 +38,3 @@ describe("BaseInstantMeetingBuilder", () => {
     });
   });
 });
-

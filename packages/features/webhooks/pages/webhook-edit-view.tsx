@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { WebhookVersion } from "../lib/interface/IWebhookRepository";
-import { WebhookVersion as WebhookVersionEnum } from "../lib/interface/IWebhookRepository";
+import { WEBHOOK_VERSION_OPTIONS, getWebhookVersionLabel } from "../lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
@@ -78,13 +78,10 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
               <div>
                 <Select
                   className="min-w-36"
-                  options={[{ value: WebhookVersionEnum.V_2021_10_20, label: "2021-10-20" }]}
+                  options={WEBHOOK_VERSION_OPTIONS}
                   value={{
                     value: formMethods.watch("version"),
-                    label:
-                      formMethods.watch("version") === WebhookVersionEnum.V_2021_10_20
-                        ? "2021-10-20"
-                        : formMethods.watch("version"),
+                    label: getWebhookVersionLabel(formMethods.watch("version")),
                   }}
                   onChange={(option) => {
                     if (option) {

@@ -8,22 +8,20 @@ import type { WebhookPayload } from "../types";
 import type { IMeetingPayloadBuilder } from "../versioned/PayloadBuilderFactory";
 
 /**
- * Base meeting payload builder with shared logic.
- * Version-specific builders can extend this and override methods as needed.
+ * Abstract base class for meeting payload builders.
+ *
+ * This class defines the interface that all version-specific meeting payload
+ * builders must implement. It does NOT contain any version-specific payload logic.
+ *
+ * Each webhook version should have its own concrete implementation in
+ * versioned/v{VERSION}/MeetingPayloadBuilder.ts
  */
 export abstract class BaseMeetingPayloadBuilder implements IMeetingPayloadBuilder {
   /**
    * Build the meeting webhook payload.
-   * Override this method in version-specific builders to modify the payload structure.
+   * Each version must implement this method with its specific payload structure.
    */
-  build(
+  abstract build(
     dto: MeetingStartedDTO | MeetingEndedDTO | AfterHostsNoShowDTO | AfterGuestsNoShowDTO
-  ): WebhookPayload {
-    return {
-      triggerEvent: dto.triggerEvent,
-      createdAt: dto.createdAt,
-      payload: { ...dto.booking },
-    };
-  }
+  ): WebhookPayload;
 }
-

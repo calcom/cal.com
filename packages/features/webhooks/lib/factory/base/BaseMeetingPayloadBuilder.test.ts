@@ -2,13 +2,10 @@ import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { MeetingStartedDTO, MeetingEndedDTO } from "../../dto/types";
-import { BaseMeetingPayloadBuilder } from "./BaseMeetingPayloadBuilder";
+import { MeetingPayloadBuilder } from "../versioned/v2021-10-20/MeetingPayloadBuilder";
 
-// Concrete implementation for testing
-class TestMeetingPayloadBuilder extends BaseMeetingPayloadBuilder {}
-
-describe("BaseMeetingPayloadBuilder", () => {
-  const builder = new TestMeetingPayloadBuilder();
+describe("MeetingPayloadBuilder (v2021-10-20)", () => {
+  const builder = new MeetingPayloadBuilder();
 
   const mockBookingData = {
     id: 1,
@@ -52,4 +49,3 @@ describe("BaseMeetingPayloadBuilder", () => {
     });
   });
 });
-

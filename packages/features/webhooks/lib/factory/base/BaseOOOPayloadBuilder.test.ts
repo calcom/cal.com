@@ -2,13 +2,10 @@ import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { OOOCreatedDTO } from "../../dto/types";
-import { BaseOOOPayloadBuilder } from "./BaseOOOPayloadBuilder";
+import { OOOPayloadBuilder } from "../versioned/v2021-10-20/OOOPayloadBuilder";
 
-// Concrete implementation for testing
-class TestOOOPayloadBuilder extends BaseOOOPayloadBuilder {}
-
-describe("BaseOOOPayloadBuilder", () => {
-  const builder = new TestOOOPayloadBuilder();
+describe("OOOPayloadBuilder (v2021-10-20)", () => {
+  const builder = new OOOPayloadBuilder();
 
   describe("OOO_CREATED", () => {
     it("should build payload with OOO entry", () => {
@@ -38,4 +35,3 @@ describe("BaseOOOPayloadBuilder", () => {
     });
   });
 });
-

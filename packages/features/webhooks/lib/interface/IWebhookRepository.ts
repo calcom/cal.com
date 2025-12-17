@@ -19,6 +19,25 @@ export type WebhookVersion = (typeof WebhookVersion)[keyof typeof WebhookVersion
  */
 export const DEFAULT_WEBHOOK_VERSION = WebhookVersion.V_2021_10_20;
 
+const VALID_WEBHOOK_VERSIONS = new Set<string>(Object.values(WebhookVersion));
+
+
+export function isValidWebhookVersion(value: string): value is WebhookVersion {
+  return VALID_WEBHOOK_VERSIONS.has(value);
+}
+
+/**
+ * Parse and validate a webhook version string.
+ * Throws if the version is invalid.
+ */
+export function parseWebhookVersion(value: string): WebhookVersion {
+  if (!isValidWebhookVersion(value)) {
+    throw new Error(
+      `Invalid webhook version: "${value}". Valid versions are: ${Object.values(WebhookVersion).join(", ")}`
+    );
+  }
+  return value;
+}
 export interface GetSubscribersOptions {
   userId?: number | null;
   eventTypeId?: number | null;

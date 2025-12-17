@@ -6,10 +6,11 @@ import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
-import type { WebhookVersion } from "../interface/IWebhookRepository";
+
+import { parseWebhookVersion } from "../interface/IWebhookRepository";
 
 import type { WebhookSubscriber, WebhookGroup } from "../dto/types";
-import type { IWebhookRepository } from "../interface/IWebhookRepository";
+import type { IWebhookRepository, WebhookVersion } from "../interface/IWebhookRepository";
 import { WebhookOutputMapper } from "../infrastructure/mappers/WebhookOutputMapper";
 import type { GetSubscribersOptions } from "./types";
 
@@ -229,7 +230,7 @@ export class WebhookRepository implements IWebhookRepository {
       time: webhook.time,
       timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers,
-      version: webhook.version as unknown as WebhookVersion,
+      version: parseWebhookVersion(webhook.version),
     };
   }
 
@@ -256,7 +257,7 @@ export class WebhookRepository implements IWebhookRepository {
 
     return {
       ...webhook,
-      version: webhook.version as unknown as WebhookVersion,
+      version: parseWebhookVersion(webhook.version),
     };
   }
 
@@ -292,7 +293,7 @@ export class WebhookRepository implements IWebhookRepository {
     return webhooks.map((webhook) => ({
       ...webhook,
       eventTriggers: webhook.eventTriggers as WebhookTriggerEvents[],
-      version: webhook.version as unknown as WebhookVersion,
+      version: parseWebhookVersion(webhook.version),
     }));
   }
 

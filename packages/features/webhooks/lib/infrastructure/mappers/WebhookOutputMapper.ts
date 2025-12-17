@@ -1,7 +1,7 @@
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { Webhook, WebhookSubscriber } from "../../dto/types";
-import { WebhookVersion } from "../../interface/IWebhookRepository";
+import { parseWebhookVersion } from "../../interface/IWebhookRepository";
 
 /**
  * Full webhook from Prisma (for CRUD operations)
@@ -58,7 +58,7 @@ export class WebhookOutputMapper {
       userId: prismaWebhook.userId,
       time: prismaWebhook.time,
       timeUnit: prismaWebhook.timeUnit,
-      version: prismaWebhook.version as WebhookVersion,
+      version: parseWebhookVersion(prismaWebhook.version),
       createdAt: prismaWebhook.createdAt,
       platform: prismaWebhook.platform,
       platformOAuthClientId: prismaWebhook.platformOAuthClientId,
@@ -82,7 +82,7 @@ export class WebhookOutputMapper {
       eventTriggers: prismaWebhook.eventTriggers,
       time: prismaWebhook.time ?? undefined,
       timeUnit: prismaWebhook.timeUnit ?? undefined,
-      version: prismaWebhook.version as WebhookVersion,
+      version: parseWebhookVersion(prismaWebhook.version),
     };
   }
 
@@ -127,7 +127,7 @@ export class WebhookOutputMapper {
       eventTriggers: prismaWebhook.eventTriggers as unknown as WebhookSubscriber["eventTriggers"],
       time: prismaWebhook.time ?? undefined,
       timeUnit: prismaWebhook.timeUnit as unknown as WebhookSubscriber["timeUnit"],
-      version: prismaWebhook.version as WebhookVersion, // Type cast at boundary
+      version: parseWebhookVersion(prismaWebhook.version),
     };
   }
 }

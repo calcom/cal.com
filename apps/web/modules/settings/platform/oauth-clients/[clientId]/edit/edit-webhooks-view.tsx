@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import { DEFAULT_WEBHOOK_VERSION } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -111,7 +111,7 @@ export default function EditOAuthClientWebhooks() {
                         ...webhook,
                         eventTriggers: webhook.triggers,
                         secret: webhook.secret ?? null,
-                        version: webhook.version ?? WebhookVersion.V_2021_10_20,
+                        version: webhook.version ?? DEFAULT_WEBHOOK_VERSION,
                       }
                     : undefined
                 }
