@@ -69,6 +69,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
   const deleteEntry = trpc.viewer.organizations.deleteWatchlistEntry.useMutation({
     onSuccess: async () => {
       await utils.viewer.organizations.listWatchlistEntries.invalidate();
+      setSelectedEntryId(null);
       showToast(t("blocklist_entry_deleted"), "success");
     },
     onError: (error) => {

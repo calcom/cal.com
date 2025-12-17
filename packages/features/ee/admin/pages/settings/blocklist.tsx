@@ -63,6 +63,7 @@ function SystemBlocklistContent() {
   const deleteEntry = trpc.viewer.admin.watchlist.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.admin.watchlist.list.invalidate();
+      setSelectedEntryId(null);
       showToast(t("system_blocklist_entry_deleted"), "success");
     },
     onError: (error) => {
