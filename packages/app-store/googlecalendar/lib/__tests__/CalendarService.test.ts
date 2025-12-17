@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import oAuthManagerMock, {
   defaultMockOAuthManager,
   setFullMockOAuthManagerRequest,
@@ -669,5 +671,217 @@ describe("createEvent", () => {
     expect(insertCall.requestBody.recurrence).toEqual(["RRULE:FREQ=WEEKLY;INTERVAL=1;COUNT=10"]);
 
     log.info("createEvent recurring event test passed");
+  });
+});
+
+describe("Delegation Credential Batching", () => {
+  test("should group calendars by delegationCredentialId", async () => {
+    const calendarService = new CalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    // Access the private method using type assertion
+    const groupCalendarsByDelegationCredential = (calendarService as any).groupCalendarsByDelegationCredential.bind(
+      calendarService
+    );
+
+    const selectedCalendars = [
+      {
+        externalId: "calendar1@test.com",
+        integration: "google_calendar",
+        delegationCredentialId: "delegation-1",
+      },
+      {
+        externalId: "calendar2@test.com",
+        integration: "google_calendar",
+        delegationCredentialId: "delegation-1",
+      },
+      {
+        externalId: "calendar3@test.com",
+        integration: "google_calendar",
+        delegationCredentialId: "delegation-2",
+      },
+      {
+        externalId: "calendar4@test.com",
+        integration: "google_calendar",
+        delegationCredentialId: null,
+      },
+    ];
+
+    const groups = groupCalendarsByDelegationCredential(selectedCalendars);
+
+    // Should have 3 groups: delegation-1, delegation-2, and null
+    expect(groups.size).toBe(3);
+    expect(groups.get("delegation-1")).toHaveLength(2);
+    expect(groups.get("delegation-2")).toHaveLength(1);
+    expect(groups.get(null)).toHaveLength(1);
+  });
+
+  test("should chunk calendars into groups of 50 for API limits", async () => {
+    const calendarService = new CalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    // Access the private method using type assertion
+    const chunkArray = (calendarService as any).chunkArray.bind(calendarService);
+
+    // Create an array of 120 items
+    const items = Array.from({ length: 120 }, (_, i) => `item-${i}`);
+
+    const chunks = chunkArray(items, 50);
+
+    // Should have 3 chunks: 50, 50, 20
+    expect(chunks).toHaveLength(3);
+    expect(chunks[0]).toHaveLength(50);
+    expect(chunks[1]).toHaveLength(50);
+    expect(chunks[2]).toHaveLength(20);
+  });
+
+  test("should handle empty calendar array", async () => {
+    const calendarService = new CalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const chunkArray = (calendarService as any).chunkArray.bind(calendarService);
+    const groupCalendarsByDelegationCredential = (calendarService as any).groupCalendarsByDelegationCredential.bind(
+      calendarService
+    );
+
+    // Empty array should return empty chunks
+    const chunks = chunkArray([], 50);
+    expect(chunks).toHaveLength(0);
+
+    // Empty array should return empty groups
+    const groups = groupCalendarsByDelegationCredential([]);
+    expect(groups.size).toBe(0);
+  });
+
+  test("getAvailability should batch calendars by delegation credential and make separate API calls", async () => {
+    const calendarService = new CalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const mockedBusyTimes1 = [
+      { start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" },
+    ];
+    const mockedBusyTimes2 = [
+      { start: "2024-01-02T14:00:00Z", end: "2024-01-02T15:00:00Z" },
+    ];
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            { id: "calendar1@test.com" },
+            { id: "calendar2@test.com" },
+          ],
+        },
+      };
+    });
+
+    let callCount = 0;
+    freebusyQueryMock.mockImplementation(() => {
+      callCount++;
+      const busyTimes = callCount === 1 ? mockedBusyTimes1 : mockedBusyTimes2;
+      return {
+        data: {
+          calendars: {
+            "calendar@test.com": { busy: busyTimes },
+          },
+        },
+      };
+    });
+
+    const selectedCalendars = [
+      {
+        externalId: "calendar1@test.com",
+        integration: "google_calendar",
+        delegationCredentialId: "delegation-1",
+      },
+      {
+        externalId: "calendar2@test.com",
+        integration: "google_calendar",
+        delegationCredentialId: "delegation-2",
+      },
+    ];
+
+    const availability = await calendarService.getAvailability(
+      "2024-01-01",
+      "2024-01-31",
+      selectedCalendars,
+      false
+    );
+
+    // Should have made 2 API calls (one per delegation credential group)
+    expect(freebusyQueryMock).toHaveBeenCalledTimes(2);
+
+    // Should return combined results from both groups
+    expect(availability).toHaveLength(2);
+  });
+
+  test("getAvailability should fallback to primary calendar when no calendars selected and fallbackToPrimary is true", async () => {
+    const calendarService = new CalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const mockedBusyTimes = [
+      { start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" },
+    ];
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            { id: "primary@test.com", primary: true },
+            { id: "secondary@test.com" },
+          ],
+        },
+      };
+    });
+
+    freebusyQueryMock.mockImplementation(() => {
+      return {
+        data: {
+          calendars: {
+            "primary@test.com": { busy: mockedBusyTimes },
+          },
+        },
+      };
+    });
+
+    // Empty selected calendars with fallbackToPrimary = true
+    const availability = await calendarService.getAvailability(
+      "2024-01-01",
+      "2024-01-31",
+      [],
+      true
+    );
+
+    // Should have called FreeBusy API
+    expect(freebusyQueryMock).toHaveBeenCalled();
+
+    // Should return busy times from primary calendar
+    expect(availability).toEqual(mockedBusyTimes);
+  });
+
+  test("getAvailability should return empty array when only non-google calendars are selected", async () => {
+    const calendarService = new CalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const selectedCalendars = [
+      {
+        externalId: "calendar1@outlook.com",
+        integration: "office365_calendar",
+        delegationCredentialId: null,
+      },
+    ];
+
+    const availability = await calendarService.getAvailability(
+      "2024-01-01",
+      "2024-01-31",
+      selectedCalendars,
+      false
+    );
+
+    // Should return empty array since no google calendars
+    expect(availability).toEqual([]);
+
+    // Should not have called FreeBusy API
+    expect(freebusyQueryMock).not.toHaveBeenCalled();
   });
 });
