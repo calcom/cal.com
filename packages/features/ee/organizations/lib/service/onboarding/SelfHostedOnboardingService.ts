@@ -1,5 +1,5 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { DeploymentRepository } from "@calcom/features/deployment/repositories/DeploymentRepository";
+import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";

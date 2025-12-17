@@ -1,4 +1,4 @@
-import type { IDeploymentRepository } from "@calcom/features/deployment/repositories/IDeploymentRepository";
+import type { IDeploymentRepository } from "@calcom/features/ee/deployment/repositories/IDeploymentRepository";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 

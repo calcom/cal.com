@@ -1,10 +1,10 @@
 import * as cache from "memory-cache";
 
-import type { IDeploymentRepository } from "@calcom/features/deployment/repositories/IDeploymentRepository";
 import {
   getDeploymentKey,
   getDeploymentSignatureToken,
 } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
+import type { IDeploymentRepository } from "@calcom/features/ee/deployment/repositories/IDeploymentRepository";
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
