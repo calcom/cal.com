@@ -180,9 +180,11 @@ function buildSlotsWithDateRanges({
       }
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
-      // OOO is keyed by organizer-local day (from `range.start`), stored as YYYY-MM-DD UTC, matching `calculateOutOfOfficeRanges`.
-      const oooDateKey = range.start.utc().format("YYYY-MM-DD");
-      const dateOutOfOfficeExists = datesOutOfOffice?.[oooDateKey];
+      // Prefer matching OOO by the slot's UTC date, but also fall back to the
+      // organizer-local day represented by `range.start` to handle cross-timezone edge cases.
+      const slotDateYYYYMMDD = slotStartTime.utc().format("YYYY-MM-DD");
+      const rangeDateYYYYMMDD = range.start.utc().format("YYYY-MM-DD");
+      const dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD] ?? datesOutOfOffice?.[rangeDateYYYYMMDD];
       let slotData: {
         time: Dayjs;
         userIds?: number[];
