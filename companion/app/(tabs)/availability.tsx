@@ -23,6 +23,7 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { EmptyScreen } from "../../components/EmptyScreen";
 import { showErrorAlert } from "../../utils/alerts";
 import { offlineAwareRefresh } from "../../utils/network";
+import { shadows } from "../../utils/shadows";
 import {
   useSchedules,
   useCreateSchedule,
@@ -458,13 +459,7 @@ export default function Availability() {
             className="w-[90%] max-w-[500px] rounded-2xl bg-white"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 20 },
-              shadowOpacity: 0.25,
-              shadowRadius: 25,
-              elevation: 24,
-            }}
+            style={shadows.xl()}
           >
             {/* Header */}
             <View className="px-8 pb-4 pt-6">
