@@ -144,24 +144,29 @@ function ConflictWarning({
   const totalBookings = conflicts.reduce((sum, c) => sum + c.bookings.length, 0);
 
   return (
-    <div className="bg-semantic-attention-subtle rounded-md px-3 py-2">
-      <div className="flex items-center gap-2">
-        <Icon name="triangle-alert" className="text-semantic-attention h-4 w-4 shrink-0" />
-        <p className="text-emphasis text-sm font-medium">
-          {t("holiday_booking_conflict_warning", { count: totalBookings })}:
-        </p>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {conflicts.slice(0, 3).map((conflict, idx) => (
-            <span key={conflict.holidayId} className="text-default text-sm">
-              {conflict.holidayName} ({conflict.bookings.length})
-              {idx < Math.min(conflicts.length, 3) - 1 && ","}
-            </span>
-          ))}
-          {conflicts.length > 3 && (
-            <span className="text-subtle text-sm">
-              +{conflicts.length - 3} {t("more")}
-            </span>
-          )}
+    <div className="border-semantic-attention-muted bg-semantic-attention-subtle rounded-md border px-4 py-3">
+      <div className="flex items-start gap-2">
+        <Icon name="triangle-alert" className="text-semantic-attention mt-0.5 h-4 w-4 shrink-0" />
+        <div className="flex flex-col gap-1.5">
+          <p className="text-emphasis text-sm font-medium">
+            {t("holiday_booking_conflict_warning", { count: totalBookings })}
+          </p>
+          <ul className="space-y-0.5 text-sm">
+            {conflicts.map((conflict) => {
+              const emoji = getHolidayEmoji(conflict.holidayName);
+              const formattedDate = dayjs(conflict.date).format("D MMM, YYYY");
+              const bookingCount = conflict.bookings.length;
+              return (
+                <li key={conflict.holidayId} className="flex items-center gap-2">
+                  <span className="text-base">{emoji}</span>
+                  <span className="text-emphasis">
+                    {conflict.holidayName} ({formattedDate}) · {bookingCount}{" "}
+                    {bookingCount === 1 ? t("booking") : t("bookings").toLowerCase()}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
     </div>
