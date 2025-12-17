@@ -2047,7 +2047,7 @@ async function handler(
     }
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description ?? evt.description;
+    evt.description = eventType.description;
 
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
