@@ -1011,4 +1011,49 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
 
     vi.useRealTimers();
   });
+
+  it("should mark slots as away when host OOO day maps to next day for Asia/Kolkata booker", async () => {
+    vi.setSystemTime(dayjs.utc("2026-01-10T00:00:00Z").toDate());
+
+    // Host in America/Los_Angeles is out of office on 2026-01-16
+    const datesOutOfOffice = {
+      "2026-01-16": {
+        fromUser: { id: 1, displayName: "Host User" },
+        toUser: null,
+        reason: "OOO",
+        emoji: "🏖️",
+      },
+    };
+
+    // Host availability on 2026-01-16 from 08:00 to 17:00 in PST
+    const dateRanges = [
+      {
+        start: dayjs.tz("2026-01-16T08:00:00", "America/Los_Angeles"),
+        end: dayjs.tz("2026-01-16T17:00:00", "America/Los_Angeles"),
+      },
+    ];
+
+    // Booker is viewing in Asia/Kolkata on 2026-01-17
+    const inviteeDate = dayjs.tz("2026-01-17T00:00:00", "Asia/Kolkata");
+
+    const slots = getSlots({
+      inviteeDate,
+      frequency: 30,
+      minimumBookingNotice: 0,
+      eventLength: 30,
+      dateRanges,
+      datesOutOfOffice,
+    });
+
+    // Find the 17 Jan 2026 05:30 Asia/Kolkata slot
+    const targetSlot = slots.find(
+      (slot) => slot.time.tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm") === "2026-01-17 05:30"
+    );
+
+    expect(targetSlot).toBeDefined();
+    expect(targetSlot?.away).toBe(true);
+    expect(targetSlot?.reason).toBe("OOO");
+
+    vi.useRealTimers();
+  });
 });
