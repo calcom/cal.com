@@ -35,6 +35,7 @@ import {
 } from "../../../hooks";
 import { getEventDuration } from "../../../utils/getEventDuration";
 import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -471,7 +472,7 @@ export default function EventTypes() {
     <>
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
-        blurEffect="light"
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
       >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
         <Stack.Header.Right>
