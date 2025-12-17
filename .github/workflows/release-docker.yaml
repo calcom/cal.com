@@ -10,6 +10,7 @@ on:
   push:
     tags:
       - "v*"
+  # in case manual trigger is needed
   workflow_dispatch:
     inputs:
       RELEASE_TAG:
