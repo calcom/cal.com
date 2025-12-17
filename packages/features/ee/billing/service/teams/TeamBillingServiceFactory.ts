@@ -5,6 +5,7 @@ import type { ITeamBillingService, TeamBillingInput } from "./ITeamBillingServic
 import { StubTeamBillingService } from "./StubTeamBillingService";
 import { TeamBillingService } from "./TeamBillingService";
 
+
 // Export the interface for type safety in DI modules
 export interface ITeamBillingServiceFactoryDeps {
   billingProviderService: IBillingProviderService;

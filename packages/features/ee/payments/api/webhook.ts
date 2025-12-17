@@ -168,7 +168,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const requestBuffer = await buffer(req);
     const payload = requestBuffer.toString();
 
-    const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    const event = stripe().webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
     const traceContext = distributedTracing.createTrace(`stripe_webhook`, {
       meta: {

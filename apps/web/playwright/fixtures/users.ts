@@ -975,7 +975,7 @@ async function confirmPendingPayment(page: Page) {
     2
   );
 
-  const signature = stripe.webhooks.generateTestHeaderString({
+  const signature = stripe().webhooks.generateTestHeaderString({
     payload,
     secret: process.env.STRIPE_WEBHOOK_SECRET as string,
   });
