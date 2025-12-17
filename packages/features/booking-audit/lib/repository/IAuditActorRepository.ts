@@ -5,6 +5,7 @@ type AuditActor = {
   type: AuditActorType;
   userUuid: string | null;
   attendeeId: number | null;
+  credentialId: number | null;
   email: string | null;
   phone: string | null;
   name: string | null;
@@ -15,6 +16,9 @@ export interface IAuditActorRepository {
   createIfNotExistsUserActor(params: { userUuid: string }): Promise<AuditActor>;
   createIfNotExistsAttendeeActor(params: { attendeeId: number }): Promise<AuditActor>;
   createIfNotExistsGuestActor(params: { email: string | null; name: string | null; phone: string | null }): Promise<AuditActor>;
-  createIfNotExistsAppActor(params: { email: string; name: string }): Promise<AuditActor>;
+  createIfNotExistsAppActor(params:
+    | { credentialId: number }
+    | { email: string; name: string }
+  ): Promise<AuditActor>;
 }
 

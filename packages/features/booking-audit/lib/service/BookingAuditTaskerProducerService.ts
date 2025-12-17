@@ -61,6 +61,13 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         }
 
         if (actor.identifiedBy === "app") {
+            const piiFreeActor = await this.auditActorRepository.createIfNotExistsAppActor({
+                credentialId: actor.credentialId,
+            });
+            return makeActorById(piiFreeActor.id);
+        }
+
+        if (actor.identifiedBy === "appSlug") {
             const email = buildActorEmail({ identifier: actor.appSlug, actorType: "app" });
             const piiFreeActor = await this.auditActorRepository.createIfNotExistsAppActor({
                 email,
@@ -69,6 +76,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
             return makeActorById(piiFreeActor.id);
         }
 
+        // Must be guest actor at this point
         const piiFreeActor = await this.auditActorRepository.createIfNotExistsGuestActor({
             email: actor.email,
             name: actor.name ?? null,

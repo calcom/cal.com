@@ -3,6 +3,7 @@ import type { BookingRepository } from "@calcom/features/bookings/repositories/B
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
@@ -10,6 +11,7 @@ import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type { TranslationWithParams } from "../actions/IAuditActionService";
 import type { ActionSource } from "../types/actionSource";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import { getAppNameFromSlug } from "../getAppNameFromSlug";
 
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
@@ -18,6 +20,7 @@ interface BookingAuditViewerServiceDeps {
     membershipRepository: MembershipRepository;
     attendeeRepository: IAttendeeRepository;
     log: ISimpleLogger;
+    credentialRepository: CredentialRepository;
 }
 
 type EnrichedAuditLog = {
@@ -55,6 +58,7 @@ export class BookingAuditViewerService {
     private readonly bookingRepository: BookingRepository;
     private readonly membershipRepository: MembershipRepository;
     private readonly attendeeRepository: IAttendeeRepository;
+    private readonly credentialRepository: CredentialRepository;
     private readonly rescheduledAuditActionService: RescheduledAuditActionService;
     private readonly accessService: BookingAuditAccessService;
     private readonly log: BookingAuditViewerServiceDeps["log"];
@@ -65,6 +69,7 @@ export class BookingAuditViewerService {
         this.bookingRepository = deps.bookingRepository;
         this.membershipRepository = deps.membershipRepository;
         this.attendeeRepository = deps.attendeeRepository;
+        this.credentialRepository = deps.credentialRepository;
         this.log = deps.log;
         this.rescheduledAuditActionService = new RescheduledAuditActionService();
         this.accessService = new BookingAuditAccessService({
@@ -247,12 +252,32 @@ export class BookingAuditViewerService {
                     displayAvatar: null,
                 };
 
-            case "APP":
+            case "APP": {
+                if (actor.credentialId) {
+                    const credential = await this.deps.credentialRepository.findByCredentialId(actor.credentialId);
+                    if (credential) {
+                        return {
+                            displayName: getAppNameFromSlug({ appSlug: credential.appId }),
+                            displayEmail: null,
+                            displayAvatar: null,
+                        };
+                    } else {
+                        return {
+                            // Expect that on Credential deletion name would have been set
+                            displayName: actor.name ?? "Deleted App",
+                            displayEmail: null,
+                            displayAvatar: null,
+                        };
+                    }
+                }
+                // We allow creating App actor without credentialId
                 return {
-                    displayName: actor.name || "App",
+                    displayName: actor.name ?? "Unknown App",
+                    // We don't want to show email for App actor as that is an internal email with the purpose of giving uniqueness to each app actor
                     displayEmail: null,
                     displayAvatar: null,
                 };
+            }
 
             case "ATTENDEE": {
                 if (!actor.attendeeId) {
