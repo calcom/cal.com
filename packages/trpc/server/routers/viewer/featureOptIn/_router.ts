@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { FeatureOptInService } from "@calcom/features/feature-opt-in/FeatureOptInService";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
+import { FeatureOptInService } from "@calcom/features/feature-opt-in/services/FeatureOptInService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";

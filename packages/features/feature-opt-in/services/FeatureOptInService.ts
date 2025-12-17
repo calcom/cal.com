@@ -1,8 +1,8 @@
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import { computeEffectiveStateAcrossTeams } from "./computeEffectiveState";
-import { OPT_IN_FEATURES } from "./config";
+import { OPT_IN_FEATURES } from "../config";
+import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
 
 type ResolvedFeatureState = {
   featureId: FeatureId;
