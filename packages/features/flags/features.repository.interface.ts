@@ -49,4 +49,12 @@ export interface IFeaturesRepository {
    * @returns Promise<Record<number, boolean>> - Map of teamId to autoOptInFeatures value
    */
   getTeamsAutoOptIn(teamIds: number[]): Promise<Record<number, boolean>>;
+  /**
+   * Set user's autoOptInFeatures flag.
+   */
+  setUserAutoOptIn(userId: number, enabled: boolean): Promise<void>;
+  /**
+   * Set team's autoOptInFeatures flag.
+   */
+  setTeamAutoOptIn(teamId: number, enabled: boolean): Promise<void>;
 }

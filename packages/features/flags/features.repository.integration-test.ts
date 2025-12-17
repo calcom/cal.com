@@ -1375,4 +1375,62 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(result[999999]).toBeUndefined();
     });
   });
+
+  describe("setUserAutoOptIn", () => {
+    it("should set autoOptInFeatures to true", async () => {
+      // Ensure user starts with false
+      const before = await featuresRepository.getUserAutoOptIn(testUser.id);
+      expect(before).toBe(false);
+
+      await featuresRepository.setUserAutoOptIn(testUser.id, true);
+
+      const after = await featuresRepository.getUserAutoOptIn(testUser.id);
+      expect(after).toBe(true);
+
+      // Reset
+      await featuresRepository.setUserAutoOptIn(testUser.id, false);
+    });
+
+    it("should set autoOptInFeatures to false", async () => {
+      // First set to true
+      await featuresRepository.setUserAutoOptIn(testUser.id, true);
+      const before = await featuresRepository.getUserAutoOptIn(testUser.id);
+      expect(before).toBe(true);
+
+      // Now set to false
+      await featuresRepository.setUserAutoOptIn(testUser.id, false);
+
+      const after = await featuresRepository.getUserAutoOptIn(testUser.id);
+      expect(after).toBe(false);
+    });
+  });
+
+  describe("setTeamAutoOptIn", () => {
+    it("should set autoOptInFeatures to true", async () => {
+      // Ensure team starts with false
+      const before = await featuresRepository.getTeamsAutoOptIn([testTeam.id]);
+      expect(before[testTeam.id]).toBe(false);
+
+      await featuresRepository.setTeamAutoOptIn(testTeam.id, true);
+
+      const after = await featuresRepository.getTeamsAutoOptIn([testTeam.id]);
+      expect(after[testTeam.id]).toBe(true);
+
+      // Reset
+      await featuresRepository.setTeamAutoOptIn(testTeam.id, false);
+    });
+
+    it("should set autoOptInFeatures to false", async () => {
+      // First set to true
+      await featuresRepository.setTeamAutoOptIn(testTeam.id, true);
+      const before = await featuresRepository.getTeamsAutoOptIn([testTeam.id]);
+      expect(before[testTeam.id]).toBe(true);
+
+      // Now set to false
+      await featuresRepository.setTeamAutoOptIn(testTeam.id, false);
+
+      const after = await featuresRepository.getTeamsAutoOptIn([testTeam.id]);
+      expect(after[testTeam.id]).toBe(false);
+    });
+  });
 });

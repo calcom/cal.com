@@ -69,4 +69,12 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     // Mock implementation - return empty (all teams default to false)
     return {};
   }
+
+  async setUserAutoOptIn(_userId: number, _enabled: boolean): Promise<void> {
+    // Mock implementation - do nothing
+  }
+
+  async setTeamAutoOptIn(_teamId: number, _enabled: boolean): Promise<void> {
+    // Mock implementation - do nothing
+  }
 }

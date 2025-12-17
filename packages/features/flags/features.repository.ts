@@ -612,4 +612,40 @@ export class FeaturesRepository implements IFeaturesRepository {
       throw err;
     }
   }
+
+  /**
+   * Set user's autoOptInFeatures flag.
+   * @param userId - The ID of the user
+   * @param enabled - Whether to enable auto opt-in for all features
+   * @returns Promise<void>
+   */
+  async setUserAutoOptIn(userId: number, enabled: boolean): Promise<void> {
+    try {
+      await this.prismaClient.user.update({
+        where: { id: userId },
+        data: { autoOptInFeatures: enabled },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Set team's autoOptInFeatures flag.
+   * @param teamId - The ID of the team
+   * @param enabled - Whether to enable auto opt-in for all features
+   * @returns Promise<void>
+   */
+  async setTeamAutoOptIn(teamId: number, enabled: boolean): Promise<void> {
+    try {
+      await this.prismaClient.team.update({
+        where: { id: teamId },
+        data: { autoOptInFeatures: enabled },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }
