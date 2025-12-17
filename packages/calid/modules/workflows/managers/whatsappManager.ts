@@ -23,6 +23,20 @@ import { constructVariablesForTemplate } from "./constructTemplateVariable";
 
 const log = logger.getSubLogger({ prefix: ["[whatsappManager]"] });
 
+const getCurrentTime = ({
+  time,
+  timeUnit,
+}: {
+  time?: number | null;
+  timeUnit?: string | null;
+}): Dayjs | null => {
+  const normalizedUnit = timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
+  if (time && normalizedUnit) {
+    return dayjs().add(time, normalizedUnit);
+  }
+  return dayjs();
+};
+
 const calculateScheduledDateTime = (
   triggerType: WorkflowTriggerEvents,
   eventStartTime: string,
@@ -127,6 +141,11 @@ const executeImmediateWhatsapp = async ({
   teamId,
   metaTemplateName,
   metaPhoneNumberId,
+
+  uid,
+  workflowStepId,
+  currentTime,
+  seatReferenceUid,
 }: {
   eventTypeId?: number | null;
   workflowId?: number;
@@ -140,6 +159,11 @@ const executeImmediateWhatsapp = async ({
   teamId?: number | null;
   metaTemplateName?: string | null;
   metaPhoneNumberId?: string | null;
+
+  uid: string;
+  workflowStepId: number | undefined;
+  currentTime: Dayjs;
+  seatReferenceUid: string | undefined;
 }): Promise<void> => {
   try {
     const response = await meta.sendSMS({
@@ -152,6 +176,18 @@ const executeImmediateWhatsapp = async ({
       variableData,
       metaTemplateName,
       metaPhoneNumberId,
+    });
+
+    await prisma.calIdWorkflowReminder.create({
+      data: {
+        bookingUid: uid,
+        workflowStepId: workflowStepId,
+        method: WorkflowMethods.WHATSAPP,
+        scheduledDate: currentTime,
+        scheduled: true,
+        seatReferenceId: seatReferenceUid,
+        ...(evt.attendees[0].id && { attendeeId: evt.attendees[0].id }),
+      },
     });
 
     if (response?.messageId) {
@@ -298,10 +334,8 @@ const processScheduledWhatsapp = async ({
 }): Promise<void> => {
   const currentDate = dayjs();
 
-  // Can only schedule at least 60 minutes in advance and at most 7 days in advance
+  // Can only schedule at least 60 minutes in advance and at most 7 days in advance with inngest rest are handled via crons
 
-  console.log("current date: ", currentDate.toISOString());
-  console.log("scheduled date: ", scheduledDate.toISOString());
   if (!scheduledDate.isAfter(currentDate.add(7, "day"))) {
     await scheduleDelayedWhatsapp({
       eventTypeId,
@@ -401,6 +435,11 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
     timeUnit: timeSpan.timeUnit,
   });
 
+  const currentTime = getCurrentTime({
+    time: timeSpan.time,
+    timeUnit: timeSpan.timeUnit,
+  });
+
   const recipientConfiguration = resolveRecipientDetails(action, evt, reminderPhone);
 
   const { targetName, participantInfo, participantName, targetTimezone } = recipientConfiguration;
@@ -461,6 +500,10 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
       teamId,
       metaTemplateName,
       metaPhoneNumberId,
+      uid,
+      workflowStepId,
+      currentTime,
+      seatReferenceUid,
     });
   } else {
     // Schedule for future delivery when valid timestamp exists

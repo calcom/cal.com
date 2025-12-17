@@ -90,7 +90,7 @@ export function UserPage(props: PageProps) {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const { user: _user, orgSlug: _orgSlug, redirect: _redirect, ...query } = useRouterQuery();
-  const isLongName = (profile.name?.length ?? 0) > 18;
+  const isLongName = (profile?.name?.length ?? 0) > 18;
 
   useTheme(profile?.theme, false, false);
 
