@@ -44,32 +44,30 @@ const createAttributeSyncHandler = async ({ ctx, input }: CreateAttributeSyncOpt
     });
   }
 
-  // 2. Create IntegrationAttributeSync with nested AttributeSyncUserRule and FieldMappings
+  // 2. Create IntegrationAttributeSync with nested AttributeSyncRule and FieldMappings
   const attributeSync = await prisma.integrationAttributeSync.create({
     data: {
+      name: input.name,
       organizationId: org.id,
       integration: credential.app?.slug || credential.type,
       credentialId: input.credentialId,
       enabled: input.enabled,
-      attributeSyncRules: {
+      attributeSyncRule: {
         create: {
           rule: input.rule, // Store as JSON
-          syncFieldMappings: {
-            create: input.fieldMappings.map((mapping) => ({
-              integrationFieldName: mapping.integrationFieldName,
-              attributeId: mapping.attributeId,
-              enabled: mapping.enabled,
-            })),
-          },
         },
+      },
+      syncFieldMappings: {
+        create: input.syncFieldMappings.map((mapping) => ({
+          integrationFieldName: mapping.integrationFieldName,
+          attributeId: mapping.attributeId,
+          enabled: mapping.enabled,
+        })),
       },
     },
     include: {
-      attributeSyncRules: {
-        include: {
-          syncFieldMappings: true,
-        },
-      },
+      attributeSyncRule: true,
+      syncFieldMappings: true,
     },
   });
 

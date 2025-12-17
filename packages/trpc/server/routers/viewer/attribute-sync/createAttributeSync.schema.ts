@@ -9,9 +9,10 @@ const fieldMappingSchema = z.object({
 });
 
 export const createAttributeSyncSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   credentialId: z.number(),
   rule: attributeSyncRuleSchema,
-  fieldMappings: z.array(fieldMappingSchema),
+  syncFieldMappings: z.array(fieldMappingSchema),
   enabled: z.boolean().default(true),
 });
 

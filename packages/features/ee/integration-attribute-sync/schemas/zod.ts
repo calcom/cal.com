@@ -48,6 +48,7 @@ const fieldMappingSchema = newFieldMappingSchema.extend({
 export const syncFormDataSchema = z
   .object({
     id: z.string(),
+    name: z.string().min(1, "Name is required"),
     credentialId: z.number(),
     enabled: z.boolean(),
     organizationId: z.number(),

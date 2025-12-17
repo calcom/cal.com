@@ -1942,18 +1942,18 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id              Int                @id @default(autoincrement())
-  uuid            String             @unique
-  start           DateTime
-  end             DateTime
-  notes           String?
-  showNotePublicly Boolean           @default(false)
-  userId          Int
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId        Int?
-  toUser          User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  reasonId        Int?
-  reason          OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  id               Int                @id @default(autoincrement())
+  uuid             String             @unique
+  start            DateTime
+  end              DateTime
+  notes            String?
+  showNotePublicly Boolean            @default(false)
+  userId           Int
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId         Int?
+  toUser           User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId         Int?
+  reason           OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2949,14 +2949,15 @@ model IntegrationAttributeSync {
   organizationId Int
   organization   Team   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  name         String
   integration  String
   credentialId Int?
   credential   Credential? @relation(fields: [credentialId], references: [id])
 
   enabled Boolean
 
-  attributeSyncRules AttributeSyncRule[]
-  syncFieldMappings  AttributeSyncFieldMapping[]
+  attributeSyncRule AttributeSyncRule?
+  syncFieldMappings AttributeSyncFieldMapping[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2965,8 +2966,8 @@ model IntegrationAttributeSync {
 model AttributeSyncRule {
   id String @id @default(uuid())
 
-  integrationAttributeSync   IntegrationAttributeSync? @relation(fields: [integrationAttributeSyncId], references: [id])
-  integrationAttributeSyncId String?
+  integrationAttributeSyncId String                   @unique
+  integrationAttributeSync   IntegrationAttributeSync @relation(fields: [integrationAttributeSyncId], references: [id], onDelete: Cascade)
 
   rule Json
 
