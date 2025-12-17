@@ -45,8 +45,11 @@ export function computeEffectiveStateAcrossTeams({
   }
 
   // 5-6. Check teams (OR logic - most permissive)
-  // If no teams, treat as allowed (user might not belong to any team)
-  let teamAllows = teamStates.length === 0;
+  // If no teams and org is enabled, user can proceed (inherit from org)
+  // If no teams and org is inherit, user must explicitly enable
+  let teamAllows = teamStates.length === 0 && orgState === "enabled";
+  // Track if there's explicit enablement above the user level
+  let hasExplicitEnablementAboveUser = orgState === "enabled";
 
   if (teamStates.length > 0) {
     // At least one team must be enabled or inherit (from enabled org)
@@ -56,9 +59,11 @@ export function computeEffectiveStateAcrossTeams({
     if (orgState === "enabled") {
       // If org is enabled, teams that inherit are effectively enabled
       teamAllows = hasEnabledTeam || hasInheritingTeam;
+      hasExplicitEnablementAboveUser = true;
     } else {
       // If org is inherit/null, only explicitly enabled teams count
       teamAllows = hasEnabledTeam;
+      hasExplicitEnablementAboveUser = hasEnabledTeam;
     }
 
     // If all teams are explicitly disabled, block
@@ -69,11 +74,20 @@ export function computeEffectiveStateAcrossTeams({
   }
 
   if (!teamAllows) {
+    // Special case: no teams and org inherits - user can still explicitly enable
+    if (teamStates.length === 0 && orgState === "inherit" && userState === "enabled") {
+      return true;
+    }
     return false;
   }
 
   // 7-8. Check user preference
   if (userState === "disabled") {
+    return false;
+  }
+
+  // If user inherits, there must be explicit enablement above them
+  if (userState === "inherit" && !hasExplicitEnablementAboveUser) {
     return false;
   }
 

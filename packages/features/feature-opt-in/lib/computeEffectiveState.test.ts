@@ -200,7 +200,18 @@ describe("computeEffectiveStateAcrossTeams", () => {
           teamStates: [],
           userState: "inherit",
         })
-      ).toBe(true); // No teams = no restriction from teams, user can use if global enabled
+      ).toBe(false); // No explicit enablement in chain, feature should be disabled
+    });
+
+    it("returns true when org inherits but user explicitly enables", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "inherit",
+          teamStates: [],
+          userState: "enabled",
+        })
+      ).toBe(true); // User explicit enablement is sufficient
     });
   });
 
