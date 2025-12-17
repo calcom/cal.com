@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZGetInternalNotesPresetsInputSchema = z.object({
+export type TGetInternalNotesPresetsInputSchema = {
+  teamId: number;
+};
+
+export const ZGetInternalNotesPresetsInputSchema: z.ZodType<TGetInternalNotesPresetsInputSchema> = z.object({
   teamId: z.number(),
 });
-
-export type TGetInternalNotesPresetsInputSchema = z.infer<typeof ZGetInternalNotesPresetsInputSchema>;

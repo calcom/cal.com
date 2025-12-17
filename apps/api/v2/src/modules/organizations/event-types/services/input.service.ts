@@ -8,7 +8,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SchedulingType } from "@calcom/platform-libraries";
-import { slugify } from "@calcom/platform-libraries";
+import { slugifyLenient } from "@calcom/platform-libraries";
 import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
 import {
   CreateTeamEventTypeInput_2024_06_14,
@@ -43,7 +43,7 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const slugifiedInputEventType = { ...inputEventType, slug: slugify(inputEventType.slug) };
+    const slugifiedInputEventType = { ...inputEventType, slug: slugifyLenient(inputEventType.slug) };
 
     await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
@@ -79,7 +79,7 @@ export class InputOrganizationsEventTypesService {
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
     const slugifiedInputEventType = inputEventType.slug
-      ? { ...inputEventType, slug: slugify(inputEventType.slug) }
+      ? { ...inputEventType, slug: slugifyLenient(inputEventType.slug) }
       : inputEventType;
 
     await this.validateInputLocations(teamId, inputEventType.locations);
