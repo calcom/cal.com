@@ -4,8 +4,10 @@ import cn from "@calcom/ui/classNames";
 import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
-
-import { WorkflowCreationDialog, useWorkflowCreation } from "./WorkflowCreationDialog";
+import {
+  WorkflowCreationDialog,
+  useWorkflowCreation,
+} from "@calcom/web/modules/workflows/components/WorkflowCreationDialog";
 
 type WorkflowExampleType = {
   icon: IconName;
@@ -119,7 +121,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>
-          <p className="text-default mt-3 line-clamp-2 text-sm font-normal leading-6 dark:text-gray-300">
+          <p className="text-default line-clamp-2 mt-3 text-sm font-normal leading-6 dark:text-gray-300">
             {t("no_workflows_description")}
           </p>
           <div className="mt-8 ">

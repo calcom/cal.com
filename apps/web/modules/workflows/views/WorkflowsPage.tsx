@@ -9,11 +9,6 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import EmptyScreen from "@calcom/features/ee/workflows/components/EmptyScreen";
 import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderList";
-import {
-  WorkflowCreationDialog,
-  useWorkflowCreation,
-} from "@calcom/features/ee/workflows/components/WorkflowCreationDialog";
-import WorkflowList from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
@@ -26,6 +21,11 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import Shell, { ShellMain } from "@calcom/web/modules/shell/Shell";
+import {
+  WorkflowCreationDialog,
+  useWorkflowCreation,
+} from "@calcom/web/modules/workflows/components/WorkflowCreationDialog";
+import WorkflowList from "@calcom/web/modules/workflows/components/WorkflowListPage";
 
 type PageProps = {
   filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;

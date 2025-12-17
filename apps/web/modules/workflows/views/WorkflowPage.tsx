@@ -10,7 +10,6 @@ import { Toaster } from "sonner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { DeleteDialog } from "@calcom/features/ee/workflows/components/DeleteDialog";
 import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderEdit";
-import WorkflowDetailsPage from "@calcom/features/ee/workflows/components/WorkflowDetailsPage";
 import {
   isSMSAction,
   isSMSOrWhatsappAction,
@@ -41,6 +40,7 @@ import { Form, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import WorkflowDetailsPage from "@calcom/web/modules/workflows/components/WorkflowDetailsPage";
 
 export type FormValues = {
   name: string;
