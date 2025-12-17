@@ -11,7 +11,7 @@ const getBookingInfo = async (uid: string) => {
 
   const bookingInfo = getBookingWithResponses(bookingInfoRaw);
 
-  return { bookingInfoRaw, bookingInfo };
+  return { bookingInfoRaw, bookingInfo: { ...bookingInfo, isASeatedBooking: !bookingInfoRaw.responses } };
 };
 
 export default getBookingInfo;
