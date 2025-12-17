@@ -73,6 +73,7 @@
   },
   "dependencies": {
     "@calcom/lib": "workspace:*",
+    "@coss/ui": "workspace:*",
     "@formkit/auto-animate": "1.0.0-beta.5",
     "@radix-ui/react-avatar": "^1.1.3",
     "@radix-ui/react-checkbox": "^1.0.4",
