@@ -153,7 +153,7 @@ jobs:
     name: Companion builds
     needs: [changes, check-label]
     if: needs.changes.outputs.has_companion == 'true'
-    uses: ./.github/workflows/companion-builds.yml
+    uses: ./.github/workflows/companion-build.yml
     secrets: inherit
 
   build:
