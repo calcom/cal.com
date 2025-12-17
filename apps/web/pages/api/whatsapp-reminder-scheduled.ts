@@ -148,23 +148,7 @@ export const cancelWhatsappReminder = async ({ event, step }) => {
   const { reminderId } = event.data as { reminderId: number };
 
   await step.run("mark-reminder-cancelled", async () => {
-    try {
-      await prisma.calIdWorkflowReminder.update({
-        where: { id: reminderId },
-        data: {
-          scheduled: false,
-          referenceId: "CANCELLED",
-        },
-      });
-
-      log.info("WhatsApp reminder cancelled", { reminderId });
-    } catch (error) {
-      log.error("Failed to cancel reminder", {
-        reminderId,
-        error: error instanceof Error ? error.message : error,
-      });
-      throw error;
-    }
+    // Empty step does nothing, this is only useful sending the cancellation event to Inngest
   });
 
   return { success: true, reminderId };
