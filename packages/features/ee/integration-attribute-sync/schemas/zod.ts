@@ -35,11 +35,14 @@ export const attributeSyncRuleSchema = z.object({
 
 export type IAttributeSyncRule = z.infer<typeof attributeSyncRuleSchema>;
 
-const fieldMappingSchema = z.object({
-  id: z.string().optional(),
+const newFieldMappingSchema = z.object({
   integrationFieldName: z.string(),
   attributeId: z.string(),
   enabled: z.boolean(),
+});
+
+const fieldMappingSchema = newFieldMappingSchema.extend({
+  id: z.string(),
 });
 
 export const syncFormDataSchema = z
@@ -48,8 +51,9 @@ export const syncFormDataSchema = z
     credentialId: z.number(),
     enabled: z.boolean(),
     organizationId: z.number(),
+    ruleId: z.string(),
     rule: attributeSyncRuleSchema,
-    syncFieldMappings: z.array(fieldMappingSchema),
+    syncFieldMappings: z.array(z.union([fieldMappingSchema, newFieldMappingSchema])),
   })
   .passthrough(); // Allow extra fields to pass through
 
