@@ -137,7 +137,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
     for (const match of matches) {
       const variableName = match[1];
-      if (!META_DYNAMIC_TEXT_VARIABLES.includes(variableName)) {
+      if (!Object.keys(META_DYNAMIC_TEXT_VARIABLES).includes(variableName)) {
         return variableName;
       }
     }
@@ -1150,6 +1150,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     );
   }
 
+  const convertWhatsAppTemplateForDisplay = (text: string): string => {
+    if (!text) return "";
+
+    // Replace \n with <br> for HTML display
+    return text.replace(/\n/g, "<br>");
+  };
+
   return (
     <Shell withoutMain backPath="/workflows">
       <ShellMain
@@ -1888,7 +1895,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                           })}>
                                           <Editor
                                             key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
-                                            getText={() => step.reminderBody || ""}
+                                            getText={() =>
+                                              step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
+                                              step.action === WorkflowActions.WHATSAPP_ATTENDEE
+                                                ? convertWhatsAppTemplateForDisplay(step.reminderBody)
+                                                : step.reminderBody || ""
+                                            }
                                             setText={(text: string) => {
                                               const stepIndex = steps.findIndex((s) => s.id === step.id);
                                               if (stepIndex !== -1) {
