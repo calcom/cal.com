@@ -1,10 +1,10 @@
-import type { AttributeSyncUserRule as PrismaAttributeSyncUserRule } from "@calcom/prisma/client";
+import type { AttributeSyncRule as PrismaAttributeSyncRule } from "@calcom/prisma/client";
 
-import type { AttributeSyncUserRule } from "../repositories/IIntegrationAttributeSyncRepository";
+import type { AttributeSyncRule } from "../repositories/IIntegrationAttributeSyncRepository";
 import { attributeSyncRuleSchema } from "../schemas/zod";
 
 export class AttributeSyncUserRuleOutputMapper {
-  static toDomain(prisma: PrismaAttributeSyncUserRule): Omit<AttributeSyncUserRule, "syncFieldMappings"> {
+  static toDomain(prisma: PrismaAttributeSyncRule): Omit<AttributeSyncRule, "syncFieldMappings"> {
     // Parse and validate the JSON field with Zod
     const parsedRules = attributeSyncRuleSchema.parse(prisma.rule);
 
@@ -14,9 +14,7 @@ export class AttributeSyncUserRuleOutputMapper {
     };
   }
 
-  static toDomainList(
-    prismaList: PrismaAttributeSyncUserRule[]
-  ): Omit<AttributeSyncUserRule, "syncFieldMappings">[] {
+  static toDomainList(prismaList: PrismaAttributeSyncRule[]): Omit<AttributeSyncRule, "syncFieldMappings">[] {
     return prismaList.map(AttributeSyncUserRuleOutputMapper.toDomain);
   }
 }
