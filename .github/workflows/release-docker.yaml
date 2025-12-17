@@ -75,7 +75,7 @@ jobs:
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test
         with:
-          platform: "linux/arm64"
+          platform: "arm64"
           platform-suffix: "-arm"
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}

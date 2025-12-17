@@ -3,7 +3,7 @@ description: "Reusable action to build and test Docker images for Cal.com"
 
 inputs:
   platform:
-    description: "Target platform (linux/amd64 or linux/arm64)"
+    description: "Target platform (linux/amd64 or arm64)"
     required: true
   platform-suffix:
     description: "Suffix to add to image tags (e.g., -arm)"
@@ -61,7 +61,7 @@ runs:
           docker.io/calcom/cal.com
           ghcr.io/calcom/cal.com
         flavor: |
-          latest=${{ !github.event.release.prerelease && inputs.platform == 'linux/amd64' }}
+          latest=${{ !github.event.release.prerelease && inputs.platform == 'amd64' }}
           suffix=${{ inputs.platform-suffix }}
 
     - name: Copy env
