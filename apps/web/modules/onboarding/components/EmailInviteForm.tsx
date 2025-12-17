@@ -3,11 +3,11 @@
 import { Button } from "@coss/ui/components/button";
 import { Input } from "@coss/ui/components/input";
 import { Label } from "@coss/ui/components/label";
+import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
 import { XIcon, PlusIcon } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui/components/form";
 
 import type { InviteRole } from "../store/onboarding-store";
 
@@ -79,16 +79,19 @@ export function EmailInviteForm({
                 />
                 {showTeamSelect && (
                   <Select
-                    size="sm"
-                    options={teams}
-                    value={teams.find((t) => t.value === watch(`invites.${index}.team`))}
-                    onChange={(option) => {
-                      if (option) {
-                        setValue(`invites.${index}.team`, option.value);
-                      }
-                    }}
-                    placeholder={t("select_team")}
-                  />
+                    value={watch(`invites.${index}.team`)}
+                    onValueChange={(value) => setValue(`invites.${index}.team`, value)}>
+                    <SelectTrigger size="sm">
+                      <SelectValue placeholder={t("select_team")} />
+                    </SelectTrigger>
+                    <SelectPopup>
+                      {teams.map((team) => (
+                        <SelectItem key={team.value} value={team.value}>
+                          {team.label}
+                        </SelectItem>
+                      ))}
+                    </SelectPopup>
+                  </Select>
                 )}
               </div>
               <Button
