@@ -168,7 +168,7 @@ vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflows", () => ({
   workflowSelect: {},
 }));
 
-vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType", () => ({
   getAllWorkflowsFromEventType: vi.fn().mockResolvedValue([]),
 }));
 
