@@ -1,6 +1,7 @@
 import { OAuth2Repository } from "@/modules/auth/oauth2/oauth2.repository";
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 
+import { OAuthService } from "@calcom/platform-libraries";
 import type { AccessScope } from "@calcom/prisma/enums";
 
 export interface OAuth2Client {
@@ -107,7 +108,10 @@ export class OAuth2Service {
       throw new BadRequestException("invalid_grant");
     }
 
-    const isValidClient = this.validateClient(client, clientSecret);
+    const isValidClient = OAuthService.validateClient(
+      { clientType: client.clientType as "CONFIDENTIAL" | "PUBLIC", clientSecret: client.clientSecret },
+      clientSecret
+    );
     if (!isValidClient) {
       throw new UnauthorizedException("invalid_client");
     }
@@ -120,9 +124,13 @@ export class OAuth2Service {
       throw new BadRequestException("invalid_grant");
     }
 
-    const pkceError = this.verifyPKCE(client, accessCode, codeVerifier);
+    const pkceError = OAuthService.verifyPKCE(
+      { clientType: client.clientType as "CONFIDENTIAL" | "PUBLIC" },
+      accessCode,
+      codeVerifier
+    );
     if (pkceError) {
-      throw new BadRequestException(pkceError);
+      throw new BadRequestException(pkceError.error);
     }
 
     const tokens = await this.oauth2Repository.createTokens({
@@ -149,7 +157,10 @@ export class OAuth2Service {
       throw new UnauthorizedException("invalid_client");
     }
 
-    const isValidClient = this.validateClient(client, clientSecret);
+    const isValidClient = OAuthService.validateClient(
+      { clientType: client.clientType as "CONFIDENTIAL" | "PUBLIC", clientSecret: client.clientSecret },
+      clientSecret
+    );
     if (!isValidClient) {
       throw new UnauthorizedException("invalid_client");
     }
@@ -164,9 +175,13 @@ export class OAuth2Service {
       throw new BadRequestException("invalid_grant");
     }
 
-    const pkceError = this.verifyPKCE(client, decodedToken, codeVerifier);
+    const pkceError = OAuthService.verifyPKCE(
+      { clientType: client.clientType as "CONFIDENTIAL" | "PUBLIC" },
+      decodedToken,
+      codeVerifier
+    );
     if (pkceError) {
-      throw new BadRequestException(pkceError);
+      throw new BadRequestException(pkceError.error);
     }
 
     const tokens = await this.oauth2Repository.createTokens({
@@ -179,39 +194,5 @@ export class OAuth2Service {
     });
 
     return tokens;
-  }
-
-  private validateClient(
-    client: { clientType: string; clientSecret?: string | null },
-    clientSecret?: string
-  ): boolean {
-    if (client.clientType === "CONFIDENTIAL") {
-      if (!clientSecret) return false;
-      // TODO: Implement proper secret validation with hashing
-      // For now, this is a skeleton - actual implementation should use generateSecret from trpc handler
-      return true;
-    }
-    return true;
-  }
-
-  private verifyPKCE(
-    client: { clientType: string },
-    source: { codeChallenge?: string | null; codeChallengeMethod?: string | null },
-    codeVerifier?: string
-  ): string | null {
-    const shouldEnforcePKCE =
-      client.clientType === "PUBLIC" || (client.clientType === "CONFIDENTIAL" && source.codeChallenge);
-
-    if (!shouldEnforcePKCE) return null;
-
-    const method = source.codeChallengeMethod || "S256";
-
-    if (!source.codeChallenge || !codeVerifier || method !== "S256") {
-      return "invalid_request";
-    }
-
-    // TODO: Implement proper PKCE verification using verifyCodeChallenge from @calcom/lib/pkce
-    // For now, this is a skeleton
-    return null;
   }
 }
