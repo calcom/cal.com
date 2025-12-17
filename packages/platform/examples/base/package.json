@@ -12,7 +12,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@calcom/atoms": "workspace:*",
+    "@calcom/atoms": "^2.3.0",
     "@prisma/client": "6.7.0",
     "next": "14.2.35",
     "prisma": "^6.7.0",

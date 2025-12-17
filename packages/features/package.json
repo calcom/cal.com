@@ -12,7 +12,7 @@
     "deploy:trigger": "npx trigger.dev@latest deploy"
   },
   "dependencies": {
-    "@calcom/atoms": "workspace:*",
+    "@calcom/atoms": "^2.3.0",
     "@calcom/dayjs": "workspace:*",
     "@calcom/lib": "workspace:*",
     "@calcom/trpc": "workspace:*",
