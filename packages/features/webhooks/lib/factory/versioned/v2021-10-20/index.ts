@@ -1,5 +1,5 @@
 /**
- * Webhook Payload Builders for Version 2021-10-20
+ * Webhook Payload Builders for Version v2021-10-20
  *
  * This is the initial webhook version. All builders extend base classes
  * and use default implementations.

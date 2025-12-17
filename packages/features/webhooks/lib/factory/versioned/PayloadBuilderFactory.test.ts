@@ -4,6 +4,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { BookingWebhookEventDTO } from "../../dto/types";
 import { PayloadBuilderFactory, type PayloadBuilderSet } from "./PayloadBuilderFactory";
 import * as V2021_10_20 from "./v2021-10-20";
+import { WebhookVersion as WebhookVersionEnum } from "../../interface/IWebhookRepository";
 
 describe("PayloadBuilderFactory", () => {
   let factory: PayloadBuilderFactory;
@@ -19,13 +20,13 @@ describe("PayloadBuilderFactory", () => {
       instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
     };
 
-    factory = new PayloadBuilderFactory("2021-10-20", defaultBuilders);
+    factory = new PayloadBuilderFactory(WebhookVersionEnum.V_2021_10_20, defaultBuilders);
   });
 
   describe("Constructor", () => {
     it("should initialize with default version and builders", () => {
       expect(factory).toBeInstanceOf(PayloadBuilderFactory);
-      expect(factory.getRegisteredVersions()).toContain("2021-10-20");
+      expect(factory.getRegisteredVersions()).toContain(WebhookVersionEnum.V_2021_10_20);
     });
 
     it("should enforce required parameters at compile-time", () => {
@@ -62,7 +63,7 @@ describe("PayloadBuilderFactory", () => {
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
-      factory.registerVersion("2021-10-20", newBuilders);
+      factory.registerVersion(WebhookVersionEnum.V_2021_10_20, newBuilders);
 
       expect(factory.getRegisteredVersions()).toHaveLength(1);
     });
@@ -82,7 +83,7 @@ describe("PayloadBuilderFactory", () => {
       ];
 
       bookingTriggers.forEach((trigger) => {
-        const builder = factory.getBuilder("2021-10-20", trigger);
+        const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, trigger);
         expect(builder).toBe(defaultBuilders.booking);
       });
     });
@@ -94,13 +95,13 @@ describe("PayloadBuilderFactory", () => {
       ];
 
       formTriggers.forEach((trigger) => {
-        const builder = factory.getBuilder("2021-10-20", trigger);
+        const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, trigger);
         expect(builder).toBe(defaultBuilders.form);
       });
     });
 
     it("should route OOO events to OOO builder", () => {
-      const builder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.OOO_CREATED);
+      const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.OOO_CREATED);
       expect(builder).toBe(defaultBuilders.ooo);
     });
 
@@ -111,7 +112,7 @@ describe("PayloadBuilderFactory", () => {
       ];
 
       recordingTriggers.forEach((trigger) => {
-        const builder = factory.getBuilder("2021-10-20", trigger);
+        const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, trigger);
         expect(builder).toBe(defaultBuilders.recording);
       });
     });
@@ -120,20 +121,20 @@ describe("PayloadBuilderFactory", () => {
       const meetingTriggers = [WebhookTriggerEvents.MEETING_STARTED, WebhookTriggerEvents.MEETING_ENDED];
 
       meetingTriggers.forEach((trigger) => {
-        const builder = factory.getBuilder("2021-10-20", trigger);
+        const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, trigger);
         expect(builder).toBe(defaultBuilders.meeting);
       });
     });
 
     it("should route instant meeting events to instant meeting builder", () => {
-      const builder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.INSTANT_MEETING);
+      const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.INSTANT_MEETING);
       expect(builder).toBe(defaultBuilders.instantMeeting);
     });
   });
 
   describe("Fallback Behavior", () => {
     it("should fallback to default version when requested version not found", () => {
-      const builder = factory.getBuilder("2099-99-99", WebhookTriggerEvents.BOOKING_CREATED);
+      const builder = factory.getBuilder(WebhookVersionEnum.V_2099_99_99, WebhookTriggerEvents.BOOKING_CREATED);
 
       // Should get default builder, not throw
       expect(builder).toBe(defaultBuilders.booking);
@@ -147,7 +148,7 @@ describe("PayloadBuilderFactory", () => {
     });
 
     it("should never return undefined builder", () => {
-      const unknownVersion = "9999-99-99";
+      const unknownVersion = WebhookVersionEnum.V_2099_99_99;
       const builder = factory.getBuilder(unknownVersion, WebhookTriggerEvents.BOOKING_CREATED);
 
       expect(builder).toBeDefined();
@@ -158,12 +159,12 @@ describe("PayloadBuilderFactory", () => {
   describe("Type Safety", () => {
     it("should return correctly typed builder for each trigger", () => {
       // These type assertions verify compile-time type safety
-      const bookingBuilder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.BOOKING_CREATED);
-      const formBuilder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.FORM_SUBMITTED);
-      const oooBuilder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.OOO_CREATED);
-      const recordingBuilder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.RECORDING_READY);
-      const meetingBuilder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.MEETING_STARTED);
-      const instantBuilder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.INSTANT_MEETING);
+      const bookingBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
+      const formBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.FORM_SUBMITTED);
+      const oooBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.OOO_CREATED);
+      const recordingBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.RECORDING_READY);
+      const meetingBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.MEETING_STARTED);
+      const instantBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.INSTANT_MEETING);
 
       // Runtime verification
       expect(bookingBuilder).toBeDefined();
@@ -220,7 +221,7 @@ describe("PayloadBuilderFactory", () => {
         },
       };
 
-      const builder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.BOOKING_CREATED);
+      const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
       const payload = builder.build(mockDTO);
 
       expect(payload).toBeDefined();
@@ -240,11 +241,11 @@ describe("PayloadBuilderFactory", () => {
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
-      factory.registerVersion("2024-12-01", v2Builders);
+      factory.registerVersion(WebhookVersionEnum.V_2024_12_01, v2Builders);
 
       // Both versions should work
-      const v1Builder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.BOOKING_CREATED);
-      const v2Builder = factory.getBuilder("2024-12-01", WebhookTriggerEvents.BOOKING_CREATED);
+      const v1Builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
+      const v2Builder = factory.getBuilder(WebhookVersionEnum.V_2024_12_01, WebhookTriggerEvents.BOOKING_CREATED);
 
       expect(v1Builder).toBe(defaultBuilders.booking);
       expect(v2Builder).toBe(v2Builders.booking);

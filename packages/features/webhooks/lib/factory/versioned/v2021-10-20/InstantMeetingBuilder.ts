@@ -3,7 +3,7 @@ import type { WebhookPayload } from "../../types";
 import { BaseInstantMeetingBuilder } from "../../base/BaseInstantMeetingBuilder";
 
 /**
- * Instant meeting payload builder for webhook version 2021-10-20.
+ * Instant meeting payload builder for webhook version v2021-10-20.
  *
  * This is the initial instant meeting webhook payload format.
  * It includes notification-style data (title, body, icon, url, actions).

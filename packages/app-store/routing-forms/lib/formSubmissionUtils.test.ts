@@ -152,7 +152,7 @@ describe("_onFormSubmission", () => {
         eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
         time: null,
         timeUnit: null,
-        version: "2021-10-20",
+        version: WebhookVersionEnum.V_2021_10_20,
       };
       vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
 

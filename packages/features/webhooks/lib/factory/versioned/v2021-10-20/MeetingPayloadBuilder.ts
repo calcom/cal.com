@@ -10,7 +10,7 @@ import type { WebhookPayload } from "../../types";
 import { BaseMeetingPayloadBuilder } from "../../base/BaseMeetingPayloadBuilder";
 
 /**
- * Meeting payload builder for webhook version 2021-10-20.
+ * Meeting payload builder for webhook version v2021-10-20.
  *
  * Handles:
  * - MEETING_STARTED / MEETING_ENDED: Full booking data in payload

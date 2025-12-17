@@ -5,6 +5,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { WebhookSubscriber } from "./dto/types";
 import { WebhookService } from "./WebhookService";
 import getWebhooks from "./getWebhooks";
+import { WebhookVersion as WebhookVersionEnum } from "./interface/IWebhookRepository";
 
 vi.mock("./getWebhooks", () => ({
   default: vi.fn(),
@@ -51,7 +52,7 @@ describe("WebhookService", () => {
         eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
         timeUnit: "MINUTE",
         time: 5,
-        version: "2021-10-20",
+        version: WebhookVersionEnum.V_2021_10_20,
       },
     ];
     vi.mocked(getWebhooks).mockResolvedValue(mockWebhooks);

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, WebhookVersionEnum } from "@calcom/prisma/enums";
 
 import type { BookingWebhookEventDTO, WebhookSubscriber } from "../dto/types";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
@@ -23,7 +23,7 @@ describe("WebhookNotificationHandler", () => {
       eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
       time: null,
       timeUnit: null,
-      version: "2021-10-20",
+      version: WebhookVersionEnum.V_2021_10_20,
     },
     {
       id: "webhook-2",
@@ -34,7 +34,7 @@ describe("WebhookNotificationHandler", () => {
       eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
       time: null,
       timeUnit: null,
-      version: "2021-10-20",
+      version: WebhookVersionEnum.V_2021_10_20,
     },
   ];
 
@@ -61,7 +61,7 @@ describe("WebhookNotificationHandler", () => {
         }),
       }),
       registerVersion: vi.fn(),
-      getRegisteredVersions: vi.fn().mockReturnValue(["2021-10-20"]),
+      getRegisteredVersions: vi.fn().mockReturnValue([WebhookVersionEnum.V_2021_10_20]),
     };
 
     // Mock logger
@@ -156,7 +156,7 @@ describe("WebhookNotificationHandler", () => {
     it("should use factory to build payload", async () => {
       await handler.handleNotification(mockDTO);
 
-      expect(mockFactory.getBuilder).toHaveBeenCalledWith("2021-10-20", WebhookTriggerEvents.BOOKING_CREATED);
+      expect(mockFactory.getBuilder).toHaveBeenCalledWith(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
     });
 
     it("should process webhooks with built payload", async () => {
@@ -276,7 +276,7 @@ describe("WebhookNotificationHandler", () => {
   });
 
   describe("Version Handling", () => {
-    it("should use default version (2021-10-20) for all events currently", async () => {
+    it("should use default version (v2021-10-20) for all events currently", async () => {
       const dto: BookingWebhookEventDTO = {
         triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         createdAt: "2024-01-15T10:00:00Z",
@@ -301,7 +301,7 @@ describe("WebhookNotificationHandler", () => {
 
       await handler.handleNotification(dto);
 
-      expect(mockFactory.getBuilder).toHaveBeenCalledWith("2021-10-20", WebhookTriggerEvents.BOOKING_CREATED);
+      expect(mockFactory.getBuilder).toHaveBeenCalledWith(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
     });
   });
 });

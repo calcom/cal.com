@@ -36,7 +36,7 @@ describe("Payload Builder Registry", () => {
     it("should register v2021-10-20 builders", () => {
       const factory = createPayloadBuilderFactory();
 
-      const builder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.BOOKING_CREATED);
+      const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
       expect(builder).toBeInstanceOf(V2021_10_20.BookingPayloadBuilder);
     });
 
@@ -52,7 +52,7 @@ describe("Payload Builder Registry", () => {
       const factory = createPayloadBuilderFactory();
 
       // Request non-existent version
-      const builder = factory.getBuilder("9999-99-99", WebhookTriggerEvents.BOOKING_CREATED);
+      const builder = factory.getBuilder(WebhookVersionEnum.V_2099_01_01, WebhookTriggerEvents.BOOKING_CREATED);
 
       // Should get default builder, not throw
       expect(builder).toBeDefined();
@@ -82,9 +82,9 @@ describe("Payload Builder Registry", () => {
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
-      factory.registerVersion("2024-12-01", newVersionBuilders);
+      factory.registerVersion(WebhookVersionEnum.V_2024_12_01, newVersionBuilders);
 
-      expect(factory.getRegisteredVersions()).toContain("2024-12-01");
+      expect(factory.getRegisteredVersions()).toContain(WebhookVersionEnum.V_2024_12_01);
       expect(factory.getRegisteredVersions()).toHaveLength(2);
     });
 
@@ -101,10 +101,10 @@ describe("Payload Builder Registry", () => {
         instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
       };
 
-      factory.registerVersion("2024-12-01", v2Builders);
+      factory.registerVersion(WebhookVersionEnum.V_2024_12_01, v2Builders);
 
-      const v1Builder = factory.getBuilder("2021-10-20", WebhookTriggerEvents.BOOKING_CREATED);
-      const v2Builder = factory.getBuilder("2024-12-01", WebhookTriggerEvents.BOOKING_CREATED);
+      const v1Builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
+      const v2Builder = factory.getBuilder(WebhookVersionEnum.V_2024_12_01, WebhookTriggerEvents.BOOKING_CREATED);
 
       // Should be different instances
       expect(v1Builder).not.toBe(v2Builder);
