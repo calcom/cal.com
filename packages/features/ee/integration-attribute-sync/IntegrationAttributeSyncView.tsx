@@ -50,7 +50,13 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
   // tRPC utils for invalidation
   const utils = trpc.useUtils();
 
-  // Mutation for creating attribute sync
+  const { data: integrationAttributeSyncs } = trpc.viewer.attributeSync.getAllAttributeSyncs.useQuery(
+    undefined,
+    {
+      initialData: initalIntegrationAttributeSyncs,
+    }
+  );
+
   const createMutation = trpc.viewer.attributeSync.createAttributeSync.useMutation({
     onSuccess: () => {
       // Reset form
