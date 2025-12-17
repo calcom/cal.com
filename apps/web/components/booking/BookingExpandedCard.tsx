@@ -331,7 +331,9 @@ export function BookingExpandedCard(props: BookingItemProps) {
                     e.stopPropagation();
                     handleMarkNoShow();
                   }}>
-                  {t("mark_as_no_show")}
+                  {attendeeList.length === 1 && attendeeList[0].noShow
+                    ? t("unmark_as_no_show")
+                    : t("mark_as_no_show")}
                 </Button>
               )}
               {attendeePhoneNo && (
@@ -518,7 +520,7 @@ const NoShowAttendeesDialog = ({
                   }
                 });
               }}>
-              {t("mark_as_no_show")}
+              {t("update_no_show_status")}
             </Button>
           </div>
         </div>
