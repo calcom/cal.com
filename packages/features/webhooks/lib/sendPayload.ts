@@ -4,6 +4,7 @@ import { compile } from "handlebars";
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
+import { getVideoCallUrlFromCalEvent, isDailyVideoCall } from "@calcom/lib/CalEventParser";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -102,6 +103,22 @@ export type WebhookPayloadType =
   | DelegationCredentialErrorPayloadType;
 
 type WebhookDataType = WebhookPayloadType & { triggerEvent: string; createdAt: string };
+
+function withPublicVideoUrl(data: EventPayloadType): EventPayloadType {
+  if (!data.videoCallData) return data;
+  if (!isDailyVideoCall(data)) return data;
+
+  const publicUrl = getVideoCallUrlFromCalEvent(data);
+  if (!publicUrl || publicUrl === data.videoCallData.url) return data;
+
+  return {
+    ...data,
+    videoCallData: {
+      ...data.videoCallData,
+      url: publicUrl,
+    },
+  };
+}
 
 function addUTCOffset(data: WebhookPayloadType): WithUTCOffsetType<WebhookPayloadType> {
   if (isEventPayload(data)) {
@@ -220,6 +237,10 @@ const sendPayload = async (
 
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
+
+  if (isEventPayload(data)) {
+    data = withPublicVideoUrl(data);
+  }
 
   data = addUTCOffset(data);
 
