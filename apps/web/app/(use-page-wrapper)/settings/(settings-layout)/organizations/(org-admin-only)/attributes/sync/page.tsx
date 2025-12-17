@@ -51,7 +51,7 @@ const Page = async () => {
     <SettingsHeader title="Attribute Sync" description="Setup attribute syncing with 3rd party integrations">
       <IntegrationAttributeSyncView
         credentialsData={credentialData}
-        integrationAttributeSyncs={integrationAttributeSyncs}
+        initalIntegrationAttributeSyncs={integrationAttributeSyncs}
         organizationTeams={organizationTeams}
         attributes={attributes}
       />
