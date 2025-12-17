@@ -275,8 +275,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense
-        fallback={
+      <Suspense fallback={
           <div className="flex h-64 items-center justify-center">
             <Icon name="loader" className="h-5 w-5 animate-spin" />
           </div>
