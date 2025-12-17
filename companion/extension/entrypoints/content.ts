@@ -20,6 +20,15 @@ export default defineContentScript({
       }
     }
 
+    const sessionToken = generateSecureToken();
+    let iframeSessionValidated = false;
+
+    function generateSecureToken(): string {
+      const array = new Uint8Array(32);
+      crypto.getRandomValues(array);
+      return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+
     let isVisible = false;
     let isClosed = true;
 
@@ -69,6 +78,30 @@ export default defineContentScript({
         return;
       }
 
+      if (event.data.type === "cal-extension-request-session") {
+        iframeSessionValidated = true;
+        iframe.contentWindow?.postMessage(
+          {
+            type: "cal-extension-session-token",
+            sessionToken: sessionToken,
+          },
+          iframeOrigin
+        );
+        return;
+      }
+
+      const validateSessionToken = (providedToken: string | undefined): boolean => {
+        if (!iframeSessionValidated) {
+          console.warn("Cal.com: Session not validated yet");
+          return false;
+        }
+        if (providedToken !== sessionToken) {
+          console.warn("Cal.com: Invalid session token");
+          return false;
+        }
+        return true;
+      };
+
       if (event.data.type === "cal-companion-expand") {
         // Disable transition for instant expansion
         iframe.style.transition = "none";
@@ -92,6 +125,32 @@ export default defineContentScript({
           event.data.state, // Pass state for CSRF validation
           iframe.contentWindow
         );
+      } else if (event.data.type === "cal-extension-sync-tokens") {
+        if (!validateSessionToken(event.data.sessionToken)) {
+          iframe.contentWindow?.postMessage(
+            {
+              type: "cal-extension-sync-tokens-result",
+              success: false,
+              error: "Invalid session token",
+            },
+            iframeOrigin
+          );
+          return;
+        }
+        handleTokenSyncRequest(event.data.tokens, iframe.contentWindow);
+      } else if (event.data.type === "cal-extension-clear-tokens") {
+        if (!validateSessionToken(event.data.sessionToken)) {
+          iframe.contentWindow?.postMessage(
+            {
+              type: "cal-extension-clear-tokens-result",
+              success: false,
+              error: "Invalid session token",
+            },
+            iframeOrigin
+          );
+          return;
+        }
+        handleClearTokensRequest(iframe.contentWindow);
       }
     });
 
@@ -195,6 +254,64 @@ export default defineContentScript({
           }
         }
       );
+    }
+
+    function handleTokenSyncRequest(tokens: any, iframeWindow: Window | null) {
+      chrome.runtime.sendMessage({ action: "sync-oauth-tokens", tokens }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Failed to communicate with background script:",
+            chrome.runtime.lastError.message
+          );
+          iframeWindow?.postMessage(
+            {
+              type: "cal-extension-sync-tokens-result",
+              success: false,
+              error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+            },
+            "*"
+          );
+          return;
+        }
+
+        iframeWindow?.postMessage(
+          {
+            type: "cal-extension-sync-tokens-result",
+            success: response?.success ?? false,
+            error: response?.error,
+          },
+          "*"
+        );
+      });
+    }
+
+    function handleClearTokensRequest(iframeWindow: Window | null) {
+      chrome.runtime.sendMessage({ action: "clear-oauth-tokens" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Failed to communicate with background script:",
+            chrome.runtime.lastError.message
+          );
+          iframeWindow?.postMessage(
+            {
+              type: "cal-extension-clear-tokens-result",
+              success: false,
+              error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+            },
+            "*"
+          );
+          return;
+        }
+
+        iframeWindow?.postMessage(
+          {
+            type: "cal-extension-clear-tokens-result",
+            success: response?.success ?? false,
+            error: response?.error,
+          },
+          "*"
+        );
+      });
     }
 
     sidebarContainer.appendChild(iframeContainer);
@@ -554,15 +671,15 @@ export default defineContentScript({
               bottom: 100%;
               left: 0;
               width: 400px;
-              max-height: 250px;
+              max-height: 280px;
               background: white;
-              border-radius: 8px;
-              box-shadow: 0 1px 2px 0 rgba(60,64,67,.3),0 2px 6px 2px rgba(60,64,67,.15);
-              font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
               font-size: 14px;
               z-index: 9999;
               overflow-y: auto;
-              margin-bottom: 4px;
+              margin-bottom: 8px;
             `;
 
             // Show loading state
@@ -1013,25 +1130,64 @@ export default defineContentScript({
                 `;
               }
             } catch (error) {
-              menu.innerHTML = `
-                <div style="padding: 16px; text-align: center; color: #ea4335;">
-                  Failed to load event types
-                </div>
-                <div style="padding: 0 16px; text-align: center; color: #5f6368; font-size: 12px;">
-                  Error: ${(error as Error).message}
-                </div>
-                <div style="padding: 16px 16px; text-align: center;">
-                  <button onclick="this.parentElement.parentElement.remove()" style="
-                    background: #1a73e8;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 4px;
+              const errorMessage = (error as Error).message || "";
+              const isAuthError =
+                errorMessage.includes("OAuth") ||
+                errorMessage.includes("access token") ||
+                errorMessage.includes("sign in") ||
+                errorMessage.includes("authentication");
+
+              if (isAuthError) {
+                // Not logged in - open sidebar directly
+                tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                menu.remove();
+                openSidebar();
+                return;
+              } else {
+                // Show generic error for non-auth errors
+                menu.innerHTML = `
+                  <div style="padding: 20px; text-align: center;">
+                    <div style="margin-bottom: 12px;">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+                      Something went wrong
+                    </div>
+                    <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                      ${errorMessage || "Failed to load event types"}
+                    </div>
+                    <button class="cal-gmail-close-btn" style="
+                      background: #F3F4F6;
+                      color: #374151;
+                      border: none;
+                      padding: 10px 20px;
+                      border-radius: 8px;
                     font-size: 14px;
+                      font-weight: 500;
                     cursor: pointer;
+                      transition: background 0.2s ease;
                   ">Close</button>
                 </div>
               `;
+
+                const closeBtn = menu.querySelector(".cal-gmail-close-btn") as HTMLButtonElement;
+                if (closeBtn) {
+                  closeBtn.addEventListener("mouseenter", () => {
+                    closeBtn.style.background = "#E5E7EB";
+                  });
+                  closeBtn.addEventListener("mouseleave", () => {
+                    closeBtn.style.background = "#F3F4F6";
+                  });
+                  closeBtn.addEventListener("click", () => {
+                    tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                    menu.remove();
+                  });
+                }
+              }
             }
           }
 
@@ -2703,34 +2859,40 @@ export default defineContentScript({
           console.error("Error showing Cal.com suggestion menu:", error);
           loadingDiv.remove();
 
+          const errorMessage = error instanceof Error ? error.message : "";
+          const isContextInvalidated = errorMessage.includes("Extension context invalidated");
+          const isAuthError =
+            errorMessage.includes("OAuth") ||
+            errorMessage.includes("access token") ||
+            errorMessage.includes("sign in") ||
+            errorMessage.includes("authentication");
+
           // Show user-friendly error message
           const errorDiv = document.createElement("div");
-          errorDiv.style.cssText = "padding: 20px 16px; text-align: center;";
+          errorDiv.style.cssText = "padding: 24px 20px; text-align: center;";
 
-          const isContextInvalidated =
-            error instanceof Error && error.message.includes("Extension context invalidated");
-
-          errorDiv.innerHTML = `
+          if (isAuthError) {
+            // Not logged in - close backdrop and open sidebar directly
+            backdrop.remove();
+            openSidebar();
+            return;
+          } else if (isContextInvalidated) {
+            // Extension reloaded error
+            errorDiv.innerHTML = `
             <div style="margin-bottom: 12px;">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${isContextInvalidated ? "#ff6b6b" : "#666"}" stroke-width="1.5" style="margin: 0 auto;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="1.5" style="margin: 0 auto;">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
                 <line x1="9" y1="9" x2="15" y2="15"></line>
               </svg>
             </div>
             <div style="font-size: 14px; font-weight: 600; color: #000; margin-bottom: 8px;">
-              ${isContextInvalidated ? "Extension Reloaded" : "Failed to Load"}
+                Extension Reloaded
             </div>
             <div style="font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.5;">
-              ${
-                isContextInvalidated
-                  ? "The extension was updated. Please reload this page to continue."
-                  : "Failed to load event types. Please try again."
-              }
+                The extension was updated. Please reload this page to continue.
             </div>
-            ${
-              isContextInvalidated
-                ? `<button class="reload-page-btn" style="
+              <button class="reload-page-btn" style="
                   background: #ff6b6b;
                   color: #fff;
                   border: none;
@@ -2743,15 +2905,11 @@ export default defineContentScript({
                   transition: background 0.15s;
                 ">
                   Reload Page
-                </button>`
-                : ""
-            }
+              </button>
           `;
 
-          contentContainer.appendChild(errorDiv);
+            contentContainer.appendChild(errorDiv);
 
-          // Add reload handler if context invalidated
-          if (isContextInvalidated) {
             const reloadBtn = errorDiv.querySelector(".reload-page-btn");
             reloadBtn?.addEventListener("click", () => {
               window.location.reload();
@@ -2762,6 +2920,25 @@ export default defineContentScript({
             reloadBtn?.addEventListener("mouseleave", (e) => {
               (e.target as HTMLElement).style.backgroundColor = "#ff6b6b";
             });
+          } else {
+            // Generic error
+            errorDiv.innerHTML = `
+              <div style="margin-bottom: 12px;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto; display: block;">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+                Something went wrong
+              </div>
+              <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                Failed to load event types. Please try again.
+              </div>
+            `;
+
+            contentContainer.appendChild(errorDiv);
           }
         }
       }

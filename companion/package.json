@@ -1,7 +1,7 @@
 {
   "name": "cal-companion",
   "displayName": "Cal.com Companion",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
