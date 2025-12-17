@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FEATURES_CACHE_KEY } from "@calcom/features/flags/features-cache";
 import { NoopRedisService } from "@calcom/features/redis/NoopRedisService";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import type { PrismaClient } from "@calcom/prisma";
@@ -28,8 +28,8 @@ export const toggleFeatureFlagHandler = async (opts: GetOptions) => {
     where: { slug },
     data: { enabled, updatedBy: user.id },
   });
-  // Clear server-side cache (Redis + in-memory) so next request gets fresh data
-  await FeaturesRepository.clearCache(getRedisClient());
+  // Clear server-side cache so next request gets fresh data
+  await getRedisClient().del(FEATURES_CACHE_KEY);
   return result;
 };
 

@@ -1,6 +1,3 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { NoopRedisService } from "@calcom/features/redis/NoopRedisService";
-import { RedisService } from "@calcom/features/redis/RedisService";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -12,13 +9,6 @@ type AssignFeatureOptions = {
     prisma: PrismaClient;
   };
   input: TAdminAssignFeatureToTeamSchema;
-};
-
-const getRedisClient = () => {
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    return new RedisService();
-  }
-  return new NoopRedisService();
 };
 
 export const assignFeatureToTeamHandler = async ({ ctx, input }: AssignFeatureOptions) => {
@@ -39,9 +29,6 @@ export const assignFeatureToTeamHandler = async ({ ctx, input }: AssignFeatureOp
     },
     update: {},
   });
-
-  // Clear server-side cache (Redis + in-memory) so next request gets fresh data
-  await FeaturesRepository.clearCache(getRedisClient());
 
   return { success: true };
 };
