@@ -176,9 +176,9 @@ const executeCancellationProcess = async (): Promise<void> => {
       method: WorkflowMethods.WHATSAPP,
       scheduled: true,
       cancelled: true,
-      referenceId: {
-        not: null,
-        notIn: ["CANCELLED"],
+      scheduledDate: {
+        lte: dayjs().add(7, "day").toISOString(),
+        gte: dayjs().toISOString(),
       },
     },
   });

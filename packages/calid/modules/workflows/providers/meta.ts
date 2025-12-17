@@ -29,6 +29,7 @@ import {
 } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
+import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
 
 // Meta error is retriable, other errors shouldn't be retried by inngest else we risk spamming
@@ -311,7 +312,9 @@ export interface WhatsAppTemplate {
 }
 
 const snakeToCamel = (str: string): string => {
-  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+  const mapped = META_DYNAMIC_TEXT_VARIABLES[str as keyof typeof META_DYNAMIC_TEXT_VARIABLES] || str;
+  const cameled = mapped.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+  return cameled;
 };
 
 // Key changes to handle only snake_case variable names for Meta
