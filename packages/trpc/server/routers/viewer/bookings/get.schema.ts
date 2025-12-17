@@ -22,11 +22,16 @@ type TGetInputSchemaFilters = {
   beforeCreatedDate?: string;
 };
 
+type TGetInputSchemaSort = {
+  sortStart?: "asc" | "desc";
+};
+
 export type TGetInputRawSchema = {
   filters: TGetInputSchemaFilters;
   limit: number;
   offset?: number;
   cursor?: string;
+  sort?: TGetInputSchemaSort;
 };
 
 export type TGetInputSchema = {
@@ -34,6 +39,7 @@ export type TGetInputSchema = {
   limit: number;
   offset: number;
   cursor?: string;
+  sort?: TGetInputSchemaSort;
 };
 
 export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInputRawSchema> = z.object({
