@@ -5,7 +5,6 @@ import {
   OrgUpgradeBanner,
   type OrgUpgradeBannerProps,
 } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
-import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import AdminPasswordBanner, {
   type AdminPasswordBannerProps,
 } from "@calcom/features/users/components/AdminPasswordBanner";
@@ -19,6 +18,10 @@ import {
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
+import {
+  TeamsUpgradeBanner,
+  type TeamsUpgradeBannerProps,
+} from "@calcom/web/modules/settings/teams/components/TeamsUpgradeBanner";
 
 type BannerTypeProps = {
   teamUpgradeBanner: TeamsUpgradeBannerProps;

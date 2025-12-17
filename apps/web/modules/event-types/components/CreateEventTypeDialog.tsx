@@ -4,7 +4,6 @@ import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import { useCreateEventType } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -15,6 +14,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
+import { TeamEventTypeForm } from "@calcom/web/modules/settings/teams/components/TeamEventTypeForm";
 
 import CreateEventTypeForm from "./CreateEventTypeForm";
 

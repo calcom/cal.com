@@ -12,10 +12,6 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
-import {
-  CreateEventTypeDialog,
-  type ProfileOption,
-} from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -59,6 +55,10 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import {
+  CreateEventTypeDialog,
+  type ProfileOption,
+} from "@calcom/web/modules/event-types/components/CreateEventTypeDialog";
 
 import { TRPCClientError } from "@trpc/client";
 
@@ -912,8 +912,7 @@ const EmptyEventTypeList = ({
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
-            variant="button"
-          >
+            variant="button">
             {t("create")}
           </Button>
         }
