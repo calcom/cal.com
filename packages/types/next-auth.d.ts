@@ -18,6 +18,7 @@ declare module "next-auth" {
 
   interface User extends Omit<DefaultUser, "id"> {
     id: PrismaUser["id"];
+    uuid: PrismaUser["uuid"]
     emailVerified?: PrismaUser["emailVerified"];
     email_verified?: boolean;
     completedOnboarding?: boolean;
