@@ -1,4 +1,4 @@
-import { WebhookVersion as WebhookVersionEnum } from "../interface/IWebhookRepository";
+import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { WebhookEventDTO } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
@@ -77,7 +77,7 @@ export class WebhookNotificationHandler implements IWebhookNotificationHandler {
    * 2. Build version-specific payloads per subscriber
    * 3. Group subscribers by version for efficiency
    */
-  private createPayload(dto: WebhookEventDTO, version: WebhookVersion = WebhookVersionEnum.V_2021_10_20): WebhookPayload {
+  private createPayload(dto: WebhookEventDTO, version: WebhookVersion = DEFAULT_WEBHOOK_VERSION): WebhookPayload {
     // Get version-specific builder from factory - handles all event types
     const builder = this.payloadBuilderFactory.getBuilder(version, dto.triggerEvent);
     return builder.build(dto);

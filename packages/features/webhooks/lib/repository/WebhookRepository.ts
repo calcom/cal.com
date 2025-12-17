@@ -4,6 +4,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
 
@@ -499,7 +500,7 @@ export class WebhookRepository implements IWebhookRepository {
     const { userId, appId, eventTypeId, eventTriggers } = options;
 
     // Build WHERE conditions
-    const whereConditions: Parameters<typeof this.prisma.webhook.findMany>[0]["where"]["AND"] = [
+    const whereConditions: NonNullable<Prisma.WebhookWhereInput["AND"]> = [
       // AppId filter - null appId by default (excludes zapier/make)
       { appId: appId ?? null },
     ];

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WebhookTriggerEvents, WebhookVersionEnum } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import type { BookingWebhookEventDTO, WebhookSubscriber } from "../dto/types";
+import type { BookingWebhookEventDTO, WebhookEventDTO, WebhookSubscriber } from "../dto/types";
+import { WebhookVersion } from "../interface/IWebhookRepository";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
@@ -23,7 +24,7 @@ describe("WebhookNotificationHandler", () => {
       eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
       time: null,
       timeUnit: null,
-      version: WebhookVersionEnum.V_2021_10_20,
+      version: WebhookVersion.V_2021_10_20,
     },
     {
       id: "webhook-2",
@@ -34,7 +35,7 @@ describe("WebhookNotificationHandler", () => {
       eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
       time: null,
       timeUnit: null,
-      version: WebhookVersionEnum.V_2021_10_20,
+      version: WebhookVersion.V_2021_10_20,
     },
   ];
 
@@ -48,20 +49,17 @@ describe("WebhookNotificationHandler", () => {
       sendWebhookDirectly: vi.fn(),
     };
 
-    // Mock factory
+    // Mock factory - returns appropriate payload based on trigger event
     mockFactory = {
-      getBuilder: vi.fn().mockReturnValue({
-        build: vi.fn().mockReturnValue({
-          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-          createdAt: "2024-01-15T10:00:00Z",
-          payload: {
-            bookingId: 1,
-            title: "Test Meeting",
-          },
-        }),
-      }),
+      getBuilder: vi.fn().mockImplementation((_version: string, triggerEvent: WebhookTriggerEvents) => ({
+        build: vi.fn().mockImplementation((dto: WebhookEventDTO) => ({
+          triggerEvent,
+          createdAt: dto.createdAt,
+          payload: dto,
+        })),
+      })),
       registerVersion: vi.fn(),
-      getRegisteredVersions: vi.fn().mockReturnValue([WebhookVersionEnum.V_2021_10_20]),
+      getRegisteredVersions: vi.fn().mockReturnValue([WebhookVersion.V_2021_10_20]),
     };
 
     // Mock logger
@@ -156,7 +154,7 @@ describe("WebhookNotificationHandler", () => {
     it("should use factory to build payload", async () => {
       await handler.handleNotification(mockDTO);
 
-      expect(mockFactory.getBuilder).toHaveBeenCalledWith(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
+      expect(mockFactory.getBuilder).toHaveBeenCalledWith(WebhookVersion.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
     });
 
     it("should process webhooks with built payload", async () => {
@@ -220,7 +218,7 @@ describe("WebhookNotificationHandler", () => {
   });
 
   describe("Special Event Handling", () => {
-    it("should handle AFTER_HOSTS_CAL_VIDEO_NO_SHOW without builder", async () => {
+    it("should handle AFTER_HOSTS_CAL_VIDEO_NO_SHOW through factory", async () => {
       const noShowDTO: WebhookEventDTO = {
         triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
         createdAt: "2024-01-15T10:00:00Z",
@@ -232,22 +230,23 @@ describe("WebhookNotificationHandler", () => {
 
       await handler.handleNotification(noShowDTO);
 
-      // Factory should not be called for no-show events
-      expect(mockFactory.getBuilder).not.toHaveBeenCalled();
+      // All events now go through the factory for consistent versioning
+      expect(mockFactory.getBuilder).toHaveBeenCalledWith(
+        WebhookVersion.V_2021_10_20,
+        WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+      );
       expect(mockWebhookService.processWebhooks).toHaveBeenCalledWith(
         WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-        expect.objectContaining({
+        {
           triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-          payload: {
-            bookingId: 1,
-            webhook: { id: "webhook-1" },
-          },
-        }),
+          createdAt: noShowDTO.createdAt,
+          payload: noShowDTO,
+        },
         mockSubscribers
       );
     });
 
-    it("should handle DELEGATION_CREDENTIAL_ERROR without builder", async () => {
+    it("should handle DELEGATION_CREDENTIAL_ERROR through factory", async () => {
       const errorDTO: WebhookEventDTO = {
         triggerEvent: WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
         createdAt: "2024-01-15T10:00:00Z",
@@ -260,16 +259,18 @@ describe("WebhookNotificationHandler", () => {
 
       await handler.handleNotification(errorDTO);
 
-      // Factory should not be called for delegation errors
-      expect(mockFactory.getBuilder).not.toHaveBeenCalled();
+      // All events now go through the factory for consistent versioning
+      expect(mockFactory.getBuilder).toHaveBeenCalledWith(
+        WebhookVersion.V_2021_10_20,
+        WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR
+      );
       expect(mockWebhookService.processWebhooks).toHaveBeenCalledWith(
         WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
-        expect.objectContaining({
+        {
           triggerEvent: WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
-          payload: expect.objectContaining({
-            error: "Credential error",
-          }),
-        }),
+          createdAt: errorDTO.createdAt,
+          payload: errorDTO,
+        },
         mockSubscribers
       );
     });
@@ -301,7 +302,7 @@ describe("WebhookNotificationHandler", () => {
 
       await handler.handleNotification(dto);
 
-      expect(mockFactory.getBuilder).toHaveBeenCalledWith(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
+      expect(mockFactory.getBuilder).toHaveBeenCalledWith(WebhookVersion.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
     });
   });
 });
