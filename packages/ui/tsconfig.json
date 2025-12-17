@@ -3,6 +3,7 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "experimentalDecorators": true,
+    "module": "NodeNext",
     "moduleResolution": "nodenext",
     "baseUrl": ".",
     "paths": {
