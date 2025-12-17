@@ -111,35 +111,43 @@ export const syncTemplates = async ({ step, logger }): Promise<SyncTemplatesResu
 async function syncTemplatesForPhone(
   whatsappBusinessPhone: WhatsAppBusinessPhoneWithCredential
 ): Promise<WhatsAppTemplate> {
-  const credentialKey = (whatsappBusinessPhone.credential?.key || {}) as WhatsAppCredentialKey;
-  const accessToken = credentialKey.access_token;
+  try {
+    const credentialKey = (whatsappBusinessPhone.credential?.key || {}) as WhatsAppCredentialKey;
+    const accessToken = credentialKey.access_token;
 
-  if (!accessToken) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "WhatsApp Business credential is missing an access token. Please reconnect the integration.",
+    if (!accessToken) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "WhatsApp Business credential is missing an access token. Please reconnect the integration.",
+      });
+    }
+
+    if (isTokenExpired(credentialKey)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "WhatsApp Business access token has expired. Please reconnect the integration.",
+      });
+    }
+
+    const templates = await fetchTemplatesFromGraph(accessToken, whatsappBusinessPhone.wabaId);
+
+    await prisma.whatsAppBusinessPhone.update({
+      where: {
+        id: whatsappBusinessPhone.id,
+      },
+      data: {
+        templates,
+      },
     });
-  }
 
-  if (isTokenExpired(credentialKey)) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "WhatsApp Business access token has expired. Please reconnect the integration.",
+    return templates;
+  } catch (error) {
+    logger.error("Error syncing WhatsApp templates", {
+      phoneNumberId: whatsappBusinessPhone.phoneNumberId,
+      error: error instanceof Error ? error.message : error,
     });
+    return null;
   }
-
-  const templates = await fetchTemplatesFromGraph(accessToken, whatsappBusinessPhone.wabaId);
-
-  await prisma.whatsAppBusinessPhone.update({
-    where: {
-      id: whatsappBusinessPhone.id,
-    },
-    data: {
-      templates,
-    },
-  });
-
-  return templates;
 }
 
 async function fetchTemplatesFromGraph(accessToken: string, wabaId: string): Promise<WhatsAppTemplate> {
