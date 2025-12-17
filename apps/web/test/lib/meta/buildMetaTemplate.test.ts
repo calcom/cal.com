@@ -7,7 +7,12 @@ import {
 import type { VariablesType } from "@calid/lib/variables";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import dayjs from "@calcom/dayjs";
+
 // ==================== MOCK VARIABLE DATA ====================
+
+const mockTime = dayjs("2025-12-17T14:30:00").tz("America/New_York", true);
+
 
 export const mockVariableData: VariablesType = {
   eventName: "Team Meeting",
@@ -28,7 +33,7 @@ export const mockVariableData: VariablesType = {
   ratingUrl: "https://example.com/rate/xyz",
   noShowUrl: "https://example.com/noshow/xyz",
   attendeeTimezone: "America/Los_Angeles",
-  eventStartTimeInAttendeeTimezone: undefined,
+  eventStartTimeInAttendeeTimezone: mockTime,
   eventEndTimeInAttendeeTimezone: undefined,
 };
 
@@ -539,9 +544,7 @@ describe("WhatsApp Template Component Builder", () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         type: "header",
-        parameters: [
-          { type: "text", parameter_name: "organizer_name", text: "John Organizer" },
-        ],
+        parameters: [{ type: "text", parameter_name: "organizer_name", text: "John Organizer" }],
       });
     });
   });
@@ -571,9 +574,7 @@ describe("WhatsApp Template Component Builder", () => {
         type: "button",
         sub_type: "url",
         index: "0",
-        parameters: [
-          { type: "text", text: "https://meet.example.com/abc123" },
-        ],
+        parameters: [{ type: "text", text: "https://meet.example.com/abc123" }],
       });
     });
 
@@ -625,11 +626,11 @@ describe("WhatsApp Template Component Builder", () => {
       );
 
       expect(result).toHaveLength(2);
-      
+
       // Body component
       expect(result[0].type).toBe("body");
       expect(result[0].parameters).toHaveLength(3);
-      
+
       // Button component
       expect(result[1].type).toBe("button");
       expect(result[1].sub_type).toBe("url");
@@ -644,11 +645,11 @@ describe("WhatsApp Template Component Builder", () => {
       );
 
       expect(result).toHaveLength(2);
-      
+
       // Header with named param
       expect(result[0].type).toBe("header");
       expect(result[0].parameters).toHaveLength(1);
-      
+
       // Body with multiple named params
       expect(result[1].type).toBe("body");
       expect(result[1].parameters).toHaveLength(4);
@@ -778,5 +779,31 @@ describe("WhatsApp Template Component Builder", () => {
       expect(result[0].parameters[0]).toEqual({ type: "text", text: "John" });
       expect(result[0].parameters[1]).toEqual({ type: "text", text: "Conference Room A" });
     });
+  });
+
+  it("handles eventStartTimeInAttendeeTimezone dayjs object conversion", async () => {
+    const timeTemplate: WhatsAppTemplate = {
+      id: "1017",
+      name: "event_time_template",
+      status: "APPROVED",
+      category: "UTILITY",
+      language: "en",
+      components: [
+        {
+          text: "Your meeting is at {{start_time_tz_booker}}",
+          type: "BODY",
+        },
+      ],
+      parameter_format: "POSITIONAL",
+    };
+
+    const result = await buildMetaTemplateComponentsFromTemplate(
+      timeTemplate,
+      mockVariableData,
+      MOCK_PHONE_NUMBER_ID,
+      MOCK_ACCESS_TOKEN
+    );
+
+    expect(result[0].parameters[0].text).toBe("Wed, 17 Dec 2025 19:30:00 GMT");
   });
 });

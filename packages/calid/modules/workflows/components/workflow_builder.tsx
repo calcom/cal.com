@@ -40,7 +40,7 @@ import { Select } from "@calcom/ui/components/form";
 
 import { TRPCError } from "@trpc/server";
 
-import { DYNAMIC_TEXT_VARIABLES } from "../config/constants";
+import { DYNAMIC_TEXT_VARIABLES, META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
 import {
   isSMSAction,
@@ -137,7 +137,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
     for (const match of matches) {
       const variableName = match[1];
-      if (!DYNAMIC_TEXT_VARIABLES.includes(variableName)) {
+      if (!META_DYNAMIC_TEXT_VARIABLES.includes(variableName)) {
         return variableName;
       }
     }
@@ -339,7 +339,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     },
     onError: (e) => {
       setSyncingTemplates(false);
-      console.log("error: ", e)
+      console.log("error: ", e);
       if (e instanceof Error) {
         triggerToast(`${e.message}`, "error");
       } else {
