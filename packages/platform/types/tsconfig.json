@@ -1,6 +1,7 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
+    "moduleResolution": "bundler",
     "target": "ES5",
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,

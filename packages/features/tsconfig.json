@@ -1,6 +1,7 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
+    "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
       "~/*": ["/*"]
