@@ -59,12 +59,10 @@ const BookingItem = memo(function BookingItem({
     timezone
   )}`;
 
-  // Format participants: "You and [attendees]" - user is always the host since these are their bookings
   const getParticipantsText = () => {
     if (!booking.attendees || booking.attendees.length === 0) {
       return t("you");
     }
-    // Show "You and attendee1, attendee2, ..." - use name if available, otherwise email
     const attendeeNames = booking.attendees.map((a) => a.name || a.email).join(", ");
     return `${t("you")} ${t("and")} ${attendeeNames}`;
   };
@@ -198,7 +196,6 @@ export function HolidayConflictsDialog({
     setCancelDialogOpen(true);
   };
 
-  // Handle side effects when dialogs close
   const handleCancelDialogChange: Dispatch<SetStateAction<boolean>> = (value) => {
     const newValue = typeof value === "function" ? value(cancelDialogOpen) : value;
     setCancelDialogOpen(newValue);

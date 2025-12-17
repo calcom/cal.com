@@ -147,7 +147,6 @@ const ConflictIndicatorButton = memo(function ConflictIndicatorButton({
 }) {
   const { t } = useLocale();
 
-  // Don't show if no holidays are configured
   if (!hasHolidaysConfigured) return null;
 
   const hasConflicts = conflicts && conflicts.length > 0;
