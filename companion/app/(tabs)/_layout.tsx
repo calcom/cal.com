@@ -1,5 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Tabs, VectorIcon } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
 
@@ -11,22 +11,34 @@ export default function TabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="(event-types)">
-        <NativeTabs.Trigger.Icon sf="link" />
+        <NativeTabs.Trigger.Icon
+          sf="link"
+          src={<VectorIcon family={MaterialCommunityIcons} name="link" />}
+        />
         <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="bookings">
-        <NativeTabs.Trigger.Icon sf="calendar" />
+        <NativeTabs.Trigger.Icon
+          sf="calendar"
+          src={<VectorIcon family={MaterialCommunityIcons} name="calendar" />}
+        />
         <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="availability">
-        <NativeTabs.Trigger.Icon sf="clock" />
+        <NativeTabs.Trigger.Icon
+          sf="clock"
+          src={<VectorIcon family={MaterialCommunityIcons} name="clock" />}
+        />
         <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="more">
-        <NativeTabs.Trigger.Icon sf="ellipsis" />
+        <NativeTabs.Trigger.Icon
+          sf="ellipsis"
+          src={<VectorIcon family={MaterialCommunityIcons} name="dots-horizontal" />}
+        />
         <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
