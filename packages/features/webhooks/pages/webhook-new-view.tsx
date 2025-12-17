@@ -7,7 +7,7 @@ import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/Setti
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WebhookVersion } from "../lib/interface/IWebhookRepository";
+import { WEBHOOK_VERSION_OPTIONS, getWebhookVersionLabel } from "../lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
@@ -94,13 +94,10 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
               <div>
                 <Select
                   className="min-w-36"
-                  options={[{ value: WebhookVersion.V_2021_10_20, label: "2021-10-20" }]}
+                  options={WEBHOOK_VERSION_OPTIONS}
                   value={{
                     value: formMethods.watch("version"),
-                    label:
-                      formMethods.watch("version") === WebhookVersion.V_2021_10_20
-                        ? "2021-10-20"
-                        : formMethods.watch("version"),
+                    label: getWebhookVersionLabel(formMethods.watch("version")),
                   }}
                   onChange={(option) => {
                     if (option) {

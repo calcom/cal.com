@@ -1,6 +1,4 @@
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { WebhookEventDTO, DelegationCredentialErrorPayloadType } from "../dto/types";
+import type { WebhookEventDTO } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
 import type { ILogger } from "../interface/infrastructure";
@@ -67,7 +65,9 @@ export class WebhookNotificationHandler implements IWebhookNotificationHandler {
   }
 
   /**
-   * Create webhook payload using version-specific builder from factory
+   * Create webhook payload using version-specific builder from factory.
+   *
+   * All event types now go through the factory for consistent versioning.
    *
    * Note: Currently uses DEFAULT version for all subscribers.
    * In the future, this can be enhanced to:
@@ -76,35 +76,7 @@ export class WebhookNotificationHandler implements IWebhookNotificationHandler {
    * 3. Group subscribers by version for efficiency
    */
   private createPayload(dto: WebhookEventDTO, version: string = "2021-10-20"): WebhookPayload {
-    // Special handling for events that don't use builders
-    if (
-      dto.triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-      dto.triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    ) {
-      return {
-        triggerEvent: dto.triggerEvent,
-        createdAt: dto.createdAt,
-        payload: {
-          bookingId: dto.bookingId,
-          webhook: dto.webhook,
-        },
-      };
-    }
-
-    if (dto.triggerEvent === WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR) {
-      const payload: DelegationCredentialErrorPayloadType = {
-        error: dto.error,
-        credential: dto.credential,
-        user: dto.user,
-      };
-      return {
-        triggerEvent: dto.triggerEvent,
-        createdAt: dto.createdAt,
-        payload,
-      };
-    }
-
-    // Get version-specific builder from factory
+    // Get version-specific builder from factory - handles all event types
     const builder = this.payloadBuilderFactory.getBuilder(version, dto.triggerEvent);
     return builder.build(dto);
   }

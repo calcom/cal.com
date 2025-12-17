@@ -9,8 +9,8 @@ import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
 
 import { parseWebhookVersion } from "../interface/IWebhookRepository";
 
-import type { WebhookSubscriber, WebhookGroup } from "../dto/types";
-import type { IWebhookRepository, WebhookVersion } from "../interface/IWebhookRepository";
+import type { Webhook, WebhookSubscriber, WebhookGroup } from "../dto/types";
+import type { IWebhookRepository, WebhookVersion, ListWebhooksOptions } from "../interface/IWebhookRepository";
 import { WebhookOutputMapper } from "../infrastructure/mappers/WebhookOutputMapper";
 import type { GetSubscribersOptions } from "./types";
 
@@ -485,6 +485,101 @@ export class WebhookRepository implements IWebhookRepository {
         ...group.metadata,
       })),
     };
+  }
+
+  /**
+   * List webhooks for a user with filtering options.
+   * Handles:
+   * - App filtering (excludes zapier/make by default unless appId specified)
+   * - Event type filtering (with managed event type parent handling)
+   * - Event trigger filtering
+   * - Permission-based team filtering
+   */
+  async listWebhooks(options: ListWebhooksOptions): Promise<Webhook[]> {
+    const { userId, appId, eventTypeId, eventTriggers } = options;
+
+    // Build WHERE conditions
+    const whereConditions: Parameters<typeof this.prisma.webhook.findMany>[0]["where"]["AND"] = [
+      // AppId filter - null appId by default (excludes zapier/make)
+      { appId: appId ?? null },
+    ];
+
+    // Get user's teams
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { teams: true },
+    });
+
+    if (eventTypeId) {
+      // Check for managed event type parent
+      const managedParentEvt = await this.prisma.eventType.findFirst({
+        where: {
+          id: eventTypeId,
+          parentId: { not: null },
+        },
+        select: { parentId: true },
+      });
+
+      if (managedParentEvt?.parentId) {
+        // Include webhooks from both the event type and its parent (if active)
+        whereConditions.push({
+          OR: [{ eventTypeId }, { eventTypeId: managedParentEvt.parentId, active: true }],
+        });
+      } else {
+        whereConditions.push({ eventTypeId });
+      }
+    } else {
+      // No eventTypeId - filter by user and their allowed teams
+      const permissionService = new PermissionCheckService();
+      const teamIds = user?.teams?.map((m) => m.teamId) ?? [];
+
+      const allowedTeamIds = (
+        await Promise.all(
+          teamIds.map(async (teamId) => {
+            const ok = await permissionService.checkPermission({
+              userId,
+              teamId,
+              permission: "webhook.read",
+              fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            });
+            return ok ? teamId : null;
+          })
+        )
+      ).filter((x): x is number => x !== null);
+
+      whereConditions.push({
+        OR: [{ userId }, ...(allowedTeamIds.length ? [{ teamId: { in: allowedTeamIds } }] : [])],
+      });
+    }
+
+    // Event triggers filter
+    if (eventTriggers?.length) {
+      whereConditions.push({ eventTriggers: { hasEvery: eventTriggers } });
+    }
+
+    const webhooks = await this.prisma.webhook.findMany({
+      where: { AND: whereConditions },
+      select: {
+        id: true,
+        subscriberUrl: true,
+        payloadTemplate: true,
+        appId: true,
+        secret: true,
+        active: true,
+        eventTriggers: true,
+        eventTypeId: true,
+        teamId: true,
+        userId: true,
+        time: true,
+        timeUnit: true,
+        version: true,
+        createdAt: true,
+        platform: true,
+        platformOAuthClientId: true,
+      },
+    });
+
+    return WebhookOutputMapper.toWebhookList(webhooks);
   }
 }
 

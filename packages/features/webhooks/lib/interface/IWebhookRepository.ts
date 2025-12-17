@@ -1,6 +1,6 @@
 import type { WebhookTriggerEvents, UserPermissionRole } from "@calcom/prisma/enums";
 
-import type { WebhookSubscriber, WebhookGroup } from "../dto/types";
+import type { Webhook, WebhookSubscriber, WebhookGroup } from "../dto/types";
 
 /**
  * Webhook Version enum - defines the payload format versions.
@@ -47,6 +47,13 @@ export interface GetSubscribersOptions {
   oAuthClientId?: string | null;
 }
 
+export interface ListWebhooksOptions {
+  userId: number;
+  appId?: string | null;
+  eventTypeId?: number | null;
+  eventTriggers?: WebhookTriggerEvents[];
+}
+
 export interface IWebhookRepository {
   getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]>;
   getWebhookById(id: string): Promise<WebhookSubscriber | null>;
@@ -75,5 +82,6 @@ export interface IWebhookRepository {
       canDelete?: boolean;
     }[];
   }>;
+  listWebhooks(options: ListWebhooksOptions): Promise<Webhook[]>;
 }
 

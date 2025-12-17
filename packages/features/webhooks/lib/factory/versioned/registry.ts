@@ -28,6 +28,7 @@ export { DEFAULT_WEBHOOK_VERSION } from "../../interface/IWebhookRepository";
  *   recording: new V2024_12_01.RecordingPayloadBuilder(),
  *   meeting: new V2024_12_01.MeetingPayloadBuilder(),
  *   instantMeeting: new V2024_12_01.InstantMeetingBuilder(),
+ *   delegation: new V2024_12_01.DelegationPayloadBuilder(),
  * });
  * ```
  */
@@ -39,6 +40,7 @@ export function createPayloadBuilderFactory(): PayloadBuilderFactory {
     recording: new V2021_10_20.RecordingPayloadBuilder(),
     meeting: new V2021_10_20.MeetingPayloadBuilder(),
     instantMeeting: new V2021_10_20.InstantMeetingBuilder(),
+    delegation: new V2021_10_20.DelegationPayloadBuilder(),
   };
 
   const factory = new PayloadBuilderFactory(DEFAULT_WEBHOOK_VERSION, defaultBuilders);

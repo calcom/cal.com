@@ -7,6 +7,7 @@ import type {
   AfterGuestsNoShowDTO,
   AfterHostsNoShowDTO,
   BookingWebhookEventDTO,
+  DelegationCredentialErrorDTO,
   FormSubmittedDTO,
   FormSubmittedNoEventDTO,
   InstantMeetingDTO,
@@ -60,6 +61,10 @@ export interface IInstantMeetingBuilder extends IPayloadBuilder<InstantMeetingDT
   build(dto: InstantMeetingDTO): WebhookPayload;
 }
 
+export interface IDelegationPayloadBuilder extends IPayloadBuilder<DelegationCredentialErrorDTO> {
+  build(dto: DelegationCredentialErrorDTO): WebhookPayload;
+}
+
 /**
  * Set of all payload builders for a specific webhook version
  * Each builder is properly typed for its respective event DTOs
@@ -71,6 +76,7 @@ export interface PayloadBuilderSet {
   recording: IRecordingPayloadBuilder;
   meeting: IMeetingPayloadBuilder;
   instantMeeting: IInstantMeetingBuilder;
+  delegation: IDelegationPayloadBuilder;
 }
 
 /**
@@ -115,8 +121,8 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   // Instant meeting events
   [WebhookTriggerEvents.INSTANT_MEETING]: "instantMeeting",
 
-  // Delegation events (use booking builder as fallback)
-  [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "booking",
+  // Delegation events
+  [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "delegation",
 };
 
 /**
@@ -133,8 +139,9 @@ type BookingTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_REQUESTED
   | typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED
   | typeof WebhookTriggerEvents.BOOKING_PAID
-  | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED
-  | typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
+  | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
+
+type DelegationTriggerEvents = typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
 
 type FormTriggerEvents =
   | typeof WebhookTriggerEvents.FORM_SUBMITTED
@@ -218,6 +225,7 @@ export class PayloadBuilderFactory {
   getBuilder(version: WebhookVersion, triggerEvent: RecordingTriggerEvents): IRecordingPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: MeetingTriggerEvents): IMeetingPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: InstantMeetingTriggerEvents): IInstantMeetingBuilder;
+  getBuilder(version: WebhookVersion, triggerEvent: DelegationTriggerEvents): IDelegationPayloadBuilder;
   getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO>;
   getBuilder(version: WebhookVersion, triggerEvent: WebhookTriggerEvents): IPayloadBuilder<WebhookEventDTO> {
     const builderSet = this.getBuilderSet(version);
