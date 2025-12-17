@@ -13,11 +13,63 @@ const EXTENSION_MESSAGE_TYPES = {
   OAUTH_RESULT: "cal-extension-oauth-result",
   TOKEN_EXCHANGE_REQUEST: "cal-extension-token-exchange-request",
   TOKEN_EXCHANGE_RESULT: "cal-extension-token-exchange-result",
+  SYNC_TOKENS: "cal-extension-sync-tokens",
+  SYNC_TOKENS_RESULT: "cal-extension-sync-tokens-result",
+  CLEAR_TOKENS: "cal-extension-clear-tokens",
+  CLEAR_TOKENS_RESULT: "cal-extension-clear-tokens-result",
+  REQUEST_SESSION: "cal-extension-request-session",
+  SESSION_TOKEN: "cal-extension-session-token",
 } as const;
 
-// Timeouts
-const OAUTH_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes for user interaction
-const TOKEN_EXCHANGE_TIMEOUT_MS = 30 * 1000; // 30 seconds for API call
+let extensionSessionToken: string | null = null;
+let sessionTokenPromise: Promise<string> | null = null;
+
+const OAUTH_TIMEOUT_MS = 5 * 60 * 1000;
+const TOKEN_EXCHANGE_TIMEOUT_MS = 30 * 1000;
+const SESSION_TOKEN_TIMEOUT_MS = 5000;
+
+async function getExtensionSessionToken(): Promise<string | null> {
+  if (extensionSessionToken) {
+    return extensionSessionToken;
+  }
+
+  if (sessionTokenPromise) {
+    return sessionTokenPromise;
+  }
+
+  if (typeof window === "undefined" || window.parent === window) {
+    return null;
+  }
+
+  sessionTokenPromise = new Promise<string>((resolve) => {
+    const timeoutId = setTimeout(() => {
+      window.removeEventListener("message", messageHandler);
+      sessionTokenPromise = null;
+      resolve("");
+    }, SESSION_TOKEN_TIMEOUT_MS);
+
+    const messageHandler = (event: MessageEvent) => {
+      if (event.source !== window.parent) {
+        return;
+      }
+      if (event.data.type !== EXTENSION_MESSAGE_TYPES.SESSION_TOKEN) {
+        return;
+      }
+
+      clearTimeout(timeoutId);
+      window.removeEventListener("message", messageHandler);
+
+      extensionSessionToken = event.data.sessionToken || "";
+      sessionTokenPromise = null;
+      resolve(extensionSessionToken);
+    };
+
+    window.addEventListener("message", messageHandler);
+    window.parent.postMessage({ type: EXTENSION_MESSAGE_TYPES.REQUEST_SESSION }, "*");
+  });
+
+  return sessionTokenPromise;
+}
 
 export interface OAuthTokens {
   accessToken: string;
@@ -353,6 +405,109 @@ export class CalComOAuthService {
   clearPKCEParams(): void {
     this.codeVerifier = null;
     this.state = null;
+  }
+
+  async syncTokensToExtension(tokens: OAuthTokens): Promise<void> {
+    if (!this.isRunningInIframe()) {
+      return;
+    }
+
+    const sessionToken = await getExtensionSessionToken();
+    if (!sessionToken) {
+      console.warn("No session token available for token sync");
+      return;
+    }
+
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        resolve();
+      }, 5000);
+
+      const messageHandler = (event: MessageEvent) => {
+        if (event.source !== window.parent) {
+          return;
+        }
+        if (event.data.type !== EXTENSION_MESSAGE_TYPES.SYNC_TOKENS_RESULT) {
+          return;
+        }
+
+        clearTimeout(timeoutId);
+        window.removeEventListener("message", messageHandler);
+
+        if (event.data.success) {
+          resolve();
+        } else {
+          console.warn("Failed to sync tokens to extension:", event.data.error);
+          resolve();
+        }
+      };
+
+      window.addEventListener("message", messageHandler);
+      window.parent.postMessage(
+        { type: EXTENSION_MESSAGE_TYPES.SYNC_TOKENS, tokens, sessionToken },
+        "*"
+      );
+    });
+  }
+
+  async clearTokensFromExtension(): Promise<void> {
+    if (!this.isRunningInIframe()) {
+      return;
+    }
+
+    const sessionToken = await getExtensionSessionToken();
+    if (!sessionToken) {
+      console.warn("No session token available for token clear");
+      return;
+    }
+
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        resolve();
+      }, 5000);
+
+      const messageHandler = (event: MessageEvent) => {
+        if (event.source !== window.parent) {
+          return;
+        }
+        if (event.data.type !== EXTENSION_MESSAGE_TYPES.CLEAR_TOKENS_RESULT) {
+          return;
+        }
+
+        clearTimeout(timeoutId);
+        window.removeEventListener("message", messageHandler);
+
+        if (event.data.success) {
+          resolve();
+        } else {
+          console.warn("Failed to clear tokens from extension:", event.data.error);
+          resolve();
+        }
+      };
+
+      window.addEventListener("message", messageHandler);
+      window.parent.postMessage({ type: EXTENSION_MESSAGE_TYPES.CLEAR_TOKENS, sessionToken }, "*");
+    });
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
+    const tokenRequest = {
+      grant_type: "refresh_token",
+      client_id: this.config.clientId,
+      refresh_token: refreshToken,
+    };
+
+    const tokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/token`;
+
+    if (this.isRunningInIframe()) {
+      const tokens = await this.exchangeCodeForTokensViaExtension(tokenRequest, tokenEndpoint);
+      await this.syncTokensToExtension(tokens);
+      return tokens;
+    }
+
+    return this.exchangeCodeForTokensDirect(tokenRequest, tokenEndpoint);
   }
 }
 
