@@ -3,7 +3,7 @@ import { captureException } from "@sentry/nextjs";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import type { FeatureId, FeatureState, TeamFeatures } from "./config";
+import type { AppFlags, FeatureId, FeatureState, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 interface CacheOptions {
@@ -486,12 +486,12 @@ export class FeaturesRepository implements IFeaturesRepository {
   async getUserFeatureStates(input: {
     userId: number;
     featureIds: FeatureId[];
-  }): Promise<Record<FeatureId, FeatureState>> {
+  }): Promise<Partial<Record<FeatureId, FeatureState>>> {
     const { userId, featureIds } = input;
 
     try {
       // Initialize result with all features set to 'inherit'
-      const result: Record<FeatureId, FeatureState> = {};
+      const result: Partial<Record<FeatureId, FeatureState>> = {};
       for (const featureId of featureIds) {
         result[featureId] = "inherit";
       }
@@ -507,7 +507,7 @@ export class FeaturesRepository implements IFeaturesRepository {
 
       // Update result with actual values from database
       for (const userFeature of userFeatures) {
-        result[userFeature.featureId] = userFeature.enabled ? "enabled" : "disabled";
+        result[userFeature.featureId as FeatureId] = userFeature.enabled ? "enabled" : "disabled";
       }
 
       return result;
@@ -531,16 +531,16 @@ export class FeaturesRepository implements IFeaturesRepository {
   async getTeamsFeatureStates(input: {
     teamIds: number[];
     featureIds: FeatureId[];
-  }): Promise<Record<FeatureId, Record<number, FeatureState>>> {
+  }): Promise<Partial<Record<FeatureId, Record<number, FeatureState>>>> {
     const { teamIds, featureIds } = input;
 
     if (teamIds.length === 0 || featureIds.length === 0) {
-      return {};
+      return {} as Partial<Record<FeatureId, Record<number, FeatureState>>>;
     }
 
     try {
       // Initialize result with all features present to avoid undefined feature keys
-      const result: Record<FeatureId, Record<number, FeatureState>> = {};
+      const result: Partial<Record<FeatureId, Record<number, FeatureState>>> = {};
       for (const featureId of featureIds) {
         result[featureId] = {};
       }
@@ -556,9 +556,9 @@ export class FeaturesRepository implements IFeaturesRepository {
 
       // Build result map - teams not in the result will default to 'inherit'
       for (const teamFeature of teamFeatures) {
-        const featureStates = result[teamFeature.featureId] ?? {};
+        const featureStates = result[teamFeature.featureId as FeatureId] ?? {};
         featureStates[teamFeature.teamId] = teamFeature.enabled ? "enabled" : "disabled";
-        result[teamFeature.featureId] = featureStates;
+        result[teamFeature.featureId as FeatureId] = featureStates;
       }
 
       return result;
