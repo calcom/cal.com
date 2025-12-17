@@ -24,7 +24,7 @@ const getAllAttributeSyncsHandler = async ({ ctx }: GetAllAttributeSyncsOptions)
 
   const service = getIntegrationAttributeSyncService();
 
-  return await service.getAllAttributeSyncs(org.id);
+  return await service.getAllIntegrationAttributeSyncs(org.id);
 };
 
 export default getAllAttributeSyncsHandler;
