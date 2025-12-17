@@ -675,8 +675,10 @@ export class InputEventTypesService_2024_06_14 {
     // Extract sendTranscriptionEmails from calVideoSettings and map to canSendCalVideoTranscriptionEmails
     const { sendTranscriptionEmails, ...restCalVideoSettings } = calVideoSettings;
 
+    const hasOtherSettings = Object.keys(restCalVideoSettings).length > 0;
+
     return {
-      calVideoSettings: restCalVideoSettings,
+      ...(hasOtherSettings ? { calVideoSettings: restCalVideoSettings } : {}),
       ...(sendTranscriptionEmails !== undefined
         ? { canSendCalVideoTranscriptionEmails: sendTranscriptionEmails }
         : {}),
