@@ -202,7 +202,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="bg-background relative flex-1 py-2">
+    <main className="bg-default relative z-0 flex-1 pb-8 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full p-2 sm:py-4 lg:px-6">
