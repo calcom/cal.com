@@ -1,41 +1,54 @@
-import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Tabs } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Tabs, VectorIcon } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
 
 export default function TabLayout() {
-  // Check if liquid glass effect is available
-  const supportsLiquidGlass = isLiquidGlassAvailable();
-
-  // Use NativeTabs for iOS 15+ (liquid glass support), fallback to standard Tabs
-  if (supportsLiquidGlass) {
-    return (
-      <NativeTabs>
-        <NativeTabs.Trigger name="(event-types)">
-          <NativeTabs.Trigger.Icon sf="link" />
-          <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-
-        <NativeTabs.Trigger name="bookings">
-          <NativeTabs.Trigger.Icon sf="calendar" />
-          <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-
-        <NativeTabs.Trigger name="availability">
-          <NativeTabs.Trigger.Icon sf="clock" />
-          <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-
-        <NativeTabs.Trigger name="more">
-          <NativeTabs.Trigger.Icon sf="ellipsis" />
-          <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-      </NativeTabs>
-    );
+  if (Platform.OS === "web") {
+    return <WebTabs />;
   }
 
-  // Fallback to standard Expo Router Tabs for older iOS and Android
+  return (
+    <NativeTabs
+      disableTransparentOnScrollEdge={true} // Used to prevent transparent background on iOS 18 and older
+    >
+      <NativeTabs.Trigger name="(event-types)">
+        <NativeTabs.Trigger.Icon
+          sf="link"
+          src={<VectorIcon family={MaterialCommunityIcons} name="link" />}
+        />
+        <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="bookings">
+        <NativeTabs.Trigger.Icon
+          sf="calendar"
+          src={<VectorIcon family={MaterialCommunityIcons} name="calendar" />}
+        />
+        <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="availability">
+        <NativeTabs.Trigger.Icon
+          sf="clock"
+          src={<VectorIcon family={MaterialCommunityIcons} name="clock" />}
+        />
+        <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="more">
+        <NativeTabs.Trigger.Icon
+          sf="ellipsis"
+          src={<VectorIcon family={MaterialCommunityIcons} name="dots-horizontal" />}
+        />
+        <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+}
+
+// TODO: Remove this once native tabs are supported on web
+function WebTabs() {
   return (
     <Tabs
       screenOptions={{
