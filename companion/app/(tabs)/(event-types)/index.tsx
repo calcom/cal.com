@@ -469,7 +469,20 @@ export default function EventTypes() {
 
   return (
     <>
-      <Stack.Screen
+      <Stack.Header style={{ backgroundColor: "transparent", shadowColor: "transparent" }}>
+        <Stack.Header.Title large>Event Types</Stack.Header.Title>
+        <Stack.Header.Right>
+          <Stack.Header.Button onPress={handleCreateNew} tintColor="#000" variant="prominent">
+            New
+          </Stack.Header.Button>
+        </Stack.Header.Right>
+        <Stack.Header.SearchBar
+          placeholder="Search event types"
+          onChangeText={(e) => handleSearch(e.nativeEvent.text)}
+          obscureBackground={false}
+        />
+      </Stack.Header>
+      {/* <Stack.Screen
         options={{
           headerShown: true,
           title: "Event Types",
@@ -502,8 +515,7 @@ export default function EventTypes() {
             },
           ],
         }}
-      />
-
+      /> */}
       <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
         <Header />
         <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">

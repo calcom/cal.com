@@ -142,7 +142,7 @@ export const EventTypeListItem = ({
                   onPress={eventType.onPress}
                   role={eventType.role}
                 >
-                  {eventType.label}
+                  <Text>{eventType.label}</Text>
                 </Button>
               ))}
             </ContextMenu.Items>
