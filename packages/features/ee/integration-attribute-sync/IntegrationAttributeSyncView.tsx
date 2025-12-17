@@ -25,7 +25,7 @@ interface IIntegrationAttributeSyncViewProps {
       name: string;
     } | null;
   }[];
-  integrationAttributeSyncs: IntegrationAttributeSync[];
+  initalIntegrationAttributeSyncs: IntegrationAttributeSync[];
   organizationTeams: {
     id: number;
     name: string;
@@ -34,7 +34,7 @@ interface IIntegrationAttributeSyncViewProps {
 }
 
 const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps) => {
-  const { credentialsData, integrationAttributeSyncs, organizationTeams, attributes } = props;
+  const { credentialsData, initalIntegrationAttributeSyncs, organizationTeams, attributes } = props;
 
   // State for the new sync form
   const [showNewSync, setShowNewSync] = useState(false);
@@ -102,15 +102,13 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
     createMutation.mutate({
       credentialId: Number(selectedCredential.value),
       rule: ruleState,
-      fieldMappings: fieldMappingState.mappings,
+      syncFieldMappings: fieldMappingState.mappings,
       enabled: true,
     });
   };
 
   return (
     <>
-      <Button onClick={handleAddNewSync}>Add new sync</Button>
-
       {/* Existing Syncs - Each has its own form */}
       {integrationAttributeSyncs && integrationAttributeSyncs.length > 0 && (
         <div className="mb-4 space-y-2">
@@ -205,6 +203,9 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
           </FormCardBody>
         </FormCard>
       )}
+      <Button StartIcon="plus" onClick={handleAddNewSync}>
+        Add new sync
+      </Button>
     </>
   );
 };
