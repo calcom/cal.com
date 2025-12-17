@@ -26,6 +26,8 @@ import { SchedulingType } from "@calcom/platform-enums";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
+import { DisableCancelling_2024_06_14 } from "./disable-cancelling.input";
+import { DisableRescheduling_2024_06_14 } from "./disable-rescheduling.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import {
   AddressFieldInput_2024_06_14,
@@ -131,7 +133,9 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
   InputOrganizersDefaultApp_2024_06_14,
-  EmailSettings_2024_06_14
+  EmailSettings_2024_06_14,
+  DisableRescheduling_2024_06_14,
+  DisableCancelling_2024_06_14
 )
 export class CalVideoSettings {
   @IsOptional()
@@ -182,6 +186,14 @@ export class CalVideoSettings {
     description: "If true, the organizer will not be able to receive transcription of the meeting",
   })
   disableTranscriptionForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
+    default: true,
+  })
+  sendTranscriptionEmails?: boolean;
 }
 
 @CantHaveRecurrenceAndBookerActiveBookingsLimit()
@@ -517,36 +529,25 @@ export class BaseCreateEventTypeInput {
   bookingRequiresAuthentication?: boolean;
 
   @IsOptional()
-  @IsBoolean()
+  @ValidateNested()
+  @Type(() => DisableCancelling_2024_06_14)
   @DocsPropertyOptional({
-    description: "If true, guests and organizer can no longer cancel the event.",
-    default: false,
+    description: "Settings for disabling cancelling of this event type.",
+    type: DisableCancelling_2024_06_14,
+    example: { disabled: true },
   })
-  disableCancelling?: boolean;
+  disableCancelling?: DisableCancelling_2024_06_14;
 
   @IsOptional()
-  @IsBoolean()
+  @ValidateNested()
+  @Type(() => DisableRescheduling_2024_06_14)
   @DocsPropertyOptional({
-    description: "If true, guests and organizer can no longer reschedule the event.",
-    default: false,
+    description:
+      "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+    type: DisableRescheduling_2024_06_14,
+    example: { disabled: false, minutesBefore: 60 },
   })
-  disableRescheduling?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @DocsPropertyOptional({
-    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
-    default: true,
-  })
-  canSendCalVideoTranscriptionEmails?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @DocsPropertyOptional({
-    description: "Automatically translate instant meeting title to the visitor's browser language using AI.",
-    default: false,
-  })
-  autoTranslateInstantMeetingTitleEnabled?: boolean;
+  disableRescheduling?: DisableRescheduling_2024_06_14;
 
   @IsOptional()
   @IsString()

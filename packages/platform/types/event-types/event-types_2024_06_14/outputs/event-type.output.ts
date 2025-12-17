@@ -59,6 +59,8 @@ import {
   UrlFieldOutput_2024_06_14,
 } from "../outputs/booking-fields.output";
 import { BookerActiveBookingsLimitOutput_2024_06_14 } from "./booker-active-bookings-limit.output";
+import { DisableCancellingOutput_2024_06_14 } from "./disable-cancelling.output";
+import { DisableReschedulingOutput_2024_06_14 } from "./disable-rescheduling.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
 import type { OutputLocation_2024_06_14 } from "./locations.output";
@@ -463,36 +465,23 @@ class BaseEventTypeOutput_2024_06_14 {
   bookingRequiresAuthentication?: boolean;
 
   @IsOptional()
-  @IsBoolean()
+  @ValidateNested()
+  @Type(() => DisableCancellingOutput_2024_06_14)
   @ApiPropertyOptional({
-    type: Boolean,
-    nullable: true,
-    description: "If true, guests and organizer can no longer cancel the event.",
+    type: DisableCancellingOutput_2024_06_14,
+    description: "Settings for disabling cancelling of this event type.",
   })
-  disableCancelling?: boolean | null;
+  disableCancelling?: DisableCancellingOutput_2024_06_14;
 
   @IsOptional()
-  @IsBoolean()
+  @ValidateNested()
+  @Type(() => DisableReschedulingOutput_2024_06_14)
   @ApiPropertyOptional({
-    type: Boolean,
-    nullable: true,
-    description: "If true, guests and organizer can no longer reschedule the event.",
+    type: DisableReschedulingOutput_2024_06_14,
+    description:
+      "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
   })
-  disableRescheduling?: boolean | null;
-
-  @IsOptional()
-  @IsBoolean()
-  @ApiPropertyOptional({
-    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
-  })
-  canSendCalVideoTranscriptionEmails?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @ApiPropertyOptional({
-    description: "Automatically translate instant meeting title to the visitor's browser language using AI.",
-  })
-  autoTranslateInstantMeetingTitleEnabled?: boolean;
+  disableRescheduling?: DisableReschedulingOutput_2024_06_14;
 
   @IsOptional()
   @IsString()

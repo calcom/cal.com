@@ -71,6 +71,8 @@ import {
   Host,
   CalVideoSettings,
 } from "./create-event-type.input";
+import { DisableCancelling_2024_06_14 } from "./disable-cancelling.input";
+import { DisableRescheduling_2024_06_14 } from "./disable-rescheduling.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EmailSettings_2024_06_14 } from "./email-settings.input";
@@ -128,7 +130,9 @@ import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/Can
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
   BookerActiveBookingsLimit_2024_06_14,
-  EmailSettings_2024_06_14
+  EmailSettings_2024_06_14,
+  DisableRescheduling_2024_06_14,
+  DisableCancelling_2024_06_14
 )
 @CantHaveRecurrenceAndBookerActiveBookingsLimit()
 class BaseUpdateEventTypeInput {
@@ -464,36 +468,25 @@ class BaseUpdateEventTypeInput {
   bookingRequiresAuthentication?: boolean;
 
   @IsOptional()
-  @IsBoolean()
+  @ValidateNested()
+  @Type(() => DisableCancelling_2024_06_14)
   @DocsPropertyOptional({
-    description: "If true, guests and organizer can no longer cancel the event.",
-    default: false,
+    description: "Settings for disabling cancelling of this event type.",
+    type: DisableCancelling_2024_06_14,
+    example: { disabled: true },
   })
-  disableCancelling?: boolean;
+  disableCancelling?: DisableCancelling_2024_06_14;
 
   @IsOptional()
-  @IsBoolean()
+  @ValidateNested()
+  @Type(() => DisableRescheduling_2024_06_14)
   @DocsPropertyOptional({
-    description: "If true, guests and organizer can no longer reschedule the event.",
-    default: false,
+    description:
+      "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+    type: DisableRescheduling_2024_06_14,
+    example: { disabled: false, minutesBefore: 60 },
   })
-  disableRescheduling?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @DocsPropertyOptional({
-    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
-    default: true,
-  })
-  canSendCalVideoTranscriptionEmails?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @DocsPropertyOptional({
-    description: "Automatically translate instant meeting title to the visitor's browser language using AI.",
-    default: false,
-  })
-  autoTranslateInstantMeetingTitleEnabled?: boolean;
+  disableRescheduling?: DisableRescheduling_2024_06_14;
 
   @IsOptional()
   @IsString()

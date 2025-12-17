@@ -555,10 +555,9 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: true,
-        disableCancelling: true,
-        disableRescheduling: true,
-        canSendCalVideoTranscriptionEmails: true,
-        autoTranslateInstantMeetingTitleEnabled: true,
+        disableCancelling: { disabled: true },
+        disableRescheduling: { disabled: true },
+        calVideoSettings: { sendTranscriptionEmails: true },
         interfaceLanguage: "en",
         allowReschedulingPastBookings: true,
         allowReschedulingCancelledBookings: true,
@@ -637,14 +636,9 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
-          expect(createdEventType.disableCancelling).toEqual(body.disableCancelling);
-          expect(createdEventType.disableRescheduling).toEqual(body.disableRescheduling);
-          expect(createdEventType.canSendCalVideoTranscriptionEmails).toEqual(
-            body.canSendCalVideoTranscriptionEmails
-          );
-          expect(createdEventType.autoTranslateInstantMeetingTitleEnabled).toEqual(
-            body.autoTranslateInstantMeetingTitleEnabled
-          );
+          expect(createdEventType.disableCancelling).toEqual({ disabled: true });
+          expect(createdEventType.disableRescheduling).toEqual({ disabled: true });
+          expect(createdEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(true);
           expect(createdEventType.interfaceLanguage).toEqual(body.interfaceLanguage);
           expect(createdEventType.allowReschedulingPastBookings).toEqual(body.allowReschedulingPastBookings);
           expect(createdEventType.allowReschedulingCancelledBookings).toEqual(
@@ -740,11 +734,8 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.hidden).toEqual(false);
       expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
       expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
-      expect(fetchedEventType?.canSendCalVideoTranscriptionEmails).toEqual(
-        eventType.canSendCalVideoTranscriptionEmails
-      );
-      expect(fetchedEventType?.autoTranslateInstantMeetingTitleEnabled).toEqual(
-        eventType.autoTranslateInstantMeetingTitleEnabled
+      expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
+        eventType.calVideoSettings?.sendTranscriptionEmails
       );
       expect(fetchedEventType?.interfaceLanguage).toEqual(eventType.interfaceLanguage);
       expect(fetchedEventType?.allowReschedulingPastBookings).toEqual(
@@ -885,11 +876,8 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.hidden).toEqual(false);
       expect(fetchedEventType?.disableCancelling).toEqual(eventType.disableCancelling);
       expect(fetchedEventType?.disableRescheduling).toEqual(eventType.disableRescheduling);
-      expect(fetchedEventType?.canSendCalVideoTranscriptionEmails).toEqual(
-        eventType.canSendCalVideoTranscriptionEmails
-      );
-      expect(fetchedEventType?.autoTranslateInstantMeetingTitleEnabled).toEqual(
-        eventType.autoTranslateInstantMeetingTitleEnabled
+      expect(fetchedEventType?.calVideoSettings?.sendTranscriptionEmails).toEqual(
+        eventType.calVideoSettings?.sendTranscriptionEmails
       );
       expect(fetchedEventType?.interfaceLanguage).toEqual(eventType.interfaceLanguage);
       expect(fetchedEventType?.allowReschedulingPastBookings).toEqual(
@@ -1286,6 +1274,7 @@ describe("Event types Endpoints", () => {
           enableAutomaticTranscription: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
+          sendTranscriptionEmails: false,
         },
         bookingFields: [
           nameBookingField,
@@ -1345,10 +1334,8 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: false,
-        disableCancelling: false,
-        disableRescheduling: false,
-        canSendCalVideoTranscriptionEmails: false,
-        autoTranslateInstantMeetingTitleEnabled: false,
+        disableCancelling: { disabled: false },
+        disableRescheduling: { disabled: false, minutesBefore: 60 },
         interfaceLanguage: "es",
         allowReschedulingPastBookings: false,
         allowReschedulingCancelledBookings: false,
@@ -1459,14 +1446,9 @@ describe("Event types Endpoints", () => {
           eventType.calVideoSettings = updatedEventType.calVideoSettings;
 
           expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
-          expect(updatedEventType.disableCancelling).toEqual(body.disableCancelling);
-          expect(updatedEventType.disableRescheduling).toEqual(body.disableRescheduling);
-          expect(updatedEventType.canSendCalVideoTranscriptionEmails).toEqual(
-            body.canSendCalVideoTranscriptionEmails
-          );
-          expect(updatedEventType.autoTranslateInstantMeetingTitleEnabled).toEqual(
-            body.autoTranslateInstantMeetingTitleEnabled
-          );
+          expect(updatedEventType.disableCancelling).toEqual({ disabled: false });
+          expect(updatedEventType.disableRescheduling).toEqual({ disabled: false, minutesBefore: 60 });
+          expect(updatedEventType.calVideoSettings?.sendTranscriptionEmails).toEqual(false);
           expect(updatedEventType.interfaceLanguage).toEqual(body.interfaceLanguage);
           expect(updatedEventType.allowReschedulingPastBookings).toEqual(body.allowReschedulingPastBookings);
           expect(updatedEventType.allowReschedulingCancelledBookings).toEqual(
@@ -1476,9 +1458,7 @@ describe("Event types Endpoints", () => {
 
           eventType.disableCancelling = updatedEventType.disableCancelling;
           eventType.disableRescheduling = updatedEventType.disableRescheduling;
-          eventType.canSendCalVideoTranscriptionEmails = updatedEventType.canSendCalVideoTranscriptionEmails;
-          eventType.autoTranslateInstantMeetingTitleEnabled =
-            updatedEventType.autoTranslateInstantMeetingTitleEnabled;
+          eventType.calVideoSettings = updatedEventType.calVideoSettings;
           eventType.interfaceLanguage = updatedEventType.interfaceLanguage;
           eventType.allowReschedulingPastBookings = updatedEventType.allowReschedulingPastBookings;
           eventType.allowReschedulingCancelledBookings = updatedEventType.allowReschedulingCancelledBookings;

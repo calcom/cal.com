@@ -17762,6 +17762,31 @@
           }
         }
       },
+      "DisableRescheduling_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, rescheduling is always disabled for this event type.",
+            "example": true
+          },
+          "minutesBefore": {
+            "type": "number",
+            "description": "Disable rescheduling when less than the specified number of minutes before the meeting. If set, `disabled` should be false or undefined.",
+            "example": 60
+          }
+        }
+      },
+      "DisableCancelling_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, cancelling is always disabled for this event type.",
+            "example": true
+          }
+        }
+      },
       "CalVideoSettings": {
         "type": "object",
         "properties": {
@@ -17792,6 +17817,11 @@
           "disableTranscriptionForOrganizer": {
             "type": "boolean",
             "description": "If true, the organizer will not be able to receive transcription of the meeting"
+          },
+          "sendTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
+            "default": true
           }
         }
       },
@@ -18062,24 +18092,27 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "disableCancelling": {
-            "type": "boolean",
-            "description": "If true, guests and organizer can no longer cancel the event.",
-            "default": false
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
           },
           "disableRescheduling": {
-            "type": "boolean",
-            "description": "If true, guests and organizer can no longer reschedule the event.",
-            "default": false
-          },
-          "canSendCalVideoTranscriptionEmails": {
-            "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
-            "default": true
-          },
-          "autoTranslateInstantMeetingTitleEnabled": {
-            "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI.",
-            "default": false
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
           },
           "interfaceLanguage": {
             "type": "string",
@@ -19083,6 +19116,31 @@
           }
         }
       },
+      "DisableCancellingOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, cancelling is always disabled for this event type.",
+            "example": true
+          }
+        }
+      },
+      "DisableReschedulingOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, rescheduling is always disabled for this event type.",
+            "example": true
+          },
+          "minutesBefore": {
+            "type": "number",
+            "description": "Rescheduling is disabled when less than the specified number of minutes before the meeting.",
+            "example": 60
+          }
+        }
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -19348,22 +19406,20 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "disableCancelling": {
-            "type": "boolean",
-            "nullable": true,
-            "description": "If true, guests and organizer can no longer cancel the event."
+            "description": "Settings for disabling cancelling of this event type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancellingOutput_2024_06_14"
+              }
+            ]
           },
           "disableRescheduling": {
-            "type": "boolean",
-            "nullable": true,
-            "description": "If true, guests and organizer can no longer reschedule the event."
-          },
-          "canSendCalVideoTranscriptionEmails": {
-            "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
-          },
-          "autoTranslateInstantMeetingTitleEnabled": {
-            "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableReschedulingOutput_2024_06_14"
+              }
+            ]
           },
           "interfaceLanguage": {
             "type": "string",
@@ -19741,22 +19797,20 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "disableCancelling": {
-            "type": "boolean",
-            "nullable": true,
-            "description": "If true, guests and organizer can no longer cancel the event."
+            "description": "Settings for disabling cancelling of this event type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancellingOutput_2024_06_14"
+              }
+            ]
           },
           "disableRescheduling": {
-            "type": "boolean",
-            "nullable": true,
-            "description": "If true, guests and organizer can no longer reschedule the event."
-          },
-          "canSendCalVideoTranscriptionEmails": {
-            "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends."
-          },
-          "autoTranslateInstantMeetingTitleEnabled": {
-            "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI."
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableReschedulingOutput_2024_06_14"
+              }
+            ]
           },
           "interfaceLanguage": {
             "type": "string",
@@ -20146,24 +20200,27 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "disableCancelling": {
-            "type": "boolean",
-            "description": "If true, guests and organizer can no longer cancel the event.",
-            "default": false
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
           },
           "disableRescheduling": {
-            "type": "boolean",
-            "description": "If true, guests and organizer can no longer reschedule the event.",
-            "default": false
-          },
-          "canSendCalVideoTranscriptionEmails": {
-            "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
-            "default": true
-          },
-          "autoTranslateInstantMeetingTitleEnabled": {
-            "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI.",
-            "default": false
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
           },
           "interfaceLanguage": {
             "type": "string",
@@ -21849,24 +21906,27 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "disableCancelling": {
-            "type": "boolean",
-            "description": "If true, guests and organizer can no longer cancel the event.",
-            "default": false
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
           },
           "disableRescheduling": {
-            "type": "boolean",
-            "description": "If true, guests and organizer can no longer reschedule the event.",
-            "default": false
-          },
-          "canSendCalVideoTranscriptionEmails": {
-            "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
-            "default": true
-          },
-          "autoTranslateInstantMeetingTitleEnabled": {
-            "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI.",
-            "default": false
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
           },
           "interfaceLanguage": {
             "type": "string",
@@ -22391,24 +22451,27 @@
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "disableCancelling": {
-            "type": "boolean",
-            "description": "If true, guests and organizer can no longer cancel the event.",
-            "default": false
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
           },
           "disableRescheduling": {
-            "type": "boolean",
-            "description": "If true, guests and organizer can no longer reschedule the event.",
-            "default": false
-          },
-          "canSendCalVideoTranscriptionEmails": {
-            "type": "boolean",
-            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
-            "default": true
-          },
-          "autoTranslateInstantMeetingTitleEnabled": {
-            "type": "boolean",
-            "description": "Automatically translate instant meeting title to the visitor's browser language using AI.",
-            "default": false
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
           },
           "interfaceLanguage": {
             "type": "string",
