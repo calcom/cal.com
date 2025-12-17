@@ -469,7 +469,10 @@ export default function EventTypes() {
 
   return (
     <>
-      <Stack.Header style={{ backgroundColor: "transparent", shadowColor: "transparent" }}>
+      <Stack.Header
+        style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+        blurEffect="light"
+      >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
         <Stack.Header.Right>
           <Stack.Header.Button onPress={handleCreateNew} tintColor="#000" variant="prominent">
@@ -480,42 +483,9 @@ export default function EventTypes() {
           placeholder="Search event types"
           onChangeText={(e) => handleSearch(e.nativeEvent.text)}
           obscureBackground={false}
+          barTintColor="#fff"
         />
       </Stack.Header>
-      {/* <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Event Types",
-          headerLargeTitleEnabled: true,
-          headerStyle: {
-            backgroundColor: "transparent",
-          },
-          headerSearchBarOptions: {
-            placeholder: "Search event types",
-            barTintColor: "#fff",
-            obscureBackground: false,
-            onChangeText: (e) => {
-              handleSearch(e.nativeEvent.text);
-            },
-          },
-          unstable_headerRightItems: () => [
-            {
-              type: "button",
-              label: "New",
-              labelStyle: {
-                // style if needed
-              },
-              variant: "prominent",
-              tintColor: "#000",
-              // icon: {
-              //   name: "plus",
-              //   type: "sfSymbol",
-              // },
-              onPress: handleCreateNew,
-            },
-          ],
-        }}
-      /> */}
       <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
         <Header />
         <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
