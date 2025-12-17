@@ -423,16 +423,33 @@ export default defineContentScript({
       urlParams.get("openExtension") === "true" || window.location.hostname === "companion.cal.com";
 
     if (shouldAutoOpen) {
-      setTimeout(() => {
+      // Function to open sidebar and clean up URL
+      const autoOpenAndCleanup = () => {
         openSidebar();
         // Clean up the URL parameter without triggering a reload
         if (urlParams.get("openExtension")) {
-          const cleanUrl = window.location.href
-            .replace(/[?&]openExtension=true/, "")
-            .replace(/\?$/, "");
-          window.history.replaceState({}, document.title, cleanUrl);
+          const url = new URL(window.location.href);
+          url.searchParams.delete("openExtension");
+          window.history.replaceState({}, document.title, url.toString());
         }
-      }, 500); // Slightly longer delay for Framer pages to fully load
+      };
+
+      // Wait for page to fully load before auto-opening
+      // This handles Framer pages which load dynamically
+      if (document.readyState === "complete") {
+        // Page already loaded (cached), use small delay
+        setTimeout(autoOpenAndCleanup, 300);
+      } else {
+        // Page still loading (first visit), wait for load event
+        window.addEventListener(
+          "load",
+          () => {
+            // Additional delay after load for Framer's JS to initialize
+            setTimeout(autoOpenAndCleanup, 500);
+          },
+          { once: true }
+        );
+      }
     }
 
     // Gmail integration function
