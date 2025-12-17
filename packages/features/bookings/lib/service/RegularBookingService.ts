@@ -2045,6 +2045,10 @@ async function handler(
         });
       }
     }
+    // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = eventType.description ?? evt.description;
+
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
           evt,
@@ -2056,10 +2060,15 @@ async function handler(
           skipDeleteEventsAndMeetings
         )
       : placeholderCreatedEvent;
+
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
 
     videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+
+    // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = eventType.description;
 
     const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
       results,
@@ -2191,6 +2200,9 @@ async function handler(
     if (evt.location) {
       booking.location = evt.location;
     }
+    // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = eventType.description;
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
