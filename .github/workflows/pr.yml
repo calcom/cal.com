@@ -269,7 +269,11 @@ jobs:
         if: |
           (
             needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
-            contains(needs.*.result, 'failure')
+            (
+              contains(needs.*.result, 'failure') ||
+              contains(needs.*.result, 'cancelled') ||
+              contains(needs.*.result, 'skipped')
+            )
           ) ||
           (
             needs.changes.outputs.has_companion == 'true' &&
@@ -278,5 +282,9 @@ jobs:
           (
             needs.check-label.outputs.run-e2e == 'true' &&
             needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
-            contains(needs.*.result, 'failure')
+            (
+              contains(needs.*.result, 'failure') ||
+              contains(needs.*.result, 'cancelled') ||
+              contains(needs.*.result, 'skipped')
+            )
           )
