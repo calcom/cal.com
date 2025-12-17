@@ -4,8 +4,8 @@ import {
   buildMetaTemplateComponentsFromTemplate,
   type WhatsAppTemplate,
 } from "@calid/features/modules/workflows/providers/meta";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { VariablesType } from "@calid/lib/variables";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ==================== MOCK VARIABLE DATA ====================
 
@@ -18,19 +18,23 @@ export const mockVariableData: VariablesType = {
   attendeeEmail: "john@example.com",
   eventDate: undefined, // Dayjs object would be used in real scenario
   eventEndTime: undefined,
-  timeZone: "America/New_York",
+  timezone: "America/New_York",
   location: "Conference Room A",
   additionalNotes: "Please bring your laptop",
   responses: null,
   meetingUrl: "https://meet.example.com/abc123",
-  cancelLink: "https://example.com/cancel/xyz",
-  rescheduleLink: "https://example.com/reschedule/xyz",
+  cancelUrl: "https://example.com/cancel/xyz",
+  rescheduleUrl: "https://example.com/reschedule/xyz",
   ratingUrl: "https://example.com/rate/xyz",
   noShowUrl: "https://example.com/noshow/xyz",
   attendeeTimezone: "America/Los_Angeles",
-  eventTimeInAttendeeTimezone: undefined,
+  eventStartTimeInAttendeeTimezone: undefined,
   eventEndTimeInAttendeeTimezone: undefined,
 };
+
+// Mock credentials for async function calls
+const MOCK_PHONE_NUMBER_ID = "test-phone-123";
+const MOCK_ACCESS_TOKEN = "test-token-456";
 
 // ==================== MOCK TEMPLATES ====================
 
@@ -50,6 +54,42 @@ export const mockBodyOnly: WhatsAppTemplate = {
   parameter_format: "POSITIONAL",
 };
 
+export const demoCallReminderTemplate: WhatsAppTemplate = {
+  id: "1549651672903278",
+  name: "demo_call_reminder",
+  status: "APPROVED",
+  category: "UTILITY",
+  language: "en",
+  components: [
+    {
+      text: "Hi {{attendee_first_name}},\nGentle reminder!\n\nYou have a call schedule with us at {{event_time}} {{timezone}}\nMeeting Link:  {{meeting_url}}.\nPlease join the call. \n\nBest,\nCal ID Team",
+      type: "BODY",
+      example: {
+        body_text_named_params: [
+          {
+            example: "Manas",
+            param_name: "attendee_first_name",
+          },
+          {
+            example: "10:00 PM",
+            param_name: "event_time",
+          },
+          {
+            example: "IST",
+            param_name: "timezone",
+          },
+          {
+            example: "https://meet.google.com/muk-kyyd-fzn",
+            param_name: "meeting_url",
+          },
+        ],
+      },
+    },
+  ],
+  sub_category: "FORM",
+  parameter_format: "NAMED",
+};
+
 export const mockBodyWithPositionalParams: WhatsAppTemplate = {
   id: "1002",
   name: "body_with_params",
@@ -58,7 +98,7 @@ export const mockBodyWithPositionalParams: WhatsAppTemplate = {
   language: "en",
   components: [
     {
-      text: "Hello {{attendeeName}}, your order {{eventName}} is ready for pickup at {{location}}.",
+      text: "Hello {{attendee_name}}, your order {{event_name}} is ready for pickup at {{location}}.",
       type: "BODY",
     },
   ],
@@ -74,7 +114,7 @@ export const mockBodyWithNamedParams: WhatsAppTemplate = {
   language: "en",
   components: [
     {
-      text: "Hello {{attendeeName}}, your appointment is on {{eventName}} at {{timeZone}}.",
+      text: "Hello {{attendee_name}}, your appointment is on {{event_name}} at {{timezone}}.",
       type: "BODY",
     },
   ],
@@ -91,7 +131,7 @@ export const mockHeaderTextPositional: WhatsAppTemplate = {
     {
       type: "HEADER",
       format: "TEXT",
-      text: "Welcome {{attendeeName}}!",
+      text: "Welcome {{attendee_name}}!",
     },
     {
       text: "Thanks for joining us.",
@@ -111,7 +151,7 @@ export const mockHeaderTextNamed: WhatsAppTemplate = {
     {
       type: "HEADER",
       format: "TEXT",
-      text: "Invoice for {{organizerName}}",
+      text: "Invoice for {{organizer_name}}",
     },
     {
       text: "Your invoice is ready.",
@@ -119,74 +159,6 @@ export const mockHeaderTextNamed: WhatsAppTemplate = {
     },
   ],
   parameter_format: "NAMED",
-};
-
-export const mockHeaderImage: WhatsAppTemplate = {
-  id: "1006",
-  name: "header_image",
-  status: "APPROVED",
-  category: "MARKETING",
-  language: "en",
-  components: [
-    {
-      type: "HEADER",
-      format: "IMAGE",
-      example: {
-        header_handle: ["https://example.com/product.jpg"],
-      },
-    },
-    {
-      text: "Check out our new product!",
-      type: "BODY",
-    },
-  ],
-  parameter_format: "POSITIONAL",
-};
-
-export const mockHeaderVideo: WhatsAppTemplate = {
-  id: "1007",
-  name: "header_video",
-  status: "APPROVED",
-  category: "MARKETING",
-  language: "en",
-  components: [
-    {
-      type: "HEADER",
-      format: "VIDEO",
-
-      example: {
-        header_handle: ["https://example.com/product.mp4"],
-      },
-    },
-    {
-      text: "Watch our latest tutorial.",
-      type: "BODY",
-    },
-  ],
-  parameter_format: "POSITIONAL",
-};
-
-export const mockHeaderDocument: WhatsAppTemplate = {
-  id: "1008",
-  name: "header_document",
-  status: "APPROVED",
-  category: "MARKETING",
-  language: "en",
-  components: [
-    {
-      type: "HEADER",
-      format: "DOCUMENT",
-
-      example: {
-        header_handle: ["https://example.com/product.pdf"],
-      },
-    },
-    {
-      text: "Please find the attached document.",
-      type: "BODY",
-    },
-  ],
-  parameter_format: "POSITIONAL",
 };
 
 export const mockButtonsStatic: WhatsAppTemplate = {
@@ -234,7 +206,7 @@ export const mockButtonsDynamic: WhatsAppTemplate = {
         {
           type: "URL",
           text: "View Order",
-          url: "https://example.com/orders/{{meetingUrl}}",
+          url: "https://example.com/orders/{{meeting_url}}",
         },
       ],
     },
@@ -259,12 +231,12 @@ export const mockButtonsMultipleDynamic: WhatsAppTemplate = {
         {
           type: "URL",
           text: "View Profile",
-          url: "https://example.com/profile/{{cancelLink}}",
+          url: "https://example.com/profile/{{cancel_url}}",
         },
         {
           type: "URL",
           text: "View Orders",
-          url: "https://example.com/orders/{{rescheduleLink}}",
+          url: "https://example.com/orders/{{reschedule_url}}",
         },
         {
           type: "PHONE_NUMBER",
@@ -285,14 +257,7 @@ export const mockComplexTemplate: WhatsAppTemplate = {
   language: "en",
   components: [
     {
-      type: "HEADER",
-      format: "IMAGE",
-      example: {
-        header_handle: ["https://example.com/img.jpg"],
-      },
-    },
-    {
-      text: "Hi {{attendeeName}}, your order {{eventName}} is confirmed for {{location}}.",
+      text: "Hi {{attendee_name}}, your order {{event_name}} is confirmed for {{location}}.",
       type: "BODY",
     },
     {
@@ -305,7 +270,7 @@ export const mockComplexTemplate: WhatsAppTemplate = {
         {
           type: "URL",
           text: "Track Order",
-          url: "https://example.com/track/{{meetingUrl}}",
+          url: "https://example.com/track/{{meeting_url}}",
         },
         {
           type: "PHONE_NUMBER",
@@ -328,10 +293,10 @@ export const mockComplexNamedTemplate: WhatsAppTemplate = {
     {
       type: "HEADER",
       format: "TEXT",
-      text: "Booking Confirmation - {{eventName}}",
+      text: "Booking Confirmation - {{event_name}}",
     },
     {
-      text: "Dear {{organizerName}}, your booking at {{location}} on {{eventName}} at {{timeZone}} has been confirmed.",
+      text: "Dear {{organizer_name}}, your booking at {{location}} on {{event_name}} at {{timezone}} has been confirmed.",
       type: "BODY",
     },
     {
@@ -352,7 +317,7 @@ export const mockMultipleHeaderParams: WhatsAppTemplate = {
     {
       type: "HEADER",
       format: "TEXT",
-      text: "{{eventName}} - Report for {{timeZone}}",
+      text: "{{event_name}} - Report for {{timezone}}",
     },
     {
       text: "Please review the attached report.",
@@ -366,19 +331,23 @@ export const mockMultipleHeaderParams: WhatsAppTemplate = {
 
 describe("WhatsApp Template Component Builder", () => {
   describe("BODY Component - Direct Parameter Matching", () => {
-    it("handles body with no parameters", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
+    it("handles body with no parameters", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyOnly,
-        mockVariableData
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(0);
     });
 
-    it("builds body with parameters using direct field names", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
+    it("builds body with snake_case parameters using direct field names", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithPositionalParams,
-        mockVariableData
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
@@ -392,16 +361,18 @@ describe("WhatsApp Template Component Builder", () => {
       });
     });
 
-    it("handles missing parameters gracefully", () => {
+    it("handles missing parameters gracefully", async () => {
       const partialVariableData: VariablesType = {
         ...mockVariableData,
         eventName: undefined,
         location: undefined,
       };
 
-      const result = buildMetaTemplateComponentsFromTemplate(
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithPositionalParams,
-        partialVariableData
+        partialVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
@@ -409,7 +380,7 @@ describe("WhatsApp Template Component Builder", () => {
       expect(result[0].parameters[0]).toEqual({ type: "text", text: "John" });
     });
 
-    it("converts non-string values to strings", () => {
+    it("converts non-string values to strings", async () => {
       const customVariableData: VariablesType = {
         ...mockVariableData,
         attendeeName: "42" as any,
@@ -417,9 +388,11 @@ describe("WhatsApp Template Component Builder", () => {
         location: "null" as any,
       };
 
-      const result = buildMetaTemplateComponentsFromTemplate(
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithPositionalParams,
-        customVariableData
+        customVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
@@ -432,45 +405,49 @@ describe("WhatsApp Template Component Builder", () => {
   });
 
   describe("BODY Component - Named Parameters", () => {
-    it("builds body with named parameters using direct field names", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
+    it("builds body with named parameters using snake_case field names", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithNamedParams,
-        mockVariableData
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         type: "body",
         parameters: [
-          { type: "text", parameter_name: "attendeeName", text: "John" },
-          { type: "text", parameter_name: "eventName", text: "Team Meeting" },
-          { type: "text", parameter_name: "timeZone", text: "America/New_York" },
+          { type: "text", parameter_name: "attendee_name", text: "John" },
+          { type: "text", parameter_name: "event_name", text: "Team Meeting" },
+          { type: "text", parameter_name: "timezone", text: "America/New_York" },
         ],
       });
     });
 
-    it("handles missing named parameters", () => {
+    it("handles missing named parameters", async () => {
       const partialVariableData: VariablesType = {
         ...mockVariableData,
         eventName: undefined,
-        timeZone: undefined,
+        timezone: undefined,
       };
 
-      const result = buildMetaTemplateComponentsFromTemplate(
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithNamedParams,
-        partialVariableData
+        partialVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
       expect(result[0].parameters).toHaveLength(1);
       expect(result[0].parameters[0]).toEqual({
         type: "text",
-        parameter_name: "attendeeName",
+        parameter_name: "attendee_name",
         text: "John",
       });
     });
 
-    it("only includes parameters that exist in variable data", () => {
+    it("only includes parameters that exist in variable data", async () => {
       const templateWithExtra: WhatsAppTemplate = {
         id: "1015",
         name: "template_with_extra",
@@ -479,155 +456,207 @@ describe("WhatsApp Template Component Builder", () => {
         language: "en",
         components: [
           {
-            text: "Hello {{attendeeName}}, {{nonExistentField}} at {{location}}.",
+            text: "Hello {{attendee_name}}, {{non_existent_field}} at {{location}}.",
             type: "BODY",
           },
         ],
         parameter_format: "NAMED",
       };
 
-      const result = buildMetaTemplateComponentsFromTemplate(
+      const result = await buildMetaTemplateComponentsFromTemplate(
         templateWithExtra,
-        mockVariableData
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
       expect(result[0].parameters).toHaveLength(2);
-      expect(result[0].parameters.find((p) => p.parameter_name === "nonExistentField")).toBeUndefined();
+      expect(result[0].parameters.find((p) => p.parameter_name === "non_existent_field")).toBeUndefined();
+    });
+
+    it("builds demo_call_reminder template with named parameters", async () => {
+      const dataWithEventTime = {
+        ...mockVariableData,
+        eventTime: "10:00 PM",
+        timezone: "IST",
+      };
+
+      const result = await buildMetaTemplateComponentsFromTemplate(
+        demoCallReminderTemplate,
+        dataWithEventTime,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe("body");
+      expect(result[0].parameters).toHaveLength(4);
+      expect(result[0].parameters).toEqual([
+        { type: "text", parameter_name: "attendee_first_name", text: "John" },
+        { type: "text", parameter_name: "event_time", text: "10:00 PM" },
+        { type: "text", parameter_name: "timezone", text: "IST" },
+        { type: "text", parameter_name: "meeting_url", text: "https://meet.example.com/abc123" },
+      ]);
     });
   });
 
   describe("HEADER Component - Text Format", () => {
-    it("does not create header component when text parameter is missing", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
+    it("does not create header component when text parameter is missing", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockHeaderTextPositional,
-        { ...mockVariableData, attendeeName: undefined }
+        {
+          ...mockVariableData,
+          attendeeName: undefined,
+        },
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(0);
     });
 
-    it("creates header component when text parameter exists", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
+    it("creates header component when text parameter exists", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockHeaderTextPositional,
-        mockVariableData
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe("header");
     });
-  });
 
-  describe("HEADER Component - Image Format", () => {
-    it("builds header with image", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
-        mockHeaderImage,
-        mockVariableData
+    it("creates header with named parameters", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
+        mockHeaderTextNamed,
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         type: "header",
         parameters: [
-          {
-            type: "image",
-            image: {
-              link: "https://example.com/product.jpg",
-            },
-          },
-        ],
-      });
-    });
-  });
-
-  describe("HEADER Component - Video Format", () => {
-    it("builds header with video", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
-        mockHeaderVideo,
-        mockVariableData
-      );
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        type: "header",
-        parameters: [
-          {
-            type: "video",
-            video: {
-              link: "https://example.com/product.mp4",
-            },
-          },
-        ],
-      });
-    });
-  });
-
-  describe("HEADER Component - Document Format", () => {
-    it("builds header with document", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
-        mockHeaderDocument,
-        mockVariableData
-      );
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        type: "header",
-        parameters: [
-          {
-            type: "document",
-            document: {
-              link: "https://example.com/product.pdf",
-            },
-          },
+          { type: "text", parameter_name: "organizer_name", text: "John Organizer" },
         ],
       });
     });
   });
 
   describe("BUTTONS Component", () => {
-    it("does not create components for static buttons", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
+    it("does not create components for static buttons", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockButtonsStatic,
-        mockVariableData
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(0);
     });
 
-    it("handles missing button parameters", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
+    it("handles dynamic button URL parameters", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockButtonsDynamic,
-        { ...mockVariableData, meetingUrl: undefined }
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "button",
+        sub_type: "url",
+        index: "0",
+        parameters: [
+          { type: "text", text: "https://meet.example.com/abc123" },
+        ],
+      });
+    });
+
+    it("handles missing button parameters", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
+        mockButtonsDynamic,
+        {
+          ...mockVariableData,
+          meetingUrl: undefined,
+        },
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(0);
+    });
+
+    it("handles multiple dynamic buttons", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
+        mockButtonsMultipleDynamic,
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        type: "button",
+        sub_type: "url",
+        index: "0",
+        parameters: [{ type: "text", text: "https://example.com/cancel/xyz" }],
+      });
+      expect(result[1]).toEqual({
+        type: "button",
+        sub_type: "url",
+        index: "1",
+        parameters: [{ type: "text", text: "https://example.com/reschedule/xyz" }],
+      });
     });
   });
 
-  // describe("Complex Templates", () => {
-  //   it("builds complex named parameter template - body only", () => {
-  //     const result = buildMetaTemplateComponentsFromTemplate(
-  //       mockComplexNamedTemplate,
-  //       mockVariableData
-  //     );
+  describe("Complex Templates", () => {
+    it("builds complex template with body and buttons", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
+        mockComplexTemplate,
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
+      );
 
-  //     // Only body parameters work currently
-  //     expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
+      
+      // Body component
+      expect(result[0].type).toBe("body");
+      expect(result[0].parameters).toHaveLength(3);
+      
+      // Button component
+      expect(result[1].type).toBe("button");
+      expect(result[1].sub_type).toBe("url");
+    });
 
-  //     // Body with multiple named params
-  //     expect(result[0].type).toBe("body");
-  //     expect(result[0].parameters).toHaveLength(4);
-  //     expect(result[0].parameters).toEqual([
-  //       { type: "text", parameter_name: "organizerName", text: "John Organizer" },
-  //       { type: "text", parameter_name: "location", text: "Conference Room A" },
-  //       { type: "text", parameter_name: "eventName", text: "Team Meeting" },
-  //       { type: "text", parameter_name: "timeZone", text: "America/New_York" },
-  //     ]);
-  //   });
-  // });
+    it("builds complex named parameter template", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
+        mockComplexNamedTemplate,
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
+      );
+
+      expect(result).toHaveLength(2);
+      
+      // Header with named param
+      expect(result[0].type).toBe("header");
+      expect(result[0].parameters).toHaveLength(1);
+      
+      // Body with multiple named params
+      expect(result[1].type).toBe("body");
+      expect(result[1].parameters).toHaveLength(4);
+    });
+  });
 
   describe("Edge Cases", () => {
-    it("handles template with no components", () => {
+    it("handles template with no components", async () => {
       const emptyTemplate: WhatsAppTemplate = {
         id: "9999",
         name: "empty",
@@ -638,15 +667,17 @@ describe("WhatsApp Template Component Builder", () => {
         parameter_format: "POSITIONAL",
       };
 
-      const result = buildMetaTemplateComponentsFromTemplate(
+      const result = await buildMetaTemplateComponentsFromTemplate(
         emptyTemplate,
-        mockVariableData
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(0);
     });
 
-    it("handles undefined values in variable data", () => {
+    it("handles undefined values in variable data", async () => {
       const customVariableData: VariablesType = {
         ...mockVariableData,
         attendeeName: undefined,
@@ -654,16 +685,18 @@ describe("WhatsApp Template Component Builder", () => {
         location: "Conference Room A",
       };
 
-      const result = buildMetaTemplateComponentsFromTemplate(
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithPositionalParams,
-        customVariableData
+        customVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
       expect(result[0].parameters).toHaveLength(2); // Only eventName and location
     });
 
-    it("handles null as a valid parameter value", () => {
+    it("handles null as a valid parameter value", async () => {
       const customVariableData: VariablesType = {
         ...mockVariableData,
         attendeeName: null as any,
@@ -671,9 +704,11 @@ describe("WhatsApp Template Component Builder", () => {
         location: null,
       };
 
-      const result = buildMetaTemplateComponentsFromTemplate(
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithPositionalParams,
-        customVariableData
+        customVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
@@ -681,10 +716,12 @@ describe("WhatsApp Template Component Builder", () => {
       expect(result[0].parameters[2]).toEqual({ type: "text", text: "null" });
     });
 
-    it("maintains parameter order based on template text", () => {
-      const result = buildMetaTemplateComponentsFromTemplate(
+    it("maintains parameter order based on template text", async () => {
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithPositionalParams,
-        mockVariableData
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
@@ -695,19 +732,51 @@ describe("WhatsApp Template Component Builder", () => {
       ]);
     });
 
-    it("handles templates with parameters not in variable data", () => {
+    it("handles templates with parameters not in variable data", async () => {
       const limitedVariableData: Partial<VariablesType> = {
         attendeeName: "John",
       };
 
-      const result = buildMetaTemplateComponentsFromTemplate(
+      const result = await buildMetaTemplateComponentsFromTemplate(
         mockBodyWithPositionalParams,
-        limitedVariableData as VariablesType
+        limitedVariableData as VariablesType,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
       );
 
       expect(result).toHaveLength(1);
       expect(result[0].parameters).toHaveLength(1);
       expect(result[0].parameters[0]).toEqual({ type: "text", text: "John" });
+    });
+
+    it("only matches snake_case variables, not camelCase", async () => {
+      const mixedTemplate: WhatsAppTemplate = {
+        id: "1016",
+        name: "mixed_case_template",
+        status: "APPROVED",
+        category: "MARKETING",
+        language: "en",
+        components: [
+          {
+            text: "Hello {{attendee_name}}, your {{eventName}} at {{location}}.",
+            type: "BODY",
+          },
+        ],
+        parameter_format: "POSITIONAL",
+      };
+
+      const result = await buildMetaTemplateComponentsFromTemplate(
+        mixedTemplate,
+        mockVariableData,
+        MOCK_PHONE_NUMBER_ID,
+        MOCK_ACCESS_TOKEN
+      );
+
+      expect(result).toHaveLength(1);
+      // Should only match attendee_name and location (snake_case), not eventName (camelCase)
+      expect(result[0].parameters).toHaveLength(2);
+      expect(result[0].parameters[0]).toEqual({ type: "text", text: "John" });
+      expect(result[0].parameters[1]).toEqual({ type: "text", text: "Conference Room A" });
     });
   });
 });

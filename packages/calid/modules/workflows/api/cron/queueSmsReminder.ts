@@ -103,13 +103,13 @@ const processNotificationQueue = async (): Promise<number> => {
           attendeeEmail: notification.booking?.attendees[0].email,
           eventDate: dayjs(notification.booking?.startTime).tz(participantTimeZone),
           eventEndTime: dayjs(notification.booking?.endTime).tz(participantTimeZone),
-          timeZone: participantTimeZone,
+          timezone: participantTimeZone,
           location: notification.booking?.location || "",
           additionalNotes: notification.booking?.description,
           responses: responses,
           meetingUrl: bookingMetadataSchema.parse(notification.booking?.metadata || {})?.videoCallUrl,
-          cancelLink: `${bookingBaseUrl}/booking/${notification.booking.uid}?cancel=true`,
-          rescheduleLink: `${bookingBaseUrl}/reschedule/${notification.booking.uid}`,
+          cancelUrl: `${bookingBaseUrl}/booking/${notification.booking.uid}?cancel=true`,
+          rescheduleUrl: `${bookingBaseUrl}/reschedule/${notification.booking.uid}`,
         };
         const processedMessage = customTemplate(
           notification.workflowStep.reminderBody || "",

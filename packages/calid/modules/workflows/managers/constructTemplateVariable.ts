@@ -19,7 +19,7 @@ export const constructVariablesForTemplate = (
   const formatTimestamp = (timestamp?: string, formatString?: string) =>
     dayjs(timestamp || "")
       .tz(targetTimezone)
-      .locale(eventData?.user?.locale || "en")
+      .locale(eventData?.organizer?.language.locale || "en")
       .format(formatString || "YYYY MMM D");
 
   try {
@@ -27,7 +27,7 @@ export const constructVariablesForTemplate = (
       eventDate: formatTimestamp(eventData?.startTime, "YYYY MMM D"),
       eventTime: `${formatTimestamp(
         eventData?.startTime,
-        getTimeFormatStringFromUserTimeFormat(eventData?.user?.timeFormat)
+        eventData?.organizer?.timeFormat
       )} ${targetTimezone}`,
     };
   } catch (e) {
@@ -44,25 +44,20 @@ export const constructVariablesForTemplate = (
         ? participantData.name.split(" ")[1]
         : "",
     attendeeEmail: participantData.email,
-    // eventDate: dayjs(eventStartTime).tz(targetTimezone),
+    eventDate: dayjs(eventStartTime).tz(targetTimezone),
     eventEndTime: dayjs(eventEndTime).tz(targetTimezone),
-    timeZone: targetTimezone,
+    timezone: targetTimezone,
     location: eventData.location,
     additionalNotes: eventData.additionalNotes,
     responses: eventData.responses,
     meetingUrl: bookingMetadataSchema.parse(eventData.metadata || {})?.videoCallUrl,
-    cancelLink: `${bookerBaseUrl}/booking/${eventData.uid}?cancel=true`,
-    rescheduleLink: `${bookerBaseUrl}/reschedule/${eventData.uid}`,
+    cancelUrl: `${bookerBaseUrl}/booking/${eventData.uid}?cancel=true`,
+    rescheduleUrl: `${bookerBaseUrl}/reschedule/${eventData.uid}`,
     ratingUrl: `${bookerBaseUrl}/booking/${eventData.uid}?rating`,
     noShowUrl: `${bookerBaseUrl}/booking/${eventData.uid}?noShow=true`,
     attendeeTimezone: eventData.attendees[0].timeZone,
-    eventTimeInAttendeeTimezone: dayjs(eventStartTime).tz(eventData.attendees[0].timeZone),
+    eventStartTimeInAttendeeTimezone: dayjs(eventStartTime).tz(eventData.attendees[0].timeZone),
     eventEndTimeInAttendeeTimezone: dayjs(eventEndTime).tz(eventData.attendees[0].timeZone),
-
-    eventDate: formatTimestamp(eventStartTime, "YYYY MMM D"),
-    eventTime: `${formatTimestamp(
-      eventStartTime,
-      getTimeFormatStringFromUserTimeFormat(eventData.attendees[0].timeZone)
-    )} ${targetTimezone}`,
+    eventTime: `${formatTimestamp(eventStartTime, eventData?.organizer?.timeFormat)} ${targetTimezone}`,
   };
 };

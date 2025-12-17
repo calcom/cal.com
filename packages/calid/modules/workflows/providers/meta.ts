@@ -58,8 +58,8 @@ interface MetaMessageConfiguration {
 
 interface MetaScheduledMessageConfig extends MetaMessageConfiguration {
   deliveryTimestamp: Date;
-  workflowStepId?: number;
-  bookingUid?: string;
+  workflowStepId: number;
+  bookingUid: string;
 }
 
 interface ContentVariableInput {
@@ -846,39 +846,25 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
   // Create a reminder record first (if not exists)
   let reminderId: number;
 
-  if (config.workflowStepId && config.bookingUid) {
-    // Check if reminder already exists
-    const existingReminder = await prisma.calIdWorkflowReminder.findFirst({
-      where: {
+  // Check if reminder already exists
+  const existingReminder = await prisma.calIdWorkflowReminder.findFirst({
+    where: {
+      bookingUid: config.bookingUid,
+      workflowStepId: config.workflowStepId,
+      method: "WHATSAPP",
+    },
+  });
+
+  if (existingReminder) {
+    reminderId = existingReminder.id;
+  } else {
+    const newReminder = await prisma.calIdWorkflowReminder.create({
+      data: {
         bookingUid: config.bookingUid,
         workflowStepId: config.workflowStepId,
         method: "WHATSAPP",
-      },
-    });
-
-    if (existingReminder) {
-      reminderId = existingReminder.id;
-    } else {
-      const newReminder = await prisma.calIdWorkflowReminder.create({
-        data: {
-          bookingUid: config.bookingUid,
-          workflowStepId: config.workflowStepId,
-          method: "WHATSAPP",
-          scheduledDate: config.deliveryTimestamp,
-          scheduled: false, // Will be marked true after Inngest scheduling
-        },
-      });
-      reminderId = newReminder.id;
-    }
-  } else {
-    // For ad-hoc scheduling without workflow context
-    const newReminder = await prisma.calIdWorkflowReminder.create({
-      data: {
-        bookingUid: config.bookingUid || "",
-        workflowStepId: config.workflowStepId,
-        method: "WHATSAPP",
         scheduledDate: config.deliveryTimestamp,
-        scheduled: false,
+        scheduled: false, // Will be marked true after Inngest scheduling
       },
     });
     reminderId = newReminder.id;
