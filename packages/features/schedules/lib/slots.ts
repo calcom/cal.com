@@ -183,10 +183,15 @@ function buildSlotsWithDateRanges({
       }
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
-      const slotDateYYYYMMDD = datesOutOfOfficeTimeZone
-        ? slotStartTime.tz(datesOutOfOfficeTimeZone).format("YYYY-MM-DD")
-        : slotStartTime.utc().format("YYYY-MM-DD");
-      const dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD];
+
+      const dateOutOfOfficeExists = false;
+      if (datesOutOfOffice) {
+        const slotDateYYYYMMDD = datesOutOfOfficeTimeZone
+          ? slotStartTime.tz(datesOutOfOfficeTimeZone).format("YYYY-MM-DD")
+          : slotStartTime.utc().format("YYYY-MM-DD");
+        dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD];
+      }
+
       let slotData: {
         time: Dayjs;
         userIds?: number[];
