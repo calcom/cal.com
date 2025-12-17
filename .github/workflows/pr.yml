@@ -259,7 +259,7 @@ jobs:
         e2e-api-v2,
         e2e-embed,
         e2e-embed-react,
-        e2e-app-store,
+        e2e-app-store
       ]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
