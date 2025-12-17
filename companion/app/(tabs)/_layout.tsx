@@ -9,7 +9,9 @@ export default function TabLayout() {
   }
 
   return (
-    <NativeTabs>
+    <NativeTabs
+      disableTransparentOnScrollEdge={true} // Used to prevent transparent background on iOS 18 and older
+    >
       <NativeTabs.Trigger name="(event-types)">
         <NativeTabs.Trigger.Icon
           sf="link"
