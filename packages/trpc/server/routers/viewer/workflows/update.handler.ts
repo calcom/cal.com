@@ -2,7 +2,11 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { deleteRemindersOfActiveOnIds } from "@calcom/features/ee/workflows/lib/deleteRemindersOfActiveOnIds";
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
+import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
+import { verifyEmailSender } from "@calcom/features/ee/workflows/lib/verifyEmailSender";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import tasker from "@calcom/features/tasker";
@@ -23,12 +27,8 @@ import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
-  isAuthorized,
   upsertSmsReminderFieldForEventTypes,
-  deleteRemindersOfActiveOnIds,
   isAuthorizedToAddActiveOnIds,
-  scheduleWorkflowNotifications,
-  verifyEmailSender,
   removeSmsReminderFieldForEventTypes,
   isStepEdited,
   getEmailTemplateText,
