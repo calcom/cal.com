@@ -28,6 +28,11 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
     router.push(redirectPath);
   };
 
+  const handleDismiss = () => {
+    posthog.capture("company_email_banner_dismissed");
+    onDismissAction();
+  };
+
   if (!flags["onboarding-v3"]) {
     return null;
   }
@@ -74,7 +79,7 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
             <p className="text-default text-sm">{t("explore_organizational_plan_description")}</p>
           </div>
           <div className="mt-2 flex gap-2">
-            <Button color="secondary" onClick={onDismissAction}>
+            <Button color="secondary" onClick={handleDismiss}>
               {t("dismiss")}
             </Button>
             <Button color="primary" EndIcon="external-link" onClick={handleLearnMore}>
