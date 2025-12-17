@@ -1,5 +1,6 @@
 import { router } from "../../../trpc";
 import { createAttributeSyncSchema } from "./createAttributeSync.schema";
+import { deleteAttributeSyncSchema } from "./deleteAttributeSync.schema";
 import { updateAttributeSyncSchema } from "./updateAttributeSync.schema";
 import { createAttributePbacProcedure } from "./util";
 
@@ -29,6 +30,13 @@ export const attributeSyncRouter = router({
     .input(updateAttributeSyncSchema)
     .mutation(async (opts) => {
       const { default: handler } = await import("./updateAttributeSync.handler");
+      return handler(opts);
+    }),
+
+  deleteAttributeSync: createAttributePbacProcedure("organization.attributes.delete")
+    .input(deleteAttributeSyncSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./deleteAttributeSync.handler");
       return handler(opts);
     }),
 });
