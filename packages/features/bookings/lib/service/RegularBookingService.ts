@@ -41,6 +41,7 @@ import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/Sp
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -87,7 +88,6 @@ import {
   CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -1720,6 +1720,7 @@ async function handler(
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
       isDryRun,
+      traceContext,
     });
 
     if (newBooking) {
@@ -2480,6 +2481,7 @@ async function handler(
         paymentId: payment?.id,
       },
       isDryRun,
+      traceContext,
     });
 
     try {
@@ -2617,6 +2619,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2628,6 +2631,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2671,6 +2675,7 @@ async function handler(
       seatReferenceUid: evt.attendeeSeatId,
       isPlatformNoEmail: noEmail && Boolean(platformClientId),
       isDryRun,
+      traceContext,
     });
   }
 
