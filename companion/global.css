@@ -3,17 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  /* Force light color scheme for all web components */
   :root {
-    color-scheme: light only;
-  }
-
-  html {
-    color-scheme: light;
-  }
-
-  * {
-    color-scheme: light;
+    --background: #ffffff;
+    --foreground: #000000;
   }
 
   input:focus {

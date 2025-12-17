@@ -3,7 +3,7 @@ title: Managed organizations
 description: Find out how to create managed organizations and their OAuth clients via the api.
 ---
 
-## **1. How to create a managed organizations**
+## **1. How to create a managed organization**
 
 First, manually create an OAuth client in [https://app.cal.com/settings/platform](https://app.cal.com/settings/platform).
 
@@ -43,7 +43,7 @@ Here is response:
 }
 ```
 
-Notably, you will only have access to the `apiKey` only now, so make sure to create a table in your database where you store managed organization's `id` and `apiKey` . The `apiKey` will be used to create an OAuth client that is used to create platform users.
+Notably, you will only have access to the `apiKey` now, so make sure to create a table in your database where you store managed organization's `id` and `apiKey` . The `apiKey` will be used to create an OAuth client that is used to create platform users.
 
 Using same `x-cal-client-id` and `x-cal-secret-key` headers you can make requests to:
 
@@ -86,13 +86,10 @@ Response:
 }
 ```
 
-To fetch all OAuth clients of a managed organization make a GET request to `https://api.cal.com/v2/oauth-clients` by:
+Using the same `Authorization: Bearer <apiKey>` header, you can also:
 
-1. Setting `Authorization: Bearer <apiKey>` header where `<apiKey>` is the api key returned when creating a managed organization.
-
-To fetch a specific OAuth client of a managed organization make a GET request to `https://api.cal.com/v2/oauth-clients/:oAuthClientId` by:
-
-1. Setting `Authorization: Bearer <apiKey>` header where `<apiKey>` is the api key returned when creating a managed organization.
+- Fetch all OAuth clients: GET `https://api.cal.com/v2/oauth-clients`
+- Fetch a specific OAuth client: GET `https://api.cal.com/v2/oauth-clients/:oAuthClientId`
 
 ## **3. How to refresh api key of a managed organization**
 

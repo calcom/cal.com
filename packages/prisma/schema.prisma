@@ -197,6 +197,8 @@ model EventType {
   showOptimizedSlots                       Boolean?                  @default(false)
   disableCancelling                        Boolean?                  @default(false)
   disableRescheduling                      Boolean?                  @default(false)
+  /// @zod.number.min(0)
+  minimumRescheduleNotice                  Int?
   seatsShowAttendees                       Boolean?                  @default(false)
   seatsShowAvailabilityCount               Boolean?                  @default(true)
   schedulingType                           SchedulingType?
@@ -480,6 +482,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  holidaySettings                UserHolidaySettings?
 
   @@unique([email])
   @@unique([email, username])
@@ -894,6 +897,7 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
+  @@index([fromReschedule])
 }
 
 model Tracking {
@@ -1936,17 +1940,18 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id       Int                @id @default(autoincrement())
-  uuid     String             @unique
-  start    DateTime
-  end      DateTime
-  notes    String?
-  userId   Int
-  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId Int?
-  toUser   User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  reasonId Int?
-  reason   OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  id              Int                @id @default(autoincrement())
+  uuid            String             @unique
+  start           DateTime
+  end             DateTime
+  notes           String?
+  showNotePublicly Boolean           @default(false)
+  userId          Int
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId        Int?
+  toUser          User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId        Int?
+  reason          OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1966,6 +1971,35 @@ model OutOfOfficeReason {
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   entries OutOfOfficeEntry[]
+}
+
+model UserHolidaySettings {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  countryCode String?
+  disabledIds String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Holiday cache for Google Calendar public holidays
+model HolidayCache {
+  id          String   @id @default(uuid())
+  countryCode String
+  calendarId  String
+  eventId     String
+  name        String
+  date        DateTime
+  year        Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryCode, eventId])
+  @@index([countryCode, year])
+  @@index([countryCode, date])
 }
 
 // Platform
