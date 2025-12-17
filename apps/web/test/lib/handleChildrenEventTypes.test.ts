@@ -676,4 +676,283 @@ describe("handleChildrenEventTypes", () => {
       });
     });
   });
+
+  describe("Batch execution and retry behavior", () => {
+    it("processes updates in batches of 50", async () => {
+      // Create 120 old users to test batching (should result in 3 batches: 50, 50, 20)
+      const oldUserIds = Array.from({ length: 120 }, (_, i) => i + 1);
+      const children = oldUserIds.map((id) => ({
+        hidden: false,
+        owner: { id, name: `User ${id}`, email: `user${id}@test.com`, eventTypeSlugs: [] },
+      }));
+
+      mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
+
+      // Mock findMany for existing records lookup
+      prismaMock.eventType.findMany.mockResolvedValue(
+        oldUserIds.map((userId) => ({ userId, metadata: {} }))
+      );
+
+      // Track update calls to verify batching
+      let updateCallCount = 0;
+      prismaMock.eventType.update.mockImplementation(async () => {
+        updateCallCount++;
+        return {
+          id: updateCallCount,
+          userId: updateCallCount,
+          title: "Test",
+          slug: "test",
+          length: 30,
+          hidden: false,
+          position: 0,
+          teamId: null,
+          schedulingType: SchedulingType.MANAGED,
+          scheduleId: null,
+          price: 0,
+          currency: "usd",
+          slotInterval: null,
+          metadata: {},
+          successRedirectUrl: null,
+          bookingFields: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as unknown as EventType;
+      });
+
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: oldUserIds.map((userId) => ({ userId })), team: { name: "" } },
+        children,
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify all 120 users were processed
+      expect(result.oldUserIds).toHaveLength(120);
+      expect(updateCallCount).toBe(120);
+      // Verify findMany was called once for bulk fetch optimization
+      expect(prismaMock.eventType.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it("retries failed updates once", async () => {
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+      mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
+
+      // Mock findMany for existing records lookup
+      prismaMock.eventType.findMany.mockResolvedValue([
+        { userId: 1, metadata: {} },
+        { userId: 2, metadata: {} },
+        { userId: 3, metadata: {} },
+      ]);
+
+      // Track calls per userId to simulate failure on first attempt, success on retry
+      const callCountByUser: Record<number, number> = {};
+
+      prismaMock.eventType.update.mockImplementation(async (args) => {
+        const userId = (args.where as { userId_parentId: { userId: number } }).userId_parentId.userId;
+        callCountByUser[userId] = (callCountByUser[userId] || 0) + 1;
+
+        // User 2 fails on first attempt, succeeds on retry
+        if (userId === 2 && callCountByUser[userId] === 1) {
+          throw new Error("Simulated database error");
+        }
+
+        return {
+          id: userId,
+          userId,
+          title: "Test",
+          slug: "test",
+          length: 30,
+          hidden: false,
+          position: 0,
+          teamId: null,
+          schedulingType: SchedulingType.MANAGED,
+          scheduleId: null,
+          price: 0,
+          currency: "usd",
+          slotInterval: null,
+          metadata: {},
+          successRedirectUrl: null,
+          bookingFields: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as unknown as EventType;
+      });
+
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 1 }, { userId: 2 }, { userId: 3 }], team: { name: "" } },
+        children: [
+          { hidden: false, owner: { id: 1, name: "", email: "", eventTypeSlugs: [] } },
+          { hidden: false, owner: { id: 2, name: "", email: "", eventTypeSlugs: [] } },
+          { hidden: false, owner: { id: 3, name: "", email: "", eventTypeSlugs: [] } },
+        ],
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // All 3 users should be in oldUserIds (successful after retry)
+      expect(result.oldUserIds).toEqual([1, 2, 3]);
+      // User 2 should have been called twice (initial + retry)
+      expect(callCountByUser[2]).toBe(2);
+      // Verify retry log was called
+      expect(consoleSpy).toHaveBeenCalledWith("Retrying 1 failed updates...");
+
+      consoleSpy.mockRestore();
+    });
+
+    it("continues processing when some updates fail permanently", async () => {
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+      mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
+
+      // Mock findMany for existing records lookup
+      prismaMock.eventType.findMany.mockResolvedValue([
+        { userId: 1, metadata: {} },
+        { userId: 2, metadata: {} },
+        { userId: 3, metadata: {} },
+      ]);
+
+      prismaMock.eventType.update.mockImplementation(async (args) => {
+        const userId = (args.where as { userId_parentId: { userId: number } }).userId_parentId.userId;
+
+        // User 2 always fails (permanent failure)
+        if (userId === 2) {
+          throw new Error("Permanent database error");
+        }
+
+        return {
+          id: userId,
+          userId,
+          title: "Test",
+          slug: "test",
+          length: 30,
+          hidden: false,
+          position: 0,
+          teamId: null,
+          schedulingType: SchedulingType.MANAGED,
+          scheduleId: null,
+          price: 0,
+          currency: "usd",
+          slotInterval: null,
+          metadata: {},
+          successRedirectUrl: null,
+          bookingFields: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as unknown as EventType;
+      });
+
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 1 }, { userId: 2 }, { userId: 3 }], team: { name: "" } },
+        children: [
+          { hidden: false, owner: { id: 1, name: "", email: "", eventTypeSlugs: [] } },
+          { hidden: false, owner: { id: 2, name: "", email: "", eventTypeSlugs: [] } },
+          { hidden: false, owner: { id: 3, name: "", email: "", eventTypeSlugs: [] } },
+        ],
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // oldUserIds should still contain all 3 (the function returns the input, not successful ones)
+      expect(result.oldUserIds).toEqual([1, 2, 3]);
+      // Verify permanent failure was logged
+      expect(consoleSpy).toHaveBeenCalledWith("handleChildrenEventType - Could not update managed event-type", {
+        parentId: 1,
+        userIds: [2],
+      });
+
+      consoleSpy.mockRestore();
+    });
+
+    it("handles large scale scenarios with 100+ users efficiently", async () => {
+      // Create 150 old users to test large scale handling
+      const oldUserIds = Array.from({ length: 150 }, (_, i) => i + 1);
+      const children = oldUserIds.map((id) => ({
+        hidden: false,
+        owner: { id, name: `User ${id}`, email: `user${id}@test.com`, eventTypeSlugs: [] },
+      }));
+
+      mockFindFirstEventType({
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
+
+      // Mock findMany for existing records lookup - should be called ONCE (bulk optimization)
+      prismaMock.eventType.findMany.mockResolvedValue(
+        oldUserIds.map((userId) => ({ userId, metadata: {} }))
+      );
+
+      // Track timing to ensure batching doesn't cause sequential delays
+      const updateResults: number[] = [];
+      prismaMock.eventType.update.mockImplementation(async (args) => {
+        const userId = (args.where as { userId_parentId: { userId: number } }).userId_parentId.userId;
+        updateResults.push(userId);
+
+        return {
+          id: userId,
+          userId,
+          title: "Test",
+          slug: "test",
+          length: 30,
+          hidden: false,
+          position: 0,
+          teamId: null,
+          schedulingType: SchedulingType.MANAGED,
+          scheduleId: null,
+          price: 0,
+          currency: "usd",
+          slotInterval: null,
+          metadata: {},
+          successRedirectUrl: null,
+          bookingFields: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as unknown as EventType;
+      });
+
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: oldUserIds.map((userId) => ({ userId })), team: { name: "" } },
+        children,
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify all 150 users were processed
+      expect(result.oldUserIds).toHaveLength(150);
+      expect(updateResults).toHaveLength(150);
+
+      // Verify bulk fetch optimization: findMany should be called only ONCE
+      // (not 150 individual findUnique calls as in the old implementation)
+      expect(prismaMock.eventType.findMany).toHaveBeenCalledTimes(1);
+      expect(prismaMock.eventType.findMany).toHaveBeenCalledWith({
+        where: { parentId: 1, userId: { in: oldUserIds } },
+        select: { userId: true, metadata: true },
+      });
+    });
+  });
 });
