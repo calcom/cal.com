@@ -2,6 +2,12 @@ name: Companion Builds
 
 on:
   workflow_call:
+  workflow_dispatch:
+    inputs:
+      publish_chrome:
+        description: "Publish extension to Chrome Web Store"
+        required: true
+        default: "true"
 
 permissions:
   contents: read
@@ -40,3 +46,27 @@ jobs:
       - name: Build browser extension
         working-directory: companion
         run: bun run ext:build
+
+  deploy-chrome:
+    name: Deploy Chrome Extension
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zip extension
+        run: |
+          cd companion/dist
+          zip -r ../../extension.zip .
+
+      - name: Publish to Chrome Web Store
+        uses: mobilefirstllc/cws-publish@v2
+        with:
+          extension_id: ${{ secrets.CWS_EXTENSION_ID }}
+          client_id: ${{ secrets.CWS_CLIENT_ID }}
+          client_secret: ${{ secrets.CWS_CLIENT_SECRET }}
+          refresh_token: ${{ secrets.CWS_REFRESH_TOKEN }}
+          zip_file: extension.zip
+          publish: true
