@@ -20,6 +20,15 @@ export default defineContentScript({
       }
     }
 
+    const sessionToken = generateSecureToken();
+    let iframeSessionValidated = false;
+
+    function generateSecureToken(): string {
+      const array = new Uint8Array(32);
+      crypto.getRandomValues(array);
+      return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+
     let isVisible = false;
     let isClosed = true;
 
@@ -69,6 +78,30 @@ export default defineContentScript({
         return;
       }
 
+      if (event.data.type === "cal-extension-request-session") {
+        iframeSessionValidated = true;
+        iframe.contentWindow?.postMessage(
+          {
+            type: "cal-extension-session-token",
+            sessionToken: sessionToken,
+          },
+          iframeOrigin
+        );
+        return;
+      }
+
+      const validateSessionToken = (providedToken: string | undefined): boolean => {
+        if (!iframeSessionValidated) {
+          console.warn("Cal.com: Session not validated yet");
+          return false;
+        }
+        if (providedToken !== sessionToken) {
+          console.warn("Cal.com: Invalid session token");
+          return false;
+        }
+        return true;
+      };
+
       if (event.data.type === "cal-companion-expand") {
         // Disable transition for instant expansion
         iframe.style.transition = "none";
@@ -92,6 +125,32 @@ export default defineContentScript({
           event.data.state, // Pass state for CSRF validation
           iframe.contentWindow
         );
+      } else if (event.data.type === "cal-extension-sync-tokens") {
+        if (!validateSessionToken(event.data.sessionToken)) {
+          iframe.contentWindow?.postMessage(
+            {
+              type: "cal-extension-sync-tokens-result",
+              success: false,
+              error: "Invalid session token",
+            },
+            iframeOrigin
+          );
+          return;
+        }
+        handleTokenSyncRequest(event.data.tokens, iframe.contentWindow);
+      } else if (event.data.type === "cal-extension-clear-tokens") {
+        if (!validateSessionToken(event.data.sessionToken)) {
+          iframe.contentWindow?.postMessage(
+            {
+              type: "cal-extension-clear-tokens-result",
+              success: false,
+              error: "Invalid session token",
+            },
+            iframeOrigin
+          );
+          return;
+        }
+        handleClearTokensRequest(iframe.contentWindow);
       }
     });
 
@@ -195,6 +254,64 @@ export default defineContentScript({
           }
         }
       );
+    }
+
+    function handleTokenSyncRequest(tokens: any, iframeWindow: Window | null) {
+      chrome.runtime.sendMessage({ action: "sync-oauth-tokens", tokens }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Failed to communicate with background script:",
+            chrome.runtime.lastError.message
+          );
+          iframeWindow?.postMessage(
+            {
+              type: "cal-extension-sync-tokens-result",
+              success: false,
+              error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+            },
+            "*"
+          );
+          return;
+        }
+
+        iframeWindow?.postMessage(
+          {
+            type: "cal-extension-sync-tokens-result",
+            success: response?.success ?? false,
+            error: response?.error,
+          },
+          "*"
+        );
+      });
+    }
+
+    function handleClearTokensRequest(iframeWindow: Window | null) {
+      chrome.runtime.sendMessage({ action: "clear-oauth-tokens" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Failed to communicate with background script:",
+            chrome.runtime.lastError.message
+          );
+          iframeWindow?.postMessage(
+            {
+              type: "cal-extension-clear-tokens-result",
+              success: false,
+              error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+            },
+            "*"
+          );
+          return;
+        }
+
+        iframeWindow?.postMessage(
+          {
+            type: "cal-extension-clear-tokens-result",
+            success: response?.success ?? false,
+            error: response?.error,
+          },
+          "*"
+        );
+      });
     }
 
     sidebarContainer.appendChild(iframeContainer);
@@ -554,15 +671,15 @@ export default defineContentScript({
               bottom: 100%;
               left: 0;
               width: 400px;
-              max-height: 250px;
+              max-height: 280px;
               background: white;
-              border-radius: 8px;
-              box-shadow: 0 1px 2px 0 rgba(60,64,67,.3),0 2px 6px 2px rgba(60,64,67,.15);
-              font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
               font-size: 14px;
               z-index: 9999;
               overflow-y: auto;
-              margin-bottom: 4px;
+              margin-bottom: 8px;
             `;
 
             // Show loading state
@@ -1013,25 +1130,108 @@ export default defineContentScript({
                 `;
               }
             } catch (error) {
-              menu.innerHTML = `
-                <div style="padding: 16px; text-align: center; color: #ea4335;">
-                  Failed to load event types
+              const errorMessage = (error as Error).message || "";
+              const isAuthError =
+                errorMessage.includes("OAuth") ||
+                errorMessage.includes("access token") ||
+                errorMessage.includes("sign in") ||
+                errorMessage.includes("authentication");
+
+              if (isAuthError) {
+                menu.innerHTML = `
+                  <div style="padding: 24px; text-align: center;">
+                    <div style="margin-bottom: 20px;">
+                      <svg width="101" height="22" viewBox="0 0 101 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.0582 20.817C4.32115 20.817 0 16.2763 0 10.6704C0 5.04589 4.1005 0.467773 10.0582 0.467773C13.2209 0.467773 15.409 1.43945 17.1191 3.66311L14.3609 5.96151C13.2025 4.72822 11.805 4.11158 10.0582 4.11158C6.17833 4.11158 4.04533 7.08268 4.04533 10.6704C4.04533 14.2582 6.38059 17.1732 10.0582 17.1732C11.7866 17.1732 13.2577 16.5566 14.4161 15.3233L17.1375 17.7151C15.501 19.8453 13.2577 20.817 10.0582 20.817Z" fill="#292929"/>
+                        <path d="M29.0161 5.88601H32.7304V20.4612H29.0161V18.331C28.2438 19.8446 26.9566 20.8536 24.4927 20.8536C20.5577 20.8536 17.4133 17.4341 17.4133 13.2297C17.4133 9.02528 20.5577 5.60571 24.4927 5.60571C26.9383 5.60571 28.2438 6.61477 29.0161 8.12835V5.88601ZM29.1264 13.2297C29.1264 10.95 27.5634 9.06266 25.0995 9.06266C22.7274 9.06266 21.1828 10.9686 21.1828 13.2297C21.1828 15.4346 22.7274 17.3967 25.0995 17.3967C27.5451 17.3967 29.1264 15.4907 29.1264 13.2297Z" fill="#292929"/>
+                        <path d="M35.3599 0H39.0742V20.4427H35.3599V0Z" fill="#292929"/>
+                        <path d="M40.7291 18.5182C40.7291 17.3223 41.6853 16.3132 42.9908 16.3132C44.2964 16.3132 45.2158 17.3223 45.2158 18.5182C45.2158 19.7515 44.278 20.7605 42.9908 20.7605C41.7037 20.7605 40.7291 19.7515 40.7291 18.5182Z" fill="#292929"/>
+                        <path d="M59.4296 18.1068C58.0505 19.7885 55.9543 20.8536 53.4719 20.8536C49.0404 20.8536 45.7858 17.4341 45.7858 13.2297C45.7858 9.02528 49.0404 5.60571 53.4719 5.60571C55.8623 5.60571 57.9402 6.61477 59.3193 8.20309L56.4508 10.6136C55.7336 9.71667 54.7958 9.04397 53.4719 9.04397C51.0999 9.04397 49.5553 10.95 49.5553 13.211C49.5553 15.472 51.0999 17.378 53.4719 17.378C54.9062 17.378 55.8991 16.6306 56.6346 15.6215L59.4296 18.1068Z" fill="#292929"/>
+                        <path d="M59.7422 13.2297C59.7422 9.02528 62.9968 5.60571 67.4283 5.60571C71.8598 5.60571 75.1144 9.02528 75.1144 13.2297C75.1144 17.4341 71.8598 20.8536 67.4283 20.8536C62.9968 20.8349 59.7422 17.4341 59.7422 13.2297ZM71.3449 13.2297C71.3449 10.95 69.8003 9.06266 67.4283 9.06266C65.0563 9.04397 63.5117 10.95 63.5117 13.2297C63.5117 15.4907 65.0563 17.3967 67.4283 17.3967C69.8003 17.3967 71.3449 15.4907 71.3449 13.2297Z" fill="#292929"/>
+                        <path d="M100.232 11.5482V20.4428H96.518V12.4638C96.518 9.94119 95.3412 8.85739 93.576 8.85739C91.921 8.85739 90.7442 9.67958 90.7442 12.4638V20.4428H87.0299V12.4638C87.0299 9.94119 85.8346 8.85739 84.0878 8.85739C82.4329 8.85739 80.9802 9.67958 80.9802 12.4638V20.4428H77.2659V5.8676H80.9802V7.88571C81.7525 6.31607 83.15 5.53125 85.3014 5.53125C87.3425 5.53125 89.0525 6.5403 89.9903 8.24074C90.9281 6.50293 92.3072 5.53125 94.8079 5.53125C97.8603 5.54994 100.232 7.86702 100.232 11.5482Z" fill="#292929"/>
+                      </svg>
                 </div>
-                <div style="padding: 0 16px; text-align: center; color: #5f6368; font-size: 12px;">
-                  Error: ${(error as Error).message}
-                </div>
-                <div style="padding: 16px 16px; text-align: center;">
-                  <button onclick="this.parentElement.parentElement.remove()" style="
-                    background: #1a73e8;
+                    <button class="cal-gmail-signin-btn" style="
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      background: #292929;
                     color: white;
                     border: none;
-                    padding: 8px 16px;
-                    border-radius: 4px;
+                      padding: 10px 20px;
+                      border-radius: 8px;
+                      font-size: 13px;
+                      font-weight: 600;
+                      cursor: pointer;
+                      transition: background 0.15s ease;
+                    ">
+                      Continue with Cal.com
+                    </button>
+                  </div>
+                `;
+
+                // Add hover effect and click handler
+                const signInBtn = menu.querySelector(".cal-gmail-signin-btn") as HTMLButtonElement;
+                if (signInBtn) {
+                  signInBtn.addEventListener("mouseenter", () => {
+                    signInBtn.style.background = "#404040";
+                  });
+                  signInBtn.addEventListener("mouseleave", () => {
+                    signInBtn.style.background = "#292929";
+                  });
+                  signInBtn.addEventListener("click", () => {
+                    // Close the menu
+                    tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                    menu.remove();
+                    // Open the sidebar for login
+                    openSidebar();
+                  });
+                }
+              } else {
+                // Show generic error for non-auth errors
+                menu.innerHTML = `
+                  <div style="padding: 20px; text-align: center;">
+                    <div style="margin-bottom: 12px;">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+                      Something went wrong
+                    </div>
+                    <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                      ${errorMessage || "Failed to load event types"}
+                    </div>
+                    <button class="cal-gmail-close-btn" style="
+                      background: #F3F4F6;
+                      color: #374151;
+                      border: none;
+                      padding: 10px 20px;
+                      border-radius: 8px;
                     font-size: 14px;
+                      font-weight: 500;
                     cursor: pointer;
+                      transition: background 0.2s ease;
                   ">Close</button>
                 </div>
               `;
+
+                const closeBtn = menu.querySelector(".cal-gmail-close-btn") as HTMLButtonElement;
+                if (closeBtn) {
+                  closeBtn.addEventListener("mouseenter", () => {
+                    closeBtn.style.background = "#E5E7EB";
+                  });
+                  closeBtn.addEventListener("mouseleave", () => {
+                    closeBtn.style.background = "#F3F4F6";
+                  });
+                  closeBtn.addEventListener("click", () => {
+                    tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                    menu.remove();
+                  });
+                }
+              }
             }
           }
 
@@ -2703,34 +2903,84 @@ export default defineContentScript({
           console.error("Error showing Cal.com suggestion menu:", error);
           loadingDiv.remove();
 
+          const errorMessage = error instanceof Error ? error.message : "";
+          const isContextInvalidated = errorMessage.includes("Extension context invalidated");
+          const isAuthError =
+            errorMessage.includes("OAuth") ||
+            errorMessage.includes("access token") ||
+            errorMessage.includes("sign in") ||
+            errorMessage.includes("authentication");
+
           // Show user-friendly error message
           const errorDiv = document.createElement("div");
-          errorDiv.style.cssText = "padding: 20px 16px; text-align: center;";
+          errorDiv.style.cssText = "padding: 24px 20px; text-align: center;";
 
-          const isContextInvalidated =
-            error instanceof Error && error.message.includes("Extension context invalidated");
+          if (isAuthError) {
+            errorDiv.innerHTML = `
+              <div style="margin-bottom: 20px;">
+                <svg width="101" height="22" viewBox="0 0 101 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10.0582 20.817C4.32115 20.817 0 16.2763 0 10.6704C0 5.04589 4.1005 0.467773 10.0582 0.467773C13.2209 0.467773 15.409 1.43945 17.1191 3.66311L14.3609 5.96151C13.2025 4.72822 11.805 4.11158 10.0582 4.11158C6.17833 4.11158 4.04533 7.08268 4.04533 10.6704C4.04533 14.2582 6.38059 17.1732 10.0582 17.1732C11.7866 17.1732 13.2577 16.5566 14.4161 15.3233L17.1375 17.7151C15.501 19.8453 13.2577 20.817 10.0582 20.817Z" fill="#292929"/>
+                  <path d="M29.0161 5.88601H32.7304V20.4612H29.0161V18.331C28.2438 19.8446 26.9566 20.8536 24.4927 20.8536C20.5577 20.8536 17.4133 17.4341 17.4133 13.2297C17.4133 9.02528 20.5577 5.60571 24.4927 5.60571C26.9383 5.60571 28.2438 6.61477 29.0161 8.12835V5.88601ZM29.1264 13.2297C29.1264 10.95 27.5634 9.06266 25.0995 9.06266C22.7274 9.06266 21.1828 10.9686 21.1828 13.2297C21.1828 15.4346 22.7274 17.3967 25.0995 17.3967C27.5451 17.3967 29.1264 15.4907 29.1264 13.2297Z" fill="#292929"/>
+                  <path d="M35.3599 0H39.0742V20.4427H35.3599V0Z" fill="#292929"/>
+                  <path d="M40.7291 18.5182C40.7291 17.3223 41.6853 16.3132 42.9908 16.3132C44.2964 16.3132 45.2158 17.3223 45.2158 18.5182C45.2158 19.7515 44.278 20.7605 42.9908 20.7605C41.7037 20.7605 40.7291 19.7515 40.7291 18.5182Z" fill="#292929"/>
+                  <path d="M59.4296 18.1068C58.0505 19.7885 55.9543 20.8536 53.4719 20.8536C49.0404 20.8536 45.7858 17.4341 45.7858 13.2297C45.7858 9.02528 49.0404 5.60571 53.4719 5.60571C55.8623 5.60571 57.9402 6.61477 59.3193 8.20309L56.4508 10.6136C55.7336 9.71667 54.7958 9.04397 53.4719 9.04397C51.0999 9.04397 49.5553 10.95 49.5553 13.211C49.5553 15.472 51.0999 17.378 53.4719 17.378C54.9062 17.378 55.8991 16.6306 56.6346 15.6215L59.4296 18.1068Z" fill="#292929"/>
+                  <path d="M59.7422 13.2297C59.7422 9.02528 62.9968 5.60571 67.4283 5.60571C71.8598 5.60571 75.1144 9.02528 75.1144 13.2297C75.1144 17.4341 71.8598 20.8536 67.4283 20.8536C62.9968 20.8349 59.7422 17.4341 59.7422 13.2297ZM71.3449 13.2297C71.3449 10.95 69.8003 9.06266 67.4283 9.06266C65.0563 9.04397 63.5117 10.95 63.5117 13.2297C63.5117 15.4907 65.0563 17.3967 67.4283 17.3967C69.8003 17.3967 71.3449 15.4907 71.3449 13.2297Z" fill="#292929"/>
+                  <path d="M100.232 11.5482V20.4428H96.518V12.4638C96.518 9.94119 95.3412 8.85739 93.576 8.85739C91.921 8.85739 90.7442 9.67958 90.7442 12.4638V20.4428H87.0299V12.4638C87.0299 9.94119 85.8346 8.85739 84.0878 8.85739C82.4329 8.85739 80.9802 9.67958 80.9802 12.4638V20.4428H77.2659V5.8676H80.9802V7.88571C81.7525 6.31607 83.15 5.53125 85.3014 5.53125C87.3425 5.53125 89.0525 6.5403 89.9903 8.24074C90.9281 6.50293 92.3072 5.53125 94.8079 5.53125C97.8603 5.54994 100.232 7.86702 100.232 11.5482Z" fill="#292929"/>
+                </svg>
+              </div>
+              <button class="cal-chip-signin-btn" style="
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: #292929;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.15s ease;
+              ">
+                Continue with Cal.com
+              </button>
+            `;
 
-          errorDiv.innerHTML = `
+            contentContainer.appendChild(errorDiv);
+
+            // Add hover effect and click handler
+            const signInBtn = errorDiv.querySelector(".cal-chip-signin-btn") as HTMLButtonElement;
+            if (signInBtn) {
+              signInBtn.addEventListener("mouseenter", () => {
+                signInBtn.style.background = "#404040";
+              });
+              signInBtn.addEventListener("mouseleave", () => {
+                signInBtn.style.background = "#292929";
+              });
+              signInBtn.addEventListener("click", () => {
+                // Close the backdrop
+                backdrop.remove();
+                // Open the sidebar for login
+                openSidebar();
+              });
+            }
+          } else if (isContextInvalidated) {
+            // Extension reloaded error
+            errorDiv.innerHTML = `
             <div style="margin-bottom: 12px;">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${isContextInvalidated ? "#ff6b6b" : "#666"}" stroke-width="1.5" style="margin: 0 auto;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="1.5" style="margin: 0 auto;">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
                 <line x1="9" y1="9" x2="15" y2="15"></line>
               </svg>
             </div>
             <div style="font-size: 14px; font-weight: 600; color: #000; margin-bottom: 8px;">
-              ${isContextInvalidated ? "Extension Reloaded" : "Failed to Load"}
+                Extension Reloaded
             </div>
             <div style="font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.5;">
-              ${
-                isContextInvalidated
-                  ? "The extension was updated. Please reload this page to continue."
-                  : "Failed to load event types. Please try again."
-              }
+                The extension was updated. Please reload this page to continue.
             </div>
-            ${
-              isContextInvalidated
-                ? `<button class="reload-page-btn" style="
+              <button class="reload-page-btn" style="
                   background: #ff6b6b;
                   color: #fff;
                   border: none;
@@ -2743,15 +2993,11 @@ export default defineContentScript({
                   transition: background 0.15s;
                 ">
                   Reload Page
-                </button>`
-                : ""
-            }
+              </button>
           `;
 
-          contentContainer.appendChild(errorDiv);
+            contentContainer.appendChild(errorDiv);
 
-          // Add reload handler if context invalidated
-          if (isContextInvalidated) {
             const reloadBtn = errorDiv.querySelector(".reload-page-btn");
             reloadBtn?.addEventListener("click", () => {
               window.location.reload();
@@ -2762,6 +3008,25 @@ export default defineContentScript({
             reloadBtn?.addEventListener("mouseleave", (e) => {
               (e.target as HTMLElement).style.backgroundColor = "#ff6b6b";
             });
+          } else {
+            // Generic error
+            errorDiv.innerHTML = `
+              <div style="margin-bottom: 12px;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto; display: block;">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+                Something went wrong
+              </div>
+              <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                Failed to load event types. Please try again.
+              </div>
+            `;
+
+            contentContainer.appendChild(errorDiv);
           }
         }
       }

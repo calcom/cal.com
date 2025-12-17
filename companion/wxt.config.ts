@@ -34,9 +34,6 @@ export default defineConfig({
         ? "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com http://localhost:*"
         : "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com",
     },
-    data_collection_permissions: {
-      collects_data: false,
-    },
     action: {
       default_title: "Cal.com Companion",
       default_icon: {
