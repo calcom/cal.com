@@ -5,6 +5,7 @@ import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
 import { moduleLoader as attendeeRepositoryModuleLoader } from "@calcom/features/di/modules/Attendee";
 import { moduleLoader as membershipRepositoryModuleLoader } from "@calcom/features/users/di/MembershipRepository.module";
+import { moduleLoader as credentialRepositoryModuleLoader } from "@calcom/features/credentials/di/CredentialRepository.module";
 
 import { createModule, bindModuleToClassOnToken } from "../../di/di";
 
@@ -25,6 +26,7 @@ const loadModule = bindModuleToClassOnToken({
     bookingRepository: bookingRepositoryModuleLoader,
     membershipRepository: membershipRepositoryModuleLoader,
     attendeeRepository: attendeeRepositoryModuleLoader,
+    credentialRepository: credentialRepositoryModuleLoader,
   },
 });
 

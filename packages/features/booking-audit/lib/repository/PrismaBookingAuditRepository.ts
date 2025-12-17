@@ -15,6 +15,7 @@ const safeActorSelect = {
     type: true,
     userUuid: true,
     attendeeId: true,
+    credentialId: true,
     name: true,
     createdAt: true,
 } as const;

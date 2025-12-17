@@ -2,13 +2,16 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
+import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
+import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type { TranslationWithParams } from "../actions/IAuditActionService";
 import type { ActionSource } from "../common/actionSource";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import { getAppNameFromSlug } from "../getAppNameFromSlug";
 
 interface BookingAuditViewerServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
@@ -16,6 +19,7 @@ interface BookingAuditViewerServiceDeps {
     bookingRepository: BookingRepository;
     membershipRepository: MembershipRepository;
     attendeeRepository: AttendeeRepository;
+    credentialRepository: CredentialRepository;
 }
 
 type EnrichedAuditLog = {
@@ -31,7 +35,7 @@ type EnrichedAuditLog = {
     displayFields?: Array<{ labelKey: string; valueKey: string }>;
     actor: {
         id: string;
-        type: string;
+        type: AuditActorType;
         userUuid: string | null;
         attendeeId: number | null;
         name: string | null;
@@ -234,6 +238,33 @@ export class BookingAuditViewerService {
         if (actor.type === "GUEST") {
             return {
                 displayName: actor.name || "Guest",
+                displayEmail: null,
+                displayAvatar: null,
+            };
+        }
+
+        if (actor.type === "APP") {
+            if (actor.credentialId) {
+                const credential = await this.deps.credentialRepository.findByCredentialId(actor.credentialId);
+                if (credential) {
+                    return {
+                        displayName: getAppNameFromSlug({ appSlug: credential.appId }),
+                        displayEmail: null,
+                        displayAvatar: null,
+                    };
+                } else {
+                    return {
+                        // Expect that on Credential deletion name would have been set
+                        displayName: actor.name ?? "Deleted App",
+                        displayEmail: null,
+                        displayAvatar: null,
+                    };
+                }
+            }
+            // We allow creating App actor without credentialId
+            return {
+                displayName: actor.name ?? "Unknown App",
+                // We don't want to show email for App actor as that is an internal email with the purpose of giving uniqueness to each app actor
                 displayEmail: null,
                 displayAvatar: null,
             };

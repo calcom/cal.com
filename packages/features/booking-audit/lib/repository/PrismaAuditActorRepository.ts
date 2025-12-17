@@ -111,7 +111,21 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         });
     }
 
-    async createIfNotExistsAppActor(params: { email: string; name: string }) {
+    async createIfNotExistsAppActor(params:
+        | { credentialId: number }
+        | { email: string; name: string }
+    ) {
+        if ('credentialId' in params) {
+            return this.deps.prismaClient.auditActor.upsert({
+                where: { credentialId: params.credentialId },
+                create: {
+                    type: "APP",
+                    credentialId: params.credentialId,
+                },
+                update: {},
+            });
+        }
+
         return this.deps.prismaClient.auditActor.upsert({
             where: { email: params.email },
             create: {

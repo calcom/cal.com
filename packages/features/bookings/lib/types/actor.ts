@@ -27,8 +27,13 @@ const SystemActorSchema = z.object({
   name: z.string(),
 });
 
-const AppActorSchema = z.object({
+const AppActorByCredentialIdSchema = z.object({
   identifiedBy: z.literal("app"),
+  credentialId: z.number(),
+});
+
+const AppActorBySlugSchema = z.object({
+  identifiedBy: z.literal("appSlug"),
   appSlug: z.string(),
   name: z.string(),
 });
@@ -39,7 +44,8 @@ export const ActorSchema = z.discriminatedUnion("identifiedBy", [
   AttendeeActorSchema,
   GuestActorSchema,
   SystemActorSchema,
-  AppActorSchema,
+  AppActorByCredentialIdSchema,
+  AppActorBySlugSchema,
 ]);
 
 export const PIIFreeActorSchema = z.discriminatedUnion("identifiedBy", [
@@ -56,7 +62,8 @@ type GuestActor = z.infer<typeof GuestActorSchema>;
 type AttendeeActor = z.infer<typeof AttendeeActorSchema>;
 type ActorById = z.infer<typeof ActorByIdSchema>;
 type SystemActor = z.infer<typeof SystemActorSchema>;
-type AppActor = z.infer<typeof AppActorSchema>;
+type AppActorByCredentialId = z.infer<typeof AppActorByCredentialIdSchema>;
+type AppActorBySlug = z.infer<typeof AppActorBySlugSchema>;
 /**
  * Creates an Actor representing a User by UUID
  */
@@ -109,12 +116,25 @@ export function makeAttendeeActor(attendeeId: number): AttendeeActor {
 }
 
 /**
- * Creates an Actor representing an App by app slug
- * App actors use @app.internal email convention
+ * Creates an Actor representing an App by credential ID (preferred)
+ * The credentialId uniquely identifies which app instance (e.g., which Stripe account)
+ * App name and slug are derived from the credential at display time
  */
-export function makeAppActor(params: { appSlug: string; name: string }): AppActor {
+export function makeAppActor(params: { credentialId: number }): AppActorByCredentialId {
   return {
     identifiedBy: "app",
+    credentialId: params.credentialId,
+  };
+}
+
+/**
+ * Creates an Actor representing an App by app slug (fallback)
+ * Used when credentialId is not available or for apps not yet migrated
+ * App actors use @app.internal email convention
+ */
+export function makeAppActorUsingSlug(params: { appSlug: string; name: string }): AppActorBySlug {
+  return {
+    identifiedBy: "appSlug",
     appSlug: params.appSlug,
     name: params.name,
   };

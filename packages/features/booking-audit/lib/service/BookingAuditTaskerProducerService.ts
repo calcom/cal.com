@@ -90,6 +90,13 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         }
 
         if (actor.identifiedBy === "app") {
+            const piiFreeActor = await this.auditActorRepository.createIfNotExistsAppActor({
+                credentialId: actor.credentialId,
+            });
+            return makeActorById(piiFreeActor.id);
+        }
+
+        if (actor.identifiedBy === "appSlug") {
             const email = buildActorEmail({ identifier: actor.appSlug, actorType: "app" });
             const piiFreeActor = await this.auditActorRepository.createIfNotExistsAppActor({
                 email,
