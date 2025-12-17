@@ -241,37 +241,39 @@ jobs:
     secrets: inherit
 
   required:
-    name: Required core
-    needs: [changes, deps, lint, type-check, unit-test, integration-test]
-    if: always() && needs.changes.outputs.has-files-requiring-all-checks == 'true'
+    name: Required
+    needs:
+      [
+        changes,
+        check-label,
+        deps,
+        lint,
+        type-check,
+        unit-test,
+        integration-test,
+        build-companion,
+        e2e,
+        e2e-api-v2,
+        e2e-embed,
+        e2e-embed-react,
+        e2e-app-store,
+      ]
+    if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
-      - run: exit 1
+      - name: Fail if required checks failed
+        run: exit 1
         if: |
-          contains(needs.*.result, 'failure') ||
-          contains(needs.*.result, 'skipped') ||
-          contains(needs.*.result, 'cancelled')
-
-  required-e2e:
-    name: Required e2e
-    needs: [changes, check-label, e2e, e2e-api-v2, e2e-embed, e2e-embed-react, e2e-app-store]
-    if: always() && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.check-label.outputs.run-e2e == 'true'
-    runs-on: buildjet-2vcpu-ubuntu-2204
-    steps:
-      - run: exit 1
-        if: |
-          contains(needs.*.result, 'failure') ||
-          contains(needs.*.result, 'skipped') ||
-          contains(needs.*.result, 'cancelled')
-
-  required-companion:
-    name: Required companion
-    needs: [changes, build-companion]
-    if: always() && needs.changes.outputs.has_companion == 'true'
-    runs-on: buildjet-2vcpu-ubuntu-2204
-    steps:
-      - run: exit 1
-        if: |
-          contains(needs.*.result, 'failure') ||
-          contains(needs.*.result, 'skipped') ||
-          contains(needs.*.result, 'cancelled')
+          (
+            needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
+            contains(needs.*.result, 'failure')
+          ) ||
+          (
+            needs.changes.outputs.has_companion == 'true' &&
+            needs.build-companion.result != 'success'
+          ) ||
+          (
+            needs.check-label.outputs.run-e2e == 'true' &&
+            needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
+            contains(needs.*.result, 'failure')
+          )
