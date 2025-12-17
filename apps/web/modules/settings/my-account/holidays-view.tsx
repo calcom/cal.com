@@ -9,7 +9,9 @@ import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
@@ -17,6 +19,9 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { HolidayConflictsDialog } from "@components/dialog/HolidayConflictsDialog";
 
 function HolidaysCTA() {
   const { t } = useLocale();
@@ -109,9 +114,9 @@ const HolidayListItem = memo(function HolidayListItem({
   const emoji = getHolidayEmoji(holiday.name);
 
   return (
-    <div className="border-subtle flex items-center justify-between border-b px-5 py-4 last:border-b-0">
+    <div className="border-subtle hover:bg-subtle/50 flex items-center justify-between border-b px-5 py-4 transition-colors last:border-b-0">
       <div className="flex items-center gap-3">
-        <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-lg">
+        <div className="bg-subtle dark:bg-emphasis flex h-10 w-10 items-center justify-center rounded-lg">
           <span className="text-xl">{emoji}</span>
         </div>
         <div>
@@ -119,7 +124,9 @@ const HolidayListItem = memo(function HolidayListItem({
             {holiday.name}
           </p>
           {formattedDate && (
-            <p className={holiday.enabled ? "text-subtle text-sm" : "text-muted text-sm"}>{formattedDate}</p>
+            <p className={holiday.enabled ? "text-subtle dark:text-default text-sm" : "text-muted text-sm"}>
+              {formattedDate}
+            </p>
           )}
         </div>
       </div>
@@ -132,55 +139,70 @@ const HolidayListItem = memo(function HolidayListItem({
   );
 });
 
-function ConflictWarning({
+const ConflictIndicatorButton = memo(function ConflictIndicatorButton({
   conflicts,
+  hasHolidaysConfigured,
+  onOpenConflicts,
 }: {
-  conflicts: RouterOutputs["viewer"]["holidays"]["checkConflicts"]["conflicts"];
+  conflicts: RouterOutputs["viewer"]["holidays"]["checkConflicts"]["conflicts"] | undefined;
+  hasHolidaysConfigured: boolean;
+  onOpenConflicts: () => void;
 }) {
   const { t } = useLocale();
 
-  if (conflicts.length === 0) return null;
+  // Don't show if no holidays are configured
+  if (!hasHolidaysConfigured) return null;
 
-  const totalBookings = conflicts.reduce((sum, c) => sum + c.bookings.length, 0);
+  const hasConflicts = conflicts && conflicts.length > 0;
+  const totalBookings = hasConflicts ? conflicts.reduce((sum, c) => sum + c.bookings.length, 0) : 0;
+
+  const handleClick = () => {
+    if (hasConflicts) {
+      onOpenConflicts();
+    } else {
+      showToast(t("no_holiday_conflicts"), "success");
+    }
+  };
 
   return (
-    <div className="border-semantic-attention-muted bg-semantic-attention-subtle rounded-md border px-4 py-3">
-      <div className="flex items-start gap-2">
-        <Icon name="triangle-alert" className="text-semantic-attention mt-0.5 h-4 w-4 shrink-0" />
-        <div className="flex flex-col gap-1.5">
-          <p className="text-emphasis text-sm font-medium">
-            {t("holiday_booking_conflict_warning", { count: totalBookings })}
-          </p>
-          <ul className="space-y-0.5 text-sm">
-            {conflicts.map((conflict) => {
-              const emoji = getHolidayEmoji(conflict.holidayName);
-              const formattedDate = dayjs(conflict.date).format("D MMM, YYYY");
-              const bookingCount = conflict.bookings.length;
-              return (
-                <li key={conflict.holidayId} className="flex items-center gap-2">
-                  <span className="text-base">{emoji}</span>
-                  <span className="text-emphasis">
-                    {conflict.holidayName} ({formattedDate}) · {bookingCount}{" "}
-                    {bookingCount === 1 ? t("booking") : t("bookings").toLowerCase()}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </div>
-    </div>
+    <Tooltip content={hasConflicts ? t("view_holiday_conflicts") : t("no_holiday_conflicts")}>
+      <button
+        type="button"
+        onClick={handleClick}
+        className="border-subtle bg-default hover:bg-subtle dark:border-default dark:bg-subtle dark:hover:bg-emphasis relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border transition-colors"
+        aria-label={hasConflicts ? t("view_holiday_conflicts") : t("no_holiday_conflicts")}>
+        <Icon name="calendar-days" className="text-default h-4 w-4" />
+        {hasConflicts ? (
+          <Badge
+            variant="orange"
+            size="sm"
+            className="min-w-5 absolute -right-1.5 -top-1.5 flex h-5 items-center justify-center rounded-full p-0 text-xs dark:bg-orange-200 dark:text-orange-900">
+            {totalBookings}
+          </Badge>
+        ) : (
+          <Badge
+            variant="green"
+            size="sm"
+            className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full p-0 dark:bg-green-700">
+            <Icon name="check" className="h-3 w-3" />
+          </Badge>
+        )}
+      </button>
+    </Tooltip>
   );
-}
+});
 
 export function HolidaysView() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const { data: user } = useMeQuery();
 
   const [confirmState, setConfirmState] = useState<{
     action: "select" | "change" | "clear";
     countryCode: string;
   } | null>(null);
+
+  const [conflictsDialogOpen, setConflictsDialogOpen] = useState(false);
 
   const {
     data: countries,
@@ -294,10 +316,6 @@ export function HolidaysView() {
       description={t("out_of_office_description")}
       CTA={<HolidaysCTA />}>
       <div className="space-y-6">
-        {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
-          <ConflictWarning conflicts={conflictsData.conflicts} />
-        )}
-
         <div className="border-subtle bg-muted overflow-hidden rounded-lg border p-5">
           {/* Header with title and country selector */}
           <div className="mb-4 flex items-center justify-between">
@@ -305,12 +323,19 @@ export function HolidaysView() {
               <h3 className="text-emphasis font-semibold">{t("holidays")}</h3>
               <p className="text-subtle text-sm">{t("holidays_description")}</p>
             </div>
-            <CountrySelector
-              countries={countries || []}
-              value={settings?.countryCode || ""}
-              onChange={handleCountryChange}
-              isLoading={isLoadingCountries}
-            />
+            <div className="flex items-center gap-2">
+              <ConflictIndicatorButton
+                conflicts={conflictsData?.conflicts}
+                hasHolidaysConfigured={!!settings?.countryCode}
+                onOpenConflicts={() => setConflictsDialogOpen(true)}
+              />
+              <CountrySelector
+                countries={countries || []}
+                value={settings?.countryCode || ""}
+                onChange={handleCountryChange}
+                isLoading={isLoadingCountries}
+              />
+            </div>
           </div>
 
           {/* Holidays list - inner container */}
@@ -374,6 +399,16 @@ export function HolidaysView() {
           </p>
         </ConfirmationDialogContent>
       </Dialog>
+
+      {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
+        <HolidayConflictsDialog
+          isOpen={conflictsDialogOpen}
+          setIsOpen={setConflictsDialogOpen}
+          conflicts={conflictsData.conflicts}
+          userTimeZone={user?.timeZone}
+          userTimeFormat={user?.timeFormat}
+        />
+      )}
     </SettingsHeader>
   );
 }

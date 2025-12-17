@@ -203,15 +203,17 @@ export class HolidayRepository {
       },
       select: {
         id: true,
+        uid: true,
         title: true,
         startTime: true,
         endTime: true,
+        user: {
+          select: { name: true },
+        },
         attendees: {
-          take: 1,
           select: { name: true },
         },
       },
     });
   }
 }
-
