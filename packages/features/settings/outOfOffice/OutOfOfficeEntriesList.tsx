@@ -58,6 +58,7 @@ interface OutOfOfficeEntry {
     userId: number;
   } | null;
   notes: string | null;
+  showNotePublicly: boolean | null;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
   canEditAndDelete: boolean;
 }
@@ -284,6 +285,7 @@ function OutOfOfficeEntriesListContent({
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,
+                          showNotePublicly: item.showNotePublicly ?? false,
                           forUserId: item.user?.id || null,
                           forUserName:
                             item.user?.name ||

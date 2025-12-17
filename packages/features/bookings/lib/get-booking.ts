@@ -60,9 +60,11 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
       location: true,
       eventTypeId: true,
       status: true,
+      userId: true,
       eventType: {
         select: {
           disableRescheduling: true,
+          minimumRescheduleNotice: true,
         },
       },
       attendees: {
@@ -232,6 +234,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
       startTime: true,
       endTime: true,
       status: true,
+      userId: true,
       attendees: {
         select: {
           id: true,
@@ -271,6 +274,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     location: null,
     eventType: {
       disableRescheduling: false,
+      minimumRescheduleNotice: null,
     },
     // mask attendee emails for seated events
     attendees: booking.attendees.map((attendee) => ({
