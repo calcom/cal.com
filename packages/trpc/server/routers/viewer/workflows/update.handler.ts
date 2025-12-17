@@ -8,6 +8,7 @@ import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/re
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 import { verifyEmailSender } from "@calcom/features/ee/workflows/lib/verifyEmailSender";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowStepRepository } from "@calcom/features/ee/workflows/repositories/WorkflowStepRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import tasker from "@calcom/features/tasker";
 import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
@@ -15,7 +16,6 @@ import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
 import { WorkflowRelationsRepository } from "@calcom/lib/server/repository/workflowRelations";
-import { WorkflowStepRepository } from "@calcom/lib/server/repository/workflowStep";
 import { prisma, type PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
