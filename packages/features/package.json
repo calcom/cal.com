@@ -36,7 +36,6 @@
   "devDependencies": {
     "@testing-library/react-hooks": "^8.0.1",
     "@types/web-push": "^3.6.3",
-    "next-auth": "4.24.11",
     "trigger.dev": "^4.0.0"
   }
 }
