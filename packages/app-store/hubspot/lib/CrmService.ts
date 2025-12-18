@@ -90,8 +90,6 @@ export default class HubspotCalendarService implements CRM {
     if (hubspotOwnerId) {
       properties.hubspot_owner_id = hubspotOwnerId;
       this.log.debug("hubspot:meeting:setting_owner", { hubspotOwnerId });
-    } else {
-      this.log.warn("hubspot:meeting:no_owner_found", { organizerEmail: event.organizer.email });
     }
 
     const simplePublicObjectInput: SimplePublicObjectInput = {
@@ -161,15 +159,23 @@ export default class HubspotCalendarService implements CRM {
         );
 
         if (matchingOwner) {
-          this.log.debug("hubspot:owner:found", { email, ownerId: matchingOwner.id });
+          this.log.debug("hubspot:owner:found", { ownerId: matchingOwner.id });
           return matchingOwner.id;
         }
       }
 
-      this.log.debug("hubspot:owner:not_found", { email });
+      this.log.debug("hubspot:owner:not_found");
       return undefined;
     } catch (error) {
-      this.log.error("hubspot:owner:lookup_error", { email, error });
+      // Check if this is a 403 (missing scope) error
+      const statusCode = (error as any)?.response?.status || (error as any)?.code;
+      if (statusCode === 403) {
+        this.log.warn(
+          "hubspot:owner:missing_scope - reconnect HubSpot integration to grant owners.read scope"
+        );
+      } else {
+        this.log.error("hubspot:owner:lookup_error", { error });
+      }
       return undefined;
     }
   };
@@ -181,15 +187,14 @@ export default class HubspotCalendarService implements CRM {
     if (!this.client_id) throw new HttpError({ statusCode: 400, message: "Hubspot client_id missing." });
     if (!this.client_secret)
       throw new HttpError({ statusCode: 400, message: "Hubspot client_secret missing." });
-    const credentialKey = credential.key as unknown as HubspotToken;
+    let currentToken = credential.key as unknown as HubspotToken;
 
-    //Checking token expiry to be in the future and not in the past
     const isTokenValid = (token: HubspotToken) =>
-      token && 
-      token.tokenType &&
-      token.accessToken &&
-      token.expiryDate &&
-      token.expiryDate > Date.now();
+      token &&
+    token.tokenType &&
+    token.accessToken &&
+    token.expiryDate &&
+    token.expiryDate > Date.now();
 
     const refreshAccessToken = async (refreshToken: string) => {
       try {
@@ -206,7 +211,6 @@ export default class HubspotCalendarService implements CRM {
           "hubspot",
           credential.userId
         );
-        // set expiry date as offset from current time.
         hubspotRefreshToken.expiryDate = Math.round(Date.now() + hubspotRefreshToken.expiresIn * 1000);
         await prisma.credential.update({
           where: {
@@ -218,6 +222,7 @@ export default class HubspotCalendarService implements CRM {
         });
 
         this.hubspotClient.setAccessToken(hubspotRefreshToken.accessToken);
+        currentToken = { ...currentToken, ...hubspotRefreshToken };
       } catch (e: unknown) {
         this.log.error(e);
       }
@@ -225,11 +230,10 @@ export default class HubspotCalendarService implements CRM {
 
     return {
       getToken: async () => {
-        if (!isTokenValid(credentialKey)) {
-          await refreshAccessToken(credentialKey.refreshToken);
+        if (!isTokenValid(currentToken)) {
+          await refreshAccessToken(currentToken.refreshToken);
         } else {
-          // important: Set the access token even when it's already valid.
-          this.hubspotClient.setAccessToken(credentialKey.accessToken);
+          this.hubspotClient.setAccessToken(currentToken.accessToken);
         }
       },
     };
@@ -239,7 +243,7 @@ export default class HubspotCalendarService implements CRM {
     const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
 
     const organizerEmail = event.organizer.email;
-    this.log.debug("hubspot:meeting:fetching_owner", { organizerEmail });
+    this.log.debug("hubspot:meeting:fetching_owner");
 
     const hubspotOwnerId = await this.getHubspotOwnerIdByEmail(organizerEmail);
 
