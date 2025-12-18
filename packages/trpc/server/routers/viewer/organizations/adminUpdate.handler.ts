@@ -1,5 +1,3 @@
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { HttpError } from "@calcom/lib/http-error";
@@ -19,8 +17,14 @@ type AdminUpdateOptions = {
 
 export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
   const { id, organizationSettings, ...restInput } = input;
-  const organizationRepository = getOrganizationRepository();
-  const existingOrg = await organizationRepository.findByIdIncludeOrganizationSettings({ id });
+  const existingOrg = await prisma.team.findUnique({
+    where: {
+      id: id,
+    },
+    include: {
+      organizationSettings: true,
+    },
+  });
 
   if (!existingOrg) {
     throw new HttpError({
@@ -32,18 +36,16 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
   const { mergeMetadata } = getMetadataHelpers(teamMetadataStrictSchema.unwrap(), existingOrg.metadata || {});
 
   const data: Prisma.TeamUpdateArgs["data"] = restInput;
-  const oldSlug = existingOrg.slug;
-  const newSlug = restInput.slug;
 
-  if (newSlug) {
-    await throwIfSlugConflicts({ id, slug: newSlug });
-    const isSlugChanged = newSlug !== oldSlug;
+  if (restInput.slug) {
+    await throwIfSlugConflicts({ id, slug: restInput.slug });
+    const isSlugChanged = restInput.slug !== existingOrg.slug;
     if (isSlugChanged) {
       // If slug is changed, we need to rename the domain first
       // If renaming fails, we don't want to update the new slug in DB
-      await renameDomain(oldSlug, newSlug);
+      await renameDomain(existingOrg.slug, restInput.slug);
     }
-    data.slug = newSlug;
+    data.slug = input.slug;
     data.metadata = mergeMetadata({
       // If we save slug, we don't need the requestedSlug anymore
       requestedSlug: undefined,
@@ -55,36 +57,6 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
       where: { id },
       data,
     });
-
-    // Update all TempOrgRedirect records that point to the old org URL to use the new org URL
-    if (newSlug && oldSlug && newSlug !== oldSlug) {
-      const oldOrgUrlPrefix = getOrgFullOrigin(oldSlug);
-      const newOrgUrlPrefix = getOrgFullOrigin(newSlug);
-
-      const redirectsToUpdate = await tx.tempOrgRedirect.findMany({
-        where: {
-          toUrl: {
-            startsWith: oldOrgUrlPrefix,
-          },
-        },
-        select: {
-          id: true,
-          toUrl: true,
-        },
-      });
-
-      for (const redirect of redirectsToUpdate) {
-        const newToUrl = redirect.toUrl.replace(oldOrgUrlPrefix, newOrgUrlPrefix);
-        await tx.tempOrgRedirect.update({
-          where: {
-            id: redirect.id,
-          },
-          data: {
-            toUrl: newToUrl,
-          },
-        });
-      }
-    }
 
     if (organizationSettings || existingOrg.organizationSettings) {
       await tx.organizationSettings.update({
