@@ -7,6 +7,7 @@ import { AttendeeRepository } from "@calcom/features/bookings/repositories/Atten
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { PrismaBookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["sendAwaitingPaymentEmail"] });
@@ -18,6 +19,8 @@ export const sendAwaitingPaymentEmailPayloadSchema = z.object({
 });
 
 export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
+  const paymentRepository = new PrismaBookingPaymentRepository();
+
   try {
     const { bookingId, paymentId, attendeeSeatId } = sendAwaitingPaymentEmailPayloadSchema.parse(
       JSON.parse(payload)
@@ -25,29 +28,15 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
 
     log.debug(`Processing sendAwaitingPaymentEmail task for bookingId ${bookingId}, paymentId ${paymentId}`);
 
-    // Fetch current booking state
     const { booking, evt, eventType } = await getBooking(bookingId);
 
-    // Check payment status in database
-    const payment = await prisma.payment.findUnique({
-      where: { id: paymentId },
-      select: {
-        success: true,
-        externalId: true,
-        app: {
-          select: {
-            slug: true,
-          },
-        },
-      },
-    });
+    const payment = await paymentRepository.findByIdForAwaitingPaymentEmail(paymentId);
 
     if (!payment) {
       log.warn(`Payment ${paymentId} not found, skipping email`);
       return;
     }
 
-    // If payment already succeeded or booking is already paid, skip email
     if (payment.success || booking.paid) {
       log.debug(
         `Payment ${paymentId} already succeeded or booking ${bookingId} already paid, skipping email`
@@ -55,7 +44,7 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
       return;
     }
 
-    // Optional: Verify Stripe PaymentIntent status directly for delayed webhook scenarios
+    // verify stripe payment intent status directly in case of a delayed webhook scenario
     if (payment.externalId && payment.app?.slug === "stripe") {
       try {
         const paymentIntent = await stripe.paymentIntents.retrieve(payment.externalId);
@@ -66,7 +55,6 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
           return;
         }
       } catch (error) {
-        // If we can't retrieve the PaymentIntent, log but continue (might be a different payment type)
         log.warn(
           `Could not verify Stripe PaymentIntent status for ${payment.externalId}, continuing with email send`,
           safeStringify(error)
@@ -74,7 +62,7 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
       }
     }
 
-    // Filter attendees if this is for a specific seat
+    // filter attendees if this is for a specific seat
     let attendeesToEmail = evt.attendees;
     if (attendeeSeatId) {
       const attendeeRepository = new AttendeeRepository(prisma);
@@ -93,26 +81,11 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
       }
     }
 
-    // Get payment details needed for the email
-    const paymentRecord = await prisma.payment.findUnique({
-      where: { id: paymentId },
-      select: {
-        uid: true,
-        paymentOption: true,
-        amount: true,
-        currency: true,
-      },
-    });
-
-    if (!paymentRecord) {
-      log.warn(`Payment ${paymentId} not found when fetching payment details, skipping email`);
-      return;
-    }
-
-    // Use the first attendee's info for the payment link.
-    // Why "First Attendee" Works:
-    // - For regular bookings: The first attendee in the array is typically the booker (the person who made the booking and is responsible for payment)
-    // - For seated events: After filtering by attendeeSeatId, there's usually only one attendee anyway
+    /*
+      the reason why we use the first attendee's info for the payment link is because:
+      1. for regular bookings: the first attendee in the array is typically the booker (the person who made the booking and is responsible for payment)
+      2. for seated events: after filtering by attendeeSeatId, there's usually only one attendee anyway
+    */
     const primaryAttendee = attendeesToEmail[0];
 
     if (!primaryAttendee) {
@@ -120,21 +93,20 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
       return;
     }
 
-    // Send the awaiting payment email
     await sendAwaitingPaymentEmailAndSMS(
       {
         ...evt,
         attendees: attendeesToEmail,
         paymentInfo: {
           link: createPaymentLink({
-            paymentUid: paymentRecord.uid,
+            paymentUid: payment.uid,
             name: primaryAttendee.name ?? null,
             email: primaryAttendee.email ?? null,
             date: booking.startTime.toISOString(),
           }),
-          paymentOption: paymentRecord.paymentOption || "ON_BOOKING",
-          amount: paymentRecord.amount,
-          currency: paymentRecord.currency,
+          paymentOption: payment.paymentOption || "ON_BOOKING",
+          amount: payment.amount,
+          currency: payment.currency,
         },
       },
       eventType.metadata
