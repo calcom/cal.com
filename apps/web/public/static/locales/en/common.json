@@ -3097,6 +3097,7 @@
   "attribute_sync_new_integration_sync": "New Integration Sync",
   "attribute_sync_credential": "Credential",
   "attribute_sync_credential_required": "Credential is required",
+  "attribute_sync_credential_validation": "Select a credential for the attribute sync",
   "attribute_sync_select_credential": "Select a credential...",
   "attribute_sync_credential_description": "Choose which integration credential to use for syncing attributes",
   "attribute_sync_user_filter_rules": "User Filter Rules",
