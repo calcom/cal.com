@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, Activity } from "react";
 import {
   View,
   Text,
@@ -10,9 +10,7 @@ import {
   ActionSheetIOS,
   Alert,
   Platform,
-  Modal,
   TextInput,
-  KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
 
@@ -357,10 +355,13 @@ export default function Availability() {
 
   return (
     <View className="flex-1 bg-gray-100">
-      <Header />
+      <Activity mode={Platform.OS !== "ios" ? "visible" : "hidden"}>
+        <Header />
+      </Activity>
 
       {/* Empty state - no schedules */}
-      {showEmptyState && (
+
+      <Activity mode={showEmptyState ? "visible" : "hidden"}>
         <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
           <ScrollView
             contentContainerStyle={{
@@ -380,10 +381,10 @@ export default function Availability() {
             />
           </ScrollView>
         </View>
-      )}
+      </Activity>
 
       {/* Search bar and content for non-empty states */}
-      {!showEmptyState && (
+      <Activity mode={!showEmptyState ? "visible" : "hidden"}>
         <>
           <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
             <TextInput
@@ -406,7 +407,7 @@ export default function Availability() {
           </View>
 
           {/* Search empty state */}
-          {showSearchEmptyState && (
+          <Activity mode={showSearchEmptyState ? "visible" : "hidden"}>
             <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
               <ScrollView
                 contentContainerStyle={{
@@ -424,10 +425,10 @@ export default function Availability() {
                 />
               </ScrollView>
             </View>
-          )}
+          </Activity>
 
           {/* Schedules list */}
-          {showList && (
+          <Activity mode={showList ? "visible" : "hidden"}>
             <View className="flex-1 px-2 pt-4 md:px-4">
               <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
                 <FlatList
@@ -440,9 +441,9 @@ export default function Availability() {
                 />
               </View>
             </View>
-          )}
+          </Activity>
         </>
-      )}
+      </Activity>
 
       {/* Create Schedule Modal */}
       <FullScreenModal
@@ -536,7 +537,9 @@ export default function Availability() {
             {/* Actions List */}
             <View className="p-2">
               {/* Set as Default - only show if not already default */}
-              {selectedSchedule && !selectedSchedule.isDefault && (
+              <Activity
+                mode={selectedSchedule && !selectedSchedule.isDefault ? "visible" : "hidden"}
+              >
                 <>
                   <TouchableOpacity
                     onPress={() => {
@@ -553,7 +556,7 @@ export default function Availability() {
 
                   <View className="mx-4 my-2 h-px bg-gray-200" />
                 </>
-              )}
+              </Activity>
 
               {/* Duplicate */}
               <TouchableOpacity
