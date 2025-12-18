@@ -48,28 +48,23 @@ function VerifyEmailPage() {
             className="bg-default"
             buttonRaw={
               <>
-                {!IS_CALCOM && (
-                  <div className="mb-4 flex flex-wrap items-center gap-2">
-                    <Button
-                      color="secondary"
-                      href="https://mail.google.com/mail/u/0/#search/https%3A%2F%2Fapp.cal.com%2Fapi%2Fauth%2Fverify-email"
-                      target="_blank">
-                      <img src="/email-clients/gmail.svg" alt="Gmail" className="me-1 h-4 w-4" /> Gmail
-                    </Button>
-                    <Button color="secondary" href="https://outlook.live.com/mail/0/" target="_blank">
-                      <img src="/email-clients/outlook.svg" alt="Outlook" className="me-1 h-4 w-4" /> Outlook
-                    </Button>
-                    <Button
-                      color="secondary"
-                      href="https://mail.yahoo.com/d/search?p=Cal.com"
-                      target="_blank">
-                      <img src="/email-clients/yahoo.svg" alt="Yahoo" className="me-1 h-4 w-4" /> Yahoo
-                    </Button>
-                    <Button color="secondary" href="https://mail.proton.me" target="_blank">
-                      <img src="/email-clients/proton.svg" alt="Proton" className="me-1 h-4 w-4" /> Proton
-                    </Button>
-                  </div>
-                )}
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <Button
+                    color="secondary"
+                    href="https://mail.google.com/mail/u/0/#search/%22api%2Fauth%2Fverify-email%22"
+                    target="_blank">
+                    <img src="/email-clients/gmail.svg" alt="Gmail" className="me-1 h-4 w-4" /> Gmail
+                  </Button>
+                  <Button color="secondary" href="https://outlook.live.com/mail/0/" target="_blank">
+                    <img src="/email-clients/outlook.svg" alt="Outlook" className="me-1 h-4 w-4" /> Outlook
+                  </Button>
+                  <Button color="secondary" href="https://mail.yahoo.com/d/search?p=Cal.com" target="_blank">
+                    <img src="/email-clients/yahoo.svg" alt="Yahoo" className="me-1 h-4 w-4" /> Yahoo
+                  </Button>
+                  <Button color="secondary" href="https://mail.proton.me" target="_blank">
+                    <img src="/email-clients/proton.svg" alt="Proton" className="me-1 h-4 w-4" /> Proton
+                  </Button>
+                </div>
                 <Button
                   color="minimal"
                   loading={mutation.isPending}
