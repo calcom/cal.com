@@ -1,5 +1,8 @@
 import { OAuth2Repository } from "@/modules/auth/oauth2/oauth2.repository";
+import { AccessCodeRepository } from "@/modules/auth/oauth2/repositories/access-code.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { randomBytes } from "crypto";
 
 import { generateSecret, verifyCodeChallenge } from "@calcom/platform-libraries";
 import type { AccessScope } from "@calcom/prisma/enums";
@@ -23,9 +26,23 @@ export interface AuthorizeResult {
   authorizationCode: string;
 }
 
+interface DecodedRefreshToken {
+  userId?: number | null;
+  teamId?: number | null;
+  scope: AccessScope[];
+  tokenType: string;
+  clientId: string;
+  codeChallenge?: string | null;
+  codeChallengeMethod?: string | null;
+}
+
 @Injectable()
 export class OAuth2Service {
-  constructor(private readonly oauth2Repository: OAuth2Repository) {}
+  constructor(
+    private readonly oauth2Repository: OAuth2Repository,
+    private readonly accessCodeRepository: AccessCodeRepository,
+    private readonly teamsRepository: TeamsRepository
+  ) {}
 
   async getClient(clientId: string): Promise<OAuth2Client | null> {
     const client = await this.oauth2Repository.findByClientId(clientId);
@@ -72,14 +89,17 @@ export class OAuth2Service {
 
     let teamId: number | undefined;
     if (teamSlug) {
-      const team = await this.oauth2Repository.findTeamBySlugAndUserId(teamSlug, userId);
+      const team = await this.teamsRepository.findTeamBySlugWithAdminRole(teamSlug, userId);
       if (!team) {
         throw new UnauthorizedException("Team not found or user is not an admin/owner");
       }
       teamId = team.id;
     }
 
-    const authorizationCode = await this.oauth2Repository.createAccessCode({
+    const authorizationCode = this.generateAuthorizationCodeString();
+
+    await this.accessCodeRepository.create({
+      code: authorizationCode,
       clientId,
       userId: teamSlug ? undefined : userId,
       teamId,
@@ -112,9 +132,9 @@ export class OAuth2Service {
       throw new UnauthorizedException("invalid_client");
     }
 
-    const accessCode = await this.oauth2Repository.findValidAccessCode(code, clientId);
+    const accessCode = await this.accessCodeRepository.findValidCode(code, clientId);
 
-    await this.oauth2Repository.deleteExpiredAndUsedCodes(code, clientId);
+    await this.accessCodeRepository.deleteExpiredAndUsedCodes(code, clientId);
 
     if (!accessCode) {
       throw new BadRequestException("invalid_grant");
@@ -125,7 +145,7 @@ export class OAuth2Service {
       throw new BadRequestException(pkceError);
     }
 
-    const tokens = await this.oauth2Repository.createTokens({
+    const tokens = this.createTokens({
       clientId,
       userId: accessCode.userId,
       teamId: accessCode.teamId,
@@ -153,7 +173,7 @@ export class OAuth2Service {
       throw new UnauthorizedException("invalid_client");
     }
 
-    const decodedToken = await this.oauth2Repository.verifyRefreshToken(refreshToken);
+    const decodedToken = this.verifyRefreshToken(refreshToken);
 
     if (!decodedToken || decodedToken.tokenType !== "Refresh Token") {
       throw new BadRequestException("invalid_grant");
@@ -168,7 +188,7 @@ export class OAuth2Service {
       throw new BadRequestException(pkceError);
     }
 
-    const tokens = await this.oauth2Repository.createTokens({
+    const tokens = this.createTokens({
       clientId,
       userId: decodedToken.userId,
       teamId: decodedToken.teamId,
@@ -213,6 +233,43 @@ export class OAuth2Service {
       return "invalid_grant";
     }
 
+    return null;
+  }
+
+  private generateAuthorizationCodeString(): string {
+    const randomBytesValue = randomBytes(40);
+    return randomBytesValue.toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+  }
+
+  private createTokens(_input: {
+    clientId: string;
+    userId?: number | null;
+    teamId?: number | null;
+    scopes: AccessScope[];
+    codeChallenge?: string | null;
+    codeChallengeMethod?: string | null;
+  }): OAuth2Tokens {
+    // TODO: Implement JWT token generation using jsonwebtoken
+    // This is a skeleton - actual implementation should:
+    // 1. Create access token with 30 minute expiry
+    // 2. Create refresh token with 30 day expiry
+    // 3. Sign tokens with CALENDSO_ENCRYPTION_KEY
+    const accessTokenExpiresIn = 1800; // 30 minutes
+
+    return {
+      accessToken: "placeholder_access_token",
+      tokenType: "bearer",
+      refreshToken: "placeholder_refresh_token",
+      expiresIn: accessTokenExpiresIn,
+    };
+  }
+
+  private verifyRefreshToken(_refreshToken: string): DecodedRefreshToken | null {
+    // TODO: Implement JWT verification using jsonwebtoken
+    // This is a skeleton - actual implementation should:
+    // 1. Verify the refresh token signature
+    // 2. Check expiration
+    // 3. Return decoded payload
     return null;
   }
 }
