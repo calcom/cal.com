@@ -249,7 +249,7 @@ export default class HubspotCalendarService implements CRM {
 
     const meetingEvent = await this.hubspotCreateMeeting(event, hubspotOwnerId);
     if (meetingEvent) {
-      this.log.debug("meeting:creation:ok", { meetingEvent, hubspotOwnerId });
+      this.log.debug("meeting:creation:ok", { meetingId: meetingEvent.id, hubspotOwnerId });
       const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
       if (associatedMeeting) {
         this.log.debug("association:creation:ok", { associatedMeeting });
