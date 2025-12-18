@@ -42,5 +42,9 @@ export const tasksConfig = {
   executeAIPhoneCall: {
     maxAttempts: 1,
   },
+  webhookDelivery: {
+    minRetryIntervalMins: IS_PRODUCTION ? 5 : 1,
+    maxAttempts: 3,
+  },
 };
 export default tasks;

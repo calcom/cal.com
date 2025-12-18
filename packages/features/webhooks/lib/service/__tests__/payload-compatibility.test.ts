@@ -22,15 +22,12 @@ import {
  * - Any payload changes = breaking changes for customers
  * - Silent differences = production incidents
  * 
- * Status: PHASE 0 SCAFFOLD
- * - Test infrastructure is ready
- * - Full validation awaits complete Consumer implementation
- * - Pattern established for all 11 trigger events
- * 
- * TODO (Next Phases):
- * - Implement full Consumer data fetching
- * - Implement PayloadBuilders integration
- * - Run actual payload comparison for all events
+ * Implementation Timeline:
+ * - When BookingWebhookService is wired: BOOKING_CREATED, BOOKING_CANCELLED, BOOKING_RESCHEDULED, BOOKING_CONFIRMED, BOOKING_REJECTED, BOOKING_PAYMENT_INITIATED, BOOKING_PAID
+ * - When scheduleNoShowWebhooks() is wired: BOOKING_NO_SHOW_UPDATED
+ * - When OOOWebhookService is wired: OOO_CREATED
+ * - When FormWebhookService is wired: FORM_SUBMITTED
+ * - When RecordingWebhookService is wired: RECORDING_READY
  */
 
 describe("Payload Compatibility: Producer/Consumer vs Current Implementation", () => {
@@ -64,7 +61,8 @@ describe("Payload Compatibility: Producer/Consumer vs Current Implementation", (
     });
 
     it("[SCAFFOLD] should compare current vs new BOOKING_CREATED payload", async () => {
-      // TODO: Implement when Consumer is complete
+      // TODO [When BookingWebhookService.emitBookingCreated() is wired to Producer]: 
+      // Implement full payload comparison between current and new flow
       // 
       // Expected flow:
       // 1. Get payload from current BookingWebhookService.emitBookingCreated()
@@ -84,7 +82,8 @@ describe("Payload Compatibility: Producer/Consumer vs Current Implementation", (
       };
 
       const newPayload = {
-        // TODO: Fetch via WebhookTaskConsumer.processWebhookTask()
+        // TODO [When WebhookTaskConsumer.fetchBookingData() is implemented]:
+        // Fetch real payload via WebhookTaskConsumer.processWebhookTask()
         triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         bookingId: testBooking.id,
         eventTypeId: testEventType.id,
@@ -97,13 +96,14 @@ describe("Payload Compatibility: Producer/Consumer vs Current Implementation", (
       expect(newPayload.bookingId).toBe(currentPayload.bookingId);
       expect(newPayload.eventTypeId).toBe(currentPayload.eventTypeId);
 
-      // TODO: Full comparison when Consumer is complete:
-      // expect(omit(newPayload, ["timestamp", "operationId"]))
+      // TODO [When BookingPayloadBuilder is integrated]:
+      // Full comparison: expect(omit(newPayload, ["timestamp", "operationId"]))
       //   .toMatchObject(omit(currentPayload, ["timestamp", "operationId"]));
     });
 
     it("[SCAFFOLD] should have all required BOOKING_CREATED fields", () => {
-      // TODO: Verify all required fields present in both payloads
+      // TODO [When BookingPayloadBuilder is integrated]:
+      // Verify all required fields present in both currentPayload vs newPayload
       const requiredFields = [
         "triggerEvent",
         "bookingId",
@@ -125,35 +125,40 @@ describe("Payload Compatibility: Producer/Consumer vs Current Implementation", (
 
   describe("BOOKING_CANCELLED - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new BOOKING_CANCELLED payload", () => {
-      // TODO: Implement similar to BOOKING_CREATED
+      // TODO [When handleCancelBooking.ts uses Producer/Consumer]:
+      // Implement full payload comparison for BOOKING_CANCELLED
       expect(testTriggerEvents.bookingCancelled).toBe(WebhookTriggerEvents.BOOKING_CANCELLED);
     });
   });
 
   describe("BOOKING_RESCHEDULED - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new BOOKING_RESCHEDULED payload", () => {
-      // TODO: Implement similar to BOOKING_CREATED
+      // TODO [When handleRescheduling.ts uses Producer/Consumer]:
+      // Implement full payload comparison for BOOKING_RESCHEDULED
       expect(testTriggerEvents.bookingRescheduled).toBe(WebhookTriggerEvents.BOOKING_RESCHEDULED);
     });
   });
 
   describe("BOOKING_CONFIRMED - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new BOOKING_CONFIRMED payload", () => {
-      // TODO: Implement (uses BOOKING_REQUESTED trigger)
+      // TODO [When handleConfirmation.ts uses Producer/Consumer]:
+      // Implement full payload comparison (uses BOOKING_REQUESTED trigger event)
       expect(testTriggerEvents.bookingConfirmed).toBe(WebhookTriggerEvents.BOOKING_REQUESTED);
     });
   });
 
   describe("BOOKING_REJECTED - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new BOOKING_REJECTED payload", () => {
-      // TODO: Implement similar to BOOKING_CREATED
+      // TODO [When handleBookingRejection.ts uses Producer/Consumer]:
+      // Implement full payload comparison for BOOKING_REJECTED
       expect(testTriggerEvents.bookingRejected).toBe(WebhookTriggerEvents.BOOKING_REJECTED);
     });
   });
 
   describe("BOOKING_PAYMENT_INITIATED - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new BOOKING_PAYMENT_INITIATED payload", () => {
-      // TODO: Implement with payment data
+      // TODO [When payment initiation webhooks use Producer/Consumer]:
+      // Implement full payload comparison including payment data
       expect(testTriggerEvents.bookingPaymentInitiated).toBe(
         WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED
       );
@@ -162,35 +167,40 @@ describe("Payload Compatibility: Producer/Consumer vs Current Implementation", (
 
   describe("BOOKING_PAID - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new BOOKING_PAID payload", () => {
-      // TODO: Implement with payment data
+      // TODO [When payment completion webhooks use Producer/Consumer]:
+      // Implement full payload comparison including payment data
       expect(testTriggerEvents.bookingPaid).toBe(WebhookTriggerEvents.BOOKING_PAID);
     });
   });
 
   describe("BOOKING_NO_SHOW_UPDATED - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new BOOKING_NO_SHOW_UPDATED payload", () => {
-      // TODO: Implement with no-show data
+      // TODO [When BookingWebhookService.scheduleNoShowWebhooks() uses Producer/Consumer]:
+      // Implement full payload comparison for no-show events
       expect(testTriggerEvents.bookingNoShowUpdated).toBe(WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED);
     });
   });
 
   describe("FORM_SUBMITTED - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new FORM_SUBMITTED payload", () => {
-      // TODO: Implement with form data
+      // TODO [When FormWebhookService + formSubmissionUtils.ts use Producer/Consumer]:
+      // Implement full payload comparison for form submissions
       expect(testTriggerEvents.formSubmitted).toBe(WebhookTriggerEvents.FORM_SUBMITTED);
     });
   });
 
   describe("RECORDING_READY - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new RECORDING_READY payload", () => {
-      // TODO: Implement with recording data
+      // TODO [When RecordingWebhookService uses Producer/Consumer]:
+      // Implement full payload comparison for recording events
       expect(testTriggerEvents.recordingReady).toBe(WebhookTriggerEvents.RECORDING_READY);
     });
   });
 
   describe("OOO_CREATED - Payload Compatibility", () => {
     it("[SCAFFOLD] should compare current vs new OOO_CREATED payload", () => {
-      // TODO: Implement with OOO data
+      // TODO [When OOOWebhookService + outOfOfficeCreateOrUpdate.handler.ts use Producer/Consumer]:
+      // Implement full payload comparison for OOO events
       expect(testTriggerEvents.oooCreated).toBe(WebhookTriggerEvents.OOO_CREATED);
     });
   });
@@ -229,29 +239,3 @@ describe("Payload Compatibility: Producer/Consumer vs Current Implementation", (
     });
   });
 });
-
-/**
- * NEXT STEPS (Post-Phase 0):
- * 
- * 1. Complete WebhookTaskConsumer implementation:
- *    - Implement fetchBookingData()
- *    - Implement fetchFormData()
- *    - Implement fetchRecordingData()
- *    - Implement fetchOOOData()
- *    - Integrate PayloadBuilders
- * 
- * 2. Implement payload capture helpers:
- *    - getCurrentImplementationPayload(triggerEvent, testData)
- *    - getProducerConsumerPayload(triggerEvent, testData)
- * 
- * 3. Fill in all 11 test cases:
- *    - Remove [SCAFFOLD] prefix
- *    - Add full payload comparison
- *    - Verify all required fields
- *    - Test edge cases (null values, optional fields)
- * 
- * 4. Add integration test:
- *    - Test full Producer → Tasker → Consumer flow
- *    - Verify webhook actually sent to subscriber
- *    - Test retry logic, error handling
- */

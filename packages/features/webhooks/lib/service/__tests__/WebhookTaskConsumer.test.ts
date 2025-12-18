@@ -12,8 +12,6 @@ import type { WebhookTaskPayload } from "../../types/webhookTask";
  * 
  * Tests the heavy Consumer service for processing webhook delivery tasks.
  * 
- * Note: Phase 0 tests basic scaffold. Full tests will be added when
- * Consumer implementation is complete (data fetching, payload building, HTTP delivery).
  */
 describe("WebhookTaskConsumer", () => {
   let consumer: WebhookTaskConsumer;
@@ -249,32 +247,38 @@ describe("WebhookTaskConsumer", () => {
     });
   });
 
-  describe("Phase 0 Scaffold - Pending Implementation", () => {
-    it("TODO: Implement full data fetching for booking events", () => {
-      // Pending: Inject BookingRepository
-      // Pending: Implement fetchBookingData()
-      // Pending: Fetch booking, eventType, user, attendees
+  describe("Future Implementation Tests", () => {
+    it("TODO [When WebhookTaskConsumer.fetchBookingData() is implemented]: Test full booking data fetching", () => {
+      // When: BookingRepository is injected into WebhookTaskConsumer
+      // When: fetchBookingData() implementation is complete
+      // Test: Fetch booking, eventType, user, attendees from database
+      // Test: Verify correct data structure returned
       expect(true).toBe(true); // Placeholder
     });
 
-    it("TODO: Implement payload building with PayloadBuilders", () => {
-      // Pending: Inject PayloadBuilders
-      // Pending: Build versioned payloads
-      // Pending: Apply payload templates
+    it("TODO [When PayloadBuilders are integrated into sendWebhooksToSubscribers()]: Test payload building", () => {
+      // When: BookingPayloadBuilder is integrated (for booking events)
+      // When: FormPayloadBuilder is integrated (for form events)
+      // When: RecordingPayloadBuilder is integrated (for recording events)
+      // When: OOOPayloadBuilder is integrated (for OOO events)
+      // Test: Build versioned payloads, apply payload templates
       expect(true).toBe(true); // Placeholder
     });
 
-    it("TODO: Implement HTTP delivery to subscriber URLs", () => {
-      // Pending: Inject HTTP client
-      // Pending: Send webhook to subscriber.subscriberUrl
-      // Pending: Handle retries, timeouts, errors
+    it("TODO [When sendWebhooksToSubscribers() makes HTTP calls]: Test HTTP delivery", () => {
+      // When: HTTP client is integrated (or existing sendPayload is used)
+      // When: sendWebhooksToSubscribers() sends to subscriber.subscriberUrl
+      // Test: Mock HTTP calls, verify correct payload sent
+      // Test: Handle retries, timeouts, errors
       expect(true).toBe(true); // Placeholder
     });
 
-    it("TODO: Implement integration test for full flow", () => {
-      // Pending: Producer → Tasker → Consumer → HTTP delivery
-      // Pending: Verify webhook received by mock server
-      // Pending: Test retry logic
+    it("TODO [When all services are wired]: Integration test for full Producer→Consumer flow", () => {
+      // When: All webhook services use Producer/Consumer pattern
+      // Test: Full flow - Producer → Tasker → Consumer → HTTP delivery
+      // Test: Verify webhook received by mock HTTP server
+      // Test: Retry logic with task processor
+      // Test: E2E with real database and task queue
       expect(true).toBe(true); // Placeholder
     });
   });

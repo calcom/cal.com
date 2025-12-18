@@ -82,7 +82,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   async queueWebhook(params: QueueWebhookParams): Promise<void> {
     const operationId = params.operationId || uuidv4();
 
-    this.log.debug("Queueing webhook delivery task", {
+    this.log.info("Queueing webhook delivery task", {
       operationId,
       triggerEvent: params.triggerEvent,
       bookingUid: params.bookingUid,
@@ -110,7 +110,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       // Queue the task (to be processed by WebhookTaskConsumer)
       await this.tasker.create("webhookDelivery", taskPayload);
 
-      this.log.debug("Webhook delivery task queued successfully", { operationId });
+      this.log.info("Webhook delivery task queued successfully", { operationId });
     } catch (error) {
       this.log.error("Failed to queue webhook delivery task", {
         operationId,

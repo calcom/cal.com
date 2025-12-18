@@ -97,13 +97,13 @@ describe("WebhookTaskerProducerService", () => {
       expect(payload.operationId).toBe("custom-op-id");
     });
 
-    it("should log debug messages", async () => {
+    it("should log info messages", async () => {
       await producer.queueBookingCreatedWebhook({
         triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         bookingUid: "booking-123",
       });
 
-      expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect(mockLogger.info).toHaveBeenCalledWith(
         "Queueing webhook delivery task",
         expect.objectContaining({
           operationId: expect.any(String),
@@ -112,7 +112,7 @@ describe("WebhookTaskerProducerService", () => {
         })
       );
 
-      expect(mockLogger.debug).toHaveBeenCalledWith(
+      expect(mockLogger.info).toHaveBeenCalledWith(
         "Webhook delivery task queued successfully",
         expect.objectContaining({
           operationId: expect.any(String),

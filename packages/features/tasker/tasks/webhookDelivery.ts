@@ -1,5 +1,6 @@
-import { webhookTaskPayloadSchema } from "@calcom/features/webhooks/lib/types/webhookTask";
 import { getWebhookTaskConsumer } from "@calcom/features/di/webhooks/containers/webhook";
+import { webhookTaskPayloadSchema } from "@calcom/features/webhooks/lib/types/webhookTask";
+import logger from "@calcom/lib/logger";
 
 /**
  * Webhook Delivery Task Handler
@@ -13,18 +14,23 @@ import { getWebhookTaskConsumer } from "@calcom/features/di/webhooks/containers/
  * 
  * This handler can be deployed to trigger.dev for scalability.
  */
+
+const log = logger.getSubLogger({ prefix: ["webhookDelivery"] });
+
 export async function webhookDelivery(payload: string, taskId?: string): Promise<void> {
   try {
-    // Parse and validate the payload
+    if (!taskId) {
+      log.error("Task ID is required for webhook delivery consumer", {
+        taskId,
+      });
+      throw new Error("Task ID is required for webhook delivery consumer");
+    }
+
     const parsedPayload = webhookTaskPayloadSchema.parse(JSON.parse(payload));
-
-    // Get the consumer service via DI
     const consumer = getWebhookTaskConsumer();
-
-    // Delegate to consumer for processing
-    await consumer.processWebhookTask(parsedPayload, taskId || "unknown");
+    await consumer.processWebhookTask(parsedPayload, taskId);
   } catch (error) {
-    console.error("[webhookDelivery] Failed to process webhook delivery task", {
+    log.error("Failed to process webhook delivery task", {
       taskId,
       error: error instanceof Error ? error.message : String(error),
     });

@@ -167,9 +167,16 @@ export class WebhookTaskConsumer {
   }
 
   /**
-   * Fetch recording data from database.
+   * Fetch recording metadata and associated booking data.
    * 
-   * TODO: Implement using RecordingRepository.
+   * Note: Recording files are stored by video providers. We receive recording_id from their webhook
+   * and generate our own proxy download link (using generateVideoToken + our API endpoint).
+   * This method fetches booking/event data from DB needed to build the webhook payload.
+   * 
+   * TODO [When RecordingWebhookService uses Producer/Consumer]:
+   * Implement to fetch booking + meeting data for recording webhooks.
+   * Pattern: recordingId → booking → eventType → user → attendees
+   * Then generate downloadLink: `${WEBAPP_URL}/api/video/recording?token=${generateVideoToken(recordingId)}`
    */
   private async fetchRecordingData(recordingId?: string): Promise<Record<string, unknown> | null> {
     if (!recordingId) {
@@ -177,7 +184,24 @@ export class WebhookTaskConsumer {
       return null;
     }
 
-    // TODO: Implement
+    // TODO [When RecordingWebhookService is wired]:
+    // const booking = await this.bookingRepository.findByUid(recordingId);
+    // const eventType = await this.eventTypeRepository.findById(booking.eventTypeId);
+    // const user = await this.userRepository.findById(booking.userId);
+    // const attendees = booking.attendees;
+    // 
+    // // Generate proxy download link (like getProxyDownloadLinkOfCalVideo)
+    // const token = generateVideoToken(recordingId);
+    // const downloadLink = `${WEBAPP_URL}/api/video/recording?token=${token}`;
+    // 
+    // return {
+    //   booking,
+    //   eventType,
+    //   user,
+    //   attendees,
+    //   downloadLink,
+    // };
+    
     this.log.debug("Recording data fetch not implemented yet (Phase 0 scaffold)", { recordingId });
     return { recordingId, _scaffold: true };
   }
