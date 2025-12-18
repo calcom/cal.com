@@ -47,105 +47,405 @@ To create a new webhook subscription, visit `/settings/developer/webhooks` and p
 </Steps>
 
 
-### An example webhook payload
+### Webhook payload reference
+
+All webhook payloads are wrapped in the following structure:
 
 ```json
 {
-    "triggerEvent": "BOOKING_CREATED",
-    "createdAt": "2023-05-24T09:30:00.538Z",
-    "payload": {
-        "type": "60min",
-        "title": "60min between Pro Example and John Doe",
-        "description": "",
-        "additionalNotes": "",
-        "customInputs": {},
-        "startTime": "2023-05-25T09:30:00Z",
-        "endTime": "2023-05-25T10:30:00Z",
-        "organizer": {
-            "id": 5,
-            "name": "Pro Example",
-            "email": "pro@example.com",
-            "username": "pro",
-            "timeZone": "Asia/Kolkata",
-            "language": {
+  "triggerEvent": "TRIGGER_NAME",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "payload": { ... }
+}
+```
+
+Select a version and trigger event to view the example payload:
+
+<Tabs>
+  <Tab title="2021-10-20">
+    <AccordionGroup>
+      <Accordion title="BOOKING_CREATED">
+        ```json
+        {
+          "triggerEvent": "BOOKING_CREATED",
+          "createdAt": "2024-01-15T09:00:00.000Z",
+          "payload": {
+            "bookingId": 123,
+            "uid": "abc123-def456-ghi789",
+            "title": "30 Minute Meeting",
+            "type": "30min",
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "description": "Meeting notes or additional notes",
+            "location": "https://cal.com/video/abc123",
+            "status": "ACCEPTED",
+            "organizer": {
+              "id": 456,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "username": "johndoe",
+              "timeZone": "America/New_York",
+              "language": {
                 "locale": "en"
+              },
+              "utcOffset": -5
             },
-            "timeFormat": "h:mma"
-        },
-        "responses": {
-            "name": {
-                "label": "your_name",
-                "value": "John Doe"
-            },
-            "email": {
-                "label": "email_address",
-                "value": "john.doe@example.com"
-            },
-            "location": {
-                "label": "location",
-                "value": {
-                    "optionValue": "",
-                    "value": "inPerson"
-                }
-            },
-            "notes": {
-                "label": "additional_notes"
-            },
-            "guests": {
-                "label": "additional_guests"
-            },
-            "rescheduleReason": {
-                "label": "reschedule_reason"
-            }
-        },
-        "userFieldsResponses": {},
-        "attendees": [
-            {
-                "email": "john.doe@example.com",
-                "name": "John Doe",
-                "timeZone": "Asia/Kolkata",
+            "attendees": [
+              {
+                "id": 789,
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London",
                 "language": {
-                    "locale": "en"
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              }
+            ],
+            "team": {
+              "id": 100,
+              "name": "Sales Team",
+              "members": [
+                {
+                  "id": 456,
+                  "name": "John Doe",
+                  "email": "john@example.com",
+                  "timeZone": "America/New_York"
                 }
-            }
-        ],
-        "location": "Calcom HQ",
-        "destinationCalendar": {
-            "id": 10,
-            "integration": "apple_calendar",
-            "externalId": "https://caldav.icloud.com/1234567/calendars/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/",
-            "userId": 5,
-            "eventTypeId": null,
-            "credentialId": 1
-        },
-        "hideCalendarNotes": false,
-        "requiresConfirmation": null,
-        "eventTypeId": 7,
-        "seatsShowAttendees": true,
-        "seatsPerTimeSlot": null,
-        "uid": "bFJeNb2uX8ANpT3JL5EfXw",
-        "appsStatus": [
-            {
-                "appName": "Apple Calendar",
-                "type": "apple_calendar",
+              ]
+            },
+            "customInputs": {
+              "company": "Acme Corp"
+            },
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith",
+                "isHidden": false
+              },
+              "email": {
+                "label": "Email Address",
+                "value": "jane@example.com",
+                "isHidden": false
+              },
+              "notes": {
+                "label": "Additional Notes",
+                "value": "Looking forward to the meeting",
+                "isHidden": false
+              }
+            },
+            "userFieldsResponses": {
+              "company": {
+                "label": "Company Name",
+                "value": "Acme Corp",
+                "isHidden": false
+              }
+            },
+            "metadata": {
+              "videoCallUrl": "https://cal.com/video/abc123"
+            },
+            "videoCallData": {
+              "url": "https://cal.com/video/abc123",
+              "password": "123456",
+              "id": "abc123"
+            },
+            "destinationCalendar": [
+              {
+                "id": 1,
+                "integration": "google_calendar",
+                "externalId": "primary",
+                "userId": 456
+              }
+            ],
+            "eventTitle": "30 Minute Meeting",
+            "eventDescription": "A quick sync call",
+            "requiresConfirmation": false,
+            "price": 0,
+            "currency": "usd",
+            "length": 30,
+            "recurringEvent": null,
+            "smsReminderNumber": "+1234567890",
+            "seatsPerTimeSlot": null,
+            "seatsShowAttendees": false,
+            "seatsShowAvailabilityCount": true,
+            "schedulingType": null,
+            "iCalUID": "abc123@google.com",
+            "appsStatus": [
+              {
+                "appName": "Google Calendar",
+                "type": "google_calendar",
                 "success": 1,
                 "failures": 0,
-                "errors": [],
-                "warnings": []
-            }
-        ],
-        "eventTitle": "60min",
-        "eventDescription": "",
-        "price": 0,
-        "currency": "usd",
-        "length": 60,
-        "bookingId": 91,
-        "metadata": {},
-        "status": "ACCEPTED"
-    }
-}
-
-```
+                "errors": []
+              }
+            ]
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="BOOKING_CANCELLED">
+        ```json
+        {
+          "triggerEvent": "BOOKING_CANCELLED",
+          "createdAt": "2024-01-15T11:00:00.000Z",
+          "payload": {
+            "bookingId": 123,
+            "uid": "abc123-def456-ghi789",
+            "title": "30 Minute Meeting",
+            "type": "30min",
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "description": "Meeting notes",
+            "location": "https://cal.com/video/abc123",
+            "status": "CANCELLED",
+            "organizer": {
+              "id": 456,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "username": "johndoe",
+              "timeZone": "America/New_York",
+              "language": {
+                "locale": "en"
+              },
+              "utcOffset": -5
+            },
+            "attendees": [
+              {
+                "id": 789,
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              }
+            ],
+            "team": null,
+            "customInputs": {},
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith",
+                "isHidden": false
+              },
+              "email": {
+                "label": "Email Address",
+                "value": "jane@example.com",
+                "isHidden": false
+              }
+            },
+            "userFieldsResponses": {},
+            "cancellationReason": "Schedule conflict",
+            "cancelledBy": "john@example.com",
+            "eventTitle": "30 Minute Meeting",
+            "eventDescription": "A quick sync call",
+            "requiresConfirmation": false,
+            "price": 0,
+            "currency": "usd",
+            "length": 30
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="BOOKING_RESCHEDULED">
+        ```json
+        {
+          "triggerEvent": "BOOKING_RESCHEDULED",
+          "createdAt": "2024-01-15T12:00:00.000Z",
+          "payload": {
+            "bookingId": 124,
+            "uid": "new-booking-uid-xyz",
+            "title": "30 Minute Meeting",
+            "type": "30min",
+            "startTime": "2024-01-16T10:00:00.000Z",
+            "endTime": "2024-01-16T10:30:00.000Z",
+            "description": "Meeting notes",
+            "location": "https://cal.com/video/abc123",
+            "status": "ACCEPTED",
+            "organizer": {
+              "id": 456,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "username": "johndoe",
+              "timeZone": "America/New_York",
+              "language": {
+                "locale": "en"
+              },
+              "utcOffset": -5
+            },
+            "attendees": [
+              {
+                "id": 789,
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              }
+            ],
+            "team": null,
+            "customInputs": {},
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith",
+                "isHidden": false
+              },
+              "email": {
+                "label": "Email Address",
+                "value": "jane@example.com",
+                "isHidden": false
+              }
+            },
+            "userFieldsResponses": {},
+            "rescheduleId": 123,
+            "rescheduleUid": "original-booking-uid-abc",
+            "rescheduleStartTime": "2024-01-15T10:00:00.000Z",
+            "rescheduleEndTime": "2024-01-15T10:30:00.000Z",
+            "rescheduledBy": "jane@example.com",
+            "eventTitle": "30 Minute Meeting",
+            "eventDescription": "A quick sync call",
+            "requiresConfirmation": false,
+            "price": 0,
+            "currency": "usd",
+            "length": 30
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="BOOKING_REQUESTED">
+        ```json
+        {
+          "triggerEvent": "BOOKING_REQUESTED",
+          "createdAt": "2024-01-15T09:00:00.000Z",
+          "payload": {
+            "bookingId": 123,
+            "uid": "abc123-def456-ghi789",
+            "title": "30 Minute Meeting",
+            "type": "30min",
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "description": "Meeting notes",
+            "location": "https://cal.com/video/abc123",
+            "status": "PENDING",
+            "organizer": {
+              "id": 456,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "username": "johndoe",
+              "timeZone": "America/New_York",
+              "language": {
+                "locale": "en"
+              },
+              "utcOffset": -5
+            },
+            "attendees": [
+              {
+                "id": 789,
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              }
+            ],
+            "team": null,
+            "customInputs": {},
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith",
+                "isHidden": false
+              },
+              "email": {
+                "label": "Email Address",
+                "value": "jane@example.com",
+                "isHidden": false
+              }
+            },
+            "userFieldsResponses": {},
+            "eventTitle": "30 Minute Meeting",
+            "eventDescription": "A quick sync call",
+            "requiresConfirmation": true,
+            "price": 0,
+            "currency": "usd",
+            "length": 30
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="BOOKING_REJECTED">
+        ```json
+        {
+          "triggerEvent": "BOOKING_REJECTED",
+          "createdAt": "2024-01-15T09:30:00.000Z",
+          "payload": {
+            "bookingId": 123,
+            "uid": "abc123-def456-ghi789",
+            "title": "30 Minute Meeting",
+            "type": "30min",
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "description": "Meeting notes",
+            "location": "https://cal.com/video/abc123",
+            "status": "REJECTED",
+            "organizer": {
+              "id": 456,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "username": "johndoe",
+              "timeZone": "America/New_York",
+              "language": {
+                "locale": "en"
+              },
+              "utcOffset": -5
+            },
+            "attendees": [
+              {
+                "id": 789,
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              }
+            ],
+            "team": null,
+            "customInputs": {},
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith",
+                "isHidden": false
+              },
+              "email": {
+                "label": "Email Address",
+                "value": "jane@example.com",
+                "isHidden": false
+              }
+            },
+            "userFieldsResponses": {},
+            "rejectionReason": "Not available at this time",
+            "eventTitle": "30 Minute Meeting",
+            "eventDescription": "A quick sync call",
+            "requiresConfirmation": true,
+            "price": 0,
+            "currency": "usd",
+            "length": 30
+          }
+        }
+        ```
+      </Accordion>
+    </AccordionGroup>
+  </Tab>
+</Tabs>
 
 ### Booking No-show Updated webhook payload
 
