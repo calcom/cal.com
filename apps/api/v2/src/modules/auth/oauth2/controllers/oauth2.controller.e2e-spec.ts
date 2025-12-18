@@ -127,7 +127,6 @@ describe("OAuth2 Controller Endpoints", () => {
       ).compile();
 
       app = moduleRef.createNestApplication();
-      bootstrap(app as NestExpressApplication);
       await app.init();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
@@ -164,7 +163,7 @@ describe("OAuth2 Controller Endpoints", () => {
     describe("GET /v2/auth/oauth2/clients/:clientId", () => {
             it("should return OAuth client info for valid client ID", async () => {
               const response = await request(app.getHttpServer())
-                .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
+                .get(`/v2/auth/oauth2/clients/${testClientId}`)
                 .expect(200);
 
               expect(response.body.status).toBe("success");
@@ -176,7 +175,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should return 404 for non-existent client ID", async () => {
         const response = await request(app.getHttpServer())
-          .get("/api/v2/auth/oauth2/clients/non-existent-client-id")
+          .get("/v2/auth/oauth2/clients/non-existent-client-id")
           .expect(404);
 
         expect(response.body.message).toContain("not found");
@@ -186,7 +185,7 @@ describe("OAuth2 Controller Endpoints", () => {
     describe("POST /v2/auth/oauth2/clients/:clientId/authorize", () => {
       it("should redirect with authorization code for valid request", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
             redirectUri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING, AccessScope.READ_PROFILE],
@@ -206,7 +205,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should redirect with error for invalid client ID", async () => {
         await request(app.getHttpServer())
-          .post("/api/v2/auth/oauth2/clients/invalid-client-id/authorize")
+          .post("/v2/auth/oauth2/clients/invalid-client-id/authorize")
           .send({
             redirectUri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING],
@@ -216,7 +215,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should redirect with error for invalid team slug", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
             redirectUri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING],
@@ -233,7 +232,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should redirect with error for mismatched redirect URI", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
             redirectUri: "https://wrong-domain.com/callback",
             scopes: [AccessScope.READ_BOOKING],
@@ -250,7 +249,7 @@ describe("OAuth2 Controller Endpoints", () => {
     describe("POST /v2/auth/oauth2/clients/:clientId/exchange", () => {
       it("should exchange authorization code for tokens", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/exchange`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/exchange`)
           .send({
             code: authorizationCode,
             clientSecret: testClientSecret,
@@ -270,7 +269,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should return 400 for invalid/used authorization code", async () => {
         await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/exchange`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/exchange`)
           .send({
             code: authorizationCode,
             clientSecret: testClientSecret,
@@ -282,7 +281,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should return 401 for invalid client secret", async () => {
         const newAuthResponse = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
             redirectUri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING],
@@ -294,7 +293,7 @@ describe("OAuth2 Controller Endpoints", () => {
         const newAuthCode = newRedirectUrl.searchParams.get("code") as string;
 
         await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/exchange`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/exchange`)
           .send({
             code: newAuthCode,
             clientSecret: "wrong-secret",
@@ -308,7 +307,7 @@ describe("OAuth2 Controller Endpoints", () => {
     describe("POST /v2/auth/oauth2/clients/:clientId/refresh", () => {
       it("should refresh access token with valid refresh token", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/refresh`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/refresh`)
           .send({
             refreshToken: refreshToken,
             clientSecret: testClientSecret,
@@ -325,7 +324,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should return 400 for invalid refresh token", async () => {
         await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/refresh`)
+          .post(`/v2/auth/oauth2/clients/${testClientId}/refresh`)
           .send({
             refreshToken: "invalid-refresh-token",
             clientSecret: testClientSecret,
@@ -336,7 +335,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should return 401 for wrong client ID with valid refresh token", async () => {
         await request(app.getHttpServer())
-          .post("/api/v2/auth/oauth2/clients/wrong-client-id/refresh")
+          .post("/v2/auth/oauth2/clients/wrong-client-id/refresh")
           .send({
             refreshToken: refreshToken,
             clientSecret: testClientSecret,
