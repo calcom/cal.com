@@ -312,7 +312,8 @@ export class CredentialRepository {
         id,
         teamId,
       },
-      include: {
+      select: {
+        ...safeCredentialSelect,
         app: {
           select: {
             slug: true,
