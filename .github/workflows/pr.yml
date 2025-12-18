@@ -166,7 +166,7 @@ jobs:
   integration-test:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
