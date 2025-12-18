@@ -1,5 +1,7 @@
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
@@ -12,7 +14,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
@@ -139,6 +140,8 @@ export async function handleBookingRequested(args: {
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
     if (workflows.length > 0) {
+      const creditService = new CreditService();
+
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
@@ -153,6 +156,7 @@ export async function handleBookingRequested(args: {
           },
         },
         triggers: [WorkflowTriggerEvents.BOOKING_REQUESTED],
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     }
   } catch (error) {

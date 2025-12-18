@@ -71,6 +71,7 @@ export default defineConfig(({ mode }) => {
           "react-dom/client",
           "@prisma/client",
           "react/jsx-dev-runtime",
+          "@trigger.dev/sdk",
         ],
         output: {
           format: "esm",

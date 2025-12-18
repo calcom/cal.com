@@ -36,6 +36,9 @@ export const handleNoShowFee = async ({
       timeZone: string;
       hideBranding: boolean;
       organizationId: number | null;
+      profiles: {
+        organizationId: number | null;
+      }[];
     } | null;
     eventType: {
       title: string;
@@ -111,6 +114,7 @@ export const handleNoShowFee = async ({
       currency: payment.currency,
       paymentOption: payment.paymentOption,
     },
+    organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
   };
 
   if (teamId) {

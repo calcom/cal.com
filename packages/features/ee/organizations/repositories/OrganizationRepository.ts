@@ -1,11 +1,11 @@
 import type { z } from "zod";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -289,6 +289,15 @@ export class OrganizationRepository {
         disablePhoneOnlySMSNotifications: true,
         disableAutofillOnBookingPage: true,
         orgAutoJoinOnSignup: true,
+        disableAttendeeConfirmationEmail: true,
+        disableAttendeeCancellationEmail: true,
+        disableAttendeeRescheduledEmail: true,
+        disableAttendeeRequestEmail: true,
+        disableAttendeeReassignedEmail: true,
+        disableAttendeeAwaitingPaymentEmail: true,
+        disableAttendeeRescheduleRequestEmail: true,
+        disableAttendeeLocationChangeEmail: true,
+        disableAttendeeNewEventEmail: true,
       },
     });
 
@@ -309,13 +318,24 @@ export class OrganizationRepository {
         disablePhoneOnlySMSNotifications: organizationSettings?.disablePhoneOnlySMSNotifications,
         disableAutofillOnBookingPage: organizationSettings?.disableAutofillOnBookingPage,
         orgAutoJoinOnSignup: organizationSettings?.orgAutoJoinOnSignup,
+        disableAttendeeConfirmationEmail: organizationSettings?.disableAttendeeConfirmationEmail,
+        disableAttendeeCancellationEmail: organizationSettings?.disableAttendeeCancellationEmail,
+        disableAttendeeRescheduledEmail: organizationSettings?.disableAttendeeRescheduledEmail,
+        disableAttendeeRequestEmail: organizationSettings?.disableAttendeeRequestEmail,
+        disableAttendeeReassignedEmail: organizationSettings?.disableAttendeeReassignedEmail,
+        disableAttendeeAwaitingPaymentEmail: organizationSettings?.disableAttendeeAwaitingPaymentEmail,
+        disableAttendeeRescheduleRequestEmail: organizationSettings?.disableAttendeeRescheduleRequestEmail,
+        disableAttendeeLocationChangeEmail: organizationSettings?.disableAttendeeLocationChangeEmail,
+        disableAttendeeNewEventEmail: organizationSettings?.disableAttendeeNewEventEmail,
       },
       user: {
         role: membership?.role,
         accepted: membership?.accepted,
       },
       ...membership?.team,
-      metadata,
+      metadata: {
+        requestedSlug: metadata?.requestedSlug ?? null,
+      },
     };
   }
 

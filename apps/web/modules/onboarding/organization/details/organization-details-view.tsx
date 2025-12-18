@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -67,6 +68,10 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
       return;
     }
 
+    posthog.capture("onboarding_organization_details_continue_clicked", {
+      has_bio: !!organizationBio,
+    });
+
     // Save to store
     setOrganizationDetails({
       name: organizationName,
@@ -87,7 +92,10 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
             <Button
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/getting-started")}>
+              onClick={() => {
+                posthog.capture("onboarding_organization_details_back_clicked");
+                router.push("/onboarding/getting-started");
+              }}>
               {t("back")}
             </Button>
             <Button
@@ -105,7 +113,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
             <div className="flex w-full flex-col gap-4 rounded-xl">
               {/* Organization Name */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
                   {t("organization_name")}
                 </Label>
                 <TextField
@@ -124,7 +132,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
 
               {/* Organization Bio */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
                   {t("onboarding_org_bio_label")}
                 </Label>
                 <TextArea

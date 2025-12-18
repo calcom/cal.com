@@ -295,6 +295,7 @@ async function buildCalendarEvent(
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
   };
 
   if (videoCallReference) {
