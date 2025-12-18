@@ -58,7 +58,7 @@ jobs:
       # 1. Generate Prisma Client
       # This is required so Trigger.dev can find the database types during bundling
       - name: Generate Prisma Client
-        run: yarn turbo run @calcom/prisma#build
+        run: yarn prisma generate
 
       # 2. Deploy Trigger.dev tasks
       # We use --skip-promotion to get a version without making it live yet
