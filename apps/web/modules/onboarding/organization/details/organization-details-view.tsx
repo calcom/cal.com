@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -77,6 +78,11 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
       return;
     }
 
+    posthog.capture("onboarding_organization_details_continue_clicked", {
+      has_bio: !!organizationBio,
+    });
+
+    // Save to store
     setOrganizationDetails({
       name: organizationName,
       link: organizationLink,
@@ -97,7 +103,13 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
         subtitle={t("onboarding_org_details_subtitle")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button color="minimal" className="rounded-[10px]" onClick={() => router.back()}>
+            <Button
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={() => {
+                posthog.capture("onboarding_organization_details_back_clicked");
+                router.push("/onboarding/getting-started");
+              }}>
               {t("back")}
             </Button>
             <Button

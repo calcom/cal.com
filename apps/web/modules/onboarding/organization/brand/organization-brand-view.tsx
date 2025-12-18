@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -77,7 +78,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   const getNextStep = () => {
     const migrateParam = searchParams?.get("migrate");
     const queryString = migrateParam ? `?migrate=${migrateParam}` : "";
-    
+
     // If migration flow and has teams, go to migrate-teams, otherwise go to teams
     if (isMigrationFlow && hasTeams) {
       return `/onboarding/organization/migrate-teams${queryString}`;
@@ -86,6 +87,12 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const handleContinue = () => {
+    posthog.capture("onboarding_organization_brand_continue_clicked", {
+      has_logo: !!logoPreview,
+      has_banner: !!bannerPreview,
+      has_custom_color: brandColor !== "#000000",
+    });
+    // Save to store (already saved on change, but ensure it's persisted)
     setOrganizationBrand({
       logo: logoPreview,
       banner: bannerPreview,
@@ -95,7 +102,9 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const handleSkip = () => {
-    router.push(getNextStep());
+    posthog.capture("onboarding_organization_brand_skip_clicked");
+    // Skip brand customization and go to teams
+    router.push("/onboarding/organization/teams");
   };
 
   const totalSteps = isMigrationFlow && hasTeams ? 6 : 4;
@@ -108,7 +117,13 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         subtitle={t("onboarding_org_brand_subtitle")}
         footer={
           <div className="flex w-full items-center justify-between gap-4">
-            <Button color="minimal" className="rounded-[10px]" onClick={() => router.back()}>
+            <Button
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={() => {
+                posthog.capture("onboarding_organization_brand_back_clicked");
+                router.push("/onboarding/organization/details");
+              }}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
