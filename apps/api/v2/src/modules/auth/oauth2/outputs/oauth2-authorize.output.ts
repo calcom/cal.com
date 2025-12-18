@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Expose, Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -10,12 +10,14 @@ export class OAuth2AuthorizeDto {
     example: "abc123xyz",
   })
   @IsString()
+  @Expose()
   authorizationCode!: string;
 }
 
 export class OAuth2AuthorizeResponseDto {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  @Expose()
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
@@ -24,5 +26,6 @@ export class OAuth2AuthorizeResponseDto {
   @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => OAuth2AuthorizeDto)
+  @Expose()
   data!: OAuth2AuthorizeDto;
 }

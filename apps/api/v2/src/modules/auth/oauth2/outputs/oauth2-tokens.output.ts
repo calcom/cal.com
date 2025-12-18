@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Expose, Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, IsNumber, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -10,6 +10,7 @@ export class OAuth2TokensDto {
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   })
   @IsString()
+  @Expose()
   accessToken!: string;
 
   @ApiProperty({
@@ -17,6 +18,7 @@ export class OAuth2TokensDto {
     example: "bearer",
   })
   @IsString()
+  @Expose()
   tokenType!: string;
 
   @ApiProperty({
@@ -24,6 +26,7 @@ export class OAuth2TokensDto {
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   })
   @IsString()
+  @Expose()
   refreshToken!: string;
 
   @ApiProperty({
@@ -31,12 +34,14 @@ export class OAuth2TokensDto {
     example: 1800,
   })
   @IsNumber()
+  @Expose()
   expiresIn!: number;
 }
 
 export class OAuth2TokensResponseDto {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  @Expose()
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
@@ -45,5 +50,6 @@ export class OAuth2TokensResponseDto {
   @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => OAuth2TokensDto)
+  @Expose()
   data!: OAuth2TokensDto;
 }

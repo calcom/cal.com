@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Expose, Type } from "class-transformer";
 import { IsBoolean, IsEnum, IsNotEmptyObject, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -10,6 +10,7 @@ export class OAuth2ClientDto {
     example: "clxxxxxxxxxxxxxxxx",
   })
   @IsString()
+  @Expose()
   clientId!: string;
 
   @ApiProperty({
@@ -17,6 +18,7 @@ export class OAuth2ClientDto {
     example: "https://example.com/callback",
   })
   @IsString()
+  @Expose()
   redirectUri!: string;
 
   @ApiProperty({
@@ -24,6 +26,7 @@ export class OAuth2ClientDto {
     example: "My App",
   })
   @IsString()
+  @Expose()
   name!: string;
 
   @ApiProperty({
@@ -32,6 +35,7 @@ export class OAuth2ClientDto {
   })
   @IsOptional()
   @IsString()
+  @Expose()
   logo?: string | null;
 
   @ApiProperty({
@@ -39,12 +43,14 @@ export class OAuth2ClientDto {
     example: false,
   })
   @IsBoolean()
+  @Expose()
   isTrusted!: boolean;
 }
 
 export class OAuth2ClientResponseDto {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  @Expose()
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
@@ -53,5 +59,6 @@ export class OAuth2ClientResponseDto {
   @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => OAuth2ClientDto)
+  @Expose()
   data!: OAuth2ClientDto;
 }

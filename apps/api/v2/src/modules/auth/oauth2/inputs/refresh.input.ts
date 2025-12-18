@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { Equals, IsOptional, IsString } from "class-validator";
 
 export class OAuth2RefreshInput {
   @ApiProperty({
@@ -22,6 +22,7 @@ export class OAuth2RefreshInput {
     example: "refresh_token",
   })
   @IsString()
+  @Equals("refresh_token")
   grantType!: string;
 
   @ApiProperty({

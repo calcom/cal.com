@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { Equals, IsOptional, IsString } from "class-validator";
 
 export class OAuth2ExchangeInput {
   @ApiProperty({
@@ -29,6 +29,7 @@ export class OAuth2ExchangeInput {
     example: "authorization_code",
   })
   @IsString()
+  @Equals("authorization_code")
   grantType!: string;
 
   @ApiProperty({

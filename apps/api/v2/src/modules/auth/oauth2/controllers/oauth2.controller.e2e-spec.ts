@@ -162,16 +162,17 @@ describe("OAuth2 Controller Endpoints", () => {
     });
 
     describe("GET /v2/auth/oauth2/clients/:clientId", () => {
-      it("should return OAuth client info for valid client ID", async () => {
-        const response = await request(app.getHttpServer())
-          .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
-          .expect(200);
+            it("should return OAuth client info for valid client ID", async () => {
+              const response = await request(app.getHttpServer())
+                .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
+                .expect(200);
 
-        expect(response.body.status).toBe("success");
-        expect(response.body.data.clientId).toBe(testClientId);
-        expect(response.body.data.name).toBe("Test OAuth Client");
-        expect(response.body.data.redirectUri).toBe(testRedirectUri);
-      });
+              expect(response.body.status).toBe("success");
+              expect(response.body.data.clientId).toBe(testClientId);
+              expect(response.body.data.name).toBe("Test OAuth Client");
+              expect(response.body.data.redirectUri).toBe(testRedirectUri);
+              expect(response.body.data.clientSecret).toBeUndefined();
+            });
 
       it("should return 404 for non-existent client ID", async () => {
         const response = await request(app.getHttpServer())

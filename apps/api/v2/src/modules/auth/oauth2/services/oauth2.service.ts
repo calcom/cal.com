@@ -37,7 +37,7 @@ interface DecodedRefreshToken {
   userId?: number | null;
   teamId?: number | null;
   scope: AccessScope[];
-  tokenType: string;
+  token_type: string;
   clientId: string;
   codeChallenge?: string | null;
   codeChallengeMethod?: string | null;
@@ -183,7 +183,7 @@ export class OAuth2Service {
 
     const decodedToken = this.verifyRefreshToken(refreshToken);
 
-    if (!decodedToken || decodedToken.tokenType !== "Refresh Token") {
+    if (!decodedToken || decodedToken.token_type !== "Refresh Token") {
       throw new BadRequestException("invalid_grant");
     }
 
