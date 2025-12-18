@@ -65,7 +65,6 @@ export const getCalendar = async (
     shouldServeCache = isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser;
   }
   if (CalendarCacheEventService.isCalendarTypeSupported(calendarType) && shouldServeCache) {
-    // If calendar cache isn't supported so we try calendar batch, the second layer of optmization
     log.info(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
     const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
     return new CalendarCacheWrapper({
@@ -73,7 +72,7 @@ export const getCalendar = async (
       calendarCacheEventRepository,
     });
   } else if (CalendarBatchService.isCalendarTypeSupported(calendarType)) {
-    // If calendar cache isn't supported so we try calendar batch, the second layer of optmization
+    // If calendar cache isn't supported, we try calendar batch as the second layer of optimization
     log.info(`Calendar Batch is supported, using CalendarBatchService for credential ${credential.id}`);
     return new CalendarBatchWrapper({ originalCalendar: originalCalendar as unknown as Calendar });
   }
