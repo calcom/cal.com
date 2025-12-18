@@ -104,6 +104,7 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   useEventLevelSelectedCalendars: z.boolean().optional(),
   seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
   hostGroups: z.array(hostGroupSchema).optional(),
+  workflows: z.array(z.number()).optional(),
 })
   .partial()
   .extend(EventTypeSchema.pick({ id: true }).shape);

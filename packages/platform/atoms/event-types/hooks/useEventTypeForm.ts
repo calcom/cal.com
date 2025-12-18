@@ -143,6 +143,7 @@ export const useEventTypeForm = ({
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
       showOptimizedSlots: eventType.showOptimizedSlots ?? false,
+      workflows: [],
     };
   }, [eventType, periodDates]);
 

@@ -239,6 +239,19 @@ const EventTypeWeb = ({
     },
   });
 
+  // Initialize workflows when data loads
+  const workflowsInitialized = useRef(false);
+  useEffect(() => {
+    if (allActiveWorkflows && !workflowsInitialized.current) {
+      form.setValue("workflows", allActiveWorkflows.map((w) => w.id), { shouldDirty: false });
+      workflowsInitialized.current = true;
+    }
+  }, [allActiveWorkflows, form]);
+  
+  useEffect(() => {
+    workflowsInitialized.current = false;
+  }, [id]);
+
   const orgBranding = useOrgBranding();
 
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;

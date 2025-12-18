@@ -44,39 +44,7 @@ type ItemProps = {
 const WorkflowListItem = (props: ItemProps) => {
   const { workflow, eventType, isActive } = props;
   const { t } = useLocale();
-
-  const utils = trpc.useUtils();
-
-  const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
-    onSuccess: async () => {
-      const offOn = isActive ? "off" : "on";
-      revalidateEventTypeEditPage(eventType.id);
-      await utils.viewer.workflows.getAllActiveWorkflows.invalidate();
-
-      await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
-      showToast(
-        t("workflow_turned_on_successfully", {
-          workflowName: workflow.name,
-          offOn,
-        }),
-        "success"
-      );
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-      if (err.data?.code === "UNAUTHORIZED") {
-        showToast(
-          t("unauthorized_workflow_error_message", {
-            errorCode: err.data.code,
-          }),
-          "error"
-        );
-      }
-    },
-  });
+  const formMethods = useFormContext<FormValues>();
 
   const sendTo: Set<string> = new Set();
 
@@ -159,7 +127,11 @@ const WorkflowListItem = (props: ItemProps) => {
               checked={isActive}
               disabled={!workflow.permissions?.canUpdate}
               onCheckedChange={() => {
-                activateEventTypeMutation.mutate({ workflowId: workflow.id, eventTypeId: eventType.id });
+                const currentWorkflows = formMethods.getValues("workflows") || [];
+                const newWorkflows = isActive
+                  ? currentWorkflows.filter((id) => id !== workflow.id)
+                  : [...currentWorkflows, workflow.id];
+                formMethods.setValue("workflows", newWorkflows, { shouldDirty: true });
               }}
             />
           </div>
@@ -270,13 +242,15 @@ function EventWorkflowsTab(props: Props) {
             <div>
               <div className="stack-y-4">
                 {sortedWorkflows.map((workflow) => {
+                  const formWorkflows = formMethods.watch("workflows") || [];
+                  const isActive = formWorkflows.includes(workflow.id);
                   return (
                     <WorkflowListItem
                       key={workflow.id}
                       workflow={workflow}
                       eventType={props.eventType}
                       isChildrenManagedEventType
-                      isActive={!!workflows.find((activeWorkflow) => activeWorkflow.id === workflow.id)}
+                      isActive={isActive}
                     />
                   );
                 })}

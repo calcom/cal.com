@@ -99,6 +99,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     restrictionScheduleId,
     calVideoSettings,
     hostGroups,
+    workflows,
     ...rest
   } = input;
 
@@ -712,6 +713,42 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       },
     });
+  }
+
+  // Sync workflows
+  if (workflows !== undefined) {
+    const eventTypeIds = [id, ...(eventType.children?.map((c) => c.id) || [])];
+    
+    const current = await ctx.prisma.workflowsOnEventTypes.findMany({
+      where: { eventTypeId: { in: eventTypeIds } },
+      select: { workflowId: true },
+    });
+    
+    const currentIds = [...new Set(current.map((w) => w.workflowId))];
+    const toRemove = currentIds.filter((id) => !workflows.includes(id));
+    const toAdd = workflows.filter((id) => !currentIds.includes(id));
+    
+    if (toRemove.length) {
+      await ctx.prisma.workflowsOnEventTypes.deleteMany({
+        where: { eventTypeId: { in: eventTypeIds }, workflowId: { in: toRemove } },
+      });
+      await ctx.prisma.workflowReminder.deleteMany({
+        where: {
+          booking: { eventTypeId: { in: eventTypeIds } },
+          workflowStep: { workflowId: { in: toRemove } },
+        },
+      });
+    }
+    
+    for (const workflowId of toAdd) {
+      for (const eventTypeId of eventTypeIds) {
+        await ctx.prisma.workflowsOnEventTypes.upsert({
+          where: { workflowId_eventTypeId: { workflowId, eventTypeId } },
+          create: { workflowId, eventTypeId },
+          update: {},
+        });
+      }
+    }
   }
 
   const res = ctx.res as NextApiResponse;
