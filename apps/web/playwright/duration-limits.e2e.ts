@@ -228,14 +228,17 @@ test.describe("Duration limits", () => {
       const eventTypeId = user.eventTypes.at(-1)?.id;
       if (!eventTypeId) throw new Error("Event type not found");
 
+      // Pre-create 1 booking on Monday (same week as UI booking)
+      // This satisfies the daily limit for Monday and counts toward the weekly limit
       const preBookingDate = baseBookingDate.hour(10).minute(0);
       await bookings.create(user.id, user.username, eventTypeId, {
         startTime: preBookingDate.toDate(),
         endTime: preBookingDate.add(EVENT_LENGTH, "minutes").toDate(),
       });
 
-      // Move to next week for week limit test (similar to booking-limits test)
-      const bookingDate = baseBookingDate.add(1, "week");
+      // Test week limit on Tuesday (same week, different day to avoid daily limit conflict)
+      // Need to book 1 more to hit weekly limit of 2 (1 already exists from pre-booking)
+      const bookingDate = baseBookingDate.add(1, "day");
       const weekLimitValue = BOOKING_LIMITS_MULTIPLE.PER_WEEK;
       const bookingsToMake = weekLimitValue - 1;
 
@@ -275,6 +278,11 @@ test.describe("Duration limits", () => {
 
         const availableDaysAfter = await availableDays.count();
 
+        // After hitting weekly limit, all remaining days in the week should be blocked
+        // Monday was already blocked by daily limit, Tuesday is now blocked
+        // The remaining weekdays (Wed-Fri) should also be blocked = 3 more days
+        // Total blocked: 1 (Tuesday we just booked) + 3 (Wed-Fri) = 4 days
+        // But Monday was already blocked before we started, so delta is -4
         expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(-4);
 
         // try to book directly via form page

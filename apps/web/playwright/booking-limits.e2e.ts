@@ -268,24 +268,23 @@ test.describe("Booking limits", () => {
         bookingLimits: BOOKING_LIMITS_MULTIPLE,
       });
 
-      // Pre-create bookings for day limit (1 booking)
-      // Create on Monday to satisfy day limit, then test week limit in the following week
       const baseBookingDate = firstMondayInBookingMonth;
       const eventTypeId = user.eventTypes.at(-1)?.id;
       if (!eventTypeId) throw new Error("Event type not found");
 
-      // Create 1 booking on Monday for day limit
+      // Pre-create 1 booking on Monday (same week as UI booking)
+      // This satisfies the daily limit for Monday and counts toward the weekly limit
       const preBookingDate = baseBookingDate.hour(10).minute(0);
       await bookings.create(user.id, user.username, eventTypeId, {
         startTime: preBookingDate.toDate(),
         endTime: preBookingDate.add(EVENT_LENGTH, "minutes").toDate(),
       });
 
-      // Test week limit - need to book 1 more (total 2, but 1 already exists)
-      // Move to next week for week limit test (similar to year limit test moving to next month)
-      const bookingDate = baseBookingDate.add(1, "week");
+      // Test week limit on Tuesday (same week, different day to avoid daily limit conflict)
+      // Need to book 1 more to hit weekly limit of 2 (1 already exists from pre-booking)
+      const bookingDate = baseBookingDate.add(1, "day");
       const weekLimitValue = BOOKING_LIMITS_MULTIPLE.PER_WEEK;
-      const bookingsToMake = weekLimitValue - 1; // 1 already exists from day limit
+      const bookingsToMake = weekLimitValue - 1;
 
       const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
       await page.goto(monthUrl);
@@ -323,8 +322,11 @@ test.describe("Booking limits", () => {
 
         const availableDaysAfter = await availableDays.count();
 
-        // equals 0 if no available days, otherwise signed difference
-        // week: -4 (one day will already be blocked by daily limit)
+        // After hitting weekly limit, all remaining days in the week should be blocked
+        // Monday was already blocked by daily limit, Tuesday is now blocked
+        // The remaining weekdays (Wed-Fri) should also be blocked = 3 more days
+        // Total blocked: 1 (Tuesday we just booked) + 3 (Wed-Fri) = 4 days
+        // But Monday was already blocked before we started, so delta is -4
         expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(-4);
 
         // try to book directly via form page
