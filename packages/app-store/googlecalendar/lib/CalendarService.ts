@@ -548,6 +548,7 @@ export default class GoogleCalendarService implements Calendar {
 
   /**
    * Fetches availability data using the cache-or-fetch pattern
+   *
    */
   private async fetchAvailabilityData(
     calendarIds: string[],

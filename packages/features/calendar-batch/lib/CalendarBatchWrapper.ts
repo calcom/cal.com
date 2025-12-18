@@ -13,6 +13,10 @@ const log = logger.getSubLogger({ prefix: ["CalendarBatchWrapper"] });
 
 type DelegatedGroups = Record<string, IntegrationCalendar[]>;
 
+/**
+ * CalendarBatchWrapper wraps original calendar to process availability in
+ * batches instead of individual calls.
+ */
 export class CalendarBatchWrapper implements Calendar {
   static CALENDAR_BATCH_MAX_SIZE = 50;
 
