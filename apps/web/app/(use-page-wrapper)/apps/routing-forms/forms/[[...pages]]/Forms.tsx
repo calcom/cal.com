@@ -3,9 +3,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
+import posthog from "posthog-js";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
@@ -15,7 +17,6 @@ import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsF
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -46,6 +47,7 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
       data-testid="new-routing-form"
       createFunction={(teamId) => {
         setNewFormDialogState({ action: "new", target: teamId ? String(teamId) : "" });
+        posthog.capture("new_routing_form_button_clicked", { teamId });
       }}
       withPermission={{
         permission: "routingForm.create",
@@ -76,6 +78,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
 
   useEffect(() => {
     hookForm.reset({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
@@ -160,7 +163,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
           background="/tips/routing-forms"
           isParentLoading={<SkeletonLoaderTeamList />}
           buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("upgrade")}
@@ -278,7 +281,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="edit"
                                       routingForm={form}
                                       color="minimal"
-                                      className="!flex"
+                                      className="flex!"
                                       StartIcon="pencil">
                                       {t("edit")}
                                     </FormAction>

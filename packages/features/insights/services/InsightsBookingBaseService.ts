@@ -21,6 +21,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import { transformBookingsForCsv, type BookingTimeStatusData } from "./csvDataTransformer";
+
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
   T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
@@ -483,8 +485,6 @@ export class InsightsBookingBaseService {
     offset?: number;
     timeZone: string;
   }) {
-    const DATE_FORMAT = "YYYY-MM-DD";
-    const TIME_FORMAT = "HH:mm:ss";
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -552,7 +552,7 @@ export class InsightsBookingBaseService {
       return { data: csvData, total: totalCount };
     }
 
-    // 2. Get all bookings with their attendees and seat references
+    // 2. Get all bookings with their attendees, seat references, and phone data
     const bookings = await this.prisma.booking.findMany({
       where: {
         uid: {
@@ -561,10 +561,12 @@ export class InsightsBookingBaseService {
       },
       select: {
         uid: true,
+        eventTypeId: true,
         attendees: {
           select: {
             name: true,
             email: true,
+            phoneNumber: true,
             noShow: true,
           },
         },
@@ -574,120 +576,23 @@ export class InsightsBookingBaseService {
               select: {
                 name: true,
                 email: true,
+                phoneNumber: true,
                 noShow: true,
               },
             },
           },
         },
+        responses: true,
+        eventType: {
+          select: {
+            bookingFields: true,
+          },
+        },
       },
     });
 
-    // 3. Create booking map with attendee data (matching original logic)
-    const bookingMap = new Map(
-      bookings.map((booking) => {
-        const attendeeList =
-          booking.seatsReferences.length > 0
-            ? booking.seatsReferences.map((ref) => ref.attendee)
-            : booking.attendees;
-
-        // List all no-show guests (name and email)
-        const noShowGuests =
-          attendeeList
-            .filter((attendee) => attendee?.noShow)
-            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-            .filter(Boolean) // remove null values
-            .join("; ") || null;
-        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
-
-        const formattedAttendees = attendeeList
-          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-          .filter(Boolean);
-
-        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
-      })
-    );
-
-    // 4. Calculate max attendees for dynamic columns
-    const maxAttendees = Math.max(
-      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
-      0
-    );
-
-    // 5. Create final booking map with attendee fields
-    const finalBookingMap = new Map(
-      Array.from(bookingMap.entries()).map(([uid, data]) => {
-        const attendeeFields: Record<string, string | null> = {};
-
-        for (let i = 1; i <= maxAttendees; i++) {
-          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
-        }
-
-        return [
-          uid,
-          {
-            noShowGuests: data.noShowGuests,
-            noShowGuestsCount: data.noShowGuestsCount,
-            ...attendeeFields,
-          },
-        ];
-      })
-    );
-
-    // 6. Combine booking data with attendee data and add ISO timestamp columns
-    const data = csvData.map((bookingTimeStatus) => {
-      const dateAndTime = {
-        createdAt: bookingTimeStatus.createdAt.toISOString(),
-        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(DATE_FORMAT),
-        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(TIME_FORMAT),
-        startTime: bookingTimeStatus.startTime.toISOString(),
-        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(DATE_FORMAT),
-        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(TIME_FORMAT),
-        endTime: bookingTimeStatus.endTime.toISOString(),
-        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
-        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
-      };
-
-      if (!bookingTimeStatus.uid) {
-        // should not be reached because we filtered above
-        const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= maxAttendees; i++) {
-          nullAttendeeFields[`attendee${i}`] = null;
-        }
-
-        return {
-          ...bookingTimeStatus,
-          ...dateAndTime,
-          noShowGuests: null,
-          noShowGuestsCount: 0,
-          ...nullAttendeeFields,
-        };
-      }
-
-      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
-
-      if (!attendeeData) {
-        const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= maxAttendees; i++) {
-          nullAttendeeFields[`attendee${i}`] = null;
-        }
-
-        return {
-          ...bookingTimeStatus,
-          ...dateAndTime,
-          noShowGuests: null,
-          noShowGuestsCount: 0,
-          ...nullAttendeeFields,
-        };
-      }
-
-      return {
-        ...bookingTimeStatus,
-        ...dateAndTime,
-        noShowGuests: attendeeData.noShowGuests,
-        noShowGuestsCount: attendeeData.noShowGuestsCount,
-        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
-      };
-    });
+    // 3. Transform bookings data for CSV export
+    const data = transformBookingsForCsv(csvData as BookingTimeStatusData[], bookings, timeZone);
 
     return { data, total: totalCount };
   }
@@ -1288,6 +1193,128 @@ export class InsightsBookingBaseService {
       formattedStartDate: lastPeriodStartDate.format("YYYY-MM-DD"),
       formattedEndDate: lastPeriodEndDate.format("YYYY-MM-DD"),
     };
+  }
+
+  async getNoShowHostsOverTimeStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        COUNT(*) as "count"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "noShowHost" = true
+      GROUP BY 1
+      ORDER BY 1
+    `;
+
+    const data = await this.prisma.$queryRaw<
+      {
+        date: Date;
+        count: number;
+      }[]
+    >(query);
+
+    // Initialize aggregate object with zero counts for all date ranges
+    const aggregate: { [date: string]: number } = {};
+
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = 0;
+    });
+
+    // Process the raw data and aggregate by date ranges
+    data.forEach(({ date, count }) => {
+      // Find which date range this date belongs to using native Date comparison
+      const dateRange = dateRanges.find((range) => {
+        const bookingDate = new Date(date);
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
+      });
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      aggregate[formattedDate] += Number(count);
+    });
+
+    // Transform aggregate data into the expected format
+    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => ({
+      formattedDateFull: formattedDateFull,
+      Month: formattedDate,
+      Count: aggregate[formattedDate] || 0,
+    }));
+
+    return result;
+  }
+
+  async getCSATOverTimeStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        COUNT(*) FILTER (WHERE "rating" >= 3) as "ratings_above_3",
+        COUNT(*) FILTER (WHERE "rating" IS NOT NULL) as "total_ratings"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "rating" IS NOT NULL
+      GROUP BY 1
+      ORDER BY 1
+    `;
+
+    const data = await this.prisma.$queryRaw<
+      {
+        date: Date;
+        ratings_above_3: number;
+        total_ratings: number;
+      }[]
+    >(query);
+
+    // Initialize aggregate object with zero counts for all date ranges
+    const aggregate: { [date: string]: { ratingsAbove3: number; totalRatings: number } } = {};
+
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = { ratingsAbove3: 0, totalRatings: 0 };
+    });
+
+    // Process the raw data and aggregate by date ranges
+    data.forEach(({ date, ratings_above_3, total_ratings }) => {
+      // Find which date range this date belongs to using native Date comparison
+      const dateRange = dateRanges.find((range) => {
+        const bookingDate = new Date(date);
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
+      });
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      aggregate[formattedDate].ratingsAbove3 += Number(ratings_above_3);
+      aggregate[formattedDate].totalRatings += Number(total_ratings);
+    });
+
+    // Transform aggregate data into the expected format and calculate CSAT percentage
+    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => {
+      const counts = aggregate[formattedDate];
+      const csat = counts.totalRatings > 0 ? (counts.ratingsAbove3 / counts.totalRatings) * 100 : 0;
+
+      return {
+        formattedDateFull: formattedDateFull,
+        Month: formattedDate,
+        CSAT: parseFloat(csat.toFixed(1)),
+      };
+    });
+
+    return result;
   }
 
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {

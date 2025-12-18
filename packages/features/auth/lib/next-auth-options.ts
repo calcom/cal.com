@@ -13,10 +13,11 @@ import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateP
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -36,7 +37,6 @@ import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
@@ -97,7 +97,7 @@ const usernameSlug = (username: string) => `${slugify(username)}-${randomString(
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
 
 const loginWithTotp = async (email: string) =>
-  `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
+  `/auth/login?totp=${encodeURIComponent(await (await import("./signJwt")).default({ email }))}`;
 
 type UserTeams = {
   teams: (Membership & {
@@ -133,145 +133,144 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
   return { orgUsername, orgId: existingOrg?.id };
 };
 
-const providers: Provider[] = [
-  CredentialsProvider({
-    id: "credentials",
-    name: "Cal.com",
-    type: "credentials",
-    credentials: {
-      email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
-      password: { label: "Password", type: "password", placeholder: "Your super secure password" },
-      totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
-      backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
-    },
-    async authorize(credentials): Promise<User | null> {
-      log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
-      if (!credentials) {
-        console.error(`For some reason credentials are missing`);
-        throw new Error(ErrorCode.InternalServerError);
-      }
+/**
+ * Authorize function for credentials provider
+ * Extracted for testability
+ */
+export async function authorizeCredentials(
+  credentials: Record<"email" | "password" | "totpCode" | "backupCode", string> | undefined
+): Promise<User | null> {
+  log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
+  if (!credentials) {
+    console.error(`For some reason credentials are missing`);
+    throw new Error(ErrorCode.InternalServerError);
+  }
 
-      const userRepo = new UserRepository(prisma);
-      const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
-        email: credentials.email,
-      });
-      // Don't leak information about it being username or password that is invalid
-      if (!user) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
+  const userRepo = new UserRepository(prisma);
+  const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
+    email: credentials.email,
+  });
+  // Don't leak information about it being username or password that is invalid
+  if (!user) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
 
-      // Locked users cannot login
-      if (user.locked) {
-        throw new Error(ErrorCode.UserAccountLocked);
-      }
+  // Locked users cannot login
+  if (user.locked) {
+    throw new Error(ErrorCode.UserAccountLocked);
+  }
 
-      await checkRateLimitAndThrowError({
-        identifier: hashEmail(user.email),
-      });
+  await checkRateLimitAndThrowError({
+    identifier: hashEmail(user.email),
+  });
 
-      if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
-      if (!user.password?.hash && user.identityProvider == IdentityProvider.CAL) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
+  // Users without a password must use their identity provider (Google/SAML) to login
+  if (!user.password?.hash) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
 
-      if (user.password?.hash && !credentials.totpCode) {
-        if (!user.password?.hash) {
-          throw new Error(ErrorCode.IncorrectEmailPassword);
-        }
-        const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
-        if (!isCorrectPassword) {
-          throw new Error(ErrorCode.IncorrectEmailPassword);
-        }
-      }
+  // Always verify password for users who have one
+  const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
+  if (!isCorrectPassword) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
 
-      if (user.twoFactorEnabled && credentials.backupCode) {
-        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error("Missing encryption key; cannot proceed with backup code login.");
-          throw new Error(ErrorCode.InternalServerError);
-        }
+  if (user.twoFactorEnabled && credentials.backupCode) {
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error("Missing encryption key; cannot proceed with backup code login.");
+      throw new Error(ErrorCode.InternalServerError);
+    }
 
-        if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
+    if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
 
-        const backupCodes = JSON.parse(
-          symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY)
-        );
+    const backupCodes = JSON.parse(symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY));
 
-        // check if user-supplied code matches one
-        const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
-        if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
+    // check if user-supplied code matches one
+    const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
+    if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
 
-        // delete verified backup code and re-encrypt remaining
-        backupCodes[index] = null;
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
-          },
-        });
-      } else if (user.twoFactorEnabled) {
-        if (!credentials.totpCode) {
-          throw new Error(ErrorCode.SecondFactorRequired);
-        }
+    // delete verified backup code and re-encrypt remaining
+    backupCodes[index] = null;
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
+      },
+    });
+  } else if (user.twoFactorEnabled) {
+    if (!credentials.totpCode) {
+      throw new Error(ErrorCode.SecondFactorRequired);
+    }
 
-        if (!user.twoFactorSecret) {
-          console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
-          throw new Error(ErrorCode.InternalServerError);
-        }
+    if (!user.twoFactorSecret) {
+      console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
 
-        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error(`"Missing encryption key; cannot proceed with two factor login."`);
-          throw new Error(ErrorCode.InternalServerError);
-        }
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
 
-        const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
-        if (secret.length !== 32) {
-          console.error(
-            `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
-          );
-          throw new Error(ErrorCode.InternalServerError);
-        }
+    const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+    if (secret.length !== 32) {
+      console.error(
+        `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+      );
+      throw new Error(ErrorCode.InternalServerError);
+    }
 
-        const isValidToken = (await import("@calcom/lib/totp")).totpAuthenticatorCheck(
-          credentials.totpCode,
-          secret
-        );
-        if (!isValidToken) {
-          throw new Error(ErrorCode.IncorrectTwoFactorCode);
-        }
-      }
-      // Check if the user you are logging into has any active teams
-      const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
+    const isValidToken = (await import("@calcom/lib/totp")).totpAuthenticatorCheck(
+      credentials.totpCode,
+      secret
+    );
+    if (!isValidToken) {
+      throw new Error(ErrorCode.IncorrectTwoFactorCode);
+    }
+  }
+  // Check if the user you are logging into has any active teams
+  const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
 
-      // authentication success- but does it meet the minimum password requirements?
-      const validateRole = (role: UserPermissionRole) => {
-        // User's role is not "ADMIN"
-        if (role !== UserPermissionRole.ADMIN) return role;
-        // User's identity provider is not "CAL"
-        if (user.identityProvider !== IdentityProvider.CAL) return role;
+  // authentication success- but does it meet the minimum password requirements?
+  const validateRole = (role: UserPermissionRole) => {
+    // User's role is not "ADMIN"
+    if (role !== UserPermissionRole.ADMIN) return role;
+    // User's identity provider is not "CAL"
+    if (user.identityProvider !== IdentityProvider.CAL) return role;
 
-        if (process.env.NEXT_PUBLIC_IS_E2E) {
-          console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
-          return role;
-        }
+    if (process.env.NEXT_PUBLIC_IS_E2E) {
+      console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+      return role;
+    }
 
-        // User's password is valid and two-factor authentication is enabled
-        if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
-        // Code is running in a development environment
-        if (isENVDev) return role;
-        // By this point it is an ADMIN without valid security conditions
-        return "INACTIVE_ADMIN";
-      };
+    // User's password is valid and two-factor authentication is enabled
+    if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
+    // Code is running in a development environment
+    if (isENVDev) return role;
+    // By this point it is an ADMIN without valid security conditions
+    return "INACTIVE_ADMIN";
+  };
 
-      // Create a NextAuth compatible user object using our presenter
-      return AdapterUserPresenter.fromCalUser(user, validateRole(user.role), hasActiveTeams);
-    },
-  }),
-  ImpersonationProvider,
-];
+  // Create a NextAuth compatible user object using our presenter
+  return AdapterUserPresenter.fromCalUser(user, validateRole(user.role), hasActiveTeams);
+}
+
+export const CalComCredentialsProvider = CredentialsProvider({
+  id: "credentials",
+  name: "Cal.com",
+  type: "credentials",
+  credentials: {
+    email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
+    password: { label: "Password", type: "password", placeholder: "Your super secure password" },
+    totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
+    backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
+  },
+  authorize: authorizeCredentials,
+});
+
+const providers: Provider[] = [CalComCredentialsProvider, ImpersonationProvider];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
   providers.push(
@@ -389,7 +388,8 @@ if (isSAMLLoginEnabled) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
             const domain = getDomainFromEmail(email);
-            const org = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+            const organizationRepository = getOrganizationRepository();
+            const org = await organizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
             if (org) {
               const createUsersAndConnectToOrgProps = {
                 emailsToCreate: [email],
@@ -407,7 +407,7 @@ if (isSAMLLoginEnabled) {
           }
           if (!user) throw new Error(ErrorCode.UserNotFound);
         }
-        const [userProfile] = user?.allProfiles;
+        const [userProfile] = user?.allProfiles ?? [];
         return {
           id: id as unknown as number,
           firstName,
@@ -556,7 +556,7 @@ export const getOptions = ({
         );
         const { upId } = determineProfile({ profiles: allProfiles, token });
 
-        const profile = await ProfileRepository.findByUpId(upId);
+        const profile = await ProfileRepository.findByUpIdWithAuth(upId, existingUser.id);
         if (!profile) {
           throw new Error("Profile not found");
         }
@@ -961,7 +961,7 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email)),
+                username: getOrgUsernameFromEmail(user.email, getDomainFromEmail(user.email)),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,

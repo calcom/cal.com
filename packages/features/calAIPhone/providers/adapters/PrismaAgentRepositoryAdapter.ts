@@ -1,4 +1,4 @@
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
+import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import prisma from "@calcom/prisma";
 
 import type {
@@ -89,5 +89,10 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
   async linkInboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void> {
     const agentRepo = new PrismaAgentRepository(prisma);
     await agentRepo.linkInboundAgentToWorkflow(params);
+  }
+
+  async updateOutboundEventTypeId(params: { agentId: string; eventTypeId: number }): Promise<void> {
+    const agentRepo = new PrismaAgentRepository(prisma);
+    await agentRepo.updateOutboundEventTypeId(params);
   }
 }

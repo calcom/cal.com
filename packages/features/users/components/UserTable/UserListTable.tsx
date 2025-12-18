@@ -3,9 +3,11 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
+import posthog from "posthog-js";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
@@ -126,8 +128,10 @@ export type UserListTableProps = {
 };
 
 export function UserListTable(props: UserListTableProps) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
@@ -168,8 +172,6 @@ function UserListTableContent({
     }
   );
 
-  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const totalRowCount = data?.meta?.totalRowCount ?? 0;
   const adminOrOwner = checkAdminOrOwner(org?.user?.role);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
@@ -201,10 +203,10 @@ function UserListTableContent({
           const filterType = isNumber
             ? ColumnFilterType.NUMBER
             : isText
-            ? ColumnFilterType.TEXT
-            : isSingleSelect
-            ? ColumnFilterType.SINGLE_SELECT
-            : ColumnFilterType.MULTI_SELECT;
+              ? ColumnFilterType.TEXT
+              : isSingleSelect
+                ? ColumnFilterType.SINGLE_SELECT
+                : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -448,16 +450,19 @@ function UserListTableContent({
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
-            canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
-            canRemove: permissionsRaw.canRemove && !isSelf,
+            canEdit:
+              ((permissionsRaw.canEdit ?? false) || (permissions?.canEditAttributesForUser ?? false)) &&
+              user.accepted &&
+              !isSelf,
+            canRemove: (permissionsRaw.canRemove ?? false) && !isSelf,
             canImpersonate:
               user.accepted &&
               !user.disableImpersonation &&
               !isSelf &&
               !!org?.canAdminImpersonate &&
-              permissionsRaw.canImpersonate,
+              (permissionsRaw.canImpersonate ?? false),
             canLeave: user.accepted && isSelf,
-            canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
+            canResendInvitation: (permissionsRaw.canResendInvitation ?? false) && !user.accepted,
           };
 
           return (
@@ -514,7 +519,7 @@ function UserListTableContent({
                 value: team.name,
               }))
             );
-          default:
+          default: {
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
               return convertFacetedValuesToMap(
@@ -525,6 +530,7 @@ function UserListTableContent({
               );
             }
             return new Map();
+          }
         }
       }
       return new Map();
@@ -611,12 +617,12 @@ function UserListTableContent({
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
+          <DataTableSelectionBar.Root className="bottom-[7.3rem]! md:bottom-32!">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
+          <DataTableSelectionBar.Root className="bottom-16! justify-center md:w-max">
             <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
@@ -631,7 +637,7 @@ function UserListTableContent({
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                {(permissions?.canEditAttributesForUser ?? adminOrOwner) && (
                   <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
                 )}
                 {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
@@ -653,7 +659,15 @@ function UserListTableContent({
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
-      {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
+      {state.editSheet.showModal && (
+        <EditUserSheet
+          dispatch={dispatch}
+          state={state}
+          canViewAttributes={permissions?.canViewAttributes}
+          canEditAttributesForUser={permissions?.canEditAttributesForUser}
+          canChangeMemberRole={permissions?.canChangeMemberRole ?? adminOrOwner}
+        />
+      )}
 
       {ctaContainerRef.current &&
         createPortal(
@@ -672,14 +686,15 @@ function UserListTableContent({
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                onClick={() =>
+                onClick={() => {
                   dispatch({
                     type: "INVITE_MEMBER",
                     payload: {
                       showModal: true,
                     },
-                  })
-                }
+                  });
+                  posthog.capture("add_organization_member_clicked")
+                }}
                 data-testid="new-organization-member-button">
                 {t("add")}
               </DataTableToolbar.CTA>

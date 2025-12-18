@@ -1,4 +1,4 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
@@ -10,7 +10,8 @@ import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-util
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
-type CommonParams = { bookingFields: BookingFields; view: View };
+type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
+type CommonParams = { bookingFields: BookingFields; view: View; translateFn?: TranslationFunction };
 
 export const bookingResponse = dbReadResponseSchema;
 export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
@@ -23,24 +24,35 @@ const ensureValidPhoneNumber = (value: string) => {
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
 };
-export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
+export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
-  return preprocess({ schema, bookingFields, isPartialSchema: true, view });
+  return preprocess({ schema, bookingFields, isPartialSchema: true, view, translateFn });
 };
 
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema({ bookingFields, view }: CommonParams) {
+export default function getBookingResponsesSchema({ bookingFields, view, translateFn }: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view });
+  return preprocess({ schema, bookingFields, isPartialSchema: false, view, translateFn });
 }
 
 // Should be used when we want to check if the optional fields are entered and valid as well
-export function getBookingResponsesSchemaWithOptionalChecks({ bookingFields, view }: CommonParams) {
+export function getBookingResponsesSchemaWithOptionalChecks({
+  bookingFields,
+  view,
+  translateFn,
+}: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view, checkOptional: true });
+  return preprocess({
+    schema,
+    bookingFields,
+    isPartialSchema: false,
+    view,
+    checkOptional: true,
+    translateFn,
+  });
 }
 
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
@@ -51,6 +63,7 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema,
   view: currentView,
   checkOptional = false,
+  translateFn,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
@@ -150,7 +163,10 @@ function preprocess<T extends z.ZodType>({
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
-        const m = (message: string) => `{${bookingField.name}}${message}`;
+        const m = (message: string, options?: Record<string, unknown>) => {
+          const translatedMessage = translateFn ? translateFn(message, options) : message;
+          return `{${bookingField.name}}${translatedMessage}`;
+        };
         const views = bookingField.views;
         const isFieldApplicableToCurrentView =
           currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;

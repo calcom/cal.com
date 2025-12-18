@@ -1,7 +1,6 @@
 "use client";
 
 import type { Row, VisibilityState } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect, useRef } from "react";
 
@@ -21,8 +20,12 @@ type BaseDataTableWrapperProps<TData> = Omit<
   ToolbarRight?: React.ReactNode;
   EmptyView?: React.ReactNode;
   LoaderView?: React.ReactNode;
+  ErrorView?: React.ReactNode;
+  hasError?: boolean;
   tableContainerRef?: React.RefObject<HTMLDivElement>;
   onRowMouseclick?: (row: Row<TData>) => void;
+  rowTestId?: string | ((row: Row<TData>) => string | undefined);
+  rowDataAttributes?: (row: Row<TData>) => Record<string, string> | undefined;
 };
 
 type InfinitePaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
@@ -55,14 +58,21 @@ export function DataTableWrapper<TData>({
   ToolbarRight,
   EmptyView,
   LoaderView,
+  ErrorView,
+  hasError,
   className,
   containerClassName,
   headerClassName,
   rowClassName,
+  rowTestId,
+  rowDataAttributes,
   children,
   tableContainerRef: externalRef,
   paginationMode,
   onRowMouseclick,
+  hideSeparatorsOnSort,
+  hideSeparatorsOnFilter,
+  separatorClassName,
 }: DataTableWrapperProps<TData>) {
   const internalRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = externalRef || internalRef;
@@ -78,7 +88,7 @@ export function DataTableWrapper<TData>({
 
   useEffect(() => {
     const mergedColumnVisibility = {
-      ...(table.initialState?.columnVisibility || {}),
+      ...table.initialState?.columnVisibility,
       ...columnVisibility,
     } satisfies VisibilityState;
 
@@ -95,8 +105,16 @@ export function DataTableWrapper<TData>({
     }));
   }, [table, sorting, columnFilters, columnVisibility, setSorting, setColumnVisibility]);
 
-  let view: "loader" | "empty" | "table" = "table";
-  if (isPending && LoaderView) {
+  // Scroll to top when table data changes
+  useScrollToTopOnDataChange({
+    tableData: table.options.data,
+    paginationMode,
+  });
+
+  let view: "loader" | "empty" | "error" | "table" = "table";
+  if (hasError && ErrorView) {
+    view = "error";
+  } else if (isPending && LoaderView) {
     view = "loader";
   } else if (table.getRowCount() === 0 && EmptyView) {
     view = "empty";
@@ -116,6 +134,7 @@ export function DataTableWrapper<TData>({
           {children}
         </div>
       )}
+      {view === "error" && ErrorView}
       {view === "loader" && LoaderView}
       {view === "empty" && EmptyView}
       {view === "table" && (
@@ -131,9 +150,14 @@ export function DataTableWrapper<TData>({
           containerClassName={containerClassName}
           headerClassName={headerClassName}
           rowClassName={rowClassName}
+          rowTestId={rowTestId}
+          rowDataAttributes={rowDataAttributes}
           paginationMode={paginationMode}
           onRowMouseclick={onRowMouseclick}
           hasWrapperContext={true}
+          hideSeparatorsOnSort={hideSeparatorsOnSort}
+          hideSeparatorsOnFilter={hideSeparatorsOnFilter}
+          separatorClassName={separatorClassName}
           onScroll={
             paginationMode === "infinite"
               ? (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) =>
@@ -151,4 +175,34 @@ export function DataTableWrapper<TData>({
       )}
     </>
   );
+}
+
+/**
+ * Scrolls to top when table data changes (pagination, filters, etc.)
+ * Only active for standard pagination mode where we show discrete pages
+ */
+function useScrollToTopOnDataChange<TData>({
+  tableData,
+  paginationMode,
+}: {
+  tableData: TData[];
+  paginationMode: "standard" | "infinite";
+}) {
+  const previousDataRef = useRef(tableData);
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    // Skip on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const hasDataChanged = previousDataRef.current !== tableData;
+    previousDataRef.current = tableData;
+
+    if (paginationMode === "standard" && hasDataChanged) {
+      window.scrollTo(0, 0);
+    }
+  }, [tableData, paginationMode]);
 }

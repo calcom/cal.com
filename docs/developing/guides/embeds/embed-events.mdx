@@ -2,37 +2,25 @@
 title: Embed Events
 ---
 
-## Actions
+<Info>
+For comprehensive documentation on embed events including usage examples and all available events, please refer to the [Cal.com Help Center - Embed Events](https://cal.com/help/embedding/embed-events).
+</Info>
 
-You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term "events" to not confuse it with Cal Events.
+## Internal Events
 
-```js
-<script>
-  Cal("on", {
-    action: "ANY_ACTION_NAME",
-    callback: (e)=>{
-      // `data` is properties for the event.
-      // `type` is the name of the action(You can also call it type of the action.) This would be same as "ANY_ACTION_NAME" except when ANY_ACTION_NAME="*" which listens to all the events.
-      // `namespace` tells you the Cal namespace for which the event is fired/
-      const {data, type, namespace} = e.detail;
-    }
-  })
-</script>
-```
-
-## Following are the list of supported actions.
+These events are used internally by the embed system for communication between the iframe and parent window. They are prefixed with `__` and are not intended for external use.
 
 | Action               | Description                                                                                           | Properties                                                                                                                       |
 |----------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| eventTypeSelected    | When user chooses an event-type from the listing.                                                     | `eventType: object` // Event Type that has been selected                                                                         |
-| bookingSuccessful    | When the booking is successfully done. It might not be confirmed.                                     | `confirmed: boolean` // Whether confirmation from organizer is pending or not <br /> `eventType: object` // Event Type that has been booked <br /> `date: string` // Date of Event <br /> `duration: number` // Duration of booked Event <br /> `organizer: object` // Organizer details like name, timezone, email |
-| linkReady            | Tells that the link is ready to be shown now.                                                         | None                                                                                                                             |
-| linkFailed           | Fired if link fails to load.                                                                          | `code: number` // Error Code <br /> `msg: string` // Human Readable message <br /> `data: object` // More details to debug the error |
-| __iframeReady        | It is fired when the embedded iframe is ready to communicate with parent snippet. This is mostly for internal use by Embed Snippet. | None                                                                                                                             |
+| __iframeReady        | Fired when the embedded iframe is ready to communicate with parent snippet.                           | `isPrerendering: boolean` // Whether the iframe is in prerender mode                                                             |
 | __windowLoadComplete | Tells that window load for iframe is complete.                                                        | None                                                                                                                             |
-| __dimensionChanged   | Tells that dimensions of the content inside the iframe changed.                                       | `iframeWidth: number` <br /> `iframeHeight: number`                                                                           |
+| __dimensionChanged   | Tells that dimensions of the content inside the iframe changed.                                       | `iframeWidth: number` <br /> `iframeHeight: number` <br /> `isFirstTime: boolean` // Whether this is the first dimension change |
+| __routeChanged       | Fired when the route changes within the iframe.                                                       | None                                                                                                                             |
+| __closeIframe        | Fired when the iframe should be closed.                                                               | None                                                                                                                             |
+| __connectInitiated   | Fired when connection to a prerendered iframe is initiated.                                           | None                                                                                                                             |
+| __connectCompleted   | Fired when connection to a prerendered iframe is completed.                                           | None                                                                                                                             |
+| __scrollByDistance   | Instructs the parent to scroll by a specific distance.                                                | `distance: number` // Distance in pixels to scroll by                                                                            |
 
-
-<Info>Actions that start with __ are internal.</Info>
+<Info>Events that start with `__` are internal and should not be relied upon for external integrations as they may change without notice.</Info>
 
 To get more details on how Embed actually works, you can refer to this [Embed Flowchart](https://www.figma.com/file/zZ5oaUpg12Fuu5mGZrPlP5/Embed-Flowchart).

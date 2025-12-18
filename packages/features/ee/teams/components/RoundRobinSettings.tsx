@@ -26,12 +26,22 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
   const rrResetInterval = team?.rrResetInterval ?? undefined;
   const utils = trpc.useUtils();
 
+  const initialResetInterval = rrResetInterval ?? RRResetInterval.MONTH;
+  const initialTimestampBasis = team?.rrTimestampBasis ?? RRTimestampBasis.CREATED_AT;
+
   const form = useForm<{ rrResetInterval: RRResetInterval; rrTimestampBasis: RRTimestampBasis }>({
     defaultValues: {
-      rrResetInterval: rrResetInterval ?? RRResetInterval.MONTH,
-      rrTimestampBasis: team?.rrTimestampBasis ?? RRTimestampBasis.CREATED_AT,
+      rrResetInterval: initialResetInterval,
+      rrTimestampBasis: initialTimestampBasis,
     },
   });
+
+  const [watchedResetInterval, watchedTimestampBasis] = form.watch([
+    "rrResetInterval",
+    "rrTimestampBasis",
+  ]);
+  const hasChanges =
+    watchedResetInterval !== initialResetInterval || watchedTimestampBasis !== initialTimestampBasis;
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -85,7 +95,7 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
         </div>
       </div>
       <SectionBottomActions align="end">
-        <Button type="submit" color="primary" loading={mutation.isPending}>
+        <Button type="submit" disabled={!hasChanges} color="primary" loading={mutation.isPending}>
           {t("update")}
         </Button>
       </SectionBottomActions>

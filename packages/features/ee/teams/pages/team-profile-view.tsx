@@ -11,10 +11,10 @@ import { z } from "zod";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
+import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
@@ -48,25 +48,12 @@ import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-na
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
-const teamProfileFormSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  slug: z
-    .string()
-    .regex(regex, {
-      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
-    })
-    .min(1, { message: "Url cannot be left empty" }),
-  logo: z.string().nullable(),
-  bio: z.string(),
-});
 
-type FormValues = z.infer<typeof teamProfileFormSchema>;
 
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
+      <div className="border-subtle stack-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -174,7 +161,7 @@ const ProfileView = () => {
         <TeamProfileForm team={team} teamId={teamId} />
       ) : (
         <div className="border-subtle flex rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
-          <div className="flex-grow">
+          <div className="grow">
             <div>
               <Label className="text-emphasis">{t("team_name")}</Label>
               <p className="text-default text-sm">{team?.name}</p>
@@ -183,8 +170,7 @@ const ProfileView = () => {
               <>
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
-                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
+                  className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}
                 />
               </>
@@ -267,6 +253,24 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
   const { t } = useLocale();
   const router = useRouter();
 
+  const teamProfileFormSchema = z.object({
+  id: z.number(),
+  name: z
+    .string()
+    .trim()
+    .min(1,t("must_enter_team_name")),
+  slug: z
+    .string()
+    .regex(regex, {
+      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
+    })
+    .min(1, t("team_url_required")),
+  logo: z.string().nullable(),
+  bio: z.string(),
+});
+
+type FormValues = z.infer<typeof teamProfileFormSchema>;
+
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
@@ -333,7 +337,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
     try {
       await navigator.clipboard.writeText(value);
       showToast(t("team_id_copied"), "success");
-    } catch (error) {
+    } catch {
       showToast(t("error_copying_to_clipboard"), "error");
     }
   };

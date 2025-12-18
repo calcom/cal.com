@@ -1,7 +1,8 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BillingProcessor } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingController } from "@/modules/billing/controllers/billing.controller";
+import { IsUserInBillingOrg } from "@/modules/billing/guards/is-user-in-billing-org";
 import { BillingServiceCachingProxy } from "@/modules/billing/services/billing-service-caching-proxy";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { BillingService } from "@/modules/billing/services/billing.service";
@@ -44,6 +45,7 @@ import { Module } from "@nestjs/common";
     ManagedOrganizationsBillingService,
     OAuthClientRepository,
     BookingsRepository_2024_08_13,
+    IsUserInBillingOrg,
   ],
   exports: [BillingService, BillingRepository, ManagedOrganizationsBillingService],
   controllers: [BillingController],

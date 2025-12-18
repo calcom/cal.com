@@ -2,9 +2,9 @@ import { lookup } from "dns";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { isNotACompanyEmail } from "@calcom/ee/organizations/lib/server/orgCreationUtils";
-import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
+import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import {
@@ -44,6 +44,7 @@ const getIPAddress = async (url: string): Promise<string> => {
  * TODO: To be removed. We need to reuse the logic from orgCreationUtils like in intentToCreateOrgHandler
  */
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
+  const organizationRepository = getOrganizationRepository();
   const {
     slug,
     name,
@@ -183,11 +184,13 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     logoUrl: null,
     bio: null,
     paymentSubscriptionId: null,
+    brandColor: null,
+    bannerUrl: null,
   };
 
   // Create a new user and invite them as the owner of the organization
   if (!orgOwner) {
-    const data = await OrganizationRepository.createWithNonExistentOwner({
+    const data = await organizationRepository.createWithNonExistentOwner({
       orgData,
       owner: {
         email: orgOwnerEmail,
@@ -244,7 +247,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     const nonOrgUsernameForOwner = orgOwner.username || "";
-    const { organization, ownerProfile } = await OrganizationRepository.createWithExistingUserAsOwner({
+    const { organization, ownerProfile } = await organizationRepository.createWithExistingUserAsOwner({
       orgData,
       owner: {
         id: orgOwner.id,
