@@ -21,7 +21,7 @@ import VerifyEmailBanner, {
 import {
   TeamsUpgradeBanner,
   type TeamsUpgradeBannerProps,
-} from "@calcom/web/modules/settings/teams/components/TeamsUpgradeBanner";
+} from "@calcom/web/modules/teams/components/TeamsUpgradeBanner";
 
 type BannerTypeProps = {
   teamUpgradeBanner: TeamsUpgradeBannerProps;

@@ -3,7 +3,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-import { CreateANewTeamForm } from "@calcom/web/modules/settings/teams/components/CreateANewTeamForm";
+import { CreateANewTeamForm } from "@calcom/web/modules/teams/components/CreateANewTeamForm";
 
 interface CreateTeamDialogProps {
   open: boolean;

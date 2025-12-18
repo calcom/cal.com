@@ -9,7 +9,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { WizardLayout } from "@calcom/ui/components/layout";
-import { CreateANewTeamForm } from "@calcom/web/modules/settings/teams/components/CreateANewTeamForm";
+import { CreateANewTeamForm } from "@calcom/web/modules/teams/components/CreateANewTeamForm";
 
 const querySchema = z.object({
   returnTo: z.string().optional(),
