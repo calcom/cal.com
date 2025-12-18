@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -8,6 +8,16 @@ import { FeatureOptInService } from "./FeatureOptInService";
 
 // Helper to generate unique identifiers per test
 const uniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+// Store cleanup functions to ensure they run even if tests fail
+const cleanupFunctions: Array<() => Promise<void>> = [];
+
+afterEach(async () => {
+  for (const cleanup of cleanupFunctions) {
+    await cleanup();
+  }
+  cleanupFunctions.length = 0;
+});
 
 // Access private clearCache method through type assertion
 const clearFeaturesCache = (repo: FeaturesRepository) => {
@@ -23,7 +33,6 @@ interface TestEntities {
   service: FeatureOptInService;
   createdFeatures: string[];
   setupFeature: (enabled?: boolean) => Promise<FeatureId>;
-  cleanup: () => Promise<void>;
 }
 
 /**
@@ -87,7 +96,7 @@ async function setup(): Promise<TestEntities> {
     return featureSlug;
   };
 
-  // Cleanup function to be called after test completes
+  // Cleanup function - automatically registered with afterEach
   const cleanup = async () => {
     // Clean up in correct order to respect foreign key constraints
     await prisma.userFeatures.deleteMany({
@@ -113,6 +122,9 @@ async function setup(): Promise<TestEntities> {
     });
   };
 
+  // Register cleanup to run automatically after each test
+  cleanupFunctions.push(cleanup);
+
   return {
     user,
     org,
@@ -122,7 +134,6 @@ async function setup(): Promise<TestEntities> {
     service,
     createdFeatures,
     setupFeature,
-    cleanup,
   };
 }
 
@@ -130,7 +141,7 @@ describe("FeatureOptInService Integration Tests", () => {
   describe("resolveFeatureStatesAcrossTeams", () => {
     describe("global feature disabled", () => {
       it("should return effectiveEnabled=false regardless of other states", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(false);
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
@@ -142,13 +153,12 @@ describe("FeatureOptInService Integration Tests", () => {
         const status = statusMap[testFeature];
 
         expect(status.effectiveEnabled).toBe(false);
-        await cleanup();
       });
     });
 
     describe("org disabled", () => {
       it("should return effectiveEnabled=false regardless of team and user states", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org explicitly disables
@@ -191,13 +201,12 @@ describe("FeatureOptInService Integration Tests", () => {
 
         expect(status.orgState).toBe("disabled");
         expect(status.effectiveEnabled).toBe(false);
-        await cleanup();
       });
     });
 
     describe("org enabled", () => {
       it("should return effectiveEnabled=false when all teams are disabled", async () => {
-        const { user, org, team, team2, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, team2, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
@@ -239,11 +248,10 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual(["disabled", "disabled"]);
         expect(status.effectiveEnabled).toBe(false);
-        await cleanup();
       });
 
       it("should return effectiveEnabled=true when at least one team is enabled and user inherits", async () => {
-        const { user, org, team, team2, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, team2, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
@@ -275,11 +283,10 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("enabled");
         expect(status.userState).toBe("inherit");
         expect(status.effectiveEnabled).toBe(true);
-        await cleanup();
       });
 
       it("should return effectiveEnabled=false when user explicitly disables", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
@@ -322,11 +329,10 @@ describe("FeatureOptInService Integration Tests", () => {
 
         expect(status.userState).toBe("disabled");
         expect(status.effectiveEnabled).toBe(false);
-        await cleanup();
       });
 
       it("should return effectiveEnabled=true when teams inherit from enabled org", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
@@ -352,13 +358,12 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual(["inherit"]);
         expect(status.effectiveEnabled).toBe(true);
-        await cleanup();
       });
     });
 
     describe("org inherits (or no org)", () => {
       it("should return effectiveEnabled=false when all teams are disabled", async () => {
-        const { user, team, service, setupFeature, cleanup } = await setup();
+        const { user, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Team disables
@@ -382,11 +387,10 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("inherit");
         expect(status.teamStates).toEqual(["disabled"]);
         expect(status.effectiveEnabled).toBe(false);
-        await cleanup();
       });
 
       it("should return effectiveEnabled=true when at least one team is enabled", async () => {
-        const { user, team, service, setupFeature, cleanup } = await setup();
+        const { user, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // One team enables
@@ -409,11 +413,10 @@ describe("FeatureOptInService Integration Tests", () => {
 
         expect(status.teamStates).toEqual(["enabled"]);
         expect(status.effectiveEnabled).toBe(true);
-        await cleanup();
       });
 
       it("should return effectiveEnabled=false when teams only inherit (no explicit enablement)", async () => {
-        const { user, team, service, setupFeature, cleanup } = await setup();
+        const { user, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // No org, team inherits (no row)
@@ -428,13 +431,12 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("inherit");
         expect(status.teamStates).toEqual(["inherit"]);
         expect(status.effectiveEnabled).toBe(false);
-        await cleanup();
       });
     });
 
     describe("no teams", () => {
       it("should return effectiveEnabled=true when org is enabled and user inherits", async () => {
-        const { user, org, service, setupFeature, cleanup } = await setup();
+        const { user, org, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
@@ -458,14 +460,13 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual([]);
         expect(status.effectiveEnabled).toBe(true);
-        await cleanup();
       });
     });
   });
 
   describe("setUserFeatureState", () => {
     it("should delete the row when state is 'inherit'", async () => {
-      const { user, service, setupFeature, cleanup } = await setup();
+      const { user, service, setupFeature } = await setup();
       const testFeature = await setupFeature(true);
 
       // First create a row
@@ -494,11 +495,10 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       expect(row).toBeNull();
-      await cleanup();
     });
 
     it("should upsert with enabled=true when state is 'enabled'", async () => {
-      const { user, service, setupFeature, cleanup } = await setup();
+      const { user, service, setupFeature } = await setup();
       const testFeature = await setupFeature(true);
 
       await service.setUserFeatureState({
@@ -517,11 +517,10 @@ describe("FeatureOptInService Integration Tests", () => {
 
       expect(row).not.toBeNull();
       expect(row?.enabled).toBe(true);
-      await cleanup();
     });
 
     it("should upsert with enabled=false when state is 'disabled'", async () => {
-      const { user, service, setupFeature, cleanup } = await setup();
+      const { user, service, setupFeature } = await setup();
       const testFeature = await setupFeature(true);
 
       await service.setUserFeatureState({
@@ -540,13 +539,12 @@ describe("FeatureOptInService Integration Tests", () => {
 
       expect(row).not.toBeNull();
       expect(row?.enabled).toBe(false);
-      await cleanup();
     });
   });
 
   describe("setTeamFeatureState", () => {
     it("should delete the row when state is 'inherit'", async () => {
-      const { user, team, service, setupFeature, cleanup } = await setup();
+      const { user, team, service, setupFeature } = await setup();
       const testFeature = await setupFeature(true);
 
       // First create a row
@@ -577,11 +575,10 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       expect(row).toBeNull();
-      await cleanup();
     });
 
     it("should upsert with enabled=true when state is 'enabled'", async () => {
-      const { user, team, service, setupFeature, cleanup } = await setup();
+      const { user, team, service, setupFeature } = await setup();
       const testFeature = await setupFeature(true);
 
       await service.setTeamFeatureState({
@@ -602,11 +599,10 @@ describe("FeatureOptInService Integration Tests", () => {
 
       expect(row).not.toBeNull();
       expect(row?.enabled).toBe(true);
-      await cleanup();
     });
 
     it("should upsert with enabled=false when state is 'disabled'", async () => {
-      const { user, team, service, setupFeature, cleanup } = await setup();
+      const { user, team, service, setupFeature } = await setup();
       const testFeature = await setupFeature(true);
 
       await service.setTeamFeatureState({
@@ -627,14 +623,13 @@ describe("FeatureOptInService Integration Tests", () => {
 
       expect(row).not.toBeNull();
       expect(row?.enabled).toBe(false);
-      await cleanup();
     });
   });
 
   describe("auto-opt-in scenarios", () => {
     describe("user autoOptInFeatures", () => {
       it("should transform user state from 'inherit' to 'enabled' when user has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
@@ -675,11 +670,10 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.userState).toBe("inherit"); // Raw state is still inherit
         expect(status.userAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(true); // But effective is true due to auto-opt-in
-        await cleanup();
       });
 
       it("should NOT transform explicit 'disabled' state when user has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
@@ -729,13 +723,12 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.userState).toBe("disabled");
         expect(status.userAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(false); // Explicit disabled takes precedence
-        await cleanup();
       });
     });
 
     describe("team autoOptInFeatures", () => {
       it("should transform team state from 'inherit' to 'enabled' when team has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for team
@@ -766,11 +759,10 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.teamStates).toEqual(["inherit"]); // Raw state is still inherit
         expect(status.teamAutoOptIns).toEqual([true]);
         expect(status.effectiveEnabled).toBe(true); // Effective is true due to team auto-opt-in
-        await cleanup();
       });
 
       it("should NOT transform explicit 'disabled' state when team has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for team
@@ -810,13 +802,12 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.teamStates).toEqual(["disabled"]);
         expect(status.teamAutoOptIns).toEqual([true]);
         expect(status.effectiveEnabled).toBe(false); // Explicit disabled takes precedence
-        await cleanup();
       });
     });
 
     describe("org autoOptInFeatures", () => {
       it("should transform org state from 'inherit' to 'enabled' when org has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for org
@@ -838,11 +829,10 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("inherit"); // Raw state is still inherit
         expect(status.orgAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(true); // Effective is true due to org auto-opt-in
-        await cleanup();
       });
 
       it("should NOT transform explicit 'disabled' state when org has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for org
@@ -872,13 +862,12 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("disabled");
         expect(status.orgAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(false); // Explicit disabled takes precedence
-        await cleanup();
       });
     });
 
     describe("auto-opt-in with org disabled blocking", () => {
       it("should return effectiveEnabled=false when user auto-opts-in but org is disabled", async () => {
-        const { user, org, team, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
@@ -909,13 +898,12 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.userState).toBe("inherit");
         expect(status.userAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(false); // Org disabled blocks everything
-        await cleanup();
       });
     });
 
     describe("auto-opt-in flags in response", () => {
       it("should return correct auto-opt-in flags for all levels", async () => {
-        const { user, org, team, team2, service, setupFeature, cleanup } = await setup();
+        const { user, org, team, team2, service, setupFeature } = await setup();
         const testFeature = await setupFeature(true);
 
         // Set up different auto-opt-in states
@@ -950,7 +938,6 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.userAutoOptIn).toBe(true);
         expect(status.orgAutoOptIn).toBe(false);
         expect(status.teamAutoOptIns).toEqual([true, false]);
-        await cleanup();
       });
     });
   });

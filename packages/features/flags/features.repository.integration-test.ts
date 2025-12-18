@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { prisma } from "@calcom/prisma";
 
@@ -8,13 +8,22 @@ import { FeaturesRepository } from "./features.repository";
 // Helper to generate unique identifiers per test
 const uniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
+// Store cleanup functions to ensure they run even if tests fail
+const cleanupFunctions: Array<() => Promise<void>> = [];
+
+afterEach(async () => {
+  for (const cleanup of cleanupFunctions) {
+    await cleanup();
+  }
+  cleanupFunctions.length = 0;
+});
+
 interface TestEntities {
   user: { id: number };
   team: { id: number };
   testFeature: FeatureId;
   featuresRepository: FeaturesRepository;
   clearCache: () => void;
-  cleanup: () => Promise<void>;
 }
 
 /**
@@ -48,7 +57,7 @@ async function setup(): Promise<TestEntities> {
     (featuresRepository as unknown as { clearCache: () => void }).clearCache();
   };
 
-  // Cleanup function to be called after test completes
+  // Cleanup function - automatically registered with afterEach
   const cleanup = async () => {
     // Clean up in correct order to respect foreign key constraints
     await prisma.userFeatures.deleteMany({
@@ -71,20 +80,22 @@ async function setup(): Promise<TestEntities> {
     });
   };
 
+  // Register cleanup to run automatically after each test
+  cleanupFunctions.push(cleanup);
+
   return {
     user,
     team,
     testFeature,
     featuresRepository,
     clearCache,
-    cleanup,
   };
 }
 
 describe("FeaturesRepository Integration Tests", () => {
   describe("checkIfFeatureIsEnabledGlobally", () => {
     it("should return false when feature is not enabled globally", async () => {
-      const { testFeature, featuresRepository, cleanup } = await setup();
+      const { testFeature, featuresRepository } = await setup();
 
       // Verify database state
       const dbFeature = await prisma.feature.findUnique({
@@ -97,12 +108,10 @@ describe("FeaturesRepository Integration Tests", () => {
       // Second call to get actual result
       const result = await featuresRepository.checkIfFeatureIsEnabledGlobally(testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when feature is enabled globally", async () => {
-      const { testFeature, featuresRepository, clearCache, cleanup } = await setup();
+      const { testFeature, featuresRepository, clearCache } = await setup();
 
       // Create the feature with enabled set to true
       await prisma.feature.create({
@@ -128,23 +137,19 @@ describe("FeaturesRepository Integration Tests", () => {
       // Second call to get actual result
       const result = await featuresRepository.checkIfFeatureIsEnabledGlobally(testFeature);
       expect(result).toBe(true);
-
-      await cleanup();
     });
   });
 
   describe("checkIfUserHasFeature", () => {
     it("should return false when user does not have feature", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       const result = await featuresRepository.checkIfUserHasFeature(user.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return false when no UserFeatures row and no TeamFeatures row exist (tri-state inheritance)", async () => {
-      const { user, team, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, team, testFeature, featuresRepository } = await setup();
 
       // Create the feature globally
       await prisma.feature.create({
@@ -168,12 +173,10 @@ describe("FeaturesRepository Integration Tests", () => {
       // No UserFeatures row, no TeamFeatures row - should return false
       const result = await featuresRepository.checkIfUserHasFeature(user.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when user has feature directly assigned", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -194,12 +197,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeature(user.id, testFeature);
       expect(result).toBe(true);
-
-      await cleanup();
     });
 
     it("should return false when user has feature with enabled=false (tri-state)", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -220,12 +221,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeature(user.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return false when user has enabled=false even if team has feature (tri-state blocks inheritance)", async () => {
-      const { user, team, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -267,12 +266,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeature(user.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when user belongs to team with feature", async () => {
-      const { user, team, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -302,12 +299,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeature(user.id, testFeature);
       expect(result).toBe(true);
-
-      await cleanup();
     });
 
     it("should return false when user belongs to team with feature disabled (tri-state)", async () => {
-      const { user, team, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -338,12 +333,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeature(user.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when user belongs to team where parent team has feature", async () => {
-      const { user, team, testFeature, featuresRepository, clearCache, cleanup } = await setup();
+      const { user, team, testFeature, featuresRepository, clearCache } = await setup();
 
       // Create an organization
       const org = await prisma.team.create({
@@ -406,23 +399,19 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.team.delete({
         where: { id: org.id },
       });
-
-      await cleanup();
     });
   });
 
   describe("checkIfTeamHasFeature", () => {
     it("should return false when team does not have feature", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       const result = await featuresRepository.checkIfTeamHasFeature(team.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when team has feature directly assigned", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -443,12 +432,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfTeamHasFeature(team.id, testFeature);
       expect(result).toBe(true);
-
-      await cleanup();
     });
 
     it("should return false when team has feature with enabled=false (tri-state)", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -469,12 +456,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfTeamHasFeature(team.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when parent team has feature", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       const parentTeam = await prisma.team.create({
         data: {
@@ -519,12 +504,10 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.team.delete({
         where: { id: parentTeam.id },
       });
-
-      await cleanup();
     });
 
     it("should return false when parent has feature with enabled=false (tri-state)", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       const parentTeam = await prisma.team.create({
         data: {
@@ -570,23 +553,19 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.team.delete({
         where: { id: parentTeam.id },
       });
-
-      await cleanup();
     });
   });
 
   describe("checkIfUserHasFeatureNonHierarchical", () => {
     it("should return false when user does not have feature", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       const result = await featuresRepository.checkIfUserHasFeatureNonHierarchical(user.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when user has feature directly assigned", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -607,12 +586,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeatureNonHierarchical(user.id, testFeature);
       expect(result).toBe(true);
-
-      await cleanup();
     });
 
     it("should return false when user has feature with enabled=false (tri-state)", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -633,12 +610,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeatureNonHierarchical(user.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when user belongs to direct team with feature (non-hierarchical)", async () => {
-      const { user, team, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -668,12 +643,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeatureNonHierarchical(user.id, testFeature);
       expect(result).toBe(true);
-
-      await cleanup();
     });
 
     it("should return false when user belongs to direct team with feature disabled (tri-state)", async () => {
-      const { user, team, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -703,14 +676,12 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.checkIfUserHasFeatureNonHierarchical(user.id, testFeature);
       expect(result).toBe(false);
-
-      await cleanup();
     });
   });
 
   describe("setTeamFeatureState", () => {
     it("should create a new TeamFeatures row with enabled=true", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -734,12 +705,10 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(teamFeature).not.toBeNull();
       expect(teamFeature?.enabled).toBe(true);
       expect(teamFeature?.assignedBy).toBe("test-assigner");
-
-      await cleanup();
     });
 
     it("should update existing TeamFeatures row to enabled=true", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -774,12 +743,10 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(teamFeature).not.toBeNull();
       expect(teamFeature?.enabled).toBe(true);
       expect(teamFeature?.assignedBy).toBe("new-assigner");
-
-      await cleanup();
     });
 
     it("should create a new TeamFeatures row with enabled=false", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -803,12 +770,10 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(teamFeature).not.toBeNull();
       expect(teamFeature?.enabled).toBe(false);
       expect(teamFeature?.assignedBy).toBe("test-assigner");
-
-      await cleanup();
     });
 
     it("should update existing TeamFeatures row to enabled=false", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -843,12 +808,10 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(teamFeature).not.toBeNull();
       expect(teamFeature?.enabled).toBe(false);
       expect(teamFeature?.assignedBy).toBe("new-assigner");
-
-      await cleanup();
     });
 
     it("should delete TeamFeatures row when state is inherit", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -892,12 +855,10 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(teamFeature).toBeNull();
-
-      await cleanup();
     });
 
     it("should handle inherit state when no TeamFeatures row exists", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -920,14 +881,12 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(teamFeature).toBeNull();
-
-      await cleanup();
     });
   });
 
   describe("getTeamsWithFeatureEnabled", () => {
     it("should return empty array when no teams have the feature", async () => {
-      const { testFeature, featuresRepository, clearCache, cleanup } = await setup();
+      const { testFeature, featuresRepository, clearCache } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -941,12 +900,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.getTeamsWithFeatureEnabled(testFeature);
       expect(result).toEqual([]);
-
-      await cleanup();
     });
 
     it("should return teams with enabled=true only", async () => {
-      const { team, testFeature, featuresRepository, clearCache, cleanup } = await setup();
+      const { team, testFeature, featuresRepository, clearCache } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -997,12 +954,10 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.team.delete({
         where: { id: secondTeam.id },
       });
-
-      await cleanup();
     });
 
     it("should return empty array when feature is not globally enabled", async () => {
-      const { team, testFeature, featuresRepository, clearCache, cleanup } = await setup();
+      const { team, testFeature, featuresRepository, clearCache } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -1025,14 +980,12 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.getTeamsWithFeatureEnabled(testFeature);
       expect(result).toEqual([]);
-
-      await cleanup();
     });
   });
 
   describe("setUserFeatureState", () => {
     it("should create a new UserFeatures row with enabled=true when state is 'enabled'", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -1054,12 +1007,10 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(userFeature).not.toBeNull();
       expect(userFeature?.enabled).toBe(true);
       expect(userFeature?.assignedBy).toBe("test-assigner");
-
-      await cleanup();
     });
 
     it("should create a new UserFeatures row with enabled=false when state is 'disabled'", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -1081,12 +1032,10 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(userFeature).not.toBeNull();
       expect(userFeature?.enabled).toBe(false);
       expect(userFeature?.assignedBy).toBe("test-assigner");
-
-      await cleanup();
     });
 
     it("should update existing UserFeatures row", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -1119,12 +1068,10 @@ describe("FeaturesRepository Integration Tests", () => {
       expect(userFeature).not.toBeNull();
       expect(userFeature?.enabled).toBe(true);
       expect(userFeature?.assignedBy).toBe("new-assigner");
-
-      await cleanup();
     });
 
     it("should delete the row when state is 'inherit'", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -1155,14 +1102,12 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(userFeature).toBeNull();
-
-      await cleanup();
     });
   });
 
   describe("getUserFeatureStates", () => {
     it("should return 'inherit' when user has no feature row", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       const result = await featuresRepository.getUserFeatureStates({
         userId: user.id,
@@ -1170,12 +1115,10 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(result[testFeature]).toBe("inherit");
-
-      await cleanup();
     });
 
     it("should return 'enabled' when user has feature enabled", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -1200,12 +1143,10 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(result[testFeature]).toBe("enabled");
-
-      await cleanup();
     });
 
     it("should return 'disabled' when user has feature disabled", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: {
@@ -1230,12 +1171,10 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(result[testFeature]).toBe("disabled");
-
-      await cleanup();
     });
 
     it("should return states for multiple features in a single query", async () => {
-      const { user, testFeature, featuresRepository, cleanup } = await setup();
+      const { user, testFeature, featuresRepository } = await setup();
       const testFeature2 = `${testFeature}-2` as FeatureId;
 
       await prisma.feature.createMany({
@@ -1267,14 +1206,12 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.feature.deleteMany({
         where: { slug: testFeature2 },
       });
-
-      await cleanup();
     });
   });
 
   describe("getTeamsFeatureStates", () => {
     it("should return empty object for empty teamIds array", async () => {
-      const { testFeature, featuresRepository, cleanup } = await setup();
+      const { testFeature, featuresRepository } = await setup();
 
       const result = await featuresRepository.getTeamsFeatureStates({
         teamIds: [],
@@ -1282,12 +1219,10 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(result).toEqual({});
-
-      await cleanup();
     });
 
     it("should return inherit (missing key) when team has no feature row", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       const result = await featuresRepository.getTeamsFeatureStates({
         teamIds: [team.id],
@@ -1296,12 +1231,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       // Teams without explicit state are not in the result (caller should default to 'inherit')
       expect(result[testFeature]?.[team.id]).toBeUndefined();
-
-      await cleanup();
     });
 
     it("should return 'enabled' when team has feature enabled", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
@@ -1322,12 +1255,10 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(result[testFeature]?.[team.id]).toBe("enabled");
-
-      await cleanup();
     });
 
     it("should return 'disabled' when team has feature disabled", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       await prisma.feature.create({
         data: { slug: testFeature, enabled: true, type: "OPERATIONAL" },
@@ -1348,12 +1279,10 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       expect(result[testFeature]?.[team.id]).toBe("disabled");
-
-      await cleanup();
     });
 
     it("should return states for multiple teams in a single query", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       const secondTeam = await prisma.team.create({
         data: { name: `Second Test Team ${uniqueId()}`, slug: `second-test-team-${uniqueId()}` },
@@ -1385,12 +1314,10 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.team.delete({
         where: { id: secondTeam.id },
       });
-
-      await cleanup();
     });
 
     it("should only return teams with explicit state, not all requested teams", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
 
       const secondTeam = await prisma.team.create({
         data: { name: `Second Test Team ${uniqueId()}`, slug: `second-test-team-${uniqueId()}` },
@@ -1422,12 +1349,10 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.team.delete({
         where: { id: secondTeam.id },
       });
-
-      await cleanup();
     });
 
     it("should return states for multiple features across teams", async () => {
-      const { team, testFeature, featuresRepository, cleanup } = await setup();
+      const { team, testFeature, featuresRepository } = await setup();
       const secondFeature = `${testFeature}-two` as FeatureId;
 
       await prisma.feature.createMany({
@@ -1458,23 +1383,19 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.feature.deleteMany({
         where: { slug: secondFeature },
       });
-
-      await cleanup();
     });
   });
 
   describe("getUserAutoOptIn", () => {
     it("should return false when user has autoOptInFeatures=false (default)", async () => {
-      const { user, featuresRepository, cleanup } = await setup();
+      const { user, featuresRepository } = await setup();
 
       const result = await featuresRepository.getUserAutoOptIn(user.id);
       expect(result).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true when user has autoOptInFeatures=true", async () => {
-      const { user, featuresRepository, cleanup } = await setup();
+      const { user, featuresRepository } = await setup();
 
       await prisma.user.update({
         where: { id: user.id },
@@ -1483,41 +1404,33 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.getUserAutoOptIn(user.id);
       expect(result).toBe(true);
-
-      await cleanup();
     });
 
     it("should return false for non-existent user", async () => {
-      const { featuresRepository, cleanup } = await setup();
+      const { featuresRepository } = await setup();
 
       const result = await featuresRepository.getUserAutoOptIn(999999);
       expect(result).toBe(false);
-
-      await cleanup();
     });
   });
 
   describe("getTeamsAutoOptIn", () => {
     it("should return empty object for empty teamIds array", async () => {
-      const { featuresRepository, cleanup } = await setup();
+      const { featuresRepository } = await setup();
 
       const result = await featuresRepository.getTeamsAutoOptIn([]);
       expect(result).toEqual({});
-
-      await cleanup();
     });
 
     it("should return false for team with autoOptInFeatures=false (default)", async () => {
-      const { team, featuresRepository, cleanup } = await setup();
+      const { team, featuresRepository } = await setup();
 
       const result = await featuresRepository.getTeamsAutoOptIn([team.id]);
       expect(result[team.id]).toBe(false);
-
-      await cleanup();
     });
 
     it("should return true for team with autoOptInFeatures=true", async () => {
-      const { team, featuresRepository, cleanup } = await setup();
+      const { team, featuresRepository } = await setup();
 
       await prisma.team.update({
         where: { id: team.id },
@@ -1526,12 +1439,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const result = await featuresRepository.getTeamsAutoOptIn([team.id]);
       expect(result[team.id]).toBe(true);
-
-      await cleanup();
     });
 
     it("should return values for multiple teams in a single query", async () => {
-      const { team, featuresRepository, cleanup } = await setup();
+      const { team, featuresRepository } = await setup();
 
       const secondTeam = await prisma.team.create({
         data: {
@@ -1552,24 +1463,20 @@ describe("FeaturesRepository Integration Tests", () => {
       await prisma.team.delete({
         where: { id: secondTeam.id },
       });
-
-      await cleanup();
     });
 
     it("should not include non-existent teams in result", async () => {
-      const { team, featuresRepository, cleanup } = await setup();
+      const { team, featuresRepository } = await setup();
 
       const result = await featuresRepository.getTeamsAutoOptIn([team.id, 999999]);
       expect(result[team.id]).toBe(false);
       expect(result[999999]).toBeUndefined();
-
-      await cleanup();
     });
   });
 
   describe("setUserAutoOptIn", () => {
     it("should set autoOptInFeatures to true", async () => {
-      const { user, featuresRepository, cleanup } = await setup();
+      const { user, featuresRepository } = await setup();
 
       // Ensure user starts with false
       const before = await featuresRepository.getUserAutoOptIn(user.id);
@@ -1579,12 +1486,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const after = await featuresRepository.getUserAutoOptIn(user.id);
       expect(after).toBe(true);
-
-      await cleanup();
     });
 
     it("should set autoOptInFeatures to false", async () => {
-      const { user, featuresRepository, cleanup } = await setup();
+      const { user, featuresRepository } = await setup();
 
       // First set to true
       await featuresRepository.setUserAutoOptIn(user.id, true);
@@ -1596,14 +1501,12 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const after = await featuresRepository.getUserAutoOptIn(user.id);
       expect(after).toBe(false);
-
-      await cleanup();
     });
   });
 
   describe("setTeamAutoOptIn", () => {
     it("should set autoOptInFeatures to true", async () => {
-      const { team, featuresRepository, cleanup } = await setup();
+      const { team, featuresRepository } = await setup();
 
       // Ensure team starts with false
       const before = await featuresRepository.getTeamsAutoOptIn([team.id]);
@@ -1613,12 +1516,10 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const after = await featuresRepository.getTeamsAutoOptIn([team.id]);
       expect(after[team.id]).toBe(true);
-
-      await cleanup();
     });
 
     it("should set autoOptInFeatures to false", async () => {
-      const { team, featuresRepository, cleanup } = await setup();
+      const { team, featuresRepository } = await setup();
 
       // First set to true
       await featuresRepository.setTeamAutoOptIn(team.id, true);
@@ -1630,8 +1531,6 @@ describe("FeaturesRepository Integration Tests", () => {
 
       const after = await featuresRepository.getTeamsAutoOptIn([team.id]);
       expect(after[team.id]).toBe(false);
-
-      await cleanup();
     });
   });
 });
