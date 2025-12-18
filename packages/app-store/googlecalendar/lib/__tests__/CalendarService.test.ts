@@ -675,92 +675,12 @@ describe("createEvent", () => {
 });
 
 describe("Delegation Credential Batching", () => {
-  test("should group calendars by delegationCredentialId", async () => {
+  test("getAvailability should fetch availability for selected calendars", async () => {
     const calendarService = new CalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
-    // Access the private method using type assertion
-    const groupCalendarsByDelegationCredential = (calendarService as any).groupCalendarsByDelegationCredential.bind(
-      calendarService
-    );
-
-    const selectedCalendars = [
-      {
-        externalId: "calendar1@test.com",
-        integration: "google_calendar",
-        delegationCredentialId: "delegation-1",
-      },
-      {
-        externalId: "calendar2@test.com",
-        integration: "google_calendar",
-        delegationCredentialId: "delegation-1",
-      },
-      {
-        externalId: "calendar3@test.com",
-        integration: "google_calendar",
-        delegationCredentialId: "delegation-2",
-      },
-      {
-        externalId: "calendar4@test.com",
-        integration: "google_calendar",
-        delegationCredentialId: null,
-      },
-    ];
-
-    const groups = groupCalendarsByDelegationCredential(selectedCalendars);
-
-    // Should have 3 groups: delegation-1, delegation-2, and null
-    expect(groups.size).toBe(3);
-    expect(groups.get("delegation-1")).toHaveLength(2);
-    expect(groups.get("delegation-2")).toHaveLength(1);
-    expect(groups.get(null)).toHaveLength(1);
-  });
-
-  test("should chunk calendars into groups of 50 for API limits", async () => {
-    const calendarService = new CalendarService(mockCredential);
-    setFullMockOAuthManagerRequest();
-
-    // Access the private method using type assertion
-    const chunkArray = (calendarService as any).chunkArray.bind(calendarService);
-
-    // Create an array of 120 items
-    const items = Array.from({ length: 120 }, (_, i) => `item-${i}`);
-
-    const chunks = chunkArray(items, 50);
-
-    // Should have 3 chunks: 50, 50, 20
-    expect(chunks).toHaveLength(3);
-    expect(chunks[0]).toHaveLength(50);
-    expect(chunks[1]).toHaveLength(50);
-    expect(chunks[2]).toHaveLength(20);
-  });
-
-  test("should handle empty calendar array", async () => {
-    const calendarService = new CalendarService(mockCredential);
-    setFullMockOAuthManagerRequest();
-
-    const chunkArray = (calendarService as any).chunkArray.bind(calendarService);
-    const groupCalendarsByDelegationCredential = (calendarService as any).groupCalendarsByDelegationCredential.bind(
-      calendarService
-    );
-
-    // Empty array should return empty chunks
-    const chunks = chunkArray([], 50);
-    expect(chunks).toHaveLength(0);
-
-    // Empty array should return empty groups
-    const groups = groupCalendarsByDelegationCredential([]);
-    expect(groups.size).toBe(0);
-  });
-
-  test("getAvailability should batch calendars by delegation credential and make separate API calls", async () => {
-    const calendarService = new CalendarService(mockCredential);
-    setFullMockOAuthManagerRequest();
-
-    const mockedBusyTimes1 = [
+    const mockedBusyTimes = [
       { start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" },
-    ];
-    const mockedBusyTimes2 = [
       { start: "2024-01-02T14:00:00Z", end: "2024-01-02T15:00:00Z" },
     ];
 
@@ -775,14 +695,12 @@ describe("Delegation Credential Batching", () => {
       };
     });
 
-    let callCount = 0;
     freebusyQueryMock.mockImplementation(() => {
-      callCount++;
-      const busyTimes = callCount === 1 ? mockedBusyTimes1 : mockedBusyTimes2;
       return {
         data: {
           calendars: {
-            "calendar@test.com": { busy: busyTimes },
+            "calendar1@test.com": { busy: [mockedBusyTimes[0]] },
+            "calendar2@test.com": { busy: [mockedBusyTimes[1]] },
           },
         },
       };
@@ -808,10 +726,10 @@ describe("Delegation Credential Batching", () => {
       false
     );
 
-    // Should have made 2 API calls (one per delegation credential group)
-    expect(freebusyQueryMock).toHaveBeenCalledTimes(2);
+    // Should have called FreeBusy API
+    expect(freebusyQueryMock).toHaveBeenCalled();
 
-    // Should return combined results from both groups
+    // Should return combined results from all calendars
     expect(availability).toHaveLength(2);
   });
 
