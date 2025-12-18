@@ -34,6 +34,7 @@ export class OAuth2Controller {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard)
   @ApiOperation({
     summary: "Get OAuth2 client",
     description: "Returns the OAuth2 client information for the given client ID",
