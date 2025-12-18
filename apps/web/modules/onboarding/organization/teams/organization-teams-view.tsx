@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
@@ -49,12 +50,17 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   });
 
   const handleContinue = (data: FormValues) => {
+    const validTeams = data.teams.filter((team) => team.name.trim().length > 0);
+    posthog.capture("onboarding_organization_teams_continue_clicked", {
+      team_count: validTeams.length,
+    });
     // Save teams to store
     setTeams(data.teams);
     router.push("/onboarding/organization/invite/email");
   };
 
   const handleSkip = () => {
+    posthog.capture("onboarding_organization_teams_skip_clicked");
     // Skip teams and go to invite
     router.push("/onboarding/organization/invite/email");
   };
@@ -76,7 +82,10 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
               type="button"
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/organization/brand")}>
+              onClick={() => {
+                posthog.capture("onboarding_organization_teams_back_clicked");
+                router.push("/onboarding/organization/brand");
+              }}>
               {t("back")}
             </Button>
             <div className="flex items-center gap-2">
@@ -121,7 +130,12 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                         size="sm"
                         className="h-7 w-7"
                         disabled={fields.length === 1}
-                        onClick={() => remove(index)}>
+                        onClick={() => {
+                          posthog.capture("onboarding_organization_teams_remove_clicked", {
+                            team_count: fields.length,
+                          });
+                          remove(index);
+                        }}>
                         <Icon name="x" className="h-4 w-4" />
                       </Button>
                     </div>
@@ -135,7 +149,12 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                   size="sm"
                   StartIcon="plus"
                   className="w-fit"
-                  onClick={() => append({ name: "" })}>
+                  onClick={() => {
+                    posthog.capture("onboarding_organization_teams_add_clicked", {
+                      team_count: fields.length,
+                    });
+                    append({ name: "" });
+                  }}>
                   {t("add")}
                 </Button>
               </div>
