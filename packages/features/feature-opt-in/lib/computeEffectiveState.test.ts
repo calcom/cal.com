@@ -149,7 +149,7 @@ describe("computeEffectiveStateAcrossTeams", () => {
     });
 
     describe("when teams only inherit (no org enabled)", () => {
-      it("returns false because no explicit enablement in chain", () => {
+      it("returns true when user explicitly opts in", () => {
         expect(
           computeEffectiveStateAcrossTeams({
             globalEnabled: true,
@@ -157,8 +157,10 @@ describe("computeEffectiveStateAcrossTeams", () => {
             teamStates: ["inherit"],
             userState: "enabled",
           })
-        ).toBe(false);
+        ).toBe(true);
+      });
 
+      it("returns false when user inherits because no explicit enablement above", () => {
         expect(
           computeEffectiveStateAcrossTeams({
             globalEnabled: true,
@@ -212,6 +214,42 @@ describe("computeEffectiveStateAcrossTeams", () => {
           userState: "enabled",
         })
       ).toBe(true); // User explicit enablement is sufficient
+    });
+  });
+
+  describe("user opt-in behavior", () => {
+    it("allows user to opt-in regardless of org/team inheritance state", () => {
+      // User can opt-in even when org and all teams are just inheriting
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "inherit",
+          teamStates: ["inherit", "inherit"],
+          userState: "enabled",
+        })
+      ).toBe(true);
+    });
+
+    it("blocks user opt-in when all teams have explicitly disabled", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "inherit",
+          teamStates: ["disabled", "disabled"],
+          userState: "enabled",
+        })
+      ).toBe(false);
+    });
+
+    it("blocks user opt-in when org has explicitly disabled", () => {
+      expect(
+        computeEffectiveStateAcrossTeams({
+          globalEnabled: true,
+          orgState: "disabled",
+          teamStates: ["inherit"],
+          userState: "enabled",
+        })
+      ).toBe(false);
     });
   });
 
