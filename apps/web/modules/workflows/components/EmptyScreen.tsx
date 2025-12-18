@@ -4,10 +4,8 @@ import cn from "@calcom/ui/classNames";
 import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
-import {
-  WorkflowCreationDialog,
-  useWorkflowCreation,
-} from "@calcom/web/modules/workflows/components/WorkflowCreationDialog";
+
+import { WorkflowCreationDialog, useWorkflowCreation } from "./WorkflowCreationDialog";
 
 type WorkflowExampleType = {
   icon: IconName;
