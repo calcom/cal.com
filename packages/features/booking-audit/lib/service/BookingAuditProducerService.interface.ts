@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
-import type { ActionSource } from "../common/actionSource";
+import type { ActionSource } from "../types/actionSource";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
@@ -157,10 +157,6 @@ export interface BookingAuditProducerService {
                 data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
         }): Promise<void>;
 
-        /**
-         * Queues a bulk accepted audit task for multiple bookings
-         * Used for recurring booking operations where a single action affects multiple bookings
-         */
         queueBulkAcceptedAudit(params: {
                 bookings: Array<{
                         bookingUid: string;
@@ -172,10 +168,6 @@ export interface BookingAuditProducerService {
                 operationId?: string | null;
         }): Promise<void>;
 
-        /**
-         * Queues a bulk cancelled audit task for multiple bookings
-         * Used for recurring booking operations where a single action affects multiple bookings
-         */
         queueBulkCancelledAudit(params: {
                 bookings: Array<{
                         bookingUid: string;

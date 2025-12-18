@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { GetDisplayTitleParams, GetDisplayJsonParams, IAuditActionService, TranslationWithParams } from "./IAuditActionService";
 
 /**
  * Seat Booked Audit Action Service
@@ -60,26 +60,22 @@ export class SeatBookedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.seat_booked" };
     }
 
     getDisplayJson({
         storedData,
         userTimeZone,
-    }: {
-        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone: string;
-    }): SeatBookedAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
-        const timeZone = userTimeZone;
+    }: GetDisplayJsonParams): SeatBookedAuditDisplayData {
+        const { fields } = this.parseStored(storedData);
 
         return {
             seatReferenceUid: fields.seatReferenceUid,
             attendeeEmail: fields.attendeeEmail,
             attendeeName: fields.attendeeName,
-            startTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime, timeZone),
-            endTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime, timeZone),
+            startTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime, userTimeZone),
+            endTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime, userTimeZone),
         };
     }
 }

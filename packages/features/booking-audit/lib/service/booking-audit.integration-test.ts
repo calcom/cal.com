@@ -291,7 +291,7 @@ describe("Booking Audit Integration", () => {
       expect(auditLog.action).toBe("CREATED");
       expect(auditLog.type).toBe("RECORD_CREATED");
 
-      const displayData = auditLog.displayJson as any;
+      const displayData = auditLog.displayJson as Record<string, unknown>;
       expect(displayData).toBeDefined();
       expect(displayData.startTime).toBeDefined();
       expect(typeof displayData.startTime).toBe("string");
@@ -471,6 +471,11 @@ describe("Booking Audit Integration", () => {
       expect(result1.auditLogs[0].action).toBe("CREATED");
       expect(result2.auditLogs[0].action).toBe("CREATED");
       expect(result3.auditLogs[0].action).toBe("CREATED");
+
+      // Verify all bookings share the same operationId
+      expect(result1.auditLogs[0].operationId).toBe(operationId);
+      expect(result2.auditLogs[0].operationId).toBe(operationId);
+      expect(result3.auditLogs[0].operationId).toBe(operationId);
 
       await cleanupTestData({
         bookingUid: booking2.uid,

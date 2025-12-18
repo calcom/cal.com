@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { PIIFreeActorSchema } from "@calcom/features/bookings/lib/types/actor";
-import { ActionSourceSchema } from "../common/actionSource";
+import { PiiFreeActorSchema } from "../../../bookings/lib/types/actor";
+import { ActionSourceSchema } from "./actionSource";
 
 /**
  * Supported booking audit actions
@@ -36,7 +36,7 @@ const bookingAuditPayloadSchema = z.object({
 export const SingleBookingAuditTaskConsumerSchema = z.object({
     isBulk: z.literal(false),
     ...bookingAuditPayloadSchema.shape,
-    actor: PIIFreeActorSchema,
+    actor: PiiFreeActorSchema,
     organizationId: z.number().nullable(),
     timestamp: z.number(),
     action: BookingAuditActionSchema,
@@ -56,7 +56,7 @@ export type SingleBookingAuditTaskConsumerPayload = z.infer<typeof SingleBooking
 export const BulkBookingAuditTaskConsumerSchema = z.object({
     isBulk: z.literal(true),
     bookings: z.array(bookingAuditPayloadSchema).min(1),
-    actor: PIIFreeActorSchema,
+    actor: PiiFreeActorSchema,
     organizationId: z.number().nullable(),
     timestamp: z.number(),
     action: BookingAuditActionSchema,

@@ -20,6 +20,20 @@ const safeActorSelect = {
     createdAt: true,
 } as const;
 
+const safeBookingAuditSelect = {
+    id: true,
+    bookingUid: true,
+    actorId: true,
+    action: true,
+    type: true,
+    timestamp: true,
+    source: true,
+    operationId: true,
+    data: true,
+    createdAt: true,
+    updatedAt: true,
+} as const;
+
 export class PrismaBookingAuditRepository implements IBookingAuditRepository {
     constructor(private readonly deps: Dependencies) { }
 
@@ -59,7 +73,8 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
             where: {
                 bookingUid,
             },
-            include: {
+            select: {
+                ...safeBookingAuditSelect,
                 actor: {
                     select: safeActorSelect,
                 },
@@ -76,14 +91,13 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 bookingUid,
                 action: "RESCHEDULED",
             },
-            include: {
+            select: {
+                ...safeBookingAuditSelect,
                 actor: {
-                    select: safeActorSelect,
+                    select: safeActorSelect
                 },
             },
-            orderBy: {
-                timestamp: "desc",
-            },
+            orderBy: { timestamp: "desc" },
         });
     }
 }

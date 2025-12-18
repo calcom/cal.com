@@ -12,6 +12,8 @@ import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-pl
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -20,8 +22,12 @@ import { getAppNameFromSlug } from "@calcom/features/booking-audit/lib/getAppNam
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
 
-export async function handlePaymentSuccess(params: { paymentId: number; appSlug: string; bookingId: number; }) {
-  const { paymentId, bookingId, appSlug } = params;
+export async function handlePaymentSuccess(params: { paymentId: number; appSlug: string; bookingId: number; traceContext: TraceContext }) {
+  const { paymentId, bookingId, appSlug, traceContext } = params;
+  const updatedTraceContext = distributedTracing.updateTrace(traceContext, {
+    bookingId,
+    paymentId,
+  });
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
 
@@ -111,6 +117,7 @@ export async function handlePaymentSuccess(params: { paymentId: number; appSlug:
         platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
         source: "WEBHOOK",
         actor,
+        traceContext: updatedTraceContext,
       });
     } else {
       await handleBookingRequested({

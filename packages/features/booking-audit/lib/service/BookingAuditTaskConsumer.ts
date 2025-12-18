@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
-import type { PIIFreeActor } from "../../../bookings/lib/types/actor";
+import type { PiiFreeActor } from "../../../bookings/lib/types/actor";
 import type {
     SingleBookingAuditTaskConsumerPayload,
     BulkBookingAuditTaskConsumerPayload,
@@ -13,7 +13,7 @@ import type {
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction, BookingAuditCreateInput } from "../repository/IBookingAuditRepository";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
-import type { ActionSource } from "../common/actionSource";
+import type { ActionSource } from "../types/actionSource";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { Task } from "@calcom/features/tasker/repository";
 
@@ -81,11 +81,7 @@ export class BookingAuditTaskConsumer {
     }
 
     /**
-     * Process Audit Task - Entry point for task handler
-     * 
-     * @param payload - The validated single booking audit task payload
-     * @param taskId - Task ID for updating migrated payload in DB
-     * @returns Promise that resolves when processing is complete
+     * Process single booking Audit Task
      */
     async processAuditTask(payload: SingleBookingAuditTaskConsumerPayload, taskId: string): Promise<void> {
         const { action, bookingUid, actor, organizationId, data, timestamp, source, operationId } = payload;
@@ -104,11 +100,7 @@ export class BookingAuditTaskConsumer {
     }
 
     /**
-     * Process Bulk Audit Task - Entry point for bulk task handler
-     * 
-     * @param payload - The validated bulk booking audit task payload
-     * @param _taskId - Task ID (currently unused for bulk operations)
-     * @returns Promise that resolves when processing is complete
+     * Process Bulk bookings Audit Task
      */
     async processBulkAuditTask(payload: BulkBookingAuditTaskConsumerPayload, taskId: string): Promise<void> {
         const { bookings, action, actor, organizationId, timestamp, source, operationId } = payload;
@@ -121,15 +113,20 @@ export class BookingAuditTaskConsumer {
             return;
         }
 
-        await this.onBulkBookingActions({
+        const migratedBookings = await this.bulkMigrateIfNeeded({
             bookings,
+            action,
+            payload,
+            taskId,
+        });
+
+        await this.onBulkBookingActions({
+            bookings: migratedBookings,
             actor,
             action,
             source,
             operationId,
             timestamp,
-            payload,
-            taskId,
         });
     }
 
@@ -190,8 +187,8 @@ export class BookingAuditTaskConsumer {
                 `Successfully updated task payload in DB: taskId=${taskId}, action=${payload.action}`
             );
         } catch (error) {
-            // Log error but don't fail the task - migration happened in memory
-            logger.error(
+            // Warning because nothing functionally failed, we have a risk in future that if we completely remove a version support, the particular task if retried will fail with a schema error.
+            logger.warn(
                 `Failed to update task payload in DB: taskId=${taskId}, error=${safeStringify(error)}`
             );
         }
@@ -238,13 +235,6 @@ export class BookingAuditTaskConsumer {
         return migratedBookings;
     }
 
-    /**
-     * Update Bulk Task Payload - Updates the bulk task payload in DB with migrated bookings
-     * 
-     * @param payload - Original bulk task payload
-     * @param migratedBookings - Migrated bookings with latest data
-     * @param taskId - Task ID (required for DB update)
-     */
     private async updateBulkTaskPayload(
         payload: BulkBookingAuditTaskConsumerPayload,
         migratedBookings: Array<{ bookingUid: string; data: Record<string, unknown> }>,
@@ -258,7 +248,8 @@ export class BookingAuditTaskConsumer {
                 `Successfully updated bulk task payload in DB: taskId=${taskId}, action=${payload.action}`
             );
         } catch (error) {
-            logger.error(
+            // Warning because nothing functionally failed, we have a risk in future that if we completely remove a version support, the particular task if retried will fail with a schema error.
+            logger.warn(
                 `Failed to update bulk task payload in DB: taskId=${taskId}, error=${safeStringify(error)}`
             );
         }
@@ -301,7 +292,7 @@ export class BookingAuditTaskConsumer {
      * Resolves an Actor to an actor ID in the AuditActor table
      * Handles different actor types appropriately (upsert, lookup, or direct ID)
      */
-    private async resolveActorId(actor: PIIFreeActor): Promise<string> {
+    private async resolveActorId(actor: PiiFreeActor): Promise<string> {
         switch (actor.identifiedBy) {
             case "id":
                 return actor.id;
@@ -385,29 +376,20 @@ export class BookingAuditTaskConsumer {
     }
 
     private async onBulkBookingActions(params: {
-        bookings: BulkBookingAuditTaskConsumerPayload["bookings"];
-        actor: PIIFreeActor;
+        bookings: Array<{ bookingUid: string; data: Record<string, unknown> }>;
+        actor: PiiFreeActor;
         action: BookingAuditAction;
         source: ActionSource;
         operationId: string;
         timestamp: number;
-        payload: BulkBookingAuditTaskConsumerPayload;
-        taskId: string;
     }): Promise<void> {
-        const { bookings, actor, action, source, operationId, timestamp, payload, taskId } = params;
-
-        const migratedBookings = await this.bulkMigrateIfNeeded({
-            bookings,
-            action,
-            payload,
-            taskId,
-        });
+        const { bookings, actor, action, source, operationId, timestamp } = params;
 
         const actorId = await this.resolveActorId(actor);
         const recordType = this.getRecordType({ action });
         const actionService = this.actionServiceRegistry.getActionService(action);
 
-        const auditRecordsToCreate: BookingAuditCreateInput[] = migratedBookings.map((booking) => {
+        const auditRecordsToCreate: BookingAuditCreateInput[] = bookings.map((booking) => {
             const versionedData = actionService.getVersionedData(booking.data);
             return {
                 bookingUid: booking.bookingUid,
@@ -430,7 +412,7 @@ export class BookingAuditTaskConsumer {
 
     async onBookingAction(params: {
         bookingUid: string;
-        actor: PIIFreeActor;
+        actor: PiiFreeActor;
         action: BookingAuditAction;
         source: ActionSource;
         operationId: string;

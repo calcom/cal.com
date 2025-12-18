@@ -1,6 +1,7 @@
 import type z from "zod";
 
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import type { TraceContext } from "@calcom/lib/tracing";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -64,6 +65,7 @@ export type NewSeatedBookingObject = {
   bookingEventHandler?: BookingEventHandlerService;
   organizationId?: number | null;
   actionSource?: ActionSource;
+  traceContext: TraceContext;
 };
 
 export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };

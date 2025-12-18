@@ -67,7 +67,7 @@ export class RescheduleRequestedAuditActionService implements IAuditActionServic
     getDisplayJson({
         storedData,
     }: GetDisplayJsonParams): RescheduleRequestedAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = this.parseStored(storedData);
         return {
             reason: fields.cancellationReason.new ?? null,
             requestedBy: fields.cancelledBy.new ?? null,

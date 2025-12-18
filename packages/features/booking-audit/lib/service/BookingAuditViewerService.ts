@@ -1,15 +1,17 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import type { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 
+import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
 import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type { TranslationWithParams } from "../actions/IAuditActionService";
-import type { ActionSource } from "../common/actionSource";
+import type { ActionSource } from "../types/actionSource";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import { getAppNameFromSlug } from "../getAppNameFromSlug";
 
@@ -18,7 +20,8 @@ interface BookingAuditViewerServiceDeps {
     userRepository: UserRepository;
     bookingRepository: BookingRepository;
     membershipRepository: MembershipRepository;
-    attendeeRepository: AttendeeRepository;
+    attendeeRepository: IAttendeeRepository;
+    log: ISimpleLogger;
     credentialRepository: CredentialRepository;
 }
 
@@ -30,9 +33,10 @@ type EnrichedAuditLog = {
     timestamp: string;
     createdAt: string;
     source: ActionSource;
+    operationId: string;
     displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
-    displayFields?: Array<{ labelKey: string; valueKey: string }>;
+    displayFields?: Array<{ labelKey: string; valueKey: string }> | null;
     actor: {
         id: string;
         type: AuditActorType;
@@ -55,9 +59,11 @@ export class BookingAuditViewerService {
     private readonly userRepository: UserRepository;
     private readonly bookingRepository: BookingRepository;
     private readonly membershipRepository: MembershipRepository;
-    private readonly attendeeRepository: AttendeeRepository;
+    private readonly attendeeRepository: IAttendeeRepository;
+    private readonly credentialRepository: CredentialRepository;
     private readonly rescheduledAuditActionService: RescheduledAuditActionService;
     private readonly accessService: BookingAuditAccessService;
+    private readonly log: BookingAuditViewerServiceDeps["log"];
 
     constructor(private readonly deps: BookingAuditViewerServiceDeps) {
         this.bookingAuditRepository = deps.bookingAuditRepository;
@@ -65,6 +71,8 @@ export class BookingAuditViewerService {
         this.bookingRepository = deps.bookingRepository;
         this.membershipRepository = deps.membershipRepository;
         this.attendeeRepository = deps.attendeeRepository;
+        this.credentialRepository = deps.credentialRepository;
+        this.log = deps.log;
         this.rescheduledAuditActionService = new RescheduledAuditActionService();
         this.accessService = new BookingAuditAccessService({
             bookingRepository: this.bookingRepository,
@@ -88,26 +96,27 @@ export class BookingAuditViewerService {
         userTimeZone: string;
         organizationId: number | null;
     }): Promise<{ bookingUid: string; auditLogs: EnrichedAuditLog[] }> {
+        const { bookingUid, userId, userTimeZone, organizationId } = params;
         await this.accessService.assertPermissions({
-            bookingUid: params.bookingUid,
-            userId: params.userId,
-            organizationId: params.organizationId
+            bookingUid,
+            userId,
+            organizationId
         });
 
-        const auditLogs = await this.bookingAuditRepository.findAllForBooking(params.bookingUid);
+        const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
         const enrichedAuditLogs = await Promise.all(
-            auditLogs.map((log) => this.enrichAuditLog(log, params.userTimeZone))
+            auditLogs.map((log) => this.enrichAuditLog(log, userTimeZone))
         );
 
-        const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(params.bookingUid);
+        const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
 
         // Check if this booking was created from a reschedule
         if (fromRescheduleUid) {
             const rescheduledFromLog = await this.buildRescheduledFromLog({
                 fromRescheduleUid,
-                currentBookingUid: params.bookingUid,
-                userTimeZone: params.userTimeZone,
+                currentBookingUid: bookingUid,
+                userTimeZone,
             });
             if (rescheduledFromLog) {
                 enrichedAuditLogs.push(rescheduledFromLog);
@@ -129,17 +138,15 @@ export class BookingAuditViewerService {
         const actionService = this.actionServiceRegistry.getActionService(log.action);
         const parsedData = actionService.parseStored(log.data);
 
-        const actionDisplayTitle = await actionService.getDisplayTitle({ storedData: parsedData, userTimeZone, bookingUid: log.bookingUid });
+        const actionDisplayTitle = await actionService.getDisplayTitle({ storedData: parsedData, userTimeZone });
 
-        // Get display JSON - only set if getDisplayJson is defined
         const displayJson = actionService.getDisplayJson
             ? actionService.getDisplayJson({ storedData: parsedData, userTimeZone })
-            : undefined;
+            : null;
 
-        // Get display fields - use custom getDisplayFields if available
         const displayFields = actionService.getDisplayFields
             ? actionService.getDisplayFields(parsedData)
-            : undefined;
+            : null;
 
         return {
             id: log.id,
@@ -149,11 +156,17 @@ export class BookingAuditViewerService {
             timestamp: log.timestamp.toISOString(),
             createdAt: log.createdAt.toISOString(),
             source: log.source,
+            operationId: log.operationId,
             displayJson,
             actionDisplayTitle,
             displayFields,
             actor: {
-                ...log.actor,
+                id: log.actor.id,
+                type: log.actor.type,
+                userUuid: log.actor.userUuid,
+                attendeeId: log.actor.attendeeId,
+                name: log.actor.name,
+                createdAt: log.actor.createdAt,
                 displayName: enrichedActor.displayName,
                 displayEmail: enrichedActor.displayEmail,
                 displayAvatar: enrichedActor.displayAvatar,
@@ -185,8 +198,7 @@ export class BookingAuditViewerService {
         });
 
         if (!rescheduledLog) {
-            // TODO: Use logger instead of console.error
-            console.error(`No rescheduled log found for booking ${fromRescheduleUid} -> ${currentBookingUid}`);
+            this.log.error(`No rescheduled log found for booking ${fromRescheduleUid} -> ${currentBookingUid}`);
             // Instead of crashing, we ignore because it is important to be able to access other logs as well.
             return null;
         }
@@ -212,7 +224,7 @@ export class BookingAuditViewerService {
             actionDisplayTitle: this.rescheduledAuditActionService.getDisplayTitleForRescheduledFromLog({
                 fromRescheduleUid,
                 userTimeZone,
-                parsedData,
+                storedData: parsedData,
             }),
         };
     }
@@ -225,89 +237,85 @@ export class BookingAuditViewerService {
         displayEmail: string | null;
         displayAvatar: string | null;
     }> {
-        if (actor.type === "SYSTEM") {
-            return {
-                displayName: "Cal.com",
-                displayEmail: null,
-                displayAvatar: null,
-            };
-        }
-
-        if (actor.type === "GUEST") {
-            return {
-                displayName: actor.name || "Guest",
-                displayEmail: null,
-                displayAvatar: null,
-            };
-        }
-
-        if (actor.type === "APP") {
-            if (actor.credentialId) {
-                const credential = await this.deps.credentialRepository.findByCredentialId(actor.credentialId);
-                if (credential) {
-                    return {
-                        displayName: getAppNameFromSlug({ appSlug: credential.appId }),
-                        displayEmail: null,
-                        displayAvatar: null,
-                    };
-                } else {
-                    return {
-                        // Expect that on Credential deletion name would have been set
-                        displayName: actor.name ?? "Deleted App",
-                        displayEmail: null,
-                        displayAvatar: null,
-                    };
-                }
-            }
-            // We allow creating App actor without credentialId
-            return {
-                displayName: actor.name ?? "Unknown App",
-                // We don't want to show email for App actor as that is an internal email with the purpose of giving uniqueness to each app actor
-                displayEmail: null,
-                displayAvatar: null,
-            };
-        }
-
-        if (actor.type === "USER") {
-            if (!actor.userUuid) {
-                throw new Error("User UUID is required for USER actor");
-            }
-            const actorUser = await this.userRepository.findByUuid({ uuid: actor.userUuid });
-            if (actorUser) {
+        switch (actor.type) {
+            case "SYSTEM":
                 return {
-                    displayName: actorUser.name || actorUser.email,
-                    displayEmail: actorUser.email,
-                    displayAvatar: actorUser.avatarUrl || null,
+                    displayName: "Cal.com",
+                    displayEmail: null,
+                    displayAvatar: null,
                 };
-            }
-            return {
-                displayName: "Deleted User",
-                displayEmail: null,
-                displayAvatar: null,
-            }
-        }
 
-
-        // ATTENDEE actor - use name or default
-        if (actor.type === "ATTENDEE") {
-            if (!actor.attendeeId) {
-                throw new Error("Attendee ID is required for ATTENDEE actor");
-            }
-            const attendee = await this.attendeeRepository.findById(actor.attendeeId);
-            if (attendee) {
+            case "GUEST":
                 return {
-                    displayName: attendee.name || attendee.email,
-                    displayEmail: attendee.email,
+                    displayName: actor.name || "Guest",
+                    displayEmail: null,
+                    displayAvatar: null,
+                };
+
+            case "APP": {
+                if (actor.credentialId) {
+                    const credential = await this.deps.credentialRepository.findByCredentialId(actor.credentialId);
+                    if (credential) {
+                        return {
+                            displayName: getAppNameFromSlug({ appSlug: credential.appId }),
+                            displayEmail: null,
+                            displayAvatar: null,
+                        };
+                    } else {
+                        return {
+                            // Expect that on Credential deletion name would have been set
+                            displayName: actor.name ?? "Deleted App",
+                            displayEmail: null,
+                            displayAvatar: null,
+                        };
+                    }
+                }
+                // We allow creating App actor without credentialId
+                return {
+                    displayName: actor.name ?? "Unknown App",
+                    // We don't want to show email for App actor as that is an internal email with the purpose of giving uniqueness to each app actor
+                    displayEmail: null,
                     displayAvatar: null,
                 };
             }
-            return {
-                displayName: "Deleted Attendee",
-                displayEmail: null,
-                displayAvatar: null,
+
+            case "ATTENDEE": {
+                if (!actor.attendeeId) {
+                    throw new Error("Attendee ID is required for ATTENDEE actor");
+                }
+                const attendee = await this.attendeeRepository.findById(actor.attendeeId);
+                if (attendee) {
+                    return {
+                        displayName: attendee.name || attendee.email,
+                        displayEmail: attendee.email,
+                        displayAvatar: null,
+                    };
+                }
+                return {
+                    displayName: "Deleted Attendee",
+                    displayEmail: null,
+                    displayAvatar: null,
+                };
+            }
+
+            case "USER": {
+                if (!actor.userUuid) {
+                    throw new Error("User UUID is required for USER actor");
+                }
+                const actorUser = await this.userRepository.findByUuid({ uuid: actor.userUuid });
+                if (actorUser) {
+                    return {
+                        displayName: actorUser.name || actorUser.email,
+                        displayEmail: actorUser.email,
+                        displayAvatar: actorUser.avatarUrl || null,
+                    };
+                }
+                return {
+                    displayName: "Deleted User",
+                    displayEmail: null,
+                    displayAvatar: null,
+                };
             }
         }
-
-        throw new Error(`Unknown actor type: ${actor.type}`);
     }
 }

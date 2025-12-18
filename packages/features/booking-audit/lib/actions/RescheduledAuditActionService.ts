@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, StoredAuditData } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
 
 /**
  * Rescheduled Audit Action Service
@@ -89,14 +89,14 @@ export class RescheduledAuditActionService implements IAuditActionService {
     getDisplayTitleForRescheduledFromLog({
         fromRescheduleUid,
         userTimeZone,
-        parsedData,
+        storedData,
     }: {
         fromRescheduleUid: string;
         userTimeZone: string;
-        parsedData: StoredAuditData;
+        storedData: BaseStoredAuditData;
     }): TranslationWithParams {
         const timeZone = userTimeZone;
-        const { fields } = this.helper.parseStored({ version: parsedData.version, fields: parsedData.fields });
+        const { fields } = this.parseStored(storedData);
 
         // Format dates in user timezone
         const oldDate = fields.startTime.old
@@ -120,7 +120,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
         storedData,
         userTimeZone,
     }: GetDisplayJsonParams): RescheduledAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = this.parseStored(storedData);
         const timeZone = userTimeZone;
 
         return {

@@ -67,7 +67,7 @@ export class CancelledAuditActionService implements IAuditActionService {
     getDisplayJson({
         storedData,
     }: GetDisplayJsonParams): CancelledAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = this.parseStored(storedData);
         return {
             cancellationReason: fields.cancellationReason.new ?? null,
             cancelledBy: fields.cancelledBy.new ?? null,

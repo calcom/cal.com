@@ -38,6 +38,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     organizationId,
     userUuid,
     fullName,
+    traceContext,
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
@@ -248,7 +249,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduledBy,
     };
 
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun });
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun, traceContext });
   }
 
   return resultBooking;

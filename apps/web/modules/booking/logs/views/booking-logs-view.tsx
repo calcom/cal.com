@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import dayjs from "@calcom/dayjs";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -40,7 +40,7 @@ type AuditLog = {
     source: string;
     displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
-    displayFields?: Array<{ labelKey: string; valueKey: string }>;
+    displayFields?: Array<{ labelKey: string; valueKey: string }> | null;
     actor: {
         type: AuditActorType;
         displayName: string | null;
@@ -61,46 +61,31 @@ interface BookingLogsTimelineProps {
     logs: AuditLog[];
 }
 
-const getActionIcon = (action: string) => {
-    switch (action) {
-        case "CREATED":
-            return "calendar";
-        case "CANCELLED":
-        case "REJECTED":
-            return "ban";
-        case "ACCEPTED":
-            return "check";
-        case "RESCHEDULED":
-        case "RESCHEDULE_REQUESTED":
-            return "pencil";
-        case "REASSIGNMENT":
-        case "ATTENDEE_ADDED":
-        case "ATTENDEE_REMOVED":
-            return "user-check";
-        case "LOCATION_CHANGED":
-            return "map-pin";
-        case "HOST_NO_SHOW_UPDATED":
-        case "ATTENDEE_NO_SHOW_UPDATED":
-            return "ban";
-        default:
-            return "sparkles";
-    }
-};
+const ACTION_ICON_MAP: Record<string, IconName> = {
+    CREATED: "calendar",
+    CANCELLED: "ban",
+    REJECTED: "ban",
+    ACCEPTED: "check",
+    RESCHEDULED: "pencil",
+    RESCHEDULE_REQUESTED: "pencil",
+    REASSIGNMENT: "user-check",
+    ATTENDEE_ADDED: "user-check",
+    ATTENDEE_REMOVED: "user-check",
+    LOCATION_CHANGED: "map-pin",
+    HOST_NO_SHOW_UPDATED: "ban",
+    ATTENDEE_NO_SHOW_UPDATED: "ban",
+} as const;
 
-const getActorRoleLabel = (actorType: AuditActorType): string | null => {
-    switch (actorType) {
-        case "GUEST":
-            return "Guest";
-        case "ATTENDEE":
-            return "Attendee";
-        case "SYSTEM":
-            return null;
-        case "USER":
-            return null;
-        default:
-            return null;
-    }
-};
+
+const ACTOR_ROLE_LABEL_MAP: Record<AuditActorType, string | null> = {
+    GUEST: "guest",
+    ATTENDEE: "attendee",
+    SYSTEM: null,
+    USER: null,
+    APP: null,
+} as const;
+
+
 
 function BookingLogsFilters({
     searchTerm,
@@ -237,14 +222,13 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                 const isLast = index === logs.length - 1;
                 const isExpanded = expandedLogIds.has(log.id);
                 const showJson = showJsonMap[log.id] || false;
-                const actorRole = getActorRoleLabel(log.actor.type);
-
+                const actorRole = ACTOR_ROLE_LABEL_MAP[log.actor.type] ?? null;
                 return (
                     <div key={log.id} className="flex gap-1">
                         <div className="flex flex-col items-center self-stretch">
                             <div className="pt-2 shrink-0">
                                 <div className="bg-subtle rounded-[3.556px] p-1 flex items-center justify-center w-4 h-4">
-                                    <Icon name={getActionIcon(log.action)} className="h-3 w-3 text-subtle" />
+                                    <Icon name={ACTION_ICON_MAP[log.action] ?? "sparkles"} className="h-3 w-3 text-subtle" />
                                 </div>
                             </div>
                             {!isLast && (
@@ -269,14 +253,14 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                             )}
                                             <span>
                                                 {log.actor.displayName}
-                                                {actorRole && ` (${actorRole})`}
-                                            </span>
+                                                {actorRole && <span>{` (${t(actorRole)})`}</span>}
+                                            </span >
                                             <span>•</span>
                                             <span>{dayjs(log.timestamp).fromNow()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                        </div >
+                                    </div >
+                                </div >
+                            </div >
 
                             <div className="px-3">
                                 <div className="bg-muted rounded-lg border border-muted">
@@ -339,12 +323,44 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                     )}
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </div >
+                    </div >
                 );
             })}
-        </div>
+        </div >
     );
+}
+
+function useBookingLogsFilters(
+    auditLogs: AuditLog[],
+    searchTerm: string,
+    actorFilter: string | null
+) {
+    const filteredLogs = auditLogs.filter((log) => {
+        const matchesSearch =
+            !searchTerm ||
+            log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesActor = !actorFilter || log.actor.displayName === actorFilter;
+
+        return matchesSearch && matchesActor;
+    });
+
+    const uniqueActorNames = Array.from(
+        new Set(
+            auditLogs
+                .map((log) => log.actor.displayName)
+                .filter((name): name is string => Boolean(name))
+        )
+    );
+
+    const actorOptions = uniqueActorNames.map((actorName) => ({
+        label: actorName,
+        value: actorName,
+    }));
+
+    return { filteredLogs, actorOptions };
 }
 
 export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
@@ -355,6 +371,14 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
     const { data, isLoading, error } = trpc.viewer.bookings.getAuditLogs.useQuery({
         bookingUid,
     });
+
+    const auditLogs = data?.auditLogs || [];
+
+    const { filteredLogs, actorOptions } = useBookingLogsFilters(
+        auditLogs,
+        searchTerm,
+        actorFilter
+    );
 
     if (error) {
         return (
@@ -380,29 +404,6 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
             </div>
         );
     }
-
-    const auditLogs = data?.auditLogs || [];
-
-    // Apply filters
-    const filteredLogs = auditLogs.filter((log) => {
-        const matchesSearch =
-            !searchTerm ||
-            log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.actor.displayName?.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesActor = !actorFilter || log.actor.displayName === actorFilter;
-
-        return matchesSearch && matchesActor;
-    });
-
-    const uniqueActorNames = Array.from(
-        new Set(auditLogs.map((log) => log.actor.displayName).filter(Boolean))
-    ) as string[];
-
-    const actorOptions = uniqueActorNames.map((actorName) => ({
-        label: actorName,
-        value: actorName,
-    }));
 
     return (
         <div className="space-y-6">

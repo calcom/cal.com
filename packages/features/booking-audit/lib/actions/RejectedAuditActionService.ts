@@ -66,7 +66,7 @@ export class RejectedAuditActionService implements IAuditActionService {
     getDisplayJson({
         storedData,
     }: GetDisplayJsonParams): RejectedAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = this.parseStored(storedData);
         return {
             rejectionReason: fields.rejectionReason.new ?? null,
             previousReason: fields.rejectionReason.old ?? null,

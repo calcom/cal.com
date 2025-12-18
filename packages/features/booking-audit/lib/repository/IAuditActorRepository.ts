@@ -16,7 +16,6 @@ export interface IAuditActorRepository {
   createIfNotExistsUserActor(params: { userUuid: string }): Promise<AuditActor>;
   createIfNotExistsAttendeeActor(params: { attendeeId: number }): Promise<AuditActor>;
   createIfNotExistsGuestActor(params: { email: string | null; name: string | null; phone: string | null }): Promise<AuditActor>;
-  createIfNotExistsSystemActor(params: { email: string; name: string }): Promise<AuditActor>;
   createIfNotExistsAppActor(params:
     | { credentialId: number }
     | { email: string; name: string }

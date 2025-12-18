@@ -19,23 +19,21 @@ export type TranslationWithParams = {
 };
 
 /**
- * Common base type for stored audit data
- * All action services use this structure, with fields being validated per-service
+ * This is agnostic of the action and is common for all actions
  */
-export type StoredAuditData = {
+export type BaseStoredAuditData = {
     version: number;
     fields: Record<string, unknown>;
 };
 
 export type GetDisplayJsonParams = {
-    storedData: StoredAuditData;
+    storedData: BaseStoredAuditData;
     userTimeZone: string;
 };
 
 export type GetDisplayTitleParams = {
-    storedData: StoredAuditData;
+    storedData: BaseStoredAuditData;
     userTimeZone: string;
-    bookingUid: string;
 };
 
 /**
@@ -59,7 +57,7 @@ export interface IAuditActionService {
      * @param fields - Raw input fields (just the audit fields)
      * @returns Parsed data with version wrapper { version, fields }
      */
-    getVersionedData(fields: unknown): StoredAuditData;
+    getVersionedData(fields: unknown): BaseStoredAuditData;
 
     /**
      * Parse stored audit record (includes version wrapper)
@@ -67,7 +65,7 @@ export interface IAuditActionService {
      * @param data - Stored data from database (can be any version)
      * @returns Parsed stored data { version, fields } - version may differ from current VERSION
      */
-    parseStored(data: unknown): StoredAuditData;
+    parseStored(data: unknown): BaseStoredAuditData;
 
     /**
      * Extract version number from stored data
@@ -95,7 +93,7 @@ export interface IAuditActionService {
      * @param params.userTimeZone - User's timezone for date formatting (required)
      * @returns Translation key with optional interpolation params
      */
-    getDisplayTitle({ storedData, userTimeZone, bookingUid }: GetDisplayTitleParams): Promise<TranslationWithParams>;
+    getDisplayTitle(params: GetDisplayTitleParams): Promise<TranslationWithParams>;
 
     /**
      * Returns additional display fields with translation keys for frontend rendering
@@ -103,7 +101,7 @@ export interface IAuditActionService {
      * @param storedData - Parsed stored data { version, fields }
      * @returns Array of field objects with label and value translation keys
      */
-    getDisplayFields?(storedData: StoredAuditData): Array<{
+    getDisplayFields?(storedData: BaseStoredAuditData): Array<{
         labelKey: string;  // Translation key for field label
         valueKey: string;  // Translation key for field value
     }>;

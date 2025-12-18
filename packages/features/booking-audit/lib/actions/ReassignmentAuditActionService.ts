@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, StoredAuditData } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
 
 /**
  * Reassignment Audit Action Service
@@ -77,14 +77,14 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     getDisplayJson({
         storedData,
     }: GetDisplayJsonParams): ReassignmentAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = this.parseStored(storedData);
         return {
             newAssignedToId: fields.assignedToId.new,
             reassignmentReason: fields.reassignmentReason.new ?? null,
         };
     }
 
-    getDisplayFields(storedData: StoredAuditData): Array<{
+    getDisplayFields(storedData: BaseStoredAuditData): Array<{
         labelKey: string;
         valueKey: string;
     }> {
@@ -93,7 +93,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 
         return [
             {
-                labelKey: "booking_audit_action.assignment_type",
+                labelKey: "booking_audit_action.type",
                 valueKey: typeTranslationKey,
             }
         ];

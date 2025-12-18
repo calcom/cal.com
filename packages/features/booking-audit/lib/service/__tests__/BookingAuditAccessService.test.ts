@@ -81,7 +81,7 @@ type MockPermissionCheckService = {
 }
 
 const provideReadTeamAuditLogsPermission = ({ mockPermissionCheckService, value, targetUserId, targetTeamId }: { mockPermissionCheckService: MockPermissionCheckService, value: boolean, targetUserId: number, targetTeamId: number }) => {
-  mockPermissionCheckService.checkPermission.mockImplementation(({ userId, teamId, permission, fallbackRoles }) => {
+  mockPermissionCheckService.checkPermission.mockImplementation(({ userId, teamId, permission, _fallbackRoles }) => {
     if (permission === "booking.readTeamAuditLogs" && userId === targetUserId && teamId === targetTeamId) {
       return Promise.resolve(value);
     }
@@ -90,7 +90,7 @@ const provideReadTeamAuditLogsPermission = ({ mockPermissionCheckService, value,
 }
 
 const provideReadOrgAuditLogsPermission = ({ mockPermissionCheckService, value, targetUserId, targetTeamId }: { mockPermissionCheckService: MockPermissionCheckService, value: boolean, targetUserId: number, targetTeamId: number }) => {
-  mockPermissionCheckService.checkPermission.mockImplementation(({ userId, teamId, permission, fallbackRoles }) => {
+  mockPermissionCheckService.checkPermission.mockImplementation(({ userId, teamId, permission, _fallbackRoles }) => {
     if (permission === "booking.readOrgAuditLogs" && userId === targetUserId && teamId === targetTeamId) {
       return Promise.resolve(value);
     }

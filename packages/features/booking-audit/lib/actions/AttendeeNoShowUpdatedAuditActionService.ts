@@ -65,7 +65,7 @@ export class AttendeeNoShowUpdatedAuditActionService implements IAuditActionServ
     getDisplayJson({
         storedData,
     }: GetDisplayJsonParams): AttendeeNoShowUpdatedAuditDisplayData {
-        const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = this.parseStored(storedData);
         return {
             noShowAttendee: fields.noShowAttendee.new,
             previousNoShowAttendee: fields.noShowAttendee.old ?? null,
