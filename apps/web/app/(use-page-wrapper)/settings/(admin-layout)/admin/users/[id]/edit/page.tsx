@@ -5,8 +5,8 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { UsersEditView } from "@calcom/features/ee/users/pages/users-edit-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { prisma } from "@calcom/prisma";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
 
@@ -41,6 +41,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   const userRepo = new UserRepository(prisma);
   const user = await userRepo.adminFindById(input.data.id);
+
   const t = await getTranslate();
 
   return (

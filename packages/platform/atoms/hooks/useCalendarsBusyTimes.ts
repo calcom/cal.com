@@ -26,6 +26,29 @@ export const useCalendarsBusyTimes = ({ onError, enabled, ...rest }: UseCalendar
       return http
         .get<ApiResponse<EventBusyDate[]>>("/calendars/busy-times", {
           params: rest,
+          paramsSerializer: (params) => {
+            const searchParams = new URLSearchParams();
+
+            if (params.dateFrom) searchParams.append("dateFrom", params.dateFrom);
+            if (params.dateTo) searchParams.append("dateTo", params.dateTo);
+            if (params.loggedInUsersTz) searchParams.append("loggedInUsersTz", params.loggedInUsersTz);
+
+            // calendarsToLoad expects an array of objects but since this is a GET request, we cant pass the data directly inside the body
+            // hence serializing calendarsToLoad array of objects in the query params
+            if (params.calendarsToLoad && Array.isArray(params.calendarsToLoad)) {
+              params.calendarsToLoad.forEach(
+                (calendar: { credentialId: number; externalId: string }, index: number) => {
+                  searchParams.append(
+                    `calendarsToLoad[${index}][credentialId]`,
+                    String(calendar.credentialId)
+                  );
+                  searchParams.append(`calendarsToLoad[${index}][externalId]`, calendar.externalId);
+                }
+              );
+            }
+
+            return searchParams.toString();
+          },
         })
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {

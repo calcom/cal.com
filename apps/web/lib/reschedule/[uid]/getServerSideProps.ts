@@ -4,11 +4,11 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { buildEventUrlFromBooking } from "@calcom/features/bookings/lib/buildEventUrlFromBooking";
 import { determineReschedulePreventionRedirect } from "@calcom/features/bookings/lib/reschedule/determineReschedulePreventionRedirect";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 const querySchema = z.object({
@@ -47,6 +47,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
     select: {
       ...bookingMinimalSelect,
+      userId: true,
       responses: true,
       eventType: {
         select: {
@@ -59,6 +60,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
           allowReschedulingCancelledBookings: true,
+          minimumRescheduleNotice: true,
           team: {
             select: {
               id: true,
@@ -122,17 +124,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking: {
       uid,
       status: booking.status,
+      startTime: booking.startTime,
       endTime: booking.endTime,
       responses: booking.responses,
+      userId: booking.userId,
       eventType: {
         disableRescheduling: !!eventType?.disableRescheduling,
         allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
         allowBookingFromCancelledBookingReschedule: !!eventType.allowReschedulingCancelledBookings,
+        minimumRescheduleNotice: eventType.minimumRescheduleNotice,
         teamId: eventType.team?.id ?? null,
       },
     },
     eventUrl,
     forceRescheduleForCancelledBooking: allowRescheduleForCancelledBooking,
+    currentUserId: session?.user?.id ?? null,
     bookingSeat,
   });
 

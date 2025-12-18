@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
@@ -9,12 +10,13 @@ import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { BookingReference, Attendee, Booking, Membership } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/client";
@@ -118,17 +120,6 @@ type InputWorkflow = {
   verifiedAt?: Date;
 };
 
-type PaymentData = {
-  // Common payment data fields based on Stripe and other payment providers
-  paymentIntent?: string;
-  paymentMethodId?: string;
-  clientSecret?: string;
-  customerId?: string;
-  subscriptionId?: string;
-  metadata?: Record<string, string>;
-  [key: string]: unknown; // Allow additional provider-specific fields
-};
-
 type InputPayment = {
   id?: number;
   uid: string;
@@ -139,7 +130,7 @@ type InputPayment = {
   currency: string;
   success: boolean;
   refunded: boolean;
-  data: PaymentData;
+  data: Prisma.InputJsonValue;
   externalId: string;
   paymentOption?: PaymentOption;
 };
@@ -240,6 +231,8 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       end: string;
     }[];
   };
+  requiresBookerEmailVerification?: boolean;
+  secondaryEmails?: { email: string; emailVerified: Date | null }[];
 };
 
 export type InputEventType = {
@@ -578,7 +571,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Pretty complex type here
+
   return await addEventTypesToDb(eventTypesWithUsers as unknown as any);
 }
 
@@ -590,7 +583,6 @@ function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCrea
 
 async function addBookingsToDb(
   bookings: (Prisma.BookingCreateInput & {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     references: any[];
     user?: { id: number };
   })[]
@@ -698,7 +690,6 @@ export async function addBookings(bookings: InputBooking[]) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function addWebhooksToDb(webhooks: any[]) {
   await prismock.webhook.createMany({
     data: webhooks,
@@ -834,6 +825,21 @@ export async function addUsersToDb(users: InputUser[]) {
     }
   }
 
+  for (const user of users) {
+    if (user.secondaryEmails) {
+      log.debug("Creating SecondaryEmail entries for user", user.id);
+      for (const secondaryEmail of user.secondaryEmails) {
+        await prismock.secondaryEmail.create({
+          data: {
+            email: secondaryEmail.email,
+            emailVerified: secondaryEmail.emailVerified,
+            userId: user.id,
+          },
+        });
+      }
+    }
+  }
+
   const allUsers = await prismock.user.findMany({
     include: {
       credentials: true,
@@ -845,6 +851,7 @@ export async function addUsersToDb(users: InputUser[]) {
         },
       },
       destinationCalendar: true,
+      secondaryEmails: true,
     },
   });
 
@@ -975,7 +982,6 @@ export async function addUsers(users: InputUser[]) {
   return await addUsersToDb(prismaUsersCreate);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function addAppsToDb(apps: any[]) {
   log.silly("TestData: Creating Apps", JSON.stringify({ apps }));
   await prismock.app.createMany({
@@ -1042,7 +1048,6 @@ export async function createOrganization(orgData: {
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]>; children: any }> {
   const org = await prismock.team.create({
     data: {
@@ -1081,7 +1086,7 @@ export async function createOrganization(orgData: {
 export async function createCredentials(
   credentialData: {
     type: string;
-    key: Prisma.JsonValue;
+    key: Prisma.InputJsonValue;
     id?: number;
     userId?: number | null;
     teamId?: number | null;
@@ -1554,6 +1559,8 @@ export function getOrganizer({
   username,
   locked,
   emailVerified,
+  requiresBookerEmailVerification,
+  secondaryEmails,
 }: {
   name: string;
   email: string;
@@ -1572,6 +1579,8 @@ export function getOrganizer({
   username?: string;
   locked?: boolean;
   emailVerified?: Date | null;
+  requiresBookerEmailVerification?: boolean;
+  secondaryEmails?: { email: string; emailVerified: Date | null }[];
 }) {
   username = username ?? TestData.users.example.username;
   return {
@@ -1594,6 +1603,8 @@ export function getOrganizer({
     completedOnboarding,
     locked,
     emailVerified,
+    requiresBookerEmailVerification,
+    secondaryEmails,
   };
 }
 
@@ -2001,6 +2012,10 @@ export async function mockCalendarToHaveNoBusySlots(
   return await mockCalendar(metadataLookupKey, { ...calendarData, busySlots: [] });
 }
 
+export async function mockCalendarToCrashOnGetAvailability(metadataLookupKey: keyof typeof appStoreMetadata) {
+  return await mockCalendar(metadataLookupKey, { getAvailabilityCrash: true });
+}
+
 export async function mockCalendarToCrashOnCreateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
   return await mockCalendar(metadataLookupKey, { creationCrash: true });
 }
@@ -2033,11 +2048,11 @@ export function mockVideoApp({
     url: `http://mock-${metadataLookupKey}.example.com`,
   };
   log.silly("mockVideoApp", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const createMeetingCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const updateMeetingCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const deleteMeetingCalls: any[] = [];
 
   const mockVideoAdapter = (credential: unknown) => {
@@ -2273,7 +2288,8 @@ export function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntent
 export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
   let webhookResponse = null;
   try {
-    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
+    const traceContext = distributedTracing.createTrace("test_stripe_webhook");
+    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }), traceContext);
   } catch (e) {
     log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
     webhookResponse = e as HttpError;
@@ -2286,7 +2302,7 @@ export function getExpectedCalEventForBookingRequest({
   eventType,
 }: {
   bookingRequest: ReturnType<typeof getMockRequestDataForBooking>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   eventType: any;
 }) {
   return {
@@ -2397,7 +2413,7 @@ export const getDefaultBookingFields = ({
           label: "",
           hidden: false,
           sources: [{ id: "default", type: "default", label: "Default" }],
-          editable: "system",
+          editable: "system-but-optional",
           required: true,
           placeholder: "",
           defaultLabel: "email_address",
@@ -2513,7 +2529,7 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        serviceAccountKey: workspace.defaultServiceAccountKey,
+        serviceAccountKey: workspace.defaultServiceAccountKey as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -2555,7 +2571,7 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        serviceAccountKey: workspace.defaultServiceAccountKey,
+        serviceAccountKey: workspace.defaultServiceAccountKey as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -2564,7 +2580,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
   throw new Error(`Unsupported type: ${type}`);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const buildDelegationCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
   return {
     id: -1,

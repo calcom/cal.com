@@ -1,11 +1,12 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "spellright.language": ["en"],
   "spellright.documentTypes": ["markdown", "typescript", "typescriptreact"],
-  "tailwindCSS.experimental.classRegex": [["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]]
+  "tailwindCSS.classFunctions": ["cva"]
 }

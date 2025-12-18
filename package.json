@@ -41,6 +41,8 @@
     "dev:console": "turbo run dev --filter=\"@calcom/web\" --filter=\"@calcom/console\"",
     "dev:swagger": "turbo run dev --filter=\"@calcom/api-proxy\" --filter=\"@calcom/api\" --filter=\"@calcom/swagger\"",
     "dev:website": "turbo run dev --filter=\"@calcom/web\" --filter=\"@calcom/website\"",
+    "dev:trigger": "turbo run dev:trigger --filter=\"@calcom/features\"",
+    "deploy:trigger": "turbo run deploy:trigger --filter=\"@calcom/features\"",
     "dev": "turbo run dev --filter=\"@calcom/web\"",
     "build-storybook": "turbo run build --filter=\"@calcom/storybook\"",
     "dx": "turbo run dx",
@@ -77,12 +79,9 @@
     "type-check": "turbo run type-check",
     "type-check:ci": "turbo run type-check:ci --log-prefix=none",
     "web": "yarn workspace @calcom/web",
-    "docker-build-api": "docker build -t cal-api -f ./infra/docker/api/Dockerfile .",
-    "docker-run-api": "docker run -p 80:80 cal-api",
-    "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop",
     "changesets-add": "yarn changeset add",
     "changesets-version": "yarn changeset version",
-    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish",
+    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build-npm --filter=@calcom/atoms && yarn changeset publish",
     "lint-staged": "lint-staged"
   },
   "devDependencies": {
@@ -92,6 +91,7 @@
     "@faker-js/faker": "9.2.0",
     "@jetstreamapp/soql-parser-js": "^6.1.0",
     "@playwright/test": "^1.45.3",
+    "@prisma/internals": "^6.16.2",
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
@@ -100,7 +100,7 @@
     "checkly": "latest",
     "dotenv-checker": "^1.1.5",
     "eslint": "9.36.0",
-    "husky": "^8.0.0",
+    "husky": "9.1.7",
     "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
     "jest-summarizing-reporter": "^1.1.4",
@@ -139,7 +139,9 @@
     "dayjs@1.11.2": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
-    "import-in-the-middle": "1.13.1"
+    "import-in-the-middle": "1.13.1",
+    "react@19.2.0": "19.2.2",
+    "react@19.2.1": "19.2.2"
   },
   "engines": {
     "npm": ">=7.0.0",

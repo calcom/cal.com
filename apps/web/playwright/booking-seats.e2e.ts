@@ -191,11 +191,10 @@ test.describe("Reschedule for booking with seats", () => {
     users,
     bookings,
   }) => {
-    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+    const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.apiLogin();
 
     const bookingAttendees = await prisma.attendee.findMany({
       where: { bookingId: booking.id },
@@ -511,7 +510,7 @@ test.describe("Reschedule for booking with seats", () => {
     users,
     bookings,
   }) => {
-    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+    const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
@@ -556,7 +555,24 @@ test.describe("Reschedule for booking with seats", () => {
     await page.waitForSelector('[data-testid="bookings"]');
 
     await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-    await page.locator('[data-testid="reschedule"]').click();
+
+    // Wait for the reschedule link to be visible and have an href attribute
+    const rescheduleLink = page.locator('[data-testid="reschedule"]');
+    await expect(rescheduleLink).toBeVisible();
+    await expect(rescheduleLink).toHaveAttribute("href", /.+/);
+
+    const href = await rescheduleLink.getAttribute("href");
+    const url = new URL(href!, page.url());
+    const seatReferenceUid = url.searchParams.get("seatReferenceUid");
+    if (!seatReferenceUid) {
+      await page.reload();
+      await page.waitForSelector('[data-testid="bookings"]');
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+      await expect(rescheduleLink).toBeVisible();
+      await expect(rescheduleLink).toHaveAttribute("href", /.+/);
+    }
+    await rescheduleLink.click();
+    await expect(page.getByText("Seats available").first()).toBeVisible();
 
     await page.waitForURL((url) => {
       const rescheduleUid = url.searchParams.get("rescheduleUid");

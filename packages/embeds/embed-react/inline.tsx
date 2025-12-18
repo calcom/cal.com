@@ -50,6 +50,24 @@ function App() {
           callback,
         });
 
+        const bookerReadyCallback = (e: EmbedEvent<"bookerReady">) => {
+          const data = e.detail.data;
+          console.log("bookerReady", {
+            eventId: data.eventId,
+            eventSlug: data.eventSlug,
+          });
+
+          api("off", {
+            action: "bookerReady",
+            callback: bookerReadyCallback,
+          });
+        };
+
+        api("on", {
+          action: "bookerReady",
+          callback: bookerReadyCallback,
+        });
+
         // Also, validates the type of e.detail.data as TS runs on this file
         const bookingSuccessfulV2Callback = (e: EmbedEvent<"bookingSuccessfulV2">) => {
           const data = e.detail.data;

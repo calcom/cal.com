@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZCreateInputSchema = z.object({
+export type TCreateInputSchema = {
+  teamId?: number;
+};
+
+export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
   teamId: z.number().optional(),
 });
-
-export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

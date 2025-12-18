@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { sendMonthlyDigestEmails } from "@calcom/emails/email-manager";
+import { sendMonthlyDigestEmail } from "@calcom/emails/workflow-email-service";
 import { EventsInsights } from "@calcom/features/insights/server/events";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
@@ -295,7 +295,7 @@ async function postHandler(request: NextRequest) {
 
           // Only send email if user has allowed to receive monthly digest emails
           if (owner.receiveMonthlyDigestEmail) {
-            await sendMonthlyDigestEmails({
+            await sendMonthlyDigestEmail({
               ...EventData,
               admin: { email: owner?.email ?? "", name: owner?.name ?? "" },
               language: t,

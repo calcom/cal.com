@@ -18,6 +18,7 @@ import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
+import databuddy_config_json from "./databuddy/config.json";
 import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
 import dialpad_config_json from "./dialpad/config.json";
@@ -32,6 +33,8 @@ import exchangecalendar_config_json from "./exchangecalendar/config.json";
 import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
 import { metadata as feishucalendar__metadata_ts } from "./feishucalendar/_metadata";
+import fonio_ai_config_json from "./fonio-ai/config.json";
+import framer_config_json from "./framer/config.json";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
@@ -103,7 +106,7 @@ import whatsapp_config_json from "./whatsapp/config.json";
 import whereby_config_json from "./whereby/config.json";
 import { metadata as wipemycalother__metadata_ts } from "./wipemycalother/_metadata";
 import wordpress_config_json from "./wordpress/config.json";
-import { metadata as zapier__metadata_ts } from "./zapier/_metadata";
+import zapier_config_json from "./zapier/config.json";
 import zoho_bigin_config_json from "./zoho-bigin/config.json";
 import zohocalendar_config_json from "./zohocalendar/config.json";
 import zohocrm_config_json from "./zohocrm/config.json";
@@ -126,6 +129,7 @@ export const appStoreMetadata = {
   closecom: closecom_config_json,
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
+  databuddy: databuddy_config_json,
   deel: deel_config_json,
   demodesk: demodesk_config_json,
   dialpad: dialpad_config_json,
@@ -140,6 +144,8 @@ export const appStoreMetadata = {
   facetime: facetime_config_json,
   fathom: fathom_config_json,
   feishucalendar: feishucalendar__metadata_ts,
+  "fonio-ai": fonio_ai_config_json,
+  framer: framer_config_json,
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
@@ -211,7 +217,7 @@ export const appStoreMetadata = {
   whereby: whereby_config_json,
   wipemycalother: wipemycalother__metadata_ts,
   wordpress: wordpress_config_json,
-  zapier: zapier__metadata_ts,
+  zapier: zapier_config_json,
   "zoho-bigin": zoho_bigin_config_json,
   zohocalendar: zohocalendar_config_json,
   zohocrm: zohocrm_config_json,

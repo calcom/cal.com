@@ -2,10 +2,10 @@ import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
-import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 import isSmsCalEmail from "./isSmsCalEmail";
 
 const translator = short();
@@ -112,11 +112,40 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
     `;
 };
 
+/**
+ * Converts HTML to plain text while preserving line breaks and links.
+ * Used for calendar event descriptions that are stored as HTML from the rich text editor.
+ */
+const htmlToPlainText = (html: string): string => {
+  return (
+    html
+      // Convert links to markdown-style format: [text](url)
+      .replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>([^<]*)<\/a>/gi, (_, url, text) => {
+        // If link text is the same as URL, just show the URL
+        if (text === url || !text.trim()) {
+          return url;
+        }
+        return `${text} (${url})`;
+      })
+      // Convert block-level elements to newlines
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<\/div>/gi, "\n")
+      .replace(/<\/li>/gi, "\n")
+      .replace(/<\/h[1-6]>/gi, "\n")
+      // Strip remaining HTML tags
+      .replace(/<\/?[^>]+(>|$)/g, "")
+      // Normalize multiple newlines to max 2
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
+};
+
 export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
   if (!calEvent.description) {
     return "";
   }
-  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
+  const plainText = htmlToPlainText(calEvent.description);
   return `${t("description")}\n${plainText}`;
 };
 
@@ -223,8 +252,9 @@ export const getPlatformCancelLink = (
   if (calEvent.platformCancelUrl) {
     const platformCancelLink = new URL(`${calEvent.platformCancelUrl}/${bookingUid}`);
     platformCancelLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformCancelLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformCancelLink.searchParams.append("cancel", "true");
     platformCancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
     if (seatUid) platformCancelLink.searchParams.append("seatReferenceUid", seatUid);
@@ -267,8 +297,9 @@ export const getPlatformRescheduleLink = (
       `${calEvent.platformRescheduleUrl}/${seatUid ? seatUid : bookingUid}`
     );
     platformRescheduleLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformRescheduleLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformRescheduleLink.searchParams.append("reschedule", "true");
     if (calEvent?.team) platformRescheduleLink.searchParams.append("teamId", calEvent.team.id.toString());
     return platformRescheduleLink.toString();
@@ -408,7 +439,10 @@ export const getRichDescription = (
 
 export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellationReason">, t: TFunction) => {
   if (!calEvent.cancellationReason) return "";
-  return `${t("cancellation_reason")}:\n${calEvent.cancellationReason}`;
+  const sanitized = calEvent.cancellationReason.startsWith("$RCH$")
+    ? calEvent.cancellationReason.substring(5).trim()
+    : calEvent.cancellationReason.trim();
+  return `${t("cancellation_reason")}:\n${sanitized}`;
 };
 
 export const isDailyVideoCall = (calEvent: Pick<CalendarEvent, "videoCallData">): boolean => {

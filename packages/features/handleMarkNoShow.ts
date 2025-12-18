@@ -1,21 +1,22 @@
 import { type TFunction } from "i18next";
 
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
@@ -44,7 +45,7 @@ const buildResultPayload = async (
   };
 };
 
-const logFailedResults = (results: PromiseSettledResult<any>[]) => {
+const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
   if (failed.length < 1) return;
   const failedMessage = failed.map((r) => r.reason);
@@ -88,10 +89,12 @@ const handleMarkNoShow = async ({
   attendees,
   noShowHost,
   userId,
+  userUuid: _userUuid,
   locale,
   platformClientParams,
 }: TNoShowInputSchema & {
   userId?: number;
+  userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
 }) => {
@@ -249,7 +252,7 @@ const handleMarkNoShow = async ({
               : booking.user?.destinationCalendar
               ? [booking.user?.destinationCalendar]
               : [];
-            const team = !!booking.eventType?.team
+            const team = booking.eventType?.team
               ? {
                   name: booking.eventType.team.name,
                   id: booking.eventType.team.id,
@@ -293,12 +296,15 @@ const handleMarkNoShow = async ({
               team,
             };
 
+            const creditService = new CreditService();
+
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
               workflows,
               smsReminderNumber: booking.smsReminderNumber,
               hideBranding: booking.eventType.owner?.hideBranding,
               calendarEvent,
               triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
+              creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             });
           } catch (error) {
             logger.error("Error while scheduling workflow reminders for booking no-show updated", error);

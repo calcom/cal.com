@@ -4,10 +4,10 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
+import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
-import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import type { PeriodData } from "@calcom/types/Event";
@@ -54,6 +54,7 @@ export type DatePickerProps = {
       toUser?: IToUser;
       reason?: string;
       emoji?: string;
+      showNotePublicly?: boolean;
     }[]
   >;
   periodData?: PeriodData;
@@ -271,7 +272,9 @@ const Days = ({
     const isOOOAllDay = daySlots.length > 0 && daySlots.every((slot) => slot.away);
     const away = isOOOAllDay;
 
-    const disabled = away ? !oooInfo?.toUser : isNextMonth ? !hasAvailableSlots : !included || excluded;
+    // OOO dates are selectable only if there's a redirect user OR the note is public
+    const oooIsSelectable = oooInfo?.toUser || oooInfo?.showNotePublicly;
+    const disabled = away ? !oooIsSelectable : isNextMonth ? !hasAvailableSlots : !included || excluded;
 
     return {
       day,
@@ -322,7 +325,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
+              className="bg-cal-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-8 w-9" />

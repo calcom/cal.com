@@ -1,6 +1,6 @@
-import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
+import { SelfHostedOrganizationOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/SelfHostedOnboardingService";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 import { TRPCError } from "@trpc/server";
 
@@ -45,24 +45,32 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
     });
   }
 
-  const { organization } = await createOrganizationFromOnboarding({
-    organizationOnboarding: {
-      id: input.onboardingId,
-      logo: input.logo ?? null,
-      bio: input.bio ?? null,
-      invitedMembers: input.invitedMembers ?? [],
-      teams: input.teams ?? [],
-      orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
-      slug: organizationOnboarding.slug,
-      name: organizationOnboarding.name,
-      billingPeriod: organizationOnboarding.billingPeriod,
-      seats: organizationOnboarding.seats,
-      pricePerSeat: organizationOnboarding.pricePerSeat,
-      stripeCustomerId: organizationOnboarding.stripeCustomerId,
-      isPlatform: organizationOnboarding.isPlatform,
-      isDomainConfigured: organizationOnboarding.isDomainConfigured,
-      organizationId: organizationOnboarding.organizationId,
-    },
+  const userContext = {
+    id: ctx.user.id,
+    email: ctx.user.email,
+    role: ctx.user.role as "ADMIN" | "USER",
+    name: ctx.user.name || undefined,
+  };
+
+  const onboardingService = new SelfHostedOrganizationOnboardingService(userContext);
+  const { organization } = await onboardingService.createOrganization({
+    id: input.onboardingId,
+    logo: input.logo ?? null,
+    bio: input.bio ?? null,
+    brandColor: input.brandColor ?? null,
+    bannerUrl: input.bannerUrl ?? null,
+    invitedMembers: input.invitedMembers ?? [],
+    teams: input.teams ?? [],
+    orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+    slug: organizationOnboarding.slug,
+    name: organizationOnboarding.name,
+    billingPeriod: organizationOnboarding.billingPeriod,
+    seats: organizationOnboarding.seats,
+    pricePerSeat: organizationOnboarding.pricePerSeat,
+    stripeCustomerId: organizationOnboarding.stripeCustomerId,
+    isPlatform: organizationOnboarding.isPlatform,
+    isDomainConfigured: organizationOnboarding.isDomainConfigured,
+    organizationId: organizationOnboarding.organizationId,
   });
 
   await OrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
