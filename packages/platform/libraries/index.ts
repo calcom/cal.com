@@ -139,5 +139,5 @@ export { BookingAccessService } from "@calcom/features/bookings/services/Booking
 export { getTasker } from "@calcom/features/tasker/tasker-factory";
 export type { Tasker } from "@calcom/features/tasker/tasker";
 export { verifyCodeChallenge } from "@calcom/lib/pkce";
-export { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
+export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 export { OAuthService } from "@calcom/features/oauth/services/OAuthService";
