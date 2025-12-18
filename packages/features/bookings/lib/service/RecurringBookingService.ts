@@ -1,19 +1,25 @@
 import type { CreateBookingMeta, CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { CreationSource, SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
+import { v4 as uuidv4 } from "uuid";
 
 import type { IBookingService } from "../interfaces/IBookingService";
 import type { RegularBookingService } from "./RegularBookingService";
-
+import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
+import { criticalLogger } from "@calcom/lib/logger.server";
+import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
+import { buildBookingCreatedAuditData, buildBookingRescheduledAuditData } from "../handleNewBooking/buildBookingEventPayload";
 export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;
 } & CreateBookingMeta;
 
-export const handleNewRecurringBooking = async (
+export const handleNewRecurringBooking = async function (
+  this: RecurringBookingService,
   input: BookingHandlerInput,
   deps: IRecurringBookingServiceDependencies
-): Promise<BookingResponse[]> => {
+): Promise<BookingResponse[]> {
   const data = input.bookingData;
   const { regularBookingService } = deps;
   const createdBookings: BookingResponse[] = [];
@@ -121,25 +127,106 @@ export const handleNewRecurringBooking = async (
       }
     }
   }
+
+  if (createdBookings.length > 0) {
+    await this.fireEvents({
+      createdBookings,
+      eventTypeId: firstBooking.eventTypeId,
+      rescheduleUid: firstBooking.rescheduleUid ?? null,
+      userUuid: input.userUuid ?? null,
+      creationSource: firstBooking.creationSource,
+    });
+  }
+
   return createdBookings;
 };
 
 export interface IRecurringBookingServiceDependencies {
   regularBookingService: RegularBookingService;
+  bookingEventHandler: BookingEventHandlerService;
 }
 
 /**
  * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
  */
 export class RecurringBookingService implements IBookingService {
-  constructor(private readonly deps: IRecurringBookingServiceDependencies) {}
+  constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
+
+  async fireEvents({ createdBookings, eventTypeId, rescheduleUid, userUuid, creationSource }: { createdBookings: BookingResponse[], eventTypeId: number, rescheduleUid: string | null, userUuid: string | null, creationSource: CreationSource | undefined }) {
+    type ValidBooking = BookingResponse & { uid: string; startTime: Date; endTime: Date; };
+
+    const isReschedule = !!rescheduleUid;
+    const firstCreatedBooking = createdBookings[0];
+    const eventOrganizationId = firstCreatedBooking.organizationId;
+    const booker = firstCreatedBooking.attendees?.[0];
+    const bookerAttendeeId = booker?.id;
+    const bookerName = booker?.name || "";
+    const bookerEmail = booker?.email || "";
+
+    const auditActor = getBookingAuditActorForNewBooking({
+      attendeeId: bookerAttendeeId ?? null,
+      userUuid,
+      bookerEmail,
+      bookerName,
+      logger: criticalLogger,
+    });
+
+    const actionSource = getAuditActionSource({ creationSource, eventTypeId, rescheduleUid });
+
+    const operationId = uuidv4();
+
+    function isValidBooking(booking: BookingResponse): booking is ValidBooking {
+      return !!(booking.uid && booking.startTime && booking.endTime)
+    }
+
+    function isValidRescheduledBooking(booking: BookingResponse): booking is ValidBooking & { previousBooking: ValidBooking } {
+      return !!(booking.previousBooking && booking.previousBooking.uid && booking.previousBooking.startTime && booking.previousBooking.endTime)
+    }
+
+    if (isReschedule) {
+      const bulkRescheduledBookings = createdBookings
+        .filter(isValidRescheduledBooking)
+        .map((booking) => ({
+          bookingUid: booking.previousBooking.uid,
+          auditData: buildBookingRescheduledAuditData({ oldBooking: booking.previousBooking, newBooking: booking }),
+        }));
+
+      if (bulkRescheduledBookings.length > 0) {
+        await this.deps.bookingEventHandler.onBulkBookingsRescheduled({
+          bookings: bulkRescheduledBookings,
+          actor: auditActor,
+          organizationId: eventOrganizationId,
+          operationId,
+          source: actionSource,
+        });
+      }
+    } else {
+      // For new bookings
+      const bulkCreatedBookings = createdBookings
+        .filter(isValidBooking)
+        .map((booking) => ({
+          bookingUid: booking.uid,
+          auditData: buildBookingCreatedAuditData({ booking }),
+        }));
+
+      if (bulkCreatedBookings.length > 0) {
+        await this.deps.bookingEventHandler.onBulkBookingsCreated({
+          bookings: bulkCreatedBookings,
+          actor: auditActor,
+          organizationId: eventOrganizationId,
+          operationId,
+          source: actionSource,
+        });
+      }
+    }
+  }
 
   async createBooking(input: {
     bookingData: CreateRecurringBookingData;
     bookingMeta?: CreateBookingMeta;
   }): Promise<BookingResponse[]> {
     const handlerInput = { bookingData: input.bookingData, ...(input.bookingMeta || {}) };
-    return handleNewRecurringBooking(handlerInput, this.deps);
+    return handleNewRecurringBooking.bind(this)(handlerInput, this.deps);
   }
 
   async rescheduleBooking(input: {
@@ -147,6 +234,6 @@ export class RecurringBookingService implements IBookingService {
     bookingMeta?: CreateBookingMeta;
   }): Promise<BookingResponse[]> {
     const handlerInput = { bookingData: input.bookingData, ...(input.bookingMeta || {}) };
-    return handleNewRecurringBooking(handlerInput, this.deps);
+    return handleNewRecurringBooking.bind(this)(handlerInput, this.deps);
   }
 }

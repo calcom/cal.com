@@ -1,6 +1,7 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
+import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
+import { buildBookingCreatedAuditData, buildBookingRescheduledAuditData } from "../handleNewBooking/buildBookingEventPayload";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -726,6 +727,12 @@ async function handler(
         ...(isDryRun ? { troubleshooterData } : {}),
         paymentUid: firstPayment?.uid,
         paymentId: firstPayment?.id,
+        organizationId: eventOrganizationId,
+        previousBooking: originalRescheduledBooking ? {
+          uid: originalRescheduledBooking.uid,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        } : null,
       };
     }
   }
@@ -1616,29 +1623,17 @@ async function handler(
       luckyUsers: [],
       paymentId: undefined,
       seatReferenceUid: undefined,
-      isShortCircuitedBooking: true, // Renamed from isSpamDecoy to avoid exposing spam detection to blocked users
+      isShortCircuitedBooking: true,
+      organizationId: eventOrganizationId,
+      previousBooking: originalRescheduledBooking ? {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      } : null,
     };
   }
 
-  const getActionSource = (creationSource: CreationSource | null | undefined): ActionSource => {
-    if (creationSource === CreationSource.API_V1) {
-      return "API_V1";
-    }
-    if (creationSource === CreationSource.API_V2) {
-      return "API_V2";
-    }
-    if (creationSource === CreationSource.WEBAPP) {
-      return "WEBAPP";
-    }
-    // Unknown creationSource - log for tracking and fix
-    criticalLogger.warn("Unknown booking creationSource detected", {
-      eventTypeId: input.bookingData.eventTypeId,
-      rescheduleUid: input.bookingData.rescheduleUid,
-    });
-    return "UNKNOWN";
-  };
-
-  const actionSource = getActionSource(input.bookingData.creationSource);
+  const actionSource = getAuditActionSource({ creationSource: input.bookingData.creationSource, eventTypeId, rescheduleUid: originalRescheduledBooking?.uid ?? null });
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
@@ -1696,6 +1691,12 @@ async function handler(
       return {
         ...bookingResponse,
         ...luckyUserResponse,
+        organizationId: eventOrganizationId,
+        previousBooking: originalRescheduledBooking ? {
+          uid: originalRescheduledBooking.uid,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        } : null,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -2340,48 +2341,35 @@ async function handler(
     logger: tracingLogger,
   });
 
-  // Map CreationSource to ActionSource
-  if (originalRescheduledBooking) {
-    const bookingRescheduledPayload: BookingRescheduledPayload = {
-      ...bookingCreatedPayload,
-      oldBooking: {
-        uid: originalRescheduledBooking.uid,
-        startTime: originalRescheduledBooking.startTime,
-        endTime: originalRescheduledBooking.endTime,
-      },
-    };
-    await bookingEventHandler.onBookingRescheduled({
-      payload: bookingRescheduledPayload,
-      actor: auditActor,
-      auditData: {
-        startTime: {
-          old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
-          new: bookingRescheduledPayload.booking.startTime.toISOString(),
+  const isRecurringBooking = !!input.bookingData.allRecurringDates;
+
+  // For recurring bookings we fire the events in the RecurringBookingService
+  if (!isRecurringBooking) {
+    if (originalRescheduledBooking) {
+      const bookingRescheduledPayload: BookingRescheduledPayload = {
+        ...bookingCreatedPayload,
+        oldBooking: {
+          uid: originalRescheduledBooking.uid,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
         },
-        endTime: {
-          old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
-          new: bookingRescheduledPayload.booking.endTime.toISOString(),
-        },
-        rescheduledToUid: {
-          old: null,
-          new: bookingRescheduledPayload.booking.uid,
-        },
-      },
-      source: actionSource,
-      operationId: null,
-    });
-  } else {
-    await bookingEventHandler.onBookingCreated({
-      payload: bookingCreatedPayload,
-      actor: auditActor,
-      auditData: {
-        startTime: bookingCreatedPayload.booking.startTime.getTime(),
-        endTime: bookingCreatedPayload.booking.endTime.getTime(),
-        status: bookingCreatedPayload.booking.status,
-      },
-      source: actionSource,
-      operationId: null,
-    });
+      };
+      await bookingEventHandler.onBookingRescheduled({
+        payload: bookingRescheduledPayload,
+        actor: auditActor,
+        auditData: buildBookingRescheduledAuditData({ oldBooking: originalRescheduledBooking, newBooking: booking }),
+        source: actionSource,
+        operationId: null,
+      });
+    } else {
+      await bookingEventHandler.onBookingCreated({
+        payload: bookingCreatedPayload,
+        actor: auditActor,
+        auditData: buildBookingCreatedAuditData({ booking }),
+        source: actionSource,
+        operationId: null,
+      });
+    }
   }
 
   const webhookData: EventPayloadType = {
@@ -2534,6 +2522,12 @@ async function handler(
       paymentId: payment?.id,
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
+      organizationId: eventOrganizationId,
+      previousBooking: originalRescheduledBooking ? {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      } : null,
     };
   }
 
@@ -2773,6 +2767,12 @@ async function handler(
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
     videoCallUrl: metadata?.videoCallUrl,
+    organizationId: eventOrganizationId,
+    previousBooking: originalRescheduledBooking ? {
+      uid: originalRescheduledBooking.uid,
+      startTime: originalRescheduledBooking.startTime,
+      endTime: originalRescheduledBooking.endTime,
+    } : null,
   };
 }
 

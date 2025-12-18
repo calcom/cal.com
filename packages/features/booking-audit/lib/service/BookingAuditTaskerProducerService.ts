@@ -433,4 +433,36 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
             action: CancelledAuditActionService.TYPE,
         });
     }
+
+    async queueBulkCreatedAudit(params: {
+        bookings: Array<{
+            bookingUid: string;
+            data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
+        }>;
+        actor: Actor;
+        organizationId: number | null;
+        source: ActionSource;
+        operationId?: string | null;
+    }): Promise<void> {
+        await this.queueBulkTask({
+            ...params,
+            action: CreatedAuditActionService.TYPE,
+        });
+    }
+
+    async queueBulkRescheduledAudit(params: {
+        bookings: Array<{
+            bookingUid: string;
+            data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
+        }>;
+        actor: Actor;
+        organizationId: number | null;
+        source: ActionSource;
+        operationId?: string | null;
+    }): Promise<void> {
+        await this.queueBulkTask({
+            ...params,
+            action: RescheduledAuditActionService.TYPE,
+        });
+    }
 }

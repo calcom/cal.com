@@ -53,6 +53,6 @@ import { Module, Scope } from "@nestjs/common";
     TaskerService,
     RegularBookingService,
   ],
-  exports: [RegularBookingService],
+  exports: [RegularBookingService, BookingEventHandlerService],
 })
 export class RegularBookingModule { }
