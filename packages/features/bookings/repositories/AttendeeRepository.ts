@@ -1,26 +1,24 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-export class AttendeeRepository {
-  private prisma: PrismaClient;
+import type { IAttendeeRepository } from "./IAttendeeRepository";
 
-  constructor(prismaClient: PrismaClient) {
-    this.prisma = prismaClient;
-  }
+/**
+ * Prisma-based implementation of IAttendeeRepository
+ *
+ * This repository provides methods for looking up attendee information.
+ */
+export class AttendeeRepository implements IAttendeeRepository {
+  constructor(private prismaClient: PrismaClient) {}
 
-  async findByBookingIdAndSeatReference(
-    bookingId: number,
-    seatReferenceUid: string
-  ): Promise<{ email: string }[]> {
-    return this.prisma.attendee.findMany({
-      where: {
-        bookingId,
-        bookingSeat: {
-          referenceUid: seatReferenceUid,
-        },
+  async findById(id: number): Promise<{ name: string; email: string } | null> {
+    const attendee = await this.prismaClient.attendee.findUnique({
+      where: { id },
+      select: {
+        name: true,
+        email: true,
       },
-      select: { email: true },
     });
+
+    return attendee;
   }
 }
-
-
