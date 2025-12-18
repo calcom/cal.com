@@ -1,5 +1,3 @@
-import type { ComponentProps } from "react";
-
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -35,7 +33,8 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   const Component = await routingFormsComponents[mainPage as keyof typeof routingFormsComponents]();
 
-  return <Component {...(props as unknown as ComponentProps<typeof Component>)} />;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic component selection makes type-safe props casting impractical
+  return <Component {...(props as any)} />;
 };
 
 export default ServerPage;
