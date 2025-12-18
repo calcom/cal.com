@@ -92,7 +92,7 @@ const EventAppsTab = dynamic(() =>
 );
 
 const EventWorkflowsTab = dynamic(
-  () => import("@calcom/web/modules/event-types/components/EventWorkfowsTab")
+  () => import("@calcom/web/modules/event-types/components/EventWorkflowsTab")
 );
 
 const EventWebhooksTab = dynamic(() =>
