@@ -39,7 +39,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
   const mutation = trpc.viewer.credentials.delete.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
-      onSuccess && onSuccess();
+      onSuccess?.();
       setConfirmationDialogOpen(false);
     },
     onError: () => {
@@ -54,8 +54,8 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
 
   const getUserDisplayName = (user: (typeof credentials)[number]["user"]) => {
     if (!user) return null;
-    // Check if 'name' property exists on user
-    if ("name" in user) return user.name;
+    // Check if 'name' property exists and has a value
+    if ("name" in user && user.name) return user.name;
     // Otherwise use email if available
     if ("email" in user) return user.email;
     return null;
