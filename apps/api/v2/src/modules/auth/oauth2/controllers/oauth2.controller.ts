@@ -74,8 +74,21 @@ export class OAuth2Controller {
     @GetUser("id") userId: number,
     @Res() res: Response
   ): Promise<void> {
+    // First, validate the client exists - if not, return HTTP error (don't redirect)
+    // This is important for security: we can't trust the redirect URI if we don't have a valid client
+    let client;
     try {
-      const client = await this.oAuthService.getClient(clientId);
+      client = await this.oAuthService.getClient(clientId);
+    } catch (err) {
+      if (err instanceof HttpError) {
+        const httpError = err as HttpError;
+        throw new HttpException(httpError.message, httpError.statusCode);
+      }
+      throw new InternalServerErrorException("Could not validate OAuth client");
+    }
+
+    // Now that we have a valid client, we can safely redirect on errors
+    try {
       const result = await this.oAuthService.generateAuthorizationCode(
         client.clientId,
         userId,
