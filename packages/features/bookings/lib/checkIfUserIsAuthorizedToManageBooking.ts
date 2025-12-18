@@ -19,10 +19,8 @@ export const checkIfUserIsAuthorizedToManageBooking = async ({
   bookingUserId,
   userRole,
 }: CheckIfUserIsAuthorizedToManageBookingParams): Promise<boolean> => {
-  // System-wide admin
-  if (userRole === UserPermissionRole.ADMIN) return true;
-
-  // Organizer/owner of the booking
+  const isSystemWideAdmin = userRole === UserPermissionRole.ADMIN;
+  if (isSystemWideAdmin) return true;
   if (bookingUserId === loggedInUserId) return true;
 
   // Associated with the event type (host or assigned user)
