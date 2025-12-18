@@ -8,11 +8,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
-import {
-  prisma,
-  availabilityUserSelect,
-  userSelect as userSelectWithSelectedCalendars,
-} from "@calcom/prisma";
+import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -490,7 +486,7 @@ export class EventTypeRepository {
 
     if (!teamMembership) throw new ErrorWithCode(ErrorCode.Unauthorized, "User is not a member of this team");
 
-    return await prisma.eventType.findMany({
+    return await this.prismaClient.eventType.findMany({
       where: {
         teamId,
         ...where,

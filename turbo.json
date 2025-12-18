@@ -373,7 +373,7 @@
       "cache": false,
       "dependsOn": []
     },
-    "@calcom/atoms#build": {
+    "@calcom/atoms#build-npm": {
       "outputs": ["dist/**", "globals.min.css"]
     },
     "@calcom/api-v2#build": {
