@@ -1,3 +1,4 @@
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
@@ -49,9 +50,48 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     });
   }
 
-  const organizationSettingsData =
-    organizationSettings || existingOrg.organizationSettings
-      ? {
+  const updatedOrganization = await prisma.$transaction(async (tx) => {
+    const updatedOrganization = await tx.team.update({
+      where: { id },
+      data,
+    });
+
+    // Update all TempOrgRedirect records that point to the old org URL to use the new org URL
+    if (newSlug && oldSlug && newSlug !== oldSlug) {
+      const oldOrgUrlPrefix = getOrgFullOrigin(oldSlug);
+      const newOrgUrlPrefix = getOrgFullOrigin(newSlug);
+
+      const redirectsToUpdate = await tx.tempOrgRedirect.findMany({
+        where: {
+          toUrl: {
+            startsWith: oldOrgUrlPrefix,
+          },
+        },
+        select: {
+          id: true,
+          toUrl: true,
+        },
+      });
+
+      for (const redirect of redirectsToUpdate) {
+        const newToUrl = redirect.toUrl.replace(oldOrgUrlPrefix, newOrgUrlPrefix);
+        await tx.tempOrgRedirect.update({
+          where: {
+            id: redirect.id,
+          },
+          data: {
+            toUrl: newToUrl,
+          },
+        });
+      }
+    }
+
+    if (organizationSettings || existingOrg.organizationSettings) {
+      await tx.organizationSettings.update({
+        where: {
+          organizationId: updatedOrganization.id,
+        },
+        data: {
           isOrganizationConfigured:
             organizationSettings?.isOrganizationConfigured ||
             existingOrg.organizationSettings?.isOrganizationConfigured,
@@ -64,15 +104,10 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
           isAdminAPIEnabled: !!(
             organizationSettings?.isAdminAPIEnabled ?? existingOrg.organizationSettings?.isAdminAPIEnabled
           ),
-        }
-      : undefined;
-
-  const updatedOrganization = await organizationRepository.adminUpdateForAdminPanel({
-    id,
-    data,
-    organizationSettingsData,
-    oldSlug,
-    newSlug,
+        },
+      });
+    }
+    return updatedOrganization;
   });
 
   return updatedOrganization;

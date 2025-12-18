@@ -441,69 +441,6 @@ export class OrganizationRepository {
     return organization;
   }
 
-  async adminUpdateForAdminPanel({
-    id,
-    data,
-    organizationSettingsData,
-    oldSlug,
-    newSlug,
-  }: {
-    id: number;
-    data: Prisma.TeamUpdateArgs["data"];
-    organizationSettingsData?: Prisma.OrganizationSettingsUpdateArgs["data"];
-    oldSlug?: string | null;
-    newSlug?: string | null;
-  }) {
-    return this.prismaClient.$transaction(async (tx) => {
-      const updatedOrganization = await tx.team.update({
-        where: { id, isOrganization: true },
-        data,
-      });
-
-      const isSlugChanged = !!oldSlug && !!newSlug && oldSlug !== newSlug;
-
-      if (isSlugChanged) {
-        const oldOrgUrlPrefix = getOrgFullOrigin(oldSlug);
-        const newOrgUrlPrefix = getOrgFullOrigin(newSlug);
-
-        const redirectsToUpdate = await tx.tempOrgRedirect.findMany({
-          where: {
-            toUrl: {
-              startsWith: oldOrgUrlPrefix,
-            },
-          },
-          select: {
-            id: true,
-            toUrl: true,
-          },
-        });
-
-        for (const redirect of redirectsToUpdate) {
-          const newToUrl = redirect.toUrl.replace(oldOrgUrlPrefix, newOrgUrlPrefix);
-          await tx.tempOrgRedirect.update({
-            where: {
-              id: redirect.id,
-            },
-            data: {
-              toUrl: newToUrl,
-            },
-          });
-        }
-      }
-
-      if (organizationSettingsData) {
-        await tx.organizationSettings.update({
-          where: {
-            organizationId: updatedOrganization.id,
-          },
-          data: organizationSettingsData,
-        });
-      }
-
-      return updatedOrganization;
-    });
-  }
-
   async findCalVideoLogoByOrgId({ id }: { id: number }) {
     const org = await this.prismaClient.team.findUnique({
       where: {
