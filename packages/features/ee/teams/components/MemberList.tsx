@@ -10,10 +10,10 @@ import {
 } from "@tanstack/react-table";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
-import posthog from "posthog-js";
 import { signIn } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
+import posthog from "posthog-js";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -59,11 +59,11 @@ import {
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import TeamAvailabilityModal from "@calcom/web/modules/teams/components/TeamAvailabilityModal";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
 import { EventTypesList } from "./EventTypesList";
-import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
@@ -727,7 +727,10 @@ function MemberListContent(props: Props) {
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                onClick={() => { props.setShowMemberInvitationModal(true); posthog.capture("teams_add_new_members_button_clicked") }}
+                onClick={() => {
+                  props.setShowMemberInvitationModal(true);
+                  posthog.capture("teams_add_new_members_button_clicked");
+                }}
                 data-testid="new-member-button">
                 {t("add")}
               </DataTableToolbar.CTA>

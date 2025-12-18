@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
 import { useCreateEventType } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -15,8 +16,6 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { TeamEventTypeForm } from "@calcom/web/modules/teams/components/TeamEventTypeForm";
-
-import CreateEventTypeForm from "./CreateEventTypeForm";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
