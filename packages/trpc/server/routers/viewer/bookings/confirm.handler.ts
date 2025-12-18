@@ -2,6 +2,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import { checkIfUserIsAuthorizedToManageBooking } from "@calcom/features/bookings/lib/checkIfUserIsAuthorizedToManageBooking";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -12,7 +13,6 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -24,13 +24,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import {
-  BookingStatus,
-  MembershipRole,
-  WebhookTriggerEvents,
-  WorkflowTriggerEvents,
-  UserPermissionRole,
-} from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -149,13 +143,20 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking must have an organizer" });
   }
 
-  await checkIfUserIsAuthorizedToConfirmBooking({
+  const isUserAuthorizedToConfirmBooking = await checkIfUserIsAuthorizedToManageBooking({
     eventTypeId: booking.eventTypeId,
     loggedInUserId: ctx.user.id,
     teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
     userRole: ctx.user.role,
   });
+
+  if (!isUserAuthorizedToConfirmBooking) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "User is not authorized to confirm this booking",
+    });
+  }
 
   // Do not move this before authorization check.
   // This is done to avoid exposing extra information to the requester.
@@ -442,69 +443,4 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };
-};
-
-const checkIfUserIsAuthorizedToConfirmBooking = async ({
-  eventTypeId,
-  loggedInUserId,
-  teamId,
-  bookingUserId,
-  userRole,
-}: {
-  eventTypeId: number | null;
-  loggedInUserId: number;
-  teamId?: number | null;
-  bookingUserId: number | null;
-  userRole: string;
-}): Promise<void> => {
-  // check system wide admin
-  if (userRole === UserPermissionRole.ADMIN) return;
-
-  // Check if the user is the owner of the event type
-  if (bookingUserId === loggedInUserId) return;
-
-  // Check if user is associated with the event type
-  if (eventTypeId) {
-    const [loggedInUserAsHostOfEventType, loggedInUserAsUserOfEventType] = await Promise.all([
-      prisma.eventType.findUnique({
-        where: {
-          id: eventTypeId,
-          hosts: { some: { userId: loggedInUserId } },
-        },
-        select: { id: true },
-      }),
-      prisma.eventType.findUnique({
-        where: {
-          id: eventTypeId,
-          users: { some: { id: loggedInUserId } },
-        },
-        select: { id: true },
-      }),
-    ]);
-
-    if (loggedInUserAsHostOfEventType || loggedInUserAsUserOfEventType) return;
-  }
-
-  // Check if the user is an admin/owner of the team the booking belongs to
-  if (teamId) {
-    const membership = await prisma.membership.findFirst({
-      where: {
-        userId: loggedInUserId,
-        teamId: teamId,
-        role: {
-          in: [MembershipRole.OWNER, MembershipRole.ADMIN],
-        },
-      },
-    });
-    if (membership) return;
-  }
-
-  if (
-    bookingUserId &&
-    (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(loggedInUserId, bookingUserId))
-  ) {
-    return;
-  }
-
-  throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };

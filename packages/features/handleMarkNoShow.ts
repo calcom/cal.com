@@ -1,5 +1,6 @@
 import { type TFunction } from "i18next";
 
+import { checkIfUserIsAuthorizedToManageBooking } from "@calcom/features/bookings/lib/checkIfUserIsAuthorizedToManageBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -423,9 +424,16 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
   const bookingRepo = new BookingRepository(prisma);
-  const booking = await bookingRepo.findBookingByUidAndUserId({ bookingUid, userId });
+  const booking = await bookingRepo.findByUidIncludeEventTypeAndReferences({ bookingUid });
+  const isAuthorized = await checkIfUserIsAuthorizedToManageBooking({
+    eventTypeId: booking.eventTypeId,
+    loggedInUserId: userId,
+    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+    bookingUserId: booking.userId,
+    userRole: booking.user?.role ?? "",
+  });
 
-  if (!booking)
+  if (!isAuthorized)
     throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
