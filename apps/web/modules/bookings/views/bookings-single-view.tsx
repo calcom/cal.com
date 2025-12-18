@@ -150,11 +150,10 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
-  // Check if payment succeeded based on Stripe redirect status (optimistic)
-  // or database status (canonical after webhook)
-  const isPaymentSucceededOptimistically = redirect_status === "succeeded";
+
+  const isPaymentSucceededFromRedirect = redirect_status === "succeeded";
   const isAwaitingPayment =
-    props.paymentStatus && !props.paymentStatus.success && !isPaymentSucceededOptimistically;
+    props.paymentStatus && !props.paymentStatus.success && !isPaymentSucceededFromRedirect;
 
   const attendees = bookingInfo?.attendees;
 
