@@ -2,6 +2,9 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { expect, it } from "vitest";
 
+import type { FeatureId } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+
 import { checkIfUserHasFeatureController } from "./check-if-user-has-feature.controller";
 
 /**
@@ -9,16 +12,9 @@ import { checkIfUserHasFeatureController } from "./check-if-user-has-feature.con
  * this test is identical to the test in the use case.
  */
 it("checks if user has access to feature", async () => {
+  const featuresRepository = new FeaturesRepository(prismock);
   const userId = 1;
-  await prismock.userFeatures.create({
-    data: {
-      userId,
-      featureId: "mock-feature",
-      assignedBy: "1",
-      updatedAt: new Date(),
-      enabled: true,
-    },
-  });
+  await featuresRepository.setUserFeatureState(userId, "mock-feature" as FeatureId, "enabled", "1");
   await expect(checkIfUserHasFeatureController(userId, "nonexistent-feature")).resolves.toBe(false);
   await expect(checkIfUserHasFeatureController(userId, "mock-feature")).resolves.toBe(true);
 });

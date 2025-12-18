@@ -1,3 +1,5 @@
+import type { FeatureId } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -12,17 +14,11 @@ type UnassignFeatureOptions = {
 };
 
 export const unassignFeatureFromTeamHandler = async ({ ctx, input }: UnassignFeatureOptions) => {
-  const { prisma } = ctx;
+  const { prisma, user } = ctx;
   const { teamId, featureId } = input;
 
-  await prisma.teamFeatures.delete({
-    where: {
-      teamId_featureId: {
-        teamId,
-        featureId,
-      },
-    },
-  });
+  const featuresRepository = new FeaturesRepository(prisma);
+  await featuresRepository.setTeamFeatureState(teamId, featureId as FeatureId, "inherit", `user:${user.id}`);
 
   return { success: true };
 };

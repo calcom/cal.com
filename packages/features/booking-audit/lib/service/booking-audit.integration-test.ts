@@ -1,5 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 
+import type { FeatureId } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
@@ -112,23 +114,13 @@ const enableFeatureForOrganization = async (organizationId: number, featureSlug:
     },
   });
 
-  await prisma.teamFeatures.upsert({
-    where: {
-      teamId_featureId: {
-        teamId: organizationId,
-        featureId: featureSlug,
-      },
-    },
-    create: {
-      teamId: organizationId,
-      featureId: featureSlug,
-      assignedBy: "test-system",
-      enabled: true,
-    },
-    update: {
-      enabled: true,
-    },
-  });
+  const featuresRepository = new FeaturesRepository(prisma);
+  await featuresRepository.setTeamFeatureState(
+    organizationId,
+    featureSlug as FeatureId,
+    "enabled",
+    "test-system"
+  );
 };
 
 const cleanupTestData = async (testData: {
@@ -177,12 +169,13 @@ const cleanupTestData = async (testData: {
 
   if (testData.organizationId) {
     if (testData.featureSlug) {
-      await prisma.teamFeatures.deleteMany({
-        where: {
-          teamId: testData.organizationId,
-          featureId: testData.featureSlug,
-        },
-      });
+      const featuresRepository = new FeaturesRepository(prisma);
+      await featuresRepository.setTeamFeatureState(
+        testData.organizationId,
+        testData.featureSlug as FeatureId,
+        "inherit",
+        "test-cleanup"
+      );
     }
     await prisma.membership.deleteMany({
       where: { teamId: testData.organizationId },
