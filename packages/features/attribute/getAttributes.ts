@@ -1,13 +1,12 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
+import { PrismaAttributeRepository } from "@calcom/features/attribute/repositories/PrismaAttributeRepository";
+import { PrismaAttributeToUserRepository } from "@calcom/features/attribute/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { AttributeId } from "@calcom/lib/service/attribute/types";
 import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
-
-import { PrismaAttributeRepository } from "../../../server/repository/PrismaAttributeRepository";
-import { PrismaAttributeToUserRepository } from "../../../server/repository/PrismaAttributeToUserRepository";
-import type { AttributeId } from "../types";
 
 type UserId = number;
 type OrgMembershipId = number;
