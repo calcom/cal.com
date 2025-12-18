@@ -108,6 +108,7 @@
     "markdown-it": "^13.0.1",
     "md5": "^2.3.0",
     "memory-cache": "^0.2.0",
+    "moment-timezone": "^0.5.45",
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
     "next": "15.5.9",

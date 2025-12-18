@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import moment from "moment-timezone";
 import { useBookingLocation } from "@calcom/features/bookings/hooks";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
@@ -260,6 +261,7 @@ function BookingDetailsSheetInner({
               endTime={endTime}
               timeZone={userTimeZone}
               previousBooking={bookingDetails?.previousBooking}
+              attendees={booking.attendees as any}
             />
 
             <OldRescheduledBookingInfo
@@ -344,18 +346,86 @@ function BookingDetailsSheetInner({
   );
 }
 
+/**
+ * GuestTimezoneDisplay - Shows meeting time in attendee's timezone
+ * This component calculates and displays the meeting time converted to guest's local time
+ * Uses moment-timezone for better accuracy
+ */
+function GuestTimezoneDisplay({
+  start_time,
+  end_time,
+  guest_timezone,
+  host_timezone,
+}: {
+  start_time: any;
+  end_time: any;
+  guest_timezone: string;
+  host_timezone: string;
+}) {
+  if (guest_timezone == host_timezone) {
+    return null;
+  }
+
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const timeData = useMemo(() => {
+    const guestStart = moment(start_time).tz(guest_timezone);
+    const hostStart = moment(start_time).tz(host_timezone);
+    var dayDiff = guestStart.dayOfYear() - hostStart.dayOfYear();
+    return { dayDiff, guestStart };
+  }, [start_time]);
+
+  const formatTimeInTz = (time: any, tz: string) => {
+    const m = moment(time).tz(tz);
+    return m.format("h:mm A");
+  };
+
+  const allTimezones = moment.tz.names();
+  const isValidTz = allTimezones.includes(guest_timezone);
+
+  const formatted_start = formatTimeInTz(start_time, guest_timezone);
+  const formatted_end = formatTimeInTz(end_time, guest_timezone);
+  const formatted_start_12h = moment(start_time).tz(guest_timezone).format("h:mm A");
+  const formatted_start_24h = moment(start_time).tz(guest_timezone).format("HH:mm");
+
+  let dayIndicator = "";
+  if (timeData.dayDiff == 1) {
+    dayIndicator = " (+1 day)";
+  } else if (timeData.dayDiff == -1) {
+    dayIndicator = " (-1 day)";
+  }
+
+  const debugData = JSON.parse(JSON.stringify({ start_time, end_time, guest_timezone }));
+  console.log("GuestTimezoneDisplay render:", debugData);
+
+  const styles = { marginTop: "4px", fontSize: "12px" };
+
+  return (
+    <div className="text-subtle mt-1 text-xs" style={styles}>
+      <span
+        className="font-medium cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}>
+        Guest's time:{" "}
+      </span>
+      {formatted_start} - {formatted_end} ({guest_timezone}){dayIndicator}
+    </div>
+  );
+}
+
 function WhenSection({
   rescheduled,
   startTime,
   endTime,
   timeZone,
   previousBooking,
+  attendees,
 }: {
   rescheduled: boolean;
   startTime: dayjs.Dayjs;
   endTime: dayjs.Dayjs;
   timeZone?: string;
   previousBooking?: { uid: string; startTime: Date; endTime: Date } | null;
+  attendees?: Array<{ timeZone: string; name: string; email: string }>;
 }) {
   const { t } = useLocale();
 
@@ -377,6 +447,15 @@ function WhenSection({
         )}>
         <DisplayTimestamp startTime={startTime} endTime={endTime} timeZone={timeZone} />
       </div>
+      {/* Show guest timezone if different from host */}
+      {attendees && attendees.length > 0 && timeZone && (
+        <GuestTimezoneDisplay
+          start_time={startTime.toISOString()}
+          end_time={endTime.toISOString()}
+          guest_timezone={attendees[0].timeZone}
+          host_timezone={timeZone}
+        />
+      )}
     </Section>
   );
 }
