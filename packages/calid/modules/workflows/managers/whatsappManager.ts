@@ -464,6 +464,7 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
   );
 
   const name = action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].name : evt.organizer.name;
+
   const attendeeName =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
   const timeZone =
