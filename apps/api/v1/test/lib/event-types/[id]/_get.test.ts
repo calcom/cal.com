@@ -170,7 +170,7 @@ describe("GET /api/event-types/[id]", () => {
     test("Returns properly validated event type with complex locations", async () => {
       const eventTypeId = 123456;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -230,10 +230,7 @@ describe("GET /api/event-types/[id]", () => {
       prismaMock.eventType.findUnique.mockResolvedValue(complexEventType);
 
       req.userId = userId;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type).toBeDefined();
       expect(responseData.event_type.id).toBe(eventTypeId);
@@ -257,7 +254,7 @@ describe("GET /api/event-types/[id]", () => {
     test("Returns properly validated event type with seats configuration", async () => {
       const eventTypeId = 123456;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -277,10 +274,7 @@ describe("GET /api/event-types/[id]", () => {
       prismaMock.eventType.findUnique.mockResolvedValue(seatsEventType);
 
       req.userId = userId;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.seatsPerTimeSlot).toBe(10);
       expect(responseData.event_type.seatsShowAttendees).toBe(true);
@@ -290,7 +284,7 @@ describe("GET /api/event-types/[id]", () => {
     test("Returns properly validated event type with maximum seats", async () => {
       const eventTypeId = 123456;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -310,10 +304,7 @@ describe("GET /api/event-types/[id]", () => {
       prismaMock.eventType.findUnique.mockResolvedValue(maxSeatsEventType);
 
       req.userId = userId;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.seatsPerTimeSlot).toBe(1000);
     });
@@ -321,7 +312,7 @@ describe("GET /api/event-types/[id]", () => {
     test("Returns properly validated event type with null seats", async () => {
       const eventTypeId = 123456;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -341,10 +332,7 @@ describe("GET /api/event-types/[id]", () => {
       prismaMock.eventType.findUnique.mockResolvedValue(nullSeatsEventType);
 
       req.userId = userId;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.seatsPerTimeSlot).toBeNull();
       expect(responseData.event_type.seatsShowAttendees).toBeNull();
@@ -354,7 +342,7 @@ describe("GET /api/event-types/[id]", () => {
     test("Returns properly validated event type with custom inputs and booking fields", async () => {
       const eventTypeId = 123456;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -402,10 +390,7 @@ describe("GET /api/event-types/[id]", () => {
       prismaMock.eventType.findUnique.mockResolvedValue(customFieldsEventType);
 
       req.userId = userId;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.bookingFields).toHaveLength(3);
 
@@ -428,7 +413,7 @@ describe("GET /api/event-types/[id]", () => {
       const eventTypeId = 123456;
       const teamId = 9999;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -457,10 +442,7 @@ describe("GET /api/event-types/[id]", () => {
 
       req.isSystemWideAdmin = false;
       req.userId = userId;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.teamId).toBe(teamId);
       expect(responseData.event_type.schedulingType).toBe("COLLECTIVE");
@@ -469,7 +451,7 @@ describe("GET /api/event-types/[id]", () => {
     test("Returns properly validated event type with complex metadata", async () => {
       const eventTypeId = 123456;
       const userId = 333333;
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -512,10 +494,7 @@ describe("GET /api/event-types/[id]", () => {
       prismaMock.eventType.findUnique.mockResolvedValue(metadataEventType);
 
       req.userId = userId;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.metadata).toBeDefined();
       expect(responseData.event_type.recurringEvent).toMatchObject({

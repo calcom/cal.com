@@ -303,7 +303,7 @@ describe("GET /api/event-types/[id]", () => {
 
   describe("Errors", () => {
     test("Returns 403 if user not admin/team member/event owner", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -312,15 +312,18 @@ describe("GET /api/event-types/[id]", () => {
       });
 
       req.userId = adminUser.id;
-      await handler(req, res);
 
-      expect(res.statusCode).toBe(403);
+      await expect(handler(req)).rejects.toThrowError(
+        expect.objectContaining({
+          statusCode: 403,
+        })
+      );
     });
   });
 
   describe("Success", async () => {
     test("Returns event type if user is admin", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -330,14 +333,13 @@ describe("GET /api/event-types/[id]", () => {
 
       req.isSystemWideAdmin = true;
       req.userId = adminUser.id;
-      await handler(req, res);
+      const responseData = await handler(req);
 
-      expect(res.statusCode).toBe(200);
-      expect(JSON.parse(res._getData()).event_type.id).toEqual(complexEventType.id);
+      expect(responseData.event_type.id).toEqual(complexEventType.id);
     });
 
     test("Returns event type if user is in team associated with event type", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -347,14 +349,13 @@ describe("GET /api/event-types/[id]", () => {
 
       req.isSystemWideAdmin = false;
       req.userId = teamUser.id;
-      await handler(req, res);
+      const responseData = await handler(req);
 
-      expect(res.statusCode).toBe(200);
-      expect(JSON.parse(res._getData()).event_type.id).toEqual(teamEventType.id);
+      expect(responseData.event_type.id).toEqual(teamEventType.id);
     });
 
     test("Returns event type if user is the event type owner", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -364,16 +365,15 @@ describe("GET /api/event-types/[id]", () => {
 
       req.isSystemWideAdmin = false;
       req.userId = testUser.id;
-      await handler(req, res);
+      const responseData = await handler(req);
 
-      expect(res.statusCode).toBe(200);
-      expect(JSON.parse(res._getData()).event_type.id).toEqual(complexEventType.id);
+      expect(responseData.event_type.id).toEqual(complexEventType.id);
     });
   });
 
   describe("Data Validation", () => {
     test("Returns properly validated event type with complex locations", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -382,10 +382,7 @@ describe("GET /api/event-types/[id]", () => {
       });
 
       req.userId = testUser.id;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type).toBeDefined();
       expect(responseData.event_type.id).toBe(complexEventType.id);
@@ -407,7 +404,7 @@ describe("GET /api/event-types/[id]", () => {
     });
 
     test("Returns properly validated event type with seats configuration", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -416,10 +413,7 @@ describe("GET /api/event-types/[id]", () => {
       });
 
       req.userId = testUser.id;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.seatsPerTimeSlot).toBe(10);
       expect(responseData.event_type.seatsShowAttendees).toBe(true);
@@ -427,7 +421,7 @@ describe("GET /api/event-types/[id]", () => {
     });
 
     test("Returns properly validated event type with maximum seats", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -436,16 +430,13 @@ describe("GET /api/event-types/[id]", () => {
       });
 
       req.userId = testUser.id;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.seatsPerTimeSlot).toBe(1000);
     });
 
     test("Returns properly validated event type with null seats", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -454,10 +445,7 @@ describe("GET /api/event-types/[id]", () => {
       });
 
       req.userId = testUser.id;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.seatsPerTimeSlot).toBeNull();
       expect(responseData.event_type.seatsShowAttendees).toBeNull();
@@ -465,7 +453,7 @@ describe("GET /api/event-types/[id]", () => {
     });
 
     test("Returns properly validated event type with custom inputs and booking fields", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -474,10 +462,7 @@ describe("GET /api/event-types/[id]", () => {
       });
 
       req.userId = testUser.id;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.bookingFields).toHaveLength(3);
 
@@ -497,7 +482,7 @@ describe("GET /api/event-types/[id]", () => {
     });
 
     test("Returns properly validated event type with team configuration", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -507,17 +492,14 @@ describe("GET /api/event-types/[id]", () => {
 
       req.isSystemWideAdmin = false;
       req.userId = teamUser.id;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.teamId).toBe(testTeam.id);
       expect(responseData.event_type.schedulingType).toBe("COLLECTIVE");
     });
 
     test("Returns properly validated event type with complex metadata", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         body: {},
         query: {
@@ -526,10 +508,7 @@ describe("GET /api/event-types/[id]", () => {
       });
 
       req.userId = testUser.id;
-      await handler(req, res);
-
-      expect(res.statusCode).toBe(200);
-      const responseData = JSON.parse(res._getData());
+      const responseData = await handler(req);
 
       expect(responseData.event_type.metadata).toBeDefined();
       expect(responseData.event_type.recurringEvent).toMatchObject({
