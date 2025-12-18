@@ -10,11 +10,41 @@ import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams,
  * Note: CREATED action captures initial state, so it doesn't use { old, new } pattern
  */
 
+/**
+ * Salesforce audit data schema for tracking CRM operations during booking creation
+ * 
+ * This captures:
+ * - Lead/Contact record creation with the record ID and type
+ * - Fields written to the Salesforce Event record with their values
+ * - Fields written to the Lead/Contact record with their values
+ */
+const salesforceAuditDataSchema = z.object({
+    /** Record created in Salesforce (lead or contact) with its ID */
+    leadOrContactCreated: z.object({
+        type: z.enum(["lead", "contact"]),
+        id: z.string(),
+    }).nullable().optional(),
+    /** Fields written to the Salesforce Event record */
+    eventRecordFields: z.record(z.string(), z.unknown()).nullable().optional(),
+    /** Fields written to the Lead/Contact record */
+    leadOrContactFields: z.record(z.string(), z.unknown()).nullable().optional(),
+});
+
+/**
+ * Apps audit data schema - extensible for future app integrations
+ * Currently supports Salesforce for Team Round Robin events
+ */
+const appsAuditDataSchema = z.object({
+    salesforce: salesforceAuditDataSchema.optional(),
+});
+
 // Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
     startTime: z.number(),
     endTime: z.number(),
     status: z.nativeEnum(BookingStatus),
+    /** Optional apps data for tracking CRM and other app integrations */
+    apps: appsAuditDataSchema.optional(),
 });
 
 export class CreatedAuditActionService implements IAuditActionService {
@@ -73,15 +103,21 @@ export class CreatedAuditActionService implements IAuditActionService {
             startTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime as number, timeZone),
             endTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime as number, timeZone),
             status: fields.status,
+            apps: fields.apps,
         };
     }
 }
 
 export type CreatedAuditData = z.infer<typeof fieldsSchemaV1>;
 
+export type SalesforceAuditData = z.infer<typeof salesforceAuditDataSchema>;
+
+export type AppsAuditData = z.infer<typeof appsAuditDataSchema>;
+
 export type CreatedAuditDisplayData = {
     startTime: string;
     endTime: string;
     status: BookingStatus;
+    apps?: AppsAuditData;
 };
 

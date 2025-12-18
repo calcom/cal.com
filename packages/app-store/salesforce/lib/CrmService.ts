@@ -292,8 +292,10 @@ export default class SalesforceCRMService implements CRM {
         );
       }
     }
+    // Track fields written to lead/contact record for audit logging
+    let leadOrContactFields: Record<string, unknown> | undefined;
     if (appOptions?.onBookingWriteToRecord && appOptions?.onBookingWriteToRecordFields) {
-      await this.writeToRecord({
+      leadOrContactFields = await this.writeToRecordAndReturnFields({
         // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
         recordId: firstContact.id,
         fieldsToWriteTo: appOptions.onBookingWriteToRecordFields,
@@ -303,7 +305,11 @@ export default class SalesforceCRMService implements CRM {
         bookingUid: event?.uid,
       });
     }
-    return createdEvent;
+    return {
+      createdEvent,
+      eventRecordFields: Object.keys(writeToEventRecord).length > 0 ? writeToEventRecord : undefined,
+      leadOrContactFields,
+    };
   };
 
   private salesforceUpdateEvent = async (uid: string, event: CalendarEvent) => {
@@ -347,7 +353,7 @@ export default class SalesforceCRMService implements CRM {
   };
 
   async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
-    const sfEvent = await this.salesforceCreateEvent(event, contacts);
+    const { createdEvent: sfEvent, eventRecordFields, leadOrContactFields } = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
       this.log.info("event:creation:ok", { sfEvent });
       return {
@@ -356,7 +362,13 @@ export default class SalesforceCRMService implements CRM {
         type: "salesforce_other_calendar",
         password: "",
         url: "",
-        additionalInfo: { contacts, sfEvent, calWarnings: this.calWarnings },
+        additionalInfo: {
+          contacts,
+          sfEvent,
+          calWarnings: this.calWarnings,
+          eventRecordFields,
+          leadOrContactFields,
+        },
       };
     }
     this.log.info("event:creation:notOk", { event, sfEvent, contacts });
@@ -369,7 +381,7 @@ export default class SalesforceCRMService implements CRM {
     const skipEventCreation = this.getDoNotCreateEvent();
     if (skipEventCreation) return undefined;
 
-    const sfEvent = await this.salesforceCreateEvent(event, contacts);
+    const { createdEvent: sfEvent, eventRecordFields, leadOrContactFields } = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
       return {
         uid: sfEvent.id,
@@ -377,7 +389,13 @@ export default class SalesforceCRMService implements CRM {
         type: "salesforce_other_calendar",
         password: "",
         url: "",
-        additionalInfo: { contacts, sfEvent, calWarnings: this.calWarnings },
+        additionalInfo: {
+          contacts,
+          sfEvent,
+          calWarnings: this.calWarnings,
+          eventRecordFields,
+          leadOrContactFields,
+        },
       };
     }
     this.log.debug("event:creation:notOk", { event, sfEvent, contacts });
@@ -1079,6 +1097,74 @@ export default class SalesforceCRMService implements CRM {
       .catch((e) => {
         this.log.error(`Error updating person record for contactId ${recordId}`, e);
       });
+  }
+
+  /**
+   * Writes fields to a lead/contact record and returns the fields that were written.
+   * This is used for audit logging to track what data was written to Salesforce.
+   */
+  private async writeToRecordAndReturnFields({
+    recordId,
+    startTime,
+    fieldsToWriteTo,
+    organizerEmail,
+    calEventResponses,
+    bookingUid,
+  }: {
+    recordId: string;
+    startTime: string;
+    fieldsToWriteTo: Record<string, z.infer<typeof writeToBookingEntry>>;
+    organizerEmail?: string;
+    calEventResponses?: CalEventResponses | null;
+    bookingUid?: string | null;
+  }): Promise<Record<string, unknown> | undefined> {
+    const conn = await this.conn;
+    // Determine record type (Contact, Lead, etc)
+    const personRecordType = this.determineRecordTypeById(recordId);
+    // Search the fields and ensure 1. they exist 2. they're the right type
+    const fieldsToWriteOn = Object.keys(fieldsToWriteTo);
+    const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
+    if (!existingFields.length) {
+      this.log.warn(`No fields found for record type ${personRecordType}`);
+      return undefined;
+    }
+
+    const personRecord = await this.fetchPersonRecord(recordId, existingFields, personRecordType);
+    if (!personRecord) {
+      this.log.warn(`No personRecord found for contactId ${recordId}`);
+      return undefined;
+    }
+
+    this.log.info(`Writing to recordId ${recordId} on fields ${fieldsToWriteOn}`);
+
+    const writeOnRecordBody = await this.buildRecordUpdatePayload({
+      existingFields,
+      personRecord,
+      fieldsToWriteTo,
+      startTime,
+      bookingUid,
+      organizerEmail,
+      calEventResponses,
+      recordId,
+    });
+
+    this.log.info(
+      `Final writeOnRecordBody contains fields ${Object.keys(writeOnRecordBody)} for record ${recordId}`
+    );
+
+    // Update the person record
+    await conn
+      .sobject(personRecordType)
+      .update({
+        Id: recordId,
+        ...writeOnRecordBody,
+      })
+      .catch((e) => {
+        this.log.error(`Error updating person record for contactId ${recordId}`, e);
+      });
+
+    // Return the fields that were written for audit logging
+    return Object.keys(writeOnRecordBody).length > 0 ? writeOnRecordBody : undefined;
   }
 
   private async buildRecordUpdatePayload({

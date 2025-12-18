@@ -38,6 +38,7 @@ import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBook
 import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
+import { extractSalesforceAuditData } from "@calcom/features/booking-audit/lib/extractSalesforceAuditData";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -2371,6 +2372,9 @@ async function handler(
       operationId: null,
     });
   } else {
+    // Extract Salesforce audit data from CRM results for Team Round Robin events
+    const salesforceAuditData = extractSalesforceAuditData(results);
+
     await bookingEventHandler.onBookingCreated({
       payload: bookingCreatedPayload,
       actor: auditActor,
@@ -2378,6 +2382,7 @@ async function handler(
         startTime: bookingCreatedPayload.booking.startTime.getTime(),
         endTime: bookingCreatedPayload.booking.endTime.getTime(),
         status: bookingCreatedPayload.booking.status,
+        ...(salesforceAuditData ? { apps: salesforceAuditData } : {}),
       },
       source: actionSource,
       operationId: null,
