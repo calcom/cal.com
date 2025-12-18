@@ -93,7 +93,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 
         return [
             {
-                labelKey: "booking_audit_action.type",
+                labelKey: "booking_audit_action.assignment_type",
                 valueKey: typeTranslationKey,
             }
         ];

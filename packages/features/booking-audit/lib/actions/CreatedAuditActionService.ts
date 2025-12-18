@@ -3,6 +3,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 /**
  * Created Audit Action Service
@@ -31,8 +32,7 @@ export class CreatedAuditActionService implements IAuditActionService {
     // Union of all versions
     public static readonly storedFieldsSchema = CreatedAuditActionService.fieldsSchemaV1;
     private helper: AuditActionServiceHelper<typeof CreatedAuditActionService.latestFieldsSchema, typeof CreatedAuditActionService.storedDataSchema>;
-
-    constructor() {
+    constructor(private userRepository: UserRepository) {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
             latestFieldsSchema: CreatedAuditActionService.latestFieldsSchema,

@@ -35,6 +35,7 @@ export type GetDisplayJsonParams = {
 export type GetDisplayTitleParams = {
     storedData: StoredAuditData;
     userTimeZone: string;
+    bookingUid: string;
 };
 
 /**
@@ -94,7 +95,7 @@ export interface IAuditActionService {
      * @param params.userTimeZone - User's timezone for date formatting (required)
      * @returns Translation key with optional interpolation params
      */
-    getDisplayTitle(params: GetDisplayTitleParams): Promise<TranslationWithParams>;
+    getDisplayTitle({ storedData, userTimeZone, bookingUid }: GetDisplayTitleParams): Promise<TranslationWithParams>;
 
     /**
      * Returns additional display fields with translation keys for frontend rendering

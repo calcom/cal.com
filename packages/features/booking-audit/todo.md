@@ -1,0 +1,1 @@
+- Created Action's description could be changed to something like 'Booked with <user>'

@@ -3,7 +3,7 @@ import type { BookingResponse } from "@calcom/features/bookings/types";
 import { CreationSource, SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
-
+import type { BookingStatus } from "@calcom/prisma/enums";
 import type { IBookingService } from "../interfaces/IBookingService";
 import type { RegularBookingService } from "./RegularBookingService";
 import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
@@ -177,10 +177,10 @@ export class RecurringBookingService implements IBookingService {
     const operationId = uuidv4();
 
     function isValidBooking(booking: BookingResponse): booking is ValidBooking {
-      return !!(booking.uid && booking.startTime && booking.endTime)
+      return !!(booking.uid && booking.startTime && booking.endTime && booking.status)
     }
 
-    function isValidRescheduledBooking(booking: BookingResponse): booking is ValidBooking & { previousBooking: ValidBooking } {
+    function isValidRescheduledBooking(booking: BookingResponse): booking is ValidRescheduledBooking {
       return !!(booking.previousBooking && booking.previousBooking.uid && booking.previousBooking.startTime && booking.previousBooking.endTime)
     }
 

@@ -70,9 +70,7 @@ export class CancelledAuditActionService implements IAuditActionService {
         const { fields } = this.helper.parseStored({ version: storedData.version, fields: storedData.fields });
         return {
             cancellationReason: fields.cancellationReason.new ?? null,
-            previousReason: fields.cancellationReason.old ?? null,
             cancelledBy: fields.cancelledBy.new ?? null,
-            previousCancelledBy: fields.cancelledBy.old ?? null,
             previousStatus: fields.status.old ?? null,
             newStatus: fields.status.new ?? null,
         };
@@ -83,9 +81,7 @@ export type CancelledAuditData = z.infer<typeof fieldsSchemaV1>;
 
 export type CancelledAuditDisplayData = {
     cancellationReason: string | null;
-    previousReason: string | null;
     cancelledBy: string | null;
-    previousCancelledBy: string | null;
     previousStatus: string | null;
     newStatus: string | null;
 };

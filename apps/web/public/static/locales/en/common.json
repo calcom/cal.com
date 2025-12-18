@@ -3221,7 +3221,7 @@
   "only_if_field_is_empty": "Only if field is empty",
   "booking_start_date": "Booking start date",
   "booking_created_date": "Booking created date",
-  "booking_reassigned_to_host": "Booking reassigned to {{host}}",
+  "booking_reassigned_to_host": "Reassigned to {{host}}",
   "no_contact_owner": "No contact owner",
   "routing_forms_created": "Routing Forms Created",
   "routing_forms_total_responses": "Total Responses",
@@ -4100,7 +4100,7 @@
   "booking_history": "Booking History",
   "booking_history_description": "View the history of actions performed on this booking",
   "booking_audit_action": {
-    "created": "Created",
+    "created": "Booked with {{host}}",
     "cancelled": "Cancelled",
     "rescheduled": "Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
     "rescheduled_from": "Rescheduled <0>{{oldDate}}</0> -> {{newDate}}",
@@ -4117,9 +4117,9 @@
     "attendee_no_show_updated": "Attendee No-Show Updated",
     "seat_booked": "Seat Booked",
     "seat_rescheduled": "Seat Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
-    "type": "Assignment Type",
-    "assignmentType_manual": "Manual Assignment",
-    "assignmentType_roundRobin": "Round Robin Assignment"
+    "assignment_type": "Assignment",
+    "assignmentType_manual": "Manual",
+    "assignmentType_roundRobin": "Round Robin"
   },
   "error_loading_booking_logs": "Error loading booking logs",
   "no_audit_logs_found": "No audit logs found",

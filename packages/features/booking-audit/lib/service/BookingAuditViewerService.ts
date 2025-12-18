@@ -110,9 +110,7 @@ export class BookingAuditViewerService {
                 userTimeZone: params.userTimeZone,
             });
             if (rescheduledFromLog) {
-                // Add the rescheduled log from the previous booking as the first entry
-                // (appears last chronologically since logs are ordered by timestamp DESC)
-                enrichedAuditLogs.unshift(rescheduledFromLog);
+                enrichedAuditLogs.push(rescheduledFromLog);
             }
         }
 
@@ -131,7 +129,7 @@ export class BookingAuditViewerService {
         const actionService = this.actionServiceRegistry.getActionService(log.action);
         const parsedData = actionService.parseStored(log.data);
 
-        const actionDisplayTitle = await actionService.getDisplayTitle({ storedData: parsedData, userTimeZone });
+        const actionDisplayTitle = await actionService.getDisplayTitle({ storedData: parsedData, userTimeZone, bookingUid: log.bookingUid });
 
         // Get display JSON - only set if getDisplayJson is defined
         const displayJson = actionService.getDisplayJson
