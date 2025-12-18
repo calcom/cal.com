@@ -68,7 +68,7 @@ export class AttendeeRemovedAuditActionService implements IAuditActionService {
         const { fields } = this.parseStored(storedData);
         const remainingAttendeesSet = new Set(fields.attendees.new ?? []);
         const removedAttendees = (fields.attendees.old ?? []).filter(
-            (email: string) => !remainingAttendeesSet.has(email)
+            (email) => !remainingAttendeesSet.has(email)
         );
         return {
             removedAttendees,

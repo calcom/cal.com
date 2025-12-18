@@ -85,8 +85,6 @@ const ACTOR_ROLE_LABEL_MAP: Record<AuditActorType, string | null> = {
     APP: null,
 } as const;
 
-
-
 function BookingLogsFilters({
     searchTerm,
     onSearchChange,

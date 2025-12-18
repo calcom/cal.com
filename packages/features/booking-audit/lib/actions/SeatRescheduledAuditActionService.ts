@@ -3,7 +3,6 @@ import { z } from "zod";
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, GetDisplayTitleParams, GetDisplayJsonParams, TranslationWithParams } from "./IAuditActionService";
-
 /**
  * Seat Rescheduled Audit Action Service
  * Handles SEAT_RESCHEDULED action with per-action versioning

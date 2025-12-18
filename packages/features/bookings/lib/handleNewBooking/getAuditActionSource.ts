@@ -1,5 +1,5 @@
 import { CreationSource } from "@calcom/prisma/enums";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { criticalLogger } from "@calcom/lib/logger.server";
 
 export const getAuditActionSource = ({ creationSource, eventTypeId, rescheduleUid }: { creationSource: CreationSource | null | undefined, eventTypeId: number, rescheduleUid: string | null }): ActionSource => {

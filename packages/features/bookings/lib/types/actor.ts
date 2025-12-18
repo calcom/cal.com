@@ -74,19 +74,6 @@ export function makeGuestActor({ email, name }: { email: string, name: string | 
   };
 }
 
-/**
- * Creates an Actor representing the System
- * System actors must be referenced by ID (requires migration)
- */
-export function makeSystemActor(): ActorById {
-  return {
-    identifiedBy: "guest",
-    email,
-    name: name ?? null,
-  };
-}
-
-
 
 /**
  * Creates an Actor by existing actor ID

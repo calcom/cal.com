@@ -22,7 +22,7 @@ import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBook
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";

@@ -68,7 +68,7 @@ export class AttendeeAddedAuditActionService implements IAuditActionService {
         const { fields } = this.parseStored(storedData);
         const previousAttendeesSet = new Set(fields.attendees.old ?? []);
         const addedAttendees = fields.attendees.new.filter(
-            (email: string) => !previousAttendeesSet.has(email)
+            (email) => !previousAttendeesSet.has(email)
         );
         return {
             addedAttendees,

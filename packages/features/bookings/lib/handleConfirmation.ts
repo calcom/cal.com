@@ -9,6 +9,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -28,7 +29,6 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 import { v4 as uuidv4 } from "uuid";
@@ -38,8 +38,7 @@ import type { AcceptedAuditData } from "@calcom/features/booking-audit/lib/actio
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type { Actor } from "./types/actor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/common/actionSource";
-const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null; uuid: string };

@@ -1,5 +1,4 @@
 import { Logger } from "@/lib/logger.bridge";
-import { PrismaAuditActorRepository } from "@/lib/repositories/prisma-audit-actor.repository";
 import { PrismaAttributeRepository } from "@/lib/repositories/prisma-attribute.repository";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
@@ -26,7 +25,6 @@ import { Module, Scope } from "@nestjs/common";
   imports: [PrismaModule],
   providers: [
     PrismaAttributeRepository,
-    PrismaAuditActorRepository,
     PrismaBookingRepository,
     PrismaFeaturesRepository,
     PrismaHostRepository,
@@ -53,6 +51,6 @@ import { Module, Scope } from "@nestjs/common";
     TaskerService,
     RegularBookingService,
   ],
-  exports: [RegularBookingService, BookingEventHandlerService],
+  exports: [RegularBookingService],
 })
-export class RegularBookingModule { }
+export class RegularBookingModule {}

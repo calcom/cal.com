@@ -8,7 +8,9 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 import BookingLogsView from "~/booking/logs/views/booking-logs-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ uid: string }> }) =>

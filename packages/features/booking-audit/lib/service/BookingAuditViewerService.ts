@@ -5,7 +5,6 @@ import type { CredentialRepository } from "@calcom/features/credentials/reposito
 
 import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
