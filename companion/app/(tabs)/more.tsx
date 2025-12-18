@@ -1,8 +1,9 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
+import { LogoutConfirmModal } from "../../components/LogoutConfirmModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { showErrorAlert } from "../../utils/alerts";
 import { openInAppBrowser } from "../../utils/browser";
@@ -18,23 +19,32 @@ interface MoreMenuItem {
 export default function More() {
   const router = useRouter();
   const { logout } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const performLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+      showErrorAlert("Error", "Failed to sign out. Please try again.");
+    }
+  };
 
   const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logout();
-          } catch (error) {
-            console.error("Logout error:", error);
-            showErrorAlert("Error", "Failed to sign out. Please try again.");
-          }
+    if (Platform.OS === "web") {
+      // Use modal for web/extension since Alert.alert doesn't work
+      setShowLogoutModal(true);
+    } else {
+      // Use native Alert for iOS/Android
+      Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: performLogout,
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   const menuItems: MoreMenuItem[] = [
@@ -129,6 +139,16 @@ export default function More() {
           </Text>
         </Text>
       </ScrollView>
+
+      {/* Logout Confirmation Modal for Web */}
+      <LogoutConfirmModal
+        visible={showLogoutModal}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          performLogout();
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </View>
   );
 }
