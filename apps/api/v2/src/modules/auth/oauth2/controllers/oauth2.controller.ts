@@ -16,6 +16,7 @@ import {
   HttpException,
   HttpStatus,
   InternalServerErrorException,
+  NotFoundException,
   Param,
   Post,
   Res,
@@ -74,21 +75,10 @@ export class OAuth2Controller {
     @GetUser("id") userId: number,
     @Res() res: Response
   ): Promise<void> {
-    // First, validate the client exists - if not, return HTTP error (don't redirect)
-    // This is important for security: we can't trust the redirect URI if we don't have a valid client
-    let client;
+    let isValidClient = false;
     try {
-      client = await this.oAuthService.getClient(clientId);
-    } catch (err) {
-      if (err instanceof HttpError) {
-        const httpError = err as HttpError;
-        throw new HttpException(httpError.message, httpError.statusCode);
-      }
-      throw new InternalServerErrorException("Could not validate OAuth client");
-    }
-
-    // Now that we have a valid client, we can safely redirect on errors
-    try {
+      const client = await this.oAuthService.getClient(clientId);
+      isValidClient = !!client.redirectUri && !!client.clientId;
       const result = await this.oAuthService.generateAuthorizationCode(
         client.clientId,
         userId,
@@ -101,6 +91,10 @@ export class OAuth2Controller {
       );
       return res.redirect(303, result.redirectUrl);
     } catch (err) {
+      if (!isValidClient) {
+        const httpError = err as HttpError;
+        throw new NotFoundException(httpError?.message ?? "oauth_client_not_found");
+      }
       const errorRedirectUrl = this.oAuthService.buildErrorRedirectUrl(body.redirectUri, err, body.state);
       return res.redirect(303, errorRedirectUrl);
     }
