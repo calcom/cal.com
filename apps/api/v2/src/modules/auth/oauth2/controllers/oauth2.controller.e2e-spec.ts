@@ -11,16 +11,22 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test, TestingModule } from "@nestjs/testing";
+import * as nextAuthJwt from "next-auth/jwt";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withNextAuth } from "test/utils/withNextAuth";
 
 import { generateSecret } from "@calcom/platform-libraries";
 import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import type { Membership, Team, User } from "@calcom/prisma/client";
+
+// Mock next-auth/jwt getToken for ApiAuthStrategy NEXT_AUTH authentication
+jest.mock("next-auth/jwt", () => ({
+  getToken: jest.fn(),
+}));
+const mockGetToken = nextAuthJwt.getToken as jest.MockedFunction<typeof nextAuthJwt.getToken>;
 
 class OAuthClientFixture {
   private prismaReadClient: PrismaReadService["prisma"];
@@ -65,6 +71,9 @@ describe("OAuth2 Controller Endpoints", () => {
     let appWithoutAuth: INestApplication;
 
     beforeAll(async () => {
+      // Mock getToken to return null for unauthenticated tests
+      mockGetToken.mockResolvedValue(null);
+
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter, ZodExceptionFilter],
         imports: [AppModule, UsersModule, AuthModule, PrismaModule],
@@ -118,13 +127,14 @@ describe("OAuth2 Controller Endpoints", () => {
     beforeAll(async () => {
       const userEmail = `oauth2-e2e-user-${randomString()}@api.com`;
 
-      moduleRef = await withNextAuth(
-        userEmail,
-        Test.createTestingModule({
-          providers: [PrismaExceptionFilter, HttpExceptionFilter, ZodExceptionFilter],
-          imports: [AppModule, UsersModule, AuthModule, PrismaModule],
-        })
-      ).compile();
+      // Mock getToken to return the user email for authenticated tests
+      // This is needed because ApiAuthGuard uses ApiAuthStrategy which calls getToken from next-auth/jwt
+      mockGetToken.mockResolvedValue({ email: userEmail });
+
+      moduleRef = await Test.createTestingModule({
+        providers: [PrismaExceptionFilter, HttpExceptionFilter, ZodExceptionFilter],
+        imports: [AppModule, UsersModule, AuthModule, PrismaModule],
+      }).compile();
 
       app = moduleRef.createNestApplication();
       await app.init();
