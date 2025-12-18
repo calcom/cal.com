@@ -10,7 +10,7 @@ export type TextFilterOptions = {
 };
 
 export type DateRangeFilterOptions = {
-  range?: "past" | "custom";
+  range?: "past" | "future" | "any" | "customOnly";
   convertToTimeZone?: boolean;
 };
 
