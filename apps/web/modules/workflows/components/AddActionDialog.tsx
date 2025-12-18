@@ -7,6 +7,8 @@ import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
+import { WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
+import { onlyLettersNumbersSpaces } from "@calcom/features/ee/workflows/lib/schema";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
@@ -20,9 +22,6 @@ import { Label } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { WORKFLOW_ACTIONS } from "../lib/constants";
-import { onlyLettersNumbersSpaces } from "../lib/schema";
 
 interface IAddActionDialog {
   isOpenDialog: boolean;
@@ -190,7 +189,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               )}
             </div>
             {isPhoneNumberNeeded && (
-              <div className="mt-5 stack-y-1">
+              <div className="stack-y-1 mt-5">
                 <Label htmlFor="sendTo">{t("phone_number")}</Label>
                 <div className="mb-5 mt-1">
                   <Controller

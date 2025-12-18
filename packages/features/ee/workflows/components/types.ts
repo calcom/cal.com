@@ -1,6 +1,6 @@
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { Retell } from "retell-sdk";
 
-export type CallData = RouterOutputs["viewer"]["aiVoiceAgent"]["listCalls"]["calls"][number];
+export type CallData = Retell.WebCallResponse | Retell.PhoneCallResponse;
 
 export type CallDetailsPayload = {
   showModal: boolean;

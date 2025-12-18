@@ -1,5 +1,6 @@
 import type { Dispatch } from "react";
 
+import type { CallDetailsAction, CallDetailsState } from "@calcom/features/ee/workflows/components/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -12,8 +13,6 @@ import {
   SheetFooter,
   SheetClose,
 } from "@calcom/ui/components/sheet";
-
-import type { CallDetailsAction, CallDetailsState } from "./types";
 
 interface CallDetailsSheetProps {
   state: CallDetailsState;
@@ -59,7 +58,7 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
           </div>
         </SheetHeader>
 
-        <SheetBody className="flex flex-col stack-y-6 p-4">
+        <SheetBody className="stack-y-6 flex flex-col p-4">
           {/* Call Information */}
           <div className="stack-y-3">
             <h3 className="text-emphasis text-base font-semibold">{t("call_information")}</h3>
@@ -67,20 +66,28 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
               <div>
                 <p className="text-subtle text-sm">{t("start_time")}</p>
                 <p className="text-default text-sm font-medium">
-                  {selectedCall.start_timestamp ? formatTimestamp(selectedCall.start_timestamp) : t("unknown")}
+                  {selectedCall.start_timestamp
+                    ? formatTimestamp(selectedCall.start_timestamp)
+                    : t("unknown")}
                 </p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("duration")}</p>
-                <p className="text-default text-sm font-medium">{selectedCall.duration_ms ? formatDuration(selectedCall.duration_ms) : t("unknown")}</p>
+                <p className="text-default text-sm font-medium">
+                  {selectedCall.duration_ms ? formatDuration(selectedCall.duration_ms) : t("unknown")}
+                </p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("from")}</p>
-                <p className="text-default text-sm font-medium">{"from_number" in selectedCall ? selectedCall.from_number || t("unknown") : t("unknown")}</p>
+                <p className="text-default text-sm font-medium">
+                  {"from_number" in selectedCall ? selectedCall.from_number || t("unknown") : t("unknown")}
+                </p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("to")}</p>
-                <p className="text-default text-sm font-medium">{"to_number" in selectedCall ? selectedCall.to_number || t("unknown") : t("unknown")}</p>
+                <p className="text-default text-sm font-medium">
+                  {"to_number" in selectedCall ? selectedCall.to_number || t("unknown") : t("unknown")}
+                </p>
               </div>
               <div>
                 <p className="text-subtle text-sm">{t("sentiment")}</p>
@@ -128,7 +135,7 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
           {/* Transcription */}
           <div className="stack-y-3">
             <h3 className="text-emphasis text-base font-semibold">{t("transcription")}</h3>
-            <div className="border-subtle max-h-96 stack-y-3 overflow-y-auto rounded-md border p-4">
+            <div className="border-subtle stack-y-3 max-h-96 overflow-y-auto rounded-md border p-4">
               {selectedCall.transcript ? (
                 selectedCall.transcript
                   .split("\n")

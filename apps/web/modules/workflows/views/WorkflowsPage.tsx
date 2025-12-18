@@ -6,8 +6,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import EmptyScreen from "@calcom/features/ee/workflows/components/EmptyScreen";
-import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderList";
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
@@ -21,6 +19,8 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import Shell, { ShellMain } from "@calcom/web/modules/shell/Shell";
 import { CreateButtonWithTeamsList } from "@calcom/web/modules/teams/components/createButton/CreateButtonWithTeamsList";
+import EmptyScreen from "@calcom/web/modules/workflows/components/EmptyScreen";
+import SkeletonLoader from "@calcom/web/modules/workflows/components/SkeletonLoaderList";
 import {
   WorkflowCreationDialog,
   useWorkflowCreation,
