@@ -19,7 +19,7 @@ export default defineConfig({
   outDir: ".output",
   manifest: {
     name: "Cal.com Companion",
-    version: "1.7.0",
+    version: "1.7.1",
     description: "Your calendar companion for quick booking and scheduling",
     permissions: ["activeTab", "storage", "identity"],
     host_permissions: [
@@ -33,9 +33,6 @@ export default defineConfig({
       extension_pages: isLocalDev
         ? "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com http://localhost:*"
         : "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com",
-    },
-    data_collection_permissions: {
-      collects_data: false,
     },
     action: {
       default_title: "Cal.com Companion",
