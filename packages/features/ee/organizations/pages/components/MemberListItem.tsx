@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import TeamPill, { TeamRole } from "@calcom/web/modules/teams/TeamPill";
+import TeamPill, { TeamRole } from "@calcom/web/modules/teams/components/TeamPill";
 
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];

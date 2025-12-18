@@ -1,9 +1,12 @@
 "use client";
 
+import posthog from "posthog-js";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import posthog from "posthog-js";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import type { NewTeamFormValues } from "@calcom/features/ee/teams/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -15,10 +18,6 @@ import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-
-import { useOrgBranding } from "../../organizations/context/provider";
-import { subdomainSuffix } from "../../organizations/lib/orgDomains";
-import type { NewTeamFormValues } from "../lib/types";
 
 interface CreateANewTeamFormProps {
   onCancel: () => void;
@@ -107,7 +106,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
             defaultValue=""
             rules={{
               required: t("must_enter_team_name"),
-              validate: (value) => value.trim().length > 0 || t("must_enter_team_name")
+              validate: (value) => value.trim().length > 0 || t("must_enter_team_name"),
             }}
             render={({ field: { value } }) => (
               <>
