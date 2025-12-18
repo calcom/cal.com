@@ -30,7 +30,7 @@ const fetchReferralsToken = async () => {
 // The enabled referrals page implementation
 export const DubReferralsPage = () => {
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const { t } = useLocale();
   const { resolvedTheme } = useTheme();
 
@@ -48,7 +48,7 @@ export const DubReferralsPage = () => {
     };
 
     getToken();
-  }, []);
+  }, [t]);
 
   if (!IS_DUB_REFERRALS_ENABLED || !token) {
     return null;
