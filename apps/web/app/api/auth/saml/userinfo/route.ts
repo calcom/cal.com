@@ -18,12 +18,11 @@ const extractAuthToken = (req: NextRequest) => {
   // check for query param
   let arr: string[] = [];
   const tokenParse = requestQuery.safeParse(Object.fromEntries(req.nextUrl.searchParams));
-  let access_token;
   if (!tokenParse.success) {
     log.error(`Error parsing request query: ${tokenParse.error} trace ${uid}`);
     throw new HttpError({ statusCode: 401, message: `Unauthorized trace: ${uid}` });
   }
-  access_token = tokenParse.data.access_token;
+  const access_token = tokenParse.data.access_token;
   arr = arr.concat(access_token);
   if (arr[0].length > 0) return arr[0];
 

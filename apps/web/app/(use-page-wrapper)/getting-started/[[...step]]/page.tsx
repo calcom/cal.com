@@ -26,7 +26,7 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
   );
 };
 
-const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
+const ServerPage = async ({ params: _params, searchParams: _searchParams }: ServerPageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.id) {

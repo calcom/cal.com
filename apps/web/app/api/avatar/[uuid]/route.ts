@@ -58,7 +58,7 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
     } else {
       img = data;
     }
-  } catch (e) {
+  } catch {
     // If anything goes wrong or avatar is not found, use default avatar
     const url = new URL(AVATAR_FALLBACK, WEBAPP_URL).toString();
     return NextResponse.redirect(url, 302);

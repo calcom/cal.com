@@ -6,7 +6,7 @@ import { TRPCClientError } from "@trpc/client";
 
 const MAX_QUERY_RETRIES = 3;
 
-const isTRPCClientError = (cause: unknown): cause is TRPCClientError<any> => {
+const isTRPCClientError = (cause: unknown): cause is TRPCClientError<unknown> => {
   return cause instanceof TRPCClientError;
 };
 

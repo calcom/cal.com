@@ -217,7 +217,7 @@ async function getHandler(request: NextRequest) {
     imageResponse.headers.set("Cache-Control", "s-maxage=86400, stale-while-revalidate=60");
 
     return imageResponse;
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed fetching logo" }, { status: 404 });
   }
 }

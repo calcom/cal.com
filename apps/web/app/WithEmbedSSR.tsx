@@ -8,7 +8,7 @@ export type EmbedProps = {
 };
 
 const withEmbedSsrAppDir =
-  <T extends Record<string, any>>(getServerSideProps: GetServerSideProps<T>) =>
+  <T extends Record<string, unknown>>(getServerSideProps: GetServerSideProps<T>) =>
   async (context: GetServerSidePropsContext): Promise<T> => {
     const { embed, layout } = context.query;
     const ssrResponse = await getServerSideProps(context);

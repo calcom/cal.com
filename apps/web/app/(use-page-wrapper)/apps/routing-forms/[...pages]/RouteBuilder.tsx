@@ -83,6 +83,7 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   eventOptions: { label: string; value: string; eventTypeId: number }[];
   setRoute: SetRoute;
 }) {
+  const routeActionValue = !isRouter(route) ? route.action?.value : undefined;
   useEffect(() => {
     if (isRouter(route)) {
       return;
@@ -103,12 +104,12 @@ function useEnsureEventTypeIdInRedirectUrlAction({
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+  }, [eventOptions, setRoute, route, routeActionValue]);
 }
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 
 function getEmptyQueryValue() {
@@ -147,14 +148,14 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata?: Record<string, any>;
+    eventTypeAppMetadata?: ReturnType<typeof getEventTypeAppMetadata>;
     isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
-      eventTypeAppMetadata?: Record<string, any>;
+      eventTypeAppMetadata?: ReturnType<typeof getEventTypeAppMetadata>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -398,7 +399,7 @@ const Route = ({
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
     setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
-  }, []);
+  }, [eventOptions, route]);
 
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
@@ -1158,7 +1159,7 @@ const Routes = ({
     });
   };
 
-  const availableRouters =
+  const _availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
         const routerValidInContext = areTheySiblingEntities({

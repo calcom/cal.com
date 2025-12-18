@@ -86,14 +86,14 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
         setSalesforceWriteToRecordObject(parsedSalesforceActionData.data?.writeToRecordObject ?? {});
       }
 
-      setSelectedCredential(
+      setSelectedCredential((prevSelectedCredential) =>
         credentialOptions
           ? credentialOptions.find((option) => option.value === salesforceAction?.credentialId) ??
-              selectedCredential
-          : selectedCredential
+              prevSelectedCredential
+          : prevSelectedCredential
       );
     }
-  }, [data]);
+  }, [data, credentialOptions]);
 
   if (isLoading) {
     return <div>Loading...</div>;

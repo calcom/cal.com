@@ -36,7 +36,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   const Component = await routingFormsComponents[mainPage as keyof typeof routingFormsComponents]();
 
-  return <Component {...(props as any)} />;
+  return <Component {...(props as GetServerSidePropsResult)} />;
 };
 
 export default ServerPage;

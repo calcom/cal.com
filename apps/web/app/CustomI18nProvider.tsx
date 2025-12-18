@@ -26,7 +26,7 @@ export function CustomI18nProvider({
       locale,
       ns,
     }),
-    [locale, ns]
+    [locale, ns, translations]
   );
 
   return <CustomI18nContext.Provider value={value}>{children}</CustomI18nContext.Provider>;

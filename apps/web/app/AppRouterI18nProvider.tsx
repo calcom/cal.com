@@ -26,7 +26,7 @@ export function AppRouterI18nProvider({
       locale,
       ns,
     }),
-    [locale, ns]
+    [locale, ns, translations]
   );
 
   return <AppRouterI18nContext.Provider value={value}>{children}</AppRouterI18nContext.Provider>;

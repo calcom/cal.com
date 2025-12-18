@@ -80,7 +80,7 @@ async function handler(req: NextRequest) {
         identityProviderId: null,
       },
     });
-  } catch (e) {
+  } catch {
     return NextResponse.json({}, { status: 404 });
   }
 

@@ -13,8 +13,9 @@ export function createMockNextJsRequest(...args: Parameters<typeof createMocks>)
   return createMocks<CustomNextApiRequest, CustomNextApiResponse>(...args);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
+const noop = () => {
+  return;
+};
 
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),

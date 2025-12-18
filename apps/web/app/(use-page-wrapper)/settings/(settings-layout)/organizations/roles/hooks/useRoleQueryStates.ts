@@ -4,7 +4,7 @@ import { useQueryState } from "nuqs";
 
 import { roleParsers } from "../_components/searchParams";
 
-export function useRoleSheetState(initialOpen?: boolean) {
+export function useRoleSheetState(_initialOpen?: boolean) {
   const [isOpen, setIsOpen] = useQueryState("role-sheet", roleParsers["role-sheet"]);
 
   return {
@@ -13,7 +13,7 @@ export function useRoleSheetState(initialOpen?: boolean) {
   };
 }
 
-export function useSelectedRoleState(initialRoleId?: string) {
+export function useSelectedRoleState(_initialRoleId?: string) {
   const [selectedRoleId, setSelectedRoleId] = useQueryState("role", roleParsers.role);
 
   return {
