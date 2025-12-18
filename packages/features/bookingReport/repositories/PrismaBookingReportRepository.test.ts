@@ -303,4 +303,65 @@ describe("PrismaBookingReportRepository", () => {
       });
     });
   });
+
+  describe("bulkLinkGlobalWatchlistWithSystemStatus", () => {
+    it("should do nothing when links array is empty", async () => {
+      await repository.bulkLinkGlobalWatchlistWithSystemStatus({
+        links: [],
+        systemStatus: "BLOCKED",
+      });
+
+      expect(mockPrisma.bookingReport.updateMany).not.toHaveBeenCalled();
+    });
+
+    it("should link each report to its corresponding globalWatchlistId", async () => {
+      mockPrisma.bookingReport.updateMany.mockResolvedValue({ count: 1 });
+
+      await repository.bulkLinkGlobalWatchlistWithSystemStatus({
+        links: [
+          { reportId: "r1", globalWatchlistId: "w1" },
+          { reportId: "r2", globalWatchlistId: "w2" },
+          { reportId: "r3", globalWatchlistId: "w3" },
+        ],
+        systemStatus: "BLOCKED",
+      });
+
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledTimes(3);
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["r1"] } },
+        data: { globalWatchlistId: "w1", systemStatus: "BLOCKED" },
+      });
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["r2"] } },
+        data: { globalWatchlistId: "w2", systemStatus: "BLOCKED" },
+      });
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["r3"] } },
+        data: { globalWatchlistId: "w3", systemStatus: "BLOCKED" },
+      });
+    });
+
+    it("should group reports with the same globalWatchlistId", async () => {
+      mockPrisma.bookingReport.updateMany.mockResolvedValue({ count: 2 });
+
+      await repository.bulkLinkGlobalWatchlistWithSystemStatus({
+        links: [
+          { reportId: "r1", globalWatchlistId: "w1" },
+          { reportId: "r2", globalWatchlistId: "w1" },
+          { reportId: "r3", globalWatchlistId: "w2" },
+        ],
+        systemStatus: "BLOCKED",
+      });
+
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledTimes(2);
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["r1", "r2"] } },
+        data: { globalWatchlistId: "w1", systemStatus: "BLOCKED" },
+      });
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["r3"] } },
+        data: { globalWatchlistId: "w2", systemStatus: "BLOCKED" },
+      });
+    });
+  });
 });

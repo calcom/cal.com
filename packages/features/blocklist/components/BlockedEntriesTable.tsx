@@ -35,7 +35,7 @@ export interface BlockedEntriesTableProps<T extends BlocklistEntry> {
         type: string;
         description: string | null;
         source?: string;
-        bookingReports?: Array<{ booking: { uid: string; title: string } }>;
+        bookingReports?: Array<{ booking: { uid: string; title: string | null } }>;
       };
       auditHistory: Array<{
         id: string;
