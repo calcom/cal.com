@@ -325,8 +325,6 @@ export class FeaturesRepository implements IFeaturesRepository {
           },
         });
       }
-      // Clear cache when features are modified
-      this.clearCache();
     } catch (err) {
       captureException(err);
       throw err;
@@ -377,8 +375,6 @@ export class FeaturesRepository implements IFeaturesRepository {
           },
         });
       }
-      // Clear cache when features are modified
-      this.clearCache();
     } catch (err) {
       captureException(err);
       throw err;
