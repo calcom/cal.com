@@ -6,13 +6,36 @@ import posthog from "posthog-js";
 import { useEffect } from "react";
 
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { APP_NAME, IS_CALCOM } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
+
+const EMAIL_CLIENTS = [
+  {
+    name: "Gmail",
+    icon: "/email-clients/gmail.svg",
+    href: 'https://mail.google.com/mail/u/0/#search/%22api%2Fauth%2Fverify-email%22',
+  },
+  {
+    name: "Outlook",
+    icon: "/email-clients/outlook.svg",
+    href: "https://outlook.live.com/mail/0/",
+  },
+  {
+    name: "Yahoo",
+    icon: "/email-clients/yahoo.svg",
+    href: "https://mail.yahoo.com/d/search?p=Cal.com",
+  },
+  {
+    name: "Proton",
+    icon: "/email-clients/proton.svg",
+    href: "https://mail.proton.me",
+  },
+] as const;
 
 function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
@@ -49,21 +72,16 @@ function VerifyEmailPage() {
             buttonRaw={
               <>
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <Button
-                    color="secondary"
-                    href="https://mail.google.com/mail/u/0/#search/%22api%2Fauth%2Fverify-email%22"
-                    target="_blank">
-                    <img src="/email-clients/gmail.svg" alt="Gmail" className="me-1 h-4 w-4" /> Gmail
-                  </Button>
-                  <Button color="secondary" href="https://outlook.live.com/mail/0/" target="_blank">
-                    <img src="/email-clients/outlook.svg" alt="Outlook" className="me-1 h-4 w-4" /> Outlook
-                  </Button>
-                  <Button color="secondary" href="https://mail.yahoo.com/d/search?p=Cal.com" target="_blank">
-                    <img src="/email-clients/yahoo.svg" alt="Yahoo" className="me-1 h-4 w-4" /> Yahoo
-                  </Button>
-                  <Button color="secondary" href="https://mail.proton.me" target="_blank">
-                    <img src="/email-clients/proton.svg" alt="Proton" className="me-1 h-4 w-4" /> Proton
-                  </Button>
+                  {EMAIL_CLIENTS.map(({ name, icon, href }) => (
+                    <Button
+                      key={name}
+                      color="secondary"
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      <img src={icon} alt={name} className="me-1 h-4 w-4" /> {name}
+                    </Button>
+                  ))}
                 </div>
                 <Button
                   color="minimal"
