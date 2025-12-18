@@ -30,7 +30,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="flex items-start">
                 <div>
-                  <Check className="mr-2 mt-1 font-semibold" />
+                  <Check className="mr-2 mt-1 font-semibold" data-testid="check-icon" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -54,7 +54,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="text-error flex items-start">
                 <div>
-                  <CircleX className="mr-2 mt-1 font-semibold" />
+                  <CircleX className="mr-2 mt-1 font-semibold" data-testid="circle-x-icon" />
                 </div>
                 <div>
                   <span className="font-semibold">
