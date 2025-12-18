@@ -142,7 +142,7 @@ const HostLocationRow = ({
           options={locationOptions}
           value={selectedOption}
           isSearchable={false}
-          className="w-48 text-sm"
+          className="w-72 text-sm"
           menuPlacement="auto"
           onChange={(option) => {
             if (!option) {
@@ -162,7 +162,7 @@ const HostLocationRow = ({
         />
         {currentLocation && !hasAppInstalled && (
           <Badge variant="orange" className="whitespace-nowrap">
-            <Icon name="alert-triangle" className="mr-1 h-3 w-3" />
+            <Icon name="alert" className="mr-1 h-3 w-3" />
             {t("app_not_installed")}
           </Badge>
         )}
@@ -317,44 +317,46 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
   }
 
   return (
-    <div className="space-y-4">
-      <SettingsToggle
-        title={t("enable_custom_host_locations")}
-        description={t("enable_custom_host_locations_description")}
-        checked={enablePerHostLocations}
-        onCheckedChange={handleToggle}
-      />
+    <div className="border-subtle rounded-lg border p-6">
+      <div className="space-y-4">
+        <SettingsToggle
+          title={t("enable_custom_host_locations")}
+          description={t("enable_custom_host_locations_description")}
+          checked={enablePerHostLocations}
+          onCheckedChange={handleToggle}
+        />
 
-      {enablePerHostLocations && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Skeleton as={Label} loadingClassName="w-24">
-              {t("host_locations")}
-            </Skeleton>
-            <MassApplySelect locationOptions={mergedLocationOptions} onApply={handleMassApply} />
+        {enablePerHostLocations && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton as={Label} loadingClassName="w-24">
+                {t("host_locations")}
+              </Skeleton>
+              <MassApplySelect locationOptions={mergedLocationOptions} onApply={handleMassApply} />
+            </div>
+
+            <div className="border-subtle rounded-md border">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Icon name="loader" className="text-subtle h-5 w-5 animate-spin" />
+                </div>
+              ) : (
+                roundRobinHosts.map((host) => (
+                  <HostLocationRow
+                    key={host.userId}
+                    host={host}
+                    hostData={hostDataMap.get(host.userId)}
+                    locationOptions={mergedLocationOptions}
+                    onLocationChange={handleLocationChange}
+                  />
+                ))
+              )}
+            </div>
+
+            <p className="text-subtle text-xs">{t("host_locations_fallback_description")}</p>
           </div>
-
-          <div className="border-subtle rounded-md border">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Icon name="loader" className="text-subtle h-5 w-5 animate-spin" />
-              </div>
-            ) : (
-              roundRobinHosts.map((host) => (
-                <HostLocationRow
-                  key={host.userId}
-                  host={host}
-                  hostData={hostDataMap.get(host.userId)}
-                  locationOptions={mergedLocationOptions}
-                  onLocationChange={handleLocationChange}
-                />
-              ))
-            )}
-          </div>
-
-          <p className="text-subtle text-xs">{t("host_locations_fallback_description")}</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
