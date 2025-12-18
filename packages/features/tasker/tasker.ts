@@ -2,7 +2,6 @@ import type { z } from "zod";
 
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { BookingAuditTaskConsumerPayload } from "@calcom/features/booking-audit/lib/types/bookingAuditTask";
-
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
   sendWebhook: string;
