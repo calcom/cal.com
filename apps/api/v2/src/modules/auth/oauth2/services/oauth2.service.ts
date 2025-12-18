@@ -1,7 +1,12 @@
-import { OAuth2Repository } from "@/modules/auth/oauth2/oauth2.repository";
 import { AccessCodeRepository } from "@/modules/auth/oauth2/repositories/access-code.repository";
+import { OAuth2ClientRepository } from "@/modules/auth/oauth2/repositories/oauth2-client.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { randomBytes } from "crypto";
 import * as jwt from "jsonwebtoken";
@@ -41,14 +46,14 @@ interface DecodedRefreshToken {
 @Injectable()
 export class OAuth2Service {
   constructor(
-    private readonly oauth2Repository: OAuth2Repository,
+    private readonly OAuth2ClientRepository: OAuth2ClientRepository,
     private readonly accessCodeRepository: AccessCodeRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly configService: ConfigService
   ) {}
 
   async getClient(clientId: string): Promise<OAuth2Client | null> {
-    const client = await this.oauth2Repository.findByClientId(clientId);
+    const client = await this.OAuth2ClientRepository.findByClientId(clientId);
 
     if (!client) {
       return null;
@@ -71,7 +76,7 @@ export class OAuth2Service {
     codeChallenge?: string,
     codeChallengeMethod?: string
   ): Promise<AuthorizeResult> {
-    const client = await this.oauth2Repository.findByClientIdWithType(clientId);
+    const client = await this.OAuth2ClientRepository.findByClientIdWithType(clientId);
 
     if (!client) {
       throw new UnauthorizedException("Client ID not valid");
@@ -121,7 +126,7 @@ export class OAuth2Service {
     redirectUri?: string,
     codeVerifier?: string
   ): Promise<OAuth2Tokens> {
-    const client = await this.oauth2Repository.findByClientIdWithSecret(clientId);
+    const client = await this.OAuth2ClientRepository.findByClientIdWithSecret(clientId);
 
     if (!client) {
       throw new UnauthorizedException("invalid_client");
@@ -166,7 +171,7 @@ export class OAuth2Service {
     clientSecret?: string,
     codeVerifier?: string
   ): Promise<OAuth2Tokens> {
-    const client = await this.oauth2Repository.findByClientIdWithSecret(clientId);
+    const client = await this.OAuth2ClientRepository.findByClientIdWithSecret(clientId);
 
     if (!client) {
       throw new UnauthorizedException("invalid_client");

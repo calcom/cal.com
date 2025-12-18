@@ -9526,6 +9526,156 @@
         "tags": ["Api Keys"]
       }
     },
+    "/v2/auth/oauth2/clients/{clientId}": {
+      "get": {
+        "operationId": "OAuth2Controller_getClient",
+        "summary": "Get OAuth2 client",
+        "description": "Returns the OAuth2 client information for the given client ID",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuth2ClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth / OAuth2"]
+      }
+    },
+    "/v2/auth/oauth2/clients/{clientId}/authorize": {
+      "post": {
+        "operationId": "OAuth2Controller_authorize",
+        "summary": "Generate authorization code",
+        "description": "Generates an authorization code for the OAuth2 flow. Requires user authentication.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuth2AuthorizeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuth2AuthorizeResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth / OAuth2"]
+      }
+    },
+    "/v2/auth/oauth2/clients/{clientId}/exchange": {
+      "post": {
+        "operationId": "OAuth2Controller_exchange",
+        "summary": "Exchange authorization code for tokens",
+        "description": "Exchanges an authorization code for access and refresh tokens",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuth2ExchangeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuth2TokensResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth / OAuth2"]
+      }
+    },
+    "/v2/auth/oauth2/clients/{clientId}/refresh": {
+      "post": {
+        "operationId": "OAuth2Controller_refresh",
+        "summary": "Refresh access token",
+        "description": "Refreshes an access token using a refresh token",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuth2RefreshInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuth2TokensResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth / OAuth2"]
+      }
+    },
     "/v2/bookings": {
       "post": {
         "operationId": "BookingsController_2024_08_13_createBooking",
@@ -16002,617 +16152,165 @@
   "servers": [],
   "components": {
     "schemas": {
-      "ManagedUserOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
-          "email": {
-            "type": "string",
-            "example": "alice+cluo37fwd0001khkzqqynkpj3@example.com"
-          },
-          "username": {
-            "type": "string",
-            "nullable": true,
-            "example": "alice"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "example": "alice"
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true,
-            "example": "bio"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "America/New_York"
-          },
-          "weekStart": {
-            "type": "string",
-            "example": "Sunday"
-          },
-          "createdDate": {
-            "type": "string",
-            "example": "2024-04-01T00:00:00.000Z"
-          },
-          "timeFormat": {
-            "type": "number",
-            "nullable": true,
-            "example": 12
-          },
-          "defaultScheduleId": {
-            "type": "number",
-            "nullable": true,
-            "example": null
-          },
-          "locale": {
-            "enum": [
-              "ar",
-              "ca",
-              "de",
-              "es",
-              "eu",
-              "he",
-              "id",
-              "ja",
-              "lv",
-              "pl",
-              "ro",
-              "sr",
-              "th",
-              "vi",
-              "az",
-              "cs",
-              "el",
-              "es-419",
-              "fi",
-              "hr",
-              "it",
-              "km",
-              "nl",
-              "pt",
-              "ru",
-              "sv",
-              "tr",
-              "zh-CN",
-              "bg",
-              "da",
-              "en",
-              "et",
-              "fr",
-              "hu",
-              "iw",
-              "ko",
-              "no",
-              "pt-BR",
-              "sk",
-              "ta",
-              "uk",
-              "zh-TW",
-              "bn"
-            ],
-            "type": "string",
-            "example": "en"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "nullable": true,
-            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
-            "description": "URL of the user's avatar image"
-          },
-          "metadata": {
-            "type": "object",
-            "example": {
-              "key": "value"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "username",
-          "name",
-          "bio",
-          "timeZone",
-          "weekStart",
-          "createdDate",
-          "timeFormat",
-          "defaultScheduleId"
-        ]
-      },
-      "GetManagedUsersOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagedUserOutput"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "CreateManagedUserInput": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "example": "alice@example.com"
-          },
-          "name": {
-            "type": "string",
-            "example": "Alice Smith",
-            "description": "Managed user's name is used in emails"
-          },
-          "timeFormat": {
-            "type": "number",
-            "enum": [12, 24],
-            "example": 12,
-            "description": "Must be a number 12 or 24"
-          },
-          "weekStart": {
-            "type": "string",
-            "example": "Monday",
-            "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "America/New_York",
-            "description": "Timezone is used to create user's default schedule from Monday to Friday from 9AM to 5PM. If it is not passed then user does not have\n      a default schedule and it must be created manually via the /schedules endpoint. Until the schedule is created, the user can't access availability atom to set his / her availability nor booked.\n      It will default to Europe/London if not passed."
-          },
-          "locale": {
-            "enum": [
-              "ar",
-              "ca",
-              "de",
-              "es",
-              "eu",
-              "he",
-              "id",
-              "ja",
-              "lv",
-              "pl",
-              "ro",
-              "sr",
-              "th",
-              "vi",
-              "az",
-              "cs",
-              "el",
-              "es-419",
-              "fi",
-              "hr",
-              "it",
-              "km",
-              "nl",
-              "pt",
-              "ru",
-              "sv",
-              "tr",
-              "zh-CN",
-              "bg",
-              "da",
-              "en",
-              "et",
-              "fr",
-              "hu",
-              "iw",
-              "ko",
-              "no",
-              "pt-BR",
-              "sk",
-              "ta",
-              "uk",
-              "zh-TW",
-              "bn"
-            ],
-            "type": "string",
-            "example": "en"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
-            "description": "URL of the user's avatar image"
-          },
-          "bio": {
-            "type": "string",
-            "description": "Bio",
-            "example": "I am a bio"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
-            "example": {
-              "key": "value"
-            }
-          }
-        },
-        "required": ["email", "name"]
-      },
-      "CreateManagedUserData": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-          },
-          "refreshToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-          },
-          "user": {
-            "$ref": "#/components/schemas/ManagedUserOutput"
-          },
-          "accessTokenExpiresAt": {
-            "type": "number"
-          },
-          "refreshTokenExpiresAt": {
-            "type": "number"
-          }
-        },
-        "required": ["accessToken", "refreshToken", "user", "accessTokenExpiresAt", "refreshTokenExpiresAt"]
-      },
-      "CreateManagedUserOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/CreateManagedUserData"
-          },
-          "error": {
-            "type": "object"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetManagedUserOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ManagedUserOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdateManagedUserInput": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "timeFormat": {
-            "type": "number",
-            "enum": [12, 24],
-            "example": 12,
-            "description": "Must be 12 or 24"
-          },
-          "defaultScheduleId": {
-            "type": "number"
-          },
-          "weekStart": {
-            "type": "string",
-            "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-            "example": "Monday"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "locale": {
-            "enum": [
-              "ar",
-              "ca",
-              "de",
-              "es",
-              "eu",
-              "he",
-              "id",
-              "ja",
-              "lv",
-              "pl",
-              "ro",
-              "sr",
-              "th",
-              "vi",
-              "az",
-              "cs",
-              "el",
-              "es-419",
-              "fi",
-              "hr",
-              "it",
-              "km",
-              "nl",
-              "pt",
-              "ru",
-              "sv",
-              "tr",
-              "zh-CN",
-              "bg",
-              "da",
-              "en",
-              "et",
-              "fr",
-              "hu",
-              "iw",
-              "ko",
-              "no",
-              "pt-BR",
-              "sk",
-              "ta",
-              "uk",
-              "zh-TW",
-              "bn"
-            ],
-            "type": "string",
-            "example": "en"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
-            "description": "URL of the user's avatar image"
-          },
-          "bio": {
-            "type": "string",
-            "description": "Bio",
-            "example": "I am a bio"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
-            "example": {
-              "key": "value"
-            }
-          }
-        }
-      },
-      "KeysDto": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-          },
-          "refreshToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-          },
-          "accessTokenExpiresAt": {
-            "type": "number"
-          },
-          "refreshTokenExpiresAt": {
-            "type": "number"
-          }
-        },
-        "required": ["accessToken", "refreshToken", "accessTokenExpiresAt", "refreshTokenExpiresAt"]
-      },
-      "KeysResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/KeysDto"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "CreateOAuthClientInput": {
-        "type": "object",
-        "properties": {
-          "logo": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "redirectUris": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "permissions": {
-            "type": "array",
-            "description": "Array of permission keys like [\"BOOKING_READ\", \"BOOKING_WRITE\"]. Use [\"*\"] to grant all permissions.",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EVENT_TYPE_READ",
-                "EVENT_TYPE_WRITE",
-                "BOOKING_READ",
-                "BOOKING_WRITE",
-                "SCHEDULE_READ",
-                "SCHEDULE_WRITE",
-                "APPS_READ",
-                "APPS_WRITE",
-                "PROFILE_READ",
-                "PROFILE_WRITE",
-                "*"
-              ]
-            }
-          },
-          "bookingRedirectUri": {
-            "type": "string"
-          },
-          "bookingCancelRedirectUri": {
-            "type": "string"
-          },
-          "bookingRescheduleRedirectUri": {
-            "type": "string"
-          },
-          "areEmailsEnabled": {
-            "type": "boolean"
-          },
-          "areDefaultEventTypesEnabled": {
-            "type": "boolean",
-            "default": false,
-            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
-          },
-          "areCalendarEventsEnabled": {
-            "type": "boolean",
-            "default": true,
-            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
-          }
-        },
-        "required": ["name", "redirectUris", "permissions"]
-      },
-      "CreateOAuthClientOutput": {
+      "OAuth2ClientDto": {
         "type": "object",
         "properties": {
           "clientId": {
             "type": "string",
-            "example": "clsx38nbl0001vkhlwin9fmt0"
+            "description": "The OAuth client ID",
+            "example": "clxxxxxxxxxxxxxxxx"
+          },
+          "redirectUri": {
+            "type": "string",
+            "description": "The redirect URI for the OAuth client",
+            "example": "https://example.com/callback"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the OAuth client",
+            "example": "My App"
+          },
+          "logo": {
+            "type": "string",
+            "nullable": true,
+            "description": "The logo URL of the OAuth client"
+          },
+          "isTrusted": {
+            "type": "boolean",
+            "description": "Whether the OAuth client is trusted",
+            "example": false
+          }
+        },
+        "required": ["clientId", "redirectUri", "name", "isTrusted"]
+      },
+      "OAuth2ClientResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OAuth2ClientDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "OAuth2AuthorizeInput": {
+        "type": "object",
+        "properties": {
+          "redirectUri": {
+            "type": "string",
+            "description": "The redirect URI to redirect to after authorization",
+            "example": "https://example.com/callback"
+          },
+          "scopes": {
+            "type": "array",
+            "description": "The scopes to request",
+            "example": ["READ_BOOKING", "READ_PROFILE"],
+            "items": {
+              "type": "string",
+              "enum": ["READ_BOOKING", "READ_PROFILE"]
+            }
+          },
+          "teamSlug": {
+            "type": "string",
+            "description": "The team slug to authorize for (optional)"
+          },
+          "codeChallenge": {
+            "type": "string",
+            "description": "PKCE code challenge (required for public clients)"
+          },
+          "codeChallengeMethod": {
+            "type": "string",
+            "description": "PKCE code challenge method (must be S256)",
+            "example": "S256"
+          }
+        },
+        "required": ["redirectUri", "scopes"]
+      },
+      "OAuth2AuthorizeDto": {
+        "type": "object",
+        "properties": {
+          "authorizationCode": {
+            "type": "string",
+            "description": "The authorization code",
+            "example": "abc123xyz"
+          }
+        },
+        "required": ["authorizationCode"]
+      },
+      "OAuth2AuthorizeResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OAuth2AuthorizeDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "OAuth2ExchangeInput": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The authorization code received from the authorize endpoint",
+            "example": "abc123"
           },
           "clientSecret": {
             "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoib2F1dGgtY2xpZW50Iiwi"
+            "description": "The client secret (required for confidential clients)"
+          },
+          "redirectUri": {
+            "type": "string",
+            "description": "The redirect URI used in the authorization request",
+            "example": "https://example.com/callback"
+          },
+          "grantType": {
+            "type": "string",
+            "description": "The grant type (must be authorization_code)",
+            "example": "authorization_code"
+          },
+          "codeVerifier": {
+            "type": "string",
+            "description": "PKCE code verifier (required if code_challenge was used)"
           }
         },
-        "required": ["clientId", "clientSecret"]
+        "required": ["code", "redirectUri", "grantType"]
       },
-      "CreateOAuthClientResponseDto": {
+      "OAuth2TokensDto": {
         "type": "object",
         "properties": {
-          "status": {
+          "accessToken": {
             "type": "string",
-            "enum": ["success", "error"],
-            "example": "success"
+            "description": "The access token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
           },
-          "data": {
-            "example": {
-              "clientId": "clsx38nbl0001vkhlwin9fmt0",
-              "clientSecret": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoib2F1dGgtY2xpZW50Iiwi"
-            },
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CreateOAuthClientOutput"
-              }
-            ]
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "PlatformOAuthClientDto": {
-        "type": "object",
-        "properties": {
-          "id": {
+          "tokenType": {
             "type": "string",
-            "example": "clsx38nbl0001vkhlwin9fmt0"
+            "description": "The token type",
+            "example": "bearer"
           },
-          "name": {
+          "refreshToken": {
             "type": "string",
-            "example": "MyClient"
+            "description": "The refresh token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
           },
-          "secret": {
-            "type": "string",
-            "example": "secretValue"
-          },
-          "permissions": {
-            "type": "array",
-            "description": "Array of permission keys like [\"BOOKING_READ\", \"BOOKING_WRITE\"]",
-            "items": {
-              "type": "string",
-              "enum": [
-                "EVENT_TYPE_READ",
-                "EVENT_TYPE_WRITE",
-                "BOOKING_READ",
-                "BOOKING_WRITE",
-                "SCHEDULE_READ",
-                "SCHEDULE_WRITE",
-                "APPS_READ",
-                "APPS_WRITE",
-                "PROFILE_READ",
-                "PROFILE_WRITE"
-              ]
-            },
-            "example": ["BOOKING_READ", "BOOKING_WRITE"]
-          },
-          "logo": {
-            "type": "object",
-            "example": "https://example.com/logo.png"
-          },
-          "redirectUris": {
-            "example": ["https://example.com/callback"],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "organizationId": {
+          "expiresIn": {
             "type": "number",
-            "example": 1
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string",
-            "example": "2024-03-23T08:33:21.851Z"
-          },
-          "areEmailsEnabled": {
-            "type": "boolean",
-            "example": true
-          },
-          "areDefaultEventTypesEnabled": {
-            "type": "boolean",
-            "example": true,
-            "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
-          },
-          "areCalendarEventsEnabled": {
-            "type": "boolean",
-            "example": true,
-            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
-          },
-          "bookingRedirectUri": {
-            "type": "string",
-            "example": "https://example.com/booking-redirect"
-          },
-          "bookingCancelRedirectUri": {
-            "type": "string",
-            "example": "https://example.com/booking-cancel"
-          },
-          "bookingRescheduleRedirectUri": {
-            "type": "string",
-            "example": "https://example.com/booking-reschedule"
+            "description": "The number of seconds until the access token expires",
+            "example": 1800
           }
         },
-        "required": [
-          "id",
-          "name",
-          "secret",
-          "permissions",
-          "redirectUris",
-          "organizationId",
-          "createdAt",
-          "areEmailsEnabled",
-          "areDefaultEventTypesEnabled",
-          "areCalendarEventsEnabled"
-        ]
+        "required": ["accessToken", "tokenType", "refreshToken", "expiresIn"]
       },
-      "GetOAuthClientsResponseDto": {
+      "OAuth2TokensResponseDto": {
         "type": "object",
         "properties": {
           "status": {
@@ -16621,102 +16319,209 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PlatformOAuthClientDto"
-            }
+            "$ref": "#/components/schemas/OAuth2TokensDto"
           }
         },
         "required": ["status", "data"]
       },
-      "GetOAuthClientResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/PlatformOAuthClientDto"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdateOAuthClientInput": {
-        "type": "object",
-        "properties": {
-          "logo": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "redirectUris": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "bookingRedirectUri": {
-            "type": "string"
-          },
-          "bookingCancelRedirectUri": {
-            "type": "string"
-          },
-          "bookingRescheduleRedirectUri": {
-            "type": "string"
-          },
-          "areEmailsEnabled": {
-            "type": "boolean"
-          },
-          "areDefaultEventTypesEnabled": {
-            "type": "boolean",
-            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
-          },
-          "areCalendarEventsEnabled": {
-            "type": "boolean",
-            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
-          }
-        }
-      },
-      "RefreshTokenInput": {
+      "OAuth2RefreshInput": {
         "type": "object",
         "properties": {
           "refreshToken": {
             "type": "string",
-            "description": "Managed user's refresh token."
-          }
-        },
-        "required": ["refreshToken"]
-      },
-      "RefreshApiKeyInput": {
-        "type": "object",
-        "properties": {
-          "apiKeyDaysValid": {
-            "type": "number",
-            "minimum": 1,
-            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
-            "example": 60,
-            "default": 30
+            "description": "The refresh token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
           },
-          "apiKeyNeverExpires": {
-            "type": "boolean",
-            "description": "If true, organization api key never expires.",
-            "example": true
-          }
-        }
-      },
-      "ApiKeyOutput": {
-        "type": "object",
-        "properties": {
-          "apiKey": {
-            "type": "string"
+          "clientSecret": {
+            "type": "string",
+            "description": "The client secret (required for confidential clients)"
+          },
+          "grantType": {
+            "type": "string",
+            "description": "The grant type (must be refresh_token)",
+            "example": "refresh_token"
+          },
+          "codeVerifier": {
+            "type": "string",
+            "description": "PKCE code verifier (required if PKCE was used in the original authorization)"
           }
         },
-        "required": ["apiKey"]
+        "required": ["refreshToken", "grantType"]
       },
-      "RefreshApiKeyOutput": {
+      "CreateTeamInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the team",
+            "example": "CalTeam"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
+            "example": "caltel"
+          },
+          "logoUrl": {
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
+            "description": "URL of the teams logo image"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
+            "description": "URL of the teams banner image which is shown on booker"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London",
+            "example": "America/New_York",
+            "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday",
+            "example": "Monday"
+          },
+          "autoAcceptCreator": {
+            "type": "boolean",
+            "default": true,
+            "description": "If you are a platform customer, don't pass 'false', because then team creator won't be able to create team event types."
+          }
+        },
+        "required": ["name"]
+      },
+      "TeamOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "parentId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "isOrganization": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        },
+        "required": ["id", "name", "isOrganization"]
+      },
+      "CreateTeamOutputData": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "paymentLink": {
+            "type": "string"
+          },
+          "pendingTeam": {
+            "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": ["message", "paymentLink", "pendingTeam"]
+      },
+      "CreateTeamOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -16725,10 +16530,276 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ApiKeyOutput"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CreateTeamOutputData"
+              },
+              {
+                "$ref": "#/components/schemas/TeamOutputDto"
+              }
+            ],
+            "description": "Either an Output object or a TeamOutputDto."
           }
         },
         "required": ["status", "data"]
+      },
+      "GetTeamOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetTeamsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamOutputDto"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateOrgTeamDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the team",
+            "example": "CalTeam"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Team slug",
+            "example": "caltel"
+          },
+          "logoUrl": {
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
+            "description": "URL of the teams logo image"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
+            "example": {
+              "key": "value"
+            }
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
+            "description": "URL of the teams banner image which is shown on booker"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York",
+            "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
+          },
+          "weekStart": {
+            "type": "string",
+            "example": "Monday"
+          },
+          "bookingLimits": {
+            "type": "string"
+          },
+          "includeManagedEventsInLimits": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateTeamOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "OrgTeamOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "parentId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "isOrganization": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean",
+            "default": false
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        },
+        "required": ["id", "name", "isOrganization"]
+      },
+      "OrgTeamOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgTeamOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "StripConnectOutputDto": {
+        "type": "object",
+        "properties": {
+          "authUrl": {
+            "type": "string"
+          }
+        },
+        "required": ["authUrl"]
+      },
+      "StripConnectOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/StripConnectOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "StripCredentialsSaveOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["url"]
+      },
+      "StripCredentialsCheckOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "object",
+            "example": "success"
+          }
+        },
+        "required": ["status"]
       },
       "BookerLayouts_2024_06_14": {
         "type": "object",
@@ -20123,16 +20194,130 @@
         },
         "required": ["status", "data"]
       },
-      "StripConnectOutputDto": {
+      "ManagedUserOutput": {
         "type": "object",
         "properties": {
-          "authUrl": {
-            "type": "string"
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "email": {
+            "type": "string",
+            "example": "alice+cluo37fwd0001khkzqqynkpj3@example.com"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "example": "alice"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "alice"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "example": "bio"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "weekStart": {
+            "type": "string",
+            "example": "Sunday"
+          },
+          "createdDate": {
+            "type": "string",
+            "example": "2024-04-01T00:00:00.000Z"
+          },
+          "timeFormat": {
+            "type": "number",
+            "nullable": true,
+            "example": 12
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "nullable": true,
+            "example": null
+          },
+          "locale": {
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "type": "string",
+            "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "key": "value"
+            }
           }
         },
-        "required": ["authUrl"]
+        "required": [
+          "id",
+          "email",
+          "username",
+          "name",
+          "bio",
+          "timeZone",
+          "weekStart",
+          "createdDate",
+          "timeFormat",
+          "defaultScheduleId"
+        ]
       },
-      "StripConnectOutputResponseDto": {
+      "GetManagedUsersOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -20141,105 +20326,601 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/StripConnectOutputDto"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedUserOutput"
+            }
           }
         },
         "required": ["status", "data"]
       },
-      "StripCredentialsSaveOutputResponseDto": {
+      "CreateManagedUserInput": {
         "type": "object",
         "properties": {
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": ["url"]
-      },
-      "StripCredentialsCheckOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "object",
-            "example": "success"
-          }
-        },
-        "required": ["status"]
-      },
-      "OrgTeamOutputDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "parentId": {
-            "type": "number"
+          "email": {
+            "type": "string",
+            "example": "alice@example.com"
           },
           "name": {
             "type": "string",
-            "minLength": 1
-          },
-          "slug": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "calVideoLogo": {
-            "type": "string"
-          },
-          "appLogo": {
-            "type": "string"
-          },
-          "appIconLogo": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "hideBranding": {
-            "type": "boolean"
-          },
-          "isOrganization": {
-            "type": "boolean"
-          },
-          "isPrivate": {
-            "type": "boolean"
-          },
-          "hideBookATeamMember": {
-            "type": "boolean",
-            "default": false
-          },
-          "metadata": {
-            "type": "object",
-            "example": {
-              "key": "value"
-            }
-          },
-          "theme": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string"
+            "example": "Alice Smith",
+            "description": "Managed user's name is used in emails"
           },
           "timeFormat": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "default": "Europe/London"
+            "type": "number",
+            "enum": [12, 24],
+            "example": 12,
+            "description": "Must be a number 12 or 24"
           },
           "weekStart": {
             "type": "string",
-            "default": "Sunday"
+            "example": "Monday",
+            "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York",
+            "description": "Timezone is used to create user's default schedule from Monday to Friday from 9AM to 5PM. If it is not passed then user does not have\n      a default schedule and it must be created manually via the /schedules endpoint. Until the schedule is created, the user can't access availability atom to set his / her availability nor booked.\n      It will default to Europe/London if not passed."
+          },
+          "locale": {
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "type": "string",
+            "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Bio",
+            "example": "I am a bio"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
           }
         },
-        "required": ["id", "name", "isOrganization"]
+        "required": ["email", "name"]
+      },
+      "CreateManagedUserData": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "user": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          },
+          "accessTokenExpiresAt": {
+            "type": "number"
+          },
+          "refreshTokenExpiresAt": {
+            "type": "number"
+          }
+        },
+        "required": ["accessToken", "refreshToken", "user", "accessTokenExpiresAt", "refreshTokenExpiresAt"]
+      },
+      "CreateManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateManagedUserData"
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetManagedUserOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedUserOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateManagedUserInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number",
+            "enum": [12, 24],
+            "example": 12,
+            "description": "Must be 12 or 24"
+          },
+          "defaultScheduleId": {
+            "type": "number"
+          },
+          "weekStart": {
+            "type": "string",
+            "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "example": "Monday"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "type": "string",
+            "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Bio",
+            "example": "I am a bio"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
+          }
+        }
+      },
+      "KeysDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "accessTokenExpiresAt": {
+            "type": "number"
+          },
+          "refreshTokenExpiresAt": {
+            "type": "number"
+          }
+        },
+        "required": ["accessToken", "refreshToken", "accessTokenExpiresAt", "refreshTokenExpiresAt"]
+      },
+      "KeysResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/KeysDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CreateOAuthClientInput": {
+        "type": "object",
+        "properties": {
+          "logo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "redirectUris": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Array of permission keys like [\"BOOKING_READ\", \"BOOKING_WRITE\"]. Use [\"*\"] to grant all permissions.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EVENT_TYPE_READ",
+                "EVENT_TYPE_WRITE",
+                "BOOKING_READ",
+                "BOOKING_WRITE",
+                "SCHEDULE_READ",
+                "SCHEDULE_WRITE",
+                "APPS_READ",
+                "APPS_WRITE",
+                "PROFILE_READ",
+                "PROFILE_WRITE",
+                "*"
+              ]
+            }
+          },
+          "bookingRedirectUri": {
+            "type": "string"
+          },
+          "bookingCancelRedirectUri": {
+            "type": "string"
+          },
+          "bookingRescheduleRedirectUri": {
+            "type": "string"
+          },
+          "areEmailsEnabled": {
+            "type": "boolean"
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
+          }
+        },
+        "required": ["name", "redirectUris", "permissions"]
+      },
+      "CreateOAuthClientOutput": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "example": "clsx38nbl0001vkhlwin9fmt0"
+          },
+          "clientSecret": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoib2F1dGgtY2xpZW50Iiwi"
+          }
+        },
+        "required": ["clientId", "clientSecret"]
+      },
+      "CreateOAuthClientResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "error"],
+            "example": "success"
+          },
+          "data": {
+            "example": {
+              "clientId": "clsx38nbl0001vkhlwin9fmt0",
+              "clientSecret": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoib2F1dGgtY2xpZW50Iiwi"
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateOAuthClientOutput"
+              }
+            ]
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "PlatformOAuthClientDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "clsx38nbl0001vkhlwin9fmt0"
+          },
+          "name": {
+            "type": "string",
+            "example": "MyClient"
+          },
+          "secret": {
+            "type": "string",
+            "example": "secretValue"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Array of permission keys like [\"BOOKING_READ\", \"BOOKING_WRITE\"]",
+            "items": {
+              "type": "string",
+              "enum": [
+                "EVENT_TYPE_READ",
+                "EVENT_TYPE_WRITE",
+                "BOOKING_READ",
+                "BOOKING_WRITE",
+                "SCHEDULE_READ",
+                "SCHEDULE_WRITE",
+                "APPS_READ",
+                "APPS_WRITE",
+                "PROFILE_READ",
+                "PROFILE_WRITE"
+              ]
+            },
+            "example": ["BOOKING_READ", "BOOKING_WRITE"]
+          },
+          "logo": {
+            "type": "object",
+            "example": "https://example.com/logo.png"
+          },
+          "redirectUris": {
+            "example": ["https://example.com/callback"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "organizationId": {
+            "type": "number",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2024-03-23T08:33:21.851Z"
+          },
+          "areEmailsEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
+          },
+          "bookingRedirectUri": {
+            "type": "string",
+            "example": "https://example.com/booking-redirect"
+          },
+          "bookingCancelRedirectUri": {
+            "type": "string",
+            "example": "https://example.com/booking-cancel"
+          },
+          "bookingRescheduleRedirectUri": {
+            "type": "string",
+            "example": "https://example.com/booking-reschedule"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "secret",
+          "permissions",
+          "redirectUris",
+          "organizationId",
+          "createdAt",
+          "areEmailsEnabled",
+          "areDefaultEventTypesEnabled",
+          "areCalendarEventsEnabled"
+        ]
+      },
+      "GetOAuthClientsResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlatformOAuthClientDto"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetOAuthClientResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/PlatformOAuthClientDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateOAuthClientInput": {
+        "type": "object",
+        "properties": {
+          "logo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "redirectUris": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bookingRedirectUri": {
+            "type": "string"
+          },
+          "bookingCancelRedirectUri": {
+            "type": "string"
+          },
+          "bookingRescheduleRedirectUri": {
+            "type": "string"
+          },
+          "areEmailsEnabled": {
+            "type": "boolean"
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
+          }
+        }
+      },
+      "RefreshTokenInput": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "Managed user's refresh token."
+          }
+        },
+        "required": ["refreshToken"]
+      },
+      "RefreshApiKeyInput": {
+        "type": "object",
+        "properties": {
+          "apiKeyDaysValid": {
+            "type": "number",
+            "minimum": 1,
+            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
+            "example": 60,
+            "default": 30
+          },
+          "apiKeyNeverExpires": {
+            "type": "boolean",
+            "description": "If true, organization api key never expires.",
+            "example": true
+          }
+        }
+      },
+      "ApiKeyOutput": {
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string"
+          }
+        },
+        "required": ["apiKey"]
+      },
+      "RefreshApiKeyOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ApiKeyOutput"
+          }
+        },
+        "required": ["status", "data"]
       },
       "OrgTeamsOutputResponseDto": {
         "type": "object",
@@ -20274,101 +20955,6 @@
           }
         },
         "required": ["status", "data"]
-      },
-      "OrgTeamOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/OrgTeamOutputDto"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdateOrgTeamDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Name of the team",
-            "example": "CalTeam"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Team slug",
-            "example": "caltel"
-          },
-          "logoUrl": {
-            "type": "string",
-            "example": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
-            "description": "URL of the teams logo image"
-          },
-          "calVideoLogo": {
-            "type": "string"
-          },
-          "appLogo": {
-            "type": "string"
-          },
-          "appIconLogo": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "hideBranding": {
-            "type": "boolean"
-          },
-          "isPrivate": {
-            "type": "boolean"
-          },
-          "hideBookATeamMember": {
-            "type": "boolean"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
-            "example": {
-              "key": "value"
-            }
-          },
-          "theme": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string",
-            "example": "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
-            "description": "URL of the teams banner image which is shown on booker"
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "America/New_York",
-            "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
-          },
-          "weekStart": {
-            "type": "string",
-            "example": "Monday"
-          },
-          "bookingLimits": {
-            "type": "string"
-          },
-          "includeManagedEventsInLimits": {
-            "type": "boolean"
-          }
-        }
       },
       "CreateOrgTeamDto": {
         "type": "object",
@@ -22825,6 +23411,12 @@
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         },
         "required": ["active", "subscriberUrl", "triggers"]
@@ -22893,6 +23485,12 @@
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         }
       },
@@ -25158,246 +25756,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "CreateTeamInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Name of the team",
-            "example": "CalTeam"
-          },
-          "slug": {
-            "type": "string",
-            "description": "Team slug in kebab-case - if not provided will be generated automatically based on name.",
-            "example": "caltel"
-          },
-          "logoUrl": {
-            "type": "string",
-            "example": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
-            "description": "URL of the teams logo image"
-          },
-          "calVideoLogo": {
-            "type": "string"
-          },
-          "appLogo": {
-            "type": "string"
-          },
-          "appIconLogo": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "hideBranding": {
-            "type": "boolean",
-            "default": false
-          },
-          "isPrivate": {
-            "type": "boolean"
-          },
-          "hideBookATeamMember": {
-            "type": "boolean"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "You can store any additional data you want here.\nMetadata must have at most 50 keys, each key up to 40 characters.\nValues can be strings (up to 500 characters), numbers, or booleans.",
-            "example": {
-              "key": "value"
-            }
-          },
-          "theme": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string",
-            "example": "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
-            "description": "URL of the teams banner image which is shown on booker"
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "default": "Europe/London",
-            "example": "America/New_York",
-            "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
-          },
-          "weekStart": {
-            "type": "string",
-            "default": "Sunday",
-            "example": "Monday"
-          },
-          "autoAcceptCreator": {
-            "type": "boolean",
-            "default": true,
-            "description": "If you are a platform customer, don't pass 'false', because then team creator won't be able to create team event types."
-          }
-        },
-        "required": ["name"]
-      },
-      "TeamOutputDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "parentId": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "calVideoLogo": {
-            "type": "string"
-          },
-          "appLogo": {
-            "type": "string"
-          },
-          "appIconLogo": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "hideBranding": {
-            "type": "boolean"
-          },
-          "isOrganization": {
-            "type": "boolean"
-          },
-          "isPrivate": {
-            "type": "boolean"
-          },
-          "hideBookATeamMember": {
-            "type": "boolean"
-          },
-          "metadata": {
-            "type": "object",
-            "example": {
-              "key": "value"
-            }
-          },
-          "theme": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string"
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "default": "Europe/London"
-          },
-          "weekStart": {
-            "type": "string",
-            "default": "Sunday"
-          }
-        },
-        "required": ["id", "name", "isOrganization"]
-      },
-      "CreateTeamOutputData": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "paymentLink": {
-            "type": "string"
-          },
-          "pendingTeam": {
-            "$ref": "#/components/schemas/TeamOutputDto"
-          }
-        },
-        "required": ["message", "paymentLink", "pendingTeam"]
-      },
-      "CreateTeamOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/CreateTeamOutputData"
-              },
-              {
-                "$ref": "#/components/schemas/TeamOutputDto"
-              }
-            ],
-            "description": "Either an Output object or a TeamOutputDto."
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetTeamOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/TeamOutputDto"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetTeamsOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TeamOutputDto"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "UpdateTeamOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/TeamOutputDto"
           }
         },
         "required": ["status", "data"]

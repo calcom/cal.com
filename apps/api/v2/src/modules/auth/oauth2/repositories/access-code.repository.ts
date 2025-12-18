@@ -1,8 +1,8 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+import dayjs from "dayjs";
 
-import dayjs from "@calcom/dayjs";
 import type { AccessScope } from "@calcom/prisma/enums";
 
 interface CreateAccessCodeInput {

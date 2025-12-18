@@ -1,6 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OAuth2AuthorizeInput } from "@/modules/auth/oauth2/inputs/authorize.input";
 import { OAuth2ExchangeInput } from "@/modules/auth/oauth2/inputs/exchange.input";
 import { OAuth2RefreshInput } from "@/modules/auth/oauth2/inputs/refresh.input";
@@ -52,7 +53,8 @@ export class OAuth2Controller {
 
   @Post("/authorize")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(NextAuthGuard)
+  @UseGuards(ApiAuthGuard)
+  @ApiAuthGuardOnlyAllow(["NEXT_AUTH"])
   @ApiOperation({
     summary: "Generate authorization code",
     description: "Generates an authorization code for the OAuth2 flow. Requires user authentication.",

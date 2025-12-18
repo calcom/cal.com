@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class OAuth2Repository {
+export class OAuth2ClientRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async findByClientId(clientId: string) {
