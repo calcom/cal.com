@@ -430,6 +430,12 @@ export const EventAdvancedTab = ({
   const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
+
+  // Reset form on mount to clear false dirty state from object/array reference inequality
+  useEffect(() => {
+    formMethods.reset(formMethods.getValues());
+  }, []);
+
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
@@ -773,7 +779,6 @@ export const EventAdvancedTab = ({
         <Controller
           name="interfaceLanguage"
           control={formMethods.control}
-          defaultValue={eventType.interfaceLanguage ?? null}
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
               labelClassName="text-sm"
