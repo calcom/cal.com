@@ -1,7 +1,12 @@
-import type { LucideProps } from "lucide-react";
+import type { LucideIcon, LucideProps } from "lucide-react";
 import * as lucideIcons from "lucide-react";
 
 import cn from "@calcom/ui/classNames";
+
+// Type guard to check if a value is a valid Lucide icon component
+function isLucideIcon(value: unknown): value is LucideIcon {
+  return typeof value === "function";
+}
 
 // All available icon names (kebab-case)
 export type IconName =
@@ -171,10 +176,10 @@ function kebabToPascal(str: string): string {
 }
 
 // Get the lucide-react component for a given icon name
-function getLucideIcon(name: IconName): React.ComponentType<LucideProps> | null {
+function getLucideIcon(name: IconName): LucideIcon | null {
   const pascalName = kebabToPascal(name);
-  const icon = (lucideIcons as Record<string, React.ComponentType<LucideProps>>)[pascalName];
-  return icon || null;
+  const candidate = (lucideIcons as unknown as Record<string, unknown>)[pascalName];
+  return isLucideIcon(candidate) ? candidate : null;
 }
 
 export interface IconProps extends Omit<LucideProps, "ref"> {
