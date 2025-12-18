@@ -39,6 +39,7 @@ import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMee
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import { useTimezoneChangeDetection } from "./components/hooks/useTimezoneChangeDetection";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -141,6 +142,26 @@ const BookerComponent = ({
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
 
+  // Detect timezone changes and refresh slots when conditions are met
+  const eventDataForTimezoneDetection: {
+    restrictionScheduleId?: number | null;
+    useBookerTimezone?: boolean;
+  } | null = event?.data
+    ? {
+        restrictionScheduleId: event.data.restrictionScheduleId,
+        useBookerTimezone: event.data.useBookerTimezone,
+      }
+    : null;
+
+  const { shouldRefreshSlots } = useTimezoneChangeDetection(eventDataForTimezoneDetection);
+
+  // Refresh slots when timezone changes under specific conditions
+  useEffect(() => {
+    if (shouldRefreshSlots) {
+      schedule?.invalidate();
+    }
+  }, [shouldRefreshSlots, schedule]);
+
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
@@ -223,12 +244,12 @@ const BookerComponent = ({
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
-      return !isTimeSlotAvailable({
-        scheduleData: schedule?.data ?? null,
-        slotToCheckInIso: slot,
-        quickAvailabilityChecks: slots.quickAvailabilityChecks,
-      });
-    })
+        return !isTimeSlotAvailable({
+          scheduleData: schedule?.data ?? null,
+          slotToCheckInIso: slot,
+          quickAvailabilityChecks: slots.quickAvailabilityChecks,
+        });
+      })
     : [];
 
   const slot = getQueryParam("slot");
@@ -352,7 +373,7 @@ const BookerComponent = ({
           data-testid="booker-container"
           className={classNames(
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            `bg-default dark:bg-cal-muted grid max-w-full items-start dark:scheme-dark sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
+            `bg-default dark:bg-cal-muted dark:scheme-dark grid max-w-full items-start sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
@@ -407,7 +428,7 @@ const BookerComponent = ({
             <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
               <BookerSection
                 area="meta"
-                className="max-w-screen flex w-full flex-col md:w-(--booker-meta-width)">
+                className="max-w-screen md:w-(--booker-meta-width) flex w-full flex-col">
                 {!hideEventTypeDetails && orgBannerUrl && (
                   <img
                     loading="eager"
@@ -455,7 +476,7 @@ const BookerComponent = ({
             <BookerSection
               key="book-event-form"
               area="main"
-              className="sticky top-0 -ml-px h-full p-6 md:w-(--booker-main-width) md:border-l"
+              className="md:w-(--booker-main-width) sticky top-0 -ml-px h-full p-6 md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
@@ -467,7 +488,7 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle -ml-px h-full shrink px-5 py-3 md:border-l lg:w-(--booker-main-width)">
+              className="md:border-subtle lg:w-(--booker-main-width) -ml-px h-full shrink px-5 py-3 md:border-l">
               <DatePicker
                 classNames={customClassNames?.datePickerCustomClassNames}
                 event={event}
@@ -501,7 +522,7 @@ const BookerComponent = ({
               className={classNames(
                 "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
-                  "h-full overflow-hidden md:w-(--booker-timeslots-width)",
+                  "md:w-(--booker-timeslots-width) h-full overflow-hidden",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
               )}
               ref={timeslotsRef}

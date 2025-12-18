@@ -167,6 +167,8 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
+    restrictionScheduleId: true,
+    useBookerTimezone: true,
     parent: {
       select: {
         team: {
