@@ -1,8 +1,10 @@
 import { OAuth2Repository } from "@/modules/auth/oauth2/oauth2.repository";
 import { AccessCodeRepository } from "@/modules/auth/oauth2/repositories/access-code.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { randomBytes } from "crypto";
+import * as jwt from "jsonwebtoken";
 
 import { generateSecret, verifyCodeChallenge } from "@calcom/platform-libraries";
 import type { AccessScope } from "@calcom/prisma/enums";
@@ -41,7 +43,8 @@ export class OAuth2Service {
   constructor(
     private readonly oauth2Repository: OAuth2Repository,
     private readonly accessCodeRepository: AccessCodeRepository,
-    private readonly teamsRepository: TeamsRepository
+    private readonly teamsRepository: TeamsRepository,
+    private readonly configService: ConfigService
   ) {}
 
   async getClient(clientId: string): Promise<OAuth2Client | null> {
@@ -241,7 +244,7 @@ export class OAuth2Service {
     return randomBytesValue.toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
   }
 
-  private createTokens(_input: {
+  private createTokens(input: {
     clientId: string;
     userId?: number | null;
     teamId?: number | null;
@@ -249,27 +252,60 @@ export class OAuth2Service {
     codeChallenge?: string | null;
     codeChallengeMethod?: string | null;
   }): OAuth2Tokens {
-    // TODO: Implement JWT token generation using jsonwebtoken
-    // This is a skeleton - actual implementation should:
-    // 1. Create access token with 30 minute expiry
-    // 2. Create refresh token with 30 day expiry
-    // 3. Sign tokens with CALENDSO_ENCRYPTION_KEY
+    const secretKey = this.configService.get<string>("CALENDSO_ENCRYPTION_KEY");
+    if (!secretKey) {
+      throw new InternalServerErrorException("CALENDSO_ENCRYPTION_KEY is not set");
+    }
+
+    const accessTokenPayload = {
+      userId: input.userId,
+      teamId: input.teamId,
+      scope: input.scopes,
+      token_type: "Access Token",
+      clientId: input.clientId,
+    };
+
+    const refreshTokenPayload = {
+      userId: input.userId,
+      teamId: input.teamId,
+      scope: input.scopes,
+      token_type: "Refresh Token",
+      clientId: input.clientId,
+      ...(input.codeChallenge && {
+        codeChallenge: input.codeChallenge,
+        codeChallengeMethod: input.codeChallengeMethod,
+      }),
+    };
+
     const accessTokenExpiresIn = 1800; // 30 minutes
 
+    const accessToken = jwt.sign(accessTokenPayload, secretKey, {
+      expiresIn: accessTokenExpiresIn,
+    });
+
+    const refreshToken = jwt.sign(refreshTokenPayload, secretKey, {
+      expiresIn: 30 * 24 * 60 * 60, // 30 days
+    });
+
     return {
-      accessToken: "placeholder_access_token",
+      accessToken,
       tokenType: "bearer",
-      refreshToken: "placeholder_refresh_token",
+      refreshToken,
       expiresIn: accessTokenExpiresIn,
     };
   }
 
-  private verifyRefreshToken(_refreshToken: string): DecodedRefreshToken | null {
-    // TODO: Implement JWT verification using jsonwebtoken
-    // This is a skeleton - actual implementation should:
-    // 1. Verify the refresh token signature
-    // 2. Check expiration
-    // 3. Return decoded payload
-    return null;
+  private verifyRefreshToken(refreshToken: string): DecodedRefreshToken | null {
+    const secretKey = this.configService.get<string>("CALENDSO_ENCRYPTION_KEY");
+    if (!secretKey) {
+      throw new InternalServerErrorException("CALENDSO_ENCRYPTION_KEY is not set");
+    }
+
+    try {
+      const decoded = jwt.verify(refreshToken, secretKey) as DecodedRefreshToken;
+      return decoded;
+    } catch {
+      return null;
+    }
   }
 }
