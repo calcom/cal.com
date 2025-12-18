@@ -309,6 +309,7 @@
   "unconfirmed": "Unconfirmed",
   "guests": "Guests",
   "guest": "Guest",
+  "attendee": "Attendee",
   "web_conferencing_details_to_follow": "Web conferencing details to follow in the confirmation email.",
   "confirmation": "Confirmation",
   "cancellation": "Cancellation",
@@ -4163,5 +4164,11 @@
   "timestamp": "Timestamp",
   "json": "JSON",
   "hubspot_ignore_guests": "Do not create new records for guests added to the booking",
+  "audit_logs_organization_required": "You must be part of an organization to view audit logs.",
+  "audit_logs_booking_not_found_or_permission_denied": "Booking not found or you do not have permission to view its audit logs.",
+  "audit_logs_booking_has_no_owner": "Cannot verify permissions: booking has no associated user.",
+  "audit_logs_owner_not_in_organization": "The booking owner is not a member of your organization.",
+  "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
+  "audit_logs_permission_check_error": "An error occurred while checking permissions.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
