@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { metadata as stripeMetadata } from "@calcom/app-store/stripepayment/_metadata";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
@@ -11,7 +12,7 @@ import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/do
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
-import { makeAppActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeAppActor, makeAppActorUsingSlug } from "@calcom/features/bookings/lib/types/actor";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
@@ -48,10 +49,12 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
     log.error("Stripe: Payment Not Found", safeStringify(paymentIntent), safeStringify(payment));
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }
-  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  const actor = makeAppActor({ appSlug: stripeMetadata.slug, name: stripeMetadata.name });
-  await handlePaymentSuccess({ paymentId: payment.id, bookingId: payment.bookingId, actor });
+  await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: "stripe",
+  });
 }
 
 const handleSetupSuccess = async (event: Stripe.Event) => {
@@ -121,7 +124,18 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!requiresConfirmation) {
-    const actor = makeAppActor({ appSlug: stripeMetadata.slug, name: stripeMetadata.name });
+    // Extract credentialId from metadata
+    const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+    const credentialId = apps?.stripe?.credentialId;
+
+    const actor = credentialId
+      ? makeAppActor({ credentialId })
+      : makeAppActorUsingSlug({ appSlug: stripeMetadata.slug, name: stripeMetadata.name });
+
+    if (!credentialId) {
+      log.warn("Missing Stripe credentialId in event type metadata, using appSlug fallback");
+    }
+
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,

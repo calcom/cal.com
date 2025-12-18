@@ -3,8 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type z from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
-import hitpayConfig from "@calcom/app-store/hitpay/config.json";
-import { makeAppActor } from "@calcom/features/bookings/lib/types/actor";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
@@ -111,8 +109,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (excluded.status !== "completed") {
       throw new HttpCode({ statusCode: 204, message: `Payment is ${excluded.status}` });
     }
-    const actor = makeAppActor({ appSlug: hitpayConfig.slug, name: hitpayConfig.name });
-    return await handlePaymentSuccess({ paymentId: payment.id, bookingId: payment.bookingId, actor });
+    return await handlePaymentSuccess({
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      appSlug: "hitpay",
+    });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);

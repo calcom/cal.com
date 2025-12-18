@@ -3,10 +3,8 @@ import getRawBody from "raw-body";
 import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
-import paypalConfig from "@calcom/app-store/paypal/config.json";
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
-import { makeAppActor } from "@calcom/features/bookings/lib/types/actor";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
@@ -64,8 +62,11 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  const actor = makeAppActor({ appSlug: paypalConfig.slug, name: paypalConfig.name });
-  return await handlePaymentSuccess({ paymentId: payment.id, bookingId: payment.bookingId, actor });
+  return await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: "paypal",
+  });
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

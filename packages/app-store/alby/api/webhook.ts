@@ -3,10 +3,8 @@ import getRawBody from "raw-body";
 import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
-import albyConfig from "@calcom/app-store/alby/config.json";
 import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib";
 import parseInvoice from "@calcom/app-store/alby/lib/parseInvoice";
-import { makeAppActor } from "@calcom/features/bookings/lib/types/actor";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
@@ -90,8 +88,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 400, message: "invoice amount does not match payment amount" });
     }
 
-    const actor = makeAppActor({ appSlug: albyConfig.slug, name: albyConfig.name });
-    return await handlePaymentSuccess({ paymentId: payment.id, bookingId: payment.bookingId, actor });
+    return await handlePaymentSuccess({
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      appSlug: "alby",
+    });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);

@@ -153,7 +153,8 @@ export class RecurringBookingService implements IBookingService {
   constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
 
   async fireEvents({ createdBookings, eventTypeId, rescheduleUid, userUuid, creationSource }: { createdBookings: BookingResponse[], eventTypeId: number, rescheduleUid: string | null, userUuid: string | null, creationSource: CreationSource | undefined }) {
-    type ValidBooking = BookingResponse & { uid: string; startTime: Date; endTime: Date; };
+    type ValidBooking = BookingResponse & { uid: string; startTime: Date; endTime: Date; status: BookingStatus };
+    type ValidRescheduledBooking = ValidBooking & { previousBooking: ValidBooking & { status: BookingStatus } };
 
     const isReschedule = !!rescheduleUid;
     const firstCreatedBooking = createdBookings[0];
