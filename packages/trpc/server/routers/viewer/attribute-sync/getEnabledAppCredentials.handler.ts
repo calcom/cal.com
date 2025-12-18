@@ -24,9 +24,7 @@ const getEnabledAppCredentialsHandler = async ({ ctx }: GetEnabledAppCredentials
 
   const service = getIntegrationAttributeSyncService();
 
-  return await service.getEnabledAppCredentials({
-    organizationId: org.id,
-  });
+  return await service.getEnabledAppCredentials(org.id);
 };
 
 export default getEnabledAppCredentialsHandler;

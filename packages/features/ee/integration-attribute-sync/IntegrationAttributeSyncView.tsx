@@ -36,7 +36,7 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
   const [showNewSync, setShowNewSync] = useState(false);
 
   const { data: integrationAttributeSyncs } = trpc.viewer.attributeSync.getAllAttributeSyncs.useQuery(
-    undefined,
+    {},
     {
       initialData: initalIntegrationAttributeSyncs,
     }

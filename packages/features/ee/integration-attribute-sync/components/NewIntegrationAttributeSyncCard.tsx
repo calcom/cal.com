@@ -26,6 +26,11 @@ const NewIntegrationAttributeSyncCard = (props: INewIntegrationAttributeSyncCard
   });
 
   const onSubmit = (data: ISyncFormData) => {
+    if (!data.credentialId) {
+      showToast(t("credential_required"), "error");
+      return;
+    }
+
     createMutation.mutate({
       name: data.name,
       credentialId: data.credentialId,

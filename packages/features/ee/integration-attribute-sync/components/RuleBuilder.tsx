@@ -1,3 +1,5 @@
+import type { MultiValue, SingleValue } from "react-select";
+
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 import { Button } from "@calcom/ui/components/button";
 import { Input, Select } from "@calcom/ui/components/form";
@@ -130,7 +132,7 @@ const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: Te
   };
 
   const handleTeamsChange = (
-    selected: { value: string; label: string } | { value: string; label: string }[] | null | undefined
+    selected: MultiValue<{ value: string; label: string }> | SingleValue<{ value: string; label: string }>
   ) => {
     if (!selected) {
       onChange({ ...condition, value: [] });
@@ -143,9 +145,10 @@ const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: Te
         value: selected.map((s) => Number(s.value)),
       });
     } else {
+      const singleValue = selected as { value: string; label: string };
       onChange({
         ...condition,
-        value: [Number(selected.value)],
+        value: [Number(singleValue.value)],
       });
     }
   };
@@ -233,7 +236,7 @@ const AttributeConditionFields = ({
   };
 
   const handleValueChange = (
-    selected: { value: string; label: string } | { value: string; label: string }[] | null | undefined
+    selected: MultiValue<{ value: string; label: string }> | SingleValue<{ value: string; label: string }>
   ) => {
     if (!selected) {
       onChange({ ...condition, value: [] });
@@ -246,9 +249,10 @@ const AttributeConditionFields = ({
         value: selected.map((s) => s.value),
       });
     } else {
+      const singleValue = selected as { value: string; label: string };
       onChange({
         ...condition,
-        value: [selected.value],
+        value: [singleValue.value],
       });
     }
   };

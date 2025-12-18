@@ -1,6 +1,6 @@
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 
-import type { ZCreateAttributeSyncSchema } from "../../../trpc/server/routers/viewer/attribute-sync/createAttributeSync.schema";
+import type { ZCreateAttributeSyncSchema } from "@calcom/trpc/server/routers/viewer/attribute-sync/createAttributeSync.schema";
 import { enabledAppSlugs } from "../constants";
 import type { IIntegrationAttributeSyncRepository } from "../repositories/IIntegrationAttributeSyncRepository";
 import { type ISyncFormData, attributeSyncRuleSchema } from "../schemas/zod";
@@ -53,22 +53,25 @@ export class IntegrationAttributeSyncService {
 
   async updateIncludeRulesAndMappings(data: ISyncFormData) {
     const { syncFieldMappings, rule, ruleId, ...integrationAttributeSync } = data;
-    // Get existing mappings to determine what to delete
     const existingFieldMappings = await this.deps.integrationAttributeSyncRepository.getSyncFieldMappings(
       data.id
     );
 
     const parsedRule = attributeSyncRuleSchema.parse(rule);
 
-    // Determine which mappings to delete
-    const existingMappingIds = new Set(existingFieldMappings.map((m) => m.id));
-    const incomingMappingIds = new Set(syncFieldMappings.filter((m) => m.id).map((m) => m.id!));
+    const incomingMappingIds = new Set(
+      syncFieldMappings.reduce((ids, mapping) => {
+        if ("id" in mapping) ids.push(mapping.id);
+        return ids;
+      }, [] as string[])
+    );
 
-    const fieldMappingsToDelete = Array.from(existingMappingIds).filter((id) => !incomingMappingIds.has(id));
+    const fieldMappingsToDelete = existingFieldMappings
+      .filter((mapping) => !incomingMappingIds.has(mapping.id))
+      .map((mapping) => mapping.id);
 
-    // Mappings without IDs are new, mappings with IDs need to be updated
-    const fieldMappingsToCreate = syncFieldMappings.filter((m) => !m.id);
-    const fieldMappingsToUpdate = syncFieldMappings.filter((m) => m.id);
+    const fieldMappingsToCreate = syncFieldMappings.filter((m) => !("id" in m));
+    const fieldMappingsToUpdate = syncFieldMappings.filter((m): m is typeof m & { id: string } => "id" in m);
 
     await this.deps.integrationAttributeSyncRepository.updateTransactionWithRuleAndMappings({
       integrationAttributeSync,

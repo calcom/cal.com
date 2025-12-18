@@ -36,7 +36,7 @@ export const formatConditionValue = (
   if (isArrayOperator(operator)) {
     return Array.isArray(value) ? value : value ? [value] : [];
   } else {
-    return Array.isArray(value) ? (value.length > 0 ? [value[0]] : []) : value ? [value] : [];
+    return Array.isArray(value) ? value.slice(0, 1) : value ? [value] : [];
   }
 };
 
