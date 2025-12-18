@@ -5,10 +5,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { shallow } from "zustand/shallow";
 
-import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
-import { SheetFooterControls } from "@calcom/features/users/components/UserTable/EditSheet/SheetFooterControls";
-import { useEditMode } from "@calcom/features/users/components/UserTable/EditSheet/store";
-import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -20,6 +16,10 @@ import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody } from "@calco
 import { Skeleton, Loader } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { DisplayInfo } from "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo";
+import { SheetFooterControls } from "@calcom/web/modules/users/components/UserTable/EditSheet/SheetFooterControls";
+import { useEditMode } from "@calcom/web/modules/users/components/UserTable/EditSheet/store";
+import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
 
 import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";

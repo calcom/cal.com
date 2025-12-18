@@ -2,9 +2,9 @@ import { render } from "@testing-library/react";
 import React, { type ReactNode } from "react";
 import { vi } from "vitest";
 
-import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { EditMemberSheet } from "@calcom/web/modules/teams/components/EditMemberSheet";
+import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
 
 import type { State, User } from "./MemberList";
 
@@ -71,7 +71,7 @@ vi.mock("@calcom/trpc/react", () => ({
 const mockSetEditMode = vi.fn();
 const mockSetMutationLoading = vi.fn();
 
-vi.mock("@calcom/features/users/components/UserTable/EditSheet/store", () => ({
+vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/store", () => ({
   useEditMode: vi.fn((selector) => {
     const state = {
       editMode: false,
@@ -88,7 +88,7 @@ vi.mock("@calcom/features/users/components/UserTable/EditSheet/store", () => ({
 
 // Mock SheetFooterControls to verify props
 let capturedProps: { canChangeMemberRole?: boolean; canEditAttributesForUser?: boolean }[] = [];
-vi.mock("@calcom/features/users/components/UserTable/EditSheet/SheetFooterControls", () => ({
+vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/SheetFooterControls", () => ({
   SheetFooterControls: (props: { canChangeMemberRole?: boolean; canEditAttributesForUser?: boolean }) => {
     capturedProps.push(props);
     return React.createElement("div", { "data-testid": "sheet-footer-controls" }, "SheetFooterControls");
@@ -124,7 +124,7 @@ vi.mock("@calcom/ui/components/skeleton", () => ({
   Loader: () => React.createElement("div", { "data-testid": "loader" }, "Loading..."),
 }));
 
-vi.mock("@calcom/features/users/components/UserTable/EditSheet/DisplayInfo", () => ({
+vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo", () => ({
   DisplayInfo: () => <div data-testid="display-info">DisplayInfo</div>,
 }));
 

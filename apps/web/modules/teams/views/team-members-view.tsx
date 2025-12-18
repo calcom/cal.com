@@ -3,10 +3,10 @@
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { MemberInvitationModalWithoutMembers } from "@calcom/web/modules/teams/components/MemberInvitationModal";
+import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
 
 import MemberList from "../components/MemberList";
 

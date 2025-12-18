@@ -5,23 +5,23 @@ import {
   OrgUpgradeBanner,
   type OrgUpgradeBannerProps,
 } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
-import AdminPasswordBanner, {
-  type AdminPasswordBannerProps,
-} from "@calcom/features/users/components/AdminPasswordBanner";
-import CalendarCredentialBanner, {
-  type CalendarCredentialBannerProps,
-} from "@calcom/features/users/components/CalendarCredentialBanner";
-import {
-  InvalidAppCredentialBanners,
-  type InvalidAppCredentialBannersProps,
-} from "@calcom/features/users/components/InvalidAppCredentialsBanner";
-import VerifyEmailBanner, {
-  type VerifyEmailBannerProps,
-} from "@calcom/features/users/components/VerifyEmailBanner";
 import {
   TeamsUpgradeBanner,
   type TeamsUpgradeBannerProps,
 } from "@calcom/web/modules/teams/components/TeamsUpgradeBanner";
+import AdminPasswordBanner, {
+  type AdminPasswordBannerProps,
+} from "@calcom/web/modules/users/components/AdminPasswordBanner";
+import CalendarCredentialBanner, {
+  type CalendarCredentialBannerProps,
+} from "@calcom/web/modules/users/components/CalendarCredentialBanner";
+import {
+  InvalidAppCredentialBanners,
+  type InvalidAppCredentialBannersProps,
+} from "@calcom/web/modules/users/components/InvalidAppCredentialsBanner";
+import VerifyEmailBanner, {
+  type VerifyEmailBannerProps,
+} from "@calcom/web/modules/users/components/VerifyEmailBanner";
 
 type BannerTypeProps = {
   teamUpgradeBanner: TeamsUpgradeBannerProps;

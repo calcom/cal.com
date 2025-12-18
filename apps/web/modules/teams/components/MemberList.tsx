@@ -30,8 +30,6 @@ import {
   convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
-import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -60,6 +58,8 @@ import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import TeamAvailabilityModal from "@calcom/web/modules/teams/components/TeamAvailabilityModal";
+import { DynamicLink } from "@calcom/web/modules/users/components/UserTable/BulkActions/DynamicLink";
+import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
