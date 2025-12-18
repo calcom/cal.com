@@ -1277,6 +1277,61 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
+  // Handle per-host custom locations for round-robin events
+  if (
+    eventType.enablePerHostLocations &&
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    organizerUser
+  ) {
+    const organizerHost = eventType.hosts.find((host) => host.user.id === organizerUser.id);
+    if (organizerHost?.location) {
+      const hostLocation = organizerHost.location;
+      // Check if the host has a valid credential for the location type
+      if (hostLocation.credentialId) {
+        // Use host's configured location with their credential
+        locationBodyString = hostLocation.type;
+        tracingLogger.info("Using per-host location", {
+          userId: organizerUser.id,
+          locationType: hostLocation.type,
+          credentialId: hostLocation.credentialId,
+        });
+      } else if (hostLocation.type === "integrations:daily") {
+        // Cal Video doesn't need a credential
+        locationBodyString = hostLocation.type;
+        tracingLogger.info("Using per-host Cal Video location", {
+          userId: organizerUser.id,
+        });
+      } else if (hostLocation.link) {
+        // Static link type
+        locationBodyString = hostLocation.type;
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl = hostLocation.link;
+        tracingLogger.info("Using per-host link location", {
+          userId: organizerUser.id,
+          link: hostLocation.link,
+        });
+      } else if (
+        hostLocation.type === "inPerson" ||
+        hostLocation.type === "attendeeInPerson" ||
+        hostLocation.type === "phone" ||
+        hostLocation.type === "userPhone"
+      ) {
+        // Static location types that don't need credentials
+        locationBodyString = hostLocation.type;
+        tracingLogger.info("Using per-host static location", {
+          userId: organizerUser.id,
+          locationType: hostLocation.type,
+        });
+      } else {
+        // Host has a conferencing app location but no credential installed yet - fallback to Cal Video
+        locationBodyString = "integrations:daily";
+        tracingLogger.info("Host location configured but credential not found, falling back to Cal Video", {
+          userId: organizerUser.id,
+          requestedLocationType: hostLocation.type,
+        });
+      }
+    }
+  }
+
   // If location passed is empty , use default location of event
   // If location of event is not set , use host default
   if (locationBodyString.trim().length == 0) {

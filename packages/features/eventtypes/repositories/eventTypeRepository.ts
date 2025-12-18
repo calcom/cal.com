@@ -697,6 +697,16 @@ export class EventTypeRepository {
           weight: true,
           scheduleId: true,
           groupId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
           user: {
             select: {
               timeZone: true,
@@ -704,6 +714,7 @@ export class EventTypeRepository {
           },
         },
       },
+      enablePerHostLocations: true,
       userId: true,
       price: true,
       children: {
@@ -997,6 +1008,16 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
           user: {
             select: {
               timeZone: true,
@@ -1004,6 +1025,7 @@ export class EventTypeRepository {
           },
         },
       },
+      enablePerHostLocations: true,
       userId: true,
       price: true,
       children: {

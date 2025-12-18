@@ -49,6 +49,17 @@ const calVideoSettingsSchema = z
   .optional()
   .nullable();
 
+const hostLocationSchema = z.object({
+  id: z.number().optional(),
+  userId: z.number(),
+  eventTypeId: z.number(),
+  type: z.string(),
+  credentialId: z.number().optional().nullable(),
+  link: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  phoneNumber: z.string().optional().nullable(),
+});
+
 const hostSchema = z.object({
   userId: z.number(),
   profileId: z.number().or(z.null()).optional(),
@@ -57,6 +68,7 @@ const hostSchema = z.object({
   weight: z.number().min(0).optional().nullable(),
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
+  location: hostLocationSchema.optional().nullable(),
 });
 
 const hostGroupSchema = z.object({
@@ -104,6 +116,7 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   useEventLevelSelectedCalendars: z.boolean().optional(),
   seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
   hostGroups: z.array(hostGroupSchema).optional(),
+  enablePerHostLocations: z.boolean().optional(),
 })
   .partial()
   .extend(EventTypeSchema.pick({ id: true }).shape);

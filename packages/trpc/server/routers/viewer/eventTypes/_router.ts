@@ -10,6 +10,7 @@ import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
+import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
 import { get } from "./procedures/get";
 import { createEventPbacProcedure } from "./util";
 
@@ -145,4 +146,15 @@ export const eventTypesRouter = router({
       input,
     });
   }),
+
+  getHostsWithLocationOptions: authedProcedure
+    .input(ZGetHostsWithLocationOptionsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getHostsWithLocationOptionsHandler } = await import("./getHostsWithLocationOptions.handler");
+
+      return getHostsWithLocationOptionsHandler({
+        ctx,
+        input,
+      });
+    }),
 });
