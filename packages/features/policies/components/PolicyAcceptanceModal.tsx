@@ -6,10 +6,9 @@ import { useGeo } from "@calcom/web/app/GeoContext";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { PolicyType } from "@calcom/prisma/enums";
-
 
 const POLICY_CONFIG: Record<
   PolicyType,
@@ -72,52 +71,36 @@ export function PolicyAcceptanceModal() {
 
   const handleClose = () => {
     if (isUS) {
-      // For US users, dismissal = acceptance
       handleAccept();
     }
-    // For non-US users, do nothing - must accept explicitly
   };
 
   if (!isUS) {
     return (
-      <Dialog open={true} onOpenChange={() => { }}>
+      <Dialog open={true} onOpenChange={() => {}}>
         <DialogContent
           data-testid="policy-acceptance-modal"
-          className="p-0!"
+          title={t(policyConfig.titleKey)}
+          description={description}
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}>
-          <div>
-            <div className="flex flex-col gap-1 p-6 mb-6">
-              <div
-                data-testid="policy-modal-title"
-                className="text-emphasis text-xl leading-6 font-semibold">
-                {t(policyConfig.titleKey)}
-              </div>
-              <p
-                data-testid="policy-modal-description"
-                className="text-subtle text-sm font-normal leading-4 wrap-break-word">
-                {description}
-              </p>
-            </div>
-
-            <div className="w-full bg-muted border-subtle flex items-center justify-end gap-2 rounded-b-2xl border-t px-6 py-5">
-              <Button
-                data-testid="policy-learn-more-button"
-                color="minimal"
-                href={policyConfig.learnMoreUrl}
-                disabled={acceptMutation.isPending}>
-                {t("learn_more")}
-              </Button>
-              <Button
-                data-testid="policy-accept-button"
-                type="button"
-                loading={acceptMutation.isPending}
-                disabled={acceptMutation.isPending}
-                onClick={handleAccept}>
-                {t("accept")}
-              </Button>
-            </div>
-          </div>
+          <DialogFooter>
+            <Button
+              data-testid="policy-learn-more-button"
+              color="minimal"
+              href={policyConfig.learnMoreUrl}
+              disabled={acceptMutation.isPending}>
+              {t("learn_more")}
+            </Button>
+            <Button
+              data-testid="policy-accept-button"
+              type="button"
+              loading={acceptMutation.isPending}
+              disabled={acceptMutation.isPending}
+              onClick={handleAccept}>
+              {t("accept")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     );
@@ -142,7 +125,8 @@ export function PolicyAcceptanceModal() {
               disabled={acceptMutation.isPending}
               color="minimal"
               StartIcon="x"
-              className="text-muted hover:text-emphasis -mt-1 shrink-0" />
+              className="text-muted hover:text-emphasis -mt-1 shrink-0"
+            />
           </div>
 
           <div>

@@ -9,7 +9,8 @@ import { PolicyType } from "@calcom/prisma/enums";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Form, TextAreaField } from "@calcom/ui/components/form";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Form, TextAreaField, SelectField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 const createPolicySchema = z.object({
@@ -19,6 +20,8 @@ const createPolicySchema = z.object({
 });
 
 type CreatePolicyFormValues = z.infer<typeof createPolicySchema>;
+
+const POLICY_TYPE_OPTIONS = [{ label: "Privacy Policy", value: PolicyType.PRIVACY_POLICY }];
 
 export function CreatePolicyVersionForm() {
   const { t } = useLocale();
@@ -43,7 +46,6 @@ export function CreatePolicyVersionForm() {
         descriptionNonUS: "",
       });
       setIsOpen(false);
-      // Invalidate both the admin list and the /me query so users see the modal immediately
       utils.viewer.admin.policy.list.invalidate();
       utils.viewer.me.get.invalidate();
     },
@@ -60,8 +62,15 @@ export function CreatePolicyVersionForm() {
     });
   };
 
-  if (!isOpen) {
-    return (
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      form.reset();
+    }
+  };
+
+  return (
+    <>
       <div className="border-subtle rounded-md border p-4">
         <div className="flex items-center justify-between">
           <div>
@@ -71,55 +80,50 @@ export function CreatePolicyVersionForm() {
           <Button onClick={() => setIsOpen(true)}>{t("create_policy_version")}</Button>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="border-subtle rounded-md border p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-emphasis text-lg font-semibold">{t("create_new_policy_version")}</h3>
-        <Button color="minimal" onClick={() => setIsOpen(false)}>
-          {t("cancel")}
-        </Button>
-      </div>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent
+          title={t("create_new_policy_version")}
+          description={t("create_new_policy_version_description")}>
+          <Form form={form} handleSubmit={onSubmit}>
+            <div className="space-y-4">
+              <SelectField
+                label={t("policy_type")}
+                options={POLICY_TYPE_OPTIONS}
+                value={POLICY_TYPE_OPTIONS.find((opt) => opt.value === form.watch("type"))}
+                onChange={(option) => {
+                  if (option) {
+                    form.setValue("type", option.value);
+                  }
+                }}
+              />
 
-      <Form form={form} handleSubmit={onSubmit}>
-        <div className="space-y-4">
-          <div>
-            <label className="text-default mb-2 block text-sm font-medium">{t("policy_type")}</label>
-            <select
-              {...form.register("type")}
-              className="border-default bg-default text-emphasis focus:border-emphasis focus:ring-emphasis block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2">
-              <option value={PolicyType.PRIVACY_POLICY}>{t("privacy_policy")}</option>
-            </select>
-          </div>
+              <TextAreaField
+                label={t("description_us")}
+                placeholder={t("policy_description_us_placeholder")}
+                {...form.register("description")}
+                rows={3}
+                required
+              />
 
-          <TextAreaField
-            label={t("description_us")}
-            placeholder={t("policy_description_us_placeholder")}
-            {...form.register("description")}
-            rows={3}
-            required
-          />
+              <TextAreaField
+                label={t("description_non_us")}
+                placeholder={t("policy_description_non_us_placeholder")}
+                {...form.register("descriptionNonUS")}
+                rows={3}
+                required
+              />
+            </div>
 
-          <TextAreaField
-            label={t("description_non_us")}
-            placeholder={t("policy_description_non_us_placeholder")}
-            {...form.register("descriptionNonUS")}
-            rows={3}
-            required
-          />
-
-          <div className="flex justify-end space-x-2">
-            <Button color="secondary" onClick={() => setIsOpen(false)}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" loading={createMutation.isPending}>
-              {t("create_policy_version")}
-            </Button>
-          </div>
-        </div>
-      </Form>
-    </div>
+            <DialogFooter>
+              <DialogClose />
+              <Button type="submit" loading={createMutation.isPending}>
+                {t("create_policy_version")}
+              </Button>
+            </DialogFooter>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
