@@ -20,7 +20,7 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiExcludeController, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -28,6 +28,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   path: "/v2/auth/oauth2/clients/:clientId",
   version: API_VERSIONS_VALUES,
 })
+@ApiExcludeController(true)
 @ApiTags("Auth / OAuth2")
 export class OAuth2Controller {
   constructor(private readonly oauth2Service: OAuth2Service) {}
