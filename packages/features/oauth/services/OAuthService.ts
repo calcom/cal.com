@@ -1,11 +1,11 @@
-import { randomBytes } from "crypto";
+import { randomBytes, createHash } from "crypto";
 import * as jwt from "jsonwebtoken";
 
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { HttpError } from "@calcom/lib/http-error";
-import { generateSecret, verifyCodeChallenge } from "@calcom/platform-libraries";
+import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import type { AccessScope } from "@calcom/prisma/enums";
 
 export interface OAuth2Client {
@@ -41,6 +41,11 @@ interface DecodedRefreshToken {
   codeChallenge?: string | null;
   codeChallengeMethod?: string | null;
 }
+
+const hashSecretKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
+
+// Generate a random secret
+export const generateSecret = (secret = randomBytes(32).toString("hex")) => [hashSecretKey(secret), secret];
 
 export class OAuthService {
   private readonly accessCodeRepository: AccessCodeRepository;
