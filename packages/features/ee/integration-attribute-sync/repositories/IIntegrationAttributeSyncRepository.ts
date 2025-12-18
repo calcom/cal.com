@@ -27,10 +27,21 @@ export interface AttributeSyncFieldMapping {
   enabled: boolean;
 }
 
+export interface IIntegrationAttributeSyncCreateParams {
+  name: string;
+  organizationId: number;
+  integration: string;
+  credentialId: number;
+  enabled: boolean;
+  rule: IAttributeSyncRule;
+  syncFieldMappings: Omit<AttributeSyncFieldMapping, "id">[];
+}
+
 export interface IIntegrationAttributeSyncRepository {
   getByOrganizationId(organizationId: number): IntegrationAttributeSync[];
   getById(id: string): IntegrationAttributeSync;
   getSyncFieldMappings(integrationAttributeSyncId: string): Promise<AttributeSyncFieldMapping[]>;
+  create(params: IIntegrationAttributeSyncCreateParams): Promise<IntegrationAttributeSync>;
   updateTransactionWithRuleAndMappings(
     params: IIntegrationAttributeSyncUpdateParams
   ): Promise<IntegrationAttributeSync>;

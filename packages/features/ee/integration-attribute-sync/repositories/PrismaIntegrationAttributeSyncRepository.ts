@@ -2,6 +2,7 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import { AttributeSyncUserRuleOutputMapper } from "../mappers/AttributeSyncUserRuleOutputMapper";
 import type {
+  IIntegrationAttributeSyncCreateParams,
   IIntegrationAttributeSyncRepository,
   IIntegrationAttributeSyncUpdateParams,
 } from "./IIntegrationAttributeSyncRepository";
@@ -80,6 +81,49 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
     });
 
     return result?.syncFieldMappings || [];
+  }
+
+  async create(params: IIntegrationAttributeSyncCreateParams) {
+    const { name, organizationId, integration, credentialId, enabled, rule, syncFieldMappings } = params;
+
+    const created = await this.prismaClient.integrationAttributeSync.create({
+      data: {
+        name,
+        organizationId,
+        integration,
+        credentialId,
+        enabled,
+        attributeSyncRule: {
+          create: {
+            rule,
+          },
+        },
+        syncFieldMappings: {
+          create: syncFieldMappings.map((mapping) => ({
+            integrationFieldName: mapping.integrationFieldName,
+            attributeId: mapping.attributeId,
+            enabled: mapping.enabled,
+          })),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        organizationId: true,
+        integration: true,
+        credentialId: true,
+        enabled: true,
+        attributeSyncRule: true,
+        syncFieldMappings: true,
+      },
+    });
+
+    return {
+      ...created,
+      attributeSyncRules: created.attributeSyncRule
+        ? [AttributeSyncUserRuleOutputMapper.toDomain(created.attributeSyncRule)]
+        : [],
+    };
   }
 
   async updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams) {

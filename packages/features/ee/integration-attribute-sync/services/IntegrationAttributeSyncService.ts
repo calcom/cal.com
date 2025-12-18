@@ -1,5 +1,6 @@
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 
+import type { ZCreateAttributeSyncSchema } from "../../../trpc/server/routers/viewer/attribute-sync/createAttributeSync.schema";
 import { enabledAppSlugs } from "../constants";
 import type { IIntegrationAttributeSyncRepository } from "../repositories/IIntegrationAttributeSyncRepository";
 import { type ISyncFormData, attributeSyncRuleSchema } from "../schemas/zod";
@@ -25,6 +26,29 @@ export class IntegrationAttributeSyncService {
 
   async getById(id: string) {
     return this.deps.integrationAttributeSyncRepository.getById(id);
+  }
+
+  async createAttributeSync(input: ZCreateAttributeSyncSchema, organizationId: number) {
+    const credential = await this.deps.credentialRepository.findByIdAndTeamId({
+      id: input.credentialId,
+      teamId: organizationId,
+    });
+
+    if (!credential) {
+      throw new Error("Credential not found");
+    }
+
+    const parsedRule = attributeSyncRuleSchema.parse(input.rule);
+
+    return this.deps.integrationAttributeSyncRepository.create({
+      name: input.name,
+      organizationId,
+      integration: credential.app?.slug || credential.type,
+      credentialId: input.credentialId,
+      enabled: input.enabled,
+      rule: parsedRule,
+      syncFieldMappings: input.syncFieldMappings,
+    });
   }
 
   async updateIncludeRulesAndMappings(data: ISyncFormData) {

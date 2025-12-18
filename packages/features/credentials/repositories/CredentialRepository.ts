@@ -305,4 +305,20 @@ export class CredentialRepository {
       select: { ...safeCredentialSelect, team: { select: { name: true } } },
     });
   }
+
+  async findByIdAndTeamId({ id, teamId }: { id: number; teamId: number }) {
+    return prisma.credential.findFirst({
+      where: {
+        id,
+        teamId,
+      },
+      include: {
+        app: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+    });
+  }
 }

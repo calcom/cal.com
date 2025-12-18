@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { getIntegrationAttributeSyncService } from "@calcom/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 
 import { TRPCError } from "@trpc/server";
 
@@ -22,56 +22,19 @@ const createAttributeSyncHandler = async ({ ctx, input }: CreateAttributeSyncOpt
     });
   }
 
-  // 1. Get credential to determine integration type
-  const credential = await prisma.credential.findFirst({
-    where: {
-      id: input.credentialId,
-      teamId: org.id,
-    },
-    include: {
-      app: {
-        select: {
-          slug: true,
-        },
-      },
-    },
-  });
+  const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
-  if (!credential) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Credential not found",
-    });
+  try {
+    return await integrationAttributeSyncService.createAttributeSync(input, org.id);
+  } catch (error) {
+    if (error instanceof Error && error.message === "Credential not found") {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Credential not found",
+      });
+    }
+    throw error;
   }
-
-  // 2. Create IntegrationAttributeSync with nested AttributeSyncRule and FieldMappings
-  const attributeSync = await prisma.integrationAttributeSync.create({
-    data: {
-      name: input.name,
-      organizationId: org.id,
-      integration: credential.app?.slug || credential.type,
-      credentialId: input.credentialId,
-      enabled: input.enabled,
-      attributeSyncRule: {
-        create: {
-          rule: input.rule, // Store as JSON
-        },
-      },
-      syncFieldMappings: {
-        create: input.syncFieldMappings.map((mapping) => ({
-          integrationFieldName: mapping.integrationFieldName,
-          attributeId: mapping.attributeId,
-          enabled: mapping.enabled,
-        })),
-      },
-    },
-    include: {
-      attributeSyncRule: true,
-      syncFieldMappings: true,
-    },
-  });
-
-  return attributeSync;
 };
 
 export default createAttributeSyncHandler;
