@@ -73,8 +73,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new InvalidMetadataError();
   }
 
-  const metadata = parseTeams.success ? parseTeams.data : undefined;
-
+  const metadata = parseTeams.data;
   if (!metadata?.requestedSlug && !organization?.slug) {
     throw new NoOrganizationSlugError();
   }
