@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZRoutingFormOrderInputSchema = z.object({
+export type TRoutingFormOrderInputSchema = {
+  ids: string[];
+};
+
+export const ZRoutingFormOrderInputSchema: z.ZodType<TRoutingFormOrderInputSchema> = z.object({
   ids: z.array(z.string()),
 });
-
-export type TRoutingFormOrderInputSchema = z.infer<typeof ZRoutingFormOrderInputSchema>;

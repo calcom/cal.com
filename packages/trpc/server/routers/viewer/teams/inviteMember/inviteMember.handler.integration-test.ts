@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { prisma } from "@calcom/prisma";
-import type { Team, User, Membership, Profile } from "@calcom/prisma/client";
+import type { Prisma, Team, User, Membership, Profile } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -29,8 +29,6 @@ async function verifyMembershipExists(userId: number, teamId: number): Promise<M
     },
   });
 }
-
-
 
 // Test data creation helpers with unique identifiers
 function generateUniqueId() {
@@ -67,7 +65,7 @@ async function createTestTeam(data: {
   slug: string;
   isOrganization?: boolean;
   parentId?: number;
-  metadata?: Record<string, unknown>;
+  metadata?: Prisma.TeamCreateInput["metadata"];
   organizationSettings?: {
     orgAutoAcceptEmail: string;
     isOrganizationVerified?: boolean;
@@ -120,7 +118,7 @@ vi.mock("node-fetch", () => ({
 }));
 
 // Mock email sending
-vi.mock("@calcom/emails", () => ({
+vi.mock("@calcom/emails/organization-email-service", () => ({
   sendTeamInviteEmail: vi.fn(() => Promise.resolve()),
   sendOrganizationAutoJoinEmail: vi.fn(() => Promise.resolve()),
 }));
@@ -401,10 +399,7 @@ describe("inviteMember.handler Integration Tests", () => {
         ],
       });
 
-      await verifyMembershipExists(
-        unverifiedUserWithUnacceptedMembership.id,
-        organization.id
-      );
+      await verifyMembershipExists(unverifiedUserWithUnacceptedMembership.id, organization.id);
       const profile = await verifyProfileExists(unverifiedUserWithUnacceptedMembership.id, organization.id);
 
       expect(profile?.userId).toBe(unverifiedUserWithUnacceptedMembership.id);
@@ -503,7 +498,7 @@ describe("inviteMember.handler Integration Tests", () => {
         where: { email: newUserEmail },
       });
       expect(createdUser).toBeTruthy();
-      
+
       if (createdUser) {
         trackUser(createdUser);
 

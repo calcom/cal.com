@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Cal.com Companion",
+  "version": "1.7.0",
+  "description": "Your calendar companion for quick booking and scheduling",
+  "permissions": ["activeTab", "https://companion.cal.com/*", "identity"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' https://companion.cal.com;"
+  },
+  "data_collection_permissions": {
+    "libraries": [
+      {
+        "name": "cal.com",
+        "url": "https://cal.com/privacy",
+        "purpose": "Booking and scheduling"
+      }
+    ]
+  },
+  "action": {
+    "default_title": "Cal.com Companion"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-scripts/content.js"]
+    }
+  ]
+}

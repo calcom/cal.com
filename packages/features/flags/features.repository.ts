@@ -143,6 +143,40 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Checks if a specific user has access to a feature, ignoring hierarchical (parent) teams.
+   * Only checks direct user assignments and direct team memberships — does not traverse parents.
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user has direct or same-level team access to the feature
+   * @throws Error if the feature access check fails
+   */
+  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string) {
+    try {
+      // Prismock limitation: findUnique may fail, use findFirst instead
+      const userHasFeature = await this.prismaClient.userFeatures.findFirst({
+        select: {
+          userId: true,
+        },
+        where: {
+          userId,
+          featureId: slug,
+        },
+      });
+      if (userHasFeature) return true;
+
+      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeatureNonHierarchical(
+        userId,
+        slug
+      );
+
+      return userBelongsToTeamWithFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
    * Private helper method to check if a user belongs to any team that has access to a feature.
    * @param userId - The ID of the user to check
    * @param slug - The feature identifier to check
@@ -179,6 +213,40 @@ export class FeaturesRepository implements IFeaturesRepository {
         SELECT 1
         FROM TeamHierarchy
         WHERE has_feature = true
+        LIMIT 1;
+      `;
+
+      const result = await this.prismaClient.$queryRaw<unknown[]>(query);
+      return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a user belongs to any direct team that has access to a feature.
+   * This version ignores parent/child team relationships — no recursion or hierarchy traversal.
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user belongs to a team with the feature (direct only)
+   * @throws Error if the query fails
+   * @private
+   */
+  private async checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string) {
+    try {
+      const query = Prisma.sql`
+        SELECT 1
+        FROM "Team" t
+        INNER JOIN "Membership" m ON m."teamId" = t.id
+        WHERE m."userId" = ${userId}
+          AND m.accepted = true
+          AND EXISTS (
+            SELECT 1
+            FROM "TeamFeatures" tf
+            WHERE tf."teamId" = t.id
+              AND tf."featureId" = ${slug}
+          )
         LIMIT 1;
       `;
 
@@ -280,6 +348,25 @@ export class FeaturesRepository implements IFeaturesRepository {
         `Recursive feature check failed for team ${teamId}, feature ${featureId}:`,
         err instanceof Error ? err.message : err
       );
+      throw err;
+    }
+  }
+
+  async getTeamsWithFeatureEnabled(slug: keyof AppFlags): Promise<number[]> {
+    try {
+      // If globally disabled, treat as effectively disabled everywhere
+      const isGloballyEnabled = await this.checkIfFeatureIsEnabledGlobally(slug);
+      if (!isGloballyEnabled) return [];
+
+      const rows = await this.prismaClient.teamFeatures.findMany({
+        where: { featureId: slug },
+        select: { teamId: true },
+        orderBy: { teamId: "asc" },
+      });
+
+      return rows.map((r) => r.teamId);
+    } catch (err) {
+      captureException(err);
       throw err;
     }
   }

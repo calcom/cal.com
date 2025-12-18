@@ -1,12 +1,14 @@
 import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { v4 as uuidv4 } from "uuid";
 
+import { PrismaApiKeyRepository } from "@calcom/features/ee/api-keys/repositories/PrismaApiKeyRepository";
 import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
+import prisma from "@calcom/prisma";
 
 import type {
   AIPhoneServiceUpdateModelParams,
@@ -37,7 +39,7 @@ export class AgentService {
       userId,
       teamId,
       expiresAt: null,
-      note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
+      note: `Cal.ai Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
     });
   }
 
@@ -623,6 +625,8 @@ export class AgentService {
     generalTools,
     voiceId,
     language,
+    outboundEventTypeId,
+    timeZone,
     updateLLMConfiguration,
   }: {
     id: string;
@@ -634,6 +638,8 @@ export class AgentService {
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
     language?: Language;
+    outboundEventTypeId?: number;
+    timeZone?: string;
     updateLLMConfiguration: (
       llmId: string,
       data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
@@ -710,6 +716,41 @@ export class AgentService {
           message: "Unable to update agent configuration. Please try again.",
         });
       }
+    }
+
+    if (outboundEventTypeId && agent.outboundEventTypeId !== outboundEventTypeId) {
+      const eventTypeRepository = new EventTypeRepository(prisma);
+
+      const outBoundEventType = await eventTypeRepository.findByIdMinimal({
+        id: outboundEventTypeId,
+      });
+
+      if (!outBoundEventType) {
+        throw new HttpError({
+          statusCode: 404,
+          message: "Event type not found.",
+        });
+      }
+
+      if (userId !== outBoundEventType.userId && teamId !== outBoundEventType.teamId) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "You don't have permission to use this event type.",
+        });
+      }
+
+      const userTimeZone = timeZone || "UTC";
+      await this.updateToolsFromAgentId(agent.providerAgentId, {
+        eventTypeId: outboundEventTypeId,
+        timeZone: userTimeZone,
+        userId,
+        teamId,
+      });
+
+      await this.deps.agentRepository.updateOutboundEventTypeId({
+        agentId: id,
+        eventTypeId: outboundEventTypeId,
+      });
     }
 
     return { message: "Agent updated successfully" };

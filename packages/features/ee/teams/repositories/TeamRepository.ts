@@ -1,8 +1,8 @@
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import logger from "@calcom/lib/logger";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -308,9 +308,16 @@ export class TeamRepository {
             slug: true,
             logoUrl: true,
             isOrganization: true,
-            metadata: true,
             inviteTokens: true,
-            parent: true,
+            parent: {
+              select: {
+                id: true,
+                slug: true,
+                logoUrl: true,
+                name: true,
+                isOrganization: true,
+              },
+            },
             parentId: true,
           },
         },
@@ -323,14 +330,48 @@ export class TeamRepository {
         if (includeOrgs) return true;
         return !mmship.team.isOrganization;
       })
-      .map(({ team: { inviteTokens, ...team }, ...membership }) => ({
-        role: membership.role,
-        accepted: membership.accepted,
-        ...team,
-        metadata: teamMetadataSchema.parse(team.metadata),
-        /** To prevent breaking we only return non-email attached token here, if we have one */
-        inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
-      }));
+      .map(({ team: { inviteTokens, ...team }, ...membership }) => {
+        // Only return inviteToken if user is OWNER or ADMIN
+        const inviteToken =
+          membership.role === "OWNER" || membership.role === "ADMIN"
+            ? inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`)
+            : null;
+
+        return {
+          role: membership.role,
+          accepted: membership.accepted,
+          ...team,
+          /** To prevent breaking we only return non-email attached token here, if we have one */
+          inviteToken,
+        };
+      });
+  }
+
+  /**
+   * Get teams where the user is an OWNER or ADMIN (excludes organizations)
+   */
+  async findOwnedTeamsByUserId({ userId }: { userId: number }) {
+    const memberships = await this.prismaClient.membership.findMany({
+      where: {
+        userId: userId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        },
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isOrganization: true,
+          },
+        },
+      },
+    });
+
+    return memberships.filter((mmship) => !mmship.team.isOrganization).map((mmship) => mmship.team);
   }
 
   async findTeamWithOrganizationSettings(teamId: number) {
@@ -387,26 +428,6 @@ export class TeamRepository {
       },
       select: {
         slug: true,
-      },
-    });
-  }
-
-  async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
-    return await this.prismaClient.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      select: {
-        id: true,
-        metadata: true,
-        members: {
-          where: {
-            userId,
-            role: {
-              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-            },
-          },
-        },
       },
     });
   }
@@ -473,6 +494,26 @@ export class TeamRepository {
     return !conflictingTeam;
   }
 
+  async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        metadata: true,
+        members: {
+          where: {
+            userId,
+            role: {
+              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            },
+          },
+        },
+      },
+    });
+  }
+
   async findOrgTeamsExcludingTeam({ parentId, excludeTeamId }: { parentId: number; excludeTeamId: number }) {
     return await this.prismaClient.team.findMany({
       where: {
@@ -482,6 +523,80 @@ export class TeamRepository {
         },
       },
       select: { id: true },
+    });
+  }
+
+  async findTeamsForCreditCheck({ teamIds }: { teamIds: number[] }) {
+    return await this.prismaClient.team.findMany({
+      where: { id: { in: teamIds } },
+      select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
+    });
+  }
+
+  async findTeamMembersWithPermission({
+    teamId,
+    permission,
+    fallbackRoles,
+  }: {
+    teamId: number;
+    permission: string;
+    fallbackRoles: MembershipRole[];
+  }) {
+    const { resource, action } = this.parsePermission(permission);
+
+    type UserResult = {
+      id: number;
+      name: string | null;
+      email: string;
+      locale: string | null;
+    };
+
+    const users = await this.prismaClient.$queryRaw<UserResult[]>`
+      SELECT DISTINCT u.id, u.name, u.email, u.locale
+      FROM "Membership" m
+      INNER JOIN "User" u ON m."userId" = u.id
+      LEFT JOIN "Role" r ON m."customRoleId" = r.id
+      LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac'
+      WHERE m."teamId" = ${teamId}
+        AND m."accepted" = true
+        AND (
+          -- Scenario 1: PBAC enabled + custom role with permission
+          (f."teamId" IS NOT NULL
+           AND m."customRoleId" IS NOT NULL
+           AND EXISTS (
+             SELECT 1 FROM "RolePermission" rp
+             WHERE rp."roleId" = r.id
+               AND (
+                 (rp."resource" = '*' AND rp."action" = '*') OR
+                 (rp."resource" = ${resource} AND rp."action" = ${action}) OR
+                 (rp."resource" = ${resource} AND rp."action" = '*') OR
+                 (rp."resource" = '*' AND rp."action" = ${action})
+               )
+           ))
+          OR
+          -- Scenario 2 & 3: Legacy role ADMIN/OWNER (works for both PBAC and non-PBAC teams)
+          (m."role"::text = ANY(${fallbackRoles}))
+        )
+    `;
+
+    return users;
+  }
+
+  private parsePermission(permission: string): { resource: string; action: string } {
+    const lastDotIndex = permission.lastIndexOf(".");
+    const resource = permission.substring(0, lastDotIndex);
+    const action = permission.substring(lastDotIndex + 1);
+    return { resource, action };
+  }
+
+  async findTeamsNotBelongingToOrgByIds({ teamIds, orgId }: { teamIds: number[]; orgId: number }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        id: { in: teamIds },
+        NOT: {
+          parentId: orgId, // Finds any team whose orgId is NOT the target ID
+        },
+      },
     });
   }
 }

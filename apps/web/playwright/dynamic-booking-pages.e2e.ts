@@ -10,6 +10,7 @@ import {
   doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
+  cancelBookingFromBookingsList,
 } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -57,18 +58,11 @@ test("dynamic booking", async ({ page, users }) => {
 
   await test.step("Can cancel the recently created booking", async () => {
     await page.goto("/bookings/upcoming");
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-    // Click the cancel option in the dropdown
-    await page.locator('[data-testid="cancel"]').click();
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
+    await cancelBookingFromBookingsList({
+      page,
+      nth: 0,
+      reason: "Test reason",
     });
-    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
-    await page.locator('[data-testid="confirm_cancel"]').click();
-
-    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
-    await expect(cancelledHeadline).toBeVisible();
   });
 });
 
@@ -118,6 +112,10 @@ test("multiple duration selection updates event length correctly", async ({ page
 
   await page.goto(`/${user.username}/multiple-duration`);
 
+  await page.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
+
   await page.locator('[data-testid="multiple-choice-30mins"]').waitFor({ state: "visible" });
 
   await test.step("verify default 30min duration is selected", async () => {
@@ -128,6 +126,7 @@ test("multiple duration selection updates event length correctly", async ({ page
 
   await test.step("book with 90min duration and verify title", async () => {
     await page.getByTestId("multiple-choice-90mins").click();
+    await page.locator('[data-testid="time"]').nth(0).waitFor({ state: "visible" });
 
     const duration90 = page.getByTestId("multiple-choice-90mins");
     const activeState = await duration90.getAttribute("data-active");
@@ -193,9 +192,9 @@ test.describe("Organization:", () => {
         });
         await expect(page.getByTestId("success-page")).toBeVisible();
         // All the teammates should be in the booking
-         
+
         await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
-         
+
         await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
       }
     );

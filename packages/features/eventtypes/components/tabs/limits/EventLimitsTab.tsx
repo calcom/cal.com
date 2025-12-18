@@ -136,7 +136,7 @@ function RangeLimitRadioItem({
           <RadioGroup.Item
             id={radioValue}
             value={radioValue}
-            className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+            className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
             <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
           </RadioGroup.Item>
         )}
@@ -145,7 +145,7 @@ function RangeLimitRadioItem({
       <div>
         <div
           className={classNames(
-            "me-2 ms-0 mt-2 w-full sm:ms-2 sm:mt-0 sm:w-auto",
+            "ml-0 mr-2 mt-2 w-full sm:ml-2 sm:mt-0 sm:w-auto",
             customClassNames?.datePickerWraper
           )}>
           <Controller
@@ -214,7 +214,7 @@ function RollingLimitRadioItem({
         <RadioGroup.Item
           id={radioValue}
           value={radioValue}
-          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+          className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
           <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
         </RadioGroup.Item>
       )}
@@ -243,7 +243,7 @@ function RollingLimitRadioItem({
             value={getSelectedOption()}
             defaultValue={getSelectedOption()}
             className={classNames(
-              "!mt-0 ml-2 w-28 shrink sm:w-36",
+              "mt-0! ml-2 w-28 shrink sm:w-36",
               customClassNames?.periodTypeSelect?.select
             )}
             innerClassNames={customClassNames?.periodTypeSelect?.innerClassNames}
@@ -356,7 +356,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
-          className={classNames("mb-0 h-9 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
+          className={classNames("mb-0 h-8 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
           min={0}
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
@@ -365,7 +365,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
         isSearchable={false}
         isDisabled={passThroughProps.disabled}
         className={classNames(
-          "mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
+          "mb-0 ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
           customClassNames?.select
         )}
         innerClassNames={customClassNames?.innerClassNames}
@@ -420,10 +420,10 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
     <div>
       <div
         className={classNames(
-          "border-subtle space-y-6 rounded-lg border p-6",
+          "border-subtle stack-y-6 rounded-lg border p-6",
           customClassNames?.bufferAndNoticeSection?.container
         )}>
-        <div className="flex flex-col space-y-4  lg:flex-row lg:space-x-4 lg:space-y-0">
+        <div className="stack-y-4 lg:stack-y-0 flex  flex-col lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -517,7 +517,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
