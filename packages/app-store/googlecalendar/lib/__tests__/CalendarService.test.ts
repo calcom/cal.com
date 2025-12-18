@@ -726,10 +726,74 @@ describe("Delegation Credential Batching", () => {
       false
     );
 
-    // Should have called FreeBusy API
-    expect(freebusyQueryMock).toHaveBeenCalled();
+    // CalendarService makes a single API call with all calendars
+    // Batching by delegationCredentialId is handled by CalendarBatchWrapper
+    expect(freebusyQueryMock).toHaveBeenCalledTimes(1);
 
     // Should return combined results from all calendars
+    expect(availability).toHaveLength(2);
+  });
+
+  test("CalendarBatchWrapper should make separate API calls for different delegationCredentialIds", async () => {
+    // Import CalendarBatchWrapper for integration test
+    const { CalendarBatchWrapper } = await import("@calcom/features/calendar-batch/lib/CalendarBatchWrapper");
+
+    const calendarService = new CalendarService(mockCredential);
+    const wrapper = new CalendarBatchWrapper({ originalCalendar: calendarService });
+    setFullMockOAuthManagerRequest();
+
+    const mockedBusyTimes1 = [{ start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" }];
+    const mockedBusyTimes2 = [{ start: "2024-01-02T14:00:00Z", end: "2024-01-02T15:00:00Z" }];
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            { id: "calendar1@test.com" },
+            { id: "calendar2@test.com" },
+          ],
+        },
+      };
+    });
+
+    let callCount = 0;
+    freebusyQueryMock.mockImplementation(() => {
+      callCount++;
+      const busyTimes = callCount === 1 ? mockedBusyTimes1 : mockedBusyTimes2;
+      return {
+        data: {
+          calendars: {
+            "calendar@test.com": { busy: busyTimes },
+          },
+        },
+      };
+    });
+
+    const selectedCalendars = [
+      {
+        externalId: "calendar1@test.com",
+        integration: "google_calendar",
+        delegationCredentialId: "delegation-1",
+      },
+      {
+        externalId: "calendar2@test.com",
+        integration: "google_calendar",
+        delegationCredentialId: "delegation-2",
+      },
+    ];
+
+    const availability = await wrapper.getAvailability(
+      "2024-01-01",
+      "2024-01-31",
+      selectedCalendars,
+      undefined,
+      false
+    );
+
+    // CalendarBatchWrapper should make 2 API calls (one per delegation credential group)
+    expect(freebusyQueryMock).toHaveBeenCalledTimes(2);
+
+    // Should return combined results from both groups
     expect(availability).toHaveLength(2);
   });
 

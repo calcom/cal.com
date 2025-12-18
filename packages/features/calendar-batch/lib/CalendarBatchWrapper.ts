@@ -97,6 +97,7 @@ export class CalendarBatchWrapper implements Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean,
     fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
     const { ownCredentials, delegatedCredentials } = this.splitCalendars(selectedCalendars);
@@ -118,7 +119,13 @@ export class CalendarBatchWrapper implements Calendar {
     for (let i = 0; i < ownCredentials.length; i++) {
       const selectedCalendar = ownCredentials[i];
       tasks.push(
-        this.deps.originalCalendar.getAvailability(dateFrom, dateTo, [selectedCalendar], fallbackToPrimary)
+        this.deps.originalCalendar.getAvailability(
+          dateFrom,
+          dateTo,
+          [selectedCalendar],
+          shouldServeCache,
+          fallbackToPrimary
+        )
       );
     }
 
@@ -137,7 +144,13 @@ export class CalendarBatchWrapper implements Calendar {
 
       for (let j = 0; j < partition.length; j++) {
         tasks.push(
-          this.deps.originalCalendar.getAvailability(dateFrom, dateTo, partition[j], fallbackToPrimary)
+          this.deps.originalCalendar.getAvailability(
+            dateFrom,
+            dateTo,
+            partition[j],
+            shouldServeCache,
+            fallbackToPrimary
+          )
         );
       }
     }
@@ -147,7 +160,9 @@ export class CalendarBatchWrapper implements Calendar {
      * so fallbackToPrimary can be honored.
      */
     if (tasks.length === 0) {
-      tasks.push(this.deps.originalCalendar.getAvailability(dateFrom, dateTo, [], fallbackToPrimary));
+      tasks.push(
+        this.deps.originalCalendar.getAvailability(dateFrom, dateTo, [], shouldServeCache, fallbackToPrimary)
+      );
     }
 
     const results = await Promise.all(tasks);

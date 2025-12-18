@@ -32,7 +32,7 @@ describe("CalendarBatchWrapper", () => {
 
       getAvailabilityMock.mockResolvedValue([{ start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" }]);
 
-      await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, false);
+      await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false);
 
       // Each calendar without delegationCredentialId should be processed separately
       expect(getAvailabilityMock).toHaveBeenCalledTimes(3);
@@ -41,6 +41,7 @@ describe("CalendarBatchWrapper", () => {
         "2024-01-01",
         "2024-01-31",
         [selectedCalendars[0]],
+        undefined,
         false
       );
       expect(getAvailabilityMock).toHaveBeenNthCalledWith(
@@ -48,6 +49,7 @@ describe("CalendarBatchWrapper", () => {
         "2024-01-01",
         "2024-01-31",
         [selectedCalendars[1]],
+        undefined,
         false
       );
       expect(getAvailabilityMock).toHaveBeenNthCalledWith(
@@ -55,6 +57,7 @@ describe("CalendarBatchWrapper", () => {
         "2024-01-01",
         "2024-01-31",
         [selectedCalendars[2]],
+        undefined,
         false
       );
     });
@@ -68,7 +71,7 @@ describe("CalendarBatchWrapper", () => {
         { externalId: "cal3@test.com", integration: "google_calendar", delegationCredentialId: "delegation-2" },
       ];
 
-      await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, false);
+      await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false);
 
       // Should make 2 calls: one for delegation-1 (batched), one for delegation-2
       expect(getAvailabilityMock).toHaveBeenCalledTimes(2);
@@ -79,6 +82,7 @@ describe("CalendarBatchWrapper", () => {
         "2024-01-01",
         "2024-01-31",
         [selectedCalendars[0], selectedCalendars[1]],
+        undefined,
         false
       );
 
@@ -88,6 +92,7 @@ describe("CalendarBatchWrapper", () => {
         "2024-01-01",
         "2024-01-31",
         [selectedCalendars[2]],
+        undefined,
         false
       );
     });
@@ -102,7 +107,7 @@ describe("CalendarBatchWrapper", () => {
         delegationCredentialId: "delegation-1",
       }));
 
-      await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, false);
+      await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false);
 
       // Should make 3 calls: 50 + 50 + 20
       expect(getAvailabilityMock).toHaveBeenCalledTimes(3);
@@ -130,7 +135,7 @@ describe("CalendarBatchWrapper", () => {
         { externalId: "own2@test.com", integration: "google_calendar" },
       ];
 
-      await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, false);
+      await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false);
 
       // Should make 3 calls: 2 for own credentials (one each), 1 for delegation-1 (batched)
       expect(getAvailabilityMock).toHaveBeenCalledTimes(3);
@@ -139,11 +144,11 @@ describe("CalendarBatchWrapper", () => {
     test("should make a single call with empty array when no calendars provided to honor fallbackToPrimary", async () => {
       const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
 
-      await wrapper.getAvailability("2024-01-01", "2024-01-31", [], true);
+      await wrapper.getAvailability("2024-01-01", "2024-01-31", [], undefined, true);
 
       // Should make exactly 1 call with empty array so fallbackToPrimary can be honored
       expect(getAvailabilityMock).toHaveBeenCalledTimes(1);
-      expect(getAvailabilityMock).toHaveBeenCalledWith("2024-01-01", "2024-01-31", [], true);
+      expect(getAvailabilityMock).toHaveBeenCalledWith("2024-01-01", "2024-01-31", [], undefined, true);
     });
 
     test("should flatten and combine results from all batched calls", async () => {
@@ -161,7 +166,7 @@ describe("CalendarBatchWrapper", () => {
         .mockResolvedValueOnce(busyTimes1)
         .mockResolvedValueOnce(busyTimes2);
 
-      const result = await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, false);
+      const result = await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false);
 
       // Should return combined results from both calls
       expect(result).toHaveLength(2);
