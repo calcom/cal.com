@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-import { AttributeSyncUserRuleOutputMapper } from "../mappers/AttributeSyncUserRuleOutputMapper";
+import { IntegrationAttributeSyncOutputMapper } from "../mappers/IntegrationAttributeSyncOutputMapper";
 import type {
   IIntegrationAttributeSyncCreateParams,
   IIntegrationAttributeSyncRepository,
@@ -26,14 +26,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
         syncFieldMappings: true,
       },
     });
-    return integrationAttributeSyncQuery.map((integrationAttributeSync) => {
-      return {
-        ...integrationAttributeSync,
-        attributeSyncRules: integrationAttributeSync.attributeSyncRule
-          ? [AttributeSyncUserRuleOutputMapper.toDomain(integrationAttributeSync.attributeSyncRule)]
-          : [],
-      };
-    });
+    return IntegrationAttributeSyncOutputMapper.toDomainList(integrationAttributeSyncQuery);
   }
 
   async getById(id: string) {
@@ -55,12 +48,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
 
     if (!integrationAttributeSyncQuery) return null;
 
-    return {
-      ...integrationAttributeSyncQuery,
-      attributeSyncRules: integrationAttributeSyncQuery.attributeSyncRule
-        ? [AttributeSyncUserRuleOutputMapper.toDomain(integrationAttributeSyncQuery.attributeSyncRule)]
-        : [],
-    };
+    return IntegrationAttributeSyncOutputMapper.toDomain(integrationAttributeSyncQuery);
   }
 
   async getSyncFieldMappings(integrationAttributeSyncId: string) {
@@ -118,15 +106,10 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
       },
     });
 
-    return {
-      ...created,
-      attributeSyncRules: created.attributeSyncRule
-        ? [AttributeSyncUserRuleOutputMapper.toDomain(created.attributeSyncRule)]
-        : [],
-    };
+    return IntegrationAttributeSyncOutputMapper.toDomain(created);
   }
 
-  async updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams) {
+  async updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams): Promise<void> {
     const {
       integrationAttributeSync,
       attributeSyncRule,
@@ -135,7 +118,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
       fieldMappingsToDelete,
     } = params;
 
-    return this.prismaClient.$transaction([
+    this.prismaClient.$transaction([
       this.prismaClient.integrationAttributeSync.update({
         where: {
           id: integrationAttributeSync.id,
@@ -182,8 +165,8 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
     ]);
   }
 
-  async deleteById(id: string) {
-    return this.prismaClient.integrationAttributeSync.delete({
+  async deleteById(id: string): Promise<void> {
+    this.prismaClient.integrationAttributeSync.delete({
       where: {
         id,
       },
