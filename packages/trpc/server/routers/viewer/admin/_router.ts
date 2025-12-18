@@ -4,6 +4,7 @@ import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
+import { ZAdminListTeamsInputSchema } from "./listTeams.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
@@ -27,6 +28,10 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
     const { default: handler } = await import("./listPaginated.handler");
+    return handler(opts);
+  }),
+  listTeams: authedAdminProcedure.input(ZAdminListTeamsInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listTeams.handler");
     return handler(opts);
   }),
   sendPasswordReset: authedAdminProcedure.input(ZAdminPasswordResetSchema).mutation(async (opts) => {

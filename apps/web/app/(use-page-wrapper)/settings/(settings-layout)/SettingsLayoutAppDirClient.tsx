@@ -235,6 +235,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "organizations" },
         },
         {
+          name: "teams",
+          href: "/settings/admin/teams",
+          trackingMetadata: { section: "admin", page: "teams" },
+        },
+        {
           name: "lockedSMS",
           href: "/settings/admin/lockedSMS",
           trackingMetadata: { section: "admin", page: "locked_sms" },
