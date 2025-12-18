@@ -1,9 +1,10 @@
+import type { ComponentProps } from "react";
+
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
-import type { routingServerSidePropsConfig } from "@lib/apps/routing-forms/[...pages]/app-routing.server-config";
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -25,9 +26,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ pages: st
   );
 };
 
-type GetServerSidePropsResult =
-  (typeof routingServerSidePropsConfig)[keyof typeof routingServerSidePropsConfig];
-const getData = withAppDirSsr<GetServerSidePropsResult>(getServerSideProps);
+const getData = withAppDirSsr(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
@@ -36,7 +35,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   const Component = await routingFormsComponents[mainPage as keyof typeof routingFormsComponents]();
 
-  return <Component {...(props as GetServerSidePropsResult)} />;
+  return <Component {...(props as unknown as ComponentProps<typeof Component>)} />;
 };
 
 export default ServerPage;
