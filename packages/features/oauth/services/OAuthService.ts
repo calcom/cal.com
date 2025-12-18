@@ -1,9 +1,10 @@
-import { randomBytes, createHash } from "crypto";
-import * as jwt from "jsonwebtoken";
+import { randomBytes } from "crypto";
+import jwt from "jsonwebtoken";
 
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
+import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { HttpError } from "@calcom/lib/http-error";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import type { AccessScope } from "@calcom/prisma/enums";
@@ -41,11 +42,6 @@ interface DecodedRefreshToken {
   codeChallenge?: string | null;
   codeChallengeMethod?: string | null;
 }
-
-const hashSecretKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
-
-// Generate a random secret
-export const generateSecret = (secret = randomBytes(32).toString("hex")) => [hashSecretKey(secret), secret];
 
 export class OAuthService {
   private readonly accessCodeRepository: AccessCodeRepository;
@@ -200,7 +196,6 @@ export class OAuthService {
     codeVerifier?: string
   ): Promise<OAuth2Tokens> {
     const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
-
     if (!client) {
       throw new HttpError({ message: "invalid_client", statusCode: 401 });
     }
@@ -285,6 +280,7 @@ export class OAuthService {
     client: { clientType: string; clientSecret?: string | null },
     clientSecret?: string
   ): boolean {
+    console.log("validateClient", client.clientSecret, client.clientType);
     if (client.clientType === "CONFIDENTIAL") {
       if (!clientSecret) return false;
 

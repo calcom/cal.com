@@ -15,7 +15,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
   }
 
-  if (!client_id) {
+  if (!client_id || !code || !redirect_uri) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
@@ -50,6 +50,7 @@ async function handler(req: NextRequest) {
       }
     );
   } catch (err) {
+    console.log(err, err instanceof HttpError);
     if (err instanceof HttpError) {
       return NextResponse.json({ error: err.message }, { status: err.statusCode });
     }
