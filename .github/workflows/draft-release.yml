@@ -94,5 +94,5 @@ jobs:
       - name: Draft release
         run: gh release create v$VERSION --generate-notes --draft
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           VERSION: ${{ inputs.next_version }}
