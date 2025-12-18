@@ -6,50 +6,30 @@ import { Prisma } from "@calcom/prisma/client";
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
-interface CacheOptions {
-  ttl: number; // time in ms
-}
-
 /**
  * Repository class for managing feature flags and feature access control.
  * Implements the IFeaturesRepository interface to provide feature flag functionality
  * for users, teams, and global application features.
+ *
+ * Note: This is the base repository with pure database access.
+ * For caching, use FeaturesRepositoryCachingProxy which wraps this repository.
  */
 export class FeaturesRepository implements IFeaturesRepository {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static featuresCache: { data: any[]; expiry: number } | null = null;
-
   constructor(private prismaClient: PrismaClient) {}
-
-  private clearCache() {
-    FeaturesRepository.featuresCache = null;
-  }
 
   /**
    * Gets all features with their enabled status.
-   * Uses caching to avoid hitting the database on every request.
    * @returns Promise<Feature[]> - Array of all features
    */
-  public async getAllFeatures() {
-    if (FeaturesRepository.featuresCache && Date.now() < FeaturesRepository.featuresCache.expiry) {
-      return FeaturesRepository.featuresCache.data;
-    }
-
+  public async getAllFeatures(): Promise<{ slug: string; enabled: boolean }[]> {
     const features = await this.prismaClient.feature.findMany({
       orderBy: { slug: "asc" },
     });
-
-    FeaturesRepository.featuresCache = {
-      data: features,
-      expiry: Date.now() + 5 * 60 * 1000, // 5 minutes cache
-    };
-
     return features;
   }
 
   /**
    * Gets a map of all feature flags and their enabled status.
-   * Uses caching to avoid hitting the database on every request.
    * @returns Promise<AppFlags> - A map of feature flags to their enabled status
    */
   public async getFeatureFlagMap() {
@@ -95,10 +75,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<boolean> - True if the feature is enabled globally, false otherwise
    * @throws Error if the feature flag check fails
    */
-  async checkIfFeatureIsEnabledGlobally(
-    slug: keyof AppFlags,
-    _options: CacheOptions = { ttl: 5 * 60 * 1000 }
-  ): Promise<boolean> {
+  async checkIfFeatureIsEnabledGlobally(slug: keyof AppFlags): Promise<boolean> {
     try {
       const features = await this.getAllFeatures();
       const flag = features.find((f) => f.slug === slug);
@@ -282,8 +259,6 @@ export class FeaturesRepository implements IFeaturesRepository {
         },
         update: {},
       });
-      // Clear cache when features are modified
-      this.clearCache();
     } catch (err) {
       captureException(err);
       throw err;
