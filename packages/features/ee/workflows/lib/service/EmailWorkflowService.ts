@@ -6,6 +6,7 @@ import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -86,9 +87,13 @@ export class EmailWorkflowService {
       creditCheckFn,
     });
 
+    const teamRepository = new TeamRepository(prisma);
+    const userRepository = new UserRepository(prisma);
     const hideBranding = await getHideBranding({
       userId: workflow.userId ?? undefined,
       teamId: workflow.teamId ?? undefined,
+      teamRepository,
+      userRepository,
     });
 
     const emailWorkflowContentParams = await this.generateParametersToBuildEmailWorkflowContent({

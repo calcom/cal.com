@@ -1498,14 +1498,6 @@ export class BookingRepository {
             timeZone: true,
             hideBranding: true,
             organizationId: true,
-          },
-        },
-        user: {
-          select: {
-            email: true,
-            name: true,
-            timeZone: true,
-            locale: true,
             profiles: {
               select: {
                 organizationId: true,
@@ -1750,6 +1742,11 @@ export class BookingRepository {
             destinationCalendar: true,
             credentials: {
               select: safeCredentialSelect,
+            },
+            profiles: {
+              select: {
+                organizationId: true,
+              },
             },
           },
         },
