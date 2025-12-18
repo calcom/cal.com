@@ -6,13 +6,13 @@ import {
   TroubleshooterCase,
 } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import * as getAttributesModule from "@calcom/features/attribute/lib/getAttributes";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
-import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
 
-vi.mock("@calcom/lib/service/attribute/server/getAttributes", () => {
+vi.mock("@calcom/features/attribute/lib/getAttributes", () => {
   return {
     getAttributesAssignmentData: vi.fn(),
   };

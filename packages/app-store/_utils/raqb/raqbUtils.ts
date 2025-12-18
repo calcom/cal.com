@@ -12,7 +12,7 @@ import type {
   AttributeOptionValueWithType,
   AttributeOptionValue,
   Attribute,
-} from "@calcom/lib/service/attribute/server/getAttributes";
+} from "@calcom/lib/service/attribute/types";
 import { AttributeType } from "@calcom/prisma/enums";
 
 function ensureArray(value: string | string[]) {

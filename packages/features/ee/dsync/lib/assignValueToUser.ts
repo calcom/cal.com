@@ -1,9 +1,9 @@
+import { findAssignmentsForMember } from "@calcom/features/attribute/lib/utils";
 import { PrismaAttributeOptionRepository } from "@calcom/features/attribute/repositories/PrismaAttributeOptionRepository";
 import { PrismaAttributeRepository } from "@calcom/features/attribute/repositories/PrismaAttributeRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { findAssignmentsForMember } from "@calcom/lib/service/attribute/server/utils";
 import type {
   AttributeId,
   AttributeName,
