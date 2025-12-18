@@ -2,7 +2,7 @@ import type { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { notFound, redirect } from "next/navigation";
 
 export const withAppDirSsr =
-  <T extends Record<string, unknown>>(getServerSideProps: GetServerSideProps<T>) =>
+  <T extends object>(getServerSideProps: GetServerSideProps<T>) =>
   async (context: GetServerSidePropsContext) => {
     const ssrResponse = await getServerSideProps(context);
 
