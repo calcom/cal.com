@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -30,6 +31,7 @@ interface IIntegrationAttributeSyncViewProps {
 const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps) => {
   const { credentialsData, initalIntegrationAttributeSyncs, organizationTeams, attributes, organizationId } =
     props;
+  const { t } = useLocale();
 
   const [showNewSync, setShowNewSync] = useState(false);
 
@@ -88,7 +90,7 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
         />
       )}
       <Button StartIcon="plus" onClick={handleAddNewSync}>
-        Add new sync
+        {t("attribute_sync_add_new")}
       </Button>
     </>
   );

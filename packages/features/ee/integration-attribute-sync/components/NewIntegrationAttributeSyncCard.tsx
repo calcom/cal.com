@@ -1,3 +1,4 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -11,11 +12,12 @@ type INewIntegrationAttributeSyncCardProps = Pick<
 >;
 
 const NewIntegrationAttributeSyncCard = (props: INewIntegrationAttributeSyncCardProps) => {
+  const { t } = useLocale();
   const utils = trpc.useUtils();
   const createMutation = trpc.viewer.attributeSync.createAttributeSync.useMutation({
     onSuccess: () => {
       utils.viewer.attributeSync.getAllAttributeSyncs.invalidate();
-      showToast("Attribute sync created successfully", "success");
+      showToast(t("attribute_sync_created_successfully"), "success");
       props.onCancel?.();
     },
     onError: (error) => {

@@ -1,3 +1,4 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -14,11 +15,12 @@ type IEditIntegrationAttributeSyncCardProps = Pick<
 };
 
 const EditIntegrationAttributeSyncCard = (props: IEditIntegrationAttributeSyncCardProps) => {
+  const { t } = useLocale();
   const utils = trpc.useUtils();
   const updateMutation = trpc.viewer.attributeSync.updateAttributeSync.useMutation({
     onSuccess: () => {
       utils.viewer.attributeSync.getAllAttributeSyncs.invalidate();
-      showToast("Attribute sync updated successfully", "success");
+      showToast(t("attribute_sync_updated_successfully"), "success");
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -28,7 +30,7 @@ const EditIntegrationAttributeSyncCard = (props: IEditIntegrationAttributeSyncCa
   const deleteMutation = trpc.viewer.attributeSync.deleteAttributeSync.useMutation({
     onSuccess: () => {
       utils.viewer.attributeSync.getAllAttributeSyncs.invalidate();
-      showToast("Attribute sync deleted successfully", "success");
+      showToast(t("attribute_sync_deleted_successfully"), "success");
     },
     onError: (error) => {
       showToast(error.message, "error");

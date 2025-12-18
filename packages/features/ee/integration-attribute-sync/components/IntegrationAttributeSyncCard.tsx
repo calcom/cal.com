@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
@@ -46,6 +47,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
   } = props;
   console.log(sync);
 
+  const { t } = useLocale();
   const isCreateMode = !sync;
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -64,7 +66,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
         }
       : {
           id: "",
-          name: "New Integration Sync",
+          name: t("attribute_sync_new_integration_sync"),
           credentialId: 0,
           enabled: true,
           organizationId,
@@ -147,18 +149,19 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                   <div className="border-subtle rounded-lg border p-1">
                     <Icon name="key" className="text-subtle h-4 w-4" />
                   </div>
-                  <span className="text-emphasis ml-2 text-sm font-medium">Credential</span>
+                  <span className="text-emphasis ml-2 text-sm font-medium">
+                    {t("attribute_sync_credential")}
+                  </span>
                 </div>
                 <div className="mt-2">
                   <Controller
                     name="credentialId"
                     control={form.control}
-                    rules={{ required: "Credential is required" }}
+                    rules={{ required: t("attribute_sync_credential_required") }}
                     render={({ field, fieldState }) => (
                       <>
                         <SelectField
-                          // label="Credential"
-                          placeholder="Select a credential..."
+                          placeholder={t("attribute_sync_select_credential")}
                           options={credentialOptions}
                           value={credentialOptions.find((opt) => Number(opt.value) === field.value) || null}
                           onChange={(option) => field.onChange(Number(option?.value))}
@@ -169,14 +172,14 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                       </>
                     )}
                   />
-                  <p className="text-subtle mt-1 text-xs">
-                    Choose which integration credential to use for syncing attributes
-                  </p>
+                  <p className="text-subtle mt-1 text-xs">{t("attribute_sync_credential_description")}</p>
                 </div>
               </div>
 
               <div>
-                <label className="text-emphasis mb-2 block text-sm font-medium">User Filter Rules</label>
+                <label className="text-emphasis mb-2 block text-sm font-medium">
+                  {t("attribute_sync_user_filter_rules")}
+                </label>
                 <Controller
                   name="rule"
                   control={form.control}
@@ -190,12 +193,14 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                   )}
                 />
                 <p className="text-subtle mt-1 text-xs">
-                  Define which users to sync based on team membership or attributes
+                  {t("attribute_sync_user_filter_rules_description")}
                 </p>
               </div>
 
               <div>
-                <label className="text-emphasis mb-2 block text-sm font-medium">Field Mappings</label>
+                <label className="text-emphasis mb-2 block text-sm font-medium">
+                  {t("attribute_sync_field_mappings")}
+                </label>
                 <Controller
                   name="syncFieldMappings"
                   control={form.control}
@@ -206,7 +211,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                       for (const mapping of mappings || []) {
                         const key = `${mapping.integrationFieldName}-${mapping.attributeId}`;
                         if (seen.has(key)) {
-                          return "Duplicate field name and attribute combination found";
+                          return t("attribute_sync_duplicate_field_mapping");
                         }
                         seen.add(key);
                       }
@@ -227,18 +232,18 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                   )}
                 />
                 <p className="text-subtle mt-1 text-xs">
-                  Map integration field names to Cal.com attributes for syncing
+                  {t("attribute_sync_field_mappings_description")}
                 </p>
               </div>
 
               <div className="border-subtle flex justify-end gap-2 border-t pt-4">
                 {isCreateMode && onCancel && (
                   <Button type="button" color="secondary" onClick={onCancel}>
-                    Cancel
+                    {t("cancel")}
                   </Button>
                 )}
                 <Button type="submit" loading={isPending} disabled={!form.formState.isDirty}>
-                  {isCreateMode ? "Create" : "Save"}
+                  {isCreateMode ? t("create") : t("save")}
                 </Button>
               </div>
             </div>
@@ -249,10 +254,10 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <ConfirmationDialogContent
           variety="danger"
-          title="Delete Attribute Sync"
-          confirmBtnText="Delete"
+          title={t("attribute_sync_delete_title")}
+          confirmBtnText={t("delete")}
           onConfirm={confirmDelete}>
-          Are you sure you want to delete this sync? This action cannot be undone.
+          {t("attribute_sync_delete_confirmation")}
         </ConfirmationDialogContent>
       </Dialog>
     </>

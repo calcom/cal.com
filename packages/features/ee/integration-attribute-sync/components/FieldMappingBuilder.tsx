@@ -1,4 +1,5 @@
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Input, Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -22,6 +23,7 @@ interface MappingRowProps {
 }
 
 const MappingRow = ({ mapping, onChange, onRemove, attributes, isLoading }: MappingRowProps) => {
+  const { t } = useLocale();
   const attributeOptions = attributes.map((attr) => ({
     value: attr.id,
     label: attr.name,
@@ -60,7 +62,7 @@ const MappingRow = ({ mapping, onChange, onRemove, attributes, isLoading }: Mapp
           value={mapping.integrationFieldName}
           onChange={handleFieldNameChange}
           disabled={isLoading}
-          placeholder="e.g., Department, Title..."
+          placeholder={t("attribute_sync_field_placeholder")}
           className="h-7 text-sm"
         />
       </div>
@@ -72,7 +74,7 @@ const MappingRow = ({ mapping, onChange, onRemove, attributes, isLoading }: Mapp
       <div className="flex-1" style={{ minWidth: "200px" }}>
         <Select
           size="sm"
-          placeholder="Select Cal.com attribute..."
+          placeholder={t("attribute_sync_select_attribute")}
           options={attributeOptions}
           value={selectedAttribute}
           onChange={handleAttributeChange}
@@ -104,6 +106,8 @@ export const FieldMappingBuilder = ({
   attributes,
   isLoadingAttributes,
 }: FieldMappingBuilderProps) => {
+  const { t } = useLocale();
+
   const handleAddMapping = () => {
     onChange({
       ...value,
@@ -133,14 +137,12 @@ export const FieldMappingBuilder = ({
         <div className="border-subtle rounded-lg border p-1">
           <Icon name="link" className="text-subtle h-4 w-4" />
         </div>
-        <span className="text-emphasis ml-2 text-sm font-medium">Field Mappings</span>
+        <span className="text-emphasis ml-2 text-sm font-medium">{t("attribute_sync_field_mappings")}</span>
       </div>
 
       <div className="bg-muted mt-2 space-y-2 rounded-xl p-2">
         {value.mappings.length === 0 ? (
-          <div className="text-subtle py-6 text-center text-sm">
-            No field mappings added. Click below to add your first mapping.
-          </div>
+          <div className="text-subtle py-6 text-center text-sm">{t("attribute_sync_no_mappings")}</div>
         ) : (
           value.mappings.map((mapping, index) => (
             <MappingRow
@@ -162,7 +164,7 @@ export const FieldMappingBuilder = ({
         className="mt-2"
         onClick={handleAddMapping}
         disabled={isLoadingAttributes}>
-        Add mapping
+        {t("attribute_sync_add_mapping")}
       </Button>
     </div>
   );
