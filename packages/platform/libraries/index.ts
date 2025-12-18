@@ -20,6 +20,7 @@ import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { slugify } from "@calcom/lib/slugify";
+export { slugifyLenient } from "@calcom/lib/slugify-lenient";
 export { getBookingForReschedule };
 
 export type { EventBusyDate } from "@calcom/types/Calendar";
@@ -36,6 +37,11 @@ export {
   WorkflowActions,
   WorkflowTemplates,
 } from "@calcom/prisma/enums";
+
+export {
+  WebhookVersion,
+  DEFAULT_WEBHOOK_VERSION,
+} from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 

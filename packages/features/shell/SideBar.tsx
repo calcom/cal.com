@@ -142,7 +142,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
         </div>
 
         {!isPlatformPages && (
-          <div>
+          <div className="md:px-2 md:pb-4 lg:p-0">
             <div className="overflow-hidden">
               <Tips />
             </div>

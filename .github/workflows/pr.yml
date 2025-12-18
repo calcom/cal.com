@@ -24,6 +24,7 @@ jobs:
       pull-requests: read
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
+      has_companion: ${{ steps.filter.outputs.has_companion }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +34,9 @@ jobs:
         with:
           filters: |
             has-files-requiring-all-checks:
-              - "!(**.md|**.mdx|.github/CODEOWNERS|docs/**|help/**|apps/web/public/static/locales/**/common.json|i18n.lock)"
+              - "!(companion/**|**.md|**.mdx|.github/CODEOWNERS|docs/**|help/**|apps/web/public/static/locales/**/common.json|i18n.lock)"
+            has_companion:
+              - "companion/**"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
@@ -148,8 +151,8 @@ jobs:
 
   build-companion:
     name: Companion builds
-    needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label]
+    if: needs.changes.outputs.has_companion == 'true'
     uses: ./.github/workflows/companion-build.yml
     secrets: inherit
 
@@ -256,11 +259,23 @@ jobs:
         e2e-api-v2,
         e2e-embed,
         e2e-embed-react,
-        e2e-app-store
+        e2e-app-store,
       ]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
+        if: |
+          (
+            needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
+            (
+              contains(needs.*.result, 'failure') ||
+              contains(needs.*.result, 'cancelled') ||
+              contains(needs.*.result, 'skipped')
+            )
+          ) ||
+          (
+            needs.changes.outputs.has_companion == 'true' &&
+            needs.build-companion.result != 'success'
+          )
