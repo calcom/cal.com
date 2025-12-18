@@ -2952,7 +2952,7 @@ model IntegrationAttributeSync {
   name         String
   integration  String
   credentialId Int?
-  credential   Credential? @relation(fields: [credentialId], references: [id])
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
   enabled Boolean
 
@@ -2979,11 +2979,11 @@ model AttributeSyncFieldMapping {
   id                   String    @id @default(uuid())
   integrationFieldName String
   attributeId          String
-  attribute            Attribute @relation(fields: [attributeId], references: [id])
+  attribute            Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
 
   enabled                    Boolean
   integrationAttributeSyncId String?
-  integrationAttributeSync   IntegrationAttributeSync? @relation(fields: [integrationAttributeSyncId], references: [id])
+  integrationAttributeSync   IntegrationAttributeSync? @relation(fields: [integrationAttributeSyncId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
