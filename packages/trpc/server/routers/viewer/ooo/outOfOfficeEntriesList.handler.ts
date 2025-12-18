@@ -139,6 +139,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       },
       notes: true,
       showNotePublicly: true,
+      syncedFromGoogleCalendar: true,
       user: fetchTeamMembersEntries
         ? {
             select: {
@@ -167,9 +168,13 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
   return {
     rows:
       outOfOfficeEntries.map((ooo) => {
+        // Synced entries from Google Calendar are read-only
+        const isGoogleCalendarSynced = ooo.syncedFromGoogleCalendar;
+        const baseCanEditDelete = fetchTeamMembersEntries ? reportingUserIds.includes(ooo.user.id) : true;
+
         return {
           ...ooo,
-          canEditAndDelete: fetchTeamMembersEntries ? reportingUserIds.includes(ooo.user.id) : true,
+          canEditAndDelete: baseCanEditDelete && !isGoogleCalendarSynced,
         };
       }) || [],
     nextCursor,

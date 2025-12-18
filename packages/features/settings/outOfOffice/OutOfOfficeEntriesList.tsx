@@ -59,6 +59,7 @@ interface OutOfOfficeEntry {
   } | null;
   notes: string | null;
   showNotePublicly: boolean | null;
+  syncedFromGoogleCalendar: boolean;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
   canEditAndDelete: boolean;
 }
@@ -219,9 +220,19 @@ function OutOfOfficeEntriesListContent({
                     </div>
 
                     <div className="ml-2 flex flex-col">
-                      <p className="px-2 font-bold">
-                        {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
-                      </p>
+                      <div className="flex items-center gap-2 px-2">
+                        <p className="font-bold">
+                          {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
+                        </p>
+                        {item.syncedFromGoogleCalendar && (
+                          <Tooltip content={t("synced_from_google_calendar")}>
+                            <span className="bg-subtle text-subtle inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium">
+                              <Icon name="refresh-cw" className="h-3 w-3" />
+                              {t("synced")}
+                            </span>
+                          </Tooltip>
+                        )}
+                      </div>
                       <p className="px-2">
                         {item.toUser?.username ? (
                           <ServerTrans
@@ -263,7 +274,12 @@ function OutOfOfficeEntriesListContent({
             <>
               {row.original && !isPending && !isFetching ? (
                 <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
-                  <Tooltip content={t("edit")}>
+                  <Tooltip
+                    content={
+                      item.syncedFromGoogleCalendar
+                        ? t("edit_in_google_calendar")
+                        : t("edit")
+                    }>
                     <Button
                       className="self-center rounded-lg border"
                       type="button"
@@ -302,7 +318,12 @@ function OutOfOfficeEntriesListContent({
                       disabled={isPending || isFetching || !item.canEditAndDelete}
                     />
                   </Tooltip>
-                  <Tooltip content={t("delete")}>
+                  <Tooltip
+                    content={
+                      item.syncedFromGoogleCalendar
+                        ? t("delete_in_google_calendar")
+                        : t("delete")
+                    }>
                     <Button
                       className="self-center rounded-lg border"
                       type="button"

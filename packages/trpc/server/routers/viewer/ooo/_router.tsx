@@ -1,5 +1,6 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZEnableOOOSyncSchema } from "./oooGoogleCalendarSync.schema";
 import { ZOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 import { ZOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
 import { ZOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
@@ -22,5 +23,21 @@ export const oooRouter = router({
   outOfOfficeReasonList: authedProcedure.query(async () => {
     const handler = (await import("./outOfOfficeReasons.handler")).outOfOfficeReasonList;
     return handler();
+  }),
+
+  // Google Calendar OOO sync endpoints
+  getOOOSyncStatus: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./oooGoogleCalendarSync.handler")).getOOOSyncStatus;
+    return handler({ ctx });
+  }),
+  enableGoogleCalendarOOOSync: authedProcedure
+    .input(ZEnableOOOSyncSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = (await import("./oooGoogleCalendarSync.handler")).enableGoogleCalendarOOOSync;
+      return handler({ ctx, input });
+    }),
+  triggerOOOSync: authedProcedure.mutation(async ({ ctx }) => {
+    const handler = (await import("./oooGoogleCalendarSync.handler")).triggerOOOSync;
+    return handler({ ctx });
   }),
 });
