@@ -49,7 +49,7 @@ export const syncFormDataSchema = z
   .object({
     id: z.string(),
     name: z.string().min(1, "Name is required"),
-    credentialId: z.number(),
+    credentialId: z.number().optional(),
     enabled: z.boolean(),
     organizationId: z.number(),
     ruleId: z.string(),
