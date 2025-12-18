@@ -315,37 +315,41 @@ export const fieldTypesSchemaMap: Partial<
         return;
       }
 
-      if (typeof response !== "object" || Array.isArray(response)) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid attachment") });
-        return;
-      }
+      const attachments = Array.isArray(response) ? response : [response];
 
-      const { url, dataUrl, name, size } = response as {
-        url?: unknown;
-        dataUrl?: unknown;
-        name?: unknown;
-        size?: unknown;
-      };
-
-      const hasPayload = typeof url === "string" || typeof dataUrl === "string";
-      if (!hasPayload && isRequired) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
-        return;
-      }
-
-      if (size && typeof size === "number") {
-        const MAX_BYTES = 10 * 1024 * 1024; // 10MB
-        if (size > MAX_BYTES) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: m("file_size_limit_exceed"),
-          });
+      for (const attachment of attachments) {
+        if (typeof attachment !== "object" || attachment === null) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid attachment") });
           return;
         }
-      }
 
-      if (name && typeof name !== "string") {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid attachment") });
+        const { url, dataUrl, name, size } = attachment as {
+          url?: unknown;
+          dataUrl?: unknown;
+          name?: unknown;
+          size?: unknown;
+        };
+
+        const hasPayload = typeof url === "string" || typeof dataUrl === "string";
+        if (!hasPayload && isRequired) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
+          return;
+        }
+
+        if (size && typeof size === "number") {
+          const MAX_BYTES = 1 * 1024 * 1024; // 1MB
+          if (size > MAX_BYTES) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("file_size_limit_exceed"),
+            });
+            return;
+          }
+        }
+
+        if (name && typeof name !== "string") {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid attachment") });
+        }
       }
     },
   },
@@ -496,13 +500,15 @@ export const dbReadResponseSchema = z.union([
     optionValue: z.string(),
     value: z.string(),
   }),
-  z.object({
-    name: z.string().optional(),
-    url: z.string().optional(),
-    dataUrl: z.string().optional(),
-    size: z.number().optional(),
-    type: z.string().optional(),
-  }),
+  z.array(
+    z.object({
+      name: z.string().optional(),
+      url: z.string().optional(),
+      dataUrl: z.string().optional(),
+      size: z.number().optional(),
+      type: z.string().optional(),
+    })
+  ),
   // For variantsConfig case
   z.record(z.string()),
 ]);

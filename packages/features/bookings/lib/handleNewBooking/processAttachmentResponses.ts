@@ -1,10 +1,9 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import fs from "fs/promises";
-import path from "path";
 import type z from "zod";
 
-import { IS_DEV, WEBAPP_URL } from "@calcom/lib/constants";
+import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
@@ -21,7 +20,7 @@ type ProcessAttachmentParams = {
   bookingFields: z.infer<typeof eventTypeBookingFields> | null;
 };
 
-const MAX_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_BYTES = 1 * 1024 * 1024;
 
 export const processAttachmentResponses = async ({ responses, bookingFields }: ProcessAttachmentParams) => {
   if (!bookingFields) return responses;
@@ -33,18 +32,9 @@ export const processAttachmentResponses = async ({ responses, bookingFields }: P
     const rawValue = responses[field.name];
     if (!rawValue) continue;
 
-    if (Array.isArray(rawValue)) {
-      const processedList = await Promise.all(
-        rawValue.map((item) => storeAttachment(item as AttachmentValue))
-      );
-      updatedResponses[field.name] = processedList.filter(Boolean);
-      continue;
-    }
-
-    const processed = await storeAttachment(rawValue as AttachmentValue);
-    if (processed) {
-      updatedResponses[field.name] = processed;
-    }
+    const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+    const processedList = await Promise.all(values.map((item) => storeAttachment(item as AttachmentValue)));
+    updatedResponses[field.name] = processedList.filter(Boolean);
   }
 
   return updatedResponses;
@@ -52,8 +42,6 @@ export const processAttachmentResponses = async ({ responses, bookingFields }: P
 
 const storeAttachment = async (value: AttachmentValue) => {
   if (typeof value !== "object" || value === null) return null;
-
-  // If it already has a URL and no new data payload, keep it as-is.
   if (value.url && !value.dataUrl) return value;
 
   const dataUrl = value.dataUrl;
@@ -75,16 +63,6 @@ const storeAttachment = async (value: AttachmentValue) => {
   const fileName = `${randomUUID()}-${(value.name || "attachment").replace(/[^a-zA-Z0-9_.-]/g, "_")}`;
 
   try {
-    if (IS_DEV) {
-      const url = await saveToLocal(buffer, fileName);
-      return {
-        name: value.name || fileName,
-        url,
-        size: buffer.byteLength,
-        type: value.type || mimeType,
-      };
-    }
-
     const url = await uploadToS3(buffer, fileName, mimeType);
     return {
       name: value.name || fileName,
@@ -98,59 +76,30 @@ const storeAttachment = async (value: AttachmentValue) => {
   }
 };
 
-const ensureDir = async (dir: string) => {
-  await fs.mkdir(dir, { recursive: true });
-};
-
-const getPublicDir = async () => {
-  const cwdPublic = path.join(process.cwd(), "public");
-  const webPublic = path.join(process.cwd(), "apps", "web", "public");
-
-  try {
-    await fs.stat(cwdPublic);
-    return cwdPublic;
-  } catch (_) {
-    return webPublic;
-  }
-};
-
-const saveToLocal = async (buffer: Buffer, fileName: string) => {
-  const publicDir = await getPublicDir();
-  const uploadDir = path.join(publicDir, "attachments");
-  await ensureDir(uploadDir);
-
-  const filePath = path.join(uploadDir, fileName);
-  await fs.writeFile(filePath, buffer);
-
-  const normalizedBase = WEBAPP_URL.replace(/\/$/, "");
-  return `${normalizedBase}/attachments/${fileName}`;
-};
-
 const uploadToS3 = async (buffer: Buffer, fileName: string, contentType: string) => {
   const bucket = process.env.AWS_S3_BUCKET;
   const region = process.env.AWS_S3_REGION;
   const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
   const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  const customDomain = process.env.AWS_S3_CUSTOM_DOMAIN;
-  const prefix = process.env.AWS_S3_ATTACHMENTS_PREFIX || "attachments";
+  const deploymentEnv = process.env.AWS_S3_ATTACHMENTS_ENV;
 
-  if (!bucket || !region) {
-    logger.warn("S3 bucket/region missing, falling back to local storage");
-    return saveToLocal(buffer, fileName);
+  if (!bucket || !region || !accessKeyId || !secretAccessKey || !deploymentEnv) {
+    throw new Error("S3 configuration is missing");
   }
 
   const client = new S3Client({
     region,
-    credentials:
-      accessKeyId && secretAccessKey
-        ? {
-            accessKeyId,
-            secretAccessKey,
-          }
-        : undefined,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
   });
 
-  const key = `${prefix}/${fileName}`;
+  const now = dayjs();
+  const year = now.format("YYYY");
+  const month = now.format("MM");
+  const date = now.format("DD");
+  const key = `${deploymentEnv}/${year}/${month}/${date}/attachments/${fileName}`;
   await client.send(
     new PutObjectCommand({
       Bucket: bucket,
@@ -160,6 +109,6 @@ const uploadToS3 = async (buffer: Buffer, fileName: string, contentType: string)
     })
   );
 
-  const baseUrl = customDomain || `https://${bucket}.s3.${region}.amazonaws.com`;
-  return `${baseUrl}/${key}`;
+  const baseUrl = WEBAPP_URL;
+  return `${baseUrl}/api/bookings/attachments?key=${encodeURIComponent(key)}`;
 };

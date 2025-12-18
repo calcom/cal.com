@@ -1,5 +1,5 @@
-import FileUploader from "@calid//features/ui/components/uploader/file-uploader";
 import { Icon } from "@calid/features/ui/components/icon";
+import { AttachmentUploader } from "@calid/features/ui/components/uploader";
 import { useEffect } from "react";
 import type { z } from "zod";
 
@@ -98,6 +98,9 @@ type Component =
             size: number;
             type: string;
           }) => void;
+          readOnly?: boolean;
+          name?: string;
+          label?: string;
         }
       >(
         props: TProps
@@ -577,7 +580,7 @@ export const Components: Record<FieldType, Component> = {
     factory: function Attachment({ value, setValue, readOnly, name, label }) {
       return (
         <div className="space-y-3">
-          <FileUploader
+          <AttachmentUploader
             id={`${name}-uploader`}
             disabled={readOnly}
             onFilesChange={(allFiles) => {

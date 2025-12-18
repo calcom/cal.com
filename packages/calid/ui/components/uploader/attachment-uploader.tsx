@@ -23,7 +23,7 @@ export interface FileData {
   id: string;
 }
 
-interface FileUploaderProps {
+interface AttachmentUploaderProps {
   id: string;
   onFilesChange: (allFiles: FileData[], newFiles: FileData[], removedFiles: FileData[]) => void;
   acceptedFileTypes?: TAcceptedFileTypes[];
@@ -35,16 +35,6 @@ interface FileUploaderProps {
 
 type TAcceptedFileTypes = "images" | "csv" | "documents";
 
-const documentTypes = [
-  "application/pdf",
-  "text/plain",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "text/csv",
-];
-
 const acceptFileTypes: Record<TAcceptedFileTypes, { types: string[]; extensions: string[] }> = {
   images: {
     types: ["image/png", "image/jpeg"],
@@ -55,7 +45,15 @@ const acceptFileTypes: Record<TAcceptedFileTypes, { types: string[]; extensions:
     extensions: [".csv"],
   },
   documents: {
-    types: documentTypes,
+    types: [
+      "application/pdf",
+      "text/plain",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "text/csv",
+    ],
     extensions: [".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx", ".csv"],
   },
 };
@@ -72,7 +70,7 @@ const defaultAcceptedFileTypes = ["images", "csv", "documents"] as TAcceptedFile
 
 const MAX_TOTAL_BYTES = 1 * 1024 * 1024;
 
-export default function FileUploader({
+export default function AttachmentUploader({
   id,
   onFilesChange,
   acceptedFileTypes = defaultAcceptedFileTypes,
@@ -80,7 +78,7 @@ export default function FileUploader({
   maxAllowedFiles = 1,
   disabled,
   testId,
-}: FileUploaderProps) {
+}: AttachmentUploaderProps) {
   const { t } = useLocale();
   const [files, setFiles] = useState<FileData[]>([]);
   const [isDragging, setIsDragging] = useState(false);

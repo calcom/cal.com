@@ -299,13 +299,47 @@ export function BookingExpandedCard(props: BookingItemProps) {
                   <div className="flex flex-col justify-between" key={index}>
                     <h3 className="text-default text-sm font-medium">{label}</h3>
                     <div className="text-default text-sm">
-                      {Array.isArray(value)
-                        ? value.join(", ")
-                        : typeof value === "boolean"
-                        ? value
-                          ? "Yes"
-                          : "No"
-                        : value.toString()}
+                      {(() => {
+                        const renderValue = (val: any) => {
+                          if (Array.isArray(val)) {
+                            if (val.length === 0) return null;
+                            if (typeof val[0] === "object" && val[0] !== null && "url" in val[0]) {
+                              return (
+                                <ul className="list-inside list-disc">
+                                  {val.map((item: any, i: number) => (
+                                    <li key={i}>
+                                      <a
+                                        href={item.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline">
+                                        {item.name || "Attachment"}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              );
+                            }
+                            return val.join(", ");
+                          }
+                          if (typeof val === "object" && val !== null && "url" in val) {
+                            return (
+                              <a
+                                href={val.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline">
+                                {val.name || "Attachment"}
+                              </a>
+                            );
+                          }
+                          if (typeof val === "boolean") {
+                            return val ? t("yes") : t("no");
+                          }
+                          return val.toString();
+                        };
+                        return renderValue(value);
+                      })()}
                     </div>
                   </div>
                 ))}
