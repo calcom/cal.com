@@ -5,22 +5,22 @@ const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 
 // Top-level route names that are explicitly allowed for org rewrite (whitelist)
 
-const topLevelRouteNamesWhitelistedForRewrite = exports.topLevelRouteNamesWhitelistedForRewrite = [
+const topLevelRouteNamesWhitelistedForRewrite = (exports.topLevelRouteNamesWhitelistedForRewrite = [
   // We don't allow all dashboard route names to be used as slug because people are probably accustomed to access links like acme.cal.com/workflows, acme.cal.com/event-types etc.
   // So, we carefully allow, what is absolutely needed.
   // Allowed to be a team/user slug in organization because onboarding is a common team name
-  'onboarding',
-]
+  "onboarding",
+]);
 
 /**
  * Extracts top-level route names from all pages/app files and excludes them from org rewrite.
  * For example: /abc/def/ghi -> 'abc'
- * 
+ *
  * These top-level route names are excluded from rewrites in beforeFiles in next.config.js
  * to prevent conflicts with organization slug rewrites.
  */
 /* eslint-disable no-undef */
-let topLevelRoutesExcludedFromOrgRewrite = exports.topLevelRoutesExcludedFromOrgRewrite = glob
+let topLevelRoutesExcludedFromOrgRewrite = (exports.topLevelRoutesExcludedFromOrgRewrite = glob
   .sync(
     "{pages,app,app/(booking-page-wrapper),app/(use-page-wrapper),app/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}",
     {
@@ -58,7 +58,7 @@ let topLevelRoutesExcludedFromOrgRewrite = exports.topLevelRoutesExcludedFromOrg
   )
   .filter((page) => {
     return !topLevelRouteNamesWhitelistedForRewrite.includes(page);
-  });
+  }));
 
 // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
 // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
@@ -76,7 +76,10 @@ exports.nextJsOrgRewriteConfig = nextJsOrgRewriteConfig;
 function getRegExpMatchingAllReservedRoutes(suffix) {
   // Following routes don't exist but they work by doing rewrite. Thus they need to be excluded from matching the orgRewrite patterns
   // Make sure to keep it upto date as more nonExistingRouteRewrites are added.
-  const otherNonExistingRoutePrefixes = ["forms", "router", "success", "cancel"];
+  // "app" is reserved for the Cal.com Companion landing page served by Framer at cal.com/app.
+  // The browser extension redirects users to cal.com/app when clicked on restricted pages (like chrome://newtab).
+  // Without this reservation, /app would be treated as a username lookup and show "username available" error.
+  const otherNonExistingRoutePrefixes = ["forms", "router", "success", "cancel", "app"];
 
   // Most files/dirs in public dir must not be rewritten to org pages. Ideally it should be all the content of public dir, but that can be done later
   // It is important to exclude the embed pages separately here because with SINGLE_ORG_SLUG enabled, the entire domain is eligible for rewrite vs just the org subdomain otherwise

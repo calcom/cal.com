@@ -1,6 +1,6 @@
+import type { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
+import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import logger from "@calcom/lib/logger";
-import type { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { SystemReportStatus, WatchlistType } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
@@ -64,7 +64,9 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
 
   protected async findReports(
     reportIds: string[]
-  ): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null; globalWatchlistId: string | null }>> {
+  ): Promise<
+    Array<{ id: string; bookerEmail: string; watchlistId: string | null; globalWatchlistId: string | null }>
+  > {
     const reports = await this.deps.bookingReportRepo.findReportsByIds({
       reportIds,
     });
