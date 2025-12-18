@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
@@ -45,7 +45,6 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
     onDelete,
     isSubmitting,
   } = props;
-  console.log(sync);
 
   const { t } = useLocale();
   const isCreateMode = !sync;
@@ -57,7 +56,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
       ? {
           id: sync.id,
           name: sync.name,
-          credentialId: sync.credentialId ?? 0,
+          credentialId: sync.credentialId ?? undefined,
           enabled: sync.enabled,
           organizationId: sync.organizationId,
           ruleId: sync.attributeSyncRules[0]?.id || "",
@@ -67,7 +66,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
       : {
           id: "",
           name: t("attribute_sync_new_integration_sync"),
-          credentialId: 0,
+          credentialId: undefined,
           enabled: true,
           organizationId,
           ruleId: "",
@@ -82,7 +81,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
       form.reset({
         id: sync.id,
         name: sync.name,
-        credentialId: sync.credentialId ?? 0,
+        credentialId: sync.credentialId ?? undefined,
         enabled: sync.enabled,
         organizationId: sync.organizationId,
         ruleId: sync.attributeSyncRules[0]?.id || "",
@@ -157,7 +156,15 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                   <Controller
                     name="credentialId"
                     control={form.control}
-                    rules={{ required: t("attribute_sync_credential_required") }}
+                    rules={{
+                      required: t("attribute_sync_credential_required"),
+                      validate: (value) => {
+                        if (!value || value <= 0) {
+                          return t("attribute_sync_credential_validation");
+                        }
+                        return true;
+                      },
+                    }}
                     render={({ field, fieldState }) => (
                       <>
                         <SelectField
@@ -231,9 +238,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                     </>
                   )}
                 />
-                <p className="text-subtle mt-1 text-xs">
-                  {t("attribute_sync_field_mappings_description")}
-                </p>
+                <p className="text-subtle mt-1 text-xs">{t("attribute_sync_field_mappings_description")}</p>
               </div>
 
               <div className="border-subtle flex justify-end gap-2 border-t pt-4">
