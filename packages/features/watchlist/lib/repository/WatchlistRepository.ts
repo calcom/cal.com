@@ -342,8 +342,8 @@ export class WatchlistRepository implements IWatchlistRepository {
     offset: number;
     searchTerm?: string;
     filters?: {
-      type?: FindAllEntriesInput["filters"]["type"];
-      source?: FindAllEntriesInput["filters"]["source"];
+      type?: NonNullable<FindAllEntriesInput["filters"]>["type"];
+      source?: NonNullable<FindAllEntriesInput["filters"]>["source"];
     };
   }): Promise<{
     rows: (WatchlistEntry & {
