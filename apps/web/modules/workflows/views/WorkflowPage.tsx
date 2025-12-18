@@ -8,8 +8,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { DeleteDialog } from "@calcom/features/ee/workflows/components/DeleteDialog";
-import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderEdit";
 import {
   isSMSAction,
   isSMSOrWhatsappAction,
@@ -40,7 +38,10 @@ import { Form, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import WorkflowDetailsPage from "@calcom/web/modules/workflows/components/WorkflowDetailsPage";
+
+import { DeleteDialog } from "../components/DeleteDialog";
+import SkeletonLoader from "../components/SkeletonLoaderEdit";
+import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 
 export type FormValues = {
   name: string;

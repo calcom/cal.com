@@ -6,7 +6,6 @@ import { useFormContext } from "react-hook-form";
 import type { WorkflowType } from "@calcom/ee/workflows/lib/types";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoaderEventWorkflowsTab";
 import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -24,6 +23,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
+import SkeletonLoader from "@calcom/web/modules/workflows/components/SkeletonLoaderEventWorkflowsTab";
 
 type PartialWorkflowType = Pick<
   WorkflowType,
