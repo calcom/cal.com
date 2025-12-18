@@ -19,6 +19,8 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -31,7 +33,7 @@ export const config = {
   },
 };
 
-export async function handleStripePaymentSuccess(event: Stripe.Event) {
+export async function handleStripePaymentSuccess(event: Stripe.Event, traceContext: TraceContext) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -67,10 +69,10 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
     }
   }
 
-  await handlePaymentSuccess(payment.id, payment.bookingId);
+  await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
 }
 
-const handleSetupSuccess = async (event: Stripe.Event) => {
+const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContext) => {
   const setupIntent = event.data.object as Stripe.SetupIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -92,6 +94,10 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       `Failed to cancel awaiting payment task - email may still be sent but will be suppressed by task handler`
     );
   }
+
+  const updatedTraceContext = distributedTracing.updateTrace(traceContext, {
+    bookingId: booking.id,
+  });
 
   const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
@@ -156,6 +162,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       booking,
       paid: true,
       platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
+      traceContext: updatedTraceContext,
     });
   } else if (areEmailsEnabled) {
     await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);
@@ -163,7 +170,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   }
 };
 
-type WebhookHandler = (event: Stripe.Event) => Promise<void>;
+type WebhookHandler = (event: Stripe.Event, traceContext: TraceContext) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handleStripePaymentSuccess,
@@ -193,6 +200,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
+    const traceContext = distributedTracing.createTrace(`stripe_webhook`, {
+      meta: {
+        eventType: event.type,
+        eventId: event.id,
+      },
+    });
+
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
     if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
@@ -201,7 +215,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const handler = webhookHandlers[event.type];
     if (handler) {
-      await handler(event);
+      await handler(event, traceContext);
     } else {
       /** Not really an error, just letting Stripe know that the webhook was received but unhandled */
       throw new HttpCode({
