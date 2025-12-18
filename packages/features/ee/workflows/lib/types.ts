@@ -1,3 +1,5 @@
+import type { Retell } from "retell-sdk";
+
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
@@ -124,3 +126,23 @@ export type WorkflowType = Workflow & {
   permissions?: WorkflowPermissions;
   isOrg?: boolean;
 };
+
+export type CallData = Retell.WebCallResponse | Retell.PhoneCallResponse;
+
+export type CallDetailsPayload = {
+  showModal: boolean;
+  selectedCall?: CallData;
+};
+
+export type CallDetailsState = {
+  callDetailsSheet: CallDetailsPayload;
+};
+
+export type CallDetailsAction =
+  | {
+      type: "OPEN_CALL_DETAILS";
+      payload: CallDetailsPayload;
+    }
+  | {
+      type: "CLOSE_MODAL";
+    };

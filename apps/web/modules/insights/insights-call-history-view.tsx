@@ -15,7 +15,7 @@ import {
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/components/types";
+import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/lib/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
