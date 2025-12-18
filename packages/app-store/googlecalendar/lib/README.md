@@ -1,14 +1,14 @@
-# Google Calendar Service - Batching de Disponibilidade
+# Google Calendar Service - Availability Batching
 
-## Visao Geral
+## Overview
 
-O `CalendarService` do Google Calendar implementa uma estrategia otimizada para buscar disponibilidade de calendarios, lidando com as limitacoes da API do Google Calendar de forma eficiente.
+The Google Calendar `CalendarService` implements an optimized strategy for fetching calendar availability, efficiently handling Google Calendar API limitations.
 
-## Como Funciona
+## How It Works
 
-### Fluxo Principal de Disponibilidade
+### Main Availability Flow
 
-O metodo `getAvailability()` e o ponto de entrada principal para buscar horarios ocupados dos calendarios do usuario:
+The `getAvailability()` method is the main entry point for fetching busy times from user calendars:
 
 ```typescript
 async getAvailability(
@@ -19,19 +19,19 @@ async getAvailability(
 ): Promise<EventBusyDate[]>
 ```
 
-#### Etapas do Processo:
+#### Process Steps:
 
-1. **Filtragem de Calendarios**: Filtra apenas calendarios do tipo `google_calendar` da lista de calendarios selecionados
+1. **Calendar Filtering**: Filters only `google_calendar` type calendars from the selected calendars list
 
-2. **Early Return**: Se nenhum calendario Google foi selecionado (apenas outras integracoes), retorna array vazio imediatamente
+2. **Early Return**: If no Google calendars are selected (only other integrations), returns an empty array immediately
 
-3. **Obtencao de IDs**: Chama `getCalendarIds()` para obter os IDs dos calendarios a serem consultados
+3. **ID Retrieval**: Calls `getCalendarIds()` to get the calendar IDs to be queried
 
-4. **Busca de Dados**: Chama `fetchAvailabilityData()` para buscar os horarios ocupados
+4. **Data Fetching**: Calls `fetchAvailabilityData()` to fetch busy times
 
-### Logica de Fallback para Calendario Primario
+### Primary Calendar Fallback Logic
 
-O metodo `getCalendarIds()` implementa a logica de fallback:
+The `getCalendarIds()` method implements the fallback logic:
 
 ```typescript
 private async getCalendarIds(
@@ -40,13 +40,13 @@ private async getCalendarIds(
 ): Promise<string[]>
 ```
 
-- Se ha calendarios selecionados, retorna esses IDs diretamente
-- Se nao ha calendarios selecionados e `fallbackToPrimary` e `true`, retorna apenas o calendario primario
-- Se nao ha calendarios selecionados e `fallbackToPrimary` e `false`, retorna todos os calendarios validos
+- If there are selected calendars, returns those IDs directly
+- If there are no selected calendars and `fallbackToPrimary` is `true`, returns only the primary calendar
+- If there are no selected calendars and `fallbackToPrimary` is `false`, returns all valid calendars
 
-### Batching por Periodo de 90 Dias
+### 90-Day Period Batching
 
-A API do Google Calendar tem uma limitacao de **90 dias** para consultas de FreeBusy. O metodo `fetchAvailabilityData()` lida com isso automaticamente:
+The Google Calendar API has a **90-day** limitation for FreeBusy queries. The `fetchAvailabilityData()` method handles this automatically:
 
 ```typescript
 private async fetchAvailabilityData(
@@ -56,30 +56,30 @@ private async fetchAvailabilityData(
 ): Promise<EventBusyDate[]>
 ```
 
-#### Logica de Chunking:
+#### Chunking Logic:
 
-1. **Calculo da Diferenca**: Calcula a diferenca em dias entre `dateFrom` e `dateTo`
+1. **Difference Calculation**: Calculates the difference in days between `dateFrom` and `dateTo`
 
-2. **Periodo <= 90 dias**: Faz uma unica chamada a API FreeBusy
+2. **Period <= 90 days**: Makes a single call to the FreeBusy API
 
-3. **Periodo > 90 dias**: Divide em chunks de 90 dias e faz multiplas chamadas:
-   - Calcula o numero de loops necessarios: `Math.ceil(diff / 90)`
-   - Para cada chunk, ajusta `timeMin` e `timeMax`
-   - Adiciona 1 minuto entre chunks para evitar sobreposicao
-   - Concatena todos os resultados em um unico array
+3. **Period > 90 days**: Splits into 90-day chunks and makes multiple calls:
+   - Calculates the number of loops needed: `Math.ceil(diff / 90)`
+   - For each chunk, adjusts `timeMin` and `timeMax`
+   - Adds 1 minute between chunks to avoid overlap
+   - Concatenates all results into a single array
 
-### Exemplo de Chunking
+### Chunking Example
 
-Para um periodo de 200 dias:
-- **Chunk 1**: Dias 1-90
-- **Chunk 2**: Dias 90-180
-- **Chunk 3**: Dias 180-200
+For a 200-day period:
+- **Chunk 1**: Days 1-90
+- **Chunk 2**: Days 90-180
+- **Chunk 3**: Days 180-200
 
-## Metodos Auxiliares
+## Helper Methods
 
 ### `getFreeBusyData()`
 
-Faz a chamada real a API FreeBusy do Google e transforma a resposta:
+Makes the actual call to the Google FreeBusy API and transforms the response:
 
 ```typescript
 async getFreeBusyData(args: FreeBusyArgs): Promise<(EventBusyDate & { id: string })[] | null>
@@ -87,7 +87,7 @@ async getFreeBusyData(args: FreeBusyArgs): Promise<(EventBusyDate & { id: string
 
 ### `convertFreeBusyToEventBusyDates()`
 
-Converte a resposta da API FreeBusy para o formato `EventBusyDate[]`:
+Converts the FreeBusy API response to the `EventBusyDate[]` format:
 
 ```typescript
 private convertFreeBusyToEventBusyDates(
@@ -97,7 +97,7 @@ private convertFreeBusyToEventBusyDates(
 
 ### `getAvailabilityWithTimeZones()`
 
-Versao alternativa que inclui informacoes de timezone nos resultados:
+Alternative version that includes timezone information in the results:
 
 ```typescript
 async getAvailabilityWithTimeZones(
@@ -108,7 +108,7 @@ async getAvailabilityWithTimeZones(
 ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>
 ```
 
-## Estrutura de Dados
+## Data Structures
 
 ### FreeBusyArgs
 
@@ -129,22 +129,22 @@ type EventBusyDate = {
 };
 ```
 
-## Consideracoes de Performance
+## Performance Considerations
 
-1. **Calculo de Datas Nativo**: Usa `Date` nativo ao inves de bibliotecas como `dayjs` para melhor performance
+1. **Native Date Calculation**: Uses native `Date` instead of libraries like `dayjs` for better performance
 
-2. **Paginacao de Calendarios**: O metodo `getAllCalendars()` usa paginacao com `maxResults: 250` (maximo permitido pela API)
+2. **Calendar Pagination**: The `getAllCalendars()` method uses pagination with `maxResults: 250` (maximum allowed by the API)
 
-3. **Chamadas Paralelas**: Cada chunk de 90 dias e processado sequencialmente para evitar rate limiting
+3. **Sequential Processing**: Each 90-day chunk is processed sequentially to avoid rate limiting
 
-## Tratamento de Erros
+## Error Handling
 
-- Erros sao logados com contexto completo usando `safeStringify`
-- Excecoes sao propagadas para o chamador para tratamento adequado
-- Se a API retorna `null`, uma excecao e lancada com mensagem descritiva
+- Errors are logged with full context using `safeStringify`
+- Exceptions are propagated to the caller for proper handling
+- If the API returns `null`, an exception is thrown with a descriptive message
 
-## Integracao com Delegation Credentials
+## Delegation Credentials Integration
 
-O servico suporta delegation credentials atraves do campo `delegationCredentialId` nos calendarios selecionados. Isso permite que administradores de dominio acessem calendarios de outros usuarios na organizacao.
+The service supports delegation credentials through the `delegationCredentialId` field in selected calendars. This allows domain administrators to access calendars of other users in the organization.
 
-A autenticacao e gerenciada pela classe `CalendarAuth`, que lida com tokens OAuth e refresh automatico.
+Authentication is managed by the `CalendarAuth` class, which handles OAuth tokens and automatic refresh.
