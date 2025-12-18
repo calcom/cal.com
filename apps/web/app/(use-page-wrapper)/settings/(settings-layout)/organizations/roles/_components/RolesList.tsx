@@ -54,17 +54,14 @@ interface RolesListProps {
 export function RolesList({
   roles,
   permissions,
-  initialSelectedRole,
-  initialSheetOpen,
+  initialSelectedRole: _initialSelectedRole,
+  initialSheetOpen: _initialSheetOpen,
   teamId,
   scope,
   isPrivate,
 }: RolesListProps) {
   const { t } = useLocale();
-  const { isOpen, setIsOpen, selectedRoleId, setSelectedRoleId, handleSheetOpenChange } = useRoleStates(
-    initialSheetOpen,
-    initialSelectedRole?.id
-  );
+  const { isOpen, setIsOpen, selectedRoleId, setSelectedRoleId, handleSheetOpenChange } = useRoleStates();
 
   const selectedRole = roles.find((role) => role.id === selectedRoleId);
 
