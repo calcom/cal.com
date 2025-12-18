@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { OAuthService } from "@/lib/services/oauth.service";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -7,12 +8,24 @@ import { OAuth2ExchangeInput } from "@/modules/auth/oauth2/inputs/exchange.input
 import { OAuth2RefreshInput } from "@/modules/auth/oauth2/inputs/refresh.input";
 import { OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
 import { OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
-import { OAuth2Service } from "@/modules/auth/oauth2/services/oauth2.service";
-import { Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Res, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+  Param,
+  Post,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiExcludeController, ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { Response } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { HttpError } from "@calcom/platform-libraries";
 
 @Controller({
   path: "/v2/auth/oauth2/clients/:clientId",
@@ -21,7 +34,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 @ApiExcludeController(true)
 @ApiTags("Auth / OAuth2")
 export class OAuth2Controller {
-  constructor(private readonly oauth2Service: OAuth2Service) {}
+  constructor(private readonly oAuthService: OAuthService) {}
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
@@ -31,16 +44,20 @@ export class OAuth2Controller {
     description: "Returns the OAuth2 client information for the given client ID",
   })
   async getClient(@Param("clientId") clientId: string): Promise<OAuth2ClientResponseDto> {
-    const client = await this.oauth2Service.getClient(clientId);
+    try {
+      const client = await this.oAuthService.getClient(clientId);
 
-    if (!client) {
-      throw new NotFoundException(`OAuth client with ID '${clientId}' not found`);
+      return {
+        status: SUCCESS_STATUS,
+        data: client,
+      };
+    } catch (err) {
+      if (err instanceof HttpError) {
+        const httpError = err as HttpError;
+        throw new HttpException(httpError.message, httpError.statusCode);
+      }
     }
-
-    return {
-      status: SUCCESS_STATUS,
-      data: client,
-    };
+    throw new InternalServerErrorException("Could not get oAuthClient");
   }
 
   @Post("/authorize")
@@ -57,15 +74,10 @@ export class OAuth2Controller {
     @GetUser("id") userId: number,
     @Res() res: Response
   ): Promise<void> {
-    const client = await this.oauth2Service.getClient(clientId);
-
-    if (!client) {
-      throw new NotFoundException(`OAuth client with ID '${clientId}' not found`);
-    }
-
     try {
-      const result = await this.oauth2Service.generateAuthorizationCode(
-        clientId,
+      const client = await this.oAuthService.getClient(clientId);
+      const result = await this.oAuthService.generateAuthorizationCode(
+        client.clientId,
         userId,
         body.redirectUri,
         body.scopes,
@@ -74,11 +86,9 @@ export class OAuth2Controller {
         body.codeChallenge,
         body.codeChallengeMethod
       );
-
       return res.redirect(303, result.redirectUrl);
-    } catch (error) {
-      const errorRedirectUrl = this.oauth2Service.buildErrorRedirectUrl(body.redirectUri, error, body.state);
-
+    } catch (err) {
+      const errorRedirectUrl = this.oAuthService.buildErrorRedirectUrl(body.redirectUri, err, body.state);
       return res.redirect(303, errorRedirectUrl);
     }
   }
@@ -93,18 +103,25 @@ export class OAuth2Controller {
     @Param("clientId") clientId: string,
     @Body() body: OAuth2ExchangeInput
   ): Promise<OAuth2TokensResponseDto> {
-    const tokens = await this.oauth2Service.exchangeCodeForTokens(
-      clientId,
-      body.code,
-      body.clientSecret,
-      body.redirectUri,
-      body.codeVerifier
-    );
-
-    return {
-      status: SUCCESS_STATUS,
-      data: tokens,
-    };
+    try {
+      const tokens = await this.oAuthService.exchangeCodeForTokens(
+        clientId,
+        body.code,
+        body.clientSecret,
+        body.redirectUri,
+        body.codeVerifier
+      );
+      return {
+        status: SUCCESS_STATUS,
+        data: tokens,
+      };
+    } catch (err) {
+      if (err instanceof HttpError) {
+        const httpError = err as HttpError;
+        throw new HttpException(httpError.message, httpError.statusCode);
+      }
+    }
+    throw new InternalServerErrorException("Could not exchange code for tokens");
   }
 
   @Post("/refresh")
@@ -117,16 +134,23 @@ export class OAuth2Controller {
     @Param("clientId") clientId: string,
     @Body() body: OAuth2RefreshInput
   ): Promise<OAuth2TokensResponseDto> {
-    const tokens = await this.oauth2Service.refreshAccessToken(
-      clientId,
-      body.refreshToken,
-      body.clientSecret,
-      body.codeVerifier
-    );
-
-    return {
-      status: SUCCESS_STATUS,
-      data: tokens,
-    };
+    try {
+      const tokens = await this.oAuthService.refreshAccessToken(
+        clientId,
+        body.refreshToken,
+        body.clientSecret,
+        body.codeVerifier
+      );
+      return {
+        status: SUCCESS_STATUS,
+        data: tokens,
+      };
+    } catch (err) {
+      if (err instanceof HttpError) {
+        const httpError = err as HttpError;
+        throw new HttpException(httpError.message, httpError.statusCode);
+      }
+    }
+    throw new InternalServerErrorException("Could not refresh tokens");
   }
 }

@@ -1,13 +1,10 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseUrlFormData } from "app/api/parseRequestData";
-import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
-import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
-import prisma from "@calcom/prisma";
-import type { OAuthTokenPayload } from "@calcom/types/oauth";
+import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
+import { HttpError } from "@calcom/lib/http-error";
 
 async function handler(req: NextRequest) {
   const { client_id, client_secret, grant_type, refresh_token, code_verifier } = await parseUrlFormData(req);
@@ -23,97 +20,38 @@ async function handler(req: NextRequest) {
   if (grant_type !== "refresh_token") {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
-
-  const oAuthClientRepository = new OAuthClientRepository(prisma);
-
-  const client = await oAuthClientRepository.findByClientId(client_id);
-
-  if (!client) {
-    return NextResponse.json({ error: "invalid_client" }, { status: 401 });
-  }
-
-  const isValidClient = OAuthService.validateClient(client, client_secret);
-
-  if (!isValidClient) {
-    return NextResponse.json({ error: "invalid_client" }, { status: 401 });
-  }
-
-  const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
-
-  let decodedRefreshToken: OAuthTokenPayload;
-
   try {
-    const refreshTokenValue = refresh_token || req.headers.get("authorization")?.split(" ")[1] || "";
+    const oAuthService = getOAuthService();
+    const tokens = await oAuthService.refreshAccessToken(
+      client_id,
+      refresh_token,
+      client_secret,
+      code_verifier
+    );
 
-    if (!refreshTokenValue) {
-      return NextResponse.json({ error: "invalid_request" }, { status: 400 });
-    }
-
-    decodedRefreshToken = jwt.verify(refreshTokenValue, secretKey) as OAuthTokenPayload;
-  } catch {
-    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
-  }
-
-  if (!decodedRefreshToken || decodedRefreshToken.token_type !== "Refresh Token") {
-    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
-  }
-
-  if (decodedRefreshToken.clientId !== client_id) {
-    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
-  }
-
-  const pkceError = OAuthService.verifyPKCE(client, decodedRefreshToken, code_verifier);
-  if (pkceError) {
-    return NextResponse.json({ error: pkceError.error }, { status: pkceError.status });
-  }
-
-  const accessTokenExpiresIn = 1800; // 30 minutes
-
-  const payloadAuthToken: OAuthTokenPayload = {
-    userId: decodedRefreshToken.userId,
-    teamId: decodedRefreshToken.teamId,
-    scope: decodedRefreshToken.scope,
-    token_type: "Access Token",
-    clientId: client_id,
-  };
-
-  const payloadRefreshToken: OAuthTokenPayload = {
-    userId: decodedRefreshToken.userId,
-    teamId: decodedRefreshToken.teamId,
-    scope: decodedRefreshToken.scope,
-    token_type: "Refresh Token",
-    clientId: client_id,
-    // Preserve PKCE information for any client that used PKCE originally
-    ...(decodedRefreshToken.codeChallenge && {
-      codeChallenge: decodedRefreshToken.codeChallenge,
-      codeChallengeMethod: decodedRefreshToken.codeChallengeMethod,
-    }),
-  };
-
-  const access_token = jwt.sign(payloadAuthToken, secretKey, {
-    expiresIn: accessTokenExpiresIn,
-  });
-
-  const refresh_token_new = jwt.sign(payloadRefreshToken, secretKey, {
-    expiresIn: 30 * 24 * 60 * 60, // 30 days
-  });
-
-  return NextResponse.json(
-    {
-      access_token,
-      token_type: "bearer",
-      refresh_token: refresh_token_new,
-      expires_in: accessTokenExpiresIn,
-    },
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        "Cache-Control": "no-store",
-        Pragma: "no-cache",
+    return NextResponse.json(
+      {
+        access_token: tokens.accessToken,
+        token_type: "bearer",
+        refresh_token: tokens.refreshToken,
+        expires_in: tokens.expiresIn,
       },
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "Cache-Control": "no-store",
+          Pragma: "no-cache",
+        },
+      }
+    );
+  } catch (err) {
+    if (err instanceof HttpError) {
+      return NextResponse.json({ error: err.message }, { status: err.statusCode });
     }
-  );
+  }
+
+  return NextResponse.json({ error: "error_refresh_tokens" }, { status: 500 });
 }
 
 export const POST = defaultResponderForAppDir(handler);

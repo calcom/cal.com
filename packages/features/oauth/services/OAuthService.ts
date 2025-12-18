@@ -58,11 +58,11 @@ export class OAuthService {
     this.oAuthClientRepository = deps.oAuthClientRepository;
   }
 
-  async getClient(clientId: string): Promise<OAuth2Client | null> {
+  async getClient(clientId: string): Promise<OAuth2Client> {
     const client = await this.oAuthClientRepository.findByClientId(clientId);
 
     if (!client) {
-      return null;
+      throw new HttpError({ message: `OAuth client with ID '${clientId}' not found`, statusCode: 404 });
     }
 
     return {
