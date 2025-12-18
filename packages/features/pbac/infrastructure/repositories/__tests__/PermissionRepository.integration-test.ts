@@ -62,7 +62,11 @@ describe("PermissionRepository - Integration Tests", () => {
     await prisma.role.deleteMany({
       where: { id: testRoleId },
     });
-    await featuresRepository.setTeamFeatureState(testTeamId, "pbac" as FeatureId, "inherit", "test-cleanup");
+    await featuresRepository.setTeamFeatureState({
+      teamId: testTeamId,
+      featureId: "pbac" as FeatureId,
+      state: "inherit",
+    });
     await prisma.team.deleteMany({
       where: { id: testTeamId },
     });
@@ -342,7 +346,12 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should return team IDs for PBAC-enabled team with matching permissions", async () => {
       // Enable PBAC for the team
-      await featuresRepository.setTeamFeatureState(testTeamId, "pbac" as FeatureId, "enabled", "test");
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
+      });
 
       // Create membership with custom role
       const membership = await prisma.membership.create({
@@ -381,7 +390,12 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should not return team IDs when permissions do not match", async () => {
       // Enable PBAC for the team
-      await featuresRepository.setTeamFeatureState(testTeamId, "pbac" as FeatureId, "enabled", "test");
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
+      });
 
       // Create membership with custom role
       await prisma.membership.create({
@@ -472,7 +486,12 @@ describe("PermissionRepository - Integration Tests", () => {
       });
 
       // Enable PBAC for org
-      await featuresRepository.setTeamFeatureState(org.id, "pbac" as FeatureId, "enabled", "test");
+      await featuresRepository.setTeamFeatureState({
+        teamId: org.id,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
+      });
 
       // Create org role
       const orgRole = await prisma.role.create({
@@ -528,7 +547,11 @@ describe("PermissionRepository - Integration Tests", () => {
       await prisma.rolePermission.deleteMany({ where: { roleId: orgRole.id } });
       await prisma.membership.deleteMany({ where: { userId: testUserId } });
       await prisma.role.deleteMany({ where: { id: orgRole.id } });
-      await featuresRepository.setTeamFeatureState(org.id, "pbac" as FeatureId, "inherit", "test-cleanup");
+      await featuresRepository.setTeamFeatureState({
+        teamId: org.id,
+        featureId: "pbac" as FeatureId,
+        state: "inherit",
+      });
       await prisma.team.deleteMany({ where: { id: { in: [org.id, childTeam.id] } } });
     });
 
@@ -580,7 +603,12 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should handle wildcard permissions for PBAC teams", async () => {
       // Enable PBAC for the team
-      await featuresRepository.setTeamFeatureState(testTeamId, "pbac" as FeatureId, "enabled", "test");
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
+      });
 
       // Create membership with custom role
       const membership = await prisma.membership.create({
@@ -619,7 +647,12 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should require all permissions to match (not just some)", async () => {
       // Enable PBAC for the team
-      await featuresRepository.setTeamFeatureState(testTeamId, "pbac" as FeatureId, "enabled", "test");
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
+      });
 
       // Create membership with custom role
       await prisma.membership.create({
@@ -652,7 +685,12 @@ describe("PermissionRepository - Integration Tests", () => {
 
     it("should not return teams for non-accepted memberships", async () => {
       // Enable PBAC for the team
-      await featuresRepository.setTeamFeatureState(testTeamId, "pbac" as FeatureId, "enabled", "test");
+      await featuresRepository.setTeamFeatureState({
+        teamId: testTeamId,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
+      });
 
       // Create membership with accepted: false
       await prisma.membership.create({
@@ -716,8 +754,18 @@ describe("PermissionRepository - Integration Tests", () => {
 
       // Enable PBAC for both teams
       await Promise.all([
-        featuresRepository.setTeamFeatureState(team1.id, "pbac" as FeatureId, "enabled", "test"),
-        featuresRepository.setTeamFeatureState(team2.id, "pbac" as FeatureId, "enabled", "test"),
+        featuresRepository.setTeamFeatureState({
+          teamId: team1.id,
+          featureId: "pbac" as FeatureId,
+          state: "enabled",
+          assignedBy: "test",
+        }),
+        featuresRepository.setTeamFeatureState({
+          teamId: team2.id,
+          featureId: "pbac" as FeatureId,
+          state: "enabled",
+          assignedBy: "test",
+        }),
       ]);
 
       // Create memberships for both teams
@@ -784,8 +832,16 @@ describe("PermissionRepository - Integration Tests", () => {
       await prisma.membership.deleteMany({ where: { userId: testUserId } });
       await prisma.role.deleteMany({ where: { id: { in: [role1.id, role2.id] } } });
       await Promise.all([
-        featuresRepository.setTeamFeatureState(team1.id, "pbac" as FeatureId, "inherit", "test-cleanup"),
-        featuresRepository.setTeamFeatureState(team2.id, "pbac" as FeatureId, "inherit", "test-cleanup"),
+        featuresRepository.setTeamFeatureState({
+          teamId: team1.id,
+          featureId: "pbac" as FeatureId,
+          state: "inherit",
+        }),
+        featuresRepository.setTeamFeatureState({
+          teamId: team2.id,
+          featureId: "pbac" as FeatureId,
+          state: "inherit",
+        }),
       ]);
       await prisma.team.deleteMany({ where: { id: { in: [team1.id, team2.id] } } });
     });
@@ -816,7 +872,12 @@ describe("PermissionRepository - Integration Tests", () => {
       });
 
       // Enable PBAC for first team only
-      await featuresRepository.setTeamFeatureState(team1.id, "pbac" as FeatureId, "enabled", "test");
+      await featuresRepository.setTeamFeatureState({
+        teamId: team1.id,
+        featureId: "pbac" as FeatureId,
+        state: "enabled",
+        assignedBy: "test",
+      });
 
       // Create PBAC membership
       const pbacMembership = await prisma.membership.create({
@@ -868,7 +929,11 @@ describe("PermissionRepository - Integration Tests", () => {
       await prisma.rolePermission.deleteMany({ where: { roleId: role1.id } });
       await prisma.membership.deleteMany({ where: { userId: testUserId } });
       await prisma.role.deleteMany({ where: { id: role1.id } });
-      await featuresRepository.setTeamFeatureState(team1.id, "pbac" as FeatureId, "inherit", "test-cleanup");
+      await featuresRepository.setTeamFeatureState({
+        teamId: team1.id,
+        featureId: "pbac" as FeatureId,
+        state: "inherit",
+      });
       await prisma.team.deleteMany({ where: { id: { in: [team1.id, team2.id] } } });
     });
 

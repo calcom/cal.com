@@ -14,11 +14,15 @@ type UnassignFeatureOptions = {
 };
 
 export const unassignFeatureFromTeamHandler = async ({ ctx, input }: UnassignFeatureOptions) => {
-  const { prisma, user } = ctx;
+  const { prisma } = ctx;
   const { teamId, featureId } = input;
 
   const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState(teamId, featureId as FeatureId, "inherit", `user:${user.id}`);
+  await featuresRepository.setTeamFeatureState({
+    teamId,
+    featureId: featureId as FeatureId,
+    state: "inherit",
+  });
 
   return { success: true };
 };

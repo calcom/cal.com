@@ -40,7 +40,12 @@ describe("SelectedCalendarRepository", () => {
       });
 
       const featuresRepository = new FeaturesRepository(prismock);
-      await featuresRepository.setTeamFeatureState(team.id, "calendar-cache" as FeatureId, "disabled", "test");
+      await featuresRepository.setTeamFeatureState({
+        teamId: team.id,
+        featureId: "calendar-cache" as FeatureId,
+        state: "disabled",
+        assignedBy: "test",
+      });
 
       await prisma.selectedCalendar.create({
         data: {

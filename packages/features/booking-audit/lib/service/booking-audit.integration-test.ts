@@ -5,11 +5,11 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
-import type { BookingAuditViewerService } from "./BookingAuditViewerService";
 import { makeUserActor } from "../../../bookings/lib/types/actor";
 import { getBookingAuditTaskConsumer } from "../../di/BookingAuditTaskConsumer.container";
 import { getBookingAuditViewerService } from "../../di/BookingAuditViewerService.container";
+import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
+import type { BookingAuditViewerService } from "./BookingAuditViewerService";
 
 const generateUniqueId = () => {
   const timestamp = Date.now();
@@ -115,12 +115,12 @@ const enableFeatureForOrganization = async (organizationId: number, featureSlug:
   });
 
   const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState(
-    organizationId,
-    featureSlug as FeatureId,
-    "enabled",
-    "test-system"
-  );
+  await featuresRepository.setTeamFeatureState({
+    teamId: organizationId,
+    featureId: featureSlug as FeatureId,
+    state: "enabled",
+    assignedBy: "test-system",
+  });
 };
 
 const cleanupTestData = async (testData: {
@@ -170,12 +170,11 @@ const cleanupTestData = async (testData: {
   if (testData.organizationId) {
     if (testData.featureSlug) {
       const featuresRepository = new FeaturesRepository(prisma);
-      await featuresRepository.setTeamFeatureState(
-        testData.organizationId,
-        testData.featureSlug as FeatureId,
-        "inherit",
-        "test-cleanup"
-      );
+      await featuresRepository.setTeamFeatureState({
+        teamId: testData.organizationId,
+        featureId: testData.featureSlug as FeatureId,
+        state: "inherit",
+      });
     }
     await prisma.membership.deleteMany({
       where: { teamId: testData.organizationId },

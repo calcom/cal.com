@@ -54,7 +54,12 @@ export async function createPBACOrganization() {
 
   // Add the feature flag
   const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState(organization.id, "pbac" as FeatureId, "enabled", "system (Seed script)");
+  await featuresRepository.setTeamFeatureState({
+    teamId: organization.id,
+    featureId: "pbac" as FeatureId,
+    state: "enabled",
+    assignedBy: "system (Seed script)",
+  });
 
   console.log(`✅ Created organization: ${organization.name} (ID: ${organization.id})`);
 

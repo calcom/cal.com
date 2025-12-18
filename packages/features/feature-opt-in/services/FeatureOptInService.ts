@@ -181,27 +181,53 @@ export class FeatureOptInService {
    * Set user's feature state.
    * Delegates to FeaturesRepository.setUserFeatureState.
    */
-  async setUserFeatureState(input: {
-    userId: number;
-    featureId: FeatureId;
-    state: FeatureState;
-    assignedBy: number;
-  }) {
-    const { userId, featureId, state, assignedBy } = input;
-    await this.featuresRepository.setUserFeatureState(userId, featureId, state, `user-${assignedBy}`);
+  async setUserFeatureState(
+    input:
+      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
+      | { userId: number; featureId: FeatureId; state: "inherit" }
+  ) {
+    const { userId, featureId, state } = input;
+    if (state === "inherit") {
+      await this.featuresRepository.setUserFeatureState({
+        userId,
+        featureId,
+        state,
+      });
+    } else {
+      const { assignedBy } = input;
+      await this.featuresRepository.setUserFeatureState({
+        userId,
+        featureId,
+        state,
+        assignedBy: `user-${assignedBy}`,
+      });
+    }
   }
 
   /**
    * Set team's feature state.
    * Delegates to FeaturesRepository.setTeamFeatureState.
    */
-  async setTeamFeatureState(input: {
-    teamId: number;
-    featureId: FeatureId;
-    state: FeatureState;
-    assignedBy: number;
-  }) {
-    const { teamId, featureId, state, assignedBy } = input;
-    await this.featuresRepository.setTeamFeatureState(teamId, featureId, state, `user-${assignedBy}`);
+  async setTeamFeatureState(
+    input:
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: number }
+      | { teamId: number; featureId: FeatureId; state: "inherit" }
+  ) {
+    const { teamId, featureId, state } = input;
+    if (state === "inherit") {
+      await this.featuresRepository.setTeamFeatureState({
+        teamId,
+        featureId,
+        state,
+      });
+    } else {
+      const { assignedBy } = input;
+      await this.featuresRepository.setTeamFeatureState({
+        teamId,
+        featureId,
+        state,
+        assignedBy: `user-${assignedBy}`,
+      });
+    }
   }
 }

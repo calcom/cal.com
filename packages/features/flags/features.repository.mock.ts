@@ -23,19 +23,17 @@ export class MockFeaturesRepository implements IFeaturesRepository {
   }
 
   async setUserFeatureState(
-    _userId: number,
-    _featureId: FeatureId,
-    _state: FeatureState,
-    _assignedBy: string
+    _input:
+      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     // Mock implementation - do nothing
   }
 
   async setTeamFeatureState(
-    _teamId: number,
-    _featureId: FeatureId,
-    _state: FeatureState,
-    _assignedBy: string
+    _input:
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     // Mock implementation - do nothing
   }

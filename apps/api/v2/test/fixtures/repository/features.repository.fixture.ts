@@ -32,11 +32,20 @@ export class FeaturesRepositoryFixture {
     state: "enabled" | "disabled" | "inherit",
     assignedBy = "test"
   ) {
-    await this.featuresRepository.setTeamFeatureState(teamId, featureId as FeatureId, state, assignedBy);
+    await this.featuresRepository.setTeamFeatureState({
+      teamId,
+      featureId: featureId as FeatureId,
+      state,
+      assignedBy,
+    });
   }
 
   async disableFeatureForTeam(teamId: number, featureSlug: string) {
-    await this.featuresRepository.setTeamFeatureState(teamId, featureSlug as FeatureId, "inherit", "test");
+    await this.featuresRepository.setTeamFeatureState({
+      teamId,
+      featureId: featureSlug as FeatureId,
+      state: "inherit",
+    });
   }
 
   async deleteBySlug(slug: string) {
@@ -46,6 +55,10 @@ export class FeaturesRepositoryFixture {
   }
 
   async deleteTeamFeature(teamId: number, featureSlug: string) {
-    await this.featuresRepository.setTeamFeatureState(teamId, featureSlug as FeatureId, "inherit", "test");
+    await this.featuresRepository.setTeamFeatureState({
+      teamId,
+      featureId: featureSlug as FeatureId,
+      state: "inherit",
+    });
   }
 }

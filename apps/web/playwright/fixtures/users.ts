@@ -257,7 +257,12 @@ const createTeamAndAddUser = async (
     const featuresRepository = new FeaturesRepository(prisma);
     await Promise.all(
       teamFeatureFlags.map((featureFlag) =>
-        featuresRepository.setTeamFeatureState(team.id, featureFlag as FeatureId, "enabled", "e2e-fixture")
+        featuresRepository.setTeamFeatureState({
+          teamId: team.id,
+          featureId: featureFlag as FeatureId,
+          state: "enabled",
+          assignedBy: "e2e-fixture",
+        })
       )
     );
   }
@@ -424,7 +429,12 @@ export const createUsersFixture = (
         const featuresRepository = new FeaturesRepository(prisma);
         await Promise.all(
           userFeatureFlags.map((featureFlag) =>
-            featuresRepository.setUserFeatureState(user.id, featureFlag as FeatureId, "enabled", "e2e-fixture")
+            featuresRepository.setUserFeatureState({
+              userId: user.id,
+              featureId: featureFlag as FeatureId,
+              state: "enabled",
+              assignedBy: "e2e-fixture",
+            })
           )
         );
       }

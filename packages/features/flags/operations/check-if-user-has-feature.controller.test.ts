@@ -14,7 +14,12 @@ import { checkIfUserHasFeatureController } from "./check-if-user-has-feature.con
 it("checks if user has access to feature", async () => {
   const featuresRepository = new FeaturesRepository(prismock);
   const userId = 1;
-  await featuresRepository.setUserFeatureState(userId, "mock-feature" as FeatureId, "enabled", "1");
+  await featuresRepository.setUserFeatureState({
+    userId,
+    featureId: "mock-feature" as FeatureId,
+    state: "enabled",
+    assignedBy: "1",
+  });
   await expect(checkIfUserHasFeatureController(userId, "nonexistent-feature")).resolves.toBe(false);
   await expect(checkIfUserHasFeatureController(userId, "mock-feature")).resolves.toBe(true);
 });

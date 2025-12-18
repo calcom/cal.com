@@ -18,7 +18,12 @@ export const assignFeatureToTeamHandler = async ({ ctx, input }: AssignFeatureOp
   const { teamId, featureId } = input;
 
   const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState(teamId, featureId as FeatureId, "enabled", `user:${user.id}`);
+  await featuresRepository.setTeamFeatureState({
+    teamId,
+    featureId: featureId as FeatureId,
+    state: "enabled",
+    assignedBy: `user:${user.id}`,
+  });
 
   return { success: true };
 };

@@ -11,16 +11,14 @@ export interface IFeaturesRepository {
   checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean>;
   getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]>;
   setUserFeatureState(
-    userId: number,
-    featureId: FeatureId,
-    state: FeatureState,
-    assignedBy: string
+    input:
+      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void>;
   setTeamFeatureState(
-    teamId: number,
-    featureId: FeatureId,
-    state: FeatureState,
-    assignedBy: string
+    input:
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void>;
   /**
    * Get user's feature states for multiple features.

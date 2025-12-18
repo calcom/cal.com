@@ -21,5 +21,10 @@ export const createAllPermissionsArray = () => {
 
 export const enablePBACForTeam = async (teamId: number) => {
   const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState(teamId, "pbac" as FeatureId, "enabled", "e2e");
+  await featuresRepository.setTeamFeatureState({
+    teamId,
+    featureId: "pbac" as FeatureId,
+    state: "enabled",
+    assignedBy: "e2e",
+  });
 };

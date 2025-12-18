@@ -284,21 +284,22 @@ export class FeaturesRepository implements IFeaturesRepository {
    * - 'disabled': creates/updates a row with enabled=false
    * - 'inherit': deletes the row to inherit from team/org level
    *
-   * @param userId - The ID of the user to update the feature for
-   * @param featureId - The feature identifier to update
-   * @param state - 'enabled' | 'disabled' | 'inherit'
-   * @param assignedBy - The user or what assigned the feature
+   * @param input.userId - The ID of the user to update the feature for
+   * @param input.featureId - The feature identifier to update
+   * @param input.state - 'enabled' | 'disabled' | 'inherit'
+   * @param input.assignedBy - The user or what assigned the feature (required for enabled/disabled, not used for inherit)
    * @returns Promise<void>
    * @throws Error if the feature update fails
    */
   async setUserFeatureState(
-    userId: number,
-    featureId: FeatureId,
-    state: FeatureState,
-    assignedBy: string
+    input:
+      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
+    const { userId, featureId, state } = input;
     try {
       if (state === "enabled" || state === "disabled") {
+        const { assignedBy } = input;
         await this.prismaClient.userFeatures.upsert({
           where: {
             userId_featureId: {
@@ -334,21 +335,22 @@ export class FeaturesRepository implements IFeaturesRepository {
   /**
    * Updates a feature status for a specific team.
    * Uses tri-state semantics: creates/updates a row with enabled=true.
-   * @param teamId - The ID of the team to enable the feature for
-   * @param featureId - The feature identifier to enable
-   * @param state - 'enabled' | 'disabled' | 'inherit'
-   * @param assignedBy - The user or what assigned the feature
+   * @param input.teamId - The ID of the team to enable the feature for
+   * @param input.featureId - The feature identifier to enable
+   * @param input.state - 'enabled' | 'disabled' | 'inherit'
+   * @param input.assignedBy - The user or what assigned the feature (required for enabled/disabled, not used for inherit)
    * @returns Promise<void>
    * @throws Error if the feature enabling fails
    */
   async setTeamFeatureState(
-    teamId: number,
-    featureId: FeatureId,
-    state: FeatureState,
-    assignedBy: string
+    input:
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
+    const { teamId, featureId, state } = input;
     try {
       if (state === "enabled" || state === "disabled") {
+        const { assignedBy } = input;
         await this.prismaClient.teamFeatures.upsert({
           where: {
             teamId_featureId: {
