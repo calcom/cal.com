@@ -1,6 +1,7 @@
 "use client";
 
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
+import { ChevronDown } from "lucide-react";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
   $isListNode,
@@ -29,7 +30,6 @@ import { createPortal } from "react-dom";
 
 import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
-import { Icon } from "../../icon";
 import type { TextEditorProps } from "../types";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
@@ -462,7 +462,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   <span className="text text-default hidden sm:flex">
                     {blockTypeToBlockName[blockType as keyof BlockType]}
                   </span>
-                  <Icon name="chevron-down" className="text-default ml-2 h-4 w-4" />
+                  <ChevronDown className="text-default ml-2 h-4 w-4" />
                 </>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="flex flex-col gap-1">

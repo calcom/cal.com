@@ -1,6 +1,7 @@
 "use client";
 
 import type { ChangeEventHandler } from "react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
 import { AllApps } from "@calcom/features/apps/components/AllApps";
@@ -12,7 +13,6 @@ import type { AppCategories } from "@calcom/prisma/enums";
 import type { AppFrontendPayload } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
@@ -39,7 +39,7 @@ function AppsSearch({
   const { t } = useLocale();
   return (
     <TextField
-      addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+      addOnLeading={<Search className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
       containerClassName={classNames("focus:ring-offset-0! m-1", className)}
       type="search"

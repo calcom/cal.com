@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { X, ArrowUp, ArrowDown } from "lucide-react";
 import {
   useFieldArray,
   useFormContext,
@@ -12,7 +13,6 @@ import { v4 as uuidv4 } from "uuid";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 export interface Option {
   label: string;
@@ -239,7 +239,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                           onClick={() => handleRemoveOption(index)}
                           aria-label="Remove option"
                           disabled={disabled}>
-                          <Icon name="x" className="h-4 w-4" />
+                          <X className="h-4 w-4" />
                         </button>
                       ) : null
                     }
@@ -265,7 +265,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                         onClick={() => handleRemoveOption(index)}
                         aria-label="Remove option"
                         disabled={disabled}>
-                        <Icon name="x" className="h-4 w-4" />
+                        <X className="h-4 w-4" />
                       </button>
                     ) : null
                   }
@@ -282,7 +282,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                     "bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 items-center justify-center rounded-t-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible",
                     index === 0 ? "cursor-not-allowed opacity-30" : "cursor-pointer"
                   )}>
-                  <Icon name="arrow-up" className="h-3 w-3" />
+                  <ArrowUp className="h-3 w-3" />
                 </button>
                 <button
                   type="button"
@@ -292,7 +292,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                     "bg-default text-muted hover:text-emphasis invisible -mt-px flex h-6 w-6 items-center justify-center rounded-b-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible",
                     index === options.length - 1 ? "cursor-not-allowed opacity-30" : "cursor-pointer"
                   )}>
-                  <Icon name="arrow-down" className="h-3 w-3" />
+                  <ArrowDown className="h-3 w-3" />
                 </button>
               </div>
             )}

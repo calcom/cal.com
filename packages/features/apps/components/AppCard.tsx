@@ -124,7 +124,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         </h3>
       </div>
       {/* TODO: add reviews <div className="flex text-sm text-default">
-            <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
+            <span>{props.rating} stars</span> <Star className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p

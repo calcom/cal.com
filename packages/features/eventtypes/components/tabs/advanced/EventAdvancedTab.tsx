@@ -1,4 +1,5 @@
 import { useState, Suspense, useMemo, useEffect } from "react";
+import { Pencil, Info } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -63,7 +64,6 @@ import {
   SettingsToggle,
   Select,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import AddVerifiedEmail from "../../AddVerifiedEmail";
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
@@ -227,7 +227,7 @@ const destinationCalendarComponents = {
                   aria-label="edit custom name"
                   className="hover:stroke-3 hover:text-emphasis py-0! min-w-fit px-1.5 -mr-1.5 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
-                  <Icon name="pencil" className="h-4 w-4" />
+                  <Pencil className="h-4 w-4" />
                 </Button>
               }
             />
@@ -241,10 +241,7 @@ const destinationCalendarComponents = {
                 label={
                   <>
                     {t("display_add_to_calendar_organizer")}
-                    <Icon
-                      name="info"
-                      className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
-                    />
+                    <Info className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
                   </>
                 }
                 checked={useEventTypeDestinationCalendarEmail}

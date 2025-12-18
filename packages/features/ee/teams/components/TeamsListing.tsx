@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { Users, RefreshCcw, UserPlus, Mail, Video, EyeOff, Info } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
@@ -11,7 +12,6 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { UpgradeTip } from "../../../tips";
@@ -59,32 +59,32 @@ export function TeamsListing({
 
   const features = [
     {
-      icon: <Icon name="users" className="h-5 w-5 text-red-500" />,
+      icon: <Users className="h-5 w-5 text-red-500" />,
       title: t("collective_scheduling"),
       description: t("make_it_easy_to_book"),
     },
     {
-      icon: <Icon name="refresh-ccw" className="h-5 w-5 text-blue-500" />,
+      icon: <RefreshCcw className="h-5 w-5 text-blue-500" />,
       title: t("round_robin"),
       description: t("find_the_best_person"),
     },
     {
-      icon: <Icon name="user-plus" className="h-5 w-5 text-green-500" />,
+      icon: <UserPlus className="h-5 w-5 text-green-500" />,
       title: t("fixed_round_robin"),
       description: t("add_one_fixed_attendee"),
     },
     {
-      icon: <Icon name="mail" className="h-5 w-5 text-orange-500" />,
+      icon: <Mail className="h-5 w-5 text-orange-500" />,
       title: t("sms_attendee_action"),
       description: t("send_reminder_sms"),
     },
     {
-      icon: <Icon name="video" className="h-5 w-5 text-purple-500" />,
+      icon: <Video className="h-5 w-5 text-purple-500" />,
       title: `Cal Video ${t("recordings_title")}`,
       description: t("upgrade_to_access_recordings_description"),
     },
     {
-      icon: <Icon name="eye-off" className="h-5 w-5 text-indigo-500" />,
+      icon: <EyeOff className="h-5 w-5 text-indigo-500" />,
       title: t("disable_cal_branding", { appName: APP_NAME }),
       description: t("disable_cal_branding_description", { appName: APP_NAME }),
     },
@@ -174,7 +174,7 @@ export function TeamsListing({
       )}
 
       <p className="text-subtle mb-8 mt-4 flex w-full items-center gap-1 text-sm md:justify-center md:text-center">
-        <Icon className="hidden sm:block" name="info" /> {t("tip_username_plus")}
+        <Info className="hidden sm:block" /> {t("tip_username_plus")}
       </p>
     </>
   );

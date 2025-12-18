@@ -1,43 +1,43 @@
 "use client";
 
 import Shell from "@calcom/features/shell/Shell";
+import { Globe, ChartBar, Paintbrush, Users, CreditCard, Lock } from "lucide-react";
 import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Icon } from "@calcom/ui/components/icon";
 
 export default function EnterprisePage() {
   const { t } = useLocale();
 
   const features = [
     {
-      icon: <Icon name="globe" className="h-5 w-5 text-red-500" />,
+      icon: <Globe className="h-5 w-5 text-red-500" />,
       title: t("branded_subdomain"),
       description: t("branded_subdomain_description"),
     },
     {
-      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
+      icon: <ChartBar className="h-5 w-5 text-blue-500" />,
       title: t("org_insights"),
       description: t("org_insights_description"),
     },
     {
-      icon: <Icon name="paintbrush" className="h-5 w-5 text-pink-500" />,
+      icon: <Paintbrush className="h-5 w-5 text-pink-500" />,
       title: t("extensive_whitelabeling"),
       description: t("extensive_whitelabeling_description"),
     },
     {
-      icon: <Icon name="users" className="h-5 w-5 text-orange-500" />,
+      icon: <Users className="h-5 w-5 text-orange-500" />,
       title: t("unlimited_teams"),
       description: t("unlimited_teams_description"),
     },
     {
-      icon: <Icon name="credit-card" className="h-5 w-5 text-green-500" />,
+      icon: <CreditCard className="h-5 w-5 text-green-500" />,
       title: t("unified_billing"),
       description: t("advanced_managed_events_description"),
     },
     {
-      icon: <Icon name="lock" className="h-5 w-5 text-purple-500" />,
+      icon: <Lock className="h-5 w-5 text-purple-500" />,
       title: t("advanced_managed_events"),
       description: t("advanced_managed_events_description"),
     },

@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { Check } from "lucide-react";
 import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
 
@@ -16,7 +17,6 @@ import {
   CommandSeparator,
 } from "@calcom/ui/components/command";
 import { DateRangePicker } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useDataTable, useFilterValue } from "../../hooks";
@@ -236,7 +236,7 @@ export const DateRangeFilter = ({
                     updateDateRangeFromPreset(option.value);
                   }}>
                   <span className="capitalize">{t(option.labelKey, option.i18nOptions)}</span>
-                  {selectedPreset.value === option.value && <Icon name="check" />}
+                  {selectedPreset.value === option.value && <Check />}
                 </CommandItem>
               ))}
             </CommandList>

@@ -1,11 +1,11 @@
 import type { GroupBase, Props, SingleValue } from "react-select";
+import { Phone, MapPin, Link, Map, Video } from "lucide-react";
 import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
 
 export type LocationSelectCustomClassNames = {
@@ -47,19 +47,19 @@ const OptionWithIcon = ({
   const getIconFromValue = (value: string) => {
     switch (value) {
       case "phone":
-        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Phone className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "userPhone":
-        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Phone className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "inPerson":
-        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <MapPin className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "attendeeInPerson":
-        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <MapPin className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "link":
-        return <Icon name="link" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Link className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "somewhereElse":
-        return <Icon name="map" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Map className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       default:
-        return <Icon name="video" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Video className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
     }
   };
 

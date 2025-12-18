@@ -1,11 +1,11 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
+import { X } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import type { InviteRole } from "../store/onboarding-store";
 
@@ -98,7 +98,7 @@ export function EmailInviteForm({
                 className="h-7 w-7"
                 disabled={fields.length === 1}
                 onClick={() => remove(index)}>
-                <Icon name="x" className="h-4 w-4" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ))}

@@ -1,4 +1,5 @@
 import { useSession } from "next-auth/react";
+import { ChevronDown, Check } from "lucide-react";
 import { useState } from "react";
 
 import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
@@ -14,7 +15,6 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
 
 export function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
@@ -54,11 +54,8 @@ export function ProfileDropdown() {
             <span className="block w-20 overflow-hidden text-ellipsis whitespace-nowrap">
               {currentOption.label}
             </span>
-            <Icon
-              name="chevron-down"
-              className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
-              aria-hidden="true"
-            />
+            <ChevronDown className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+              aria-hidden="true" />
           </span>
         </button>
       </DropdownMenuTrigger>
@@ -96,7 +93,7 @@ export function ProfileDropdown() {
                     <span className="ml-2">{option.label}</span>
                   </span>
                   {isSelected ? (
-                    <Icon name="check" className="ml-2 inline h-4 w-4" aria-hidden="true" />
+                    <Check className="ml-2 inline h-4 w-4" aria-hidden="true" />
                   ) : null}
                 </DropdownItem>
               </DropdownMenuItem>

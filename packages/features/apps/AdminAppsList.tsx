@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-// eslint-disable-next-line no-restricted-imports
+import { Pencil } from "lucide-react";
+ 
 import { noop } from "lodash";
 import type { FC } from "react";
 import { useReducer, useState } from "react";
@@ -29,7 +30,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { List } from "@calcom/ui/components/list";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -92,7 +92,7 @@ const IntegrationContainer = ({
           <div className="flex items-center justify-self-end">
             {app.keys && (
               <Button color="secondary" className="mr-2" onClick={() => showKeyModal()}>
-                <Icon name="pencil" />
+                <Pencil />
               </Button>
             )}
 

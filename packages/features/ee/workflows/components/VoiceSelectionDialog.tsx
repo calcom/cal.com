@@ -1,4 +1,5 @@
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { Pause, Play, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -8,7 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useVoicePreview } from "../hooks/useVoicePreview";
@@ -86,14 +86,14 @@ function VoiceSelectionContent({
               onClick={() => handlePlayVoice(row.original.preview_audio_url, row.original.voice_id)}
               className="rounded-full">
               {playingVoiceId === row.original.voice_id ? (
-                <Icon name="pause" className="text-default h-3 w-3" />
+                <Pause className="text-default h-3 w-3" />
               ) : (
-                <Icon name="play" className="text-default h-3 w-3" />
+                <Play className="text-default h-3 w-3" />
               )}
             </Button>
             <div className="flex items-center gap-2">
               <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-full">
-                <Icon name="user" className="text-default h-5 w-5" />
+                <User className="text-default h-5 w-5" />
               </div>
               <span className="text-emphasis font-medium">{row.original.voice_name}</span>
             </div>

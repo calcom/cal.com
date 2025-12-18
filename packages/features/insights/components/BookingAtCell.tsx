@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Copy } from "lucide-react";
 import { useId } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -13,7 +14,6 @@ import {
   HoverCardTrigger,
   HoverCardPortal,
 } from "@calcom/ui/components/hover-card";
-import { Icon } from "@calcom/ui/components/icon";
 
 import type { RoutingFormTableRow } from "../lib/types";
 import { BookingStatusBadge } from "./BookingStatusBadge";
@@ -52,7 +52,7 @@ export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId:
                       e.stopPropagation();
                       copyToClipboard(row.bookingUserEmail ?? "");
                     }}>
-                    <Icon name="copy" />
+                    <Copy />
                   </button>
                 </p>
               </div>

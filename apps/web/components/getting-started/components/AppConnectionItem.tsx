@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CircleAlert, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import posthog from "posthog-js";
 
@@ -10,7 +11,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface IAppConnectionItem {
@@ -79,7 +79,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                   <div className="items-start space-x-2.5">
                     <div className="flex items-start">
                       <div>
-                        <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
+                        <CircleAlert className="mr-2 mt-1 font-semibold" />
                       </div>
                       <div>
                         <span className="text-xs font-semibold">
@@ -99,7 +99,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                                 <span className="mr-1">
                                   {t("connect_app", { dependencyName: dependency.name })}
                                 </span>
-                                <Icon name="arrow-right" className="inline-block h-3 w-3" />
+                                <ArrowRight className="inline-block h-3 w-3" />
                               </Link>
                             </>
                           </div>

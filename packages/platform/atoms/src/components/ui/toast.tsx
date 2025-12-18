@@ -1,4 +1,5 @@
 import * as ToastPrimitives from "@radix-ui/react-toast";
+import { X } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 import type {
   ForwardRefExoticComponent,
@@ -8,8 +9,6 @@ import type {
   ReactElement,
 } from "react";
 import { forwardRef } from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 import { cn } from "../../lib/utils";
 
@@ -83,7 +82,7 @@ const ToastClose = forwardRef<
     )}
     toast-close=""
     {...props}>
-    <Icon name="x" className="h-4 w-4" />
+    <X className="h-4 w-4" />
   </ToastPrimitives.Close>
 ));
 ToastClose.displayName = ToastPrimitives.Close.displayName;

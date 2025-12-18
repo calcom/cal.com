@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
+import { Info } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export interface TeamMember {
@@ -109,7 +109,7 @@ export const TeamMemberSelect = ({
             />
             <span className="text-default text-sm">{t("select_all_members")}</span>
             <Tooltip content={t("select_all_members_tooltip")}>
-              <Icon name="info" className="text-default text-sm" />
+              <Info className="text-default text-sm" />
             </Tooltip>
           </div>
         )}

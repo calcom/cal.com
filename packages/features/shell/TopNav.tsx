@@ -1,10 +1,10 @@
 import { useSession } from "next-auth/react";
+import { Settings } from "lucide-react";
 import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
 import { UserDropdown } from "./user-dropdown/UserDropdown";
@@ -33,7 +33,7 @@ function TopNav() {
           <button className="hover:bg-cal-muted hover:text-subtle text-muted rounded-full p-1 transition focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/my-account/profile">
-              <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+              <Settings className="text-default h-4 w-4" aria-hidden="true" />
             </Link>
           </button>
           <UserDropdown small />

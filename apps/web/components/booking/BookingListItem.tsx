@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RefreshCcw, EyeOff } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -33,7 +34,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuPortal,
 } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -652,11 +652,8 @@ const RecurringBookingsTooltip = ({
                 );
               })}>
               <div className="text-default">
-                <Icon
-                  name="refresh-ccw"
-                  strokeWidth="3"
-                  className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
-                />
+                <RefreshCcw strokeWidth="3"
+                  className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3" />
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining_other", {
@@ -738,7 +735,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
             <>
-              {displayName} <Icon name="eye-off" className="inline h-4" />
+              {displayName} <EyeOff className="inline h-4" />
             </>
           ) : (
             <>{displayName}</>

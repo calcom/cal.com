@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -11,7 +12,6 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { AppCard } from "./AppCard";
 
@@ -90,7 +90,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 flex  lg:left-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+            <ChevronLeft className="text-subtle h-4 w-4" />
           </div>
           <div className="to-default flex h-12 w-5 bg-linear-to-l from-transparent" />
         </button>
@@ -131,7 +131,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex ">
           <div className="to-default flex h-12 w-5 bg-linear-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+            <ChevronRight className="text-subtle h-4 w-4" />
           </div>
         </button>
       )}

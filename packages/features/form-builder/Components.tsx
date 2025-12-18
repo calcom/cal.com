@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { X } from "lucide-react";
 import type { z } from "zod";
 
 import type {
@@ -13,7 +14,6 @@ import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -277,7 +277,7 @@ export const Components: Record<FieldType, Component> = {
                         !readOnly ? (
                           <Tooltip content="Remove email">
                             <button className="m-1" type="button">
-                              <Icon name="x" width={12} className="text-default" />
+                              <X width={12} className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null

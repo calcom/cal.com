@@ -1,13 +1,13 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
+import { Plus, EyeOff } from "lucide-react";
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -55,7 +55,7 @@ function AddFilterButtonComponent<TData>(
             <PopoverTrigger asChild>
               <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
                 <span className="sr-only">{t("filter")}</span>
-                <Icon name="plus" />
+                <Plus />
               </Button>
             </PopoverTrigger>
           </Tooltip>
@@ -81,7 +81,7 @@ function AddFilterButtonComponent<TData>(
                     className="flex items-center justify-between rounded-none px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>
-                    {showHiddenIndicator && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}
+                    {showHiddenIndicator && <EyeOff className="h-4 w-4 opacity-50" />}
                   </CommandItem>
                 );
               })}

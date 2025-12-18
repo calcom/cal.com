@@ -1,12 +1,13 @@
 import { useRouter } from "next/navigation";
+import { Asterisk } from "lucide-react";
 import React from "react";
 
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
+import { Icon } from "@calcom/ui/components/icon";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type OAuthClientCardProps = {
@@ -117,7 +118,7 @@ export const OAuthClientCard = ({
           <div className="font-semibold">Client Secret:</div>
           <div className="flex items-center justify-center rounded-md">
             {[...new Array(20)].map((_, index) => (
-              <Icon name="asterisk" key={`${index}asterisk`} className="h-2 w-2" />
+              <Asterisk key={`${index}asterisk`} className="h-2 w-2" />
             ))}
             <Icon
               name="clipboard"

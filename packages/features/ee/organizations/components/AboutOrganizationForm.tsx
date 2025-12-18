@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
@@ -11,7 +12,6 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
@@ -50,7 +50,7 @@ export const AboutOrganizationForm = () => {
                 <div className="flex items-center">
                   <Avatar
                     alt=""
-                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+                    fallback={<Plus className="text-subtle h-6 w-6" />}
                     className="items-center"
                     imageSrc={value}
                     size="lg"

@@ -1,13 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ShieldCheck, Lock, Users, Shield } from "lucide-react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { FingerprintAnimation } from "./FingerprintAnimation";
@@ -59,7 +59,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
           <div className="bg-subtle border-subtle w-full stack-y-px overflow-hidden rounded-xl border">
             <div className="bg-default flex gap-3 p-3">
               <div className="bg-subtle flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
-                <Icon name="shield-check" className="text-subtle h-5 w-5" />
+                <ShieldCheck className="text-subtle h-5 w-5" />
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-emphasis text-sm font-semibold">{t("pbac_opt_in_custom_roles_title")}</p>
@@ -69,7 +69,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
 
             <div className="bg-default flex gap-3 p-3">
               <div className="bg-subtle flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
-                <Icon name="lock" className="text-subtle h-5 w-5" />
+                <Lock className="text-subtle h-5 w-5" />
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-emphasis text-sm font-semibold">
@@ -81,7 +81,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
 
             <div className="bg-default flex gap-3 p-3">
               <div className="bg-subtle flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
-                <Icon name="users" className="text-subtle h-5 w-5" />
+                <Users className="text-subtle h-5 w-5" />
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-emphasis text-sm font-semibold">
@@ -93,7 +93,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
 
             <div className="bg-default flex gap-3 p-3">
               <div className="bg-subtle flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
-                <Icon name="shield" className="text-subtle h-5 w-5" />
+                <Shield className="text-subtle h-5 w-5" />
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-emphasis text-sm font-semibold">

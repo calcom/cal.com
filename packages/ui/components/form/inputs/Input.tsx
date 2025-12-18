@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { EyeOff, Eye, Search } from "lucide-react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -8,7 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Alert } from "../../alert";
-import { Icon } from "../../icon";
 import { Tooltip } from "../../tooltip";
 import { Input, InputField, inputStyles } from "../inputs/TextField";
 import { Label } from "./Label";
@@ -21,7 +21,6 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
     </span>
   );
 }
-
 
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
@@ -53,9 +52,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
             type="button"
             onClick={() => toggleIsPasswordVisible()}>
             {isPasswordVisible ? (
-              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+              <EyeOff className="h-4 w-4 stroke-[2.5px]" />
             ) : (
-              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+              <Eye className="h-4 w-4 stroke-[2.5px]" />
             )}
             <span className="sr-only">{textLabel}</span>
           </button>
@@ -188,7 +187,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
   return (
     <InputField
       ref={ref}
-      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
+      addOnLeading={<Search className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
       containerClassName="mt-1"
       {...props}

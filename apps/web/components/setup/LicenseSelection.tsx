@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader, Check } from "lucide-react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import Link from "next/link";
@@ -13,7 +14,6 @@ import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 type LicenseSelectionFormValues = {
   licenseKey: string;
@@ -180,9 +180,9 @@ const LicenseSelection = (
                       )}
                       addOnSuffix={
                         checkLicenseLoading ? (
-                          <Icon name="loader" className="h-5 w-5 animate-spin" />
+                          <Loader className="h-5 w-5 animate-spin" />
                         ) : licenseValidation?.valid && licenseTouched ? (
-                          <Icon name="check" className="h-5 w-5 text-green-700" />
+                          <Check className="h-5 w-5 text-green-700" />
                         ) : undefined
                       }
                       color={errors.licenseKey ? "warn" : ""}

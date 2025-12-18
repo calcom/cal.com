@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { Info } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -19,7 +20,6 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -236,7 +236,7 @@ export default function BillingCredits() {
                       {numberFormatter.format(creditsData.credits.additionalCredits)}
                     </p>
                     <Tooltip content={t("view_additional_credits_expense_tip")}>
-                      <Icon name="info" className="text-emphasis h-3 w-3" />
+                      <Info className="text-emphasis h-3 w-3" />
                     </Tooltip>
                   </div>
                 </div>

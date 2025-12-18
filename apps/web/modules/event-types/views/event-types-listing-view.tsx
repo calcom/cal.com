@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
@@ -54,7 +55,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -124,7 +124,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
     <div>
       <TextField
         className="max-w-64"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+        addOnLeading={<Search className="text-subtle h-4 w-4" />}
         containerClassName="max-w-64 focus:ring-offset-0! mb-4"
         type="search"
         value={searchTerm}

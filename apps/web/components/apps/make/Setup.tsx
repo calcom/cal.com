@@ -1,4 +1,5 @@
 import type { InferGetServerSidePropsType } from "next";
+import { Clipboard } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -9,7 +10,6 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -164,7 +164,7 @@ const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
             }}
             type="button"
             className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-            <Icon name="clipboard" className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            <Clipboard className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
             {t("copy")}
           </Button>
         </Tooltip>

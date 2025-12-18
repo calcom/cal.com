@@ -1,4 +1,5 @@
 import { useSearchParams } from "next/navigation";
+import { Zap, ArrowRight } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -14,7 +15,6 @@ import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { useAgentsData } from "../hooks/useAgentsData";
 import { isCalAIAction, isSMSAction, isFormTrigger, isWhatsappAction } from "../lib/actionHelperFunctions";
@@ -188,7 +188,7 @@ export default function WorkflowDetailsPage(props: Props) {
           label={
             <div className="flex gap-2 items-center pt-1 pb-2">
               <div className="p-1 ml-1 rounded-lg border border-subtle text-subtle">
-                <Icon name="zap" size="16" />
+                <Zap size="16" />
               </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
             </div>
@@ -230,7 +230,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     label={
                       <div className="flex gap-2 items-center pt-1 pb-2">
                         <div className="p-1 rounded-lg border border-subtle text-subtle">
-                          <Icon name="arrow-right" size="16" />
+                          <ArrowRight size="16" />
                         </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
                       </div>

@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { Info } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
@@ -9,7 +10,6 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 export const VerifyCodeDialog = ({
   isOpenDialog,
@@ -113,7 +113,7 @@ export const VerifyCodeDialog = ({
             {error && (
               <div className="mt-2 flex items-center gap-x-2 text-sm text-red-700">
                 <div>
-                  <Icon name="info" className="h-3 w-3" />
+                  <Info className="h-3 w-3" />
                 </div>
                 <p>{error}</p>
               </div>

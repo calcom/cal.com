@@ -1,3 +1,5 @@
+import { Link, MapPin } from "lucide-react";
+
 import type {
   DefaultEventLocationType,
   EventLocationTypeFromApp,
@@ -8,7 +10,6 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 const excludeNullValues = (value: unknown) => !!value;
@@ -81,7 +82,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       return (
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
           {eventLocationType.iconUrl === "/link.svg" ? (
-            <Icon name="link" className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+            <Link className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
           ) : (
             <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
           )}
@@ -98,7 +99,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
   return filteredLocations.length > 1 ? (
     <div className="flex flex-row items-center text-sm font-medium">
       {isPlatform ? (
-        <Icon name="map-pin" className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")} />
+        <MapPin className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")} />
       ) : (
         <img
           src="/map-pin-dark.svg"

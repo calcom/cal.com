@@ -1,4 +1,5 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import { Info } from "lucide-react";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
@@ -20,7 +21,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type AIEventControllerProps = {
@@ -90,7 +90,7 @@ const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: stri
   const { t } = useLocale();
   return (
     <div data-testid={`error-message-${fieldName}`} className="mt-2 flex items-center text-sm text-red-700 ">
-      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+      <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
       <p>{t(message || "invalid_input")}</p>
     </div>
   );
@@ -113,7 +113,7 @@ const TemplateFields = () => {
             name={`aiPhoneCallConfig.${field.name}`}
             render={({ field: { value, onChange }, fieldState: { error } }) => {
               const { variableName, ...restField } = field;
-              const variableInfo = !!variableName ? `: ${t("variable")} {{${variableName}}}` : "";
+              const variableInfo = variableName ? `: ${t("variable")} {{${variableName}}}` : "";
               return (
                 <div>
                   <ComponentForField
@@ -148,7 +148,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
     onSuccess: (data) => {
-      if (!!data?.callId) {
+      if (data?.callId) {
         showToast("Phone Call Created successfully", "success");
       }
     },

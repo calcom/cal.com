@@ -1,4 +1,5 @@
 import { Controller } from "react-hook-form";
+import { Info } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -7,7 +8,6 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog } from "@calcom/ui/components/dialog";
 import { DialogContent, DialogHeader, DialogFooter as BaseDialogFooter } from "@calcom/ui/components/dialog";
 import { Form, Label, Switch, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -84,7 +84,7 @@ export function ImportNumberDialog({
                     <span className="flex items-center gap-1">
                       {t("phone_number")}
                       <Tooltip content={t("phone_number_info_tooltip")}>
-                        <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                        <Info className="text-muted h-4 w-4 cursor-pointer" />
                       </Tooltip>
                     </span>
                   }
@@ -109,7 +109,7 @@ export function ImportNumberDialog({
                     <span className="flex items-center gap-1">
                       {t("termination_uri")}
                       <Tooltip content={t("termination_uri_info_tooltip")}>
-                        <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                        <Info className="text-muted h-4 w-4 cursor-pointer" />
                       </Tooltip>
                     </span>
                   }
@@ -142,7 +142,7 @@ export function ImportNumberDialog({
                           <span className="flex items-center gap-1">
                             {t("sip_trunk_username")}
                             <Tooltip content={t("sip_trunk_username_info_tooltip")}>
-                              <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                              <Info className="text-muted h-4 w-4 cursor-pointer" />
                             </Tooltip>
                           </span>
                         }
@@ -167,7 +167,7 @@ export function ImportNumberDialog({
                           <span className="flex items-center gap-1">
                             {t("sip_trunk_password")}
                             <Tooltip content={t("sip_trunk_password_info_tooltip")}>
-                              <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                              <Info className="text-muted h-4 w-4 cursor-pointer" />
                             </Tooltip>
                           </span>
                         }
@@ -192,7 +192,7 @@ export function ImportNumberDialog({
                           <span className="flex items-center gap-1">
                             {t("nickname")}
                             <Tooltip content={t("nickname_info_tooltip")}>
-                              <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                              <Info className="text-muted h-4 w-4 cursor-pointer" />
                             </Tooltip>
                           </span>
                         }
@@ -211,7 +211,7 @@ export function ImportNumberDialog({
             {/* Having trouble importing section */}
             <div className="rounded-lg border p-2">
               <div className="flex items-start gap-3">
-                <Icon name="info" className="text-subtle mt-0.5 h-5 w-5 shrink-0" />
+                <Info className="text-subtle mt-0.5 h-5 w-5 shrink-0" />
                 <div className="flex-1">
                   <p className="text-emphasis text-sm font-medium">{t("having_trouble_importing")}</p>
                   <p className="text-subtle mt-1 text-sm leading-tight">

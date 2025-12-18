@@ -1,11 +1,11 @@
 /* eslint-disable react/no-danger */
 import type { Dispatch, SetStateAction } from "react";
+import { Star } from "lucide-react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 
 import { getFormattedCitations, handleAiChat, optionallyAddBaseUrl } from "../mintlify-chat/util";
@@ -59,7 +59,7 @@ export const MintlifyChat = ({ searchText, aiResponse, setAiResponse }: Mintlify
           isGenerating ? "cursor-not-allowed" : "cursor-pointer"
         )}>
         <div>
-          <Icon name="star" />
+          <Star />
         </div>
         <div>
           <div>

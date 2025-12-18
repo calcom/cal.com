@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useMemo, useCallback } from "react";
+import { TriangleAlert, Calendar } from "lucide-react";
 
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -13,7 +14,6 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -147,7 +147,7 @@ function ConflictWarning({
   return (
     <div className="bg-semantic-attention-subtle rounded-md px-3 py-2">
       <div className="flex items-center gap-2">
-        <Icon name="triangle-alert" className="text-semantic-attention h-4 w-4 shrink-0" />
+        <TriangleAlert className="text-semantic-attention h-4 w-4 shrink-0" />
         <p className="text-emphasis text-sm font-medium">
           {t("holiday_booking_conflict_warning", { count: totalBookings })}:
         </p>
@@ -315,7 +315,7 @@ export function HolidaysView() {
           ) : (
             <div className="bg-default flex flex-col items-center rounded-md py-14 text-center">
               <div className="bg-emphasis mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                <Icon name="calendar" className="text-default h-8 w-8" />
+                <Calendar className="text-default h-8 w-8" />
               </div>
               <h4 className="text-emphasis mb-1 font-medium">{t("no_holidays_selected")}</h4>
               <p className="text-subtle text-sm">{t("select_country_to_see_holidays")}</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,7 +12,6 @@ import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -94,7 +94,7 @@ export default function OAuthView() {
             <div className="mb-5 mt-5 flex items-center">
               <Avatar
                 alt=""
-                fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+                fallback={<Plus className="text-subtle h-6 w-6" />}
                 className="mr-5 items-center"
                 imageSrc={logo}
                 size="lg"

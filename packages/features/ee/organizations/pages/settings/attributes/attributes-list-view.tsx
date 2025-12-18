@@ -1,6 +1,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import { Tags } from "lucide-react";
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -17,7 +18,6 @@ import {
   DropdownMenuItem,
 } from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
 
@@ -179,7 +179,7 @@ function OrganizationAttributesPage({
         ) : (
           <div className="flex w-full flex-col items-center justify-center p-14">
             <div className="bg-emphasis text-emphasis flex h-16 w-16 items-center justify-center rounded-full p-2">
-              <Icon name="tags" />
+              <Tags />
             </div>
             <h2 className="font-cal text-emphasis mt-6 text-xl font-semibold leading-none">
               {t("add_attributes")}

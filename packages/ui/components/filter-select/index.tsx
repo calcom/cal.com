@@ -1,4 +1,5 @@
 import classNames from "@calcom/ui/classNames";
+import { Check } from "lucide-react";
 
 import { Badge } from "../badge/Badge";
 import { Button } from "../button/Button";
@@ -11,8 +12,7 @@ import {
   CommandItem,
   CommandSeparator,
 } from "../command/Command";
-import type { IconName } from "../icon/Icon";
-import { Icon } from "../icon/Icon";
+import type { IconName } from "../icon/";
 import { Popover, PopoverTrigger, PopoverContent } from "../popover/Popover";
 
 export interface FilterOption {
@@ -78,7 +78,7 @@ export function FilterSelect({
                         "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                       )}>
-                      <Icon name="check" className="h-4 w-4" />
+                      <Check className="h-4 w-4" />
                     </div>
                     {option.icon}
                     <span>{option.label}</span>

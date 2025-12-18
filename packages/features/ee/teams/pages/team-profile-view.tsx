@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Copy } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,7 +33,6 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import {
   SkeletonButton,
@@ -47,8 +47,6 @@ import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(ma
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
-
-
 
 const SkeletonLoader = () => {
   return (
@@ -449,7 +447,7 @@ type FormValues = z.infer<typeof teamProfileFormSchema>;
                   type="button"
                   aria-label="copy team id"
                   onClick={() => handleCopy(teamId.toString())}>
-                  <Icon name="copy" className="ml-1 h-4 w-4" />
+                  <Copy className="ml-1 h-4 w-4" />
                 </Button>
               </Tooltip>
             }

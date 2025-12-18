@@ -1,10 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { CircleAlert, Check } from "lucide-react";
 import type { PropsWithChildren, ReactElement } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
 
 type ConfirmBtnType =
@@ -49,17 +49,17 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
               <div className="bg-error mx-auto rounded-full p-2 text-center">
-                <Icon name="circle-alert" className="h-5 w-5 text-red-600 dark:text-red-100" />
+                <CircleAlert className="h-5 w-5 text-red-600 dark:text-red-100" />
               </div>
             )}
             {variety === "warning" && (
               <div className="bg-attention mx-auto rounded-full p-2 text-center">
-                <Icon name="circle-alert" className="h-5 w-5 text-orange-600" />
+                <CircleAlert className="h-5 w-5 text-orange-600" />
               </div>
             )}
             {variety === "success" && (
               <div className="bg-cal-success mx-auto rounded-full p-2 text-center">
-                <Icon name="check" className="h-5 w-5 text-green-600" />
+                <Check className="h-5 w-5 text-green-600" />
               </div>
             )}
           </div>

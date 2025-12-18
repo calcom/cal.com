@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -8,7 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -43,7 +43,7 @@ export const OptionComponent = ({ ...props }: OptionProps<Option>) => {
     <components.Option {...props}>
       <div className="flex">
         <span className="mr-auto">{label}</span>
-        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
+        {props.isSelected && <Check className="ml-2 h-4 w-4" />}
       </div>
     </components.Option>
   );

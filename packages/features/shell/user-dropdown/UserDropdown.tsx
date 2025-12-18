@@ -1,4 +1,5 @@
 import { signOut } from "next-auth/react";
+import { ChevronDown, User, Settings, Moon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
@@ -17,7 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
@@ -115,11 +115,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   {isPending ? "Loading..." : user?.name ?? "Nameless User"}
                 </span>
               </span>
-              <Icon
-                name="chevron-down"
-                className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
-                aria-hidden="true"
-              />
+              <ChevronDown className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+                aria-hidden="true" />
             </span>
           )}
         </button>
@@ -140,7 +137,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     <DropdownItem
                       type="button"
                       CustomStartIcon={
-                        <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
+                        <User className="text-default h-4 w-4" aria-hidden="true" />
                       }
                       href="/settings/my-account/profile">
                       {t("my_profile")}
@@ -150,7 +147,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     <DropdownItem
                       type="button"
                       CustomStartIcon={
-                        <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                        <Settings className="text-default h-4 w-4" aria-hidden="true" />
                       }
                       href="/settings/my-account/general">
                       {t("my_settings")}
@@ -160,7 +157,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     <DropdownItem
                       type="button"
                       CustomStartIcon={
-                        <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
+                        <Moon className="text-default h-4 w-4" aria-hidden="true" />
                       }
                       href="/settings/my-account/out-of-office">
                       {t("out_of_office")}

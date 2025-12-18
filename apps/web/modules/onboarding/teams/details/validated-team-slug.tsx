@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { Loader } from "lucide-react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import classNames from "@calcom/ui/classNames";
 import { Label, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { checkTeamSlugAvailability } from "./action/check-team-slug-availability";
 
@@ -96,7 +96,7 @@ export function ValidatedTeamSlug({ value, onChange, onValidationChange }: Valid
         addOnLeading={urlPrefix}
         addOnSuffix={
           validationState === "checking" ? (
-            <Icon name="loader" className="text-subtle h-3 w-3 animate-spin" />
+            <Loader className="text-subtle h-3 w-3 animate-spin" />
           ) : undefined
         }
         className={classNames(validationState === "taken" ? "border-error" : "")}

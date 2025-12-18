@@ -1,8 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { X } from "lucide-react";
 
 import { Button } from "../button";
 import { EmailField } from "../form";
-import { Icon } from "../icon";
 import { Tooltip } from "../tooltip";
 
 interface MultiEmailProps {
@@ -49,7 +49,7 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
                     !readOnly ? (
                       <Tooltip content="Remove email">
                         <button className="m-1" type="button">
-                          <Icon name="x" width={12} className="text-default" />
+                          <X width={12} className="text-default" />
                         </button>
                       </Tooltip>
                     ) : null

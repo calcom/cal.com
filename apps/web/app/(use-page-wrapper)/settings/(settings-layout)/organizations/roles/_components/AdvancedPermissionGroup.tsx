@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronRight, Info } from "lucide-react";
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import {
@@ -11,7 +12,6 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Checkbox, Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { usePermissions } from "./usePermissions";
@@ -98,13 +98,10 @@ export function AdvancedPermissionGroup({
           }
         }}>
         <div className="flex items-center gap-1.5" onClick={() => setIsExpanded(!isExpanded)}>
-          <Icon
-            name="chevron-right"
-            className={classNames(
+          <ChevronRight className={classNames(
               "h-4 w-4 transition-transform",
               isExpanded && !isAllResources ? "rotate-90" : ""
-            )}
-          />
+            )} />
         </div>
         <div className="flex items-center gap-2">
           <Checkbox
@@ -174,7 +171,7 @@ export function AdvancedPermissionGroup({
                     </span>
                     {isAutoEnabled && (
                       <Tooltip content={t("read_permission_auto_enabled_tooltip")}>
-                        <Icon name="info" className="text-muted-foreground h-3 w-3" />
+                        <Info className="text-muted-foreground h-3 w-3" />
                       </Tooltip>
                     )}
                   </div>

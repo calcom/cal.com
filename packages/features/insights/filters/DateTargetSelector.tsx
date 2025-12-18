@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { Check } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 
 export type DateTarget = "startTime" | "createdAt";
@@ -66,7 +66,7 @@ export const DateTargetSelector = ({ value, onChange }: DateTargetSelectorProps)
                   <div className="text-muted-foreground text-sm">{option.description}</div>
                 </div>
                 {selectedOption.value === option.value && (
-                  <Icon name="check" className="text-primary-foreground h-4 w-4" />
+                  <Check className="text-primary-foreground h-4 w-4" />
                 )}
               </CommandItem>
             ))}

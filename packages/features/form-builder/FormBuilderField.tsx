@@ -1,4 +1,5 @@
 import { ErrorMessage } from "@hookform/error-message";
+import { Info } from "lucide-react";
 import type { TFunction } from "i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -8,7 +9,6 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -126,7 +126,7 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message || "invalid_input")}</p>
                     </div>
                   );

@@ -1,4 +1,5 @@
 import { useSession } from "next-auth/react";
+import { Check } from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -13,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@calcom/ui/components/dropdown";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
+import { type IconName } from "@calcom/ui/components/icon";
 
 import { useDataTable } from "../../hooks";
 import type {
@@ -202,7 +203,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
                         }
                       }}>
                       {segmentId && segmentId.type === segment.type && segmentId.id === segment.id && (
-                        <Icon name="check" className="ml-3 h-4 w-4" />
+                        <Check className="ml-3 h-4 w-4" />
                       )}
                       <span className="ml-3">{segment.name}</span>
                     </DropdownItemWithSubmenu>

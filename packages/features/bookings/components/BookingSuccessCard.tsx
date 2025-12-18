@@ -1,6 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Check } from "lucide-react";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
 
 export interface BookingSuccessCardProps {
   title: string;
@@ -42,7 +42,7 @@ export function BookingSuccessCard({
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="bg-cal-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-                    <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
                 <div className="mb-8 mt-6 text-center last:mb-0">

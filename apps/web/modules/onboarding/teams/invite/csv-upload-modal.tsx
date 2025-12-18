@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { FileText, Upload, Download } from "lucide-react";
 import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -156,7 +156,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
               {selectedFile ? (
                 <div className="flex flex-col items-center gap-3">
                   <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-4 shadow-sm">
-                    <Icon name="file-text" className="text-emphasis" style={{ width: 32, height: 32 }} />
+                    <FileText className="text-emphasis" style={{ width: 32, height: 32 }} />
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <p className="text-emphasis text-sm font-medium">{selectedFile.name}</p>
@@ -166,11 +166,8 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
               ) : (
                 <div className="flex flex-col items-center gap-3">
                   <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-4 shadow-sm">
-                    <Icon
-                      name="upload"
-                      className="text-emphasis opacity-70"
-                      style={{ width: 32, height: 32 }}
-                    />
+                    <Upload className="text-emphasis opacity-70"
+                      style={{ width: 32, height: 32 }} />
                   </div>
                   <p className="text-subtle text-center text-sm">{t("upload_csv_subtitle")}</p>
                 </div>
@@ -187,7 +184,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
             {/* Download template */}
             <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
-                <Icon name="download" className="text-emphasis" style={{ width: 16, height: 16 }} />
+                <Download className="text-emphasis" style={{ width: 16, height: 16 }} />
               </div>
               <div className="flex-1">
                 <p className="text-emphasis text-sm font-medium">{t("need_template")}</p>
@@ -201,7 +198,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
             {/* File upload */}
             <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
-                <Icon name="upload" className="text-emphasis" style={{ width: 16, height: 16 }} />
+                <Upload className="text-emphasis" style={{ width: 16, height: 16 }} />
               </div>
               <div className="flex-1">
                 <p className="text-emphasis text-sm font-medium">{t("upload_your_file")}</p>

@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { MessageCircle, Loader, Send } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextArea } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -118,7 +118,7 @@ export const IntercomContactForm = () => {
           <Button
             onClick={() => setIsOpen(true)}
             className="bg-subtle text-emphasis flex h-12 w-12 items-center justify-center rounded-full border-none">
-            <Icon name="message-circle" className="h-6 w-6" />
+            <MessageCircle className="h-6 w-6" />
           </Button>
         </PopoverTrigger>
 
@@ -174,12 +174,12 @@ export const IntercomContactForm = () => {
                     <div className="flex w-full justify-center">
                       {isSubmitting ? (
                         <div className="flex items-center">
-                          <Icon name="loader" className="mr-2 h-4 w-4 animate-spin rounded-full" />
+                          <Loader className="mr-2 h-4 w-4 animate-spin rounded-full" />
                           {t("sending")}
                         </div>
                       ) : (
                         <>
-                          <Icon name="send" className="mr-2 h-4 w-4" />
+                          <Send className="mr-2 h-4 w-4" />
                           {t("send_message")}
                         </>
                       )}

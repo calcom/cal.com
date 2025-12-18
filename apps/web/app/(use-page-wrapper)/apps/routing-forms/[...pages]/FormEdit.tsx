@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ChevronDown, Menu } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -20,7 +21,6 @@ import {
   TextField,
   MultiOptionInput,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
@@ -152,7 +152,7 @@ function Field({
                             !!router && "bg-subtle cursor-not-allowed"
                           )}>
                           <span className="text-default">{defaultValue?.label || "Select field type"}</span>
-                          <Icon name="chevron-down" className="text-default h-4 w-4" />
+                          <ChevronDown className="text-default h-4 w-4" />
                         </Button>
                       </Tooltip>
                     </div>
@@ -324,7 +324,7 @@ const FormEdit = ({
           {/* Icon card - Top */}
           <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
             <div className="text-emphasis flex h-full items-center justify-center">
-              <Icon name="menu" className="text-emphasis h-4 w-4" />
+              <Menu className="text-emphasis h-4 w-4" />
             </div>
           </div>
           {/* Left fanned card */}

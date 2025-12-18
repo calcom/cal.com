@@ -1,4 +1,5 @@
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
+import { Clipboard } from "lucide-react";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -6,7 +7,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -100,7 +100,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>
@@ -122,7 +122,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>
@@ -158,7 +158,7 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
+              <Clipboard className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>

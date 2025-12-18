@@ -1,5 +1,6 @@
 import classNames from "classnames";
-// eslint-disable-next-line no-restricted-imports
+import { Check } from "lucide-react";
+ 
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
@@ -14,7 +15,6 @@ import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
@@ -143,7 +143,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             <div className="absolute right-[2px] top-6 flex h-7 flex-row">
               <span className={classNames("bg-default mx-0 p-3")}>
                 {usernameIsAvailable ? (
-                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
+                  <Check className="relative bottom-[6px] h-4 w-4" />
                 ) : (
                   <></>
                 )}

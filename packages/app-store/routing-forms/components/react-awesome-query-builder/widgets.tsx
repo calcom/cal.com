@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { Trash } from "lucide-react";
 import type { ChangeEvent } from "react";
 import type {
   ButtonGroupProps,
@@ -14,7 +15,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui/components/form")).SelectWithValidation
@@ -238,7 +238,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <Icon name="trash" className="text-subtle m-0 h-4 w-4" onClick={onClick} />
+        <Trash className="text-subtle m-0 h-4 w-4" onClick={onClick} />
       </button>
     );
   }

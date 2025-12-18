@@ -1,10 +1,10 @@
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { Check } from "lucide-react";
 import { useId } from "@radix-ui/react-id";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 import classNames from "@calcom/ui/classNames";
 
-import { Icon } from "../../icon";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: React.ReactNode;
@@ -32,7 +32,7 @@ const Checkbox = React.forwardRef<
     )}
     {...props}>
     <CheckboxPrimitive.Indicator className={classNames("flex items-center justify-center text-current")}>
-      <Icon name="check" className="h-4 w-4" />
+      <Check className="h-4 w-4" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));

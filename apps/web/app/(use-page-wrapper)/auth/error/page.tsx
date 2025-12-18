@@ -1,11 +1,11 @@
 import type { PageProps } from "app/_types";
+import { X } from "lucide-react";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import Link from "next/link";
 import { z } from "zod";
 
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -57,7 +57,7 @@ const ServerPage = async ({ searchParams }: PageProps) => {
     <AuthContainer>
       <div>
         <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <Icon name="x" className="h-6 w-6 text-red-600" />
+          <X className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">

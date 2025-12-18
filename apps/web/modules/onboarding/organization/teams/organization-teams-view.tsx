@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -9,7 +10,6 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -136,7 +136,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                           });
                           remove(index);
                         }}>
-                        <Icon name="x" className="h-4 w-4" />
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}

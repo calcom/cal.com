@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Fingerprint, Grid3x3 } from "lucide-react";
 import type { Dispatch } from "react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -15,7 +16,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Form } from "@calcom/ui/components/form";
 import { ToggleGroup, Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetBody } from "@calcom/ui/components/sheet";
 import { Skeleton, Loader } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -61,7 +61,7 @@ export function EditMemberSheet({
   const bookerUrl = selectedUser.bookerUrl;
   const utils = trpc.useUtils();
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
-  const bookingLink = !!selectedUser.username ? `${bookerUrlWithoutProtocol}/${selectedUser.username}` : "";
+  const bookingLink = selectedUser.username ? `${bookerUrlWithoutProtocol}/${selectedUser.username}` : "";
 
   // Load custom roles for the team
   const { data: customRoles, isPending: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
@@ -233,7 +233,7 @@ export function EditMemberSheet({
                 ) : (
                   <div className="flex items-center gap-6">
                     <div className="flex w-[110px] items-center gap-2">
-                      <Icon className="h-4 w-4" name="fingerprint" />
+                      <Fingerprint className="h-4 w-4" />
                       <label className="text-sm font-medium">{t("role")}</label>
                     </div>
                     <div className="flex flex-1">
@@ -266,7 +266,7 @@ export function EditMemberSheet({
                 )}
                 <div className="flex items-center gap-6">
                   <div className="flex w-[110px] items-center gap-2">
-                    <Icon className="text-subtle h-4 w-4" name="grid-3x3" />
+                    <Grid3x3 className="text-subtle h-4 w-4" />
                     <label className="text-subtle text-sm font-medium">{t("apps")}</label>
                   </div>
                   <div className="flex flex-1">

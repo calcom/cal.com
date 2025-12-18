@@ -1,10 +1,10 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
+import { X, Calendar } from "lucide-react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon } from "@calcom/ui/components/icon";
 import { Button } from "@calcom/ui/components/button";
 
 import type { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
@@ -29,7 +29,7 @@ export default function MeetingUnavailable(props: PageProps) {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-                    <Icon name="x" className="h-6 w-6 text-red-600" />
+                    <X className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-headline">
@@ -41,7 +41,7 @@ export default function MeetingUnavailable(props: PageProps) {
                       {props.booking.title}
                     </h2>
                     <p className="text-subtle text-center">
-                      <Icon name="calendar" className="-mt-1 mr-1 inline-block h-4 w-4" />
+                      <Calendar className="-mt-1 mr-1 inline-block h-4 w-4" />
                       {dayjs(props.booking.startTime).format(`${detectBrowserTimeFormat}, dddd DD MMMM YYYY`)}
                     </p>
                   </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
+import { Info } from "lucide-react";
 import React, {
   useMemo,
   useState,
@@ -40,7 +41,6 @@ import { EditableHeading } from "@calcom/ui/components/editable-heading";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -227,7 +227,7 @@ const DateOverride = ({
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
-            <Icon name="info" className="h-4 w-4" />
+            <Info className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>

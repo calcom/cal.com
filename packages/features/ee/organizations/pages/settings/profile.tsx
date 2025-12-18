@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -24,7 +25,6 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
 // if I include this in the above barrel import, I get a runtime error that the component is not exported.
 import { OrgBanner } from "@calcom/ui/components/organization-banner";
@@ -330,7 +330,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   <Avatar
                     alt="calVideoLogo"
                     imageSrc={value}
-                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+                    fallback={<Plus className="text-subtle h-6 w-6" />}
                     size="lg"
                   />
                   <div className="ms-4">
@@ -407,7 +407,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                       type="button"
                       aria-label="copy organization id"
                       onClick={() => handleCopy(value.toString())}>
-                      <Icon name="copy" className="ml-1 h-4 w-4" />
+                      <Copy className="ml-1 h-4 w-4" />
                     </Button>
                   </Tooltip>
                 }

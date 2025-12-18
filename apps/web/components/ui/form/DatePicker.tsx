@@ -1,10 +1,10 @@
 import React from "react";
+import { Calendar } from "lucide-react";
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";
 import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
 
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 
 type Props = {
   date: Date;
@@ -22,7 +22,7 @@ export const DatePicker = ({ minDate, disabled, date, onDatesChange, className }
         className
       )}
       clearIcon={null}
-      calendarIcon={<Icon name="calendar" className="text-subtle h-5 w-5" />}
+      calendarIcon={<Calendar className="text-subtle h-5 w-5" />}
       value={date}
       minDate={minDate}
       disabled={disabled}

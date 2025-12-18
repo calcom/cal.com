@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-// eslint-disable-next-line no-restricted-imports
+import { Loader, Check } from "lucide-react";
+ 
 import { noop } from "lodash";
 import { useCallback, useState } from "react";
 import { Controller, FormProvider, useForm, useFormState } from "react-hook-form";
@@ -12,7 +13,6 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 type EnterpriseLicenseFormValues = {
   licenseKey: string;
@@ -122,9 +122,9 @@ const EnterpriseLicense = (
                 )}
                 addOnSuffix={
                   checkLicenseLoading ? (
-                    <Icon name="loader" className="h-5 w-5 animate-spin" />
+                    <Loader className="h-5 w-5 animate-spin" />
                   ) : errors.licenseKey === undefined && isDirty ? (
-                    <Icon name="check" className="h-5 w-5 text-green-700" />
+                    <Check className="h-5 w-5 text-green-700" />
                   ) : undefined
                 }
                 color={errors.licenseKey ? "warn" : ""}

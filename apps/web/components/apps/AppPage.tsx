@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CircleAlert, BookOpen, ExternalLink, Mail, File, Shield, Flag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
@@ -19,7 +20,6 @@ import type { App as AppType } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -380,7 +380,7 @@ export const AppPage = ({
             <div className="items-start space-x-2.5">
               <div className="text-info flex items-start">
                 <div>
-                  <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
+                  <CircleAlert className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">{t("msteams_calendar_warning_body")}</span>
@@ -440,7 +440,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis text-sm font-normal no-underline hover:underline"
                 href={docs}>
-                <Icon name="book-open" className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
+                <BookOpen className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
                 {t("documentation")}
               </a>
             </li>
@@ -452,7 +452,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={website}>
-                <Icon name="external-link" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <ExternalLink className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {website.replace("https://", "")}
               </a>
             </li>
@@ -464,7 +464,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={`mailto:${email}`}>
-                <Icon name="mail" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Mail className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}
               </a>
@@ -477,7 +477,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={tos}>
-                <Icon name="file" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <File className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("terms_of_service")}
               </a>
             </li>
@@ -489,7 +489,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={privacy}>
-                <Icon name="shield" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Shield className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("privacy_policy")}
               </a>
             </li>
@@ -500,7 +500,7 @@ export const AppPage = ({
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
-          <Icon name="flag" className="inline h-3 w-3" /> {t("report_app")}
+          <Flag className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>
     </div>

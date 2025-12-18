@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ExternalLink, Mail, Globe } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,7 +11,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
@@ -135,7 +135,7 @@ export function BookingReportEntryDetailsModal({
                   <Link href={`/booking/${entry.booking.uid}`}>
                     <div className="text-subtle flex items-center gap-1 text-sm">
                       {entry.booking.title}
-                      <Icon name="external-link" className="h-4 w-4" />
+                      <ExternalLink className="h-4 w-4" />
                     </div>
                   </Link>
                 </div>
@@ -159,12 +159,12 @@ export function BookingReportEntryDetailsModal({
                       {
                         value: WatchlistType.EMAIL,
                         label: t("block_this_email"),
-                        iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                        iconLeft: <Mail className="h-4 w-4" />,
                       },
                       {
                         value: WatchlistType.DOMAIN,
                         label: t("block_all_from_domain"),
-                        iconLeft: <Icon name="globe" className="h-4 w-4" />,
+                        iconLeft: <Globe className="h-4 w-4" />,
                       },
                     ]}
                   />

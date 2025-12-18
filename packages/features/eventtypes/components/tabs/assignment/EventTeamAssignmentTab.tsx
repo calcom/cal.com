@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -31,7 +32,6 @@ import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -543,7 +543,7 @@ const RoundRobinHosts = ({
                       type="button"
                       onClick={() => handleRemoveGroup(group.id)}
                       className="text-subtle hover:text-default rounded p-1">
-                      <Icon name="x" className="h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                   <AddMembersWithSwitchComponent groupId={group.id} />
@@ -725,7 +725,7 @@ const Hosts = ({
           ),
           MANAGED: <></>,
         };
-        return !!schedulingType ? schedulingTypeRender[schedulingType] : <></>;
+        return schedulingType ? schedulingTypeRender[schedulingType] : <></>;
       }}
     />
   );
@@ -891,10 +891,8 @@ export const EventTeamAssignmentTab = ({
                       hostGroups?.length > 1 ? (
                         <Tooltip
                           content={
-                            !!(
-                              eventType.team?.rrTimestampBasis &&
+                            eventType.team?.rrTimestampBasis &&
                               eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-                            )
                               ? t("rr_load_balancing_disabled")
                               : t("rr_load_balancing_disabled_with_groups")
                           }>

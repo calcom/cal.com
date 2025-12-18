@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Settings } from "lucide-react";
 import Link from "next/link";
 import posthog from "posthog-js";
 
@@ -8,7 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
 
 import type { AppCardApp } from "../types";
@@ -133,7 +133,7 @@ export default function AppCard({
               <div className="relative text-sm [&_input]:mb-0 [&_input]:leading-4">
                 {!hideSettingsIcon && !isPlatform && (
                   <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
-                    <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                    <Settings className="text-default h-4 w-4" aria-hidden="true" />
                   </Link>
                 )}
                 {children}
