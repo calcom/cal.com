@@ -7,12 +7,11 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import EventTypeWebhookListItem from "@calcom/features/webhooks/components/EventTypeWebhookListItem";
-import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
+import type { TWebhook, WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
@@ -36,7 +35,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
+  const [webhookToEdit, setWebhookToEdit] = useState<TWebhook>();
 
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
