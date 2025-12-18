@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringArrayChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Attendee Added Audit Action Service
@@ -14,8 +14,7 @@ const fieldsSchemaV1 = z.object({
     attendees: StringArrayChangeSchema,
 });
 
-export class AttendeeAddedAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class AttendeeAddedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "ATTENDEE_ADDED" as const;
     private static dataSchemaV1 = z.object({
@@ -59,17 +58,14 @@ export class AttendeeAddedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.attendee_added" };
     }
 
     getDisplayJson({
         storedData,
-    }: {
-        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone: string;
-    }): AttendeeAddedAuditDisplayData {
-        const { fields } = storedData;
+    }: GetDisplayJsonParams): AttendeeAddedAuditDisplayData {
+        const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
         const previousAttendeesSet = new Set(fields.attendees.old ?? []);
         const addedAttendees = fields.attendees.new.filter(
             (email) => !previousAttendeesSet.has(email)
