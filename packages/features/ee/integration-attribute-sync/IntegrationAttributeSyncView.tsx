@@ -45,7 +45,7 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
   const credentialOptions =
     credentialsData?.map((cred) => ({
       value: String(cred.id),
-      label: `${cred.type} (${cred.team?.name})`,
+      label: `${cred.type} ${cred.team?.name ? `(${cred.team.name})` : ""}`,
     })) ?? [];
 
   // Transform teams data for rule builder
