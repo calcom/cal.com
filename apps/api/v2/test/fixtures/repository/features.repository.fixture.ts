@@ -26,12 +26,6 @@ export class FeaturesRepositoryFixture {
     });
   }
 
-  async createTeamFeature(data: Prisma.TeamFeaturesCreateInput) {
-    return await this.prismaWriteClient.teamFeatures.create({
-      data,
-    });
-  }
-
   async setTeamFeatureState(
     teamId: number,
     featureId: string,

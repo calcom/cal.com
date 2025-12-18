@@ -17,6 +17,11 @@ export function computeEffectiveStateAcrossTeams({
   teamStates,
   userState,
 }: {
+  /**
+   * Acts as a global kill switch. When false, the feature is disabled for everyone.
+   * When true, the feature is NOT necessarily enabled - enablement still depends on
+   * the org, team, and user state hierarchy.
+   */
   globalEnabled: boolean;
   orgState: FeatureState;
   teamStates: FeatureState[];
