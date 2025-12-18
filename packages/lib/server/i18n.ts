@@ -20,6 +20,13 @@ const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
 
+function mergeWithEnglishFallback(localeTranslations: Record<string, string>): Record<string, string> {
+  return {
+    ...englishTranslations,
+    ...localeTranslations,
+  };
+}
+
 /**
  * Loads translations for a specific locale and namespace with optimized caching
  * English translations are bundled as englishTranslations for reliability,
@@ -48,8 +55,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
       `../../../apps/web/public/static/locales/${locale}/${ns}.json`
     );
 
-    translationCache.set(cacheKey, localeTranslations);
-    return localeTranslations;
+    const mergedTranslations = mergeWithEnglishFallback(localeTranslations);
+    translationCache.set(cacheKey, mergedTranslations);
+    return mergedTranslations;
   } catch (dynamicImportErr) {
     log.warn(`Dynamic import failed for locale ${locale}:`, dynamicImportErr);
 
@@ -64,8 +72,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
       );
       if (response.ok) {
         const httpTranslations = await response.json();
-        translationCache.set(cacheKey, httpTranslations);
-        return httpTranslations;
+        const mergedTranslations = mergeWithEnglishFallback(httpTranslations);
+        translationCache.set(cacheKey, mergedTranslations);
+        return mergedTranslations;
       }
     } catch (httpErr) {
       log.error(`HTTP fallback also failed for locale ${locale}:`, httpErr);
