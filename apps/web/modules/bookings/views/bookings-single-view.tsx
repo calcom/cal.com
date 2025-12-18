@@ -657,15 +657,19 @@ export default function Success(props: PageProps) {
                                       <span data-testid={`attendee-name-${attendee.name}`} className="mr-2">
                                         {attendee.name}
                                       </span>
-                                      {attendee.bookingSeat?.payment?.some((p) => p.success) > 0 ? (
-                                        attendee.bookingSeat.payment.some((p) => p.success && !p.refunded) ? (
-                                          <Badge variant="success">{t("paid")}</Badge>
+                                      {bookingInfo.paid &&
+                                        bookingInfo.isASeatedBooking /* This means booking is paid and has seats as responses for seated bookings are stored in `BookingSeat` */ &&
+                                        (attendee.bookingSeat?.payment?.some((p) => p.success) > 0 ? (
+                                          attendee.bookingSeat.payment.some(
+                                            (p) => p.success && !p.refunded
+                                          ) ? (
+                                            <Badge variant="success">{t("paid")}</Badge>
+                                          ) : (
+                                            <Badge variant="destructive">{t("refunded")}</Badge>
+                                          )
                                         ) : (
-                                          <Badge variant="destructive">{t("refunded")}</Badge>
-                                        )
-                                      ) : (
-                                        <Badge variant="secondary">{t("unpaid")}</Badge>
-                                      )}
+                                          <Badge variant="secondary">{t("unpaid")}</Badge>
+                                        ))}
                                     </div>
                                   )}
 
