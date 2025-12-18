@@ -763,7 +763,7 @@ export default function Success(props: PageProps) {
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
                                   0 ? (
-                                    <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+                                    <ul className="space-y-1 p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
@@ -796,21 +796,62 @@ export default function Success(props: PageProps) {
                             <Fragment key={field.name}>
                               <div
                                 className="mt-3 font-medium"
+                                // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
                               />
                               <div className="col-span-2 mb-6 mt-3 last:mb-0">
-                                <p
+                                <div
                                   className="text-default break-words"
                                   data-testid="field-response"
                                   data-fob-field={field.name}>
-                                  {field.type === "boolean"
-                                    ? response
-                                      ? t("yes")
-                                      : t("no")
-                                    : response.toString()}
-                                </p>
+                                  {(() => {
+                                    const renderValue = (val: any) => {
+                                      if (Array.isArray(val)) {
+                                        if (val.length === 0) return null;
+                                        if (
+                                          typeof val[0] === "object" &&
+                                          val[0] !== null &&
+                                          "url" in val[0]
+                                        ) {
+                                          return (
+                                            <ul className="">
+                                              {val.map((item: any, i: number) => (
+                                                <li key={i}>
+                                                  <a
+                                                    href={item.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline">
+                                                    {item.name || "Attachment"}
+                                                  </a>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          );
+                                        }
+                                        return val.join(", ");
+                                      }
+                                      if (typeof val === "object" && val !== null && "url" in val) {
+                                        return (
+                                          <a
+                                            href={val.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline">
+                                            {val.name || "Attachment"}
+                                          </a>
+                                        );
+                                      }
+                                      if (field.type === "boolean") {
+                                        return val ? t("yes") : t("no");
+                                      }
+                                      return val.toString();
+                                    };
+                                    return renderValue(response);
+                                  })()}
+                                </div>
                               </div>
                             </Fragment>
                           );

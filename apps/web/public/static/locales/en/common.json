@@ -3684,5 +3684,8 @@
   "instagram": "Instagram",
   "youtube": "YouTube",
   "github": "GitHub",
-  "template": "Template"
+  "template": "Template",
+  "choose_file": "Choose file",
+  "drop_file_here_or": "Drop file here or",
+  "file_limit": "File limit: {{max}}"
 }

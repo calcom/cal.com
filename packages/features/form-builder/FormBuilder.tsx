@@ -570,7 +570,7 @@ function FieldEditDialog({
           <DialogDescription>{t("booking_questions_description")}</DialogDescription>
         </DialogHeader>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto p-2">
+          <div className="min-h-[450px] p-2">
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
