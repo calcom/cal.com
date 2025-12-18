@@ -18,6 +18,7 @@ export const markNoShow = async ({ ctx, input }: NoShowOptions) => {
     attendees,
     noShowHost,
     userId: ctx.user.id,
+    userRole: ctx.user.role,
     locale: ctx.user.locale,
   });
 };

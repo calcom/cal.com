@@ -923,7 +923,8 @@ export class BookingsService_2024_08_13 {
       bookingUid: string,
       bookingOwnerId: number,
       body: MarkAbsentBookingInput_2024_08_13,
-      userUuid?: string
+      userUuid?: string,
+      userRole?: string
     ) {
       const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
       const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
@@ -951,6 +952,7 @@ export class BookingsService_2024_08_13 {
         noShowHost: bodyTransformed.noShowHost,
         userId: bookingOwnerId,
         userUuid,
+        userRole,
         platformClientParams,
       });
 

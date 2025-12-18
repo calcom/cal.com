@@ -90,11 +90,13 @@ const handleMarkNoShow = async ({
   attendees,
   noShowHost,
   userId,
+  userRole,
   userUuid: _userUuid,
   locale,
   platformClientParams,
 }: TNoShowInputSchema & {
   userId?: number;
+  userRole?: string;
   userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
@@ -106,7 +108,7 @@ const handleMarkNoShow = async ({
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
 
     if (attendees && attendeeEmails.length > 0) {
-      await assertCanAccessBooking(bookingUid, userId);
+      await assertCanAccessBooking(bookingUid, userId, userRole);
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
@@ -420,7 +422,7 @@ const getWebhooksService = async (bookingUid: string, platformClientId?: string)
   return { webhooks, bookingId: booking?.id };
 };
 
-const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
+const assertCanAccessBooking = async (bookingUid: string, userId?: number, userRole?: string) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
   const bookingRepo = new BookingRepository(prisma);
@@ -430,7 +432,7 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
     loggedInUserId: userId,
     teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
-    userRole: booking.user?.role ?? "",
+    userRole: userRole ?? "",
   });
 
   if (!isAuthorized)

@@ -312,6 +312,7 @@ export class BookingsController_2024_04_15 {
         noShowHost: body.noShowHost,
         userId: user.id,
         userUuid: user.uuid,
+        userRole: user.role,
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
