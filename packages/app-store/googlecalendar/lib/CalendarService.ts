@@ -43,14 +43,6 @@ const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googleca
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
-type GoogleChannelProps = {
-  kind?: string | null;
-  id?: string | null;
-  resourceId?: string | null;
-  resourceUri?: string | null;
-  expiration?: string | null;
-};
-
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: CalendarAuth;
@@ -460,9 +452,7 @@ export default class GoogleCalendarService implements Calendar {
     return apiResponse.json;
   }
 
-  async getFreeBusyResult(
-    args: FreeBusyArgs,
-  ): Promise<calendar_v3.Schema$FreeBusyResponse> {
+  async getFreeBusyResult(args: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
     return await this.fetchAvailability(args);
   }
 
@@ -479,43 +469,7 @@ export default class GoogleCalendarService implements Calendar {
     return validCals[0];
   }
 
-  /**
-   * Groups calendars by their delegationCredentialId to batch API calls efficiently
-   * Calendars with the same delegationCredentialId (including null) are grouped together
-   */
-  private groupCalendarsByDelegationCredential(
-    selectedCalendars: IntegrationCalendar[]
-  ): Map<string | null, IntegrationCalendar[]> {
-    const groups = new Map<string | null, IntegrationCalendar[]>();
-
-    for (const calendar of selectedCalendars) {
-      const delegationCredentialId = calendar.delegationCredentialId ?? null;
-      const group = groups.get(delegationCredentialId);
-      if (group) {
-        group.push(calendar);
-      } else {
-        groups.set(delegationCredentialId, [calendar]);
-      }
-    }
-
-    return groups;
-  }
-
-  /**
-   * Chunks an array into smaller arrays of specified size
-   * Google Calendar API has a limit of 50 calendars per freebusy request
-   */
-  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
-    const chunks: T[][] = [];
-    for (let i = 0; i < array.length; i += chunkSize) {
-      chunks.push(array.slice(i, i + chunkSize));
-    }
-    return chunks;
-  }
-
-  async getFreeBusyData(
-    args: FreeBusyArgs,
-  ): Promise<(EventBusyDate & { id: string })[] | null> {
+  async getFreeBusyData(args: FreeBusyArgs): Promise<(EventBusyDate & { id: string })[] | null> {
     const freeBusyResult = await this.getFreeBusyResult(args);
     if (!freeBusyResult.calendars) return null;
 
@@ -543,73 +497,60 @@ export default class GoogleCalendarService implements Calendar {
     fallbackToPrimary?: boolean
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     const calendar = await this.authedCalendar();
-    const relevantCalendars = selectedCalendars.filter((e) => e.integration === this.integrationName);
-
-    if (relevantCalendars.length === 0 && selectedCalendars.length > 0) {
+    const selectedCalendarIds = selectedCalendars
+      .filter((e) => e.integration === this.integrationName)
+      .map((e) => e.externalId);
+    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
+      // Only calendars of other integrations selected
       return [];
     }
 
-    const calendarGroups = this.groupCalendarsByDelegationCredential(relevantCalendars);
+    const getCalIdsWithTimeZone = async () => {
+      const cals = await this.getAllCalendars(calendar, ["id", "timeZone"]);
+      if (!cals.length) return [];
+
+      if (selectedCalendarIds.length !== 0) {
+        return selectedCalendarIds.map((selectedCalendarId) => {
+          const calWithTz = cals.find((cal) => cal.id === selectedCalendarId);
+          return {
+            id: selectedCalendarId,
+            timeZone: calWithTz?.timeZone || "",
+          };
+        });
+      }
+      if (!fallbackToPrimary) return [];
+
+      const primaryCalendar = this.filterPrimaryCalendar(cals);
+      if (!primaryCalendar) return [];
+      return [
+        {
+          id: primaryCalendar.id,
+          timeZone: primaryCalendar.timeZone || "",
+        },
+      ];
+    };
 
     try {
-      const allResults = await Promise.all(
-        Array.from(calendarGroups.entries()).flatMap(([_delegationCredentialId, calendarsInGroup]) => {
-          const calendarIds = calendarsInGroup.map((c) => c.externalId);
+      const calIdsWithTimeZone = await getCalIdsWithTimeZone();
+      const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
+      const freeBusyData = await this.getFreeBusyData({
+        timeMin: dateFrom,
+        timeMax: dateTo,
+        items: calIds,
+      });
+      if (!freeBusyData) throw new Error("No response from google calendar");
 
-          const calendarIdChunks = this.chunkArray(calendarIds, 50);
-          const chunks = calendarIdChunks.length > 0 ? calendarIdChunks : [[]];
+      const timeZoneMap = new Map(calIdsWithTimeZone.map((cal) => [cal.id, cal.timeZone]));
 
-          return chunks.map(async (calendarIdsChunk) => {
-            const getCalIdsWithTimeZone = async () => {
-              const cals = await this.getAllCalendars(calendar, ["id", "timeZone"]);
-              if (!cals.length) return [];
+      const freeBusyDataWithTimeZone = freeBusyData.map((freeBusy) => {
+        return {
+          start: freeBusy.start,
+          end: freeBusy.end,
+          timeZone: timeZoneMap.get(freeBusy.id) || "",
+        };
+      });
 
-              if (calendarIdsChunk.length !== 0) {
-                return calendarIdsChunk.map((selectedCalendarId) => {
-                  const calWithTz = cals.find((cal) => cal.id === selectedCalendarId);
-                  return {
-                    id: selectedCalendarId,
-                    timeZone: calWithTz?.timeZone || "",
-                  };
-                });
-              }
-              if (!fallbackToPrimary) return [];
-
-              const primaryCalendar = this.filterPrimaryCalendar(cals);
-              if (!primaryCalendar) return [];
-              return [
-                {
-                  id: primaryCalendar.id,
-                  timeZone: primaryCalendar.timeZone || "",
-                },
-              ];
-            };
-
-            const calIdsWithTimeZone = await getCalIdsWithTimeZone();
-            const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
-            const freeBusyData = await this.getFreeBusyData({
-              timeMin: dateFrom,
-              timeMax: dateTo,
-              items: calIds,
-            });
-            if (!freeBusyData) throw new Error("No response from google calendar");
-
-            const timeZoneMap = new Map(calIdsWithTimeZone.map((cal) => [cal.id, cal.timeZone]));
-
-            const freeBusyDataWithTimeZone = freeBusyData.map((freeBusy) => {
-              return {
-                start: freeBusy.start,
-                end: freeBusy.end,
-                timeZone: timeZoneMap.get(freeBusy.id) || "",
-              };
-            });
-
-            return freeBusyDataWithTimeZone;
-          });
-        })
-      );
-
-      return allResults.flat();
+      return freeBusyDataWithTimeZone;
     } catch (error) {
       this.log.error(
         "There was an error getting availability from google calendar: ",
@@ -663,7 +604,7 @@ export default class GoogleCalendarService implements Calendar {
   private async fetchAvailabilityData(
     calendarIds: string[],
     dateFrom: string,
-    dateTo: string,
+    dateTo: string
   ): Promise<EventBusyDate[]> {
     // More efficient date difference calculation using native Date objects
     // Use Math.floor to match dayjs diff behavior (truncates, doesn't round up)
@@ -674,13 +615,11 @@ export default class GoogleCalendarService implements Calendar {
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
-      const freeBusyData = await this.getFreeBusyData(
-        {
-          timeMin: dateFrom,
-          timeMax: dateTo,
-          items: calendarIds.map((id) => ({ id })),
-        }
-      );
+      const freeBusyData = await this.getFreeBusyData({
+        timeMin: dateFrom,
+        timeMax: dateTo,
+        items: calendarIds.map((id) => ({ id })),
+      });
 
       if (!freeBusyData) throw new Error("No response from google calendar");
       return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
@@ -702,13 +641,11 @@ export default class GoogleCalendarService implements Calendar {
         currentEndTime = originalEndTime;
       }
 
-      const chunkData = await this.getFreeBusyData(
-        {
-          timeMin: new Date(currentStartTime).toISOString(),
-          timeMax: new Date(currentEndTime).toISOString(),
-          items: calendarIds.map((id) => ({ id })),
-        }
-      );
+      const chunkData = await this.getFreeBusyData({
+        timeMin: new Date(currentStartTime).toISOString(),
+        timeMax: new Date(currentEndTime).toISOString(),
+        items: calendarIds.map((id) => ({ id })),
+      });
 
       if (chunkData) {
         busyData.push(...chunkData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end })));
@@ -731,44 +668,18 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<EventBusyDate[]> {
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
 
-    const relevantCalendars = selectedCalendars.filter((e) => e.integration === this.integrationName);
+    const selectedCalendarIds = selectedCalendars
+      .filter((e) => e.integration === this.integrationName)
+      .map((e) => e.externalId);
 
-    if (relevantCalendars.length === 0 && selectedCalendars.length > 0) {
+    // Early return if only other integrations are selected
+    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
       return [];
     }
 
     try {
-      const calendarGroups = this.groupCalendarsByDelegationCredential(relevantCalendars);
-
-      if (calendarGroups.size === 0) {
-        calendarGroups.set(null, []);
-      }
-
-      this.log.debug(
-        `Processing ${calendarGroups.size} delegation credential group(s)`,
-        safeStringify({ groupCount: calendarGroups.size })
-      );
-
-      const allResults = await Promise.all(
-        Array.from(calendarGroups.entries()).flatMap(([_delegationCredentialId, calendarsInGroup]) => {
-          const calendarIds = calendarsInGroup.map((c) => c.externalId);
-
-          const calendarIdChunks = this.chunkArray(calendarIds, 50);
-          const chunks = calendarIdChunks.length > 0 ? calendarIdChunks : [[]];
-
-          return chunks.map(async (calendarIdsChunk) => {
-            this.log.debug(
-              "[Cache Miss] Fetching for delegation credential group chunk",
-              safeStringify({ calendarCount: calendarIdsChunk.length })
-            );
-
-            const resolvedCalendarIds = await this.getCalendarIds(calendarIdsChunk, fallbackToPrimary);
-            return await this.fetchAvailabilityData(resolvedCalendarIds, dateFrom, dateTo);
-          });
-        })
-      );
-
-      return allResults.flat();
+      const calendarIds = await this.getCalendarIds(selectedCalendarIds, fallbackToPrimary);
+      return await this.fetchAvailabilityData(calendarIds, dateFrom, dateTo);
     } catch (error) {
       this.log.error(
         "There was an error getting availability from google calendar: ",
