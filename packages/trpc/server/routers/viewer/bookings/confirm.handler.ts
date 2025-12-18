@@ -10,7 +10,9 @@ import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/proc
 import { getBookingRepository } from "@calcom/features/di/containers/Booking";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -18,7 +20,6 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
@@ -30,7 +31,6 @@ import {
   UserPermissionRole,
 } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -40,7 +40,10 @@ import type { TConfirmInputSchema } from "./confirm.schema";
 
 type ConfirmOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "uuid" | "email" | "username" | "role" | "destinationCalendar">;
+    user: Pick<
+      NonNullable<TrpcSessionUser>,
+      "id" | "uuid" | "email" | "username" | "role" | "destinationCalendar"
+    >;
     traceContext: TraceContext;
   };
   input: TConfirmInputSchema;

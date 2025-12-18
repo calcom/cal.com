@@ -27,14 +27,16 @@ function RootLayoutContent() {
       ? {
           width: 400,
           flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          pointerEvents: "auto",
+          display: "flex" as const,
+          flexDirection: "column" as const,
         }
       : { flex: 1 };
 
   return (
-    <View style={containerStyle} className={containerClass}>
+    <View
+      style={[containerStyle, Platform.OS === "web" && { pointerEvents: "auto" as const }]}
+      className={containerClass}
+    >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {content}
       <NetworkStatusBanner />

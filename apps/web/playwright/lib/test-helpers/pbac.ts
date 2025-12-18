@@ -24,6 +24,7 @@ export const enablePBACForTeam = async (teamId: number) => {
       teamId: teamId,
       assignedBy: "e2e",
       assignedAt: new Date(),
+      enabled: true,
     },
   });
 };

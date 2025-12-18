@@ -29,6 +29,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
+import { shadows } from "../../utils/shadows";
 
 export default function Availability() {
   const router = useRouter();
@@ -457,13 +458,7 @@ export default function Availability() {
             className="w-[90%] max-w-[500px] rounded-2xl bg-white"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 20 },
-              shadowOpacity: 0.25,
-              shadowRadius: 25,
-              elevation: 24,
-            }}
+            style={shadows.xl()}
           >
             {/* Header */}
             <View className="px-8 pb-4 pt-6">

@@ -11,7 +11,6 @@ export function Tooltip({ text, children }: TooltipProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const containerRef = useRef<any>(null);
 
-  // Only show tooltips on web platform
   if (Platform.OS !== "web") {
     return children;
   }
@@ -42,30 +41,25 @@ export function Tooltip({ text, children }: TooltipProps) {
       {children}
       {showTooltip && (
         <View
+          // @ts-ignore - web-only styles
           style={{
             position: "fixed",
             top: position.top,
             left: position.left,
-            transform: [{ translateX: -50 }, { translateY: -100 }],
+            transform: "translate(-50%, -100%)",
             backgroundColor: "#1a1a1a",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
+            paddingLeft: 10,
+            paddingRight: 10,
+            paddingTop: 6,
+            paddingBottom: 6,
             borderRadius: 6,
             zIndex: 10002,
             pointerEvents: "none",
-            // @ts-ignore - web-only props
             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
           }}
         >
-          <Text
-            style={{
-              color: "white",
-              fontSize: 13,
-              fontWeight: "600",
-              whiteSpace: "nowrap",
-              lineHeight: 18,
-            }}
-          >
+          {/* @ts-ignore - web-only styles */}
+          <Text style={{ color: "white", fontSize: 13, fontWeight: "600", whiteSpace: "nowrap" }}>
             {text}
           </Text>
         </View>
