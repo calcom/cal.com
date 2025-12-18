@@ -4,8 +4,8 @@ import { vi } from "vitest";
 
 import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { EditMemberSheet } from "@calcom/web/modules/teams/components/EditMemberSheet";
 
-import { EditMemberSheet } from "./EditMemberSheet";
 import type { State, User } from "./MemberList";
 
 // Mock dependencies

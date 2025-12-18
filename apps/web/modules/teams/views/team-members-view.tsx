@@ -4,10 +4,11 @@ import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/components/MemberInvitationModal";
-import MemberList from "@calcom/features/ee/teams/components/MemberList";
 import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
+
+import MemberList from "../components/MemberList";
 
 interface TeamMembersViewProps {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
