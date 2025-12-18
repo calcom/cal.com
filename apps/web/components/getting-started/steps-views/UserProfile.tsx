@@ -1,4 +1,5 @@
 "use client";
+import { useSession } from "next-auth/react";
 
 import { Button } from "@calid/features/ui/components/button";
 import { triggerToast } from "@calid/features/ui/components/toast";
@@ -23,6 +24,8 @@ type FormData = {
 };
 
 const UserProfile = () => {
+
+  const { update } = useSession();
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
@@ -84,6 +87,8 @@ const UserProfile = () => {
     const { bio } = data;
 
     telemetry.event(telemetryEventTypes.onboardingFinished);
+
+    await update({ completedOnboarding: true });
 
     mutation.mutate({
       bio,
