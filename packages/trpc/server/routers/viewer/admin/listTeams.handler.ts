@@ -68,14 +68,9 @@ export default async function listTeamsHandler({ input }: GetOptions) {
     Object.assign(where, makeWhereClause({ columnName: "name", filterValue: nameFilter.value }));
   }
 
-  const organizationIdFilter = getFilter(filters, "organizationId");
-  if (organizationIdFilter) {
-    Object.assign(where, makeWhereClause({ columnName: "parentId", filterValue: organizationIdFilter.value }));
-  }
-
-  const organizationSlugFilter = getFilter(filters, "organizationSlug");
-  if (organizationSlugFilter) {
-    where.parent = makeWhereClause({ columnName: "slug", filterValue: organizationSlugFilter.value });
+  const organizationFilter = getFilter(filters, "organization");
+  if (organizationFilter) {
+    where.parent = makeWhereClause({ columnName: "name", filterValue: organizationFilter.value });
   }
 
   const ownerFilter = getFilter(filters, "owner");
@@ -101,16 +96,20 @@ export default async function listTeamsHandler({ input }: GetOptions) {
     where.OR = [
       ...(where.OR ?? []),
       {
-        teamBilling: makeWhereClause({
-          columnName: "subscriptionId",
-          filterValue: subscriptionIdFilter.value,
-        }),
+        teamBilling: {
+          is: makeWhereClause({
+            columnName: "subscriptionId",
+            filterValue: subscriptionIdFilter.value,
+          }),
+        },
       },
       {
-        organizationBilling: makeWhereClause({
-          columnName: "subscriptionId",
-          filterValue: subscriptionIdFilter.value,
-        }),
+        organizationBilling: {
+          is: makeWhereClause({
+            columnName: "subscriptionId",
+            filterValue: subscriptionIdFilter.value,
+          }),
+        },
       },
     ];
   }
