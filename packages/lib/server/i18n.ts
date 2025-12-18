@@ -5,7 +5,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import logger from "../logger";
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { i18n } = require("@calcom/config/next-i18next.config");
 const log = logger.getSubLogger({ prefix: ["[i18n]"] });
 
@@ -22,7 +21,9 @@ const SUPPORTED_NAMESPACES = ["common"];
 
 export function mergeWithEnglishFallback(localeTranslations: Record<string, string>): Record<string, string> {
   return {
+    // IMPORTANT: Spread English translations first to provide fallback for missing keys
     ...englishTranslations,
+    // Then spread locale translations to override English when keys exist in both
     ...localeTranslations,
   };
 }
