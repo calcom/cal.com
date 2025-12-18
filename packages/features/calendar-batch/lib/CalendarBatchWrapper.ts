@@ -36,7 +36,6 @@ export class CalendarBatchWrapper implements Calendar {
    *   and can be safely batched.
    */
   private splitCalendars(selectedCalendars: IntegrationCalendar[]) {
-    console.log("volnei222", selectedCalendars);
     const ownCredentials: IntegrationCalendar[] = [];
     const delegatedCredentials: DelegatedGroups = {};
 
@@ -103,14 +102,6 @@ export class CalendarBatchWrapper implements Calendar {
     const { ownCredentials, delegatedCredentials } = this.splitCalendars(selectedCalendars);
 
     log.info("Loading free/busy from Google Calendar", {
-      ownCredentials: ownCredentials.length,
-      delegatedCredentials: Object.values(delegatedCredentials).reduce(
-        (sum, calendars) => sum + calendars.length,
-        0
-      ),
-    });
-
-    console.log("Loading free/busy from Google Calendar", {
       ownCredentials: ownCredentials.length,
       delegatedCredentials: Object.values(delegatedCredentials).reduce(
         (sum, calendars) => sum + calendars.length,
