@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { CalVideoSettings as CalVideoSettingsType } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,6 +23,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
   const isPlatform = useIsPlatform();
   const [isExpanded, setIsExpanded] = useState(false);
   const [parent] = useAutoAnimate<HTMLDivElement>();
+  const { hasTeamPlan } = useHasTeamPlan();
   return (
     <>
       <Tooltip content="expandable" side="right" className="lg:hidden">
@@ -49,8 +51,9 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                 return (
                   <SettingsToggle
                     title={t("disable_recording_for_guests")}
-                    labelClassName="text-sm leading-6 whitespace-normal break-words"
+                    labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                     checked={value}
+                    disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                   />
@@ -65,8 +68,9 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                 return (
                   <SettingsToggle
                     title={t("disable_recording_for_organizer")}
-                    labelClassName="text-sm leading-6 whitespace-normal break-words"
+                    labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                     checked={value}
+                    disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                   />
@@ -84,6 +88,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       title={t("enable_automatic_recording")}
                       labelClassName="text-sm"
                       checked={value}
+                      disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
                       Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                     />
@@ -99,8 +104,9 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                 return (
                   <SettingsToggle
                     title={t("enable_automatic_transcription")}
-                    labelClassName="text-sm leading-6 whitespace-normal break-words"
+                    labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                     checked={value}
+                    disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                   />
@@ -116,8 +122,9 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                   return (
                     <SettingsToggle
                       title={t("disable_transcription_for_guests")}
-                      labelClassName="text-sm leading-6 whitespace-normal break-words"
+                      labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                       checked={value}
+                      disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
                       Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                     />
@@ -133,8 +140,9 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                   return (
                     <SettingsToggle
                       title={t("disable_transcription_for_organizer")}
-                      labelClassName="text-sm leading-6 whitespace-normal break-words"
+                      labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                       checked={value}
+                      disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
                       Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                     />
@@ -153,6 +161,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     description={t("require_email_for_guests_description")}
                     labelClassName="text-sm leading-6 whitespace-normal break-words"
                     checked={value}
+                    disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                   />

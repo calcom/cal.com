@@ -10,8 +10,6 @@ import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
 import { setupManagedEvent } from "./lib/testUtils";
 
-test.describe.configure({ mode: "parallel" });
-
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Bookings", () => {
@@ -91,7 +89,7 @@ test.describe("Bookings", () => {
   test.describe("Past bookings", () => {
     test("Mark first guest as no-show", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
-      const _secondUser = await users.create();
+      await users.create();
 
       const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
         title: "Booking as organizer",
@@ -117,9 +115,9 @@ test.describe("Bookings", () => {
       await expect(page.locator('[data-testid="unmark-no-show"]')).toBeHidden();
       await expect(page.locator('[data-testid="mark-no-show"]')).toBeVisible();
       await page.locator('[data-testid="mark-no-show"]').click();
-
-      // Wait for the dropdown to close before clicking again
-      await expect(page.getByText("first@cal.com marked as no-show")).toBeVisible();
+      await firstGuest.click();
+      await expect(page.locator('[data-testid="unmark-no-show"]')).toBeVisible();
+      await expect(page.locator('[data-testid="mark-no-show"]')).toBeHidden();
       await webhookReceiver.waitForRequestCount(1);
       const [request] = webhookReceiver.requestList;
       const body = request.body;
@@ -141,7 +139,7 @@ test.describe("Bookings", () => {
     });
     test("Mark 3rd attendee as no-show", async ({ page, users, bookings }) => {
       const firstUser = await users.create();
-      const _secondUser = await users.create();
+      await users.create();
 
       const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
         title: "Booking as organizer",
@@ -163,27 +161,16 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
-
-      // Click the ellipsis button to open the all attendees dropdown
       const moreGuests = firstPastBooking.locator('[data-testid="more-guests"]');
       await moreGuests.click();
-
-      // Find all the mark-no-show buttons in the dropdown (one for each attendee)
-      const noShowButtons = page.locator('[data-testid="mark-no-show"]');
-
-      // Verify the 3rd attendee (index 2) has mark-no-show button (not already marked)
-      const thirdAttendeeNoShowButton = noShowButtons.nth(2);
-      await expect(thirdAttendeeNoShowButton).toBeVisible();
-
-      // Click the 3rd attendee's mark-no-show button
-      await thirdAttendeeNoShowButton.click();
-
-      // Open dropdown again to verify the 3rd attendee now shows unmark-no-show
+      const firstGuestInMore = page.getByRole("menuitemcheckbox").nth(0);
+      await expect(firstGuestInMore).toHaveAttribute("data-state", "unchecked");
+      await firstGuestInMore.click();
+      await expect(firstGuestInMore).toHaveAttribute("data-state", "checked");
+      const updateNoShow = firstPastBooking.locator('[data-testid="update-no-show"]');
+      await updateNoShow.click();
       await moreGuests.click();
-      const unmarkNoShowButtons = page.locator('[data-testid="unmark-no-show"]');
-
-      // The 3rd attendee should now have the unmark button visible
-      await expect(unmarkNoShowButtons.first()).toBeVisible();
+      await expect(firstGuestInMore).toHaveAttribute("data-state", "checked");
     });
     test("Team admin/owner can mark first attendee as no-show", async ({
       page,
@@ -216,8 +203,9 @@ test.describe("Bookings", () => {
       await firstGuest.click();
       await expect(page.locator('[data-testid="mark-no-show"]')).toBeVisible();
       await page.locator('[data-testid="mark-no-show"]').click();
-      // Wait for the dropdown to close before clicking again
-      await expect(page.getByText("first@cal.com marked as no-show")).toBeVisible();
+      await firstGuest.click();
+      await expect(page.locator('[data-testid="unmark-no-show"]')).toBeVisible();
+      await expect(page.locator('[data-testid="mark-no-show"]')).toBeHidden();
       await webhookReceiver.waitForRequestCount(1);
       const [request] = webhookReceiver.requestList;
       const body = request.body;
@@ -414,7 +402,7 @@ test.describe("Bookings", () => {
 
     const { team } = await owner.getFirstTeamMembership();
     const eventType = await owner.getFirstTeamEvent(team.id);
-    const { id: eventTypeId, title: _teamEventTitle, slug: _teamEventSlug } = eventType;
+    const { id: eventTypeId } = eventType;
 
     // remove myself from host of this event type
     await prisma.host.delete({

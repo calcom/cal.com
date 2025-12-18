@@ -1,17 +1,19 @@
+import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import prisma from "@calcom/prisma";
-import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
 
 export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,
   loggedInUserId,
   verificationCode,
+  isReschedule,
 }: {
   bookerEmail: string;
   loggedInUserId?: number;
   verificationCode?: string;
+  isReschedule: boolean;
 }) => {
   const baseEmail = extractBaseEmail(bookerEmail);
 
@@ -52,7 +54,7 @@ export const checkIfBookerEmailIsBlocked = async ({
   });
 
   const blockedByUserSetting = user?.requiresBookerEmailVerification ?? false;
-  const shouldBlock = !!blacklistedByEnv || blockedByUserSetting;
+  const shouldBlock = !!blacklistedByEnv || (blockedByUserSetting && !isReschedule);
 
   if (!shouldBlock) {
     return false;

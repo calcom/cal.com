@@ -217,6 +217,7 @@
             "platform/atoms/apple-calendar-connect",
             "platform/atoms/availability-settings",
             "platform/atoms/booker",
+            "platform/atoms/booker-embed",
             "platform/atoms/cal-provider",
             "platform/atoms/calendar-settings",
             "platform/atoms/calendar-view",
@@ -226,7 +227,8 @@
             "platform/atoms/google-calendar-connect",
             "platform/atoms/list-schedules",
             "platform/atoms/outlook-calendar-connect",
-            "platform/atoms/payment-form"
+            "platform/atoms/payment-form",
+            "platform/atoms/stripe-connect"
           ]
         },
         {
@@ -246,6 +248,7 @@
             "platform/guides/replacing-toasts",
             "platform/guides/booking-fields",
             "platform/guides/booking-redirects",
+            "platform/guides/managed-orgs",
             "platform/guides/teams-setup",
             "platform/guides/global-event-types",
             "platform/guides/custom-booking-flow"

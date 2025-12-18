@@ -1,25 +1,29 @@
-import { useState, useEffect } from "react";
+import { useCallback, useSyncExternalStore } from "react";
+
+const getServerSnapshot = () => {
+  // Return undefined during SSR to avoid hydration mismatches
+  return undefined;
+};
 
 const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = useState(() => {
-    // Initialize with actual media query value on client
-    if (typeof window !== "undefined") {
-      return window.matchMedia(query).matches;
-    }
-    return false;
-  });
+  // Use useSyncExternalStore for SSR-safe media query detection
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const media = window.matchMedia(query);
+      media.addEventListener("change", callback);
+      return () => media.removeEventListener("change", callback);
+    },
+    [query]
+  );
 
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
-    const listener = () => setMatches(media.matches);
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }, [matches, query]);
+  const getSnapshot = useCallback(() => {
+    return window.matchMedia(query).matches;
+  }, [query]);
 
-  return matches;
+  const matches = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  // Return false if undefined (SSR) to maintain backward compatibility
+  return matches ?? false;
 };
 
 export default useMediaQuery;

@@ -1,22 +1,22 @@
 import { randomBytes } from "crypto";
 
-import { TeamBilling } from "@calcom/features/ee/billing/teams";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import type { Membership } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["TeamService"] });
 
@@ -62,7 +62,7 @@ export class TeamService {
       select: { parentId: true, isOrganization: true },
     });
 
-    if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+    if (!team) throw new ErrorWithCode(ErrorCode.NotFound, "Team not found");
 
     const isOrganizationOrATeamInOrganization = !!(team.parentId || team.isOrganization);
 
@@ -74,10 +74,13 @@ export class TeamService {
           teamId,
         },
       });
-      if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite token not found" });
+      if (!existingToken) throw new ErrorWithCode(ErrorCode.NotFound, "Invite token not found");
       return {
         token: existingToken.token,
-        inviteLink: await TeamService.buildInviteLink(existingToken.token, isOrganizationOrATeamInOrganization),
+        inviteLink: await TeamService.buildInviteLink(
+          existingToken.token,
+          isOrganizationOrATeamInOrganization
+        ),
       };
     }
 
@@ -115,8 +118,10 @@ export class TeamService {
     // Step 1: Cancel the external billing subscription first.
     // If this fails, the entire operation aborts, leaving the team and its data intact.
     // This prevents a state where the user is billed for a deleted team.
-    const teamBilling = await TeamBilling.findAndInit(id);
-    await teamBilling.cancel();
+    // const teamBilling = await TeamBillingService.findAndInit(id);
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(id);
+    await teamBillingService.cancel();
 
     // Step 2: Clean up internal, related data like workflow reminders.
     try {
@@ -164,13 +169,14 @@ export class TeamService {
     }
 
     await Promise.all(deleteMembershipPromises);
-
-    const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
-    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
+    const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
+      teamBillingService.updateQuantity()
+    );
     await Promise.allSettled(teamBillingPromises);
   }
 
-  // TODO: Move errors away from TRPC error to make it more generic
   static async inviteMemberByToken(token: string, userId: number) {
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
@@ -187,12 +193,9 @@ export class TeamService {
       },
     });
 
-    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+    if (!verificationToken) throw new ErrorWithCode(ErrorCode.NotFound, "Invite not found");
     if (!verificationToken.teamId || !verificationToken.team)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Invite token is not associated with any team");
 
     try {
       await prisma.membership.create({
@@ -207,16 +210,17 @@ export class TeamService {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "This user is a member of this team / has a pending invitation.",
-          });
+          throw new ErrorWithCode(
+            ErrorCode.Forbidden,
+            "This user is a member of this team / has a pending invitation."
+          );
         }
       } else throw e;
     }
 
-    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
-    await teamBilling.updateQuantity();
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(verificationToken.teamId);
+    await teamBillingService.updateQuantity();
 
     return verificationToken.team.name;
   }
@@ -311,14 +315,11 @@ export class TeamService {
     });
 
     if (!verificationToken) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Invite not found");
     }
 
     if (!verificationToken.teamId || !verificationToken.team) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Invite token is not associated with any team");
     }
 
     const currentUser = await prisma.user.findUnique({
@@ -327,17 +328,14 @@ export class TeamService {
     });
 
     if (!currentUser) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "User not found");
     }
 
     if (
       currentUser.email !== verificationToken.identifier &&
       currentUser.username !== verificationToken.identifier
     ) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "This invitation is not for your account",
-      });
+      throw new ErrorWithCode(ErrorCode.Forbidden, "This invitation is not for your account");
     }
 
     await TeamService.acceptTeamMembership({
@@ -349,8 +347,9 @@ export class TeamService {
   }
 
   static async publish(teamId: number) {
-    const teamBilling = await TeamBilling.findAndInit(teamId);
-    return teamBilling.publish();
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
+    return teamBillingService.publish();
   }
 
   private static async removeMember({
@@ -399,7 +398,7 @@ export class TeamService {
     });
 
     if (!membership) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Membership not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Membership not found");
     }
 
     return membership;
@@ -420,7 +419,7 @@ export class TeamService {
     });
 
     if (!team) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Team not found");
     }
 
     return team;
@@ -450,7 +449,7 @@ export class TeamService {
     });
 
     if (!user) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "User not found");
     }
 
     return user;

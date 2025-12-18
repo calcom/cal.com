@@ -102,7 +102,7 @@ export default function WorkflowListPage({ workflows }: Props) {
     <>
       {workflows && workflows.length > 0 ? (
         <div className="bg-default border-subtle overflow-hidden rounded-md border sm:mx-0">
-          <ul className="divide-subtle !static w-full divide-y" data-testid="workflow-list" ref={parent}>
+          <ul className="divide-subtle static! w-full divide-y" data-testid="workflow-list" ref={parent}>
             {workflows.map((workflow, index) => {
               const firstItem = workflows[0];
               const lastItem = workflows[workflows.length - 1];
@@ -118,8 +118,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                   {!(lastItem && lastItem.id === workflow.id) && (
                     <ArrowButton onClick={() => moveWorkflow(index, 1)} arrowDirection="down" />
                   )}
-                  <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 transition sm:px-6">
-                    <Link href={`/workflows/${workflow.id}`} className="flex-grow cursor-pointer">
+                  <div className="first-line:group hover:bg-cal-muted flex w-full items-center justify-between p-4 transition sm:px-6">
+                    <Link href={`/workflows/${workflow.id}`} className="grow cursor-pointer">
                       <div className="rtl:space-x-reverse">
                         <div className="flex">
                           <div
@@ -229,7 +229,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <div>
                       <div className="hidden md:block">
                         {workflow.team?.name && (
-                          <Badge className="mb-2 mr-4 mt-1 p-[1px] px-2" variant="gray">
+                          <Badge className="mb-2 mr-4 mt-1 p-px px-2" variant="gray">
                             <Avatar
                               alt={workflow.team?.name || ""}
                               href={
@@ -250,7 +250,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                       </div>
                     </div>
 
-                    <div className="flex flex-shrink-0">
+                    <div className="flex shrink-0">
                       <div className="hidden sm:block">
                         <ButtonGroup combined>
                           <Tooltip content={t("edit") as string}>
@@ -272,7 +272,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 setDeleteDialogOpen(true);
                                 setwWorkflowToDeleteId(workflow.id);
                               }}
-                              color="secondary"
+                              color="destructive"
                               variant="icon"
                               disabled={
                                 workflow.permissions ? !workflow.permissions?.canDelete : workflow.readOnly

@@ -1,14 +1,17 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
+import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma, type PrismaTransaction } from "@calcom/prisma";
 import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
+
+import { getBillingProviderService, getTeamBillingServiceFactory } from "./di/containers/Billing";
+import { SubscriptionStatus } from "./repository/billing/IBillingRepository";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -44,6 +47,8 @@ type LowCreditBalanceWarningResult = LowCreditBalanceResultBase & {
 };
 
 type LowCreditBalanceResult = LowCreditBalanceLimitReachedResult | LowCreditBalanceWarningResult | null;
+
+export type CreditCheckFn = CreditService["hasAvailableCredits"];
 
 export class CreditService {
   async chargeCredits({
@@ -155,7 +160,13 @@ export class CreditService {
   /*
     also returns true if team has no available credits but limitReachedAt is not yet set
   */
-  async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
+  async hasAvailableCredits({
+    userId,
+    teamId,
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+  }): Promise<boolean> {
     return await prisma.$transaction(async (tx) => {
       if (!IS_SMS_CREDITS_ENABLED) return true;
 
@@ -466,10 +477,9 @@ export class CreditService {
       const { totalMonthlyCredits } = await this._getAllCreditsForTeam({ teamId, tx });
       warningLimit = totalMonthlyCredits * 0.2;
     } else if (userId) {
-      const { StripeBillingService } = await import("./stripe-billing-service");
-      const billing = new StripeBillingService();
-      const teamMonthlyPrice = await billing.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
-      const pricePerSeat = teamMonthlyPrice?.unit_amount ?? 0;
+      const billingService = getBillingProviderService();
+      const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
+      const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
       warningLimit = (pricePerSeat / 2) * 0.2;
     }
 
@@ -586,9 +596,7 @@ export class CreditService {
 
     try {
       if (result.type === "LIMIT_REACHED") {
-        const { sendCreditBalanceLimitReachedEmails } = await import(
-          "@calcom/emails/billing-email-service"
-        );
+        const { sendCreditBalanceLimitReachedEmails } = await import("@calcom/emails/billing-email-service");
 
         const promises: Promise<unknown>[] = [
           sendCreditBalanceLimitReachedEmails({
@@ -605,11 +613,15 @@ export class CreditService {
             "@calcom/features/ee/workflows/lib/reminders/reminderScheduler"
           );
           promises.push(
-            cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
-              (error) => {
-                log.error("Failed to cancel scheduled messages", error, { result });
-              }
-            )
+            cancelScheduledMessagesAndScheduleEmails({
+              teamId: result.teamId,
+              userIdsWithNoCredits: await this._getUserIdsWithoutCredits({
+                teamId: result.teamId ?? null,
+                userId: result.userId ?? null,
+              }),
+            }).catch((error) => {
+              log.error("Failed to cancel scheduled messages", error, { result });
+            })
           );
         }
 
@@ -656,11 +668,14 @@ export class CreditService {
 
     if (!team) return 0;
 
-    const { InternalTeamBilling } = await import("@calcom/features/ee/billing/teams/internal-team-billing");
-    const teamBillingService = new InternalTeamBilling(team);
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = teamBillingServiceFactory.init(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-    if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
+    if (
+      subscriptionStatus !== SubscriptionStatus.ACTIVE &&
+      subscriptionStatus !== SubscriptionStatus.PAST_DUE
+    ) {
       return 0;
     }
 
@@ -672,8 +687,7 @@ export class CreditService {
       return activeMembers * creditsPerSeat;
     }
 
-    const { StripeBillingService } = await import("./stripe-billing-service");
-    const billing = new StripeBillingService();
+    const billingService = getBillingProviderService();
     const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
     if (!priceId) {
@@ -681,7 +695,7 @@ export class CreditService {
       return 0;
     }
 
-    const monthlyPrice = await billing.getPrice(priceId);
+    const monthlyPrice = await billingService.getPrice(priceId);
     if (!monthlyPrice) {
       log.warn("Failed to retrieve monthly price", { teamId, priceId });
       return 0;
@@ -823,5 +837,35 @@ export class CreditService {
         orgId,
       };
     });
+  }
+
+  private async _getUserIdsWithoutCredits({
+    teamId,
+    userId,
+  }: {
+    teamId: number | null;
+    userId: number | null;
+  }) {
+    let userIdsWithNoCredits: number[] = userId ? [userId] : [];
+    if (teamId) {
+      const teamMembers = await prisma.membership.findMany({
+        where: {
+          teamId,
+          accepted: true,
+        },
+      });
+
+      userIdsWithNoCredits = (
+        await Promise.all(
+          teamMembers.map(async (member) => {
+            const hasCredits = await this.hasAvailableCredits({ userId: member.userId });
+            return { userId: member.userId, hasCredits };
+          })
+        )
+      )
+        .filter(({ hasCredits }) => !hasCredits)
+        .map(({ userId }) => userId);
+    }
+    return userIdsWithNoCredits;
   }
 }
