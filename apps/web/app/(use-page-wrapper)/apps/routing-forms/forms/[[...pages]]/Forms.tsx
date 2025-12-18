@@ -9,8 +9,6 @@ import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackR
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
-import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -36,6 +34,8 @@ import {
   FormActionsDropdown,
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
+import SkeletonLoaderTeamList from "@calcom/web/modules/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "@calcom/web/modules/teams/components/createButton/CreateButtonWithTeamsList";
 
 import { ShellMain } from "~/shell/Shell";
 import { UpgradeTip } from "~/shell/UpgradeTip";
