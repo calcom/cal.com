@@ -1,11 +1,6 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import { BookingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/BookingPayloadBuilder";
-import { FormPayloadBuilder } from "@calcom/features/webhooks/lib/factory/FormPayloadBuilder";
-import { InstantMeetingBuilder } from "@calcom/features/webhooks/lib/factory/InstantMeetingBuilder";
-import { MeetingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/MeetingPayloadBuilder";
-import { OOOPayloadBuilder } from "@calcom/features/webhooks/lib/factory/OOOPayloadBuilder";
-import { RecordingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/RecordingPayloadBuilder";
+import { createPayloadBuilderFactory } from "@calcom/features/webhooks/lib/factory/versioned/registry";
 import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import { FormWebhookService } from "@calcom/features/webhooks/lib/service/FormWebhookService";
@@ -54,25 +49,15 @@ webhookModule
     SHARED_TOKENS.LOGGER,
   ]);
 
-// Bind payload builders
-webhookModule.bind(WEBHOOK_TOKENS.BOOKING_PAYLOAD_BUILDER).toClass(BookingPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.FORM_PAYLOAD_BUILDER).toClass(FormPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.OOO_PAYLOAD_BUILDER).toClass(OOOPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.RECORDING_PAYLOAD_BUILDER).toClass(RecordingPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.MEETING_PAYLOAD_BUILDER).toClass(MeetingPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.INSTANT_MEETING_BUILDER).toClass(InstantMeetingBuilder);
+// Bind payload builder factory (composition root for versioning)
+webhookModule.bind(WEBHOOK_TOKENS.PAYLOAD_BUILDER_FACTORY).toFactory(() => createPayloadBuilderFactory());
 
-// Bind notification handler
+// Bind notification handler with factory
 webhookModule
   .bind(WEBHOOK_TOKENS.WEBHOOK_NOTIFICATION_HANDLER)
   .toClass(WebhookNotificationHandler, [
     WEBHOOK_TOKENS.WEBHOOK_SERVICE,
-    WEBHOOK_TOKENS.BOOKING_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.FORM_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.OOO_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.RECORDING_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.MEETING_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.INSTANT_MEETING_BUILDER,
+    WEBHOOK_TOKENS.PAYLOAD_BUILDER_FACTORY,
     SHARED_TOKENS.LOGGER,
   ]);
 
