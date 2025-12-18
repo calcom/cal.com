@@ -123,6 +123,7 @@ const enableFeatureForOrganization = async (organizationId: number, featureSlug:
       teamId: organizationId,
       featureId: featureSlug,
       assignedBy: "test-system",
+      enabled: true,
     },
     update: {},
   });
@@ -486,3 +487,4 @@ describe("Booking Audit Integration", () => {
     });
   });
 });
+
