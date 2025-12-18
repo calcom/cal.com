@@ -526,6 +526,33 @@ export class EventTypeRepository {
     });
   }
 
+  async findByIdIfUserIsHostOrAssignee({ eventTypeId, userId }: { eventTypeId: number; userId: number }) {
+    return await this.prismaClient.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        OR: [
+          {
+            hosts: {
+              some: {
+                userId,
+              },
+            },
+          },
+          {
+            users: {
+              some: {
+                id: userId,
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
   async findById({ id, userId }: { id: number; userId: number }) {
     const userSelect = {
       name: true,
