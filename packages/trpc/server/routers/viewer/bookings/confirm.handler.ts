@@ -2,12 +2,12 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
-import { checkIfUserIsAuthorizedToManageBooking } from "@calcom/features/bookings/lib/checkIfUserIsAuthorizedToManageBooking";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
@@ -143,12 +143,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking must have an organizer" });
   }
 
-  const isUserAuthorizedToConfirmBooking = await checkIfUserIsAuthorizedToManageBooking({
-    eventTypeId: booking.eventTypeId,
-    loggedInUserId: ctx.user.id,
-    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
-    bookingUserId: booking.userId,
-    userRole: ctx.user.role,
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isUserAuthorizedToConfirmBooking = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId: ctx.user.id,
+    bookingId: bookingId,
   });
 
   if (!isUserAuthorizedToConfirmBooking) {

@@ -1646,7 +1646,6 @@ export class BookingRepository {
           select: {
             id: true,
             email: true,
-            role: true,
           },
         },
         title: true,
@@ -1669,11 +1668,6 @@ export class BookingRepository {
                 id: true,
                 name: true,
                 parentId: true,
-              },
-            },
-            parent: {
-              select: {
-                teamId: true,
               },
             },
           },

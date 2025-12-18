@@ -402,7 +402,7 @@ export class BookingsController_2024_08_13 {
       @Body() body: MarkAbsentBookingInput_2024_08_13,
       @GetUser() user: ApiAuthGuardUser
     ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-      const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid, user.role);
+      const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
 
       return {
         status: SUCCESS_STATUS,

@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 
-import { checkIfUserIsAuthorizedToManageBooking } from "@calcom/features/bookings/lib/checkIfUserIsAuthorizedToManageBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
@@ -90,13 +90,11 @@ const handleMarkNoShow = async ({
   attendees,
   noShowHost,
   userId,
-  userRole,
   userUuid: _userUuid,
   locale,
   platformClientParams,
 }: TNoShowInputSchema & {
   userId?: number;
-  userRole?: string;
   userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
@@ -108,7 +106,7 @@ const handleMarkNoShow = async ({
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
 
     if (attendees && attendeeEmails.length > 0) {
-      await assertCanAccessBooking(bookingUid, userId, userRole);
+      await assertCanAccessBooking(bookingUid, userId);
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
@@ -422,17 +420,15 @@ const getWebhooksService = async (bookingUid: string, platformClientId?: string)
   return { webhooks, bookingId: booking?.id };
 };
 
-const assertCanAccessBooking = async (bookingUid: string, userId?: number, userRole?: string) => {
+const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
   const bookingRepo = new BookingRepository(prisma);
   const booking = await bookingRepo.findByUidIncludeEventTypeAndReferences({ bookingUid });
-  const isAuthorized = await checkIfUserIsAuthorizedToManageBooking({
-    eventTypeId: booking.eventTypeId,
-    loggedInUserId: userId,
-    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
-    bookingUserId: booking.userId,
-    userRole: userRole ?? "",
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isAuthorized = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId,
+    bookingUid,
   });
 
   if (!isAuthorized)
