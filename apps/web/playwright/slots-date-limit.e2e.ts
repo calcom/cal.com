@@ -59,10 +59,14 @@ test.describe("Slots API - Date Range Limit", () => {
 
     await page.goto(`/${user.username}/30-min`);
 
-    await page.waitForSelector('[data-testid="day"]');
+    // Wait for the calendar to fully load by waiting for the increment month button
+    await page.waitForSelector('[data-testid="incrementMonth"]');
 
-    await page.click('[data-testid="incrementMonth"]');
-    await page.waitForTimeout(200);
+    // Click to go to next month (using the same pattern as selectFirstAvailableTimeSlotNextMonth)
+    await page.getByTestId("incrementMonth").click();
+
+    // Wait for enabled days to appear in the next month
+    await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
 
     const enabledDays = page.locator('[data-testid="day"][data-disabled="false"]');
     const enabledDaysCount = await enabledDays.count();
