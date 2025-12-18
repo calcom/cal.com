@@ -2,7 +2,7 @@ import type { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
-import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
@@ -161,17 +161,8 @@ export class TeamBillingService implements ITeamBillingService {
       if (!url && !isOrganization) return;
 
       // TODO: To be read from organizationOnboarding for Organizations later, but considering the fact that certain old organization won't have onboarding
-      const { subscriptionId, subscriptionItemId, orgSeats } = metadata;
-      // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
-      // We can't go below this quantity for subscription
-      const orgMinimumSubscriptionQuantity = orgSeats || MINIMUM_NUMBER_OF_ORG_SEATS;
+      const { subscriptionId, subscriptionItemId } = metadata;
       const membershipCount = await prisma.membership.count({ where: { teamId } });
-      if (isOrganization && membershipCount < orgMinimumSubscriptionQuantity) {
-        log.info(
-          `Org ${teamId} has less members than the min required ${orgMinimumSubscriptionQuantity}, skipping updating subscription.`
-        );
-        return;
-      }
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
       await this.billingProviderService.handleSubscriptionUpdate({

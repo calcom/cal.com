@@ -272,7 +272,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 setDeleteDialogOpen(true);
                                 setwWorkflowToDeleteId(workflow.id);
                               }}
-                              color="secondary"
+                              color="destructive"
                               variant="icon"
                               disabled={
                                 workflow.permissions ? !workflow.permissions?.canDelete : workflow.readOnly

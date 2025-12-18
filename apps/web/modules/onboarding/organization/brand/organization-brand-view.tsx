@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -72,12 +73,23 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   const handleContinue = () => {
+    posthog.capture("onboarding_organization_brand_continue_clicked", {
+      has_logo: !!logoPreview,
+      has_banner: !!bannerPreview,
+      has_custom_color: brandColor !== "#000000",
+    });
     // Save to store (already saved on change, but ensure it's persisted)
     setOrganizationBrand({
       logo: logoPreview,
       banner: bannerPreview,
       color: brandColor,
     });
+    router.push("/onboarding/organization/teams");
+  };
+
+  const handleSkip = () => {
+    posthog.capture("onboarding_organization_brand_skip_clicked");
+    // Skip brand customization and go to teams
     router.push("/onboarding/organization/teams");
   };
 
@@ -92,12 +104,20 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
             <Button
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/organization/details")}>
+              onClick={() => {
+                posthog.capture("onboarding_organization_brand_back_clicked");
+                router.push("/onboarding/organization/details");
+              }}>
               {t("back")}
             </Button>
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-              {t("continue")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+                {t("onboarding_skip_for_now")}
+              </Button>
+              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                {t("continue")}
+              </Button>
+            </div>
           </div>
         }>
         {/* Form */}
@@ -189,6 +209,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         bio={organizationDetails.bio}
         slug={organizationDetails.link}
         bannerUrl={bannerPreview}
+        brandColor={brandColor}
       />
     </OnboardingLayout>
   );
