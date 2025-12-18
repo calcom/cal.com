@@ -14,12 +14,15 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
 
+import { CrmFieldType, DateFieldType } from "../../_lib/crm-enums";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
 import type { HubspotToken } from "../api/callback";
 import type { appDataSchema } from "../zod";
 
@@ -32,6 +35,8 @@ export default class HubspotCalendarService implements CRM {
   private client_secret = "";
   private hubspotClient: hubspot.Client;
   private appOptions: z.infer<typeof appDataSchema>;
+  private bookingRepository: BookingRepository;
+  private trackingRepository: PrismaTrackingRepository;
 
   constructor(credential: CredentialPayload, appOptions?: z.infer<typeof appDataSchema>) {
     this.hubspotClient = new hubspot.Client();
@@ -43,6 +48,8 @@ export default class HubspotCalendarService implements CRM {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
     this.appOptions = appOptions || {};
+    this.bookingRepository = new BookingRepository(prisma);
+    this.trackingRepository = new PrismaTrackingRepository(prisma);
   }
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
@@ -56,22 +63,197 @@ export default class HubspotCalendarService implements CRM {
       })
       .join("<br><br>");
 
-    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
-      event.attendees[0].timeZone
-    }<br><br>${
-      event.additionalNotes
-        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-            event.additionalNotes
-          }<br><br>`
+    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${event.attendees[0].timeZone
+      }<br><br>${event.additionalNotes
+        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${event.additionalNotes
+        }<br><br>`
         : ""
-    }
+      }
     ${userFieldsHtml}<br><br>
     <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
     ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
   `;
   };
 
+  private async ensureFieldsExistOnMeeting(fieldsToTest: string[]) {
+    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnMeeting]`] });
+    const fieldSet = new Set(fieldsToTest);
+    const foundFields: Array<{ name: string; type: string;[key: string]: any }> = [];
+
+    try {
+      const properties = await this.hubspotClient.crm.properties.coreApi.getAll("meetings", undefined);
+
+      for (const property of properties.results) {
+        if (foundFields.length === fieldSet.size) break;
+
+        if (fieldSet.has(property.name)) {
+          foundFields.push(property);
+        }
+      }
+
+      const foundFieldNames = new Set(foundFields.map((f) => f.name));
+      const missingFields = fieldsToTest.filter((field) => !foundFieldNames.has(field));
+
+      if (missingFields.length > 0) {
+        log.warn(
+          `The following fields do not exist in HubSpot and will be skipped: ${missingFields.join(", ")}. Meeting creation will continue without these fields.`
+        );
+      }
+
+      return foundFields;
+    } catch (e: any) {
+      log.error(`Error ensuring fields ${fieldsToTest} exist on Meeting object with error ${e}`);
+      // Return empty array to gracefully degrade - meeting creation will proceed without custom field validation
+      return [];
+    }
+  }
+
+  private async getTextValueFromBookingTracking(fieldValue: string, bookingUid: string, fieldName: string) {
+    const log = logger.getSubLogger({
+      prefix: [`[getTextValueFromBookingTracking]: ${fieldName} - ${bookingUid}`],
+    });
+
+    const tracking = await this.trackingRepository.findByBookingUid(bookingUid);
+
+    if (!tracking) {
+      log.warn(`No tracking found for bookingUid ${bookingUid}`);
+      return "";
+    }
+
+    const utmParam = fieldValue.split(":")[1].slice(0, -1);
+    return tracking[`utm_${utmParam}` as keyof typeof tracking]?.toString() ?? "";
+  }
+
+  private getTextValueFromBookingResponse(fieldValue: string, calEventResponses: CalEventResponses) {
+    const regexValueToReplace = /\{(.*?)\}/g;
+    return fieldValue.replace(regexValueToReplace, (match, captured) => {
+      return calEventResponses[captured]?.value ? calEventResponses[captured].value.toString() : match;
+    });
+  }
+
+  private async getDateFieldValue(
+    fieldValue: string,
+    startTime: string,
+    bookingUid?: string | null
+  ): Promise<string | null> {
+    if (fieldValue === DateFieldType.BOOKING_START_DATE) {
+      return new Date(startTime).toISOString();
+    }
+
+    if (fieldValue === DateFieldType.BOOKING_CREATED_DATE && bookingUid) {
+      const booking = await this.bookingRepository.findBookingByUid({ bookingUid });
+
+      if (!booking) {
+        this.log.warn(`No booking found for ${bookingUid}`);
+        return null;
+      }
+
+      return new Date(booking.createdAt).toISOString();
+    }
+
+    if (fieldValue === DateFieldType.BOOKING_CANCEL_DATE) {
+      return new Date().toISOString();
+    }
+
+    return null;
+  }
+
+  private async getFieldValue({
+    fieldValue,
+    fieldType,
+    calEventResponses,
+    bookingUid,
+    startTime,
+    fieldName,
+  }: {
+    fieldValue: string | boolean;
+    fieldType: string;
+    calEventResponses?: CalEventResponses | null;
+    bookingUid?: string | null;
+    startTime?: string;
+    fieldName: string;
+  }): Promise<any> {
+    const log = logger.getSubLogger({ prefix: [`[getFieldValue]: ${fieldName}`] });
+
+    if (fieldType === CrmFieldType.CHECKBOX) {
+      return !!fieldValue;
+    }
+
+    if (fieldType === CrmFieldType.DATE && startTime) {
+      return await this.getDateFieldValue(fieldValue as string, startTime, bookingUid);
+    }
+
+    if (typeof fieldValue === "string") {
+      if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) {
+        log.info("Returning static value");
+        return fieldValue;
+      }
+
+      let valueToWrite = fieldValue;
+
+      if (fieldValue.startsWith("{utm:")) {
+        if (!bookingUid) {
+          log.error(`BookingUid not passed. Cannot get tracking values without it`);
+          return;
+        }
+        valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid, fieldName);
+      } else {
+        // Get the value from the booking response
+        if (!calEventResponses) {
+          log.error(`CalEventResponses not passed. Cannot get booking form responses`);
+          return;
+        }
+        valueToWrite = this.getTextValueFromBookingResponse(fieldValue, calEventResponses);
+      }
+
+      if (valueToWrite === fieldValue) {
+        log.error("No responses found returning nothing");
+        return;
+      }
+
+      return valueToWrite;
+    }
+
+    return fieldValue;
+  }
+
+  private async generateWriteToMeetingBody(event: CalendarEvent) {
+    const appOptions = this.getAppOptions();
+
+    const customFieldInputsEnabled =
+      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectFields;
+
+    if (!customFieldInputsEnabled) return {};
+
+    if (!appOptions?.onBookingWriteToEventObjectFields) return {};
+
+    const customFieldInputs = customFieldInputsEnabled
+      ? await this.ensureFieldsExistOnMeeting(Object.keys(appOptions.onBookingWriteToEventObjectFields))
+      : [];
+
+    const confirmedCustomFieldInputs: Record<string, any> = {};
+
+    for (const field of customFieldInputs) {
+      const fieldConfig = appOptions.onBookingWriteToEventObjectFields[field.name];
+
+      confirmedCustomFieldInputs[field.name] = await this.getFieldValue({
+        fieldValue: fieldConfig.value,
+        fieldType: fieldConfig.fieldType,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+        startTime: event.startTime,
+        fieldName: field.name,
+      });
+    }
+
+    this.log.info(`Writing to meeting fields: ${Object.keys(confirmedCustomFieldInputs)}`);
+
+    return confirmedCustomFieldInputs;
+  }
+
   private hubspotCreateMeeting = async (event: CalendarEvent) => {
+    const writeToMeetingRecord = await this.generateWriteToMeetingBody(event);
+
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
         hs_timestamp: Date.now().toString(),
@@ -81,6 +263,7 @@ export default class HubspotCalendarService implements CRM {
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "SCHEDULED",
+        ...writeToMeetingRecord,
       },
     };
 
@@ -103,6 +286,8 @@ export default class HubspotCalendarService implements CRM {
   };
 
   private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
+    const writeToMeetingRecord = await this.generateWriteToMeetingBody(event);
+
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
         hs_timestamp: Date.now().toString(),
@@ -112,6 +297,7 @@ export default class HubspotCalendarService implements CRM {
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "RESCHEDULED",
+        ...writeToMeetingRecord,
       },
     };
 

@@ -2,6 +2,10 @@ import { usePathname } from "next/navigation";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
+import WriteToObjectSettings, {
+  BookingActionEnum,
+  CrmFieldType,
+} from "@calcom/app-store/_components/crm/WriteToObjectSettings";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -23,6 +27,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
 
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
   const skipContactCreation = getAppData("skipContactCreation") ?? false;
+  const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
+  const onBookingWriteToEventObjectFields = getAppData("onBookingWriteToEventObjectFields") ?? {};
 
   return (
     <AppCard
@@ -65,6 +71,26 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               }}
             />
           </Section.SubSectionHeader>
+        </Section.SubSection>
+
+        <Section.SubSection>
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_BOOKING}
+            optionLabel={t("on_booking_write_to_event_object")}
+            optionEnabled={onBookingWriteToEventObject}
+            writeToObjectData={onBookingWriteToEventObjectFields}
+            optionSwitchOnChange={(checked) => {
+              setAppData("onBookingWriteToEventObject", checked);
+            }}
+            updateWriteToObjectData={(data) => { console.log("data: ", data); setAppData("onBookingWriteToEventObjectFields", data) }}
+            supportedFieldTypes={[
+              CrmFieldType.TEXT,
+              CrmFieldType.DATE,
+              CrmFieldType.PHONE,
+              CrmFieldType.CHECKBOX,
+              CrmFieldType.CUSTOM,
+            ]}
+          />
         </Section.SubSection>
       </Section.Content>
     </AppCard>
