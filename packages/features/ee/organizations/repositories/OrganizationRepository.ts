@@ -1,11 +1,11 @@
 import type { z } from "zod";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
