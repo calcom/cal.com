@@ -1,17 +1,17 @@
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
+
 import dayjs from "@calcom/dayjs";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import tasker from "@calcom/features/tasker";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -378,20 +378,16 @@ export class PaymentService implements IAbstractPaymentService {
       user: { email: string | null; name: string | null; timeZone: string } | null;
       id: number;
       startTime: { toISOString: () => string };
+      j;
       uid: string;
     },
-    paymentData: Payment,
-    eventTypeMetadata?: EventTypeMetadata
+    paymentData: Payment
   ): Promise<void> {
-    // Get delay from event type metadata or environment variable (default: 10 minutes)
-    const delayMinutes =
-      (eventTypeMetadata?.apps?.stripe as { paymentAwaitingEmailDelayMinutes?: number } | undefined)
-        ?.paymentAwaitingEmailDelayMinutes ??
-      parseInt(process.env.AWAITING_PAYMENT_EMAIL_DELAY_MINUTES || "10", 10);
+    const delayMinutes = process.env.AWAITING_PAYMENT_EMAIL_DELAY_MINUTES ?? 15;
+    const scheduledEmailAt = dayjs().add(delayMinutes, "minutes").toDate();
 
-    const scheduledAt = dayjs().add(delayMinutes, "minutes").toDate();
-
-    // Schedule the email instead of sending immediately
+    // we give the user 15 minutes to complete the payment
+    // if the payment is still not processed after 15 minutes, we send an awaiting payment email
     await tasker.create(
       "sendAwaitingPaymentEmail",
       {
@@ -400,7 +396,7 @@ export class PaymentService implements IAbstractPaymentService {
         attendeeSeatId: event.attendeeSeatId || null,
       },
       {
-        scheduledAt,
+        scheduledAt: scheduledEmailAt,
         referenceUid: booking.uid,
       }
     );

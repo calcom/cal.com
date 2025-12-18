@@ -27,7 +27,6 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
 
-  // Cancel the scheduled awaiting payment email if payment completes before the delay
   try {
     await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");
     log.debug(`Cancelled scheduled awaiting payment email for booking ${bookingId}`);
