@@ -1,12 +1,7 @@
 import { AccessCodeRepository } from "@/modules/auth/oauth2/repositories/access-code.repository";
 import { OAuth2ClientRepository } from "@/modules/auth/oauth2/repositories/oauth2-client.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { randomBytes } from "crypto";
 import * as jwt from "jsonwebtoken";
@@ -30,8 +25,12 @@ export interface OAuth2Tokens {
 }
 
 export interface AuthorizeResult {
-  authorizationCode: string;
-  redirectUri: string;
+  redirectUrl: string;
+}
+
+export interface OAuthError {
+  error: string;
+  errorDescription?: string;
 }
 
 interface DecodedRefreshToken {
@@ -72,11 +71,12 @@ export class OAuth2Service {
   async generateAuthorizationCode(
     clientId: string,
     userId: number,
+    redirectUri: string,
     scopes: AccessScope[],
+    state?: string,
     teamSlug?: string,
     codeChallenge?: string,
-    codeChallengeMethod?: string,
-    providedRedirectUri?: string
+    codeChallengeMethod?: string
   ): Promise<AuthorizeResult> {
     const client = await this.OAuth2ClientRepository.findByClientIdWithType(clientId);
 
@@ -84,7 +84,7 @@ export class OAuth2Service {
       throw new UnauthorizedException("Client ID not valid");
     }
 
-    const finalRedirectUri = this.validateAndGetRedirectUri(client.redirectUri, providedRedirectUri);
+    this.validateRedirectUri(client.redirectUri, redirectUri);
 
     if (client.clientType === "PUBLIC") {
       if (!codeChallenge) {
@@ -120,19 +120,56 @@ export class OAuth2Service {
       codeChallengeMethod,
     });
 
-    return { authorizationCode, redirectUri: finalRedirectUri };
+    const redirectUrl = this.buildRedirectUrl(redirectUri, {
+      code: authorizationCode,
+      state,
+    });
+
+    return { redirectUrl };
   }
 
-  private validateAndGetRedirectUri(registeredUri: string, providedUri?: string): string {
-    if (!providedUri) {
-      return registeredUri;
-    }
-
+  private validateRedirectUri(registeredUri: string, providedUri: string): void {
     if (providedUri !== registeredUri) {
       throw new BadRequestException("redirect_uri does not match registered redirect URI");
     }
+  }
 
-    return providedUri;
+  buildRedirectUrl(baseUrl: string, params: Record<string, string | undefined>): string {
+    const url = new URL(baseUrl);
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined) {
+        url.searchParams.set(key, value);
+      }
+    }
+    return url.toString();
+  }
+
+  buildErrorRedirectUrl(redirectUri: string, error: unknown, state?: string): string {
+    const oauthError = this.mapErrorToOAuthError(error);
+    return this.buildRedirectUrl(redirectUri, {
+      error: oauthError.error,
+      error_description: oauthError.errorDescription,
+      state,
+    });
+  }
+
+  private mapErrorToOAuthError(error: unknown): OAuthError {
+    if (error instanceof BadRequestException) {
+      return {
+        error: "invalid_request",
+        errorDescription: error.message,
+      };
+    }
+    if (error instanceof UnauthorizedException) {
+      return {
+        error: "unauthorized_client",
+        errorDescription: error.message,
+      };
+    }
+    return {
+      error: "server_error",
+      errorDescription: error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 
   async exchangeCodeForTokens(

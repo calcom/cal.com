@@ -8,20 +8,7 @@ import { OAuth2RefreshInput } from "@/modules/auth/oauth2/inputs/refresh.input";
 import { OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
 import { OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
 import { OAuth2Service } from "@/modules/auth/oauth2/services/oauth2.service";
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  NotFoundException,
-  Param,
-  Post,
-  Res,
-  UnauthorizedException,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Res, UseGuards } from "@nestjs/common";
 import { ApiExcludeController, ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { Response } from "express";
 
@@ -76,64 +63,24 @@ export class OAuth2Controller {
       throw new NotFoundException(`OAuth client with ID '${clientId}' not found`);
     }
 
-    const redirectUri = body.redirectUri || client.redirectUri;
-
     try {
       const result = await this.oauth2Service.generateAuthorizationCode(
         clientId,
         userId,
+        body.redirectUri,
         body.scopes,
+        body.state,
         body.teamSlug,
         body.codeChallenge,
-        body.codeChallengeMethod,
-        body.redirectUri
+        body.codeChallengeMethod
       );
 
-      const redirectUrl = this.buildRedirectUrl(result.redirectUri, {
-        code: result.authorizationCode,
-        state: body.state,
-      });
-
-      res.redirect(303, redirectUrl);
+      return res.redirect(303, result.redirectUrl);
     } catch (error) {
-      const oauthError = this.mapErrorToOAuthError(error);
-      const errorRedirectUrl = this.buildRedirectUrl(redirectUri, {
-        error: oauthError.error,
-        error_description: oauthError.errorDescription,
-        state: body.state,
-      });
+      const errorRedirectUrl = this.oauth2Service.buildErrorRedirectUrl(body.redirectUri, error, body.state);
 
-      res.redirect(303, errorRedirectUrl);
+      return res.redirect(303, errorRedirectUrl);
     }
-  }
-
-  private buildRedirectUrl(baseUrl: string, params: Record<string, string | undefined>): string {
-    const url = new URL(baseUrl);
-    for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined) {
-        url.searchParams.set(key, value);
-      }
-    }
-    return url.toString();
-  }
-
-  private mapErrorToOAuthError(error: unknown): { error: string; errorDescription?: string } {
-    if (error instanceof BadRequestException) {
-      return {
-        error: "invalid_request",
-        errorDescription: error.message,
-      };
-    }
-    if (error instanceof UnauthorizedException) {
-      return {
-        error: "unauthorized_client",
-        errorDescription: error.message,
-      };
-    }
-    return {
-      error: "server_error",
-      errorDescription: error instanceof Error ? error.message : "An unexpected error occurred",
-    };
   }
 
   @Post("/exchange")
