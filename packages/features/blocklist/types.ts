@@ -16,6 +16,8 @@ export interface BlocklistEntry {
   type: WatchlistType;
   description: string | null;
   source?: string;
+  isGlobal?: boolean;
+  isReadOnly?: boolean;
   latestAudit?: {
     changedByUserId: number | null;
     changedByUser?: { id: number; email: string; name: string | null };

@@ -4006,6 +4006,7 @@
   "remove_value_from_system_blocklist": "Remove {{value}} from system blocklist?",
   "remove_value_from_system_blocklist_description": "This will unblock the entry for all organizations. This action is irreversible.",
   "system_wide": "System-wide",
+  "system_blocked": "System blocked",
   "system_wide_all_organizations": "System-wide",
   "system_wide_blocklist_warning": "System-wide blocklist entry",
   "system_wide_blocklist_warning_description": "This entry will block bookings across ALL organizations on the platform.",

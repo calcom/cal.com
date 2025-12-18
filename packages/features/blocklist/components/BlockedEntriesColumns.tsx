@@ -69,7 +69,16 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
         header: t("email_slash_domain"),
         accessorKey: "value",
         enableHiding: false,
-        cell: ({ row }) => <span className="text-emphasis">{row.original.value}</span>,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <span className="text-emphasis">{row.original.value}</span>
+            {row.original.isGlobal && !isSystem && (
+              <Badge variant="gray" className="text-xs">
+                {t("system_blocked")}
+              </Badge>
+            )}
+          </div>
+        ),
       },
       {
         id: "type",
@@ -121,6 +130,8 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
       enableResizing: false,
       cell: ({ row }) => {
         const entry = row.original;
+        const isEntryReadOnly = entry.isReadOnly === true;
+        const showDeleteOption = canDelete && !isEntryReadOnly;
         return (
           <div className="flex items-center justify-end">
             <Dropdown modal={false}>
@@ -133,7 +144,7 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
                     {t("view_details")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                {canDelete && (
+                {showDeleteOption && (
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"

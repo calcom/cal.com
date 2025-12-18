@@ -19,6 +19,7 @@ describe("PrismaBookingReportRepository", () => {
       findUnique: vi.fn(),
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      update: vi.fn(),
       updateMany: vi.fn(),
       count: vi.fn(),
     },
@@ -104,7 +105,10 @@ describe("PrismaBookingReportRepository", () => {
           cancelled: false,
           createdAt: new Date("2025-01-01T10:00:00Z"),
           status: "PENDING",
+          systemStatus: "PENDING",
           watchlistId: null,
+          globalWatchlistId: null,
+          organizationId: null,
           reportedBy: null,
           booking: {
             id: 1,
@@ -114,6 +118,8 @@ describe("PrismaBookingReportRepository", () => {
             endTime: new Date(),
           },
           watchlist: null,
+          globalWatchlist: null,
+          organization: null,
         },
         {
           id: "report-2",
@@ -125,7 +131,10 @@ describe("PrismaBookingReportRepository", () => {
           cancelled: false,
           createdAt: new Date("2025-01-01T11:00:00Z"),
           status: "PENDING",
+          systemStatus: "PENDING",
           watchlistId: null,
+          globalWatchlistId: null,
+          organizationId: null,
           reportedBy: null,
           booking: {
             id: 2,
@@ -135,6 +144,8 @@ describe("PrismaBookingReportRepository", () => {
             endTime: new Date(),
           },
           watchlist: null,
+          globalWatchlist: null,
+          organization: null,
         },
       ];
 
@@ -202,6 +213,93 @@ describe("PrismaBookingReportRepository", () => {
           organizationId: 200,
         },
         data: { status: "PENDING" },
+      });
+    });
+  });
+
+  describe("updateSystemReportStatus", () => {
+    it("should update systemStatus with globalWatchlistId", async () => {
+      mockPrisma.bookingReport.update.mockResolvedValue({ id: "report-1" });
+
+      await repository.updateSystemReportStatus({
+        reportId: "report-123",
+        systemStatus: "BLOCKED",
+        globalWatchlistId: "watchlist-456",
+      });
+
+      expect(mockPrisma.bookingReport.update).toHaveBeenCalledWith({
+        where: { id: "report-123" },
+        data: {
+          systemStatus: "BLOCKED",
+          globalWatchlistId: "watchlist-456",
+        },
+      });
+    });
+
+    it("should update systemStatus without globalWatchlistId", async () => {
+      mockPrisma.bookingReport.update.mockResolvedValue({ id: "report-1" });
+
+      await repository.updateSystemReportStatus({
+        reportId: "report-456",
+        systemStatus: "DISMISSED",
+      });
+
+      expect(mockPrisma.bookingReport.update).toHaveBeenCalledWith({
+        where: { id: "report-456" },
+        data: {
+          systemStatus: "DISMISSED",
+        },
+      });
+    });
+  });
+
+  describe("bulkUpdateSystemReportStatus", () => {
+    it("should bulk update systemStatus with globalWatchlistId", async () => {
+      mockPrisma.bookingReport.updateMany.mockResolvedValue({ count: 3 });
+
+      const result = await repository.bulkUpdateSystemReportStatus({
+        reportIds: ["r1", "r2", "r3"],
+        systemStatus: "BLOCKED",
+        globalWatchlistId: "global-1",
+      });
+
+      expect(result).toEqual({ updated: 3 });
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["r1", "r2", "r3"] } },
+        data: {
+          systemStatus: "BLOCKED",
+          globalWatchlistId: "global-1",
+        },
+      });
+    });
+
+    it("should bulk update systemStatus without globalWatchlistId", async () => {
+      mockPrisma.bookingReport.updateMany.mockResolvedValue({ count: 2 });
+
+      const result = await repository.bulkUpdateSystemReportStatus({
+        reportIds: ["r1", "r2"],
+        systemStatus: "DISMISSED",
+      });
+
+      expect(result).toEqual({ updated: 2 });
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["r1", "r2"] } },
+        data: {
+          systemStatus: "DISMISSED",
+        },
+      });
+    });
+  });
+
+  describe("countSystemPendingReports", () => {
+    it("should count reports with systemStatus PENDING", async () => {
+      mockPrisma.bookingReport.count.mockResolvedValue(5);
+
+      const result = await repository.countSystemPendingReports();
+
+      expect(result).toBe(5);
+      expect(mockPrisma.bookingReport.count).toHaveBeenCalledWith({
+        where: { systemStatus: "PENDING" },
       });
     });
   });

@@ -37,7 +37,7 @@ function SystemBlocklistContent() {
   );
 
   const { data: reportsData, isPending: isReportsPending } = trpc.viewer.admin.watchlist.listReports.useQuery(
-    { limit, offset, searchTerm, filters: { status: ["PENDING"] } },
+    { limit, offset, searchTerm, systemFilters: { systemStatus: ["PENDING"] } },
     { placeholderData: keepPreviousData, enabled: activeView === "pending" }
   );
 
