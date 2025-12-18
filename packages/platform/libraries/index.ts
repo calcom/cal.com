@@ -20,6 +20,7 @@ import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { slugify } from "@calcom/lib/slugify";
+export { slugifyLenient } from "@calcom/lib/slugify-lenient";
 export { getBookingForReschedule };
 
 export type { EventBusyDate } from "@calcom/types/Calendar";
@@ -37,6 +38,11 @@ export {
   WorkflowTemplates,
 } from "@calcom/prisma/enums";
 
+export {
+  WebhookVersion,
+  DEFAULT_WEBHOOK_VERSION,
+} from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+
 export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 
 export { handleMarkNoShow };
@@ -49,7 +55,7 @@ export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarMan
 export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
 
-export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+export { MINUTES_TO_BOOK, ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 
 export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
@@ -119,7 +125,7 @@ export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
 
-export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
+export { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 
@@ -128,4 +134,7 @@ export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEma
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
-export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+
+export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+export { getTasker } from "@calcom/features/tasker/tasker-factory";
+export type { Tasker } from "@calcom/features/tasker/tasker";

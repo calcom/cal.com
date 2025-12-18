@@ -1,10 +1,10 @@
-import { sendCustomWorkflowEmail } from "@calcom/emails";
 import type { WorkflowEmailData } from "@calcom/emails/templates/workflow-email";
+import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import tasker from "@calcom/features/tasker";
 
 type EmailData = Omit<WorkflowEmailData, "to"> & {
   to: string[];
-} & { sendAt?: Date; includeCalendarEvent?: boolean; referenceUid?: string };
+} & { sendAt?: Date | null; includeCalendarEvent?: boolean; referenceUid?: string };
 
 export async function sendOrScheduleWorkflowEmails(mailData: EmailData) {
   if (mailData.sendAt) {

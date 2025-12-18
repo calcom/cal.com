@@ -1,28 +1,18 @@
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { WebhookEventDTO } from "../dto/types";
-import type { BookingPayloadBuilder } from "../factory/BookingPayloadBuilder";
-import type { FormPayloadBuilder } from "../factory/FormPayloadBuilder";
-import type { InstantMeetingBuilder } from "../factory/InstantMeetingBuilder";
-import type { MeetingPayloadBuilder } from "../factory/MeetingPayloadBuilder";
-import type { OOOPayloadBuilder } from "../factory/OOOPayloadBuilder";
-import type { RecordingPayloadBuilder } from "../factory/RecordingPayloadBuilder";
 import type { WebhookPayload } from "../factory/types";
+import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
 import type { IWebhookNotificationHandler } from "../interface/webhook";
+import type { WebhookVersion } from "../interface/IWebhookRepository";
 
 export class WebhookNotificationHandler implements IWebhookNotificationHandler {
   private readonly log: ILogger;
 
   constructor(
     private readonly webhookService: IWebhookService,
-    private readonly bookingPayloadBuilder: BookingPayloadBuilder,
-    private readonly formPayloadBuilder: FormPayloadBuilder,
-    private readonly oooPayloadBuilder: OOOPayloadBuilder,
-    private readonly recordingPayloadBuilder: RecordingPayloadBuilder,
-    private readonly meetingPayloadBuilder: MeetingPayloadBuilder,
-    private readonly instantMeetingBuilder: InstantMeetingBuilder,
+    private readonly payloadBuilderFactory: PayloadBuilderFactory,
     logger: ILogger
   ) {
     this.log = logger.getSubLogger({ prefix: ["[WebhookNotificationHandler]"] });
@@ -76,60 +66,20 @@ export class WebhookNotificationHandler implements IWebhookNotificationHandler {
     }
   }
 
-  private createPayload(dto: WebhookEventDTO): WebhookPayload {
-    switch (dto.triggerEvent) {
-      // Booking events
-      case WebhookTriggerEvents.BOOKING_CREATED:
-      case WebhookTriggerEvents.BOOKING_CANCELLED:
-      case WebhookTriggerEvents.BOOKING_REQUESTED:
-      case WebhookTriggerEvents.BOOKING_RESCHEDULED:
-      case WebhookTriggerEvents.BOOKING_REJECTED:
-      case WebhookTriggerEvents.BOOKING_PAID:
-      case WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED:
-      case WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED:
-        return this.bookingPayloadBuilder.build(dto);
-
-      // Form events
-      case WebhookTriggerEvents.FORM_SUBMITTED:
-      case WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT:
-        return this.formPayloadBuilder.build(dto);
-
-      // OOO events
-      case WebhookTriggerEvents.OOO_CREATED:
-        return this.oooPayloadBuilder.build(dto);
-
-      // Recording events
-      case WebhookTriggerEvents.RECORDING_READY:
-      case WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED:
-        return this.recordingPayloadBuilder.build(dto);
-
-      // Meeting events
-      case WebhookTriggerEvents.MEETING_STARTED:
-      case WebhookTriggerEvents.MEETING_ENDED:
-        return this.meetingPayloadBuilder.build(dto);
-
-      // Instant meeting events
-      case WebhookTriggerEvents.INSTANT_MEETING:
-        return this.instantMeetingBuilder.build(dto);
-
-      // No-show events (special handling)
-      case WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW:
-      case WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW: {
-        return {
-          triggerEvent: dto.triggerEvent,
-          createdAt: dto.createdAt,
-          payload: {
-            bookingId: dto.bookingId,
-            webhook: dto.webhook,
-          },
-        };
-      }
-
-      default: {
-        // TypeScript exhaustiveness check - this should never happen if all cases are covered
-        const _exhaustiveCheck: never = dto;
-        throw new Error(`Unsupported triggerEvent: ${JSON.stringify(_exhaustiveCheck)}`);
-      }
-    }
+  /**
+   * Create webhook payload using version-specific builder from factory.
+   *
+   * All event types now go through the factory for consistent versioning.
+   *
+   * Note: Currently uses DEFAULT version for all subscribers.
+   * In the future, this can be enhanced to:
+   * 1. Accept subscriber version parameter
+   * 2. Build version-specific payloads per subscriber
+   * 3. Group subscribers by version for efficiency
+   */
+  private createPayload(dto: WebhookEventDTO, version: WebhookVersion = DEFAULT_WEBHOOK_VERSION): WebhookPayload {
+    // Get version-specific builder from factory - handles all event types
+    const builder = this.payloadBuilderFactory.getBuilder(version, dto.triggerEvent);
+    return builder.build(dto);
   }
 }

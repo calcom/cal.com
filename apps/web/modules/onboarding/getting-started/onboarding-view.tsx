@@ -1,9 +1,11 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import posthog from "posthog-js";
+import { useEffect, useRef, useTransition } from "react";
 
+import { useTeamInvites } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -25,8 +27,25 @@ type OnboardingViewProps = {
 export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { selectedPlan, setSelectedPlan } = useOnboardingStore();
+  const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const { listInvites, isPending: isPendingInvites } = useTeamInvites();
+
+  // Reset onboarding data when visiting this page, but preserve the selected plan
+  useEffect(() => {
+    resetOnboardingPreservingPlan();
+  }, []);
+
+  // If user has pending team invites, redirect them directly to personal onboarding
+  useEffect(() => {
+    if (!isPendingInvites && listInvites && listInvites.length > 0) {
+      setSelectedPlan("personal");
+      startTransition(() => {
+        router.push("/onboarding/personal/settings");
+      });
+    }
+  }, [isPendingInvites, listInvites, router, setSelectedPlan]);
 
   // Plan order mapping for determining direction
   const planOrder: Record<PlanType, number> = {
@@ -40,7 +59,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     if (!selectedPlan || !previousPlanRef.current) return "down";
     const previousOrder = planOrder[previousPlanRef.current];
     const currentOrder = planOrder[selectedPlan];
-    return currentOrder > previousOrder ? "down" : "up";
+    return currentOrder > previousOrder ? "up" : "down";
   };
 
   const direction = getDirection();
@@ -51,13 +70,20 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   }, [selectedPlan]);
 
   const handleContinue = () => {
-    if (selectedPlan === "organization") {
-      router.push("/onboarding/organization/details");
-    } else if (selectedPlan === "team") {
-      router.push("/onboarding/teams/details");
-    } else if (selectedPlan === "personal") {
-      router.push("/onboarding/personal/settings");
+    if (selectedPlan) {
+      posthog.capture("onboarding_plan_continue_clicked", {
+        plan_type: selectedPlan,
+      });
     }
+    startTransition(() => {
+      if (selectedPlan === "organization") {
+        router.push("/onboarding/organization/details");
+      } else if (selectedPlan === "team") {
+        router.push("/onboarding/teams/details");
+      } else if (selectedPlan === "personal") {
+        router.push("/onboarding/personal/settings");
+      }
+    });
   };
 
   const planIconByType: Record<PlanType, IconName> = {
@@ -103,28 +129,47 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
 
   const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
 
+  // Show loading state while checking for invites or if redirecting
+  if (isPendingInvites || (listInvites && listInvites.length > 0)) {
+    return (
+      <OnboardingLayout userEmail={userEmail}>
+        <OnboardingCard title={t("loading")} subtitle="" />
+      </OnboardingLayout>
+    );
+  }
+
   return (
     <>
       <OnboardingContinuationPrompt />
-      <OnboardingLayout userEmail={userEmail} currentStep={1}>
+      <OnboardingLayout userEmail={userEmail}>
         {/* Left column - Main content */}
         <OnboardingCard
-          title="Select plan"
+          title={t("onboarding_select_plan")}
           subtitle={t("onboarding_welcome_question")}
           footer={
             <div className="flex w-full justify-end gap-2">
-              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-                {t("continue")}
+              <Button
+                color="primary"
+                className="rounded-[10px]"
+                onClick={handleContinue}
+                disabled={isPending}>
+                {isPending ? t("loading") : t("continue")}
               </Button>
             </div>
           }>
           {/* Card */}
-          <div className="bg-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
+          <div className="bg-cal-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
             <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
               {/* Plan options */}
               <RadioAreaGroup.Group
                 value={selectedPlan ?? undefined}
-                onValueChange={(value) => setSelectedPlan(value as PlanType)}
+                onValueChange={(value) => {
+                  const planType = value as PlanType;
+                  setSelectedPlan(planType);
+                  posthog.capture("onboarding_plan_selected", {
+                    plan_type: planType,
+                  });
+                }}
                 className="flex w-full flex-col gap-1 rounded-[10px]">
                 {plans.map((plan) => {
                   const isSelected = selectedPlan === plan.id;
@@ -167,7 +212,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
         </OnboardingCard>
 
         {/* Right column - Icon display */}
-        <div className="bg-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
+        <div className="bg-cal-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
           <AnimatePresence mode="wait">
             {selectedPlanData && (
               <PlanIcon

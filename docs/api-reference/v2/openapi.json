@@ -2819,6 +2819,7 @@
                   "organization.attributes.update",
                   "organization.attributes.delete",
                   "organization.attributes.create",
+                  "organization.attributes.editUsers",
                   "routingForm.create",
                   "routingForm.read",
                   "routingForm.update",
@@ -3865,6 +3866,16 @@
             }
           },
           {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeIds",
             "required": false,
             "in": "query",
@@ -4460,6 +4471,7 @@
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamEventTypes",
         "summary": "Get team event types",
+        "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
         "parameters": [
           {
             "name": "Authorization",
@@ -4512,6 +4524,16 @@
             "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
             }
           }
         ],
@@ -4806,6 +4828,7 @@
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamsEventTypes",
         "summary": "Get all team event types",
+        "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
         "parameters": [
           {
             "name": "Authorization",
@@ -4865,6 +4888,16 @@
               "minimum": 0,
               "default": 0,
               "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
             }
           }
         ],
@@ -9826,7 +9859,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBooking",
         "summary": "Get a booking",
-        "description": "`:bookingUid` can be\n\n      1. uid of a normal booking\n\n      2. uid of one of the recurring booking recurrences\n\n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).\n      \n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "description": "`:bookingUid` can be\n\n      1. uid of a normal booking\n\n      2. uid of one of the recurring booking recurrences\n\n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).\n\n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9893,7 +9926,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingRecordings",
         "summary": "Get all the recordings for the booking",
-        "description": "Fetches all the recordings for the booking `:bookingUid`\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": "Fetches all the recordings for the booking `:bookingUid`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9909,6 +9942,15 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9932,8 +9974,8 @@
     "/v2/bookings/{bookingUid}/transcripts": {
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
-        "summary": "Get all the transcripts download links for the booking",
-        "description": "Fetches all the transcripts download links for the booking `:bookingUid`\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "summary": "Get Cal Video real time transcript download links for the booking",
+        "description": "Fetches all the transcript download links for the booking `:bookingUid`\n\n    <Note>\n    Transcripts are generated when clicking \"Transcribe\" during a Cal Video meeting. Download links are valid for 1 hour only - make a new request to generate fresh links after expiration.\n\n    Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.\n    </Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9949,6 +9991,15 @@
             "name": "bookingUid",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9973,7 +10024,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
         "summary": "Reschedule a booking",
-        "description": "Reschedule a booking or seated booking\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": "Reschedule a booking or seated booking\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10058,7 +10109,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "summary": "Cancel a booking",
-        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    \n    \nCancelling normal bookings:\n    If the booking is not seated and not recurring, simply pass :bookingUid in the request URL `/bookings/:bookingUid/cancel` and optionally cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}`.\n\n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host or org admin of host - host can cancel booking for all attendees aka for every seat, this also applies to org admins. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n    \n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.\n    \n    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n\n    \nCancelling normal bookings:\n    If the booking is not seated and not recurring, simply pass :bookingUid in the request URL `/bookings/:bookingUid/cancel` and optionally cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}`.\n\n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host or org admin of host - host can cancel booking for all attendees aka for every seat, this also applies to org admins. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n\n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.\n\n    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10143,7 +10194,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_markNoShow",
         "summary": "Mark a booking absence",
-        "description": "The provided authorization header refers to the owner of the booking.\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": "The provided authorization header refers to the owner of the booking.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10202,7 +10253,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
         "summary": "Reassign a booking to auto-selected host",
-        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.\n      \n       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.\n\n       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10251,7 +10302,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
         "summary": "Reassign a booking to a specific host",
-        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10318,7 +10369,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_confirmBooking",
         "summary": "Confirm a booking",
-        "description": "The provided authorization header refers to the owner of the booking.\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": "The provided authorization header refers to the owner of the booking.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10367,7 +10418,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_declineBooking",
         "summary": "Decline a booking",
-        "description": "The provided authorization header refers to the owner of the booking.\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note> \n    ",
+        "description": "The provided authorization header refers to the owner of the booking.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10426,7 +10477,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getCalendarLinks",
         "summary": "Get 'Add to Calendar' links for a booking",
-        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note> \n      ",
+        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10530,6 +10581,55 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/conferencing-sessions": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getVideoSessions",
+        "summary": "Get Video Meeting Sessions. Only supported for Cal Video",
+        "description": "Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingVideoSessionsOutput"
                 }
               }
             }
@@ -11475,7 +11575,7 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypes",
         "summary": "Get all event types",
-        "description": "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "description": "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.\n      \n      Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -11530,6 +11630,16 @@
             "description": "ID of the organization of the user you want the get the event-types of, orgSlug is not needed when using this parameter",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
             }
           },
           {
@@ -13620,7 +13730,7 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "summary": "Get available time slots for an event type",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.\n\n       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'.\n         **Note for managed event types**: Managed event types are templates that create individual child event types for each team member. You cannot fetch slots for the parent managed event type directly. Instead, you must:\n         - Find the child event type IDs (the ones assigned to specific users)\n         - Use those child event type IDs to fetch slots as individual user event types using as described in the individual user section above.\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.\n\n       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -13731,7 +13841,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.",
+            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.\n      If no slots are available, the data field will be an empty object {}.",
             "content": {
               "application/json": {
                 "schema": {
@@ -14342,7 +14452,8 @@
       },
       "get": {
         "operationId": "TeamsEventTypesController_getTeamEventTypes",
-        "summary": "Get a team event type",
+        "summary": "Get team event types",
+        "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
         "parameters": [
           {
             "name": "teamId",
@@ -14368,6 +14479,16 @@
             "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "sortCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
             }
           }
         ],
@@ -16704,7 +16825,37 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video", "google-meet", "office365-video", "zoom"]
+            "enum": [
+              "cal-video",
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campfire-video"
+            ]
           }
         },
         "required": ["type", "integration"]
@@ -17912,7 +18063,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -19843,7 +19994,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -21484,7 +21635,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -21928,6 +22079,12 @@
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "schedulingType": {
+            "type": "string",
+            "enum": ["collective", "roundRobin"],
+            "example": "collective",
+            "description": "The scheduling type for the team event - collective or roundRobin. ❗If you change scheduling type you must also provide `hosts` or `assignAllTeamMembers` in the request body, otherwise the event type will have no hosts - this is required because\n      in case of collective event type all hosts are mandatory but in case of round robin some or non can be mandatory so we can't predict how you want the hosts to be setup which is why you must provide that information.  If you want to convert round robin or collective into managed or managed into round robin or collective then you will have to create a new team event type and delete old one."
+          },
           "hosts": {
             "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
             "type": "array",
@@ -21941,7 +22098,7 @@
           },
           "locations": {
             "type": "array",
-            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+            "description": "Locations where the event will take place. If not provided, cal video link will be used as the location. Note: Setting a location to a conferencing app does not install the app - the app must already be installed. Via API, only Google Meet (google-meet), Microsoft Teams (office365-video), and Zoom (zoom) can be installed. Cal Video (cal-video) is installed by default. All other conferencing apps must be connected via the Cal.com web app and are not available for Platform plan customers. You can only set an event type location to an app that has already been installed or connected.",
             "items": {
               "oneOf": [
                 {
@@ -22662,7 +22819,8 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT"
+              "FORM_SUBMITTED_NO_EVENT",
+              "DELEGATION_CREDENTIAL_ERROR"
             ]
           },
           "secret": {
@@ -22729,7 +22887,8 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT"
+              "FORM_SUBMITTED_NO_EVENT",
+              "DELEGATION_CREDENTIAL_ERROR"
             ]
           },
           "secret": {
@@ -26209,6 +26368,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26312,6 +26472,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26443,6 +26604,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26545,6 +26707,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -27378,6 +27541,18 @@
           "email": {
             "type": "string"
           },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
           "timeFormat": {
             "type": "number"
           },
@@ -27403,6 +27578,9 @@
           "id",
           "username",
           "email",
+          "name",
+          "avatarUrl",
+          "bio",
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
@@ -29264,6 +29442,10 @@
             "example": "success",
             "enum": ["success", "error"]
           },
+          "message": {
+            "type": "string",
+            "example": "This endpoint will require authentication in a future release."
+          },
           "error": {
             "type": "object"
           },
@@ -29290,6 +29472,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "message": {
+            "type": "string",
+            "example": "This endpoint will require authentication in a future release."
           },
           "error": {
             "type": "object"
@@ -29661,6 +29847,86 @@
             "items": {
               "$ref": "#/components/schemas/BookingReference"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CalMeetingParticipant": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "nullable": true,
+            "example": "user123"
+          },
+          "userName": {
+            "type": "string",
+            "nullable": true,
+            "example": "John Doe"
+          },
+          "joinTime": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          }
+        },
+        "required": ["userId", "userName", "joinTime", "duration"]
+      },
+      "CalMeetingSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "session123"
+          },
+          "room": {
+            "type": "string",
+            "example": "daily-video-room-123"
+          },
+          "startTime": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          },
+          "ongoing": {
+            "type": "boolean",
+            "example": false
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 10
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalMeetingParticipant"
+            }
+          }
+        },
+        "required": ["id", "room", "startTime", "duration", "ongoing", "maxParticipants", "participants"]
+      },
+      "GetBookingVideoSessionsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalMeetingSession"
+            }
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]

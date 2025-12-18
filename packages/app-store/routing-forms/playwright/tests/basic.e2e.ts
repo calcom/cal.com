@@ -24,7 +24,7 @@ import {
 } from "./testUtils";
 
 function todo(title: string) {
-  // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
+  // eslint-disable-next-line playwright/no-skipped-test
   test.skip(title, () => {});
 }
 
@@ -271,21 +271,21 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstField=456&Test Field Number=456&Test Field Single Selection=456&Test Field Multiple Selection=456&Test Field Multiple Selection=789&Test Field Phone=456&Test Field Email=456@example.com";
+        "firstField=456&Test-Field-Number=456&Test-Field-Single-Selection=456&Test-Field-Multiple-Selection=456&Test-Field-Multiple-Selection=789&Test-Field-Phone=456&Test-Field-Email=456@example.com";
 
       await gotoRoutingLink({ page, queryString });
 
-      await page.fill('[data-testid="form-field-Test Field Long Text"]', "manual-fill");
+      await page.fill('[data-testid="form-field-Test-Field-Long-Text"]', "manual-fill");
 
       await expect(page.locator('[data-testid="form-field-firstField"]')).toHaveValue("456");
-      await expect(page.locator('[data-testid="form-field-Test Field Number"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test-Field-Number"]')).toHaveValue("456");
 
       // TODO: Verify select and multiselect has prefilled values.
-      // expect(await page.locator(`[data-testid="form-field-Test Field Select"]`).inputValue()).toBe("456");
-      // expect(await page.locator(`[data-testid="form-field-Test Field MultiSelect"]`).inputValue()).toBe("456");
+      // expect(await page.locator(`[data-testid="form-field-Test-Field-Select"]`).inputValue()).toBe("456");
+      // expect(await page.locator(`[data-testid="form-field-Test-Field-MultiSelect"]`).inputValue()).toBe("456");
 
-      await expect(page.locator('[data-testid="form-field-Test Field Phone"]')).toHaveValue("456");
-      await expect(page.locator('[data-testid="form-field-Test Field Email"]')).toHaveValue(
+      await expect(page.locator('[data-testid="form-field-Test-Field-Phone"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test-Field-Email"]')).toHaveValue(
         "456@example.com"
       );
 
@@ -300,12 +300,12 @@ test.describe("Routing Forms", () => {
       expect(url.searchParams.get("firstField")).toBe("456");
 
       // All other params come from prefill URL
-      expect(url.searchParams.get("Test Field Number")).toBe("456");
-      expect(url.searchParams.get("Test Field Long Text")).toBe("manual-fill");
-      expect(url.searchParams.get("Test Field Multiple Selection")).toBe("456");
-      expect(url.searchParams.getAll("Test Field Multiple Selection")).toMatchObject(["456", "789"]);
-      expect(url.searchParams.get("Test Field Phone")).toBe("456");
-      expect(url.searchParams.get("Test Field Email")).toBe("456@example.com");
+      expect(url.searchParams.get("Test-Field-Number")).toBe("456");
+      expect(url.searchParams.get("Test-Field-Long-Text")).toBe("manual-fill");
+      expect(url.searchParams.get("Test-Field-Multiple-Selection")).toBe("456");
+      expect(url.searchParams.getAll("Test-Field-Multiple-Selection")).toMatchObject(["456", "789"]);
+      expect(url.searchParams.get("Test-Field-Phone")).toBe("456");
+      expect(url.searchParams.get("Test-Field-Email")).toBe("456@example.com");
     });
 
     // TODO: How to install the app just once?

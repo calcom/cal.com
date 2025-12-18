@@ -182,6 +182,7 @@ model EventType {
   canSendCalVideoTranscriptionEmails Boolean                @default(true)
 
   autoTranslateDescriptionEnabled          Boolean                   @default(false)
+  autoTranslateInstantMeetingTitleEnabled  Boolean                   @default(true)
   /// @zod.import(["import { recurringEventType } from '../../zod-utils'"]).custom.use(recurringEventType)
   recurringEvent                           Json?
   disableGuests                            Boolean                   @default(false)
@@ -196,6 +197,8 @@ model EventType {
   showOptimizedSlots                       Boolean?                  @default(false)
   disableCancelling                        Boolean?                  @default(false)
   disableRescheduling                      Boolean?                  @default(false)
+  /// @zod.number.min(0)
+  minimumRescheduleNotice                  Int?
   seatsShowAttendees                       Boolean?                  @default(false)
   seatsShowAvailabilityCount               Boolean?                  @default(true)
   schedulingType                           SchedulingType?
@@ -255,6 +258,7 @@ model EventType {
   hostGroups            HostGroup[]
 
   bookingRequiresAuthentication Boolean @default(false)
+  rrHostSubsetEnabled           Boolean @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -478,6 +482,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  holidaySettings                UserHolidaySettings?
 
   @@unique([email])
   @@unique([email, username])
@@ -686,6 +691,18 @@ model OrganizationSettings {
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
   disablePhoneOnlySMSNotifications    Boolean    @default(false)
+  disableAutofillOnBookingPage        Boolean    @default(false)
+  orgAutoJoinOnSignup                 Boolean    @default(true)
+
+  disableAttendeeConfirmationEmail      Boolean @default(false)
+  disableAttendeeCancellationEmail      Boolean @default(false)
+  disableAttendeeRescheduledEmail       Boolean @default(false)
+  disableAttendeeRequestEmail           Boolean @default(false)
+  disableAttendeeReassignedEmail        Boolean @default(false)
+  disableAttendeeAwaitingPaymentEmail   Boolean @default(false)
+  disableAttendeeRescheduleRequestEmail Boolean @default(false)
+  disableAttendeeLocationChangeEmail    Boolean @default(false)
+  disableAttendeeNewEventEmail          Boolean @default(false)
 }
 
 enum MembershipRole {
@@ -880,6 +897,7 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
+  @@index([fromReschedule])
 }
 
 model Tracking {
@@ -1089,6 +1107,7 @@ enum WebhookTriggerEvents {
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   FORM_SUBMITTED_NO_EVENT
+  DELEGATION_CREDENTIAL_ERROR
 }
 
 model Webhook {
@@ -1114,6 +1133,7 @@ model Webhook {
   scheduledTriggers     WebhookScheduledTriggers[]
   time                  Int?
   timeUnit              TimeUnit?
+  version               String                     @default("2021-10-20")
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
   @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
@@ -1682,6 +1702,7 @@ model UserFeatures {
   userId     Int
   feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
   featureId  String
+  enabled    Boolean
   assignedAt DateTime @default(now())
   assignedBy String
   updatedAt  DateTime @updatedAt
@@ -1695,6 +1716,7 @@ model TeamFeatures {
   teamId     Int
   feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
   featureId  String
+  enabled    Boolean
   assignedAt DateTime @default(now())
   assignedBy String
   updatedAt  DateTime @updatedAt
@@ -1734,26 +1756,35 @@ model SelectedSlots {
   @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
 }
 
+enum OAuthClientType {
+  CONFIDENTIAL @map("confidential")
+  PUBLIC       @map("public")
+}
+
 model OAuthClient {
-  clientId     String       @id @unique
+  clientId     String          @id @unique
   redirectUri  String
-  clientSecret String
+  clientSecret String?
+  clientType   OAuthClientType @default(CONFIDENTIAL)
   name         String
   logo         String?
+  isTrusted    Boolean         @default(false)
   accessCodes  AccessCode[]
 }
 
 model AccessCode {
-  id        Int           @id @default(autoincrement())
-  code      String
-  clientId  String?
-  client    OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  expiresAt DateTime
-  scopes    AccessScope[]
-  userId    Int?
-  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId    Int?
-  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id                  Int           @id @default(autoincrement())
+  code                String
+  clientId            String?
+  client              OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  expiresAt           DateTime
+  scopes              AccessScope[]
+  userId              Int?
+  user                User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId              Int?
+  team                Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  codeChallenge       String?
+  codeChallengeMethod String?       @default("S256")
 }
 
 enum AccessScope {
@@ -1913,17 +1944,18 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id       Int                @id @default(autoincrement())
-  uuid     String             @unique
-  start    DateTime
-  end      DateTime
-  notes    String?
-  userId   Int
-  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId Int?
-  toUser   User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  reasonId Int?
-  reason   OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  id              Int                @id @default(autoincrement())
+  uuid            String             @unique
+  start           DateTime
+  end             DateTime
+  notes           String?
+  showNotePublicly Boolean           @default(false)
+  userId          Int
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId        Int?
+  toUser          User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId        Int?
+  reason          OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1943,6 +1975,35 @@ model OutOfOfficeReason {
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   entries OutOfOfficeEntry[]
+}
+
+model UserHolidaySettings {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  countryCode String?
+  disabledIds String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Holiday cache for Google Calendar public holidays
+model HolidayCache {
+  id          String   @id @default(uuid())
+  countryCode String
+  calendarId  String
+  eventId     String
+  name        String
+  date        DateTime
+  year        Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryCode, eventId])
+  @@index([countryCode, year])
+  @@index([countryCode, date])
 }
 
 // Platform
@@ -2361,8 +2422,8 @@ model WatchlistAudit {
   changedAt       DateTime @default(now())
   changedByUserId Int?
 
-  watchlistId String     @db.Uuid
-  watchlist   Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  watchlistId String?    @db.Uuid
+  watchlist   Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
 
   @@index([watchlistId, changedAt])
 }
@@ -2624,6 +2685,113 @@ model RolePermission {
   @@index([action])
 }
 
+enum BookingAuditType {
+  RECORD_CREATED @map("record_created")
+  RECORD_UPDATED @map("record_updated")
+  RECORD_DELETED @map("record_deleted")
+}
+
+enum BookingAuditAction {
+  // Booking lifecycle
+  CREATED @map("created")
+
+  // Status changes
+  CANCELLED     @map("cancelled")
+  ACCEPTED      @map("accepted")
+  REJECTED      @map("rejected")
+  PENDING       @map("pending")
+  AWAITING_HOST @map("awaiting_host")
+  RESCHEDULED   @map("rescheduled")
+
+  // Attendee management
+  ATTENDEE_ADDED   @map("attendee_added")
+  ATTENDEE_REMOVED @map("attendee_removed")
+
+  // Assignment/Reassignment (keep integration version - simpler)
+  REASSIGNMENT @map("reassignment")
+
+  // Meeting details
+  LOCATION_CHANGED @map("location_changed")
+
+  // No-show tracking
+  HOST_NO_SHOW_UPDATED     @map("host_no_show_updated")
+  ATTENDEE_NO_SHOW_UPDATED @map("attendee_no_show_updated")
+
+  // Rescheduling
+  RESCHEDULE_REQUESTED @map("reschedule_requested")
+}
+
+enum AuditActorType {
+  USER     @map("user") // Registered Cal.com user (stored here for audit retention even after user deletion)
+  GUEST    @map("guest") // Non-registered user
+  ATTENDEE @map("attendee") // Has Attendee record with us
+  SYSTEM   @map("system") // Automated actions
+}
+
+model AuditActor {
+  id   String         @id @default(uuid(7)) @db.Uuid
+  type AuditActorType
+
+  // References for different actor types (soft references, no FK constraints)
+  // These fields intentionally do NOT have foreign key constraints to preserve audit trail integrity:
+  // - When a User or Attendee is deleted, their AuditActor record persists with these IDs intact
+  // - This maintains immutable audit history even after source records are removed
+  userUuid   String? @db.Uuid // For USER type - references User.uuid without FK constraint
+  attendeeId Int? // For ATTENDEE type - references Attendee.id without FK constraint
+
+  // Identity fields - only for GUEST/SYSTEM(System too might not have all) type. Attendee and User maintain their own identity fields.
+  // They could be set as anonymized for User/Attendee record as well when they are deleted to preserve the audit trail.
+  email String?
+  phone String?
+  name  String?
+
+  createdAt     DateTime       @default(now())
+  bookingAudits BookingAudit[]
+
+  // TODO: Add pseudonymizedAt and related fields when we anonymize the data on deletion
+  @@unique([userUuid])
+  @@unique([attendeeId])
+  @@unique([email]) // Prevent duplicate email actors
+  @@unique([phone]) // Prevent duplicate phone actors
+  @@index([email])
+  @@index([userUuid])
+  @@index([attendeeId])
+}
+
+model BookingAudit {
+  id         String @id @default(uuid(7)) @db.Uuid
+  // bookingUid is stored as a plain string (not a foreign key relation) to preserve the audit trail
+  // even after the booking is deleted. This is intentional for audit log integrity:
+  // - Audit logs are immutable historical records that should persist independently
+  // - When a booking is deleted, we still need to know which booking the audit log belonged to
+  // - Using a plain string instead of a relation prevents bookingUid from becoming NULL on booking deletion
+  // - This allows users to view complete audit history for deleted bookings
+  bookingUid String
+
+  // Actor who performed the action (USER, GUEST, or SYSTEM)
+  // Stored in AuditActor table to maintain audit trail even after user deletion
+  actorId String     @db.Uuid
+  // Restrict onDelete to prevent deletion of audit actor if there are any booking audits associated with it
+  actor   AuditActor @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  type   BookingAuditType
+  action BookingAuditAction
+
+  // Timestamp of the actual booking change (business event time)
+  // Important: May differ from createdAt if audit is processed asynchronously
+  timestamp DateTime
+
+  // Database record timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  data Json?
+
+  @@index([actorId])
+  @@index([bookingUid])
+  @@index([timestamp])
+}
+
 enum PhoneNumberSubscriptionStatus {
   ACTIVE
   PAST_DUE
@@ -2651,6 +2819,9 @@ model Agent {
   // Event type association for inbound agents
   inboundEventTypeId Int?
 
+  // Event type association for outbound agents
+  outboundEventTypeId Int?
+
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2663,6 +2834,7 @@ model Agent {
   @@index([userId])
   @@index([teamId])
   @@index([inboundEventTypeId])
+  @@index([outboundEventTypeId])
 }
 
 model CalAiPhoneNumber {
