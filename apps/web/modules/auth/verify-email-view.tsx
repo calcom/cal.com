@@ -2,17 +2,17 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import posthog from "posthog-js";
+import { useEffect } from "react";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { APP_NAME, IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
-import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { showToast } from "@calcom/ui/components/toast";
 
 function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
@@ -47,17 +47,39 @@ function VerifyEmailPage() {
             description={t("verify_email_page_body", { email: session?.user?.email, appName: APP_NAME })}
             className="bg-default"
             buttonRaw={
-              <Button
-                color="minimal"
-                className="underline"
-                loading={mutation.isPending}
-                onClick={() => {
-                  posthog.capture("verify_email_resend_clicked");
-                  showToast(t("send_email"), "success");
-                  mutation.mutate();
-                }}>
-                {t("resend_email")}
-              </Button>
+              <>
+                {!IS_CALCOM && (
+                  <div className="mb-4 flex items-center gap-2">
+                    <Button
+                      color="secondary"
+                      href="https://mail.google.com/mail/u/0/#search/https%3A%2F%2Fapp.cal.com%2Fapi%2Fauth%2Fverify-email"
+                      target="_blank">
+                      <img src="/email-clients/gmail.svg" alt="Gmail" className="me-1 h-4 w-4" />{" "}
+                      {t("open_in_gmail")}
+                    </Button>
+                    <Button color="secondary" href="https://outlook.live.com/mail/0/" target="_blank">
+                      <img src="/email-clients/outlook.svg" alt="Outlook" className="me-1 h-4 w-4" /> Outlook
+                    </Button>
+                    <Button
+                      color="secondary"
+                      href="https://mail.yahoo.com/d/search?p=Cal.com"
+                      target="_blank">
+                      <img src="/email-clients/yahoo.svg" alt="Yahoo" className="me-1 h-4 w-4" /> Yahoo
+                    </Button>
+                  </div>
+                )}
+
+                <Button
+                  color="minimal"
+                  loading={mutation.isPending}
+                  onClick={() => {
+                    posthog.capture("verify_email_resend_clicked");
+                    showToast(t("send_email"), "success");
+                    mutation.mutate();
+                  }}>
+                  {t("resend_email")}
+                </Button>
+              </>
             }
           />
         </div>
