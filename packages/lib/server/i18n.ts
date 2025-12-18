@@ -83,7 +83,6 @@ export async function loadTranslations(_locale: string, _ns: string) {
     }
 
     log.info(`Falling back to English for locale: ${locale}`);
-    translationCache.set(cacheKey, englishTranslations);
     return englishTranslations;
   }
 }
