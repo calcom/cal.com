@@ -518,7 +518,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     it("should reserve a slot as team member of the team that owns the team event type", async () => {
       // note(Lauris): mock current date to test slots release time
-      const now = "2049-09-05T12:00:00.000Z";
+      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      const now = "2050-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
 
@@ -736,7 +737,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should reserve all available slots for round robin event type with non-fixed hosts", async () => {
-      const now = "2049-09-05T12:00:00.000Z";
+      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      const now = "2050-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
 
@@ -815,7 +817,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should reserve available slot for round robin event type with fixed and non-fixed hosts and should not be able to reserve another slot", async () => {
-      const now = "2049-09-05T12:00:00.000Z";
+      // Use 2050-09-05 so that the slot date (2050-09-05) is within 1 year from "now"
+      const now = "2050-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
 
