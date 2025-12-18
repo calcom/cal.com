@@ -560,4 +560,29 @@ export class MembershipRepository {
       },
     });
   }
+
+  async hasAcceptedMembershipByEmail({
+    email,
+    teamId,
+  }: {
+    email: string;
+    teamId: number;
+  }): Promise<boolean> {
+    const membership = await this.prismaClient.membership.findFirst({
+      where: {
+        teamId,
+        user: {
+          email: {
+            equals: email,
+            mode: "insensitive",
+          },
+        },
+        accepted: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!membership;
+  }
 }

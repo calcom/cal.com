@@ -47,6 +47,7 @@ import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
+import { validateSamlAccountConversion } from "./samlAccountLinking";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
@@ -315,6 +316,10 @@ if (isSAMLLoginEnabled) {
       lastName?: string;
       email?: string;
       locale?: string;
+      requested?: {
+        tenant?: string;
+        product?: string;
+      };
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
       const userRepo = new UserRepository(prisma);
@@ -329,6 +334,8 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
+        // Pass SAML tenant for domain authority checks in signIn callback
+        samlTenant: profile.requested?.tenant,
         ...(user ? { profile: user.allProfiles[0] } : {}),
       };
     },
@@ -939,6 +946,15 @@ export const getOptions = ({
             existingUserWithEmail.emailVerified &&
             existingUserWithEmail.identityProvider !== IdentityProvider.CAL
           ) {
+            // Verify SAML IdP is authoritative before auto-merge
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "SelfHosted→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
@@ -952,6 +968,15 @@ export const getOptions = ({
             !existingUserWithEmail.emailVerified &&
             !existingUserWithEmail.username
           ) {
+            // Verify SAML IdP is authoritative before claiming invited user
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "Invite→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             await prisma.user.update({
               where: {
                 email: existingUserWithEmail.email,
@@ -981,6 +1006,15 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
+            // Verify SAML IdP is authoritative before converting account
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "CAL→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
@@ -1002,6 +1036,13 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
             idP === IdentityProvider.SAML
           ) {
+            // Verify SAML IdP is authoritative before converting account
+            const samlTenant = (user as { samlTenant?: string }).samlTenant;
+            const validation = await validateSamlAccountConversion(samlTenant, user.email, "Google→SAML");
+            if (!validation.allowed) {
+              return validation.errorUrl;
+            }
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
