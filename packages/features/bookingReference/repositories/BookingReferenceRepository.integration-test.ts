@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 import type { Booking, Credential, User } from "@calcom/prisma/client";
+
+import { BookingReferenceRepository } from "./BookingReferenceRepository";
 
 describe("BookingReferenceRepository Integration Tests", () => {
   let testUser: User;

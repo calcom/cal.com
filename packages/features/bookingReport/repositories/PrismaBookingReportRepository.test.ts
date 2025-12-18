@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingReportReason } from "@calcom/prisma/enums";
 
-import { PrismaBookingReportRepository } from "./bookingReport";
-import type { CreateBookingReportInput } from "./bookingReport.interface";
+import type { CreateBookingReportInput } from "./IBookingReportRepository";
+import { PrismaBookingReportRepository } from "./PrismaBookingReportRepository";
 
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),

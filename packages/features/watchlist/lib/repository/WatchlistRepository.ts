@@ -8,7 +8,7 @@ import type {
   WatchlistEntry,
   FindAllEntriesInput,
   WatchlistAuditEntry,
-} from "./watchlist.interface";
+} from "./IWatchlistRepository";
 
 export class WatchlistRepository implements IWatchlistRepository {
   constructor(private readonly prismaClient: PrismaClient) {}

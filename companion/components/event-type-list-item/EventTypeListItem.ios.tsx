@@ -1,20 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text, TouchableOpacity, Pressable } from "react-native";
-import Svg, { Path } from "react-native-svg";
-import { Host, ContextMenu, Button, Image, Label, HStack } from "@expo/ui/swift-ui";
+import { View, Text, Pressable } from "react-native";
+import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
 
-import { Tooltip } from "../../components/Tooltip";
-import {
-  background,
-  buttonStyle,
-  clipShape,
-  fixedSize,
-  foregroundStyle,
-  frame,
-  padding,
-  shapes,
-} from "@expo/ui/swift-ui/modifiers";
+import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { EventTypeListItemProps } from "./types";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { getEventDuration } from "../../utils/getEventDuration";
@@ -91,8 +80,6 @@ export const EventTypeListItem = ({
       <View className="flex-shrink-1 flex-row items-center justify-between">
         <Pressable
           onPress={() => handleEventTypePress(item)}
-          // No need for long press on iOS
-          // onLongPress={() => handleEventTypeLongPress(item)}
           style={{ paddingHorizontal: 16, paddingVertical: 16 }}
           className="flex-grow"
         >
@@ -141,13 +128,11 @@ export const EventTypeListItem = ({
                   systemImage={eventType.icon}
                   onPress={eventType.onPress}
                   role={eventType.role}
-                >
-                  {eventType.label}
-                </Button>
+                  label={eventType.label}
+                />
               ))}
             </ContextMenu.Items>
             <ContextMenu.Trigger>
-              {/* <Image systemName="ellipsis" modifiers={[]} /> */}
               <HStack>
                 <Image
                   systemName="ellipsis"

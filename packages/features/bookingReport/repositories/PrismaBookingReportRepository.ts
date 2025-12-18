@@ -7,7 +7,7 @@ import type {
   CreateBookingReportInput,
   BookingReportWithDetails,
   ListBookingReportsFilters,
-} from "./bookingReport.interface";
+} from "./IBookingReportRepository";
 
 export class PrismaBookingReportRepository implements IBookingReportRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
