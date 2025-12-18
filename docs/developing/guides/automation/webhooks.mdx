@@ -966,42 +966,41 @@ Select a version and trigger event to view the example payload:
             "bookingId": 123,
             "bookingUid": "abc123-def456-ghi789",
             "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T10:30:00.000Z",
             "attendees": [
               {
-                "name": "Jane Smith",
-                "email": "jane@example.com"
-              }
-            ],
-            "participants": [
-              {
-                "user_id": "guest-456",
-                "duration": 300,
-                "join_time": 1705312800,
+                "id": 123,
                 "email": "jane@example.com",
-                "isLoggedIn": false
+                "name": "Jane Smith",
+                "timeZone": "Europe/London",
+                "phoneNumber": null,
+                "locale": "en",
+                "bookingId": 123,
+                "noShow": true
               }
             ],
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "participants": [],
             "hostEmail": "john@example.com",
-            "rescheduledBy": "jane@example.com",
+            "noShowHost": true,
             "eventType": {
               "id": 789,
               "teamId": null,
               "parentId": null,
-              "title": "30 Minute Meeting",
-              "description": "Quick sync",
-              "requiresConfirmation": false,
-              "price": 0,
-              "currency": "usd",
-              "length": 30
+              "calVideoSettings": null
             },
             "webhook": {
               "id": "webhook-abc123",
               "subscriberUrl": "https://example.com/webhook",
+              "appId": null,
               "time": 5,
-              "timeUnit": "MINUTE"
+              "timeUnit": "MINUTE",
+              "eventTriggers": [
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
+              ],
+              "payloadTemplate": null
             },
-            "message": "Host with email john@example.com didn't join the call or didn't join before 2024-01-15 10:05:00 -05:00"
+            "message": "Host with email john@example.com didn't join the call or didn't join before 2024-01-15 10:05:00 +00:00"
           }
         }
         ```
