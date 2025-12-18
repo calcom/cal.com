@@ -807,6 +807,279 @@ Select a version and trigger event to view the example payload:
         }
         ```
       </Accordion>
+      <Accordion title="OOO_CREATED">
+        `toUser` is the redirect/forwarding user and can be `null` if no redirect is set.
+        ```json
+        {
+          "triggerEvent": "OOO_CREATED",
+          "createdAt": "2024-01-10T12:00:00.000Z",
+          "payload": {
+            "oooEntry": {
+              "id": 123,
+              "start": "2024-01-20T00:00:00.000Z",
+              "end": "2024-01-25T23:59:59.000Z",
+              "createdAt": "2024-01-10T12:00:00.000Z",
+              "updatedAt": "2024-01-10T12:00:00.000Z",
+              "notes": "On vacation - will respond when I return",
+              "reason": {
+                "emoji": ":beach_with_umbrella:",
+                "reason": "Vacation"
+              },
+              "reasonId": 1,
+              "user": {
+                "id": 456,
+                "name": "John Doe",
+                "username": "johndoe",
+                "timeZone": "America/New_York",
+                "email": "john@example.com"
+              },
+              "toUser": {
+                "id": 789,
+                "name": "Jane Smith",
+                "username": "janesmith",
+                "timeZone": "America/New_York",
+                "email": "jane@example.com"
+              },
+              "uuid": "ooo-abc123-def456"
+            }
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="FORM_SUBMITTED">
+        Root-level fields (e.g., `name`, `email`, `department`) are duplicated for backward compatibility. The `value` field in responses is deprecated; use `response` instead. For select/multiselect fields, `response` includes both the label and ID.
+        ```json
+        {
+          "triggerEvent": "FORM_SUBMITTED",
+          "createdAt": "2024-01-15T09:00:00.000Z",
+          "payload": {
+            "formId": "clm1234567890",
+            "formName": "Contact Form",
+            "teamId": 123,
+            "responses": {
+              "name": {
+                "value": "Jane Smith",
+                "response": "Jane Smith"
+              },
+              "email": {
+                "value": "jane@example.com",
+                "response": "jane@example.com"
+              },
+              "phone": {
+                "value": "+1234567890",
+                "response": "+1234567890"
+              },
+              "department": {
+                "value": ["Sales"],
+                "response": [
+                  {
+                    "label": "Sales",
+                    "id": "opt-sales-123"
+                  }
+                ]
+              },
+              "services": {
+                "value": ["Consulting", "Support"],
+                "response": [
+                  {
+                    "label": "Consulting",
+                    "id": "opt-consulting-456"
+                  },
+                  {
+                    "label": "Support",
+                    "id": "opt-support-789"
+                  }
+                ]
+              }
+            },
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "phone": "+1234567890",
+            "department": ["Sales"],
+            "services": ["Consulting", "Support"]
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="FORM_SUBMITTED_NO_EVENT">
+        Same structure as `FORM_SUBMITTED`. Triggered 15 minutes after form submission if no booking was made from the routing form.
+        ```json
+        {
+          "triggerEvent": "FORM_SUBMITTED_NO_EVENT",
+          "createdAt": "2024-01-15T09:00:00.000Z",
+          "payload": {
+            "formId": "clm1234567890",
+            "formName": "Contact Form",
+            "teamId": 123,
+            "responses": {
+              "name": {
+                "value": "Jane Smith",
+                "response": "Jane Smith"
+              },
+              "email": {
+                "value": "jane@example.com",
+                "response": "jane@example.com"
+              },
+              "phone": {
+                "value": "+1234567890",
+                "response": "+1234567890"
+              },
+              "department": {
+                "value": ["Sales"],
+                "response": [
+                  {
+                    "label": "Sales",
+                    "id": "opt-sales-123"
+                  }
+                ]
+              },
+              "services": {
+                "value": ["Consulting", "Support"],
+                "response": [
+                  {
+                    "label": "Consulting",
+                    "id": "opt-consulting-456"
+                  },
+                  {
+                    "label": "Support",
+                    "id": "opt-support-789"
+                  }
+                ]
+              }
+            },
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "phone": "+1234567890",
+            "department": ["Sales"],
+            "services": ["Consulting", "Support"]
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="AFTER_HOSTS_CAL_VIDEO_NO_SHOW">
+        ```json
+        {
+          "triggerEvent": "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+          "createdAt": "2024-01-15T10:05:00.000Z",
+          "payload": {
+            "title": "30 Minute Meeting",
+            "bookingId": 123,
+            "bookingUid": "abc123-def456-ghi789",
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "attendees": [
+              {
+                "name": "Jane Smith",
+                "email": "jane@example.com"
+              }
+            ],
+            "participants": [
+              {
+                "user_id": "guest-456",
+                "duration": 300,
+                "join_time": 1705312800,
+                "email": "jane@example.com",
+                "isLoggedIn": false
+              }
+            ],
+            "hostEmail": "john@example.com",
+            "rescheduledBy": "jane@example.com",
+            "eventType": {
+              "id": 789,
+              "teamId": null,
+              "parentId": null,
+              "title": "30 Minute Meeting",
+              "description": "Quick sync",
+              "requiresConfirmation": false,
+              "price": 0,
+              "currency": "usd",
+              "length": 30
+            },
+            "webhook": {
+              "id": "webhook-abc123",
+              "subscriberUrl": "https://example.com/webhook",
+              "time": 5,
+              "timeUnit": "MINUTE"
+            },
+            "message": "Host with email john@example.com didn't join the call or didn't join before 2024-01-15 10:05:00 -05:00"
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="AFTER_GUESTS_CAL_VIDEO_NO_SHOW">
+        ```json
+        {
+          "triggerEvent": "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+          "createdAt": "2024-01-15T10:05:00.000Z",
+          "payload": {
+            "title": "30 Minute Meeting",
+            "bookingId": 123,
+            "bookingUid": "abc123-def456-ghi789",
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "attendees": [
+              {
+                "name": "Jane Smith",
+                "email": "jane@example.com"
+              }
+            ],
+            "participants": [
+              {
+                "user_id": "789",
+                "duration": 300,
+                "join_time": 1705312800,
+                "email": "john@example.com",
+                "isLoggedIn": true
+              }
+            ],
+            "rescheduledBy": null,
+            "eventType": {
+              "id": 789,
+              "teamId": null,
+              "parentId": null,
+              "title": "30 Minute Meeting",
+              "description": "Quick sync",
+              "requiresConfirmation": false,
+              "price": 0,
+              "currency": "usd",
+              "length": 30
+            },
+            "webhook": {
+              "id": "webhook-abc123",
+              "subscriberUrl": "https://example.com/webhook",
+              "time": 5,
+              "timeUnit": "MINUTE"
+            },
+            "message": "Guest didn't join the call or didn't join before 2024-01-15 10:05:00 -05:00"
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="DELEGATION_CREDENTIAL_ERROR">
+        ```json
+        {
+          "triggerEvent": "DELEGATION_CREDENTIAL_ERROR",
+          "createdAt": "2024-01-15T10:00:00.000Z",
+          "payload": {
+            "error": {
+              "type": "CalendarAppDelegationCredentialError",
+              "message": "Failed to refresh token for delegation credential"
+            },
+            "credential": {
+              "id": 123,
+              "type": "google_calendar",
+              "appId": "google-calendar",
+              "delegationCredentialId": "delegation-cred-abc123"
+            },
+            "user": {
+              "id": 456,
+              "email": "user@example.com",
+              "organizationId": 789
+            }
+          }
+        }
+        ```
+      </Accordion>
     </AccordionGroup>
   </Tab>
 </Tabs>
