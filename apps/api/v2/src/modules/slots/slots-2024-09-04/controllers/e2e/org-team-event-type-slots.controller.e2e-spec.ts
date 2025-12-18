@@ -12,6 +12,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
+import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -226,6 +227,16 @@ describe("Slots 2024-09-04 Endpoints", () => {
       bootstrap(app as NestExpressApplication);
 
       await app.init();
+    });
+
+    // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
+    // is within 1 year from "now" and doesn't get clamped by the date range limit
+    beforeEach(() => {
+      advanceTo(new Date("2050-09-04T00:00:00.000Z"));
+    });
+
+    afterEach(() => {
+      clear();
     });
 
     describe("org and non org user have the same username and event type slug", () => {

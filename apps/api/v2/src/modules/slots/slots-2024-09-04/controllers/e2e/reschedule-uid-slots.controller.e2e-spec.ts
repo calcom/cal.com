@@ -15,6 +15,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
+import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -118,6 +119,16 @@ describe("Slots 2024-09-04 Endpoints", () => {
       await app.init();
     });
 
+    // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
+    // is within 1 year from "now" and doesn't get clamped by the date range limit
+    beforeEach(() => {
+      advanceTo(new Date("2050-09-04T00:00:00.000Z"));
+    });
+
+    afterEach(() => {
+      clear();
+    });
+
     describe("bookingUidToReschedule parameter validation", () => {
       it("should accept bookingUidToReschedule as optional string parameter", async () => {
         const response = await request(app.getHttpServer())
@@ -177,59 +188,59 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(slotsForBookedDay).toBeDefined();
 
         // Verify the booked slot is excluded
-        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedStartTime);
-        expect(bookedSlotExists).toBe(false);
+              const bookedSlotExists = slotsForBookedDay.some((slot) => slot.start === bookedStartTime);
+              expect(bookedSlotExists).toBe(false);
 
-        // Verify we still have slots for that day (just not the booked one)
-        expect(slotsForBookedDay.length).toBeGreaterThan(0);
-      });
+              // Verify we still have slots for that day (just not the booked one)
+              expect(slotsForBookedDay.length).toBeGreaterThan(0);
+            });
 
-      it("should include booked slot when matching bookingUidToReschedule is provided", async () => {
-        const response = await request(app.getHttpServer())
-          .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${existingBooking.uid}`
-          )
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
-          .expect(200);
+            it("should include booked slot when matching bookingUidToReschedule is provided", async () => {
+              const response = await request(app.getHttpServer())
+                .get(
+                  `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${existingBooking.uid}`
+                )
+                .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+                .expect(200);
 
-        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
-        expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        const slots = responseBody.data;
+              const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              const slots = responseBody.data;
 
-        expect(slots).toBeDefined();
-        const days = Object.keys(slots);
-        expect(days.length).toEqual(5);
+              expect(slots).toBeDefined();
+              const days = Object.keys(slots);
+              expect(days.length).toEqual(5);
 
-        // Check that the booked slot time IS available when rescheduling
-        const slotsForBookedDay = slots["2050-09-05"];
-        expect(slotsForBookedDay).toBeDefined();
+              // Check that the booked slot time IS available when rescheduling
+              const slotsForBookedDay = slots["2050-09-05"];
+              expect(slotsForBookedDay).toBeDefined();
 
-        // Verify the booked slot is now included due to bookingUidToReschedule
-        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedStartTime);
-        expect(bookedSlotExists).toBe(true);
-      });
+              // Verify the booked slot is now included due to bookingUidToReschedule
+              const bookedSlotExists = slotsForBookedDay.some((slot) => slot.start === bookedStartTime);
+              expect(bookedSlotExists).toBe(true);
+            });
 
-      it("should work with non-existent bookingUidToReschedule without errors", async () => {
-        const nonExistentUid = `non-existent-${randomString()}`;
-        const response = await request(app.getHttpServer())
-          .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${nonExistentUid}`
-          )
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
-          .expect(200);
+            it("should work with non-existent bookingUidToReschedule without errors", async () => {
+              const nonExistentUid = `non-existent-${randomString()}`;
+              const response = await request(app.getHttpServer())
+                .get(
+                  `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${nonExistentUid}`
+                )
+                .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+                .expect(200);
 
-        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
-        expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        const slots = responseBody.data;
+              const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              const slots = responseBody.data;
 
-        expect(slots).toBeDefined();
+              expect(slots).toBeDefined();
 
-        // Should behave like normal slots query when bookingUidToReschedule doesn't match any booking
-        const slotsForBookedDay = slots["2050-09-05"];
-        expect(slotsForBookedDay).toBeDefined();
+              // Should behave like normal slots query when bookingUidToReschedule doesn't match any booking
+              const slotsForBookedDay = slots["2050-09-05"];
+              expect(slotsForBookedDay).toBeDefined();
 
-        // Verify the booked slot is excluded (same as without bookingUidToReschedule)
-        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedStartTime);
+              // Verify the booked slot is excluded (same as without bookingUidToReschedule)
+              const bookedSlotExists = slotsForBookedDay.some((slot) => slot.start === bookedStartTime);
         expect(bookedSlotExists).toBe(false);
       });
     });
@@ -298,7 +309,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
           // Verify rescheduleUid functionality: the booked slot should be available
           const bookedSlotTimeRome = "2050-09-05T13:00:00.000+02:00"; // 11:00 UTC = 13:00 Rome
-          const bookedSlotExists = daySlots.some((slot: any) => slot.start === bookedSlotTimeRome);
+          const bookedSlotExists = daySlots.some((slot) => slot.start === bookedSlotTimeRome);
           expect(bookedSlotExists).toBe(true);
         }
       });

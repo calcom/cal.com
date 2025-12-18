@@ -210,6 +210,16 @@ describe("Slots 2024-09-04 Endpoints", () => {
       await app.init();
     });
 
+    // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
+    // is within 1 year from "now" and doesn't get clamped by the date range limit
+    beforeEach(() => {
+      advanceTo(new Date("2050-09-04T00:00:00.000Z"));
+    });
+
+    afterEach(() => {
+      clear();
+    });
+
     it("should get slots in UTC by event type id", async () => {
       return request(app.getHttpServer())
         .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
@@ -500,7 +510,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       const reserveResponseBody: GetReservedSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { reservationDuration: _1, ...rest } = reservedSlot;
       expect(reserveResponseBody.data).toEqual(rest);
     });
