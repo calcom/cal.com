@@ -20,7 +20,7 @@ const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
 
-function mergeWithEnglishFallback(localeTranslations: Record<string, string>): Record<string, string> {
+export function mergeWithEnglishFallback(localeTranslations: Record<string, string>): Record<string, string> {
   return {
     ...englishTranslations,
     ...localeTranslations,
