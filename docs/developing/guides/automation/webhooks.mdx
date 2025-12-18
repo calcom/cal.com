@@ -443,6 +443,370 @@ Select a version and trigger event to view the example payload:
         }
         ```
       </Accordion>
+      <Accordion title="BOOKING_PAID">
+        ```json
+        {
+          "triggerEvent": "BOOKING_PAID",
+          "createdAt": "2024-01-15T09:05:00.000Z",
+          "payload": {
+            "bookingId": 123,
+            "uid": "abc123-def456-ghi789",
+            "title": "Paid Consultation",
+            "type": "consultation",
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T11:00:00.000Z",
+            "description": "Paid consultation session",
+            "location": "https://cal.com/video/abc123",
+            "status": "ACCEPTED",
+            "organizer": {
+              "id": 456,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "username": "johndoe",
+              "timeZone": "America/New_York",
+              "language": {
+                "locale": "en"
+              },
+              "utcOffset": -5
+            },
+            "attendees": [
+              {
+                "id": 789,
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              }
+            ],
+            "team": null,
+            "customInputs": {},
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith",
+                "isHidden": false
+              },
+              "email": {
+                "label": "Email Address",
+                "value": "jane@example.com",
+                "isHidden": false
+              }
+            },
+            "userFieldsResponses": {},
+            "paymentId": 456,
+            "paymentData": {
+              "id": 456,
+              "success": true,
+              "amount": 5000,
+              "currency": "usd",
+              "refunded": false,
+              "externalId": "pi_abc123xyz"
+            },
+            "paymentInfo": {
+              "link": "https://checkout.stripe.com/pay/cs_xxx",
+              "id": "pi_abc123xyz",
+              "amount": 5000,
+              "currency": "usd"
+            },
+            "eventTitle": "Paid Consultation",
+            "eventDescription": "60-minute paid consultation",
+            "requiresConfirmation": false,
+            "price": 5000,
+            "currency": "usd",
+            "length": 60
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="BOOKING_PAYMENT_INITIATED">
+        ```json
+        {
+          "triggerEvent": "BOOKING_PAYMENT_INITIATED",
+          "createdAt": "2024-01-15T09:00:00.000Z",
+          "payload": {
+            "bookingId": 123,
+            "uid": "abc123-def456-ghi789",
+            "title": "Paid Consultation",
+            "type": "consultation",
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T11:00:00.000Z",
+            "description": "Paid consultation session",
+            "location": "https://cal.com/video/abc123",
+            "status": "ACCEPTED",
+            "organizer": {
+              "id": 456,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "username": "johndoe",
+              "timeZone": "America/New_York",
+              "language": {
+                "locale": "en"
+              },
+              "utcOffset": -5
+            },
+            "attendees": [
+              {
+                "id": 789,
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              }
+            ],
+            "team": null,
+            "customInputs": {},
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith",
+                "isHidden": false
+              },
+              "email": {
+                "label": "Email Address",
+                "value": "jane@example.com",
+                "isHidden": false
+              }
+            },
+            "userFieldsResponses": {},
+            "paymentId": 456,
+            "paymentData": {},
+            "paymentInfo": {
+              "link": "https://checkout.stripe.com/pay/cs_xxx",
+              "id": "pi_abc123xyz",
+              "amount": 5000,
+              "currency": "usd"
+            },
+            "eventTitle": "Paid Consultation",
+            "eventDescription": "60-minute paid consultation",
+            "requiresConfirmation": false,
+            "price": 5000,
+            "currency": "usd",
+            "length": 60
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="BOOKING_NO_SHOW_UPDATED">
+        ```json
+        {
+          "triggerEvent": "BOOKING_NO_SHOW_UPDATED",
+          "createdAt": "2024-01-15T11:00:00.000Z",
+          "payload": {
+            "bookingUid": "abc123-def456-ghi789",
+            "bookingId": 123,
+            "message": "jane@example.com marked as no show",
+            "attendees": [
+              {
+                "email": "jane@example.com",
+                "noShow": true
+              }
+            ]
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="MEETING_STARTED">
+        ```json
+        {
+          "triggerEvent": "MEETING_STARTED",
+          "createdAt": "2024-01-15T10:00:00.000Z",
+          "payload": {
+            "id": 123,
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "title": "30 Minute Meeting",
+            "description": "Meeting description",
+            "customInputs": {
+              "company": "Acme Corp"
+            },
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith"
+              },
+              "email": {
+                "label": "Email",
+                "value": "jane@example.com"
+              }
+            },
+            "userFieldsResponses": {
+              "company": {
+                "label": "Company",
+                "value": "Acme Corp"
+              }
+            },
+            "location": "https://cal.com/video/abc123",
+            "status": "ACCEPTED",
+            "user": {
+              "username": "johndoe",
+              "name": "John Doe",
+              "email": "john@example.com",
+              "timeZone": "America/New_York",
+              "locale": "en"
+            },
+            "eventType": {
+              "title": "30 Minute Meeting",
+              "description": "Quick sync call",
+              "requiresConfirmation": false,
+              "price": 0,
+              "currency": "usd",
+              "length": 30,
+              "team": {
+                "logoUrl": "https://cal.com/team-logo.png",
+                "parent": {
+                  "logoUrl": "https://cal.com/org-logo.png",
+                  "name": "Acme Organization"
+                }
+              }
+            },
+            "attendees": [
+              {
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London"
+              }
+            ]
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="MEETING_ENDED">
+        ```json
+        {
+          "triggerEvent": "MEETING_ENDED",
+          "createdAt": "2024-01-15T10:30:00.000Z",
+          "payload": {
+            "id": 123,
+            "startTime": "2024-01-15T10:00:00.000Z",
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "title": "30 Minute Meeting",
+            "description": "Meeting description",
+            "customInputs": {
+              "company": "Acme Corp"
+            },
+            "responses": {
+              "name": {
+                "label": "Your Name",
+                "value": "Jane Smith"
+              },
+              "email": {
+                "label": "Email",
+                "value": "jane@example.com"
+              }
+            },
+            "userFieldsResponses": {
+              "company": {
+                "label": "Company",
+                "value": "Acme Corp"
+              }
+            },
+            "location": "https://cal.com/video/abc123",
+            "status": "ACCEPTED",
+            "user": {
+              "username": "johndoe",
+              "name": "John Doe",
+              "email": "john@example.com",
+              "timeZone": "America/New_York",
+              "locale": "en"
+            },
+            "eventType": {
+              "title": "30 Minute Meeting",
+              "description": "Quick sync call",
+              "requiresConfirmation": false,
+              "price": 0,
+              "currency": "usd",
+              "length": 30,
+              "team": null
+            },
+            "attendees": [
+              {
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "timeZone": "Europe/London"
+              }
+            ]
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="RECORDING_READY">
+        ```json
+        {
+          "triggerEvent": "RECORDING_READY",
+          "createdAt": "2024-01-15T11:00:00.000Z",
+          "payload": {
+            "downloadLink": "https://storage.daily.co/recording/abc123.mp4"
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="RECORDING_TRANSCRIPTION_GENERATED">
+        ```json
+        {
+          "triggerEvent": "RECORDING_TRANSCRIPTION_GENERATED",
+          "createdAt": "2024-01-15T11:30:00.000Z",
+          "payload": {
+            "downloadLinks": {
+              "transcription": [
+                {
+                  "format": "json",
+                  "link": "https://api.daily.co/transcription/abc123.json"
+                },
+                {
+                  "format": "srt",
+                  "link": "https://api.daily.co/transcription/abc123.srt"
+                },
+                {
+                  "format": "txt",
+                  "link": "https://api.daily.co/transcription/abc123.txt"
+                },
+                {
+                  "format": "vtt",
+                  "link": "https://api.daily.co/transcription/abc123.vtt"
+                }
+              ],
+              "recording": "https://storage.daily.co/recording/abc123.mp4"
+            }
+          }
+        }
+        ```
+      </Accordion>
+      <Accordion title="INSTANT_MEETING">
+        ```json
+        {
+          "triggerEvent": "INSTANT_MEETING",
+          "createdAt": "2024-01-15T10:00:00.000Z",
+          "payload": {
+            "title": "Instant Meeting Request",
+            "body": "Someone is requesting an instant meeting with you",
+            "icon": "https://cal.com/icon.png",
+            "url": "https://cal.com/instant/abc123",
+            "actions": [
+              {
+                "action": "accept",
+                "title": "Accept",
+                "type": "button",
+                "image": null
+              },
+              {
+                "action": "reject",
+                "title": "Reject",
+                "type": "button",
+                "image": null
+              }
+            ],
+            "requireInteraction": true,
+            "type": "instant_meeting"
+          }
+        }
+        ```
+      </Accordion>
     </AccordionGroup>
   </Tab>
 </Tabs>
