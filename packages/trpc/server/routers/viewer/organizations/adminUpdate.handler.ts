@@ -36,7 +36,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
 
   if (newSlug) {
     await throwIfSlugConflicts({ id, slug: newSlug });
-    const isSlugChanged = !!oldSlug && newSlug !== oldSlug;
+    const isSlugChanged = newSlug !== oldSlug;
     if (isSlugChanged) {
       // If slug is changed, we need to rename the domain first
       // If renaming fails, we don't want to update the new slug in DB
