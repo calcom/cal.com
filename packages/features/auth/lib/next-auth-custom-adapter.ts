@@ -14,6 +14,7 @@ const parseIntSafe = (id: string | number): number => {
 // Simple utility functions for transformations
 const toAdapterUser = (user: User): AdapterUser => ({
   id: user.id.toString(),
+  uuid: user.uuid,
   name: user.name,
   email: user.email,
   emailVerified: user.emailVerified,
@@ -124,14 +125,14 @@ export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
 
     createVerificationToken: async (data) => {
       const token = await prismaClient.verificationToken.create({ data });
-      const { id, ...verificationToken } = token;
+      const { id: _id, ...verificationToken } = token;
       return verificationToken;
     },
 
     useVerificationToken: async (identifier_token) => {
       try {
         const token = await prismaClient.verificationToken.delete({ where: { identifier_token } });
-        const { id, ...verificationToken } = token;
+        const { id: _id, ...verificationToken } = token;
         return verificationToken;
       } catch (error) {
         // If token already used/deleted, just return null
