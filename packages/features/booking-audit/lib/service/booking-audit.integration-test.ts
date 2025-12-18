@@ -125,7 +125,9 @@ const enableFeatureForOrganization = async (organizationId: number, featureSlug:
       assignedBy: "test-system",
       enabled: true,
     },
-    update: {},
+    update: {
+      enabled: true,
+    },
   });
 };
 
