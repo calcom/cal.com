@@ -5,7 +5,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import logger from "../logger";
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { i18n } = require("@calcom/config/next-i18next.config");
 const log = logger.getSubLogger({ prefix: ["[i18n]"] });
 
@@ -43,8 +42,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
   const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "common";
   const cacheKey = `${locale}-${ns}`;
 
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey);
+  const cached = translationCache.get(cacheKey);
+  if (cached) {
+    return cached;
   }
 
   if (locale === "en") {
@@ -83,6 +83,7 @@ export async function loadTranslations(_locale: string, _ns: string) {
     }
 
     log.info(`Falling back to English for locale: ${locale}`);
+    translationCache.set(cacheKey, englishTranslations);
     return englishTranslations;
   }
 }
