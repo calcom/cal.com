@@ -2,6 +2,7 @@
 
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useRef, useTransition } from "react";
 
 import { useTeamInvites } from "@calcom/features/billing/hooks/useHasPaidPlan";
@@ -69,6 +70,11 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   }, [selectedPlan]);
 
   const handleContinue = () => {
+    if (selectedPlan) {
+      posthog.capture("onboarding_plan_continue_clicked", {
+        plan_type: selectedPlan,
+      });
+    }
     startTransition(() => {
       if (selectedPlan === "organization") {
         router.push("/onboarding/organization/details");
@@ -157,7 +163,13 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
               {/* Plan options */}
               <RadioAreaGroup.Group
                 value={selectedPlan ?? undefined}
-                onValueChange={(value) => setSelectedPlan(value as PlanType)}
+                onValueChange={(value) => {
+                  const planType = value as PlanType;
+                  setSelectedPlan(planType);
+                  posthog.capture("onboarding_plan_selected", {
+                    plan_type: planType,
+                  });
+                }}
                 className="flex w-full flex-col gap-1 rounded-[10px]">
                 {plans.map((plan) => {
                   const isSelected = selectedPlan === plan.id;

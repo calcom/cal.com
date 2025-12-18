@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export class PrismaOrgMembershipRepository {
