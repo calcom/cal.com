@@ -95,6 +95,67 @@ export default defineBackground(() => {
       return true;
     }
 
+    if (message.action === "sync-oauth-tokens") {
+      const tokens = message.tokens as OAuthTokens | null;
+
+      if (isRateLimited()) {
+        devLog.warn("Token sync rate limited");
+        sendResponse({ success: false, error: "Rate limited. Please try again later." });
+        return true;
+      }
+
+      if (!tokens || !tokens.accessToken) {
+        sendResponse({ success: false, error: "No valid tokens provided" });
+        return true;
+      }
+
+      validateTokens(tokens)
+        .then((isValid) => {
+          if (!isValid) {
+            devLog.warn("Token sync rejected: invalid tokens");
+            sendResponse({ success: false, error: "Invalid tokens" });
+            return;
+          }
+
+          recordTokenOperation();
+          chrome.storage.local.set({ cal_oauth_tokens: JSON.stringify(tokens) }, () => {
+            if (chrome.runtime.lastError) {
+              devLog.error("Failed to sync OAuth tokens:", chrome.runtime.lastError.message);
+              sendResponse({ success: false, error: chrome.runtime.lastError.message });
+            } else {
+              devLog.log("OAuth tokens synced to chrome.storage.local (validated)");
+              sendResponse({ success: true });
+            }
+          });
+        })
+        .catch((error) => {
+          devLog.error("Token validation failed:", error);
+          sendResponse({ success: false, error: "Token validation failed" });
+        });
+
+      return true;
+    }
+
+    if (message.action === "clear-oauth-tokens") {
+      if (isRateLimited()) {
+        devLog.warn("Token clear rate limited");
+        sendResponse({ success: false, error: "Rate limited. Please try again later." });
+        return true;
+      }
+
+      recordTokenOperation();
+      chrome.storage.local.remove(["cal_oauth_tokens", "oauth_state"], () => {
+        if (chrome.runtime.lastError) {
+          devLog.error("Failed to clear OAuth tokens:", chrome.runtime.lastError.message);
+          sendResponse({ success: false, error: chrome.runtime.lastError.message });
+        } else {
+          devLog.log("OAuth tokens cleared from chrome.storage.local");
+          sendResponse({ success: true });
+        }
+      });
+      return true;
+    }
+
     return false;
   });
 });
@@ -168,13 +229,22 @@ async function handleTokenExchange(
 
   const tokenData = await response.json();
 
-  return {
+  const tokens: OAuthTokens = {
     accessToken: tokenData.access_token,
     refreshToken: tokenData.refresh_token,
     tokenType: tokenData.token_type || "Bearer",
     expiresAt: tokenData.expires_in ? Date.now() + tokenData.expires_in * 1000 : undefined,
     scope: tokenData.scope,
   };
+
+  try {
+    await chrome.storage.local.set({ cal_oauth_tokens: JSON.stringify(tokens) });
+    devLog.log("OAuth tokens stored in chrome.storage.local");
+  } catch (storageError) {
+    devLog.error("Failed to store OAuth tokens:", storageError);
+  }
+
+  return tokens;
 }
 
 async function validateOAuthState(state: string): Promise<void> {
@@ -200,6 +270,52 @@ async function validateOAuthState(state: string): Promise<void> {
 }
 
 const API_BASE_URL = "https://api.cal.com/v2";
+
+const tokenOperationTimestamps: number[] = [];
+const TOKEN_RATE_LIMIT_WINDOW_MS = 60000;
+const TOKEN_RATE_LIMIT_MAX_OPS = 5;
+
+function isRateLimited(): boolean {
+  const now = Date.now();
+  while (
+    tokenOperationTimestamps.length > 0 &&
+    tokenOperationTimestamps[0] < now - TOKEN_RATE_LIMIT_WINDOW_MS
+  ) {
+    tokenOperationTimestamps.shift();
+  }
+  return tokenOperationTimestamps.length >= TOKEN_RATE_LIMIT_MAX_OPS;
+}
+
+function recordTokenOperation(): void {
+  tokenOperationTimestamps.push(Date.now());
+}
+
+async function validateTokens(tokens: OAuthTokens): Promise<boolean> {
+  if (!tokens.accessToken) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/me`, {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken}`,
+        "Content-Type": "application/json",
+        "cal-api-version": "2024-06-11",
+      },
+    });
+
+    if (response.ok) {
+      devLog.log("Token validation successful");
+      return true;
+    }
+
+    devLog.warn("Token validation failed:", response.status);
+    return false;
+  } catch (error) {
+    devLog.error("Token validation error:", error);
+    return false;
+  }
+}
 
 async function getAuthHeader(): Promise<string> {
   const result = await chrome.storage.local.get(["cal_oauth_tokens"]);
