@@ -1,4 +1,4 @@
-import { describe, expect, beforeAll, afterAll, afterEach, beforeEach, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -6,107 +6,74 @@ import { prisma } from "@calcom/prisma";
 
 import { FeatureOptInService } from "./FeatureOptInService";
 
-// Helper to generate unique feature slug per test
-const createTestFeature = () =>
-  `test-opt-in-feature-${Date.now()}-${Math.random().toString(36).slice(2, 9)}` as FeatureId;
+// Helper to generate unique identifiers per test
+const uniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 // Access private clearCache method through type assertion
 const clearFeaturesCache = (repo: FeaturesRepository) => {
   (repo as unknown as { clearCache: () => void }).clearCache();
 };
 
-describe("FeatureOptInService Integration Tests", () => {
-  let testUser: { id: number };
-  let testTeam: { id: number };
-  let testTeam2: { id: number };
-  let testOrg: { id: number };
-  let featuresRepository: FeaturesRepository;
-  let service: FeatureOptInService;
+interface TestEntities {
+  user: { id: number };
+  org: { id: number };
+  team: { id: number };
+  team2: { id: number };
+  featuresRepository: FeaturesRepository;
+  service: FeatureOptInService;
+  createdFeatures: string[];
+  setupFeature: (enabled?: boolean) => Promise<FeatureId>;
+  cleanup: () => Promise<void>;
+}
+
+/**
+ * Creates isolated test entities (user, org, teams) and returns them along with a cleanup function.
+ * Each test gets its own entities, ensuring complete isolation even when tests run in parallel.
+ */
+async function setup(): Promise<TestEntities> {
+  const id = uniqueId();
   const createdFeatures: string[] = [];
 
-  beforeAll(async () => {
-    // Create test user
-    testUser = await prisma.user.create({
-      data: {
-        email: `test-opt-in-${Date.now()}@example.com`,
-        username: `test-opt-in-${Date.now()}`,
-      },
-    });
-
-    // Create test org
-    testOrg = await prisma.team.create({
-      data: {
-        name: `Test OptIn Org ${Date.now()}`,
-        slug: `test-opt-in-org-${Date.now()}`,
-        isOrganization: true,
-      },
-    });
-
-    // Create test teams
-    testTeam = await prisma.team.create({
-      data: {
-        name: `Test OptIn Team ${Date.now()}`,
-        slug: `test-opt-in-team-${Date.now()}`,
-        parentId: testOrg.id,
-      },
-    });
-
-    testTeam2 = await prisma.team.create({
-      data: {
-        name: `Test OptIn Team 2 ${Date.now()}`,
-        slug: `test-opt-in-team-2-${Date.now()}`,
-        parentId: testOrg.id,
-      },
-    });
+  // Create test user
+  const user = await prisma.user.create({
+    data: {
+      email: `test-opt-in-${id}@example.com`,
+      username: `test-opt-in-${id}`,
+    },
   });
 
-  afterAll(async () => {
-    // Clean up test data in correct order to respect foreign key constraints
-    await prisma.userFeatures.deleteMany({
-      where: { userId: testUser.id },
-    });
-    await prisma.teamFeatures.deleteMany({
-      where: { teamId: { in: [testTeam.id, testTeam2.id, testOrg.id] } },
-    });
-    await prisma.feature.deleteMany({
-      where: { slug: { in: createdFeatures } },
-    });
-    await prisma.membership.deleteMany({
-      where: { userId: testUser.id },
-    });
-    await prisma.team.deleteMany({
-      where: { id: { in: [testTeam.id, testTeam2.id] } },
-    });
-    await prisma.team.deleteMany({
-      where: { id: testOrg.id },
-    });
-    await prisma.user.delete({
-      where: { id: testUser.id },
-    });
+  // Create test org
+  const org = await prisma.team.create({
+    data: {
+      name: `Test OptIn Org ${id}`,
+      slug: `test-opt-in-org-${id}`,
+      isOrganization: true,
+    },
   });
 
-  beforeEach(() => {
-    // Create fresh instances for each test to avoid cache issues
-    featuresRepository = new FeaturesRepository(prisma);
-    service = new FeatureOptInService(featuresRepository);
+  // Create test teams
+  const team = await prisma.team.create({
+    data: {
+      name: `Test OptIn Team ${id}`,
+      slug: `test-opt-in-team-${id}`,
+      parentId: org.id,
+    },
   });
 
-  afterEach(async () => {
-    // Clean up feature-related data after each test
-    await prisma.userFeatures.deleteMany({
-      where: { userId: testUser.id },
-    });
-    await prisma.teamFeatures.deleteMany({
-      where: { teamId: { in: [testTeam.id, testTeam2.id, testOrg.id] } },
-    });
-    await prisma.membership.deleteMany({
-      where: { userId: testUser.id },
-    });
+  const team2 = await prisma.team.create({
+    data: {
+      name: `Test OptIn Team 2 ${id}`,
+      slug: `test-opt-in-team-2-${id}`,
+      parentId: org.id,
+    },
   });
+
+  const featuresRepository = new FeaturesRepository(prisma);
+  const service = new FeatureOptInService(featuresRepository);
 
   // Helper to create a feature for a test and track it for cleanup
-  async function setupFeature(enabled = true) {
-    const featureSlug = createTestFeature();
+  const setupFeature = async (enabled = true): Promise<FeatureId> => {
+    const featureSlug = `test-opt-in-feature-${uniqueId()}` as FeatureId;
     createdFeatures.push(featureSlug);
     await prisma.feature.create({
       data: {
@@ -118,33 +85,76 @@ describe("FeatureOptInService Integration Tests", () => {
     // Clear cache after creating feature so getAllFeatures() returns fresh data
     clearFeaturesCache(featuresRepository);
     return featureSlug;
-  }
+  };
 
+  // Cleanup function to be called after test completes
+  const cleanup = async () => {
+    // Clean up in correct order to respect foreign key constraints
+    await prisma.userFeatures.deleteMany({
+      where: { userId: user.id },
+    });
+    await prisma.teamFeatures.deleteMany({
+      where: { teamId: { in: [team.id, team2.id, org.id] } },
+    });
+    await prisma.feature.deleteMany({
+      where: { slug: { in: createdFeatures } },
+    });
+    await prisma.membership.deleteMany({
+      where: { userId: user.id },
+    });
+    await prisma.team.deleteMany({
+      where: { id: { in: [team.id, team2.id] } },
+    });
+    await prisma.team.deleteMany({
+      where: { id: org.id },
+    });
+    await prisma.user.delete({
+      where: { id: user.id },
+    });
+  };
+
+  return {
+    user,
+    org,
+    team,
+    team2,
+    featuresRepository,
+    service,
+    createdFeatures,
+    setupFeature,
+    cleanup,
+  };
+}
+
+describe("FeatureOptInService Integration Tests", () => {
   describe("resolveFeatureStatesAcrossTeams", () => {
     describe("global feature disabled", () => {
       it("should return effectiveEnabled=false regardless of other states", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(false);
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
 
         expect(status.effectiveEnabled).toBe(false);
+        await cleanup();
       });
     });
 
     describe("org disabled", () => {
       it("should return effectiveEnabled=false regardless of team and user states", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org explicitly disables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: false,
             assignedBy: "test",
@@ -154,7 +164,7 @@ describe("FeatureOptInService Integration Tests", () => {
         // Team enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -164,7 +174,7 @@ describe("FeatureOptInService Integration Tests", () => {
         // User enables
         await prisma.userFeatures.create({
           data: {
-            userId: testUser.id,
+            userId: user.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -172,26 +182,28 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
 
         expect(status.orgState).toBe("disabled");
         expect(status.effectiveEnabled).toBe(false);
+        await cleanup();
       });
     });
 
     describe("org enabled", () => {
       it("should return effectiveEnabled=false when all teams are disabled", async () => {
+        const { user, org, team, team2, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -201,15 +213,15 @@ describe("FeatureOptInService Integration Tests", () => {
         // Both teams disable
         await prisma.teamFeatures.createMany({
           data: [
-            { teamId: testTeam.id, featureId: testFeature, enabled: false, assignedBy: "test" },
-            { teamId: testTeam2.id, featureId: testFeature, enabled: false, assignedBy: "test" },
+            { teamId: team.id, featureId: testFeature, enabled: false, assignedBy: "test" },
+            { teamId: team2.id, featureId: testFeature, enabled: false, assignedBy: "test" },
           ],
         });
 
         // User enables
         await prisma.userFeatures.create({
           data: {
-            userId: testUser.id,
+            userId: user.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -217,9 +229,9 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id, testTeam2.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id, team2.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -227,15 +239,17 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual(["disabled", "disabled"]);
         expect(status.effectiveEnabled).toBe(false);
+        await cleanup();
       });
 
       it("should return effectiveEnabled=true when at least one team is enabled and user inherits", async () => {
+        const { user, org, team, team2, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -245,15 +259,15 @@ describe("FeatureOptInService Integration Tests", () => {
         // One team enables, one disables
         await prisma.teamFeatures.createMany({
           data: [
-            { teamId: testTeam.id, featureId: testFeature, enabled: true, assignedBy: "test" },
-            { teamId: testTeam2.id, featureId: testFeature, enabled: false, assignedBy: "test" },
+            { teamId: team.id, featureId: testFeature, enabled: true, assignedBy: "test" },
+            { teamId: team2.id, featureId: testFeature, enabled: false, assignedBy: "test" },
           ],
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id, testTeam2.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id, team2.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -261,15 +275,17 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("enabled");
         expect(status.userState).toBe("inherit");
         expect(status.effectiveEnabled).toBe(true);
+        await cleanup();
       });
 
       it("should return effectiveEnabled=false when user explicitly disables", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -279,7 +295,7 @@ describe("FeatureOptInService Integration Tests", () => {
         // Team enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -289,7 +305,7 @@ describe("FeatureOptInService Integration Tests", () => {
         // User disables
         await prisma.userFeatures.create({
           data: {
-            userId: testUser.id,
+            userId: user.id,
             featureId: testFeature,
             enabled: false,
             assignedBy: "test",
@@ -297,24 +313,26 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
 
         expect(status.userState).toBe("disabled");
         expect(status.effectiveEnabled).toBe(false);
+        await cleanup();
       });
 
       it("should return effectiveEnabled=true when teams inherit from enabled org", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -324,9 +342,9 @@ describe("FeatureOptInService Integration Tests", () => {
         // Teams inherit (no rows)
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -334,17 +352,19 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual(["inherit"]);
         expect(status.effectiveEnabled).toBe(true);
+        await cleanup();
       });
     });
 
     describe("org inherits (or no org)", () => {
       it("should return effectiveEnabled=false when all teams are disabled", async () => {
+        const { user, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Team disables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
             enabled: false,
             assignedBy: "test",
@@ -352,9 +372,9 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
+          userId: user.id,
           orgId: null,
-          teamIds: [testTeam.id],
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -362,15 +382,17 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("inherit");
         expect(status.teamStates).toEqual(["disabled"]);
         expect(status.effectiveEnabled).toBe(false);
+        await cleanup();
       });
 
       it("should return effectiveEnabled=true when at least one team is enabled", async () => {
+        const { user, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // One team enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -378,25 +400,27 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
+          userId: user.id,
           orgId: null,
-          teamIds: [testTeam.id],
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
 
         expect(status.teamStates).toEqual(["enabled"]);
         expect(status.effectiveEnabled).toBe(true);
+        await cleanup();
       });
 
       it("should return effectiveEnabled=false when teams only inherit (no explicit enablement)", async () => {
+        const { user, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // No org, team inherits (no row)
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
+          userId: user.id,
           orgId: null,
-          teamIds: [testTeam.id],
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -404,17 +428,19 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("inherit");
         expect(status.teamStates).toEqual(["inherit"]);
         expect(status.effectiveEnabled).toBe(false);
+        await cleanup();
       });
     });
 
     describe("no teams", () => {
       it("should return effectiveEnabled=true when org is enabled and user inherits", async () => {
+        const { user, org, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -422,8 +448,8 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
+          userId: user.id,
+          orgId: org.id,
           teamIds: [],
           featureIds: [testFeature],
         });
@@ -432,18 +458,20 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("enabled");
         expect(status.teamStates).toEqual([]);
         expect(status.effectiveEnabled).toBe(true);
+        await cleanup();
       });
     });
   });
 
   describe("setUserFeatureState", () => {
     it("should delete the row when state is 'inherit'", async () => {
+      const { user, service, setupFeature, cleanup } = await setup();
       const testFeature = await setupFeature(true);
 
       // First create a row
       await prisma.userFeatures.create({
         data: {
-          userId: testUser.id,
+          userId: user.id,
           featureId: testFeature,
           enabled: true,
           assignedBy: "test",
@@ -452,73 +480,79 @@ describe("FeatureOptInService Integration Tests", () => {
 
       // Set to inherit (should delete)
       await service.setUserFeatureState({
-        userId: testUser.id,
+        userId: user.id,
         featureId: testFeature,
         state: "inherit",
-        assignedBy: testUser.id,
+        assignedBy: user.id,
       });
 
       const row = await prisma.userFeatures.findFirst({
         where: {
-          userId: testUser.id,
+          userId: user.id,
           featureId: testFeature,
         },
       });
 
       expect(row).toBeNull();
+      await cleanup();
     });
 
     it("should upsert with enabled=true when state is 'enabled'", async () => {
+      const { user, service, setupFeature, cleanup } = await setup();
       const testFeature = await setupFeature(true);
 
       await service.setUserFeatureState({
-        userId: testUser.id,
+        userId: user.id,
         featureId: testFeature,
         state: "enabled",
-        assignedBy: testUser.id,
+        assignedBy: user.id,
       });
 
       const row = await prisma.userFeatures.findFirst({
         where: {
-          userId: testUser.id,
+          userId: user.id,
           featureId: testFeature,
         },
       });
 
       expect(row).not.toBeNull();
       expect(row?.enabled).toBe(true);
+      await cleanup();
     });
 
     it("should upsert with enabled=false when state is 'disabled'", async () => {
+      const { user, service, setupFeature, cleanup } = await setup();
       const testFeature = await setupFeature(true);
 
       await service.setUserFeatureState({
-        userId: testUser.id,
+        userId: user.id,
         featureId: testFeature,
         state: "disabled",
-        assignedBy: testUser.id,
+        assignedBy: user.id,
       });
 
       const row = await prisma.userFeatures.findFirst({
         where: {
-          userId: testUser.id,
+          userId: user.id,
           featureId: testFeature,
         },
       });
 
       expect(row).not.toBeNull();
       expect(row?.enabled).toBe(false);
+      await cleanup();
     });
   });
 
   describe("setTeamFeatureState", () => {
     it("should delete the row when state is 'inherit'", async () => {
+      const { user, team, service, setupFeature, cleanup } = await setup();
       const testFeature = await setupFeature(true);
 
       // First create a row
       await prisma.teamFeatures.create({
         data: {
-          teamId: testTeam.id,
+          teamId: team.id,
           featureId: testFeature,
           enabled: true,
           assignedBy: "test",
@@ -527,38 +561,40 @@ describe("FeatureOptInService Integration Tests", () => {
 
       // Set to inherit (should delete)
       await service.setTeamFeatureState({
-        teamId: testTeam.id,
+        teamId: team.id,
         featureId: testFeature,
         state: "inherit",
-        assignedBy: testUser.id,
+        assignedBy: user.id,
       });
 
       const row = await prisma.teamFeatures.findUnique({
         where: {
           teamId_featureId: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
           },
         },
       });
 
       expect(row).toBeNull();
+      await cleanup();
     });
 
     it("should upsert with enabled=true when state is 'enabled'", async () => {
+      const { user, team, service, setupFeature, cleanup } = await setup();
       const testFeature = await setupFeature(true);
 
       await service.setTeamFeatureState({
-        teamId: testTeam.id,
+        teamId: team.id,
         featureId: testFeature,
         state: "enabled",
-        assignedBy: testUser.id,
+        assignedBy: user.id,
       });
 
       const row = await prisma.teamFeatures.findUnique({
         where: {
           teamId_featureId: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
           },
         },
@@ -566,22 +602,24 @@ describe("FeatureOptInService Integration Tests", () => {
 
       expect(row).not.toBeNull();
       expect(row?.enabled).toBe(true);
+      await cleanup();
     });
 
     it("should upsert with enabled=false when state is 'disabled'", async () => {
+      const { user, team, service, setupFeature, cleanup } = await setup();
       const testFeature = await setupFeature(true);
 
       await service.setTeamFeatureState({
-        teamId: testTeam.id,
+        teamId: team.id,
         featureId: testFeature,
         state: "disabled",
-        assignedBy: testUser.id,
+        assignedBy: user.id,
       });
 
       const row = await prisma.teamFeatures.findUnique({
         where: {
           teamId_featureId: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
           },
         },
@@ -589,24 +627,26 @@ describe("FeatureOptInService Integration Tests", () => {
 
       expect(row).not.toBeNull();
       expect(row?.enabled).toBe(false);
+      await cleanup();
     });
   });
 
   describe("auto-opt-in scenarios", () => {
     describe("user autoOptInFeatures", () => {
       it("should transform user state from 'inherit' to 'enabled' when user has autoOptInFeatures=true", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
         await prisma.user.update({
-          where: { id: testUser.id },
+          where: { id: user.id },
           data: { autoOptInFeatures: true },
         });
 
         // Org enables (to allow team level)
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -616,7 +656,7 @@ describe("FeatureOptInService Integration Tests", () => {
         // Team enables (to allow user level)
         await prisma.teamFeatures.create({
           data: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -625,9 +665,9 @@ describe("FeatureOptInService Integration Tests", () => {
 
         // User has no explicit state (inherit), but autoOptInFeatures=true should enable
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -635,27 +675,23 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.userState).toBe("inherit"); // Raw state is still inherit
         expect(status.userAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(true); // But effective is true due to auto-opt-in
-
-        // Reset
-        await prisma.user.update({
-          where: { id: testUser.id },
-          data: { autoOptInFeatures: false },
-        });
+        await cleanup();
       });
 
       it("should NOT transform explicit 'disabled' state when user has autoOptInFeatures=true", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
         await prisma.user.update({
-          where: { id: testUser.id },
+          where: { id: user.id },
           data: { autoOptInFeatures: true },
         });
 
         // Org enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -665,7 +701,7 @@ describe("FeatureOptInService Integration Tests", () => {
         // Team enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -675,7 +711,7 @@ describe("FeatureOptInService Integration Tests", () => {
         // User explicitly disables
         await prisma.userFeatures.create({
           data: {
-            userId: testUser.id,
+            userId: user.id,
             featureId: testFeature,
             enabled: false,
             assignedBy: "test",
@@ -683,9 +719,9 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -693,29 +729,25 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.userState).toBe("disabled");
         expect(status.userAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(false); // Explicit disabled takes precedence
-
-        // Reset
-        await prisma.user.update({
-          where: { id: testUser.id },
-          data: { autoOptInFeatures: false },
-        });
+        await cleanup();
       });
     });
 
     describe("team autoOptInFeatures", () => {
       it("should transform team state from 'inherit' to 'enabled' when team has autoOptInFeatures=true", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for team
         await prisma.team.update({
-          where: { id: testTeam.id },
+          where: { id: team.id },
           data: { autoOptInFeatures: true },
         });
 
         // Org enables (to allow team level)
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -724,9 +756,9 @@ describe("FeatureOptInService Integration Tests", () => {
 
         // Team has no explicit state (inherit), but autoOptInFeatures=true should enable
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -734,27 +766,23 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.teamStates).toEqual(["inherit"]); // Raw state is still inherit
         expect(status.teamAutoOptIns).toEqual([true]);
         expect(status.effectiveEnabled).toBe(true); // Effective is true due to team auto-opt-in
-
-        // Reset
-        await prisma.team.update({
-          where: { id: testTeam.id },
-          data: { autoOptInFeatures: false },
-        });
+        await cleanup();
       });
 
       it("should NOT transform explicit 'disabled' state when team has autoOptInFeatures=true", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for team
         await prisma.team.update({
-          where: { id: testTeam.id },
+          where: { id: team.id },
           data: { autoOptInFeatures: true },
         });
 
         // Org enables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: true,
             assignedBy: "test",
@@ -764,7 +792,7 @@ describe("FeatureOptInService Integration Tests", () => {
         // Team explicitly disables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testTeam.id,
+            teamId: team.id,
             featureId: testFeature,
             enabled: false,
             assignedBy: "test",
@@ -772,9 +800,9 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -782,31 +810,27 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.teamStates).toEqual(["disabled"]);
         expect(status.teamAutoOptIns).toEqual([true]);
         expect(status.effectiveEnabled).toBe(false); // Explicit disabled takes precedence
-
-        // Reset
-        await prisma.team.update({
-          where: { id: testTeam.id },
-          data: { autoOptInFeatures: false },
-        });
+        await cleanup();
       });
     });
 
     describe("org autoOptInFeatures", () => {
       it("should transform org state from 'inherit' to 'enabled' when org has autoOptInFeatures=true", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for org
         await prisma.team.update({
-          where: { id: testOrg.id },
+          where: { id: org.id },
           data: { autoOptInFeatures: true },
         });
 
         // Org has no explicit state (inherit), but autoOptInFeatures=true should enable
         // Team inherits from org
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -814,27 +838,23 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("inherit"); // Raw state is still inherit
         expect(status.orgAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(true); // Effective is true due to org auto-opt-in
-
-        // Reset
-        await prisma.team.update({
-          where: { id: testOrg.id },
-          data: { autoOptInFeatures: false },
-        });
+        await cleanup();
       });
 
       it("should NOT transform explicit 'disabled' state when org has autoOptInFeatures=true", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for org
         await prisma.team.update({
-          where: { id: testOrg.id },
+          where: { id: org.id },
           data: { autoOptInFeatures: true },
         });
 
         // Org explicitly disables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: false,
             assignedBy: "test",
@@ -842,9 +862,9 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -852,29 +872,25 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.orgState).toBe("disabled");
         expect(status.orgAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(false); // Explicit disabled takes precedence
-
-        // Reset
-        await prisma.team.update({
-          where: { id: testOrg.id },
-          data: { autoOptInFeatures: false },
-        });
+        await cleanup();
       });
     });
 
     describe("auto-opt-in with org disabled blocking", () => {
       it("should return effectiveEnabled=false when user auto-opts-in but org is disabled", async () => {
+        const { user, org, team, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
         await prisma.user.update({
-          where: { id: testUser.id },
+          where: { id: user.id },
           data: { autoOptInFeatures: true },
         });
 
         // Org explicitly disables
         await prisma.teamFeatures.create({
           data: {
-            teamId: testOrg.id,
+            teamId: org.id,
             featureId: testFeature,
             enabled: false,
             assignedBy: "test",
@@ -882,9 +898,9 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -893,44 +909,40 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.userState).toBe("inherit");
         expect(status.userAutoOptIn).toBe(true);
         expect(status.effectiveEnabled).toBe(false); // Org disabled blocks everything
-
-        // Reset
-        await prisma.user.update({
-          where: { id: testUser.id },
-          data: { autoOptInFeatures: false },
-        });
+        await cleanup();
       });
     });
 
     describe("auto-opt-in flags in response", () => {
       it("should return correct auto-opt-in flags for all levels", async () => {
+        const { user, org, team, team2, service, setupFeature, cleanup } = await setup();
         const testFeature = await setupFeature(true);
 
         // Set up different auto-opt-in states
         await prisma.user.update({
-          where: { id: testUser.id },
+          where: { id: user.id },
           data: { autoOptInFeatures: true },
         });
 
         await prisma.team.update({
-          where: { id: testOrg.id },
+          where: { id: org.id },
           data: { autoOptInFeatures: false },
         });
 
         await prisma.team.update({
-          where: { id: testTeam.id },
+          where: { id: team.id },
           data: { autoOptInFeatures: true },
         });
 
         await prisma.team.update({
-          where: { id: testTeam2.id },
+          where: { id: team2.id },
           data: { autoOptInFeatures: false },
         });
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
-          userId: testUser.id,
-          orgId: testOrg.id,
-          teamIds: [testTeam.id, testTeam2.id],
+          userId: user.id,
+          orgId: org.id,
+          teamIds: [team.id, team2.id],
           featureIds: [testFeature],
         });
         const status = statusMap[testFeature];
@@ -938,16 +950,7 @@ describe("FeatureOptInService Integration Tests", () => {
         expect(status.userAutoOptIn).toBe(true);
         expect(status.orgAutoOptIn).toBe(false);
         expect(status.teamAutoOptIns).toEqual([true, false]);
-
-        // Reset
-        await prisma.user.update({
-          where: { id: testUser.id },
-          data: { autoOptInFeatures: false },
-        });
-        await prisma.team.update({
-          where: { id: testTeam.id },
-          data: { autoOptInFeatures: false },
-        });
+        await cleanup();
       });
     });
   });
