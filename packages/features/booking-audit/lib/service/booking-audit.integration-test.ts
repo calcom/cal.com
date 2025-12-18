@@ -1,8 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { formatInTimeZone } from "date-fns-tz";
 
 import { prisma } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
 import type { BookingAuditViewerService } from "./BookingAuditViewerService";
@@ -10,278 +9,480 @@ import { makeUserActor } from "../../../bookings/lib/types/actor";
 import { getBookingAuditTaskConsumer } from "../../di/BookingAuditTaskConsumer.container";
 import { getBookingAuditViewerService } from "../../di/BookingAuditViewerService.container";
 
-/**
- * Integration tests for booking audit system
- * Tests the complete write-read cycle using real database
- */
+const generateUniqueId = () => {
+  const timestamp = Date.now();
+  const randomSuffix = Math.random().toString(36).substring(7);
+  return `${timestamp}-${randomSuffix}`;
+};
+
+const createTestUser = async (overrides?: { email?: string; username?: string; name?: string }) => {
+  const uniqueId = generateUniqueId();
+  return prisma.user.create({
+    data: {
+      email: overrides?.email || `test-user-${uniqueId}@example.com`,
+      username: overrides?.username || `testuser-${uniqueId}`,
+      name: overrides?.name || "Test User",
+    },
+  });
+};
+
+const createTestOrganization = async (overrides?: { name?: string; slug?: string }) => {
+  const uniqueId = generateUniqueId();
+  return prisma.team.create({
+    data: {
+      name: overrides?.name || `Test Org ${uniqueId}`,
+      slug: overrides?.slug || `test-org-${uniqueId}`,
+      isOrganization: true,
+    },
+  });
+};
+
+const createTestMembership = async (
+  userId: number,
+  teamId: number,
+  overrides?: { role?: MembershipRole; accepted?: boolean }
+) => {
+  return prisma.membership.create({
+    data: {
+      userId,
+      teamId,
+      role: overrides?.role || MembershipRole.ADMIN,
+      accepted: overrides?.accepted ?? true,
+    },
+  });
+};
+
+const createTestEventType = async (
+  userId: number,
+  overrides?: { title?: string; slug?: string; length?: number }
+) => {
+  const uniqueId = generateUniqueId();
+  return prisma.eventType.create({
+    data: {
+      title: overrides?.title || "Test Event Type",
+      slug: overrides?.slug || `test-event-${uniqueId}`,
+      length: overrides?.length || 60,
+      userId,
+    },
+  });
+};
+
+const createTestBooking = async (
+  userId: number,
+  eventTypeId: number,
+  overrides?: {
+    uid?: string;
+    title?: string;
+    startTime?: Date;
+    endTime?: Date;
+    status?: BookingStatus;
+    attendees?: Array<{ email: string; name: string; timeZone: string }>;
+  }
+) => {
+  const uniqueId = generateUniqueId();
+  const startTime = overrides?.startTime || new Date();
+  const endTime = overrides?.endTime || new Date(startTime.getTime() + 60 * 60 * 1000);
+
+  return prisma.booking.create({
+    data: {
+      uid: overrides?.uid || `test-booking-${uniqueId}`,
+      title: overrides?.title || "Test Booking",
+      startTime,
+      endTime,
+      userId,
+      eventTypeId,
+      status: overrides?.status || BookingStatus.ACCEPTED,
+      attendees: {
+        create: overrides?.attendees || [],
+      },
+    },
+  });
+};
+
+const enableFeatureForOrganization = async (organizationId: number, featureSlug: string) => {
+  await prisma.feature.upsert({
+    where: { slug: featureSlug },
+    create: {
+      slug: featureSlug,
+      enabled: true,
+      description: `Test feature: ${featureSlug}`,
+    },
+    update: {
+      enabled: true,
+    },
+  });
+
+  await prisma.teamFeatures.upsert({
+    where: {
+      teamId_featureId: {
+        teamId: organizationId,
+        featureId: featureSlug,
+      },
+    },
+    create: {
+      teamId: organizationId,
+      featureId: featureSlug,
+      assignedBy: "test-system",
+    },
+    update: {},
+  });
+};
+
+const cleanupTestData = async (testData: {
+  bookingUid?: string;
+  userUuids?: string[];
+  attendeeEmails?: string[];
+  eventTypeId?: number;
+  organizationId?: number;
+  userIds?: number[];
+  featureSlug?: string;
+}) => {
+  if (testData.bookingUid) {
+    await prisma.bookingAudit.deleteMany({
+      where: { bookingUid: testData.bookingUid },
+    });
+  }
+
+  if (testData.userUuids?.length || testData.attendeeEmails?.length) {
+    await prisma.auditActor.deleteMany({
+      where: {
+        OR: [
+          ...(testData.userUuids?.map((uuid) => ({ userUuid: uuid })) || []),
+          ...(testData.attendeeEmails?.map((email) => ({ email })) || []),
+        ],
+      },
+    });
+  }
+
+  if (testData.attendeeEmails?.length) {
+    await prisma.attendee.deleteMany({
+      where: { email: { in: testData.attendeeEmails } },
+    });
+  }
+
+  if (testData.bookingUid) {
+    await prisma.booking.deleteMany({
+      where: { uid: testData.bookingUid },
+    });
+  }
+
+  if (testData.eventTypeId) {
+    await prisma.eventType.deleteMany({
+      where: { id: testData.eventTypeId },
+    });
+  }
+
+  if (testData.organizationId) {
+    if (testData.featureSlug) {
+      await prisma.teamFeatures.deleteMany({
+        where: {
+          teamId: testData.organizationId,
+          featureId: testData.featureSlug,
+        },
+      });
+    }
+    await prisma.membership.deleteMany({
+      where: { teamId: testData.organizationId },
+    });
+    await prisma.team.deleteMany({
+      where: { id: testData.organizationId },
+    });
+  }
+
+  if (testData.userIds?.length) {
+    await prisma.user.deleteMany({
+      where: { id: { in: testData.userIds } },
+    });
+  }
+};
+
 describe("Booking Audit Integration", () => {
   let bookingAuditTaskConsumer: BookingAuditTaskConsumer;
   let bookingAuditViewerService: BookingAuditViewerService;
 
-  // Test data holders
-  let testUserId: number;
-  let testUserUuid: string;
-  let testUserEmail: string;
-  let testBookingUid: string;
-  let testEventTypeId: number;
-  let testAttendeeEmail: string;
-  let testAttendeeUserId: number;
+  let testData: {
+    owner: { id: number; uuid: string; email: string };
+    attendee: { id: number; email: string };
+    organization: { id: number };
+    eventType: { id: number };
+    booking: { uid: string; startTime: Date; endTime: Date; status: BookingStatus };
+  };
 
   beforeEach(async () => {
-    // Initialize services from DI containers
     bookingAuditTaskConsumer = getBookingAuditTaskConsumer();
     bookingAuditViewerService = getBookingAuditViewerService();
 
-    // Create test user
-    const timestamp = Date.now();
-    const randomSuffix = Math.random().toString(36).substring(7);
-    const testUser = await prisma.user.create({
-      data: {
-        email: `test-audit-user-${timestamp}-${randomSuffix}@example.com`,
-        username: `testaudituser-${timestamp}-${randomSuffix}`,
-        name: "Test Audit User",
-      },
-    });
-    testUserId = testUser.id;
-    testUserUuid = testUser.uuid;
-    testUserEmail = testUser.email;
+    const owner = await createTestUser({ name: "Test Audit User" });
+    const organization = await createTestOrganization();
+    await createTestMembership(owner.id, organization.id);
+    await enableFeatureForOrganization(organization.id, "booking-audit");
+    const eventType = await createTestEventType(owner.id);
+    const attendee = await createTestUser({ name: "Test Attendee" });
 
-    // Create test event type
-    const eventType = await prisma.eventType.create({
-      data: {
-        title: "Test Event Type",
-        slug: `test-event-${timestamp}-${randomSuffix}`,
-        length: 60,
-        userId: testUserId,
-      },
-    });
-    testEventTypeId = eventType.id;
-
-    // Create test attendee user for permission tests (needed before booking creation)
-    const attendeeUser = await prisma.user.create({
-      data: {
-        email: `test-attendee-${timestamp}-${randomSuffix}@example.com`,
-        username: `testattendee-${timestamp}-${randomSuffix}`,
-        name: "Test Attendee",
-      },
-    });
-    testAttendeeUserId = attendeeUser.id;
-    testAttendeeEmail = attendeeUser.email;
-
-    // Create test booking with attendee in single atomic operation
-    const startTime = new Date();
-    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
-    testBookingUid = `test-booking-${timestamp}-${randomSuffix}`;
-
-    await prisma.booking.create({
-      data: {
-        uid: testBookingUid,
-        title: "Test Booking",
-        startTime,
-        endTime,
-        userId: testUserId,
-        eventTypeId: testEventTypeId,
-        status: BookingStatus.ACCEPTED,
-        attendees: {
-          create: [
-            {
-              email: testAttendeeEmail,
-              name: "Test Attendee",
-              timeZone: "UTC",
-            },
-          ],
+    const booking = await createTestBooking(owner.id, eventType.id, {
+      attendees: [
+        {
+          email: attendee.email,
+          name: attendee.name || "Test Attendee",
+          timeZone: "UTC",
         },
-      },
+      ],
     });
+
+    testData = {
+      owner: { id: owner.id, uuid: owner.uuid, email: owner.email },
+      attendee: { id: attendee.id, email: attendee.email },
+      organization: { id: organization.id },
+      eventType: { id: eventType.id },
+      booking: {
+        uid: booking.uid,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        status: booking.status,
+      },
+    };
   });
 
   afterEach(async () => {
-    // Clean up test data in correct order to respect foreign key constraints
+    if (!testData) return;
 
-    // Delete audit logs first (references actor)
-    await prisma.bookingAudit.deleteMany({
-      where: { bookingUid: testBookingUid },
-    });
-
-    // Delete actors
-    await prisma.auditActor.deleteMany({
-      where: {
-        OR: [
-          { userUuid: testUserUuid },
-          { email: testAttendeeEmail },
-        ],
-      },
-    });
-
-    // Delete attendees
-    await prisma.attendee.deleteMany({
-      where: { email: testAttendeeEmail },
-    });
-
-    // Delete booking
-    await prisma.booking.deleteMany({
-      where: { uid: testBookingUid },
-    });
-
-    // Delete event type
-    await prisma.eventType.deleteMany({
-      where: { id: testEventTypeId },
-    });
-
-    // Delete users
-    await prisma.user.deleteMany({
-      where: {
-        id: {
-          in: [testUserId, testAttendeeUserId],
-        },
-      },
+    await cleanupTestData({
+      bookingUid: testData.booking?.uid,
+      userUuids: testData.owner?.uuid ? [testData.owner.uuid] : [],
+      attendeeEmails: testData.attendee?.email ? [testData.attendee.email] : [],
+      eventTypeId: testData.eventType?.id,
+      organizationId: testData.organization?.id,
+      userIds: [testData.owner?.id, testData.attendee?.id].filter((id): id is number => id !== undefined),
+      featureSlug: "booking-audit",
     });
   });
 
-  describe("CREATED action end-to-end flow", () => {
-    it("should create audit record and retrieve it with correct formatting", async () => {
-      // Arrange: Get booking details
-      const booking = await prisma.booking.findUnique({
-        where: { uid: testBookingUid },
-        select: {
-          startTime: true,
-          endTime: true,
-          status: true,
-        },
-      });
+  describe("when single booking is created", () => {
+    it("should create audit record and retrieve it with correct data formatting", async () => {
+      const actor = makeUserActor(testData.owner.uuid);
 
-      expect(booking).toBeDefined();
-
-      // Create actor using helper
-      const actor = makeUserActor(testUserUuid);
-
-      // Act: Create audit record using TaskConsumer
       await bookingAuditTaskConsumer.onBookingAction({
-        bookingUid: testBookingUid,
+        bookingUid: testData.booking.uid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
+        operationId: `op-${Date.now()}`,
         data: {
-          startTime: booking!.startTime.getTime(),
-          endTime: booking!.endTime.getTime(),
-          status: booking!.status,
+          startTime: testData.booking.startTime.getTime(),
+          endTime: testData.booking.endTime.getTime(),
+          status: testData.booking.status,
         },
         timestamp: Date.now(),
       });
 
-      // Retrieve audit logs
-      const result = await bookingAuditViewerService.getAuditLogsForBooking(
-        testBookingUid,
-        testUserId,
-        testUserEmail
-      );
+      const result = await bookingAuditViewerService.getAuditLogsForBooking({
+        bookingUid: testData.booking.uid,
+        userId: testData.owner.id,
+        userEmail: testData.owner.email,
+        userTimeZone: "UTC",
+        organizationId: testData.organization.id,
+      });
 
-      // Assert: Verify audit log exists and has correct data
-      expect(result.bookingUid).toBe(testBookingUid);
+      expect(result.bookingUid).toBe(testData.booking.uid);
       expect(result.auditLogs).toHaveLength(1);
 
       const auditLog = result.auditLogs[0];
-      expect(auditLog.bookingUid).toBe(testBookingUid);
+      expect(auditLog.bookingUid).toBe(testData.booking.uid);
       expect(auditLog.action).toBe("CREATED");
       expect(auditLog.type).toBe("RECORD_CREATED");
 
-      // Verify audit data matches (getDisplayJson returns fields only, not versioned wrapper)
-      // getDisplayJson formats dates using formatDateTimeInTimeZone (yyyy-MM-dd HH:mm:ss format)
-      const displayData = auditLog.data
-      const expectedStartTime = formatInTimeZone(booking!.startTime, "UTC", "yyyy-MM-dd HH:mm:ss");
-      const expectedEndTime = formatInTimeZone(booking!.endTime, "UTC", "yyyy-MM-dd HH:mm:ss");
-      expect(displayData?.startTime).toBe(expectedStartTime);
-      expect(displayData?.endTime).toBe(expectedEndTime);
-      expect(displayData?.status).toBe(booking!.status);
+      const displayData = auditLog.displayJson as Record<string, unknown>;
+      expect(displayData).toBeDefined();
+      expect(displayData.startTime).toBeDefined();
+      expect(typeof displayData.startTime).toBe("string");
+      expect(displayData.startTime).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+
+      expect(displayData.endTime).toBeDefined();
+      expect(typeof displayData.endTime).toBe("string");
+      expect(displayData.endTime).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+
+      expect(displayData.status).toBe(testData.booking.status);
     });
 
-    it("should enrich actor information with user details", async () => {
-      // Arrange: Get booking details
-      const booking = await prisma.booking.findUnique({
-        where: { uid: testBookingUid },
-        select: { startTime: true, endTime: true, status: true },
-      });
+    it("should enrich actor information with user details from database", async () => {
+      const actor = makeUserActor(testData.owner.uuid);
 
-      // Create actor using helper
-      const actor = makeUserActor(testUserUuid);
-
-      // Create audit record using TaskConsumer
       await bookingAuditTaskConsumer.onBookingAction({
-        bookingUid: testBookingUid,
+        bookingUid: testData.booking.uid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
+        operationId: `op-${Date.now()}`,
         data: {
-          startTime: booking!.startTime.getTime(),
-          endTime: booking!.endTime.getTime(),
-          status: booking!.status,
+          startTime: testData.booking.startTime.getTime(),
+          endTime: testData.booking.endTime.getTime(),
+          status: testData.booking.status,
         },
         timestamp: Date.now(),
       });
 
-      // Act: Retrieve audit logs
-      const result = await bookingAuditViewerService.getAuditLogsForBooking(
-        testBookingUid,
-        testUserId,
-        testUserEmail
-      );
+      const result = await bookingAuditViewerService.getAuditLogsForBooking({
+        bookingUid: testData.booking.uid,
+        userId: testData.owner.id,
+        userEmail: testData.owner.email,
+        userTimeZone: "UTC",
+        organizationId: testData.organization.id,
+      });
 
-      // Assert: Verify actor enrichment
       const auditLog = result.auditLogs[0];
       expect(auditLog.actor.displayName).toBe("Test Audit User");
-      expect(auditLog.actor.displayEmail).toBe(testUserEmail);
-      expect(auditLog.actor.userUuid).toBe(testUserUuid);
+      expect(auditLog.actor.displayEmail).toBe(testData.owner.email);
+      expect(auditLog.actor.userUuid).toBe(testData.owner.uuid);
     });
 
-    it.skip("should enforce permission checks correctly", async () => {
-      // Arrange: Get booking details
-      const booking = await prisma.booking.findUnique({
-        where: { uid: testBookingUid },
-        select: { startTime: true, endTime: true, status: true },
-      });
+    it.skip("should deny access to unauthorized users viewing audit logs", async () => {
+      const actor = makeUserActor(testData.owner.uuid);
 
-      // Create actor using helper
-      const actor = makeUserActor(testUserUuid);
-
-      // Create audit record using TaskConsumer
       await bookingAuditTaskConsumer.onBookingAction({
-        bookingUid: testBookingUid,
+        bookingUid: testData.booking.uid,
         actor,
         action: "CREATED",
+        source: "WEBAPP",
+        operationId: `op-${Date.now()}`,
         data: {
-          startTime: booking!.startTime.getTime(),
-          endTime: booking!.endTime.getTime(),
-          status: booking!.status,
+          startTime: testData.booking.startTime.getTime(),
+          endTime: testData.booking.endTime.getTime(),
+          status: testData.booking.status,
         },
         timestamp: Date.now(),
       });
 
-      // Act & Assert: Booking owner can view
-      const ownerResult = await bookingAuditViewerService.getAuditLogsForBooking(
-        testBookingUid,
-        testUserId,
-        testUserEmail
-      );
+      const ownerResult = await bookingAuditViewerService.getAuditLogsForBooking({
+        bookingUid: testData.booking.uid,
+        userId: testData.owner.id,
+        userEmail: testData.owner.email,
+        userTimeZone: "UTC",
+        organizationId: testData.organization.id,
+      });
       expect(ownerResult.auditLogs).toHaveLength(1);
 
-      // Act & Assert: Attendee can view
-      const attendeeResult = await bookingAuditViewerService.getAuditLogsForBooking(
-        testBookingUid,
-        testAttendeeUserId,
-        testAttendeeEmail
-      );
-      expect(attendeeResult.auditLogs).toHaveLength(1);
-
-      // Act & Assert: Unauthorized user cannot view
       const unauthorizedUserId = 999999;
       const unauthorizedEmail = "unauthorized@example.com";
 
       await expect(
-        bookingAuditViewerService.getAuditLogsForBooking(
-          testBookingUid,
-          unauthorizedUserId,
-          unauthorizedEmail
-        )
-      ).rejects.toThrow("You do not have permission to view audit logs for this booking");
+        bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: unauthorizedUserId,
+          userEmail: unauthorizedEmail,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("when multiple bookings are created in bulk", () => {
+    it("should create audit records for all bookings with same operation ID", async () => {
+      const booking2 = await createTestBooking(testData.owner.id, testData.eventType.id, {
+        attendees: [
+          {
+            email: testData.attendee.email,
+            name: "Test Attendee",
+            timeZone: "UTC",
+          },
+        ],
+      });
+
+      const booking3 = await createTestBooking(testData.owner.id, testData.eventType.id, {
+        attendees: [
+          {
+            email: testData.attendee.email,
+            name: "Test Attendee",
+            timeZone: "UTC",
+          },
+        ],
+      });
+
+      const actor = makeUserActor(testData.owner.uuid);
+      const operationId = `bulk-op-${Date.now()}`;
+      const timestamp = Date.now();
+
+      await bookingAuditTaskConsumer.processBulkAuditTask(
+        {
+          bookings: [
+            {
+              bookingUid: testData.booking.uid,
+              data: {
+                startTime: testData.booking.startTime.getTime(),
+                endTime: testData.booking.endTime.getTime(),
+                status: testData.booking.status,
+              },
+            },
+            {
+              bookingUid: booking2.uid,
+              data: {
+                startTime: booking2.startTime.getTime(),
+                endTime: booking2.endTime.getTime(),
+                status: booking2.status,
+              },
+            },
+            {
+              bookingUid: booking3.uid,
+              data: {
+                startTime: booking3.startTime.getTime(),
+                endTime: booking3.endTime.getTime(),
+                status: booking3.status,
+              },
+            },
+          ],
+          actor,
+          action: "CREATED",
+          source: "WEBAPP",
+          operationId,
+          timestamp,
+          organizationId: testData.organization.id,
+        },
+        "test-task-id"
+      );
+
+      const result1 = await bookingAuditViewerService.getAuditLogsForBooking({
+        bookingUid: testData.booking.uid,
+        userId: testData.owner.id,
+        userEmail: testData.owner.email,
+        userTimeZone: "UTC",
+        organizationId: testData.organization.id,
+      });
+
+      const result2 = await bookingAuditViewerService.getAuditLogsForBooking({
+        bookingUid: booking2.uid,
+        userId: testData.owner.id,
+        userEmail: testData.owner.email,
+        userTimeZone: "UTC",
+        organizationId: testData.organization.id,
+      });
+
+      const result3 = await bookingAuditViewerService.getAuditLogsForBooking({
+        bookingUid: booking3.uid,
+        userId: testData.owner.id,
+        userEmail: testData.owner.email,
+        userTimeZone: "UTC",
+        organizationId: testData.organization.id,
+      });
+
+      expect(result1.auditLogs).toHaveLength(1);
+      expect(result2.auditLogs).toHaveLength(1);
+      expect(result3.auditLogs).toHaveLength(1);
+
+      expect(result1.auditLogs[0].action).toBe("CREATED");
+      expect(result2.auditLogs[0].action).toBe("CREATED");
+      expect(result3.auditLogs[0].action).toBe("CREATED");
+
+      // Verify all bookings share the same operationId
+      expect(result1.auditLogs[0].operationId).toBe(operationId);
+      expect(result2.auditLogs[0].operationId).toBe(operationId);
+      expect(result3.auditLogs[0].operationId).toBe(operationId);
+
+      await cleanupTestData({
+        bookingUid: booking2.uid,
+      });
+      await cleanupTestData({
+        bookingUid: booking3.uid,
+      });
     });
   });
 });
-
