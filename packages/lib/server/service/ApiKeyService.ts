@@ -9,6 +9,7 @@ interface VerifyKeyResult {
   error?: string;
   userId?: number;
   user?: {
+    uuid: string;
     role: string;
     locked: boolean;
     email: string;

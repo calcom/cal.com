@@ -22,7 +22,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     return {
       user: {
         id: req.userId,
-        uuid: "",
+        uuid: req.user?.uuid ?? "",
         username: "",
         profile: {
           id: null,
