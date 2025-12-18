@@ -364,12 +364,12 @@ const extractTemplateVariables = (
         parameters.push({
           type: "text",
           parameter_name: paramName, // Use original snake_case name
-          text: String(fieldValue),
+          text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
         });
       } else {
         parameters.push({
           type: "text",
-          text: String(fieldValue),
+          text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
         });
       }
     }
@@ -584,7 +584,7 @@ export const buildMetaTemplateComponentsFromTemplate = async (
                 parameters: [
                   {
                     type: "text",
-                    text: String(fieldValue),
+                    text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
                   },
                 ],
               });
