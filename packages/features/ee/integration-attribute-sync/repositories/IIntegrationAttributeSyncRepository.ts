@@ -38,13 +38,11 @@ export interface IIntegrationAttributeSyncCreateParams {
 }
 
 export interface IIntegrationAttributeSyncRepository {
-  getByOrganizationId(organizationId: number): IntegrationAttributeSync[];
-  getById(id: string): IntegrationAttributeSync;
+  getByOrganizationId(organizationId: number): Promise<IntegrationAttributeSync[]>;
+  getById(id: string): Promise<IntegrationAttributeSync | null>;
   getSyncFieldMappings(integrationAttributeSyncId: string): Promise<AttributeSyncFieldMapping[]>;
   create(params: IIntegrationAttributeSyncCreateParams): Promise<IntegrationAttributeSync>;
-  updateTransactionWithRuleAndMappings(
-    params: IIntegrationAttributeSyncUpdateParams
-  ): Promise<IntegrationAttributeSync>;
+  updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams): Promise<void>;
   deleteById(id: string): Promise<void>;
 }
 
