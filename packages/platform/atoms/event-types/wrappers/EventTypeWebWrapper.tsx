@@ -52,7 +52,8 @@ const AssignmentWarningDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/AssignmentWarningDialog")
 );
 
-const EventSetupTab = dynamic(() =>
+const EventSetupTab = dynamic(
+  () =>
     // import web wrapper when it's ready
     import("./EventSetupTabWebWrapper").then((mod) => mod),
   { loading: () => null }
@@ -91,7 +92,7 @@ const EventAppsTab = dynamic(() =>
 );
 
 const EventWorkflowsTab = dynamic(
-  () => import("@calcom/features/eventtypes/components/tabs/workflows/EventWorkfowsTab")
+  () => import("@calcom/web/modules/event-types/components/EventWorkfowsTab")
 );
 
 const EventWebhooksTab = dynamic(() =>
