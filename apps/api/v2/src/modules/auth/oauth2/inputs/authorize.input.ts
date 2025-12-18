@@ -5,11 +5,22 @@ import { AccessScope } from "@calcom/prisma/enums";
 
 export class OAuth2AuthorizeInput {
   @ApiProperty({
-    description: "The redirect URI to redirect to after authorization",
+    description:
+      "The redirect URI to redirect to after authorization. Must match or be based on the registered redirect URI. If not provided, uses the registered redirect URI.",
     example: "https://example.com/callback",
+    required: false,
   })
+  @IsOptional()
   @IsString()
-  redirectUri!: string;
+  redirectUri?: string;
+
+  @ApiProperty({
+    description: "OAuth state parameter for CSRF protection. Will be included in the redirect.",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  state?: string;
 
   @ApiProperty({
     description: "The scopes to request",

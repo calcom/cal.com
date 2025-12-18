@@ -31,6 +31,7 @@ export interface OAuth2Tokens {
 
 export interface AuthorizeResult {
   authorizationCode: string;
+  redirectUri: string;
 }
 
 interface DecodedRefreshToken {
@@ -74,13 +75,16 @@ export class OAuth2Service {
     scopes: AccessScope[],
     teamSlug?: string,
     codeChallenge?: string,
-    codeChallengeMethod?: string
+    codeChallengeMethod?: string,
+    providedRedirectUri?: string
   ): Promise<AuthorizeResult> {
     const client = await this.OAuth2ClientRepository.findByClientIdWithType(clientId);
 
     if (!client) {
       throw new UnauthorizedException("Client ID not valid");
     }
+
+    const finalRedirectUri = this.validateAndGetRedirectUri(client.redirectUri, providedRedirectUri);
 
     if (client.clientType === "PUBLIC") {
       if (!codeChallenge) {
@@ -116,7 +120,19 @@ export class OAuth2Service {
       codeChallengeMethod,
     });
 
-    return { authorizationCode };
+    return { authorizationCode, redirectUri: finalRedirectUri };
+  }
+
+  private validateAndGetRedirectUri(registeredUri: string, providedUri?: string): string {
+    if (!providedUri) {
+      return registeredUri;
+    }
+
+    if (providedUri !== registeredUri) {
+      throw new BadRequestException("redirect_uri does not match registered redirect URI");
+    }
+
+    return providedUri;
   }
 
   async exchangeCodeForTokens(

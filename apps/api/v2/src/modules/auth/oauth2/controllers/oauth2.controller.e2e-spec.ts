@@ -184,42 +184,66 @@ describe("OAuth2 Controller Endpoints", () => {
     });
 
     describe("POST /v2/auth/oauth2/clients/:clientId/authorize", () => {
-      it("should generate authorization code for valid request", async () => {
+      it("should redirect with authorization code for valid request", async () => {
         const response = await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
             redirectUri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING, AccessScope.READ_PROFILE],
             teamSlug: team.slug,
+            state: "test-state-123",
           })
-          .expect(200);
+          .expect(303);
 
-        expect(response.body.status).toBe("success");
-        expect(response.body.data.authorizationCode).toBeDefined();
-        expect(typeof response.body.data.authorizationCode).toBe("string");
+        expect(response.headers.location).toBeDefined();
+        const redirectUrl = new URL(response.headers.location);
+        expect(redirectUrl.origin + redirectUrl.pathname).toBe(testRedirectUri);
+        expect(redirectUrl.searchParams.get("code")).toBeDefined();
+        expect(redirectUrl.searchParams.get("state")).toBe("test-state-123");
 
-        authorizationCode = response.body.data.authorizationCode;
+        authorizationCode = redirectUrl.searchParams.get("code") as string;
       });
 
-      it("should return 401 for invalid client ID", async () => {
+      it("should redirect with error for invalid client ID", async () => {
         await request(app.getHttpServer())
           .post("/api/v2/auth/oauth2/clients/invalid-client-id/authorize")
           .send({
             redirectUri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING],
           })
-          .expect(401);
+          .expect(404);
       });
 
-      it("should return 401 for invalid team slug", async () => {
-        await request(app.getHttpServer())
+      it("should redirect with error for invalid team slug", async () => {
+        const response = await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
             redirectUri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING],
             teamSlug: "non-existent-team-slug",
+            state: "test-state-456",
           })
-          .expect(401);
+          .expect(303);
+
+        expect(response.headers.location).toBeDefined();
+        const redirectUrl = new URL(response.headers.location);
+        expect(redirectUrl.searchParams.get("error")).toBe("unauthorized_client");
+        expect(redirectUrl.searchParams.get("state")).toBe("test-state-456");
+      });
+
+      it("should redirect with error for mismatched redirect URI", async () => {
+        const response = await request(app.getHttpServer())
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
+          .send({
+            redirectUri: "https://wrong-domain.com/callback",
+            scopes: [AccessScope.READ_BOOKING],
+            state: "test-state-789",
+          })
+          .expect(303);
+
+        expect(response.headers.location).toBeDefined();
+        const redirectUrl = new URL(response.headers.location);
+        expect(redirectUrl.searchParams.get("error")).toBe("invalid_request");
       });
     });
 
@@ -264,12 +288,15 @@ describe("OAuth2 Controller Endpoints", () => {
             scopes: [AccessScope.READ_BOOKING],
             teamSlug: team.slug,
           })
-          .expect(200);
+          .expect(303);
+
+        const newRedirectUrl = new URL(newAuthResponse.headers.location);
+        const newAuthCode = newRedirectUrl.searchParams.get("code") as string;
 
         await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/exchange`)
           .send({
-            code: newAuthResponse.body.data.authorizationCode,
+            code: newAuthCode,
             clientSecret: "wrong-secret",
             redirectUri: testRedirectUri,
             grantType: "authorization_code",
