@@ -28,7 +28,7 @@ const mockEventManager = async () => {
 const mockEmails = async () => {
   const emails = await import("@calcom/emails/email-manager");
   vi.spyOn(emails, "sendReassignedScheduledEmailsAndSMS").mockResolvedValue(undefined);
-  vi.spyOn(emails, "sendReassignedEmailsAndSMS").mockResolvedValue(undefined);
+  vi.spyOn(emails, "sendRoundRobinReassignedEmailsAndSMS").mockResolvedValue(undefined);
   vi.spyOn(emails, "sendReassignedUpdatedEmailsAndSMS").mockResolvedValue(undefined);
 };
 
