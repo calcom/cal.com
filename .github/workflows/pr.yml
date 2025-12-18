@@ -272,13 +272,7 @@ jobs:
             (
               needs.lint.result != 'success' ||
               needs.type-check.result != 'success' ||
-              needs.unit-test.result != 'success'
-            )
-          ) ||
-          (
-            needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
-            needs.check-label.outputs.run-e2e == 'true' &&
-            (
+              needs.unit-test.result != 'success' ||
               needs.build.result != 'success' ||
               needs.build-api-v1.result != 'success' ||
               needs.build-api-v2.result != 'success' ||
