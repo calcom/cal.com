@@ -2,6 +2,7 @@ import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
 import { OPT_IN_FEATURES } from "../config";
+import { applyAutoOptIn } from "../lib/applyAutoOptIn";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
 
 type ResolvedFeatureState = {
@@ -92,16 +93,15 @@ export class FeatureOptInService {
       const orgAutoOptIn = orgId !== null ? teamsAutoOptIn[orgId] ?? false : false;
       const teamAutoOptIns = teamIds.map((teamId) => teamsAutoOptIn[teamId] ?? false);
 
-      // Apply auto-opt-in transformation: if state is "inherit" AND autoOptIn is true → convert to "enabled"
-      const effectiveOrgState: FeatureState = orgState === "inherit" && orgAutoOptIn ? "enabled" : orgState;
-
-      const effectiveTeamStates: FeatureState[] = teamStates.map((state, index) => {
-        const autoOptIn = teamAutoOptIns[index];
-        return state === "inherit" && autoOptIn ? "enabled" : state;
+      // Apply auto-opt-in transformation
+      const { effectiveOrgState, effectiveTeamStates, effectiveUserState } = applyAutoOptIn({
+        orgState,
+        teamStates,
+        userState,
+        orgAutoOptIn,
+        teamAutoOptIns,
+        userAutoOptIn,
       });
-
-      const effectiveUserState: FeatureState =
-        userState === "inherit" && userAutoOptIn ? "enabled" : userState;
 
       // Compute effective state with transformed states
       const effectiveEnabled = computeEffectiveStateAcrossTeams({
