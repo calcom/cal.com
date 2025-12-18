@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
 
 /**
  * Rescheduled Audit Action Service
@@ -16,8 +16,7 @@ const fieldsSchemaV1 = z.object({
     rescheduledToUid: StringChangeSchema,
 });
 
-export class RescheduledAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class RescheduledAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "RESCHEDULED" as const;
     private static dataSchemaV1 = z.object({
@@ -61,21 +60,82 @@ export class RescheduledAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Promise<TranslationWithParams> {
-        const rescheduledToUid = storedData.fields.rescheduledToUid.new;
+    async getDisplayTitle({
+        storedData,
+        userTimeZone,
+    }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+        const { fields } = this.parseStored(storedData);
+        const rescheduledToUid = fields.rescheduledToUid.new;
+        const timeZone = userTimeZone;
+
+        // Format dates in user timezone
+        const oldDate = fields.startTime.old
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.old, timeZone)
+            : "";
+        const newDate = fields.startTime.new
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.new, timeZone)
+            : "";
+
         return {
             key: "booking_audit_action.rescheduled",
-            components: rescheduledToUid ? [{ type: "link", href: `/booking/${rescheduledToUid}` }] : undefined,
+            params: {
+                oldDate,
+                newDate,
+            },
+            components: rescheduledToUid ? [{ type: "link", href: `/booking/${rescheduledToUid}/logs` }] : undefined,
         };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): RescheduledAuditDisplayData {
-        const { fields } = storedData;
+    getDisplayTitleForRescheduledFromLog({
+        fromRescheduleUid,
+        userTimeZone,
+        storedData,
+    }: {
+        fromRescheduleUid: string;
+        userTimeZone: string;
+        storedData: BaseStoredAuditData;
+    }): TranslationWithParams {
+        const timeZone = userTimeZone;
+        const { fields } = this.parseStored(storedData);
+
+        // Format dates in user timezone
+        const oldDate = fields.startTime.old
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.old, timeZone)
+            : "";
+        const newDate = fields.startTime.new
+            ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.new, timeZone)
+            : "";
+
         return {
-            previousStartTime: fields.startTime.old ?? null,
-            newStartTime: fields.startTime.new ?? null,
-            previousEndTime: fields.endTime.old ?? null,
-            newEndTime: fields.endTime.new ?? null,
+            key: "booking_audit_action.rescheduled_from",
+            params: {
+                oldDate,
+                newDate,
+            },
+            components: [{ type: "link", href: `/booking/${fromRescheduleUid}/logs` }],
+        };
+    }
+
+    getDisplayJson({
+        storedData,
+        userTimeZone,
+    }: GetDisplayJsonParams): RescheduledAuditDisplayData {
+        const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
+        const timeZone = userTimeZone;
+
+        return {
+            previousStartTime: fields.startTime.old
+                ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.old, timeZone)
+                : null,
+            newStartTime: fields.startTime.new
+                ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.new, timeZone)
+                : null,
+            previousEndTime: fields.endTime.old
+                ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.old, timeZone)
+                : null,
+            newEndTime: fields.endTime.new
+                ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.new, timeZone)
+                : null,
             rescheduledToUid: fields.rescheduledToUid.new ?? null,
         };
     }

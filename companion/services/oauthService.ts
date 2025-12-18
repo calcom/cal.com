@@ -1,12 +1,75 @@
 /// <reference types="chrome" />
 import { fromByteArray } from "base64-js";
-import * as AuthSession from "expo-auth-session";
+import type * as AuthSession from "expo-auth-session";
 import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 
-// Complete warm up for WebBrowser on mobile
 WebBrowser.maybeCompleteAuthSession();
+
+// Message types for extension communication
+const EXTENSION_MESSAGE_TYPES = {
+  OAUTH_REQUEST: "cal-extension-oauth-request",
+  OAUTH_RESULT: "cal-extension-oauth-result",
+  TOKEN_EXCHANGE_REQUEST: "cal-extension-token-exchange-request",
+  TOKEN_EXCHANGE_RESULT: "cal-extension-token-exchange-result",
+  SYNC_TOKENS: "cal-extension-sync-tokens",
+  SYNC_TOKENS_RESULT: "cal-extension-sync-tokens-result",
+  CLEAR_TOKENS: "cal-extension-clear-tokens",
+  CLEAR_TOKENS_RESULT: "cal-extension-clear-tokens-result",
+  REQUEST_SESSION: "cal-extension-request-session",
+  SESSION_TOKEN: "cal-extension-session-token",
+} as const;
+
+let extensionSessionToken: string | null = null;
+let sessionTokenPromise: Promise<string> | null = null;
+
+const OAUTH_TIMEOUT_MS = 5 * 60 * 1000;
+const TOKEN_EXCHANGE_TIMEOUT_MS = 30 * 1000;
+const SESSION_TOKEN_TIMEOUT_MS = 5000;
+
+async function getExtensionSessionToken(): Promise<string | null> {
+  if (extensionSessionToken) {
+    return extensionSessionToken;
+  }
+
+  if (sessionTokenPromise) {
+    return sessionTokenPromise;
+  }
+
+  if (typeof window === "undefined" || window.parent === window) {
+    return null;
+  }
+
+  sessionTokenPromise = new Promise<string>((resolve) => {
+    const timeoutId = setTimeout(() => {
+      window.removeEventListener("message", messageHandler);
+      sessionTokenPromise = null;
+      resolve("");
+    }, SESSION_TOKEN_TIMEOUT_MS);
+
+    const messageHandler = (event: MessageEvent) => {
+      if (event.source !== window.parent) {
+        return;
+      }
+      if (event.data.type !== EXTENSION_MESSAGE_TYPES.SESSION_TOKEN) {
+        return;
+      }
+
+      clearTimeout(timeoutId);
+      window.removeEventListener("message", messageHandler);
+
+      extensionSessionToken = event.data.sessionToken || "";
+      sessionTokenPromise = null;
+      resolve(extensionSessionToken);
+    };
+
+    window.addEventListener("message", messageHandler);
+    window.parent.postMessage({ type: EXTENSION_MESSAGE_TYPES.REQUEST_SESSION }, "*");
+  });
+
+  return sessionTokenPromise;
+}
 
 export interface OAuthTokens {
   accessToken: string;
@@ -31,11 +94,7 @@ export class CalComOAuthService {
     this.config = config;
   }
 
-  private async generatePKCEParams(): Promise<{
-    codeVerifier: string;
-    codeChallenge: string;
-    state: string;
-  }> {
+  private async generatePKCEParams() {
     const codeVerifier = this.generateRandomBase64Url();
     const codeChallenge = await this.generateCodeChallenge(codeVerifier);
     const state = this.generateRandomBase64Url();
@@ -47,26 +106,18 @@ export class CalComOAuthService {
   }
 
   private async generateCodeChallenge(codeVerifier: string): Promise<string> {
-    try {
-      const base64Hash = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        codeVerifier,
-        { encoding: Crypto.CryptoEncoding.BASE64 }
-      );
-
-      return base64Hash.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-    } catch (error) {
-      console.error("Failed to generate code challenge:", error);
-      throw new Error("Failed to generate OAuth code challenge");
-    }
+    const base64Hash = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      codeVerifier,
+      { encoding: Crypto.CryptoEncoding.BASE64 }
+    );
+    return base64Hash.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
   }
 
   private generateRandomBase64Url(): string {
     const bytes = new Uint8Array(Crypto.getRandomBytes(32));
-
     const base64 =
       typeof btoa !== "undefined" ? btoa(String.fromCharCode(...bytes)) : fromByteArray(bytes);
-
     return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
   }
 
@@ -75,7 +126,7 @@ export class CalComOAuthService {
       client_id: this.config.clientId,
       response_type: "code",
       redirect_uri: this.config.redirectUri,
-      state: state,
+      state,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
     });
@@ -83,434 +134,394 @@ export class CalComOAuthService {
     return `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
   }
 
-  async startAuthorizationFlow(): Promise<OAuthTokens> {
-    try {
-      const { codeChallenge, state } = await this.generatePKCEParams();
-
-      // Web only: check for stored callback with state-specific keys to prevent race conditions
-      if (Platform.OS === "web" && typeof window !== "undefined") {
-        const storedCode = window.localStorage.getItem(`oauth_callback_code_${state}`);
-        const storedState = window.localStorage.getItem(`oauth_callback_state_${state}`);
-
-        if (storedCode && storedState) {
-          // CSRF protection: verify state matches
-          if (storedState !== state) {
-            window.localStorage.removeItem(`oauth_callback_code_${state}`);
-            window.localStorage.removeItem(`oauth_callback_state_${state}`);
-            throw new Error("Invalid state parameter - possible CSRF attack");
-          }
-
-          window.localStorage.removeItem(`oauth_callback_code_${state}`);
-          window.localStorage.removeItem(`oauth_callback_state_${state}`);
-
-          return await this.exchangeCodeForTokens(storedCode, state);
-        }
-      }
-
-      // Note: State stored in background script (iframe may not have chrome.storage access)
-
-      const authResult = await this.getAuthorizationResult(codeChallenge, state);
-      if (authResult.type === "success") {
-        const code = authResult.params?.code || authResult.params?.authorizationCode;
-        const returnedState = authResult.params?.state;
-
-        if (returnedState !== state) {
-          throw new Error("Invalid state parameter - possible CSRF attack");
-        }
-
-        if (!code) {
-          throw new Error("No authorization code received");
-        }
-
-        return await this.exchangeCodeForTokens(code, state);
-      }
-
-      if (authResult.type === "error") {
-        const errorDescription =
-          authResult.params?.error_description ||
-          ("error" in authResult ? authResult.error?.message : undefined) ||
-          "Unknown error";
-        throw new Error(`OAuth error: ${errorDescription}`);
-      }
-
-      if (authResult.type === "cancel") {
-        throw new Error("OAuth flow was cancelled by user");
-      }
-
-      throw new Error("OAuth flow failed or was dismissed");
-    } catch (error) {
-      console.error("OAuth authorization error:", error);
-      throw error;
-    }
-  }
-
-  // Detect browser extension environment using reliable indicators
-  private isBrowserExtension(): boolean {
-    if (Platform.OS !== "web" || typeof window === "undefined") {
-      return false;
-    }
-
-    if (typeof chrome !== "undefined" && chrome.runtime?.id) {
-      return true;
-    }
-
-    if (window.location.protocol === "chrome-extension:") {
-      return true;
-    }
-
-    // Extension content script injects companion app as iframe
-    if (window.parent !== window) {
-      try {
-        const parentOrigin = window.parent.location.origin;
-        const currentOrigin = window.location.origin;
-
-        if (parentOrigin !== currentOrigin && window.location.hostname === "localhost") {
-          return true;
-        }
-      } catch {
-        // Cross-origin access blocked - expected for extension iframes
-        if (window.location.hostname === "localhost") {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  private async launchExtensionAuthFlow(authUrl: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (typeof chrome !== "undefined" && chrome.identity) {
-        chrome.identity.launchWebAuthFlow(
-          {
-            url: authUrl,
-            interactive: true,
-          },
-          (responseUrl) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(`OAuth flow failed: ${chrome.runtime.lastError.message}`));
-            } else if (responseUrl) {
-              resolve(responseUrl);
-            } else {
-              reject(new Error("OAuth flow cancelled or failed"));
-            }
-          }
-        );
-        return;
-      }
-
-      // Iframe: communicate with parent window
-      if (window.parent !== window) {
-        let timeoutId: NodeJS.Timeout | null = null;
-
-        const messageHandler = (event: MessageEvent) => {
-          // Security: only accept messages from parent
-          if (event.source !== window.parent) {
-            return;
-          }
-
-          if (event.data.type === "cal-extension-oauth-result") {
-            window.removeEventListener("message", messageHandler);
-            if (timeoutId) {
-              clearTimeout(timeoutId);
-            }
-
-            if (event.data.success) {
-              resolve(event.data.responseUrl);
-            } else {
-              console.error("OAuth flow failed:", event.data.error);
-              reject(new Error(event.data.error || "OAuth flow failed"));
-            }
-          }
-        };
-
-        window.addEventListener("message", messageHandler);
-
-        window.parent.postMessage(
-          {
-            type: "cal-extension-oauth-request",
-            authUrl: authUrl,
-          },
-          "*"
-        );
-
-        timeoutId = setTimeout(() => {
-          console.error("OAuth flow timeout - no response from extension");
-          window.removeEventListener("message", messageHandler);
-          reject(new Error("OAuth flow timeout - no response from extension"));
-        }, 30000);
-      } else {
-        reject(new Error("Chrome extension context not detected"));
-      }
+  private parseCallbackUrl(url: string): Record<string, string> {
+    const parsed = new URL(url);
+    const params: Record<string, string> = {};
+    parsed.searchParams.forEach((v, k) => {
+      params[k] = v;
     });
+    return params;
+  }
+
+  private isMobileApp(): boolean {
+    return Platform.OS !== "web";
+  }
+
+  private isRunningInIframe(): boolean {
+    return Platform.OS === "web" && typeof window !== "undefined" && window.parent !== window;
+  }
+
+  async startAuthorizationFlow(): Promise<OAuthTokens> {
+    const { codeChallenge, state } = await this.generatePKCEParams();
+
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      const storedTokens = this.checkForStoredCallback(state);
+      if (storedTokens) {
+        return storedTokens;
+      }
+    }
+
+    const result = await this.getAuthorizationResult(codeChallenge, state);
+
+    if (result.type !== "success") {
+      throw new Error("OAuth flow failed");
+    }
+
+    const { code, state: returnedState } = result.params;
+
+    if (!code) {
+      throw new Error("No authorization code received");
+    }
+
+    if (returnedState !== state) {
+      throw new Error("Invalid state parameter");
+    }
+
+    return this.exchangeCodeForTokens(code, returnedState);
+  }
+
+  private checkForStoredCallback(state: string): Promise<OAuthTokens> | null {
+    const storedCode = window.localStorage.getItem(`oauth_callback_code_${state}`);
+    const storedState = window.localStorage.getItem(`oauth_callback_state_${state}`);
+
+    if (!storedCode || !storedState) {
+      return null;
+    }
+
+    if (storedState !== state) {
+      throw new Error("Invalid state parameter");
+    }
+
+    window.localStorage.removeItem(`oauth_callback_code_${state}`);
+    window.localStorage.removeItem(`oauth_callback_state_${state}`);
+
+    return this.exchangeCodeForTokens(storedCode, storedState);
   }
 
   private async getAuthorizationResult(
     codeChallenge: string,
     state: string
-  ): Promise<AuthSession.AuthSessionResult | { type: string; params: Record<string, string> }> {
+  ): Promise<{ type: "success"; params: Record<string, string> } | { type: "error" }> {
     const authUrl = this.buildAuthorizationUrl(codeChallenge, state);
 
-    const isExtension = this.isBrowserExtension();
-
-    if (isExtension) {
-      try {
-        const responseUrl = await this.launchExtensionAuthFlow(authUrl);
-        const params = this.parseCallbackUrl(responseUrl);
-        return { type: "success" as const, params };
-      } catch (error) {
-        console.error("Extension OAuth flow failed:", error);
-        return { type: "error", params: { error: error.message } } as {
-          type: string;
-          params: Record<string, string>;
-        };
-      }
-    } else if (Platform.OS === "web") {
-      const discovery = await this.getDiscoveryEndpoints();
-      const request = new AuthSession.AuthRequest({
-        clientId: this.config.clientId,
-        redirectUri: this.config.redirectUri,
-        responseType: AuthSession.ResponseType.Code,
-        state: state,
-        codeChallenge: codeChallenge,
-        codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
-      });
-
-      return await request.promptAsync(discovery);
-    } else {
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri);
-
-      if (result.type === "success") {
-        const params = this.parseCallbackUrl(result.url);
-        return { type: "success" as const, params };
-      }
-
-      return { type: result.type, params: {} } as { type: string; params: Record<string, string> };
+    if (this.isMobileApp()) {
+      return this.getMobileAuthResult(authUrl);
     }
+
+    return this.getExtensionAuthResult(authUrl);
   }
 
-  private async getDiscoveryEndpoints(): Promise<AuthSession.DiscoveryDocument> {
-    const fallbackDiscovery: AuthSession.DiscoveryDocument = {
-      authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
-      tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
-      revocationEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/revoke`,
-    };
-
-    const isCrossOriginWeb =
-      Platform.OS === "web" &&
-      typeof window !== "undefined" &&
-      (() => {
-        try {
-          return new URL(this.config.calcomBaseUrl).origin !== window.location.origin;
-        } catch {
-          return true;
-        }
-      })();
-
-    // Skip discovery fetch when we know CORS will block it (e.g. companion.cal.com -> app.cal.com).
-    if (isCrossOriginWeb) {
-      return fallbackDiscovery;
-    }
-
-    try {
-      const discovery = await AuthSession.fetchDiscoveryAsync(this.config.calcomBaseUrl);
-      return {
-        ...fallbackDiscovery,
-        ...discovery,
-      };
-    } catch (error) {
-      console.warn("Failed to load discovery document, using fallback endpoints", error);
-      return fallbackDiscovery;
-    }
-  }
-
-  private parseCallbackUrl(url: string): Record<string, string> {
-    const urlObj = new URL(url);
-    const params: Record<string, string> = {};
-
-    urlObj.searchParams.forEach((value, key) => {
-      params[key] = value;
+  private async getMobileAuthResult(
+    authUrl: string
+  ): Promise<{ type: "success"; params: Record<string, string> } | { type: "error" }> {
+    const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri, {
+      preferEphemeralSession: false,
     });
 
-    if (Object.keys(params).length === 0 && urlObj.hash) {
-      const hashParams = new URLSearchParams(urlObj.hash.substring(1));
-      hashParams.forEach((value, key) => {
-        params[key] = value;
-      });
+    if (result.type === "success") {
+      return { type: "success", params: this.parseCallbackUrl(result.url) };
     }
 
-    return params;
+    return { type: "error" };
+  }
+
+  private async getExtensionAuthResult(
+    authUrl: string
+  ): Promise<{ type: "success"; params: Record<string, string> } | { type: "error" }> {
+    try {
+      const responseUrl = await this.launchExtensionAuthFlow(authUrl);
+      return { type: "success", params: this.parseCallbackUrl(responseUrl) };
+    } catch {
+      return { type: "error" };
+    }
+  }
+
+  private async launchExtensionAuthFlow(authUrl: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (typeof chrome !== "undefined" && chrome.identity) {
+        chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (responseUrl) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else if (responseUrl) {
+            resolve(responseUrl);
+          } else {
+            reject(new Error("OAuth cancelled"));
+          }
+        });
+        return;
+      }
+
+      if (this.isRunningInIframe()) {
+        this.requestOAuthViaPostMessage(authUrl, resolve, reject);
+        return;
+      }
+
+      reject(new Error("Extension context not available"));
+    });
+  }
+
+  private requestOAuthViaPostMessage(
+    authUrl: string,
+    resolve: (url: string) => void,
+    reject: (error: Error) => void
+  ): void {
+    const timeoutId = setTimeout(() => {
+      window.removeEventListener("message", messageHandler);
+      reject(new Error("OAuth flow timed out"));
+    }, OAUTH_TIMEOUT_MS);
+
+    const messageHandler = (event: MessageEvent) => {
+      // Validate message source - must come from parent window (content script)
+      if (event.source !== window.parent) {
+        return;
+      }
+      if (event.data.type !== EXTENSION_MESSAGE_TYPES.OAUTH_RESULT) {
+        return;
+      }
+
+      clearTimeout(timeoutId);
+      window.removeEventListener("message", messageHandler);
+
+      if (event.data.success && event.data.responseUrl) {
+        resolve(event.data.responseUrl);
+      } else {
+        reject(new Error(event.data.error || "OAuth flow failed"));
+      }
+    };
+
+    window.addEventListener("message", messageHandler);
+    // Using "*" for targetOrigin because parent is the host page (e.g., gmail.com).
+    // Security: source validation above ensures responses only come from parent window.
+    window.parent.postMessage({ type: EXTENSION_MESSAGE_TYPES.OAUTH_REQUEST, authUrl }, "*");
   }
 
   private async exchangeCodeForTokens(code: string, state?: string): Promise<OAuthTokens> {
     if (!this.codeVerifier) {
-      throw new Error("No code verifier available");
+      throw new Error("Missing code verifier");
     }
 
-    // Extension: use APIs to avoid CORS
-    if (this.isBrowserExtension() && window.parent !== window) {
-      return await this.exchangeTokensViaExtension(code, state);
-    }
+    const tokenRequest = {
+      grant_type: "authorization_code",
+      client_id: this.config.clientId,
+      code,
+      redirect_uri: this.config.redirectUri,
+      code_verifier: this.codeVerifier,
+    };
 
     const tokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/token`;
 
-    const body = new URLSearchParams();
-    body.append("grant_type", "authorization_code");
-    body.append("client_id", this.config.clientId);
-    body.append("code", code);
-    body.append("redirect_uri", this.config.redirectUri);
-    body.append("code_verifier", this.codeVerifier);
+    if (this.isRunningInIframe()) {
+      return this.exchangeCodeForTokensViaExtension(tokenRequest, tokenEndpoint, state);
+    }
 
+    return this.exchangeCodeForTokensDirect(tokenRequest, tokenEndpoint);
+  }
+
+  private async exchangeCodeForTokensDirect(
+    tokenRequest: Record<string, string>,
+    tokenEndpoint: string
+  ): Promise<OAuthTokens> {
     const response = await fetch(tokenEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
       },
-      body: body.toString(),
+      body: new URLSearchParams(tokenRequest).toString(),
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error("Token exchange error response:", errorData);
-
-      try {
-        const errorJson = JSON.parse(errorData);
-        console.error("Parsed error:", errorJson);
-      } catch {
-        console.error("Could not parse error response as JSON");
-      }
-
-      throw new Error(`Token exchange failed: ${response.status} ${errorData}`);
+      throw new Error("Token exchange failed");
     }
 
-    const tokenData = await response.json();
+    const data = await response.json();
 
-    const tokens: OAuthTokens = {
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token,
-      tokenType: tokenData.token_type || "Bearer",
-      expiresAt: tokenData.expires_in ? Date.now() + tokenData.expires_in * 1000 : undefined,
-      scope: tokenData.scope,
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      tokenType: data.token_type ?? "Bearer",
+      expiresAt: data.expires_in ? Date.now() + data.expires_in * 1000 : undefined,
+      scope: data.scope,
     };
-
-    return tokens;
   }
 
-  private async exchangeTokensViaExtension(code: string, state?: string): Promise<OAuthTokens> {
+  private async exchangeCodeForTokensViaExtension(
+    tokenRequest: Record<string, string>,
+    tokenEndpoint: string,
+    state?: string
+  ): Promise<OAuthTokens> {
     return new Promise((resolve, reject) => {
-      let timeoutId: NodeJS.Timeout | null = null;
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        reject(new Error("Token exchange timed out"));
+      }, TOKEN_EXCHANGE_TIMEOUT_MS);
 
       const messageHandler = (event: MessageEvent) => {
-        // Security: only accept messages from parent
+        // Validate message source - must come from parent window (content script)
         if (event.source !== window.parent) {
           return;
         }
+        if (event.data.type !== EXTENSION_MESSAGE_TYPES.TOKEN_EXCHANGE_RESULT) {
+          return;
+        }
 
-        if (event.data.type === "cal-extension-token-exchange-result") {
-          window.removeEventListener("message", messageHandler);
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
+        clearTimeout(timeoutId);
+        window.removeEventListener("message", messageHandler);
 
-          if (event.data.success) {
-            resolve(event.data.tokens);
-          } else {
-            console.error("Token exchange failed via extension:", event.data.error);
-            reject(new Error(event.data.error || "Token exchange failed"));
-          }
+        if (event.data.success && event.data.tokens) {
+          resolve(event.data.tokens);
+        } else {
+          reject(new Error(event.data.error || "Token exchange failed"));
         }
       };
 
       window.addEventListener("message", messageHandler);
-
+      // See comment in requestOAuthViaPostMessage for security rationale
       window.parent.postMessage(
         {
-          type: "cal-extension-token-exchange-request",
-          tokenRequest: {
-            grant_type: "authorization_code",
-            client_id: this.config.clientId,
-            code: code,
-            redirect_uri: this.config.redirectUri,
-            code_verifier: this.codeVerifier,
-          },
-          state: state, // CSRF validation in background script
-          tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
+          type: EXTENSION_MESSAGE_TYPES.TOKEN_EXCHANGE_REQUEST,
+          tokenRequest,
+          tokenEndpoint,
+          state,
         },
         "*"
       );
-
-      timeoutId = setTimeout(() => {
-        window.removeEventListener("message", messageHandler);
-        reject(new Error("Token exchange timeout"));
-      }, 30000);
     });
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
-    const tokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/refreshToken`;
-
-    const body = new URLSearchParams({
-      grant_type: "refresh_token",
-      client_id: this.config.clientId,
-      refresh_token: refreshToken,
-    });
-
-    const response = await fetch(tokenEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
-      body: body.toString(),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`Token refresh failed: ${response.status} ${errorData}`);
-    }
-
-    const tokenData = await response.json();
-
-    const tokens: OAuthTokens = {
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token || refreshToken,
-      tokenType: tokenData.token_type || "Bearer",
-      expiresAt: tokenData.expires_in ? Date.now() + tokenData.expires_in * 1000 : undefined,
-      scope: tokenData.scope,
+  getDiscoveryEndpoints(): AuthSession.DiscoveryDocument {
+    return {
+      authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
+      tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
+      revocationEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/revoke`,
     };
-
-    return tokens;
   }
 
   isTokenExpired(tokens: OAuthTokens): boolean {
-    if (!tokens.expiresAt) {
-      return false;
-    }
-    // 5-minute buffer before expiry
+    if (!tokens.expiresAt) return false;
     return Date.now() >= tokens.expiresAt - 5 * 60 * 1000;
   }
+
   clearPKCEParams(): void {
     this.codeVerifier = null;
     this.state = null;
   }
+
+  async syncTokensToExtension(tokens: OAuthTokens): Promise<void> {
+    if (!this.isRunningInIframe()) {
+      return;
+    }
+
+    const sessionToken = await getExtensionSessionToken();
+    if (!sessionToken) {
+      console.warn("No session token available for token sync");
+      return;
+    }
+
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        resolve();
+      }, 5000);
+
+      const messageHandler = (event: MessageEvent) => {
+        if (event.source !== window.parent) {
+          return;
+        }
+        if (event.data.type !== EXTENSION_MESSAGE_TYPES.SYNC_TOKENS_RESULT) {
+          return;
+        }
+
+        clearTimeout(timeoutId);
+        window.removeEventListener("message", messageHandler);
+
+        if (event.data.success) {
+          resolve();
+        } else {
+          console.warn("Failed to sync tokens to extension:", event.data.error);
+          resolve();
+        }
+      };
+
+      window.addEventListener("message", messageHandler);
+      window.parent.postMessage(
+        { type: EXTENSION_MESSAGE_TYPES.SYNC_TOKENS, tokens, sessionToken },
+        "*"
+      );
+    });
+  }
+
+  async clearTokensFromExtension(): Promise<void> {
+    if (!this.isRunningInIframe()) {
+      return;
+    }
+
+    const sessionToken = await getExtensionSessionToken();
+    if (!sessionToken) {
+      console.warn("No session token available for token clear");
+      return;
+    }
+
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        resolve();
+      }, 5000);
+
+      const messageHandler = (event: MessageEvent) => {
+        if (event.source !== window.parent) {
+          return;
+        }
+        if (event.data.type !== EXTENSION_MESSAGE_TYPES.CLEAR_TOKENS_RESULT) {
+          return;
+        }
+
+        clearTimeout(timeoutId);
+        window.removeEventListener("message", messageHandler);
+
+        if (event.data.success) {
+          resolve();
+        } else {
+          console.warn("Failed to clear tokens from extension:", event.data.error);
+          resolve();
+        }
+      };
+
+      window.addEventListener("message", messageHandler);
+      window.parent.postMessage({ type: EXTENSION_MESSAGE_TYPES.CLEAR_TOKENS, sessionToken }, "*");
+    });
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
+    const tokenRequest = {
+      grant_type: "refresh_token",
+      client_id: this.config.clientId,
+      refresh_token: refreshToken,
+    };
+
+    const tokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/token`;
+
+    if (this.isRunningInIframe()) {
+      const tokens = await this.exchangeCodeForTokensViaExtension(tokenRequest, tokenEndpoint);
+      await this.syncTokensToExtension(tokens);
+      return tokens;
+    }
+
+    return this.exchangeCodeForTokensDirect(tokenRequest, tokenEndpoint);
+  }
 }
 
 export function createCalComOAuthService(overrides: Partial<OAuthConfig> = {}): CalComOAuthService {
-  let defaultRedirectUri: string;
-
-  const defaultConfig: OAuthConfig = {
+  const config: OAuthConfig = {
     clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID || "",
-    redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI,
+    redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI || "",
     calcomBaseUrl: "https://app.cal.com",
     ...overrides,
   };
 
-  if (!defaultConfig.clientId) {
-    throw new Error(
-      "OAuth client ID is required. Set EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID environment variable."
-    );
+  if (!config.clientId || !config.redirectUri) {
+    throw new Error("OAuth configuration incomplete");
   }
 
-  return new CalComOAuthService(defaultConfig);
+  return new CalComOAuthService(config);
 }
