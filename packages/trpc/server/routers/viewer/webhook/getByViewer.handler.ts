@@ -33,7 +33,6 @@ export type WebhooksByViewer = {
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
-  // Use the singleton instance to avoid creating new instances repeatedly
   const webhookRepository = WebhookRepository.getInstance();
   return await webhookRepository.getFilteredWebhooksForUser({
     userId: ctx.user.id,
