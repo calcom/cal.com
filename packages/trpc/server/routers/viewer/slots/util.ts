@@ -1046,7 +1046,7 @@ export class AvailableSlotsService {
     // We assume that the client is already sending startTime as per their requirement.
     // Note: We could optimize it further to go back 1 month in past only for the 2nd month because that is what we are putting a hard limit at.
     const startTimeAdjustedForRollingWindowComputation =
-      isStartTimeInPast || !isRollingWindowPeriodType || disableRollingWindowAdjustment
+      isStartTimeInPast || !isRollingWindowPeriodType
         ? startTimeAsIsoString
         : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
 

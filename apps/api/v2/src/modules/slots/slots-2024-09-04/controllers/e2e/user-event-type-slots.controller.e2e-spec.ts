@@ -1985,6 +1985,30 @@ describe("Slots 2024-09-04 Endpoints", () => {
         });
       });
 
+      it("should return no slots when requested dates are beyond rolling window limit", async () => {
+        // Mock "today" to 2050-08-10. Rolling window is 30 days, so max bookable is ~Sep 9.
+        const mockNow = DateTime.fromISO("2050-08-10T12:00:00.000Z", { zone: "UTC" }).toJSDate();
+        advanceTo(mockNow);
+
+        // Request dates in October - well beyond the 30-day rolling window
+        const startDate = "2050-10-15";
+        const endDate = "2050-10-17";
+
+        const response = await request(app.getHttpServer())
+          .get(
+            `/v2/slots?eventTypeId=${rollingWindowEventType.id}&start=${startDate}&end=${endDate}&timeZone=UTC`
+          )
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+          .expect(200);
+
+        const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const slots = responseBody.data;
+
+        // Should be empty - dates are beyond the rolling window limit
+        expect(Object.keys(slots).length).toEqual(0);
+      });
+
       afterAll(async () => {
         try {
           await userRepositoryFixture.deleteByEmail(rollingWindowUserEmail);
