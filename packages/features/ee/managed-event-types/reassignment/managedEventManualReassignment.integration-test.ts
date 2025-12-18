@@ -465,7 +465,7 @@ describe("managedEventManualReassignment - Integration Tests", () => {
 
     // Verify email functions were called
     expect(emails.sendReassignedScheduledEmailsAndSMS).toHaveBeenCalledTimes(1);
-    expect(emails.sendReassignedEmailsAndSMS).toHaveBeenCalledTimes(1);
+    expect(emails.sendRoundRobinReassignedEmailsAndSMS).toHaveBeenCalledTimes(1);
     expect(emails.sendReassignedUpdatedEmailsAndSMS).toHaveBeenCalledTimes(1);
 
     const newBooking = await prisma.booking.findFirst({
