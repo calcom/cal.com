@@ -131,10 +131,9 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
       })
     );
 
-    await this.deps.bookingReportRepo.bulkUpdateSystemReportStatus({
-      reportIds: results.map((r) => r.reportId),
+    await this.deps.bookingReportRepo.bulkLinkGlobalWatchlistWithSystemStatus({
+      links: results.map((r) => ({ reportId: r.reportId, globalWatchlistId: r.watchlistId })),
       systemStatus: SystemReportStatus.BLOCKED,
-      globalWatchlistId: results[0]?.watchlistId ?? null,
     });
 
     return {

@@ -114,6 +114,11 @@ export interface IBookingReportRepository {
     status: BookingReportStatus;
   }): Promise<void>;
 
+  bulkLinkGlobalWatchlistWithSystemStatus(params: {
+    links: Array<{ reportId: string; globalWatchlistId: string }>;
+    systemStatus: SystemReportStatus;
+  }): Promise<void>;
+
   countPendingReports(params: { organizationId: number }): Promise<number>;
 
   updateSystemReportStatus(params: {

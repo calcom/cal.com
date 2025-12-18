@@ -302,6 +302,29 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     );
   }
 
+  async bulkLinkGlobalWatchlistWithSystemStatus(params: {
+    links: Array<{ reportId: string; globalWatchlistId: string }>;
+    systemStatus: SystemReportStatus;
+  }): Promise<void> {
+    if (params.links.length === 0) return;
+
+    const groupedByWatchlist = new Map<string, string[]>();
+    for (const link of params.links) {
+      const reportIds = groupedByWatchlist.get(link.globalWatchlistId) || [];
+      reportIds.push(link.reportId);
+      groupedByWatchlist.set(link.globalWatchlistId, reportIds);
+    }
+
+    await Promise.all(
+      Array.from(groupedByWatchlist.entries()).map(([globalWatchlistId, reportIds]) =>
+        this.prismaClient.bookingReport.updateMany({
+          where: { id: { in: reportIds } },
+          data: { globalWatchlistId, systemStatus: params.systemStatus },
+        })
+      )
+    );
+  }
+
   async countPendingReports(params: { organizationId: number }): Promise<number> {
     return this.prismaClient.bookingReport.count({
       where: {
