@@ -3,13 +3,12 @@ import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-que
 import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
+import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import { getAttributesAssignmentData } from "@calcom/features/attribute/lib/getAttributes";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
 import type { dynamicFieldValueOperands, AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { Attribute } from "@calcom/lib/service/attribute/types";
-
-import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "./raqbUtils";
 
 const {
   getAttributesData: getAttributes,

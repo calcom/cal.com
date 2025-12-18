@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
+import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
+import {
+  onSubmissionOfFormResponse,
+  type TargetRoutingFormForResponse,
+} from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -10,9 +15,7 @@ import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/for
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import isRouter from "../lib/isRouter";
-import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
-import { onSubmissionOfFormResponse, type TargetRoutingFormForResponse } from "./formSubmissionUtils";
+import { findTeamMembersMatchingAttributeLogic } from "./findTeamMembersMatchingAttributeLogic";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 

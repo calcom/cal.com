@@ -1,16 +1,17 @@
 import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import {
-  findTeamMembersMatchingAttributeLogic,
-  TroubleshooterCase,
-} from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import * as getAttributesModule from "@calcom/features/attribute/lib/getAttributes";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
+
+import {
+  findTeamMembersMatchingAttributeLogic,
+  TroubleshooterCase,
+} from "./findTeamMembersMatchingAttributeLogic";
 
 vi.mock("@calcom/features/attribute/lib/getAttributes", () => {
   return {
