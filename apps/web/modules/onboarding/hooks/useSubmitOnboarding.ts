@@ -1,5 +1,3 @@
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
@@ -11,8 +9,6 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { OnboardingState } from "../store/onboarding-store";
 
 export const useSubmitOnboarding = () => {
-  const router = useRouter();
-  const { update: updateSession } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const flags = useFlagMap();
@@ -80,8 +76,6 @@ export const useSubmitOnboarding = () => {
       // No checkout URL means billing is disabled (self-hosted flow)
       // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
-      // Refresh session to get updated organization data
-      await updateSession();
       // Set flag to show welcome modal after personal onboarding redirect
       setShowNewOrgModalFlag();
       skipToPersonal(resetOnboarding);
@@ -98,7 +92,9 @@ export const useSubmitOnboarding = () => {
   const skipToPersonal = (resetOnboarding: () => void) => {
     resetOnboarding();
     const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/personal/settings" : "/getting-started";
-    router.push(gettingStartedPath);
+    // Use window.location.href for a full page reload to ensure JWT callback runs
+    // without trigger="update", which will call autoMergeIdentities() and fetch org data
+    window.location.href = gettingStartedPath;
   };
 
   return {
