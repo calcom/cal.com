@@ -1015,41 +1015,51 @@ Select a version and trigger event to view the example payload:
             "bookingId": 123,
             "bookingUid": "abc123-def456-ghi789",
             "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T10:30:00.000Z",
             "attendees": [
               {
+                "id": 123,
+                "email": "jane@example.com",
                 "name": "Jane Smith",
-                "email": "jane@example.com"
+                "timeZone": "Europe/London",
+                "phoneNumber": null,
+                "locale": "en",
+                "bookingId": 123,
+                "noShow": true
               }
             ],
-            "participants": [
+            "endTime": "2024-01-15T10:30:00.000Z",
+            "participants": [],
+            "guests": [
               {
-                "user_id": "789",
-                "duration": 300,
-                "join_time": 1705312800,
-                "email": "john@example.com",
-                "isLoggedIn": true
+                "id": 123,
+                "email": "jane@example.com",
+                "name": "Jane Smith",
+                "timeZone": "Europe/London",
+                "phoneNumber": null,
+                "locale": "en",
+                "bookingId": 123,
+                "noShow": true
               }
             ],
-            "rescheduledBy": null,
             "eventType": {
               "id": 789,
               "teamId": null,
               "parentId": null,
-              "title": "30 Minute Meeting",
-              "description": "Quick sync",
-              "requiresConfirmation": false,
-              "price": 0,
-              "currency": "usd",
-              "length": 30
+              "calVideoSettings": null
             },
             "webhook": {
               "id": "webhook-abc123",
               "subscriberUrl": "https://example.com/webhook",
+              "appId": null,
               "time": 5,
-              "timeUnit": "MINUTE"
+              "timeUnit": "MINUTE",
+              "eventTriggers": [
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
+              ],
+              "payloadTemplate": null
             },
-            "message": "Guest didn't join the call or didn't join before 2024-01-15 10:05:00 -05:00"
+            "message": "Guest didn't join the call or didn't join before 2024-01-15 10:05:00 +00:00"
           }
         }
         ```
