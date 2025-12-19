@@ -22,7 +22,7 @@ interface MappingRowProps {
   mapping: FieldMapping;
   onChange: (mapping: FieldMapping) => void;
   onRemove: () => void;
-  attributeOptions: AttributeOptions[];
+  attributeOptions: AttributeOptions;
   isLoading?: boolean;
 }
 

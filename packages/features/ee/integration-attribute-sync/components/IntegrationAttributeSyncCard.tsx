@@ -11,7 +11,7 @@ import { SelectField, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { IntegrationAttributeSync } from "../repositories/IIntegrationAttributeSyncRepository";
-import { ISyncFormData } from "../schemas/zod";
+import type { ISyncFormData } from "../schemas/zod";
 import { FieldMappingBuilder } from "./FieldMappingBuilder";
 import { RuleBuilder } from "./RuleBuilder";
 

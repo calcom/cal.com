@@ -19,7 +19,7 @@ interface IIntegrationAttributeSyncViewProps {
       name: string;
     } | null;
   }[];
-  initalIntegrationAttributeSyncs: IntegrationAttributeSync[];
+  initialIntegrationAttributeSyncs: IntegrationAttributeSync[];
   organizationTeams: {
     id: number;
     name: string;
@@ -29,7 +29,7 @@ interface IIntegrationAttributeSyncViewProps {
 }
 
 const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps) => {
-  const { credentialsData, initalIntegrationAttributeSyncs, organizationTeams, attributes, organizationId } =
+  const { credentialsData, initialIntegrationAttributeSyncs, organizationTeams, attributes, organizationId } =
     props;
   const { t } = useLocale();
 
@@ -38,7 +38,7 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
   const { data: integrationAttributeSyncs } = trpc.viewer.attributeSync.getAllAttributeSyncs.useQuery(
     {},
     {
-      initialData: initalIntegrationAttributeSyncs,
+      initialData: initialIntegrationAttributeSyncs,
     }
   );
 
