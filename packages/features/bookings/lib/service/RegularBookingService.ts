@@ -1,6 +1,8 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
+import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
+import { buildBookingCreatedAuditData, buildBookingRescheduledAuditData } from "../handleNewBooking/buildBookingEventAuditData";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -127,8 +129,8 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
-import { makeGuestActor } from "../types/actor";
 
 const translator = short();
 
@@ -175,6 +177,7 @@ export const buildDryRunBooking = ({
   eventTypeId: number;
   organizerUser: {
     id: number;
+    uuid: string;
     name: string | null;
     username: string | null;
     email: string;
@@ -190,6 +193,7 @@ export const buildDryRunBooking = ({
 }) => {
   const sanitizedOrganizerUser = {
     id: organizerUser.id,
+    uuid: organizerUser.uuid,
     name: organizerUser.name,
     username: organizerUser.username,
     email: organizerUser.email,
@@ -203,6 +207,7 @@ export const buildDryRunBooking = ({
     eventTypeId: eventTypeId,
     user: sanitizedOrganizerUser,
     userId: sanitizedOrganizerUser.id,
+    userUuid: sanitizedOrganizerUser.uuid,
     title: eventName,
     startTime: new Date(startTime),
     endTime: new Date(endTime),
@@ -418,6 +423,7 @@ function formatAvailabilitySnapshot(data: {
 function buildBookingCreatedPayload({
   booking,
   organizerUserId,
+  organizerUserUuid,
   hashedLink,
   isDryRun,
   organizationId,
@@ -431,6 +437,7 @@ function buildBookingCreatedPayload({
     userId: number | null;
   };
   organizerUserId: number;
+  organizerUserUuid: string | null;
   hashedLink: string | null;
   isDryRun: boolean;
   organizationId: number | null;
@@ -449,6 +456,7 @@ function buildBookingCreatedPayload({
       endTime: booking.endTime,
       status: booking.status,
       userId: booking.userId,
+      userUuid: organizerUserUuid,
       user: {
         id: organizerUserId,
       },
@@ -560,6 +568,7 @@ async function getEventOrganizationId({
 }
 
 async function handler(
+  this: RegularBookingService,
   input: BookingHandlerInput,
   deps: IBookingServiceDependencies,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
@@ -567,6 +576,7 @@ async function handler(
   const {
     bookingData: rawBookingData,
     userId,
+    userUuid,
     platformClientId,
     platformCancelUrl,
     platformBookingUrl,
@@ -788,6 +798,12 @@ async function handler(
         ...(isDryRun ? { troubleshooterData } : {}),
         paymentUid: firstPayment?.uid,
         paymentId: firstPayment?.id,
+        organizationId: eventOrganizationId,
+        previousBooking: originalRescheduledBooking ? {
+          uid: originalRescheduledBooking.uid,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        } : null,
       };
     }
   }
@@ -1626,6 +1642,7 @@ async function handler(
         email: null,
       },
       userId: null,
+      userUuid: null,
       title: eventName,
       startTime: new Date(reqBody.start),
       endTime: new Date(reqBody.end),
@@ -1680,9 +1697,17 @@ async function handler(
       luckyUsers: [],
       paymentId: undefined,
       seatReferenceUid: undefined,
-      isShortCircuitedBooking: true, // Renamed from isSpamDecoy to avoid exposing spam detection to blocked users
+      isShortCircuitedBooking: true,
+      organizationId: eventOrganizationId,
+      previousBooking: originalRescheduledBooking ? {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      } : null,
     };
   }
+
+  const actionSource = getAuditActionSource({ creationSource: input.bookingData.creationSource, eventTypeId, rescheduleUid: originalRescheduledBooking?.uid ?? null });
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
@@ -1720,7 +1745,10 @@ async function handler(
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
       isDryRun,
+      organizationId: eventOrganizationId,
+      actionSource,
       traceContext,
+      deps
     });
 
     if (newBooking) {
@@ -1737,6 +1765,12 @@ async function handler(
       return {
         ...bookingResponse,
         ...luckyUserResponse,
+        organizationId: eventOrganizationId,
+        previousBooking: originalRescheduledBooking ? {
+          uid: originalRescheduledBooking.uid,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        } : null,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -2359,63 +2393,21 @@ async function handler(
     }
     : undefined;
 
-  const bookingCreatedPayload = buildBookingCreatedPayload({
+  await this.fireBookingEvents({
     booking,
-    organizerUserId: organizerUser.id,
+    organizerUser,
     // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
     hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
     isDryRun,
-    organizationId: eventOrganizationId,
+    eventOrganizationId,
+    bookerEmail,
+    bookerName: fullName,
+    actorUserUuid: userUuid ?? null,
+    originalRescheduledBooking,
+    actionSource,
+    isRecurringBooking: !!input.bookingData.allRecurringDates,
+    tracingLogger,
   });
-
-  const bookingEventHandler = deps.bookingEventHandler;
-  // TODO: Identify action source correctly
-  const actionSource = 'WEBAPP';
-  // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
-  const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
-
-  if (originalRescheduledBooking) {
-    const bookingRescheduledPayload: BookingRescheduledPayload = {
-      ...bookingCreatedPayload,
-      oldBooking: {
-        uid: originalRescheduledBooking.uid,
-        startTime: originalRescheduledBooking.startTime,
-        endTime: originalRescheduledBooking.endTime,
-      },
-    };
-    await bookingEventHandler.onBookingRescheduled({
-      payload: bookingRescheduledPayload,
-      actor: auditActor,
-      auditData: {
-        startTime: {
-          old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
-          new: bookingRescheduledPayload.booking.startTime.toISOString(),
-        },
-        endTime: {
-          old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
-          new: bookingRescheduledPayload.booking.endTime.toISOString(),
-        },
-        rescheduledToUid: {
-          old: null,
-          new: bookingRescheduledPayload.booking.uid,
-        },
-      },
-      source: actionSource,
-      operationId: null,
-    });
-  } else {
-    await bookingEventHandler.onBookingCreated({
-      payload: bookingCreatedPayload,
-      actor: auditActor,
-      auditData: {
-        startTime: bookingCreatedPayload.booking.startTime.getTime(),
-        endTime: bookingCreatedPayload.booking.endTime.getTime(),
-        status: bookingCreatedPayload.booking.status,
-      },
-      source: actionSource,
-      operationId: null,
-    });
-  }
 
   const webhookData: EventPayloadType = {
     ...evt,
@@ -2568,6 +2560,12 @@ async function handler(
       paymentId: payment?.id,
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
+      organizationId: eventOrganizationId,
+      previousBooking: originalRescheduledBooking ? {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      } : null,
     };
   }
 
@@ -2810,6 +2808,12 @@ async function handler(
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
     videoCallUrl: metadata?.videoCallUrl,
+    organizationId: eventOrganizationId,
+    previousBooking: originalRescheduledBooking ? {
+      uid: originalRescheduledBooking.uid,
+      startTime: originalRescheduledBooking.startTime,
+      endTime: originalRescheduledBooking.endTime,
+    } : null,
   };
 }
 
@@ -2821,12 +2825,99 @@ async function handler(
 export class RegularBookingService implements IBookingService {
   constructor(private readonly deps: IBookingServiceDependencies) { }
 
+  async fireBookingEvents({
+    booking,
+    organizerUser,
+    hashedLink,
+    isDryRun,
+    eventOrganizationId,
+    bookerEmail,
+    bookerName,
+    actorUserUuid,
+    originalRescheduledBooking,
+    actionSource,
+    isRecurringBooking,
+    tracingLogger,
+  }: {
+    booking: {
+      id: number;
+      uid: string;
+      startTime: Date;
+      endTime: Date;
+      status: BookingStatus;
+      userId: number | null;
+      attendees?: Array<{ id: number; email: string }>;
+      userUuid: string | null;
+    };
+    organizerUser: { id: number; uuid: string };
+    hashedLink: string | null;
+    isDryRun: boolean;
+    eventOrganizationId: number | null;
+    bookerEmail: string;
+    bookerName: string;
+    actorUserUuid: string | null;
+    originalRescheduledBooking: BookingType | null;
+    actionSource: ActionSource;
+    isRecurringBooking: boolean;
+    tracingLogger: ReturnType<typeof distributedTracing.getTracingLogger>;
+  }) {
+    const bookingCreatedPayload = buildBookingCreatedPayload({
+      booking,
+      organizerUserId: organizerUser.id,
+      organizerUserUuid: organizerUser.uuid,
+      hashedLink,
+      isDryRun,
+      organizationId: eventOrganizationId,
+    });
+
+    const bookingEventHandler = this.deps.bookingEventHandler;
+
+    const actorAttendeeId = booking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
+
+    const auditActor = getBookingAuditActorForNewBooking({
+      actorAttendeeId: actorAttendeeId ?? null,
+      actorUserUuid,
+      bookerEmail,
+      bookerName,
+      logger: tracingLogger,
+    });
+
+    // For recurring bookings we fire the events in the RecurringBookingService
+    if (!isRecurringBooking) {
+      if (originalRescheduledBooking) {
+        const bookingRescheduledPayload: BookingRescheduledPayload = {
+          ...bookingCreatedPayload,
+          oldBooking: {
+            uid: originalRescheduledBooking.uid,
+            startTime: originalRescheduledBooking.startTime,
+            endTime: originalRescheduledBooking.endTime,
+          },
+        };
+        await bookingEventHandler.onBookingRescheduled({
+          payload: bookingRescheduledPayload,
+          actor: auditActor,
+          auditData: buildBookingRescheduledAuditData({ oldBooking: originalRescheduledBooking, newBooking: booking }),
+          source: actionSource,
+          operationId: null,
+        });
+      } else {
+        await bookingEventHandler.onBookingCreated({
+          payload: bookingCreatedPayload,
+          actor: auditActor,
+          auditData: buildBookingCreatedAuditData({ booking }),
+          source: actionSource,
+          operationId: null,
+        });
+      }
+    }
+  }
+
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
   }
 
   /**
@@ -2838,7 +2929,7 @@ export class RegularBookingService implements IBookingService {
     bookingDataSchemaGetter: BookingDataSchemaGetter;
   }) {
     const bookingMeta = input.bookingMeta ?? {};
-    return handler(
+    return handler.bind(this)(
       {
         bookingData: input.bookingData,
         ...bookingMeta,

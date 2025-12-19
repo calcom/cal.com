@@ -12,6 +12,100 @@ import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
+import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+
+const fireBookingEvents = async ({
+  previousSeatedBooking,
+  newBooking,
+  originalRescheduledBooking,
+  rescheduleUid,
+  organizationId,
+  bookerEmail,
+  bookerName,
+  actionSource,
+  actorUserUuid,
+  deps
+}: {
+  previousSeatedBooking: SeatedBooking;
+  newBooking: NonNullable<HandleSeatsResultBooking>;
+  originalRescheduledBooking: NewSeatedBookingObject["originalRescheduledBooking"];
+  rescheduleUid: string | undefined;
+  organizationId: number | null | undefined;
+  bookerEmail: string;
+  bookerName: string;
+  actionSource: ActionSource;
+  actorUserUuid: string | null;
+  deps: {
+    bookingEventHandler: BookingEventHandlerService;
+    logger: ISimpleLogger
+  }
+}) => {
+  const actorAttendeeId = newBooking.attendees?.find((attendee) => attendee.email === bookerEmail)?.id;
+  const auditActor = getBookingAuditActorForNewBooking({
+    actorAttendeeId: actorAttendeeId ?? null,
+    actorUserUuid,
+    bookerEmail,
+    bookerName,
+    logger: deps.logger,
+  });
+
+  const seatReferenceUid = newBooking.seatReferenceUid;
+  if (!seatReferenceUid) {
+    return;
+  }
+
+  if (rescheduleUid && originalRescheduledBooking) {
+    const movedToDifferentBooking = newBooking.uid && newBooking.uid !== previousSeatedBooking.uid;
+    const newBookingStartTime =
+      movedToDifferentBooking && newBooking.startTime
+        ? new Date(newBooking.startTime).toISOString()
+        : previousSeatedBooking.startTime.toISOString();
+    const newBookingEndTime =
+      movedToDifferentBooking && newBooking.endTime
+        ? new Date(newBooking.endTime).toISOString()
+        : previousSeatedBooking.endTime.toISOString();
+
+    await deps.bookingEventHandler.onSeatRescheduled({
+      bookingUid: previousSeatedBooking.uid,
+      actor: auditActor,
+      organizationId: organizationId ?? null,
+      auditData: {
+        seatReferenceUid,
+        attendeeEmail: bookerEmail,
+        startTime: {
+          old: originalRescheduledBooking.startTime.toISOString(),
+          new: newBookingStartTime,
+        },
+        endTime: {
+          old: originalRescheduledBooking.endTime.toISOString(),
+          new: newBookingEndTime,
+        },
+        rescheduledToBookingUid: {
+          old: null,
+          new: movedToDifferentBooking ? (newBooking.uid || null) : null,
+        },
+      },
+      source: actionSource,
+    });
+  } else {
+    await deps.bookingEventHandler.onSeatBooked({
+      bookingUid: previousSeatedBooking.uid,
+      actor: auditActor,
+      organizationId: organizationId ?? null,
+      auditData: {
+        seatReferenceUid,
+        attendeeEmail: bookerEmail,
+        attendeeName: bookerName,
+        startTime: previousSeatedBooking.startTime.getTime(),
+        endTime: previousSeatedBooking.endTime.getTime(),
+      },
+      source: actionSource,
+    });
+  }
+};
 
 const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   const {
@@ -23,6 +117,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     bookerEmail,
     smsReminderNumber,
     eventTypeInfo,
+    reqUserUuid,
     uid,
     originalRescheduledBooking,
     reqBodyMetadata,
@@ -34,7 +129,13 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     rescheduledBy,
     rescheduleReason,
     isDryRun = false,
+    organizationId,
+    fullName,
     traceContext,
+    actionSource,
+    deps: {
+      bookingEventHandler,
+    }
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
@@ -104,6 +205,18 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
+    await fireBookingEvents({
+      previousSeatedBooking: seatedBooking,
+      newBooking: resultBooking,
+      originalRescheduledBooking,
+      rescheduleUid,
+      organizationId,
+      bookerEmail,
+      bookerName: fullName,
+      actionSource,
+      actorUserUuid: reqUserUuid ?? null,
+      deps: { bookingEventHandler, logger: loggerWithEventDetails },
+    });
     const metadata = {
       ...(typeof resultBooking.metadata === "object" && resultBooking.metadata),
       ...reqBodyMetadata,
