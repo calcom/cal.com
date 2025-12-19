@@ -3,18 +3,31 @@
  */
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import {
+  BanIcon,
+  CalendarIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  MapPinIcon,
+  PencilIcon,
+  SparklesIcon,
+  UserCheckIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import dayjs from "@calcom/dayjs";
-import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { FilterSearchField, Select } from "@calcom/ui/components/form";
-import { Avatar } from "@calcom/ui/components/avatar";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { FilterSearchField, Select } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+
 import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 
 interface BookingLogsViewProps {
@@ -61,19 +74,19 @@ interface BookingLogsTimelineProps {
     logs: AuditLog[];
 }
 
-const ACTION_ICON_MAP: Record<string, IconName> = {
-    CREATED: "calendar",
-    CANCELLED: "ban",
-    REJECTED: "ban",
-    ACCEPTED: "check",
-    RESCHEDULED: "pencil",
-    RESCHEDULE_REQUESTED: "pencil",
-    REASSIGNMENT: "user-check",
-    ATTENDEE_ADDED: "user-check",
-    ATTENDEE_REMOVED: "user-check",
-    LOCATION_CHANGED: "map-pin",
-    HOST_NO_SHOW_UPDATED: "ban",
-    ATTENDEE_NO_SHOW_UPDATED: "ban",
+const ACTION_ICON_MAP: Record<string, LucideIcon> = {
+    CREATED: CalendarIcon,
+    CANCELLED: BanIcon,
+    REJECTED: BanIcon,
+    ACCEPTED: CheckIcon,
+    RESCHEDULED: PencilIcon,
+    RESCHEDULE_REQUESTED: PencilIcon,
+    REASSIGNMENT: UserCheckIcon,
+    ATTENDEE_ADDED: UserCheckIcon,
+    ATTENDEE_REMOVED: UserCheckIcon,
+    LOCATION_CHANGED: MapPinIcon,
+    HOST_NO_SHOW_UPDATED: BanIcon,
+    ATTENDEE_NO_SHOW_UPDATED: BanIcon,
 } as const;
 
 
@@ -225,9 +238,12 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                     <div key={log.id} className="flex gap-1">
                         <div className="flex flex-col items-center self-stretch">
                             <div className="pt-2 shrink-0">
-                                <div className="bg-subtle rounded-[3.556px] p-1 flex items-center justify-center w-4 h-4">
-                                    <Icon name={ACTION_ICON_MAP[log.action] ?? "sparkles"} className="h-3 w-3 text-subtle" />
-                                </div>
+                                                                <div className="bg-subtle rounded-[3.556px] p-1 flex items-center justify-center w-4 h-4">
+                                                                    {(() => {
+                                                                      const IconComponent = ACTION_ICON_MAP[log.action] ?? SparklesIcon;
+                                                                      return <IconComponent className="h-3 w-3 text-subtle" />;
+                                                                    })()}
+                                                                </div>
                             </div>
                             {!isLast && (
                                 <div className="w-px bg-subtle flex-1 min-h-0" />
@@ -267,7 +283,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                             color="minimal"
                                             size="sm"
                                             onClick={() => toggleExpand(log.id)}
-                                            StartIcon={isExpanded ? "chevron-down" : "chevron-right"}
+                                            StartIcon={isExpanded ? ChevronDownIcon : ChevronRightIcon}
                                             className="justify-start text-xs font-medium text-subtle h-6">
                                             {isExpanded ? t("hide_details") : t("show_details")}
                                         </Button>
@@ -307,7 +323,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                             color="minimal"
                                                             size="sm"
                                                             onClick={() => toggleJson(log.id)}
-                                                            StartIcon={showJson ? "chevron-down" : "chevron-right"}
+                                                            StartIcon={showJson ? ChevronDownIcon : ChevronRightIcon}
                                                             className="-ml-3 h-6 px-2 font-medium text-xs">
                                                             {t("json")}
                                                         </Button>
