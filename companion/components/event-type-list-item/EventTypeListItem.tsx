@@ -33,11 +33,6 @@ export const EventTypeListItem = ({
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
-  const title = item.title || "";
-  const description = item.description ? normalizeMarkdown(item.description) : null;
-  const showPriceOrConfirmation =
-    (item.price != null && item.price > 0) || item.requiresConfirmation;
-
   return (
     <TouchableOpacity
       className={`bg-white active:bg-[#F8F9FA] ${!isLast ? "border-b border-[#E5E5EA]" : ""}`}
@@ -48,11 +43,11 @@ export const EventTypeListItem = ({
       <View className="flex-row items-center justify-between">
         <View className="mr-4 flex-1">
           <View className="mb-1 flex-row items-center">
-            <Text className="flex-1 text-base font-semibold text-[#333]">{title}</Text>
+            <Text className="flex-1 text-base font-semibold text-[#333]">{item.title}</Text>
           </View>
-          {description ? (
+          {item.description ? (
             <Text className="mb-2 mt-0.5 text-sm leading-5 text-[#666]" numberOfLines={2}>
-              {description}
+              {normalizeMarkdown(item.description)}
             </Text>
           ) : null}
           <View className="mt-2 flex-row items-center self-start rounded-lg border border-[#E5E5EA] bg-[#E5E5EA] px-2 py-1">
@@ -61,7 +56,7 @@ export const EventTypeListItem = ({
               {formatDuration(duration)}
             </Text>
           </View>
-          {showPriceOrConfirmation ? (
+          {(item.price != null && item.price > 0) || item.requiresConfirmation ? (
             <View className="mt-2 flex-row items-center gap-3">
               {item.price != null && item.price > 0 ? (
                 <Text className="text-sm font-medium text-[#34C759]">

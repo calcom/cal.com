@@ -933,7 +933,6 @@ export default function Bookings() {
     const isCancelled = item.status?.toUpperCase() === "CANCELLED";
     const isRejected = item.status?.toUpperCase() === "REJECTED";
 
-    // Pre-compute host and attendees display
     const getHostAndAttendeesDisplay = () => {
       const hasHostOrAttendees =
         (item.hosts && item.hosts.length > 0) ||
@@ -973,8 +972,6 @@ export default function Bookings() {
 
     const hostAndAttendeesDisplay = getHostAndAttendeesDisplay();
     const meetingInfo = getMeetingInfo(item.location);
-    const title = item.title || "";
-    const description = item.description || "";
 
     return (
       <View className="border-b border-[#E5E5EA] bg-white">
@@ -987,6 +984,7 @@ export default function Bookings() {
           }}
           style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
         >
+          {/* Time and Date Row */}
           <View className="mb-2 flex-row flex-wrap items-center">
             <Text className="text-sm font-medium text-[#333]">
               {formatDate(startTime, isUpcoming)}
@@ -995,6 +993,7 @@ export default function Bookings() {
               {formatTime(startTime)} - {formatTime(endTime)}
             </Text>
           </View>
+          {/* Badges Row */}
           <View className="mb-3 flex-row flex-wrap items-center">
             {isPending ? (
               <View className="mb-1 mr-2 rounded bg-[#FF9500] px-2 py-0.5">
@@ -1002,20 +1001,24 @@ export default function Bookings() {
               </View>
             ) : null}
           </View>
+          {/* Title */}
           <Text
             className={`mb-2 text-lg font-medium leading-5 text-[#333] ${isCancelled || isRejected ? "line-through" : ""}`}
             numberOfLines={2}
           >
-            {title}
+            {item.title}
           </Text>
-          {description ? (
+          {/* Description */}
+          {item.description ? (
             <Text className="mb-2 text-sm leading-5 text-[#666]" numberOfLines={1}>
-              &quot;{description}&quot;
+              &quot;{item.description}&quot;
             </Text>
           ) : null}
+          {/* Host and Attendees */}
           {hostAndAttendeesDisplay ? (
             <Text className="mb-2 text-sm text-[#333]">{hostAndAttendeesDisplay}</Text>
           ) : null}
+          {/* Meeting Link */}
           {meetingInfo ? (
             <View className="mb-1 flex-row">
               <TouchableOpacity
