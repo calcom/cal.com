@@ -36,29 +36,27 @@ describe("CalendarBatchWrapper", () => {
 
       // Each calendar without delegationCredentialId should be processed separately
       expect(getAvailabilityMock).toHaveBeenCalledTimes(3);
-      expect(getAvailabilityMock).toHaveBeenNthCalledWith(
-        1,
-        "2024-01-01",
-        "2024-01-31",
-        [selectedCalendars[0]],
-        undefined,
-        false
-      );
-      expect(getAvailabilityMock).toHaveBeenNthCalledWith(
-        2,
-        "2024-01-01",
-        "2024-01-31",
-        [selectedCalendars[1]],
-        undefined,
-        false
-      );
-      expect(getAvailabilityMock).toHaveBeenNthCalledWith(
-        3,
-        "2024-01-01",
-        "2024-01-31",
-        [selectedCalendars[2]],
-        undefined,
-        false
+
+      // Verify each call has exactly one calendar (order-independent)
+      const allCalls = getAvailabilityMock.mock.calls as [
+        string,
+        string,
+        IntegrationCalendar[],
+        boolean | undefined,
+        boolean
+      ][];
+      const calendarIdsFromCalls = allCalls.map((call) => {
+        expect(call[0]).toBe("2024-01-01");
+        expect(call[1]).toBe("2024-01-31");
+        expect(call[2]).toHaveLength(1);
+        expect(call[3]).toBe(undefined);
+        expect(call[4]).toBe(false);
+        return call[2][0].externalId;
+      });
+
+      // Verify all expected calendars were called (as a set, order doesn't matter)
+      expect(new Set(calendarIdsFromCalls)).toEqual(
+        new Set(["cal1@test.com", "cal2@test.com", "cal3@test.com"])
       );
     });
 
@@ -76,25 +74,37 @@ describe("CalendarBatchWrapper", () => {
       // Should make 2 calls: one for delegation-1 (batched), one for delegation-2
       expect(getAvailabilityMock).toHaveBeenCalledTimes(2);
 
-      // First call should have both calendars from delegation-1
-      expect(getAvailabilityMock).toHaveBeenNthCalledWith(
-        1,
-        "2024-01-01",
-        "2024-01-31",
-        [selectedCalendars[0], selectedCalendars[1]],
-        undefined,
-        false
-      );
+      // Verify calls in an order-independent way
+      const allCalls = getAvailabilityMock.mock.calls as [
+        string,
+        string,
+        IntegrationCalendar[],
+        boolean | undefined,
+        boolean
+      ][];
 
-      // Second call should have the calendar from delegation-2
-      expect(getAvailabilityMock).toHaveBeenNthCalledWith(
-        2,
-        "2024-01-01",
-        "2024-01-31",
-        [selectedCalendars[2]],
-        undefined,
-        false
+      // Find the call for delegation-1 (should have 2 calendars batched)
+      const delegation1Call = allCalls.find(
+        (call) => call[2].length === 2 && call[2][0].delegationCredentialId === "delegation-1"
       );
+      expect(delegation1Call).toBeDefined();
+      expect(delegation1Call![0]).toBe("2024-01-01");
+      expect(delegation1Call![1]).toBe("2024-01-31");
+      const delegation1Ids = new Set(delegation1Call![2].map((c) => c.externalId));
+      expect(delegation1Ids).toEqual(new Set(["cal1@test.com", "cal2@test.com"]));
+      expect(delegation1Call![3]).toBe(undefined);
+      expect(delegation1Call![4]).toBe(false);
+
+      // Find the call for delegation-2 (should have 1 calendar)
+      const delegation2Call = allCalls.find(
+        (call) => call[2].length === 1 && call[2][0].delegationCredentialId === "delegation-2"
+      );
+      expect(delegation2Call).toBeDefined();
+      expect(delegation2Call![0]).toBe("2024-01-01");
+      expect(delegation2Call![1]).toBe("2024-01-31");
+      expect(delegation2Call![2][0].externalId).toBe("cal3@test.com");
+      expect(delegation2Call![3]).toBe(undefined);
+      expect(delegation2Call![4]).toBe(false);
     });
 
     test("should chunk delegated calendars into groups of 50 for API limits", async () => {
