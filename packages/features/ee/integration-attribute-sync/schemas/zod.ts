@@ -42,7 +42,7 @@ export type RuleOperator = z.infer<typeof ruleOperatorSchema>;
 export type TeamCondition = z.infer<typeof teamConditionSchema>;
 export type AttributeCondition = z.infer<typeof attributeConditionSchema>;
 export type Condition = z.infer<typeof attributeSyncRuleConditionSchema>;
-export type Rule = z.infer<typeof attributeSyncRuleSchema>;
+export type IAttributeSyncRule = z.infer<typeof attributeSyncRuleSchema>;
 
 const newFieldMappingSchema = z.object({
   integrationFieldName: z.string(),

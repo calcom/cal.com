@@ -9,7 +9,7 @@ import type { IIntegrationAttributeSyncCardProps } from "./IntegrationAttributeS
 
 type IEditIntegrationAttributeSyncCardProps = Pick<
   IIntegrationAttributeSyncCardProps,
-  "credentialOptions" | "teamOptions" | "attributes" | "organizationId"
+  "credentialOptions" | "teamOptions" | "attributes" | "organizationId" | "attributeOptions"
 > & {
   sync: IntegrationAttributeSync;
 };

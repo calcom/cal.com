@@ -8,7 +8,7 @@ import type { IIntegrationAttributeSyncCardProps } from "./IntegrationAttributeS
 
 type INewIntegrationAttributeSyncCardProps = Pick<
   IIntegrationAttributeSyncCardProps,
-  "credentialOptions" | "teamOptions" | "attributes" | "organizationId" | "onCancel"
+  "credentialOptions" | "teamOptions" | "attributes" | "organizationId" | "onCancel" | "attributeOptions"
 >;
 
 const NewIntegrationAttributeSyncCard = (props: INewIntegrationAttributeSyncCardProps) => {

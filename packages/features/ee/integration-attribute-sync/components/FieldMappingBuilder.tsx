@@ -1,4 +1,3 @@
-import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Input, Select, Switch } from "@calcom/ui/components/form";
@@ -7,10 +6,15 @@ import { Icon } from "@calcom/ui/components/icon";
 import { getDefaultFieldMapping } from "../lib/fieldMappingHelpers";
 import type { FieldMapping, FieldMappingFormState } from "../schemas/zod";
 
+type AttributeOptions = {
+  label: string;
+  value: string;
+}[];
+
 interface FieldMappingBuilderProps {
   value: FieldMappingFormState;
   onChange: (value: FieldMappingFormState) => void;
-  attributes: Attribute[];
+  attributeOptions: AttributeOptions;
   isLoadingAttributes?: boolean;
 }
 
@@ -18,16 +22,12 @@ interface MappingRowProps {
   mapping: FieldMapping;
   onChange: (mapping: FieldMapping) => void;
   onRemove: () => void;
-  attributes: Attribute[];
+  attributeOptions: AttributeOptions[];
   isLoading?: boolean;
 }
 
-const MappingRow = ({ mapping, onChange, onRemove, attributes, isLoading }: MappingRowProps) => {
+const MappingRow = ({ mapping, onChange, onRemove, attributeOptions, isLoading }: MappingRowProps) => {
   const { t } = useLocale();
-  const attributeOptions = attributes.map((attr) => ({
-    value: attr.id,
-    label: attr.name,
-  }));
 
   const selectedAttribute = attributeOptions.find((opt) => opt.value === mapping.attributeId);
 
@@ -103,7 +103,7 @@ const MappingRow = ({ mapping, onChange, onRemove, attributes, isLoading }: Mapp
 export const FieldMappingBuilder = ({
   value,
   onChange,
-  attributes,
+  attributeOptions,
   isLoadingAttributes,
 }: FieldMappingBuilderProps) => {
   const { t } = useLocale();
@@ -150,7 +150,7 @@ export const FieldMappingBuilder = ({
               mapping={mapping}
               onChange={(newMapping) => handleMappingChange(index, newMapping)}
               onRemove={() => handleRemoveMapping(index)}
-              attributes={attributes}
+              attributeOptions={attributeOptions}
               isLoading={isLoadingAttributes}
             />
           ))

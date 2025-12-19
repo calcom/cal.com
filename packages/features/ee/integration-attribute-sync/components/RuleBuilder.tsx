@@ -21,14 +21,14 @@ import type {
   Condition,
   ConditionIdentifier,
   ConditionOperator,
-  Rule,
+  IAttributeSyncRule,
   RuleOperator,
   TeamCondition,
 } from "../schemas/zod";
 
 interface RuleBuilderProps {
-  value: Rule;
-  onChange: (value: Rule) => void;
+  value: IAttributeSyncRule;
+  onChange: (value: IAttributeSyncRule) => void;
   teamOptions: { value: string; label: string }[];
   attributes: Attribute[];
   isLoadingTeams?: boolean;
