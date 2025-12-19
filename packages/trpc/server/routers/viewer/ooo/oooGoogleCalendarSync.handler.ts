@@ -72,6 +72,7 @@ export const enableGoogleCalendarOOOSync = async ({
         type: "google_calendar",
         invalid: { not: true },
       },
+      select: { id: true },
     });
 
     if (!credential) {
@@ -151,6 +152,7 @@ export const triggerOOOSync = async ({ ctx }: { ctx: Context }) => {
       type: "google_calendar",
       invalid: { not: true },
     },
+    select: { id: true },
   });
 
   if (!credential) {
