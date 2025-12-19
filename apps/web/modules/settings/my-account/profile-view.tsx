@@ -13,8 +13,6 @@ import { z } from "zod";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
@@ -28,16 +26,27 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@coss/ui/components/button";
+import { Field, FieldLabel } from "@coss/ui/components/field";
+import { Fieldset, FieldsetLegend } from "@coss/ui/components/fieldset";
+import { Input } from "@coss/ui/components/input";
+import { Spinner } from "@coss/ui/components/spinner";
+import { Frame, FramePanel, FrameFooter, FrameHeader, FrameTitle, FrameDescription } from "@coss/ui/components/frame";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupTextarea,
+} from "@coss/ui/components/input-group";
+import { Toggle } from "@coss/ui/components/toggle";
 import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Label } from "@coss/ui/components/label";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
+import { BoldIcon, ItalicIcon, LinkIcon } from "lucide-react";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
@@ -264,10 +273,7 @@ const ProfileView = ({ user }: Props) => {
     isCompanyEmail(userEmail);
 
   return (
-    <SettingsHeader
-      title={t("profile")}
-      description={t("profile_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
+    <>
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
@@ -315,65 +321,69 @@ const ProfileView = ({ user }: Props) => {
       />
 
       {shouldShowCompanyEmailAlert && (
-        <div className="mt-6">
+        <div className="my-6">
           <CompanyEmailOrganizationBanner onDismissAction={() => setIsCompanyEmailAlertDismissed(true)} />
         </div>
       )}
 
-      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
-        <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-        <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
-      </div>
-      {/* Delete account Dialog */}
-      <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
-        <SectionBottomActions align="end">
+      <Frame>
+        <FramePanel>
+          <FrameTitle className="text-destructive-foreground">{t("danger_zone")}</FrameTitle>
+          <FrameDescription>{t("account_deletion_cannot_be_undone")}</FrameDescription>
+        </FramePanel>
+        <FrameFooter className="flex-row justify-end">
+        {/* Delete account Dialog */}
+        <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
-            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon="trash-2">
+            <Button data-testid="delete-account" variant="destructive-outline">
+              <Icon name="trash" />
               {t("delete_account")}
             </Button>
           </DialogTrigger>
-        </SectionBottomActions>
-        <DialogContent
-          title={t("delete_account_modal_title")}
-          description={t("confirm_delete_account_modal", { appName: APP_NAME })}
-          type="creation"
-          Icon="triangle-alert">
-          <>
-            <div className="mb-10">
-              <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
-              {isCALIdentityProvider && (
-                <PasswordField
-                  data-testid="password"
-                  name="password"
-                  id="password"
-                  autoComplete="current-password"
-                  required
-                  label="Password"
-                  ref={passwordRef}
-                />
-              )}
+          <DialogContent
+            title={t("delete_account_modal_title")}
+            description={t("confirm_delete_account_modal", { appName: APP_NAME })}
+            type="creation"
+            Icon="triangle-alert">
+            <>
+              <div className="mb-10">
+                <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
+                {isCALIdentityProvider && (
+                  <PasswordField
+                    data-testid="password"
+                    name="password"
+                    id="password"
+                    autoComplete="current-password"
+                    required
+                    label="Password"
+                    ref={passwordRef}
+                  />
+                )}
 
-              {user?.twoFactorEnabled && isCALIdentityProvider && (
-                <Form handleSubmit={onConfirm} className="pb-4" form={form}>
-                  <TwoFactor center={false} />
-                </Form>
-              )}
+                {user?.twoFactorEnabled && isCALIdentityProvider && (
+                  <Form handleSubmit={onConfirm} className="pb-4" form={form}>
+                    <TwoFactor center={false} />
+                  </Form>
+                )}
 
-              {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
-            </div>
-            <DialogFooter showDivider>
-              <DialogClose />
-              <Button
-                color="primary"
-                data-testid="delete-account-confirm"
-                onClick={(e) => onConfirmButton(e)}
-                loading={deleteMeMutation.isPending}>
-                {t("delete_my_account")}
-              </Button>
-            </DialogFooter>
-          </>
-        </DialogContent>
-      </Dialog>
+                {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+              </div>
+              <DialogFooter showDivider>
+                <DialogClose />
+                <Button
+                  variant="destructive"
+                  data-testid="delete-account-confirm"
+                  onClick={(e) => onConfirmButton(e)}
+                  disabled={deleteMeMutation.isPending}>
+                  {deleteMeMutation.isPending && <Spinner />}
+                  <span className={deleteMeMutation.isPending ? "invisible" : ""}>{t("delete_my_account")}</span>
+                </Button>
+              </DialogFooter>
+            </>
+          </DialogContent>
+        </Dialog>
+        </FrameFooter>
+      </Frame>      
 
       {/* If changing email, confirm password */}
       <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
@@ -412,10 +422,11 @@ const ProfileView = ({ user }: Props) => {
           <DialogFooter showDivider>
             <Button
               data-testid="profile-update-email-submit-button"
-              color="primary"
-              loading={confirmPasswordMutation.isPending}
+              variant="default"
+              disabled={confirmPasswordMutation.isPending}
               onClick={(e) => onConfirmPassword(e)}>
-              {t("confirm")}
+              {confirmPasswordMutation.isPending && <Spinner />}
+              <span className={confirmPasswordMutation.isPending ? "invisible" : ""}>{t("confirm")}</span>
             </Button>
             <DialogClose />
           </DialogFooter>
@@ -442,7 +453,7 @@ const ProfileView = ({ user }: Props) => {
           Icon="triangle-alert">
           <DialogFooter>
             <Button
-              color="primary"
+              variant="default"
               onClick={() => {
                 unlinkConnectedAccountMutation.mutate();
                 setShowAccountDisconnectWarning(false);
@@ -478,7 +489,7 @@ const ProfileView = ({ user }: Props) => {
           onCancel={() => setNewlyAddedSecondaryEmail(undefined)}
         />
       )}
-    </SettingsHeader>
+    </>
   );
 };
 
@@ -616,157 +627,193 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
   return (
     <Form form={formMethods} handleSubmit={handleFormSubmit}>
-      <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
-        <div className="flex items-center">
-          <Controller
-            control={formMethods.control}
-            name="avatarUrl"
-            render={({ field: { value, onChange } }) => {
-              const showRemoveAvatarButton = value !== null;
-              return (
-                <>
-                  <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
-                  <div className="ms-4">
-                    <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
-                    <div className="flex gap-2">
-                      <ImageUploader
-                        target="avatar"
-                        id="avatar-upload"
-                        buttonMsg={t("upload_avatar")}
-                        handleAvatarChange={(newAvatar) => {
-                          onChange(newAvatar);
-                        }}
-                        imageSrc={getUserAvatarUrl({ avatarUrl: value })}
-                        triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
-                      />
+      <Frame>
+        <FrameHeader>
+          <FrameTitle className="text-base">{t("profile")}</FrameTitle>
+          <FrameDescription>{t("profile_description", { appName: APP_NAME })}</FrameDescription>
+        </FrameHeader>
+        <FramePanel>
 
-                      {showRemoveAvatarButton && (
-                        <Button
-                          color="destructive"
-                          onClick={() => {
-                            onChange(null);
-                          }}>
-                          {t("remove")}
-                        </Button>
-                      )}
+          {/* Profile Picture */}
+          <div className="flex items-center">
+            <Controller
+              control={formMethods.control}
+              name="avatarUrl"
+              render={({ field: { value, onChange } }) => {
+                const showRemoveAvatarButton = value !== null;
+                return (
+                  <>
+                    <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
+                    <div className="ms-4">
+                      <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+                      <div className="flex gap-2">
+                        <ImageUploader
+                          target="avatar"
+                          id="avatar-upload"
+                          buttonMsg={t("upload_avatar")}
+                          buttonSize="sm"
+                          handleAvatarChange={(newAvatar) => {
+                            onChange(newAvatar);
+                          }}
+                          imageSrc={getUserAvatarUrl({ avatarUrl: value })}
+                        />
+
+                        {showRemoveAvatarButton && (
+                          <Button
+                            variant="destructive-outline"
+                            onClick={() => {
+                              onChange(null);
+                            }}>
+                            {t("remove")}
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </>
-              );
-            }}
-          />
-        </div>
-        {extraField}
-        <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <Icon name="info" className="mt-0.5 shrink-0" />
-          <span className="flex-1">{t("tip_username_plus")}</span>
-        </p>
-        <div className="mt-6">
-          <TextField label={t("full_name")} {...formMethods.register("name")} />
-        </div>
-        <div className="mt-6">
-          <Label>{t("email")}</Label>
-          <div className="-mt-2 flex flex-wrap items-start gap-2">
-            <div
-              className={
-                secondaryEmailFields.length > 1 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
-              }>
-              {secondaryEmailFields.map((field, index) => (
-                <CustomEmailTextField
-                  key={field.itemId}
-                  formMethods={formMethods}
-                  formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
-                  errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
-                  emailVerified={Boolean(field.emailVerified)}
-                  emailPrimary={field.emailPrimary}
-                  dataTestId={`profile-form-email-${index}`}
-                  handleChangePrimary={() => {
-                    const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
-                      ...secondaryField,
-                      emailPrimary: cIndex === index,
-                    }));
-                    updateAllSecondaryEmailFields(fields);
-                  }}
-                  handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
-                  handleItemDelete={() => deleteSecondaryEmail(index)}
-                />
-              ))}
-            </div>
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              className="mt-2"
-              onClick={() => handleAddSecondaryEmail()}
-              data-testid="add-secondary-email">
-              {t("add_email")}
-            </Button>
+                  </>
+                );
+              }}
+            />
           </div>
-        </div>
-        <div className="mt-6">
-          <Label>{t("about")}</Label>
-          <Editor
-            getText={() => md.render(formMethods.getValues("bio") || "")}
-            setText={(value: string) => {
-              formMethods.setValue("bio", turndown(value), { shouldDirty: true });
-            }}
-            excludedToolbarItems={["blockType"]}
-            disableLists
-            firstRender={firstRender}
-            setFirstRender={setFirstRender}
-            height="120px"
-          />
-        </div>
-        {usersAttributes && usersAttributes?.length > 0 && (
-          <div className="mt-6 flex flex-col">
-            <Label>{t("attributes")}</Label>
-            <div className="flex flex-col stack-y-4">
-              {usersAttributes.map((attribute, index) => (
-                <>
-                  <DisplayInfo
-                    key={index}
-                    label={attribute.name}
-                    labelClassname="font-normal text-sm text-subtle"
-                    valueClassname="text-emphasis inline-flex items-center gap-1 font-normal text-sm leading-5"
-                    value={
-                      ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
-                        ? attribute.options[0].value
-                        : attribute.options.map((option) => option.value)
-                    }
-                  />
-                </>
-              ))}
-            </div>
-          </div>
-        )}
-        {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
-        so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
-        {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
+
+          {/* Extra Field */}
+          {extraField}
+
+          {/* Full Name */}
           <div className="mt-6">
-            <Label>Connected accounts</Label>
-            <div className="flex items-center">
-              <span className="text-default text-sm capitalize">{user.identityProvider.toLowerCase()}</span>
-              {user.identityProviderEmail && (
-                <span className="text-default ml-2 text-sm">{user.identityProviderEmail}</span>
-              )}
-              <div className="flex flex-1 justify-end">
-                <Button color="destructive" onClick={onDisconnect}>
-                  {t("disconnect")}
-                </Button>
+            <Field>
+              <FieldLabel>{t("full_name")}</FieldLabel>
+              <Input type="text" {...formMethods.register("name")} />
+            </Field>
+          </div>
+
+          {/* Email */}
+          <div className="mt-6">
+            <Fieldset className="w-full max-w-none gap-2">
+              <Label className="font-normal" render={<FieldsetLegend />}>{t("email")}</Label>
+              <div className="flex items-start gap-2">
+              <div className="flex flex-1 flex-col gap-2">
+                {secondaryEmailFields.map((field, index) => (
+                  <CustomEmailTextField
+                    key={field.itemId}
+                    formMethods={formMethods}
+                    formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+                    errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                    emailVerified={Boolean(field.emailVerified)}
+                    emailPrimary={field.emailPrimary}
+                    dataTestId={`profile-form-email-${index}`}
+                    handleChangePrimary={() => {
+                      const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                        ...secondaryField,
+                        emailPrimary: cIndex === index,
+                      }));
+                      updateAllSecondaryEmailFields(fields);
+                    }}
+                    handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+                    handleItemDelete={() => deleteSecondaryEmail(index)}
+                  />
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => handleAddSecondaryEmail()}
+                data-testid="add-secondary-email">
+                <Icon name="plus" className="-ms-0.5" />
+                {t("add_email")}
+              </Button>
+            </div>
+            </Fieldset>
+          </div>
+
+          {/* About - original code */}
+          {/* <div className="mt-6">
+            <Label>{t("about")}</Label>
+            <Editor
+              getText={() => md.render(formMethods.getValues("bio") || "")}
+              setText={(value: string) => {
+                formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+              }}
+              excludedToolbarItems={["blockType"]}
+              disableLists
+              firstRender={firstRender}
+              setFirstRender={setFirstRender}
+              height="120px"
+            />
+          </div>
+          {usersAttributes && usersAttributes?.length > 0 && (
+            <div className="mt-6 flex flex-col">
+              <Label>{t("attributes")}</Label>
+              <div className="flex flex-col stack-y-4">
+                {usersAttributes.map((attribute, index) => (
+                  <>
+                    <DisplayInfo
+                      key={index}
+                      label={attribute.name}
+                      labelClassname="font-normal text-sm text-subtle"
+                      valueClassname="text-emphasis inline-flex items-center gap-1 font-normal text-sm leading-5"
+                      value={
+                        ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
+                          ? attribute.options[0].value
+                          : attribute.options.map((option) => option.value)
+                      }
+                    />
+                  </>
+                ))}
               </div>
             </div>
+          )} */}
+
+          {/* About - Non-working code - UI only */}
+          <div className="mt-6">
+            <Field>
+              <FieldLabel>{t("about")}</FieldLabel>
+              <InputGroup>
+                <InputGroupTextarea placeholder="Tell us about yourself…" />
+                <InputGroupAddon align="block-start" className="bg-muted/50 border-b gap-1 p-2! rounded-t-lg">
+                  <Toggle aria-label="Toggle bold" size="sm">
+                    <BoldIcon />
+                  </Toggle>
+                  <Toggle aria-label="Toggle italic" size="sm">
+                    <ItalicIcon />
+                  </Toggle>
+                  <Button aria-label="Link" size="icon-sm" variant="ghost">
+                    <LinkIcon />
+                  </Button>
+                </InputGroupAddon>
+              </InputGroup>
+            </Field>
           </div>
-        )}
-      </div>
-      <SectionBottomActions align="end">
-        <Button
-          loading={isPending}
-          disabled={isDisabled}
-          color="primary"
-          type="submit"
-          data-testid="profile-submit-button">
-          {t("update")}
-        </Button>
-      </SectionBottomActions>
+
+          {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
+          so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
+          {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
+            <div className="mt-6">
+              <Label className="font-normal" render={<FieldsetLegend />}>Connected accounts</Label>
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-sm capitalize">{user.identityProvider.toLowerCase()}</span>
+                {user.identityProviderEmail && (
+                  <span className="ml-2 text-sm">{user.identityProviderEmail}</span>
+                )}
+                <div className="flex flex-1 justify-end">
+                  <Button variant="destructive-outline" onClick={onDisconnect}>
+                    {t("disconnect")}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </FramePanel>
+
+        <FrameFooter className="flex-row justify-end">
+          <Button
+            disabled={isPending || isDisabled}
+            variant="default"
+            type="submit"
+            data-testid="profile-submit-button">
+            {isPending && <Spinner />}
+            <span className={isPending ? "invisible" : ""}>{t("update")}</span>
+          </Button>
+        </FrameFooter>
+      </Frame>
     </Form>
   );
 };

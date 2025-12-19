@@ -1,17 +1,16 @@
-import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
+import { Badge } from "@coss/ui/components/badge";
+import { Button } from "@coss/ui/components/button";
+import { Field, FieldError } from "@coss/ui/components/field";
 import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
-import { InputError, Input } from "@calcom/ui/components/form";
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@coss/ui/components/input-group";
+import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@coss/ui/components/menu";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { FormValues } from "~/settings/my-account/profile-view";
 
@@ -39,85 +38,70 @@ const CustomEmailTextField = ({
   handleItemDelete,
 }: CustomEmailTextFieldProps) => {
   const { t } = useLocale();
-  const [inputFocus, setInputFocus] = useState(false);
 
   return (
-    <>
-      <div
-        className={`border-default mt-2 flex w-full items-center rounded-[10px] border ${
-          inputFocus ? "ring-brand-default border-neutral-300 ring-2" : ""
-        }`}>
-        <Input
+    <Field>
+      <InputGroup>
+        <InputGroupInput
           {...formMethods.register(formMethodFieldName)}
-          className="focus:ring-none! focus:shadow-none! flex-1 border-none bg-transparent px-3 py-1.5 text-sm outline-none"
+          type="email"
           data-testid={dataTestId}
-          onFocus={() => setInputFocus(true)}
-          onBlur={() => setInputFocus(false)}
+          aria-invalid={!!errorMessage || undefined}
         />
-        <div className="flex items-center pr-2">
+        <InputGroupAddon align="inline-end">
           {emailPrimary && (
-            <Badge variant="blue" size="sm" data-testid={`${dataTestId}-primary-badge`}>
+            <Badge variant="info" data-testid={`${dataTestId}-primary-badge`}>
               {t("primary")}
             </Badge>
           )}
           {!emailVerified && (
-            <Badge variant="orange" size="sm" className="ml-2" data-testid={`${dataTestId}-unverified-badge`}>
+            <Badge variant="warning" data-testid={`${dataTestId}-unverified-badge`}>
               {t("unverified")}
             </Badge>
           )}
-          <Dropdown>
-            <DropdownMenuTrigger asChild>
-              <Button
-                StartIcon="ellipsis"
-                variant="icon"
-                size="xs"
-                color="minimal"
-                className="ml-2 rounded-md"
-                data-testid="secondary-email-action-group-button"
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <DropdownItem
-                  StartIcon="flag"
-                  color="secondary"
-                  className="disabled:opacity-40"
-                  onClick={handleChangePrimary}
-                  disabled={!emailVerified || emailPrimary}
-                  data-testid="secondary-email-make-primary-button">
-                  {t("make_primary")}
-                </DropdownItem>
-              </DropdownMenuItem>
+          <Menu>
+            <MenuTrigger
+              render={
+                (props) => (
+                  <Button 
+                    {...props}
+                    aria-label="Open menu" 
+                    size="icon-xs" 
+                    variant="ghost" 
+                    data-testid="secondary-email-action-group-button">
+                    <Icon name="ellipsis" />
+                  </Button>
+                )
+              }
+            />
+            <MenuPopup align="end" sideOffset={8}>
+              <MenuItem
+                disabled={!emailVerified || emailPrimary}
+                onClick={handleChangePrimary}
+                data-testid="secondary-email-make-primary-button">
+                {t("make_primary")}
+              </MenuItem>
               {!emailVerified && (
-                <DropdownMenuItem>
-                  <DropdownItem
-                    StartIcon="send"
-                    color="secondary"
-                    className="disabled:opacity-40"
-                    onClick={handleVerifyEmail}
-                    disabled={emailVerified}
-                    data-testid="resend-verify-email-button">
-                    {t("resend_email")}
-                  </DropdownItem>
-                </DropdownMenuItem>
+                <MenuItem
+                  disabled={emailVerified}
+                  onClick={handleVerifyEmail}
+                  data-testid="resend-verify-email-button">
+                  {t("resend_email")}
+                </MenuItem>
               )}
-              <DropdownMenuItem>
-                <DropdownItem
-                  StartIcon="trash"
-                  color="destructive"
-                  className="rounded-t-none disabled:opacity-40"
-                  onClick={handleItemDelete}
-                  disabled={emailPrimary}
-                  data-testid="secondary-email-delete-button">
-                  {t("delete")}
-                </DropdownItem>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </Dropdown>
-        </div>
-      </div>
-      {errorMessage && <InputError message={errorMessage} />}
-    </>
+              <MenuItem
+                variant="destructive"
+                disabled={emailPrimary}
+                onClick={handleItemDelete}
+                data-testid="secondary-email-delete-button">
+                {t("delete")}
+              </MenuItem>
+            </MenuPopup>
+          </Menu>
+        </InputGroupAddon>
+      </InputGroup>
+      {errorMessage && <FieldError>{errorMessage}</FieldError>}
+    </Field>
   );
 };
 

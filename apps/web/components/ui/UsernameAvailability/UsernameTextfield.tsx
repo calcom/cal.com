@@ -11,9 +11,10 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@coss/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { TextField } from "@calcom/ui/components/form";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@coss/ui/components/field";
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@coss/ui/components/input-group";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -29,7 +30,7 @@ interface ICustomUsernameProps {
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
-const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
+const UsernameTextfield = (props: ICustomUsernameProps & { addOnLeading?: React.ReactNode }) => {
   const { t } = useLocale();
   const { update } = useSession();
 
@@ -41,7 +42,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     usernameRef,
     onSuccessMutation,
     onErrorMutation,
-    ...rest
+    addOnLeading,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -82,31 +83,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     },
   });
 
-  const ActionButtons = () => {
-    return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="relative bottom-[6px] me-2 ms-2 flex flex-row space-x-2">
-        <Button
-          type="button"
-          onClick={() => setOpenDialogSaveUsername(true)}
-          data-testid="update-username-btn">
-          {t("update")}
-        </Button>
-        <Button
-          type="button"
-          color="minimal"
-          onClick={() => {
-            if (currentUsername) {
-              setInputUsernameValue(currentUsername);
-            }
-          }}>
-          {t("cancel")}
-        </Button>
-      </div>
-    ) : (
-      <></>
-    );
-  };
-
   const updateUsername = async () => {
     updateUsernameMutation.mutate({
       username: inputUsernameValue,
@@ -115,53 +91,58 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
 
   return (
     <div>
-      <div className="flex rounded-md">
-        <div className="relative w-full">
-          <TextField
+      <Field>
+        <FieldLabel>{t("username")}</FieldLabel>
+        <InputGroup>
+          <InputGroupInput
             ref={usernameRef}
             name="username"
             placeholder="john"
+            type="text"
             value={inputUsernameValue}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
-            containerClassName="[&>div]:gap-0"
-            className={classNames(
-              "mb-0 mt-0 rounded-md rounded-l-none pl-0",
-              markAsError
-                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
-                : ""
-            )}
+            aria-invalid={markAsError || undefined}
             onChange={(event) => {
               event.preventDefault();
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
-            {...rest}
           />
-          {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-6 flex h-7 flex-row">
-              <span className={classNames("bg-default mx-0 p-3")}>
-                {usernameIsAvailable ? (
-                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
-                ) : (
-                  <></>
-                )}
-              </span>
-            </div>
+          {addOnLeading && (
+            <InputGroupAddon align="inline-start">
+              <InputGroupText>{addOnLeading}</InputGroupText>
+            </InputGroupAddon>
           )}
-        </div>
-        <div className="mt-7 hidden md:inline">
-          <ActionButtons />
-        </div>
-      </div>
-      {markAsError && <p className="mt-1 text-xs text-red-500">{t("username_already_taken")}</p>}
-
-      {usernameIsAvailable && currentUsername !== inputUsernameValue && (
-        <div className="mt-2 flex justify-end md:hidden">
-          <ActionButtons />
-        </div>
-      )}
+          {usernameIsAvailable && currentUsername !== inputUsernameValue && (
+            <InputGroupAddon align="inline-end">
+              <Icon name="check" className="h-4 w-4 text-green-500" />
+              <Button
+                type="button"
+                size="xs"
+                variant="secondary"
+                onClick={() => setOpenDialogSaveUsername(true)}
+                data-testid="update-username-btn">
+                {t("update")}
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                variant="secondary"
+                onClick={() => {
+                  if (currentUsername) {
+                    setInputUsernameValue(currentUsername);
+                  }
+                }}>
+                {t("cancel")}
+              </Button>
+            </InputGroupAddon>
+          )}
+        </InputGroup>
+        <FieldDescription>{t("tip_username_plus")}</FieldDescription>
+        {markAsError && <FieldError>{t("username_already_taken")}</FieldError>}
+      </Field>
       <Dialog open={openDialogSaveUsername}>
         <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
@@ -194,9 +175,10 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <DialogFooter className="mt-4">
             <Button
               type="button"
-              loading={updateUsernameMutation.isPending}
+              disabled={updateUsernameMutation.isPending}
               data-testid="save-username"
               onClick={updateUsername}>
+              {updateUsernameMutation.isPending && <Icon name="loader" className="h-4 w-4 animate-spin" />}
               {t("save")}
             </Button>
 

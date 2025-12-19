@@ -6,8 +6,7 @@ import Cropper from "react-easy-crop";
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { ButtonColor, ButtonProps } from "../button";
-import { Button } from "../button";
+import { Button } from "@coss/ui/components/button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
 import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
@@ -18,11 +17,11 @@ const MAX_IMAGE_SIZE = 512;
 type ImageUploaderProps = {
   id: string;
   buttonMsg: string;
-  buttonSize?: ButtonProps["size"];
+  buttonSize?: "xs" | "sm" | "default" | "lg" | "xl" | "icon" | "icon-sm" | "icon-lg" | "icon-xl" | "icon-xs";
   handleAvatarChange: (imageSrc: string) => void;
   imageSrc?: string;
   target: string;
-  triggerButtonColor?: ButtonColor;
+  triggerButtonColor?: "default" | "destructive" | "destructive-outline" | "ghost" | "link" | "outline" | "secondary";
   uploadInstruction?: string;
   disabled?: boolean;
   testId?: string;
@@ -53,7 +52,7 @@ function CropContainer({
           zoom={zoom}
           aspect={1}
           onCropChange={setCrop}
-          onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
+          onCropComplete={(_croppedArea: Area, croppedAreaPixels: Area) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}
         />
       </div>
@@ -129,12 +128,12 @@ export default function ImageUploader({
       }}>
       <DialogTrigger asChild>
         <Button
-          color={triggerButtonColor ?? "secondary"}
+          variant={triggerButtonColor ?? "outline"}
           type="button"
           disabled={disabled}
           size={buttonSize}
           data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
-          className="cursor-pointer py-1 text-sm">
+        >
           {buttonMsg}
         </Button>
       </DialogTrigger>
