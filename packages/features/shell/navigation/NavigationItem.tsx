@@ -257,13 +257,13 @@ export const MobileNavigationItem: React.FC<{
       key={item.name}
       href={item.href}
       target={item.target}
-      className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted bg-transparent! relative my-2 min-w-0 flex-1 overflow-hidden rounded-md p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
+      className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted [&[aria-current='page']]:bg-accent relative my-1 min-w-0 flex-1 overflow-hidden rounded-full p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
         <Icon
           name={item.icon}
-          className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 shrink-0 text-center text-inherit"
+          className="[&[aria-current='page']]:text-emphasis mx-auto mb-1 block h-5 w-5 shrink-0 text-center text-inherit"
           aria-hidden="true"
           aria-current={current ? "page" : undefined}
         />

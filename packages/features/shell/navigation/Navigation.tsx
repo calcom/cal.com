@@ -2,8 +2,8 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import {
   useOrgBranding,
   type OrganizationBranding,
@@ -29,7 +29,6 @@ const getNavigationItems = (
   orgBranding: OrganizationBranding,
   hasInsightsAccess: boolean
 ): NavigationItemType[] => [
- 
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -251,7 +250,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-cal-muted/40 border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-cal-muted/40 border-subtle fixed bottom-2 left-2 right-2 z-30 flex rounded-full border-t px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
