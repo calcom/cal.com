@@ -381,4 +381,122 @@ describe("EmailWorkflowService", () => {
       expect(result.sendTo.length).toBe(1);
     });
   });
+
+  describe("generateParametersToBuildEmailWorkflowContent - Form Data", () => {
+    const mockCommonScheduleFunctionParams = {
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      timeSpan: {
+        time: null,
+        timeUnit: null,
+      },
+      workflowStepId: 1,
+      template: WorkflowTemplates.REMINDER,
+      userId: 1,
+      teamId: null,
+      seatReferenceUid: undefined,
+      verifiedAt: new Date(),
+      creditCheckFn: vi.fn().mockResolvedValue(true),
+    };
+
+    const mockFormData = {
+      responses: {
+        "contact person": {
+          value: "Jane Smith",
+          response: "Jane Smith",
+        },
+        email: {
+          value: "jane@example.com",
+          response: "jane@example.com",
+        },
+      },
+      routedEventTypeId: null,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
+
+    test("should work with EMAIL_ADDRESS action and formData (no evt)", async () => {
+      const mockWorkflowStep = {
+        id: 1,
+        action: WorkflowActions.EMAIL_ADDRESS,
+        verifiedAt: new Date(),
+        sendTo: "recipient@example.com",
+        template: WorkflowTemplates.REMINDER,
+        reminderBody: null,
+        emailSubject: null,
+        sender: null,
+        includeCalendarEvent: false,
+        numberVerificationPending: false,
+        numberRequired: false,
+      };
+
+      const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
+        formData: mockFormData,
+        workflowStep: mockWorkflowStep,
+        workflow: { userId: 1 },
+        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        hideBranding: false,
+      });
+
+      expect(result.sendTo).toEqual(["recipient@example.com"]);
+      expect(result.formData).toEqual(mockFormData);
+      expect(result.evt).toBeUndefined();
+    });
+
+    test("should work with EMAIL_ATTENDEE action and formData (no evt)", async () => {
+      const mockWorkflowStep = {
+        id: 1,
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        verifiedAt: new Date(),
+        sendTo: null,
+        template: WorkflowTemplates.REMINDER,
+        reminderBody: null,
+        emailSubject: null,
+        sender: null,
+        includeCalendarEvent: false,
+        numberVerificationPending: false,
+        numberRequired: false,
+      };
+
+      const result = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
+        formData: mockFormData,
+        workflowStep: mockWorkflowStep,
+        workflow: { userId: 1 },
+        commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+        hideBranding: false,
+      });
+
+      // Should extract email from formData responses
+      expect(result.sendTo).toEqual(["jane@example.com"]);
+      expect(result.formData).toEqual(mockFormData);
+      expect(result.evt).toBeUndefined();
+    });
+
+    test("should throw error if neither evt nor formData is provided", async () => {
+      const mockWorkflowStep = {
+        id: 1,
+        action: WorkflowActions.EMAIL_ADDRESS,
+        verifiedAt: new Date(),
+        sendTo: "recipient@example.com",
+        template: WorkflowTemplates.REMINDER,
+        reminderBody: null,
+        emailSubject: null,
+        sender: null,
+        includeCalendarEvent: false,
+        numberVerificationPending: false,
+        numberRequired: false,
+      };
+
+      await expect(
+        emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
+          workflowStep: mockWorkflowStep,
+          workflow: { userId: 1 },
+          commonScheduleFunctionParams: mockCommonScheduleFunctionParams,
+          hideBranding: false,
+        })
+      ).rejects.toThrow("Either evt or formData must be provided");
+    });
+  });
 });
