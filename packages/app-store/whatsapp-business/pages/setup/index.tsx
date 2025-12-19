@@ -33,11 +33,6 @@ export default function WhatsappBusinessSetup() {
   const [errorMessage, setErrorMessage] = useState("");
   const [flowType, setFlowType] = useState<"embedded" | "manual">("embedded");
 
-  console.log("id: ", {
-    META_WHATSAPP_BUSINESS_CONFIG_ID,
-    META_WHATSAPP_BUSINESS_APP_ID,
-  });
-
   return (
     <div className="bg-emphasis flex h-screen dark:bg-inherit">
       <div className="bg-default dark:bg-muted border-subtle m-auto rounded-xl p-5 md:w-[560px] md:p-10 dark:border">
@@ -65,16 +60,17 @@ export default function WhatsappBusinessSetup() {
             appId={META_WHATSAPP_BUSINESS_APP_ID}
             teamId={null}
             onError={(error: string) => {
-              router.push(
-                `${getInstalledAppPath({ variant: "messaging", slug: "whatsapp-business" })}?error=${error}`
-              );
+              // Don't redirect just showing the error inside `WhatsAppEmbeddedSignup`
+              // router.push(
+              //   `${getInstalledAppPath({ variant: "messaging", slug: "whatsapp-business" })}?error=${error}`
+              // );
             }}
             onSuccess={() => {
-              router.push(`${getInstalledAppPath({ variant: "messaging", slug: "whatsapp-business" })}`);
+              // router.push(`${getInstalledAppPath({ variant: "messaging", slug: "whatsapp-business" })}`);
             }}
           />
         ) : (
-          <WhatsappManualAuth />
+          <WhatsappManualAuth teamId={null} />
         )}
       </div>
       <Toaster position="bottom-right" />

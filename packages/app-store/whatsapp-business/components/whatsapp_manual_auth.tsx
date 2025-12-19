@@ -11,13 +11,15 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 
-export function WhatsappManualAuth() {
+export function WhatsappManualAuth({ teamId }: { teamId?: number }) {
   const { t } = useLocale();
   const router = useRouter();
   const form = useForm({
     defaultValues: {
-      username: "",
-      password: "",
+      wabaId: "",
+      phoneNumberId: "",
+      phoneNumber: "",
+      api_key: "",
     },
   });
 
@@ -55,7 +57,7 @@ export function WhatsappManualAuth() {
               placeholder="appleid@domain.com"
               data-testid="whatsapp-business-waba-id"
             />
-            <PasswordField
+            <TextField
               required
               {...form.register("api_key")}
               label={t("api_key")}
@@ -71,7 +73,33 @@ export function WhatsappManualAuth() {
             </Button>
             <Button
               type="button"
-              onClick={async () => {}}
+              onClick={async () => {
+                try {
+                  const values = form.getValues();
+                  const res = await fetch(
+                    `/api/integrations/whatsapp-business/callback?code=${code}${
+                      teamId ? `&teamId=${teamId}` : ""
+                    }`,
+                    {
+                      method: "POST",
+                      body: JSON.stringify(values),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    }
+                  );
+
+                  const json = await res.json();
+                  if (!res.ok) {
+                    setErrorMessage(json?.message || json?.error || t("something_went_wrong"));
+                  } else {
+                    router.push(json.url);
+                  }
+                } catch (err) {
+                  console.log(err);
+                  setErrorMessage(t("unable_to_setup_whatsapp_business"));
+                }
+              }}
               loading={form.formState.isSubmitting}
               data-testid="whatsapp-business-login-button">
               {t("save")}
