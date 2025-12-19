@@ -186,6 +186,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
         ...evt,
         eventType: {
           slug: booking.eventType?.slug || "",
+          schedulingType: booking.eventType?.schedulingType,
           hosts:
             booking.eventType?.hosts?.map((host) => ({
               user: {
