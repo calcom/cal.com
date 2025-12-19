@@ -1,8 +1,7 @@
 "use client";
 
+import { ArrowRightIcon, PlusIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ArrowRightIcon, PlusIcon } from "lucide-react";
-
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -16,7 +15,6 @@ import { Button } from "@calcom/ui/components/button";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
 
 const schema = z.object({
@@ -219,10 +217,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
                     className="group/remove mx-2 px-0 hover:bg-transparent"
                     onClick={() => handleRemoveInput(index)}
                     aria-label="Remove Team">
-                    <Icon
-                      name="x"
-                      className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1"
-                    />
+                    <XIcon className="bg-subtle text group-hover/remove:text-inverted group-hover/remove:bg-inverted h-5 w-5 rounded-full p-1" />
                   </Button>
                 )
               }

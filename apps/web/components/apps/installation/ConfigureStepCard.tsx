@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { XIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React, { forwardRef, useEffect, useRef, useState } from "react";
@@ -16,7 +17,6 @@ import type { EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/pr
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
@@ -105,8 +105,7 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
             ) : (
               <EventTypeAppSettingsWrapper {...props} />
             )}
-            <Icon
-              name="x"
+            <XIcon
               data-testid={`remove-event-type-${eventType.id}`}
               className="absolute right-4 top-4 h-4 w-4 cursor-pointer"
               onClick={() => !loading && handleDelete()}
