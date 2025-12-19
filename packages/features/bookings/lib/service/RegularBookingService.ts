@@ -129,8 +129,6 @@ import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 import { makeGuestActor } from "../types/actor";
-import type { BookingDataPreparationService } from "../utils/BookingDataPreparationService";
-
 const translator = short();
 
 type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
@@ -468,7 +466,7 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
-  bookingDataPreparationService: BookingDataPreparationService;
+  // TODO: Add bookingDataPreparationService in follow-up PR when integrating with handler
 }
 
 async function validateRescheduleRestrictions({
