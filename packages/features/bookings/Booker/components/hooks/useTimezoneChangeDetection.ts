@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useMemo, useRef, useEffect } from "react";
 
 import { useBookerTime } from "./useBookerTime";
 
@@ -12,41 +12,33 @@ type TimezoneChangeDetectionEvent =
 
 export const useTimezoneChangeDetection = (eventData: TimezoneChangeDetectionEvent) => {
   const { timezone } = useBookerTime();
-  const previousTimezoneRef = useRef<string>(timezone);
 
+  // this keeps track of the previous timezone across renders
+  const prevTimezoneRef = useRef<string>(timezone);
+  const prevTimezone = prevTimezoneRef.current;
+
+  // detects changes during the current render
+  const hasTimezoneChanged = prevTimezone !== timezone;
+
+  // update the ref after the render logic is calculated
   useEffect(() => {
-    // Initialize the previous timezone on first render
-    if (previousTimezoneRef.current === null) {
-      previousTimezoneRef.current = timezone;
-      return;
-    }
-
-    // Update the previous timezone when timezone changes
-    if (previousTimezoneRef.current !== timezone) {
-      previousTimezoneRef.current = timezone;
-    }
+    prevTimezoneRef.current = timezone;
   }, [timezone]);
 
-  const shouldRefreshSlots = () => {
-    // Don't refresh on first render when previousTimezone is not set yet
-    if (previousTimezoneRef.current === null) {
-      return false;
-    }
+  return useMemo(() => {
+    const hasRestrictionSchedule = Boolean(eventData?.restrictionScheduleId);
+    const isUsingBookerTimezone = Boolean(eventData?.useBookerTimezone);
 
-    const hasTimezoneChanged = previousTimezoneRef.current !== timezone;
-    const hasRestrictionSchedule = !!eventData?.restrictionScheduleId;
-    const isUsingBookerTimezone = !!eventData?.useBookerTimezone;
+    // this matches the original logic: It is only true during the render
+    // where the timezone has actually flipped.
+    const shouldRefreshSlots = hasTimezoneChanged && hasRestrictionSchedule && isUsingBookerTimezone;
 
-    // Only refresh slots when:
-    // 1. Timezone has changed
-    // 2. Event has a restriction schedule
-    // 3. Event is configured to use booker's timezone
-    return hasTimezoneChanged && hasRestrictionSchedule && isUsingBookerTimezone;
-  };
-
-  return {
-    shouldRefreshSlots: shouldRefreshSlots(),
-    currentTimezone: timezone,
-    previousTimezone: previousTimezoneRef.current,
-  };
+    return {
+      shouldRefreshSlots,
+      currentTimezone: timezone,
+      previousTimezone: prevTimezone,
+    };
+    // We include hasTimezoneChanged here so the memoized object updates
+    // correctly when the flip occurs.
+  }, [timezone, hasTimezoneChanged, eventData?.restrictionScheduleId, eventData?.useBookerTimezone]);
 };
