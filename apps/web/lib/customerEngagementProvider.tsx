@@ -5,6 +5,7 @@ import { PostHogProvider } from "posthog-js/react";
 import { useRef, useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 // Session flag stored in memory (persists for the window lifetime)
 const sessionTracking = {
@@ -160,6 +161,7 @@ function PostHogPageViewTracker() {
  */
 function UserIdentificationProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
+  const { data: user, isLoading } = useMeQuery();
   const hasRunRef = useRef(false);
 
   const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
@@ -178,8 +180,6 @@ function UserIdentificationProvider({ children }: { children: React.ReactNode })
 
     // Early return if no session or stats data
     if (!session?.data || !statsData) return;
-
-    const user = session.data.user;
 
     // Handle logged out state
     if (!user) {
@@ -214,7 +214,10 @@ function UserIdentificationProvider({ children }: { children: React.ReactNode })
       customBrandingEnabled,
       timeZone: timezone,
       emailVerified,
-    } = user;
+    } = {
+      ...session.data.user,
+      ...user, // User has more up to date fields
+    };
 
     const [first_name, last_name] = name ? getFullNameFromField(name) : ["", ""];
 

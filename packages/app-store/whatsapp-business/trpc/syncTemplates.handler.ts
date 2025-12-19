@@ -96,7 +96,7 @@ export const syncTemplates = async ({ step, logger }): Promise<SyncTemplatesResu
   const results: SyncTemplatesResult[] = [];
 
   for (const whatsappBusinessPhone of whatsappBusinessPhones) {
-    const templates = await syncTemplatesForPhone(whatsappBusinessPhone);
+    const templates = await syncTemplatesForPhone(whatsappBusinessPhone, logger);
     results.push({
       id: whatsappBusinessPhone.id,
       phoneNumberId: whatsappBusinessPhone.phoneNumberId,
@@ -109,7 +109,8 @@ export const syncTemplates = async ({ step, logger }): Promise<SyncTemplatesResu
 };
 
 async function syncTemplatesForPhone(
-  whatsappBusinessPhone: WhatsAppBusinessPhoneWithCredential
+  whatsappBusinessPhone: WhatsAppBusinessPhoneWithCredential,
+  logger?: any
 ): Promise<WhatsAppTemplate> {
   try {
     const credentialKey = (whatsappBusinessPhone.credential?.key || {}) as WhatsAppCredentialKey;
