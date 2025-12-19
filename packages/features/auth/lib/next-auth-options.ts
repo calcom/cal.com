@@ -411,6 +411,7 @@ if (isSAMLLoginEnabled) {
         const [userProfile] = user?.allProfiles ?? [];
         return {
           id: id as unknown as number,
+          uuid: user.uuid,
           firstName,
           lastName,
           email,
