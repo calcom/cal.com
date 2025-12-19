@@ -1,7 +1,7 @@
 {
   "name": "cal-companion",
   "displayName": "Cal.com Companion",
-  "version": "1.7.1",
+  "version": "1.7.3",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
@@ -9,10 +9,14 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "ext:build": "wxt build",
+    "ext:build-prod": "BUILD_FOR_STORE=true wxt build",
     "build:firefox": "wxt build -b firefox",
+    "build:firefox-prod": "BUILD_FOR_STORE=true wxt build -b firefox",
     "build:safari": "wxt build -b safari",
+    "build:safari-prod": "BUILD_FOR_STORE=true wxt build -b safari",
     "ext": "wxt",
     "ext:zip": "wxt zip",
+    "ext:zip-prod": "BUILD_FOR_STORE=true wxt zip",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "prepare": "cd .. && husky companion/.husky"
