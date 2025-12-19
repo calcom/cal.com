@@ -13,7 +13,6 @@ import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import tasker from "@calcom/features/tasker";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -42,11 +41,6 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
     select: {
       id: true,
       bookingId: true,
-      booking: {
-        select: {
-          uid: true,
-        },
-      },
     },
   });
 
@@ -55,19 +49,6 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }
   if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
-
-  // Cancel the scheduled awaiting payment email if payment completes before the delay
-  if (payment.booking?.uid) {
-    try {
-      await tasker.cancelWithReference(payment.booking.uid, "sendAwaitingPaymentEmail");
-      log.debug(`Cancelled scheduled awaiting payment email for booking ${payment.bookingId}`);
-    } catch (error) {
-      log.warn(
-        { bookingId: payment.bookingId, error },
-        `Failed to cancel awaiting payment task - email may still be sent but will be suppressed by task handler`
-      );
-    }
-  }
 
   await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
 }
@@ -83,17 +64,6 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
   if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   const { booking, user, evt, eventType } = await getBooking(payment.bookingId);
-
-  // Cancel the scheduled awaiting payment email if payment completes before the delay
-  try {
-    await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");
-    log.debug(`Cancelled scheduled awaiting payment email for booking ${payment.bookingId}`);
-  } catch (error) {
-    log.warn(
-      { bookingId: payment.bookingId, error },
-      `Failed to cancel awaiting payment task - email may still be sent but will be suppressed by task handler`
-    );
-  }
 
   const updatedTraceContext = distributedTracing.updateTrace(traceContext, {
     bookingId: booking.id,
