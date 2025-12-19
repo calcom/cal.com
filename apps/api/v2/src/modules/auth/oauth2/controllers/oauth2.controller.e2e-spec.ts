@@ -267,7 +267,6 @@ describe("OAuth2 Controller Endpoints", () => {
           .expect(200);
 
         expect(response.body.status).toBe("success");
-        console.log("DATA", response.body.data);
         expect(response.body.data.access_token).toBeDefined();
         expect(response.body.data.refresh_token).toBeDefined();
         expect(response.body.data.token_type).toBe("bearer");
