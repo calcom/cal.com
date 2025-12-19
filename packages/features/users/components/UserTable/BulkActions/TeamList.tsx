@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, Users as UsersIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -85,7 +85,7 @@ export function TeamListBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <DataTableSelectionBar.Button icon="users" color="secondary">
+          <DataTableSelectionBar.Button Icon={UsersIcon} color="secondary">
             {t("add_to_team")}
           </DataTableSelectionBar.Button>
         </PopoverTrigger>

@@ -1,5 +1,15 @@
+import {
+  CheckCircleIcon,
+  CircleXIcon,
+  ClipboardCheckIcon,
+  ClipboardIcon,
+  EyeIcon,
+  EyeOffIcon,
+  MailIcon,
+  RefreshCcwIcon,
+  SendIcon,
+} from "lucide-react";
 import Link from "next/link";
-import { CircleXIcon, EyeOffIcon, MailIcon, RefreshCcwIcon, SendIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -652,8 +662,10 @@ const RecurringBookingsTooltip = ({
                 );
               })}>
               <div className="text-default">
-                <RefreshCcwIcon strokeWidth="3"
-                  className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3" />
+                <RefreshCcwIcon
+                  strokeWidth="3"
+                  className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
+                />
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining_other", {
@@ -760,7 +772,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
 
           <DropdownMenuItem className="focus:outline-none">
             <DropdownItem
-              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+              StartIcon={isCopied ? ClipboardCheckIcon : ClipboardIcon}
               onClick={(e) => {
                 e.preventDefault();
                 const isEmailCopied = isSmsCalEmail(email);
@@ -781,7 +793,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
                   setOpenDropdown(false);
                   noShowMutation.mutate({ bookingUid, attendees: [{ noShow: !noShow, email }] });
                 }}
-                StartIcon={noShow ? "eye" : "eye-off"}>
+                StartIcon={noShow ? EyeIcon : EyeOffIcon}>
                 {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -936,7 +948,7 @@ const GroupedGuests = ({ guests }: { guests: BookingAttendee[] }) => {
             <DropdownMenuItem key={guest.id}>
               <DropdownItem
                 className="pr-6 focus:outline-none"
-                StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
+                StartIcon={selectedEmail === guest.email ? CheckCircleIcon : undefined}
                 onClick={(e) => {
                   e.preventDefault();
                   setSelectedEmail(guest.email);

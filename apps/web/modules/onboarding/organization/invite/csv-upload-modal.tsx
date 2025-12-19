@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { DownloadIcon, FileTextIcon, UploadIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -167,8 +167,7 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
               ) : (
                 <div className="flex flex-col items-center gap-3">
                   <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-4 shadow-sm">
-                    <UploadIcon className="text-emphasis opacity-70"
-                      style={{ width: 32, height: 32 }} />
+                    <UploadIcon className="text-emphasis opacity-70" style={{ width: 32, height: 32 }} />
                   </div>
                   <p className="text-subtle text-center text-sm">{t("upload_csv_subtitle")}</p>
                 </div>
@@ -214,7 +213,7 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
               />
               <Button
                 color="secondary"
-                StartIcon={selectedFile ? "file-text" : "upload"}
+                StartIcon={selectedFile ? FileTextIcon : UploadIcon}
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}>
                 {t("choose_file")}

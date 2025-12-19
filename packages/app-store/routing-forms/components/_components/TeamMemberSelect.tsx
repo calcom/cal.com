@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import { InfoIcon } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui/components/form";
@@ -109,7 +109,7 @@ export const TeamMemberSelect = ({
             />
             <span className="text-default text-sm">{t("select_all_members")}</span>
             <Tooltip content={t("select_all_members_tooltip")}>
-              <InfoIcon className="text-default text-sm" />
+              <InfoIcon className="text-default h-4 w-4 text-sm" />
             </Tooltip>
           </div>
         )}

@@ -1,8 +1,6 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import { EllipsisIcon, ExternalLinkIcon, LockIcon, PencilIcon, PlusIcon, SendIcon, UserXIcon } from "lucide-react";
-
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -11,11 +9,21 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import classNames from "classnames";
+import {
+  EllipsisIcon,
+  ExternalLinkIcon,
+  Handshake as HandshakeIcon,
+  LockIcon,
+  PencilIcon,
+  PlusIcon,
+  SendIcon,
+  UserXIcon,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
-import posthog from "posthog-js";
 import { signIn } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
+import posthog from "posthog-js";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -729,7 +737,10 @@ function MemberListContent(props: Props) {
                 type="button"
                 color="primary"
                 StartIcon={PlusIcon}
-                onClick={() => { props.setShowMemberInvitationModal(true); posthog.capture("teams_add_new_members_button_clicked") }}
+                onClick={() => {
+                  props.setShowMemberInvitationModal(true);
+                  posthog.capture("teams_add_new_members_button_clicked");
+                }}
                 data-testid="new-member-button">
                 {t("add")}
               </DataTableToolbar.CTA>
@@ -750,7 +761,7 @@ function MemberListContent(props: Props) {
               <DataTableSelectionBar.Button
                 color="secondary"
                 onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                icon="handshake">
+                Icon={HandshakeIcon}>
                 {t("group_meeting")}
               </DataTableSelectionBar.Button>
             )}

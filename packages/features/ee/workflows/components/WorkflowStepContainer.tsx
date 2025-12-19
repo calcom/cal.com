@@ -1,5 +1,15 @@
 import { type TFunction } from "i18next";
-import { ChevronDownIcon, CircleHelpIcon, EllipsisIcon, InfoIcon, MonitorIcon, PencilIcon, PhoneIcon, PlusIcon, TrashIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  CircleHelpIcon,
+  EllipsisIcon,
+  InfoIcon,
+  MonitorIcon,
+  PencilIcon,
+  PhoneIcon,
+  PlusIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -823,7 +833,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                       />
                       <div className="mt-1.5 flex items-center gap-1">
-                        <InfoIcon size="10" className="text-gray-500" />
+                        <InfoIcon className="h-4 w-4 text-gray-500" />
                         <div className="text-subtle text-xs">{t("sender_id_info")}</div>
                       </div>
                     </div>
@@ -1541,7 +1551,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
 
-                    <div className="test-sm text-emphasis col-span-7 wrap-break-word">
+                    <div className="test-sm text-emphasis wrap-break-word col-span-7">
                       {" "}
                       {`{${t("company_size")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1559,7 +1569,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
-                    <div className="test-sm text-emphasis col-span-7 wrap-break-word">
+                    <div className="test-sm text-emphasis wrap-break-word col-span-7">
                       {" "}
                       {`{${t("what_help_needed")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1706,7 +1716,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <InfoIcon className="text-attention mt-0.5 h-4 w-4" />
                           <div className="stack-y-2">
                             <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
-                            <ul className="text-attention list-inside list-disc stack-y-1 text-sm">
+                            <ul className="text-attention stack-y-1 list-inside list-disc text-sm">
                               {relevantPhoneNumbers.some(
                                 (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
                               ) && <li>{t("cancel_your_phone_number_subscription")}</li>}
@@ -1716,10 +1726,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </div>
                       </div>
                       {relevantPhoneNumbers.map((phone) => (
-                        <div key={phone.phoneNumber} className="p-3 rounded-lg bg-cal-muted">
-                          <div className="flex gap-2 items-center">
-                            <PhoneIcon className="w-4 h-4 text-emphasis" />
-                            <span className="text-sm font-medium text-emphasis">
+                        <div key={phone.phoneNumber} className="bg-cal-muted rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <PhoneIcon className="text-emphasis h-4 w-4" />
+                            <span className="text-emphasis text-sm font-medium">
                               {formatPhoneNumber(phone.phoneNumber)}
                             </span>
                             {phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE && (

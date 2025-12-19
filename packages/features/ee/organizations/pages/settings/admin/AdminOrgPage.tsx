@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  BookOpenCheckIcon,
+  CheckCheckIcon,
+  CheckIcon,
+  PencilIcon,
+  TerminalIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -138,7 +146,7 @@ export function AdminOrgTable() {
                                   },
                                 });
                               },
-                              icon: "check" as const,
+                              icon: CheckIcon,
                             },
                           ]
                         : []),
@@ -155,7 +163,7 @@ export function AdminOrgTable() {
                                   },
                                 });
                               },
-                              icon: "check-check" as const,
+                              icon: CheckCheckIcon,
                             },
                           ]
                         : []),
@@ -163,7 +171,7 @@ export function AdminOrgTable() {
                         id: "edit",
                         label: t("edit"),
                         href: `/settings/admin/organizations/${org.id}/edit`,
-                        icon: "pencil" as const,
+                        icon: PencilIcon,
                       },
                       ...(!org.slug
                         ? [
@@ -173,7 +181,7 @@ export function AdminOrgTable() {
                               onClick: () => {
                                 publishOrg(org);
                               },
-                              icon: "book-open-check" as const,
+                              icon: BookOpenCheckIcon,
                             },
                           ]
                         : []),
@@ -190,7 +198,7 @@ export function AdminOrgTable() {
                             },
                           });
                         },
-                        icon: "terminal" as const,
+                        icon: TerminalIcon,
                       },
                       {
                         id: "delete",
@@ -198,7 +206,7 @@ export function AdminOrgTable() {
                         onClick: () => {
                           setOrgToDelete(org);
                         },
-                        icon: "trash" as const,
+                        icon: TrashIcon,
                       },
                     ]}
                   />
@@ -251,7 +259,7 @@ const DeleteOrgDialog = ({
         cancelBtnText={t("cancel")}
         variety="danger"
         onConfirm={onConfirm}>
-        <ul className="ml-4 mt-5 list-disc stack-y-2">
+        <ul className="stack-y-2 ml-4 mt-5 list-disc">
           <li>{t("admin_delete_organization_description_1")}</li>
           <li>{t("admin_delete_organization_description_2")}</li>
           <li>{t("admin_delete_organization_description_3")}</li>

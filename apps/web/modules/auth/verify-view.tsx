@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLinkIcon, MailOpenIcon, TriangleAlertIcon } from "lucide-react";
+import { ExternalLinkIcon, MailOpenIcon as LucideMailOpenIcon, TriangleAlertIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -108,7 +108,7 @@ const PaymentSuccess = () => (
 
 const MailOpenIcon = () => (
   <div className="bg-default rounded-full p-3">
-    <MailOpenIcon className="text-emphasis h-12 w-12 shrink-0 p-0.5 font-extralight" />
+    <LucideMailOpenIcon className="text-emphasis h-12 w-12 shrink-0 p-0.5 font-extralight" />
   </div>
 );
 

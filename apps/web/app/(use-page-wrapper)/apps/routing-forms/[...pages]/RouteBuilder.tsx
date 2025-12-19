@@ -2,7 +2,16 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRightIcon, BlocksIcon, GlobeIcon, PlusIcon, UserCheckIcon, ZapIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  BlocksIcon,
+  GlobeIcon,
+  MenuIcon,
+  PlusIcon,
+  SplitIcon,
+  UserCheckIcon,
+  ZapIcon,
+} from "lucide-react";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
@@ -1322,7 +1331,7 @@ const Routes = ({
         })}
         {mainRoutes.length === 0 ? (
           <EmptyState
-            icon="menu"
+            Icon={MenuIcon}
             header="Create your first route"
             text="Routes determine where your form responses will be sent based on the answers provided."
             buttonText={t("add_a_new_route")}
@@ -1347,7 +1356,7 @@ const Routes = ({
             form={form}
             cardOptions={{
               collapsible: false,
-              leftIcon: "split",
+              leftIcon: SplitIcon,
             }}
             formFieldsQueryBuilderConfig={formFieldsQueryBuilderConfig}
             attributesQueryBuilderConfig={attributesQueryBuilderConfig}

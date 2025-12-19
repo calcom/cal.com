@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { PlusIcon, XIcon } from "lucide-react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -76,9 +76,9 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
       {groupNames.map((name) => (
         <Badge variant="gray" size="lg" key={name} className="min-h-8 h-auto py-2">
           <div className="flex min-w-0 items-center gap-2">
-            <p className="min-w-0 wrap-break-word">{name}</p>
+            <p className="wrap-break-word min-w-0">{name}</p>
             <div className="hover:bg-emphasis shrink-0 rounded p-1">
-              <Icon name="x" className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
+              <XIcon className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
             </div>
           </div>
         </Badge>
@@ -111,7 +111,7 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
             <p>{t("add_group_name")}</p>
           )}
           <div className={classNames("rounded p-1", showTextInput && "hover:bg-emphasis ml-2")}>
-            <Icon name="plus" className="h-4 w-4 stroke-[3px]" onClick={() => addGroupName(newGroupName)} />
+            <PlusIcon className="h-4 w-4 stroke-[3px]" onClick={() => addGroupName(newGroupName)} />
           </div>
         </div>
       </Badge>

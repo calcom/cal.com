@@ -249,13 +249,13 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     <>
       <div className="bg-default flex h-screen items-center justify-center">
         {showContent ? (
-          <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center stack-y-4 p-4 lg:stack-y-5">
-            <form className="w-full stack-y-4" onSubmit={onSubmit}>
+          <div className="stack-y-4 lg:stack-y-5 flex w-full w-full max-w-[43em] flex-col items-center justify-center p-4">
+            <form className="stack-y-4 w-full" onSubmit={onSubmit}>
               <div className="bg-default border-subtle overflow-auto rounded border">
                 <div className="border-subtle flex items-center justify-between border-b p-4 md:p-5">
                   <h2 className="text-2xl font-semibold">BTCPay Server Information</h2>
                 </div>
-                <div className="w-full stack-y-4 p-4 md:p-5">
+                <div className="stack-y-4 w-full p-4 md:p-5">
                   <div className="w-full">
                     <KeyField
                       {...register("serverUrl", { required: true })}
@@ -324,7 +324,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
                       disabled={loading || validating || !updatable}>
                       {loading ? (
                         <>
-                          <LoaderIcon className="mr-2 animate-spin" />
+                          <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
                           {t("connecting")}
                         </>
                       ) : (

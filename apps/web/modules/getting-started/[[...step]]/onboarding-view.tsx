@@ -4,10 +4,10 @@ import type { TFunction } from "i18next";
 import { LoaderIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { Suspense, useTransition } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
-import posthog from "posthog-js";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,33 +41,33 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
     subtitle: string[];
     skipText?: string;
   }[] = [
-      {
-        title: t("welcome_to_cal_header", { appName: APP_NAME }),
-        subtitle: [t("we_just_need_basic_info")],
-      },
-      {
-        title: t("connect_your_calendar"),
-        subtitle: [t("connect_your_calendar_instructions")],
-        skipText: t("connect_calendar_later"),
-      },
-      {
-        title: t("connect_your_video_app"),
-        subtitle: [t("connect_your_video_app_instructions")],
-        skipText: t("set_up_later"),
-      },
-      {
-        title: t("set_availability"),
-        subtitle: [
-          `${t("set_availability_getting_started_subtitle_1")} ${t(
-            "set_availability_getting_started_subtitle_2"
-          )}`,
-        ],
-      },
-      {
-        title: t("nearly_there"),
-        subtitle: [t("nearly_there_instructions")],
-      },
-    ];
+    {
+      title: t("welcome_to_cal_header", { appName: APP_NAME }),
+      subtitle: [t("we_just_need_basic_info")],
+    },
+    {
+      title: t("connect_your_calendar"),
+      subtitle: [t("connect_your_calendar_instructions")],
+      skipText: t("connect_calendar_later"),
+    },
+    {
+      title: t("connect_your_video_app"),
+      subtitle: [t("connect_your_video_app_instructions")],
+      skipText: t("set_up_later"),
+    },
+    {
+      title: t("set_availability"),
+      subtitle: [
+        `${t("set_availability_getting_started_subtitle_1")} ${t(
+          "set_availability_getting_started_subtitle_2"
+        )}`,
+      ],
+    },
+    {
+      title: t("nearly_there"),
+      subtitle: [t("nearly_there_instructions")],
+    },
+  ];
 
   return {
     steps: [...BASE_STEPS],
@@ -176,7 +176,7 @@ const OnboardingPage = (props: PageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToStep} />
             </div>
             <StepCard>
-              <Suspense fallback={<LoaderIcon />}>
+              <Suspense fallback={<LoaderIcon className="h-4 w-4 animate-spin" />}>
                 {currentStep === "user-settings" && (
                   <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} user={user} />
                 )}

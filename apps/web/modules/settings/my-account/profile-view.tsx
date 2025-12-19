@@ -1,10 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InfoIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
- 
 import { get, pick } from "lodash";
+import { InfoIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
@@ -220,7 +219,6 @@ const ProfileView = ({ user }: Props) => {
     }
   };
 
-   
   const passwordRef = useRef<HTMLInputElement>(null!);
 
   const errorMessages: { [key: string]: string } = {
@@ -658,7 +656,7 @@ const ProfileForm = ({
         </div>
         {extraField}
         <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <InfoIcon className="mt-0.5 shrink-0" />
+          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
@@ -719,7 +717,7 @@ const ProfileForm = ({
         {usersAttributes && usersAttributes?.length > 0 && (
           <div className="mt-6 flex flex-col">
             <Label>{t("attributes")}</Label>
-            <div className="flex flex-col stack-y-4">
+            <div className="stack-y-4 flex flex-col">
               {usersAttributes.map((attribute, index) => (
                 <>
                   <DisplayInfo

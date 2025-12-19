@@ -49,28 +49,28 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             {severity === "error" && (
               <CircleXIcon
                 data-testid="circle-x"
-                className={classNames("h4 w-4", iconClassName)}
+                className={classNames("h-4 w-4", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "warning" && (
               <TriangleAlertIcon
                 data-testid="alert-triangle"
-                className={classNames("h4 w-4", iconClassName)}
+                className={classNames("h-4 w-4", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "info" && (
               <InfoIcon
                 data-testid="info"
-                className={classNames("h4 w-4", iconClassName)}
+                className={classNames("h-4 w-4", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "neutral" && (
               <InfoIcon
                 data-testid="neutral"
-                className={classNames("text-default h4 w-4 fill-transparent", iconClassName)}
+                className={classNames("text-default h-4 w-4 fill-transparent", iconClassName)}
                 aria-hidden="true"
               />
             )}

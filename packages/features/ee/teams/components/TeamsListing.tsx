@@ -1,6 +1,14 @@
 "use client";
 
-import { UsersIcon, RefreshCcwIcon, UserPlusIcon, MailIcon, VideoIcon, EyeOffIcon, InfoIcon } from "lucide-react";
+import {
+  UsersIcon,
+  RefreshCcwIcon,
+  UserPlusIcon,
+  MailIcon,
+  VideoIcon,
+  EyeOffIcon,
+  InfoIcon,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 
@@ -174,7 +182,7 @@ export function TeamsListing({
       )}
 
       <p className="text-subtle mb-8 mt-4 flex w-full items-center gap-1 text-sm md:justify-center md:text-center">
-        <InfoIcon className="hidden sm:block" /> {t("tip_username_plus")}
+        <InfoIcon className="hidden h-4 w-4 sm:block" /> {t("tip_username_plus")}
       </p>
     </>
   );
