@@ -80,6 +80,7 @@ import {
   Globe,
   Grid3x3,
   Handshake,
+  Home,
   Info,
   Italic,
   Key,
@@ -226,8 +227,9 @@ export type IconName =
   | "download"
   | "ellipsis-vertical"
   | "ellipsis"
-  | "external-link"
-  | "eye-off"
+    | "external-link"
+    | "external"
+    | "eye-off"
   | "eye"
   | "file-down"
   | "file-text"
@@ -241,8 +243,9 @@ export type IconName =
   | "github"
   | "globe"
   | "grid-3x3"
-  | "handshake"
-  | "info"
+    | "handshake"
+    | "home"
+    | "info"
   | "italic"
   | "key"
   | "layers"
@@ -385,8 +388,9 @@ const ICON_MAP: Record<IconName, LucideIcon> = {
   download: Download,
   ellipsis: Ellipsis,
   "ellipsis-vertical": EllipsisVertical,
-  "external-link": ExternalLink,
-  eye: Eye,
+    "external-link": ExternalLink,
+    external: ExternalLink,
+    eye: Eye,
   "eye-off": EyeOff,
   file: File,
   "file-down": FileDown,
@@ -400,8 +404,9 @@ const ICON_MAP: Record<IconName, LucideIcon> = {
   github: Github,
   globe: Globe,
   "grid-3x3": Grid3x3,
-  handshake: Handshake,
-  info: Info,
+    handshake: Handshake,
+    home: Home,
+    info: Info,
   italic: Italic,
   key: Key,
   layers: Layers,
@@ -492,7 +497,15 @@ function Icon({ name, size = 16, className, ...props }: IconProps) {
     return null;
   }
 
-  return <LucideIcon size={size} className={cn("fill-transparent", className)} aria-hidden {...props} />;
+  return (
+    <LucideIcon
+      size={size}
+      className={cn("fill-transparent", className)}
+      aria-hidden
+      data-testid="icon-component"
+      {...props}
+    />
+  );
 }
 
 export { Icon };
