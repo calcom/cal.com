@@ -301,8 +301,8 @@ export class CredentialRepository {
     });
   }
 
-  async findByTeamIdAndSlugs({ teamId, slugs }: { teamId: number; slugs: string[] }) {
-    return prisma.credential.findMany({
+  findByTeamIdAndSlugs({ teamId, slugs }: { teamId: number; slugs: string[] }) {
+    return this.primaClient.credential.findMany({
       where: {
         teamId,
         appId: {
@@ -313,8 +313,8 @@ export class CredentialRepository {
     });
   }
 
-  async findByIdAndTeamId({ id, teamId }: { id: number; teamId: number }) {
-    return prisma.credential.findFirst({
+  findByIdAndTeamId({ id, teamId }: { id: number; teamId: number }) {
+    return this.primaClient.credential.findFirst({
       where: {
         id,
         teamId,

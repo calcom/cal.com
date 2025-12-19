@@ -3013,8 +3013,8 @@ model AttributeSyncFieldMapping {
   attribute            Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
 
   enabled                    Boolean
-  integrationAttributeSyncId String?
-  integrationAttributeSync   IntegrationAttributeSync? @relation(fields: [integrationAttributeSyncId], references: [id], onDelete: Cascade)
+  integrationAttributeSyncId String
+  integrationAttributeSync   IntegrationAttributeSync @relation(fields: [integrationAttributeSyncId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

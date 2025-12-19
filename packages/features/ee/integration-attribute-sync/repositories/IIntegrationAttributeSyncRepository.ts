@@ -30,7 +30,7 @@ export interface AttributeSyncFieldMapping {
 export interface IIntegrationAttributeSyncCreateParams {
   name: string;
   organizationId: number;
-  integration: string;
+  integration: AttributeSyncIntegrations;
   credentialId: number;
   enabled: boolean;
   rule: IAttributeSyncRule;

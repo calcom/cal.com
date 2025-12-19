@@ -45,7 +45,7 @@ export type Condition = z.infer<typeof attributeSyncRuleConditionSchema>;
 export type IAttributeSyncRule = z.infer<typeof attributeSyncRuleSchema>;
 
 const newFieldMappingSchema = z.object({
-  integrationFieldName: z.string(),
+  integrationFieldName: z.string().min(1),
   attributeId: z.string(),
   enabled: z.boolean(),
 });

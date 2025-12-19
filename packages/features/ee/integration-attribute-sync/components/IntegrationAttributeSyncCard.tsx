@@ -94,6 +94,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
         syncFieldMappings: Array.isArray(sync.syncFieldMappings) ? sync.syncFieldMappings : [],
       });
     }
+    // Only need to run if the sync changes
   }, [sync?.id]);
 
   const onFormSubmit = (data: ISyncFormData) => {
