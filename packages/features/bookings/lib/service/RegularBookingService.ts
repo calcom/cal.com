@@ -129,6 +129,7 @@ import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 import { makeGuestActor } from "../types/actor";
+import type { BookingDataPreparationService } from "../utils/BookingDataPreparationService";
 
 const translator = short();
 
@@ -467,6 +468,7 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+  bookingDataPreparationService: BookingDataPreparationService;
 }
 
 async function validateRescheduleRestrictions({
@@ -659,6 +661,7 @@ async function handler(
       bookerEmail,
       verificationCode: reqBody.verificationCode,
       isReschedule: !!rawBookingData.rescheduleUid,
+      userRepository: deps.userRepository,
     });
   } catch (error) {
     if (error instanceof ErrorWithCode) {
@@ -680,6 +683,7 @@ async function handler(
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
       bookerEmail,
       offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+      bookingRepository: deps.bookingRepository,
     });
   }
 
