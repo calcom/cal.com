@@ -4173,5 +4173,8 @@
   "audit_logs_owner_not_in_organization": "The booking owner is not a member of your organization.",
   "audit_logs_permission_denied": "You do not have permission to view audit logs for this booking.",
   "audit_logs_permission_check_error": "An error occurred while checking permissions.",
+  "partial_availability_loaded": "Showing availability for {{loaded}} of {{total}} team members",
+  "partial_availability_message": "We've loaded a subset of team members for faster performance. Click below to see all availability.",
+  "load_more_availability": "Load more availability",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

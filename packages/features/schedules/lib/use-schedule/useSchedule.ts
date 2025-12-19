@@ -27,6 +27,12 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
   enabled?: boolean;
+  /**
+   * Controls whether to load partial or full host availability for large round-robin events.
+   * "partial" (default) loads a subset of hosts for faster performance.
+   * "full" loads all hosts' availability.
+   */
+  rrHostLoadMode?: "partial" | "full";
   /***
    * Required when prefetching is needed
    */
@@ -65,6 +71,7 @@ export const useSchedule = ({
   teamMemberEmail,
   useApiV2 = false,
   enabled: enabledProp = true,
+  rrHostLoadMode = "partial",
   bookerLayout,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
@@ -117,6 +124,7 @@ export const useSchedule = ({
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
+    rrHostLoadMode,
   };
 
   const options = {
@@ -180,6 +188,14 @@ export const useSchedule = ({
       invalidate: () => {
         return teamScheduleV2.refetch();
       },
+      /**
+       * Fetches full availability for all hosts (bypasses partial loading).
+       * Use this when the user clicks "Load more availability".
+       * Note: API V2 doesn't support partial loading yet, so this just refetches.
+       */
+      loadMoreAvailability: async () => {
+        return teamScheduleV2.refetch();
+      },
     };
   }
 
@@ -202,6 +218,13 @@ export const useSchedule = ({
      */
     invalidate: () => {
       return utils.viewer.slots.getSchedule.invalidate(input);
+    },
+    /**
+     * Fetches full availability for all hosts (bypasses partial loading).
+     * Use this when the user clicks "Load more availability".
+     */
+    loadMoreAvailability: async () => {
+      return utils.viewer.slots.getSchedule.fetch({ ...input, rrHostLoadMode: "full" });
     },
   };
 };

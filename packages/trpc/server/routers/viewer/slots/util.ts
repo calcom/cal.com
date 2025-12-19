@@ -15,6 +15,7 @@ import type {
 } from "@calcom/features/availability/lib/getUserAvailability";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import type { LuckyUserService } from "@calcom/features/bookings/lib/getLuckyUser";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
 import { selectHostsForPartialLoading } from "@calcom/features/bookings/lib/host-filtering/rankHostsByShortfall";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
@@ -114,6 +115,7 @@ export interface IAvailableSlotsService {
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
   noSlotsNotificationService: NoSlotsNotificationService;
+  luckyUserService: LuckyUserService;
 }
 
 function withSlotsCache(
@@ -1119,48 +1121,74 @@ export class AvailableSlotsService {
     let partialLoadInfo: { isPartialLoad: boolean; totalHosts: number; loadedHosts: number } | undefined;
 
     if (shouldUsePartialLoading && eventType.team) {
-      // Get RR hosts (non-fixed) for ordering
+      // Get RR hosts (non-fixed) for ordering using LuckyUserService
       const rrHosts = allHosts.filter((h) => !h.isFixed);
 
-      // Order hosts by priority (higher priority first), then by a rotating seed for fairness
-      // This respects Priority Ranking while ensuring fair rotation over time
-      const rotationSeed = this.getWeeklyRotationSeed(eventType.id);
-      const orderedUserIds = rrHosts
-        .map((h) => ({
-          id: h.user.id,
-          priority: h.priority ?? 2, // Default priority is 2 (medium)
-          hash: this.hashUserId(h.user.id, rotationSeed),
-        }))
-        .sort((a, b) => {
-          // Sort by priority descending (higher priority first)
-          const priorityDiff = b.priority - a.priority;
-          if (priorityDiff !== 0) return priorityDiff;
-          // For same priority, use rotating hash for fairness
-          return b.hash - a.hash;
-        })
-        .map((h) => h.id);
+      // Use LuckyUserService to get the exact same ordering as booking time
+      // This uses the full weight-based shortfall calculation, priority ranking, and calibration
+      // but skips calendar API calls (DB-only mode for performance)
+      const availableUsers = rrHosts.map((h) => ({
+        ...h.user,
+        priority: h.priority ?? null,
+        weight: h.weight ?? null,
+      }));
 
-      // Select subset of hosts based on the ordered list
-      const rankingResult = selectHostsForPartialLoading({
-        hosts: allHosts,
-        orderedUserIds,
-        partialLoadPercentage: rrPartialLoadingConfig.percentage ?? 20,
-        partialLoadMinimum: rrPartialLoadingConfig.minimum ?? 10,
-      });
+      // Only proceed if we have at least one RR host
+      if (availableUsers.length > 0) {
+        const allRRHostsForLuckyUser = rrHosts.map((h) => ({
+          user: {
+            id: h.user.id,
+            email: h.user.email,
+            credentials: h.user.credentials,
+            userLevelSelectedCalendars: h.user.userLevelSelectedCalendars,
+          },
+          createdAt: h.createdAt ?? new Date(),
+          weight: h.weight ?? null,
+        }));
 
-      hostsToLoad = rankingResult.selectedHosts;
-      partialLoadInfo = {
-        isPartialLoad: rankingResult.isPartialLoad,
-        totalHosts: rankingResult.totalHosts,
-        loadedHosts: rankingResult.loadedHosts,
-      };
+        const orderedHostsResult = await this.dependencies.luckyUserService.getOrderedHostsForPartialLoading({
+          availableUsers: availableUsers as [typeof availableUsers[0], ...typeof availableUsers[0][]],
+          eventType: {
+            id: eventType.id,
+            isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+            team: eventType.team
+              ? {
+                  parentId: eventType.team.parentId ?? null,
+                  rrResetInterval: eventType.team.rrResetInterval,
+                  rrTimestampBasis: eventType.team.rrTimestampBasis,
+                }
+              : null,
+            includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation ?? false,
+          },
+          allRRHosts: allRRHostsForLuckyUser,
+          routingFormResponse: routingFormResponse ?? null,
+        });
 
-      loggerWithEventDetails.info({
-        partialLoading: true,
-        totalHosts: rankingResult.totalHosts,
-        loadedHosts: rankingResult.loadedHosts,
-        isPartialLoad: rankingResult.isPartialLoad,
-      });
+        // Extract ordered user IDs from the result
+        const orderedUserIds = orderedHostsResult.users.map((u) => u.id);
+
+        // Select subset of hosts based on the ordered list
+        const rankingResult = selectHostsForPartialLoading({
+          hosts: allHosts,
+          orderedUserIds,
+          partialLoadPercentage: rrPartialLoadingConfig.percentage ?? 20,
+          partialLoadMinimum: rrPartialLoadingConfig.minimum ?? 10,
+        });
+
+        hostsToLoad = rankingResult.selectedHosts;
+        partialLoadInfo = {
+          isPartialLoad: rankingResult.isPartialLoad,
+          totalHosts: rankingResult.totalHosts,
+          loadedHosts: rankingResult.loadedHosts,
+        };
+
+        loggerWithEventDetails.info({
+          partialLoading: true,
+          totalHosts: rankingResult.totalHosts,
+          loadedHosts: rankingResult.loadedHosts,
+          isPartialLoad: rankingResult.isPartialLoad,
+        });
+      }
     }
 
     const twoWeeksFromNow = dayjs().add(2, "week");
@@ -1604,23 +1632,4 @@ export class AvailableSlotsService {
     };
   }
 
-  /**
-   * Generates a weekly rotation seed for partial loading.
-   * This ensures hosts rotate fairly over time while maintaining
-   * cache stability within each week.
-   */
-  private getWeeklyRotationSeed(eventTypeId: number): number {
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const weekNumber = Math.floor((now.getTime() - startOfYear.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    return eventTypeId * 1000 + weekNumber;
-  }
-
-  /**
-   * Hashes a user ID with a seed for deterministic but rotating ordering.
-   */
-  private hashUserId(userId: number, seed: number): number {
-    const combined = userId * 31 + seed;
-    return ((combined * 2654435761) >>> 0) % 1000000;
-  }
 }
