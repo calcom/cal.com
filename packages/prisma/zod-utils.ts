@@ -870,6 +870,7 @@ export const unlockedManagedEventTypeProps = {
 // Zod-compatible version of allManagedEventTypeProps that only includes scalar fields
 // (excludes Prisma relation fields like children, users, webhooks, availability, etc.)
 // This is used with EventTypeSchema.pick() which requires exact key matching
+// IMPORTANT: This must match the scalar fields in allManagedEventTypeProps exactly
 export const allManagedEventTypePropsForZod = {
   title: true,
   description: true,
@@ -877,7 +878,6 @@ export const allManagedEventTypePropsForZod = {
   isInstantEvent: true,
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
-  instantMeetingScheduleId: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -934,9 +934,6 @@ export const allManagedEventTypePropsForZod = {
   maxLeadThreshold: true,
   customReplyToEmail: true,
   bookingRequiresAuthentication: true,
-  assignRRMembersUsingSegment: true,
-  rrSegmentQueryValue: true,
-  profileId: true,
 } as const;
 
 // Zod-compatible version of unlockedManagedEventTypeProps
