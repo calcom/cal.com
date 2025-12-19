@@ -53,27 +53,25 @@ export class FeatureOptInService {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, ResolvedFeatureState>> {
-    // Get global feature state
-    const allFeatures = await this.featuresRepository.getAllFeatures();
-    const globalEnabledMap = new Map(allFeatures.map((feature) => [feature.slug, feature.enabled ?? false]));
-
     // Get org and team states in a single query
     // Include orgId in the query if it exists
     const allTeamIds = orgId !== null ? [orgId, ...teamIds] : teamIds;
-    const allTeamStates = await this.featuresRepository.getTeamsFeatureStates({
-      teamIds: allTeamIds,
-      featureIds,
-    });
 
-    // Get user states in a batch query
-    const userStates = await this.featuresRepository.getUserFeatureStates({
-      userId,
-      featureIds,
-    });
+    const [allFeatures, allTeamStates, userStates, userAutoOptIn, teamsAutoOptIn] = await Promise.all([
+      this.featuresRepository.getAllFeatures(),
+      this.featuresRepository.getTeamsFeatureStates({
+        teamIds: allTeamIds,
+        featureIds,
+      }),
+      this.featuresRepository.getUserFeatureStates({
+        userId,
+        featureIds,
+      }),
+      this.featuresRepository.getUserAutoOptIn(userId),
+      this.featuresRepository.getTeamsAutoOptIn(allTeamIds),
+    ]);
 
-    // Fetch auto-opt-in flags
-    const userAutoOptIn = await this.featuresRepository.getUserAutoOptIn(userId);
-    const teamsAutoOptIn = await this.featuresRepository.getTeamsAutoOptIn(allTeamIds);
+    const globalEnabledMap = new Map(allFeatures.map((feature) => [feature.slug, feature.enabled ?? false]));
 
     const resolvedStates: Record<string, ResolvedFeatureState> = {};
 
@@ -154,13 +152,14 @@ export class FeatureOptInService {
   async listFeaturesForTeam(input: { teamId: number }) {
     const { teamId } = input;
 
-    const allFeatures = await this.featuresRepository.getAllFeatures();
-
-    // Get all team feature states in a single query
-    const teamStates = await this.featuresRepository.getTeamsFeatureStates({
-      teamIds: [teamId],
-      featureIds: OPT_IN_FEATURES.map((config) => config.slug),
-    });
+    const [allFeatures, teamStates] = await Promise.all([
+      this.featuresRepository.getAllFeatures(),
+      // Get all team feature states in a single query
+      this.featuresRepository.getTeamsFeatureStates({
+        teamIds: [teamId],
+        featureIds: OPT_IN_FEATURES.map((config) => config.slug),
+      }),
+    ]);
 
     const results = OPT_IN_FEATURES.map((config) => {
       const globalFeature = allFeatures.find((f) => f.slug === config.slug);
