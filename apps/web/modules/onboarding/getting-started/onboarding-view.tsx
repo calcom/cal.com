@@ -1,6 +1,8 @@
 "use client";
 
 import { AnimatePresence } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
+import { UserIcon, UsersIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useTransition } from "react";
@@ -11,7 +13,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { type IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
 import { OnboardingCard } from "../components/OnboardingCard";
@@ -86,10 +87,10 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     });
   };
 
-  const planIconByType: Record<PlanType, IconName> = {
-    personal: "user",
-    team: "user",
-    organization: "users",
+  const planIconByType: Record<PlanType, LucideIcon> = {
+    personal: UserIcon,
+    team: UserIcon,
+    organization: UsersIcon,
   };
 
   const allPlans = [

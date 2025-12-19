@@ -1,10 +1,12 @@
+import type { LucideIcon } from "lucide-react";
+import { LockIcon, PencilIcon } from "lucide-react";
+
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SMSLockState } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
-import type { IconName } from "@calcom/ui/components/icon";
 import { Table, DropdownActions } from "@calcom/ui/components/table";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
@@ -57,7 +59,12 @@ const LockStatusTable = ({
     const smsLockState = user?.smsLockState ?? team?.smsLockState;
     if (!smsLockState) return [];
 
-    const actions = [
+    const actions: Array<{
+      id: string;
+      label: string;
+      onClick: () => void;
+      Icon: LucideIcon;
+    }> = [
       {
         id: "unlock-sms",
         label: smsLockState === SMSLockState.LOCKED ? "Unlock SMS sending" : "Lock SMS sending",
@@ -67,7 +74,7 @@ const LockStatusTable = ({
             teamId: team ? team.id : undefined,
             lock: smsLockState !== SMSLockState.LOCKED,
           }),
-        icon: "lock" as IconName,
+        Icon: LockIcon,
       },
     ];
     if (smsLockState === SMSLockState.REVIEW_NEEDED) {
@@ -80,7 +87,7 @@ const LockStatusTable = ({
             teamId: team ? team.id : undefined,
             lock: false,
           }),
-        icon: "pencil" as IconName,
+        Icon: PencilIcon,
       });
     }
 
