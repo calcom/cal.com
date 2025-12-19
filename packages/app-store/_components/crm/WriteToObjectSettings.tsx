@@ -159,12 +159,12 @@ const WriteToObjectSettings = ({
     if (!editData) return;
 
     if (!editData.field.trim()) {
-      showToast("Field name cannot be empty", "error");
+      showToast(t("field_name_cannot_be_empty"), "error");
       return;
     }
 
     if (editData.field !== key && Object.keys(writeToObjectData).includes(editData.field.trim())) {
-      showToast("Field already exists", "error");
+      showToast(t("field_already_exists"), "error");
       return;
     }
 
@@ -524,7 +524,7 @@ const WriteToObjectSettings = ({
             }
             onClick={() => {
               if (Object.keys(writeToObjectData).includes(newOnWriteToRecordEntry.field.trim())) {
-                showToast("Field already exists", "error");
+                showToast(t("field_already_exists"), "error");
                 return;
               }
 
