@@ -100,7 +100,6 @@ export class GoogleCalendarOOOSyncService {
     let pageToken: string | undefined;
 
     log.debug("Fetching OOO events from Google Calendar", {
-      calendarId: this.calendarId,
       timeMin: timeMin.toISOString(),
       timeMax: timeMax.toISOString(),
     });
