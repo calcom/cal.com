@@ -242,6 +242,7 @@ export class ModalBox extends EmbedElement {
   }
 
   disconnectedCallback() {
+    super.disconnectedCallback();
     document.removeEventListener("keydown", this.escHandler);
   }
 
