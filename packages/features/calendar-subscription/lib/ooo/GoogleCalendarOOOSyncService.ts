@@ -168,22 +168,17 @@ export class GoogleCalendarOOOSyncService {
    * Get or create the "Synced from Google Calendar" OOO reason
    */
   private async getOrCreateSyncedOOOReason(): Promise<{ id: number }> {
-    let reason = await prisma.outOfOfficeReason.findFirst({
+    // Use upsert to avoid race condition when multiple sync operations run concurrently
+    const reason = await prisma.outOfOfficeReason.upsert({
       where: { reason: SYNCED_OOO_REASON },
+      create: {
+        emoji: SYNCED_OOO_EMOJI,
+        reason: SYNCED_OOO_REASON,
+        enabled: true,
+      },
+      update: {},
       select: { id: true },
     });
-
-    if (!reason) {
-      reason = await prisma.outOfOfficeReason.create({
-        data: {
-          emoji: SYNCED_OOO_EMOJI,
-          reason: SYNCED_OOO_REASON,
-          enabled: true,
-        },
-        select: { id: true },
-      });
-      log.info("Created synced OOO reason", { reasonId: reason.id });
-    }
 
     return reason;
   }
