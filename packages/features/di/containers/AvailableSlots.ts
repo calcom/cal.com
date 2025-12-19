@@ -9,7 +9,7 @@ import { bookingRepositoryModule } from "../modules/Booking";
 import { busyTimesModule } from "../modules/BusyTimes";
 import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
 import { eventTypeRepositoryModule } from "../modules/EventType";
-import { featuresRepositoryModule } from "../modules/Features";
+import { featuresRepositoryModule } from "../modules/FeaturesRepository";
 import { filterHostsModule } from "../modules/FilterHosts";
 import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
 import { holidayRepositoryModule } from "../modules/Holiday";
