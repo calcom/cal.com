@@ -5,42 +5,17 @@ import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
 
-export function UpgradeTip({
-  title,
-  description,
-  background,
-  features,
-  buttons,
-  isParentLoading,
-  children,
-  plan,
-}: {
+export interface UpgradeTipViewProps {
   title: string;
   description: string;
-  /* overwrite EmptyScreen text */
   background: string;
   features: Array<{ icon: JSX.Element; title: string; description: string }>;
   buttons?: JSX.Element;
-  /**Chldren renders when the user is in a team */
-  children: ReactNode;
-  isParentLoading?: ReactNode;
-  plan: "team" | "enterprise";
-}) {
+}
+
+export function UpgradeTipView({ title, description, background, features, buttons }: UpgradeTipViewProps) {
   const { resolvedTheme } = useGetTheme();
-  const { isPending, hasTeamPlan } = useHasTeamPlan();
-  const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
   const imageSrc = `${background}${resolvedTheme === "dark" ? "-dark" : ""}.jpg`;
-
-  const hasEnterprisePlan = false;
-  //const { isPending , hasEnterprisePlan } = useHasEnterprisePlan();
-
-  const hasUnpublishedTeam = !!data?.[0];
-
-  if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return <>{children}</>;
-
-  if (plan === "enterprise" && hasEnterprisePlan) return <>{children}</>;
-
-  if (isPending) return <>{isParentLoading}</>;
 
   return (
     <>
@@ -71,5 +46,45 @@ export function UpgradeTip({
         ))}
       </div>
     </>
+  );
+}
+
+export function UpgradeTip({
+  title,
+  description,
+  background,
+  features,
+  buttons,
+  isParentLoading,
+  children,
+  plan,
+}: UpgradeTipViewProps & {
+  /**Chldren renders when the user is in a team */
+  children: ReactNode;
+  isParentLoading?: ReactNode;
+  plan: "team" | "enterprise";
+}) {
+  const { isPending, hasTeamPlan } = useHasTeamPlan();
+  const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
+
+  const hasEnterprisePlan = false;
+  //const { isPending , hasEnterprisePlan } = useHasEnterprisePlan();
+
+  const hasUnpublishedTeam = !!data?.[0];
+
+  if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return <>{children}</>;
+
+  if (plan === "enterprise" && hasEnterprisePlan) return <>{children}</>;
+
+  if (isPending) return <>{isParentLoading}</>;
+
+  return (
+    <UpgradeTipView
+      title={title}
+      description={description}
+      background={background}
+      features={features}
+      buttons={buttons}
+    />
   );
 }

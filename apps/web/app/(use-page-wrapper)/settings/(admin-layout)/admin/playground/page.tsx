@@ -29,6 +29,12 @@ const LINKS = [
     href: "/settings/admin/playground/date-range-filter",
     icon: "calendar-days" as const,
   },
+  {
+    title: "Upgrade Tips",
+    description: "Preview various upgrade tip and upsell components",
+    href: "/settings/admin/playground/upgrade-tips",
+    icon: "sparkles" as const,
+  },
 ];
 
 export const generateMetadata = async () =>
