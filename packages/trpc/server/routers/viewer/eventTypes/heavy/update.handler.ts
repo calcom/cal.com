@@ -148,6 +148,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       children: {
         select: {
+          id: true,
           userId: true,
         },
       },
@@ -636,7 +637,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isCalVideoLocationActive = locations
     ? locations.some((location) => location.type === DailyLocationType)
     : parsedEventTypeLocations.success &&
-    parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await CalVideoSettingsRepository.deleteCalVideoSettings(id);
@@ -718,16 +719,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // Sync workflows
   if (workflows !== undefined) {
     const eventTypeIds = [id, ...(eventType.children?.map((c) => c.id) || [])];
-    
+
     const current = await ctx.prisma.workflowsOnEventTypes.findMany({
       where: { eventTypeId: { in: eventTypeIds } },
       select: { workflowId: true },
     });
-    
-    const currentIds = [...new Set(current.map((w) => w.workflowId))];
+
+    const currentIds = Array.from(new Set(current.map((w) => w.workflowId)));
     const toRemove = currentIds.filter((id) => !workflows.includes(id));
     const toAdd = workflows.filter((id) => !currentIds.includes(id));
-    
+
     if (toRemove.length) {
       await ctx.prisma.workflowsOnEventTypes.deleteMany({
         where: { eventTypeId: { in: eventTypeIds }, workflowId: { in: toRemove } },
@@ -739,7 +740,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
-    
+
     for (const workflowId of toAdd) {
       for (const eventTypeId of eventTypeIds) {
         await ctx.prisma.workflowsOnEventTypes.upsert({
