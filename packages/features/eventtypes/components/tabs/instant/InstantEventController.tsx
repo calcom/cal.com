@@ -9,11 +9,10 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetup, FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
-import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
+import type { TWebhook, WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -245,6 +244,21 @@ export default function InstantEventController({
                             </>
                           )}
                         />
+                        <Controller
+                          name="autoTranslateInstantMeetingTitleEnabled"
+                          render={({ field: { value, onChange } }) => (
+                            <SettingsToggle
+                              labelClassName="text-sm"
+                              title={t("auto_translate_instant_meeting_title")}
+                              checked={value}
+                              onCheckedChange={(e) => onChange(e)}
+                              data-testid="auto-translate-instant-meeting-title-toggle"
+                              toggleSwitchAtTheEnd={true}
+                              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6 mt-4"
+                              description={t("auto_translate_instant_meeting_title_description")}
+                            />
+                          )}
+                        />
                         <InstantMeetingWebhooks eventType={eventType} />
                       </div>
                     )}
@@ -275,7 +289,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
+  const [webhookToEdit, setWebhookToEdit] = useState<TWebhook>();
 
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {

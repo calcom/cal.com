@@ -59,7 +59,6 @@ const createSessionGetter = (userId: number) => async () => {
 };
 
 async function handler(request: NextRequest) {
-  const url = new URL(request.url);
   const searchParams = request.nextUrl.searchParams;
 
   const { action, token, reason } = querySchema.parse(Object.fromEntries(searchParams.entries()));
@@ -120,10 +119,10 @@ async function handler(request: NextRequest) {
   } catch (e) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
-    return NextResponse.redirect(`${url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(new URL(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`, request.url));
   }
 
-  return NextResponse.redirect(`${url.origin}/booking/${bookingUid}`);
+  return NextResponse.redirect(new URL(`/booking/${bookingUid}`, request.url));
 }
 
 export const GET = defaultResponderForAppDir(handler);
