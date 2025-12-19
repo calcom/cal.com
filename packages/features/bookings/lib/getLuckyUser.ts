@@ -502,10 +502,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: unknown;
-              operator?: unknown;
-              value?: unknown;
-              valueSrc?: unknown;
+              field?: string;
+              operator?: string;
+              value?: string[][];
+              valueSrc?: string;
             }
           | undefined;
       }
@@ -523,7 +523,7 @@ export class LuckyUserService implements ILuckyUserService {
       const attributeId = obj.field;
       const allRRHostsWeights = new Map<number, number[]>();
 
-      if (attributeId === attributeWithWeights.id) {
+      if (attributeId === attributeWithWeights.id && obj.value) {
         obj.value.forEach((arrayobj: string[]) => {
           arrayobj.forEach((attributeOption: string) => {
             const attributeOptionWithUsers = attributeWithWeights.options.find(
@@ -570,10 +570,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: unknown;
-              operator?: unknown;
-              value?: unknown;
-              valueSrc?: unknown;
+              field?: string;
+              operator?: string;
+              value?: string[][];
+              valueSrc?: string;
             }
           | undefined;
       }
@@ -590,7 +590,7 @@ export class LuckyUserService implements ILuckyUserService {
     fieldValueArray.some((obj) => {
       const attributeId = obj.field;
 
-      if (attributeId === attributeWithWeights.id) {
+      if (attributeId === attributeWithWeights.id && obj.value) {
         obj.value.some((arrayobj: string[]) => {
           arrayobj.some((attributeOptionId: string) => {
             const content = attributeOptionId.slice(1, -1);
