@@ -1,6 +1,8 @@
 "use client";
 
 import classNames from "classnames";
+import { ArrowRightIcon } from "lucide-react";
+
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -188,7 +190,7 @@ export const OnboardingOrganizationBrowserView = ({
                       </div>
                       <p className="text-subtle text-sm font-medium leading-tight">{event.description}</p>
                     </div>
-                    <Button color="primary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
+                    <Button color="primary" size="sm" EndIcon={ArrowRightIcon} tabIndex={-1}>
                       {t("book_now")}
                     </Button>
                   </div>

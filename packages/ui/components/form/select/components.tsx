@@ -1,6 +1,5 @@
-import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
 import { CheckIcon } from "lucide-react";
-import { Icon } from "../../icon";
+import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/ui/classNames";

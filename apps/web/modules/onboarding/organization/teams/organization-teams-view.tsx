@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { XIcon } from "lucide-react";
+import { PlusIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -147,7 +147,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                   type="button"
                   color="secondary"
                   size="sm"
-                  StartIcon="plus"
+                  StartIcon={PlusIcon}
                   className="w-fit"
                   onClick={() => {
                     posthog.capture("onboarding_organization_teams_add_clicked", {

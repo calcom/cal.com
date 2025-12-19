@@ -1,6 +1,5 @@
-import * as React from "react";
 import { FileDownIcon, XIcon } from "lucide-react";
-import { Icon } from "../icon";
+import * as React from "react";
 import { toast } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { GlobeIcon } from "lucide-react";
+import { CopyIcon, EllipsisIcon, GlobeIcon, StarIcon, TrashIcon } from "lucide-react";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
@@ -88,7 +88,7 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon="ellipsis"
+              StartIcon={EllipsisIcon}
             />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -96,7 +96,7 @@ export function ScheduleListItem({
               <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 <DropdownItem
                   type="button"
-                  StartIcon="star"
+                  StartIcon={StarIcon}
                   onClick={() => {
                     updateDefault({
                       scheduleId: schedule.id,
@@ -111,7 +111,7 @@ export function ScheduleListItem({
               <DropdownItem
                 type="button"
                 data-testid={`schedule-duplicate${schedule.id}`}
-                StartIcon="copy"
+                StartIcon={CopyIcon}
                 onClick={() => {
                   duplicateFunction({
                     scheduleId: schedule.id,
@@ -124,7 +124,7 @@ export function ScheduleListItem({
               <DropdownItem
                 type="button"
                 color="destructive"
-                StartIcon="trash"
+                StartIcon={TrashIcon}
                 data-testid="delete-schedule"
                 className="rounded-t-none"
                 onClick={() => {

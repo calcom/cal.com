@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, EllipsisIcon, ListFilterIcon } from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -145,7 +145,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
 
   if (!isSegmentEnabled) {
     return (
-      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
+      <Button color="secondary" StartIcon={ListFilterIcon} EndIcon={ChevronDownIcon} disabled>
         {t("segment")}
       </Button>
     );
@@ -157,8 +157,8 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
         <DropdownMenuTrigger asChild>
           <Button
             color="secondary"
-            StartIcon="list-filter"
-            EndIcon="chevron-down"
+            StartIcon={ListFilterIcon}
+            EndIcon={ChevronDownIcon}
             data-testid="filter-segment-select">
             {selectedSegment?.name || (shortLabel ? t("saved") : t("saved_filters"))}
           </Button>
@@ -257,7 +257,7 @@ function DropdownItemWithSubmenu({
         <Dropdown open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
             <Button
-              StartIcon="ellipsis"
+              StartIcon={EllipsisIcon}
               variant="icon"
               color="minimal"
               className="rounded-full"

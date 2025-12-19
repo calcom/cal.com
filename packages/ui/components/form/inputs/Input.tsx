@@ -1,8 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { EyeOffIcon, EyeIcon, SearchIcon } from "lucide-react";
-import { Icon } from "../../icon";
+import type { ReactNode } from "react";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 

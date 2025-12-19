@@ -1,4 +1,6 @@
 import { useFieldArray, useForm, useFormContext } from "react-hook-form";
+import { PlusIcon } from "lucide-react";
+
 
 import dayjs from "@calcom/dayjs";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
@@ -93,7 +95,7 @@ const DateOverride = ({
             handleAvailabilityUpdate();
           }}
           Trigger={
-            <Button color="secondary" StartIcon="plus" data-testid="add-override" disabled={disabled}>
+            <Button color="secondary" StartIcon={PlusIcon} data-testid="add-override" disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }

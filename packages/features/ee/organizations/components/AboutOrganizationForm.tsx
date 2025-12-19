@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { PlusIcon } from "lucide-react";
+import { ArrowRightIcon, PlusIcon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
@@ -96,7 +96,7 @@ export const AboutOrganizationForm = () => {
             // Form submitted means navigation is happening and new Form would render when that occurs, so keep it in loading state
             loading={aboutOrganizationFormMethods.formState.isSubmitted}
             color="primary"
-            EndIcon="arrow-right"
+            EndIcon={ArrowRightIcon}
             type="submit"
             className="w-full justify-center">
             {t("continue")}

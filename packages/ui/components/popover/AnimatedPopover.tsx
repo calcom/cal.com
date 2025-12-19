@@ -1,10 +1,10 @@
 import * as Popover from "@radix-ui/react-popover";
+import { ChevronDownIcon } from "lucide-react";
 import React from "react";
 
 import classNames from "@calcom/ui/classNames";
 
 import { buttonClasses } from "../button";
-import { Icon } from "../icon";
 import { Tooltip } from "../tooltip";
 
 export const AnimatedPopover = ({
@@ -79,10 +79,9 @@ export const AnimatedPopover = ({
                   )}
                 </div>
               </Tooltip>
-              <Icon
-                name="chevron-down"
-                className={classNames("ml-2 w-4 transition-transform duration-150", open && "rotate-180")}
-              />
+                            <ChevronDownIcon
+                              className={classNames("ml-2 w-4 transition-transform duration-150", open && "rotate-180")}
+                            />
             </div>
           )}
         </button>

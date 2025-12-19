@@ -1,7 +1,6 @@
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { CheckIcon } from "lucide-react";
-import { Icon } from "../../icon";
 import { useId } from "@radix-ui/react-id";
+import { CheckIcon } from "lucide-react";
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 import classNames from "@calcom/ui/classNames";

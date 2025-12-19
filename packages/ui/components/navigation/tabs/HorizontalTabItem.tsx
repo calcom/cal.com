@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -5,8 +6,6 @@ import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentU
 import classNames from "@calcom/ui/classNames";
 
 import { Avatar } from "../../avatar";
-import { Icon } from "../../icon";
-import type { IconName } from "../../icon";
 
 export type HorizontalTabItemProps = {
   name: string;
@@ -16,7 +15,7 @@ export type HorizontalTabItemProps = {
   href: string;
   linkShallow?: boolean;
   linkScroll?: boolean;
-  icon?: IconName;
+  icon?: LucideIcon;
   avatar?: string;
   onClick?: (name: string) => void;
   isActive?: boolean;
@@ -58,13 +57,12 @@ const HorizontalTabItem = function ({
       target={props.target ? props.target : undefined}
       data-testid={`horizontal-tab-${props["data-testid"]}`}
       aria-current={isCurrent ? "page" : undefined}>
-      {props.icon && (
-        <Icon
-          name={props.icon}
-          className={classNames("-ml-0.5 me-2 hidden h-4 w-4 text-inherit sm:inline-block")}
-          aria-hidden="true"
-        />
-      )}
+            {props.icon && (
+              <props.icon
+                className={classNames("-ml-0.5 me-2 hidden h-4 w-4 text-inherit sm:inline-block")}
+                aria-hidden="true"
+              />
+            )}
       {avatar && <Avatar size="xs" imageSrc={avatar} alt="avatar" className="-ml-0.5 me-1" />} {t(name)}
     </Link>
   );

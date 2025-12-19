@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { MailIcon, PhoneIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
@@ -339,7 +339,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon="trash-2"
+                        StartIcon={Trash2Icon}
                       />
                     )}
                     <Button
@@ -362,7 +362,7 @@ export const FormBuilder = function FormBuilder({
             data-testid="add-field"
             onClick={addField}
             className="mt-4"
-            StartIcon="plus">
+            StartIcon={PlusIcon}>
             {addFieldLabel}
           </Button>
         )}
@@ -489,7 +489,7 @@ function Options({
                       className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0!"
                       size="sm"
                       color="minimal"
-                      StartIcon="x"
+                      StartIcon={XIcon}
                       onClick={() => {
                         if (!value) return;
                         const newOptions = [...(value || [])];
@@ -536,7 +536,7 @@ function Options({
               newOptions.push({ label: "", value: "", price: 0 });
               onChange(newOptions);
             }}
-            StartIcon="plus">
+            StartIcon={PlusIcon}>
             Add an Option
           </Button>
         )}

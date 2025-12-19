@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { LucideIcon } from "lucide-react";
+import { AtomIcon, ExternalLinkIcon, HomeIcon, LockIcon } from "lucide-react";
 import { vi } from "vitest";
 
-import type { IconName } from "../../icon";
 import HorizontalTabs from "./HorizontalTabs";
 import VerticalTabs from "./VerticalTabs";
 
@@ -24,19 +25,19 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 
 describe("Navigation Components", () => {
   describe("HorizontalTabs", () => {
-    const mockTabs = [
-      { name: "Dashboard", href: "/dashboard", "data-testid": "dashboard" },
-      { name: "Settings", href: "/settings", icon: "atom", "data-testid": "settings" },
-      { name: "Profile", href: "/profile", avatar: "user-avatar", "data-testid": "profile" },
-      { name: "Disabled", href: "/disabled", disabled: true, "data-testid": "disabled" },
-    ] as {
-      name: string;
-      href: string;
-      icon?: IconName;
-      avatar?: string;
-      disabled?: boolean;
-      "data-testid"?: string;
-    }[];
+        const mockTabs = [
+          { name: "Dashboard", href: "/dashboard", "data-testid": "dashboard" },
+          { name: "Settings", href: "/settings", icon: AtomIcon, "data-testid": "settings" },
+          { name: "Profile", href: "/profile", avatar: "user-avatar", "data-testid": "profile" },
+          { name: "Disabled", href: "/disabled", disabled: true, "data-testid": "disabled" },
+        ] as {
+          name: string;
+          href: string;
+          icon?: LucideIcon;
+          avatar?: string;
+          disabled?: boolean;
+          "data-testid"?: string;
+        }[];
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -84,47 +85,47 @@ describe("Navigation Components", () => {
   });
 
   describe("VerticalTabs", () => {
-    const mockTabs = [
-      {
-        name: "Overview",
-        href: "/overview",
-        icon: "home",
-        info: "Main dashboard view",
-        "data-testid": "Overview",
-      },
-      {
-        name: "External",
-        href: "https://external.com",
-        isExternalLink: true,
-        icon: "external",
-        "data-testid": "External",
-      },
-      {
-        name: "Disabled",
-        href: "/disabled",
-        disabled: true,
-        icon: "lock",
-        "data-testid": "Disabled",
-      },
-      {
-        name: "Child Tab",
-        href: "/child",
-        isChild: true,
-        disableChevron: true,
-        "data-testid": "Child Tab",
-      },
-    ] as {
-      name: string;
-      href: string;
-      icon?: IconName;
-      avatar?: string;
-      disabled?: boolean;
-      isExternalLink?: boolean;
-      isChild?: boolean;
-      disableChevron?: boolean;
-      info?: string;
-      "data-testid"?: string;
-    }[];
+        const mockTabs = [
+          {
+            name: "Overview",
+            href: "/overview",
+            icon: HomeIcon,
+            info: "Main dashboard view",
+            "data-testid": "Overview",
+          },
+          {
+            name: "External",
+            href: "https://external.com",
+            isExternalLink: true,
+            icon: ExternalLinkIcon,
+            "data-testid": "External",
+          },
+          {
+            name: "Disabled",
+            href: "/disabled",
+            disabled: true,
+            icon: LockIcon,
+            "data-testid": "Disabled",
+          },
+          {
+            name: "Child Tab",
+            href: "/child",
+            isChild: true,
+            disableChevron: true,
+            "data-testid": "Child Tab",
+          },
+        ] as {
+          name: string;
+          href: string;
+          icon?: LucideIcon;
+          avatar?: string;
+          disabled?: boolean;
+          isExternalLink?: boolean;
+          isChild?: boolean;
+          disableChevron?: boolean;
+          info?: string;
+          "data-testid"?: string;
+        }[];
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -162,45 +163,45 @@ describe("Navigation Components", () => {
       await expect(container.firstChild).toHaveClass("sticky");
     });
 
-    test("applies custom icon correctly", async () => {
-      render(
-        <VerticalTabs
-          tabs={[
-            {
-              name: "Overview",
-              href: "/overview",
-              icon: "atom",
-              info: "Main dashboard view",
-            },
-          ]}
-          className="custom-nav"
-          itemClassname="custom-item"
-          iconClassName="custom-icon"
-        />
-      );
+        test("applies custom icon correctly", async () => {
+          render(
+            <VerticalTabs
+              tabs={[
+                {
+                  name: "Overview",
+                  href: "/overview",
+                  icon: AtomIcon,
+                  info: "Main dashboard view",
+                },
+              ]}
+              className="custom-nav"
+              itemClassname="custom-item"
+              iconClassName="custom-icon"
+            />
+          );
 
       const iconElement = screen.getByTestId("icon-component");
       expect(iconElement).toBeInTheDocument();
       await expect(iconElement).toHaveClass("custom-icon");
     });
 
-    test("applies custom classNames correctly", async () => {
-      render(
-        <VerticalTabs
-          tabs={[
-            {
-              name: "Overview",
-              href: "/overview",
-              icon: "atom",
-              info: "Main dashboard view",
-              "data-testid": "overview",
-            },
-          ]}
-          className="custom-nav"
-          itemClassname="custom-item"
-          iconClassName="custom-icon"
-        />
-      );
+        test("applies custom classNames correctly", async () => {
+          render(
+            <VerticalTabs
+              tabs={[
+                {
+                  name: "Overview",
+                  href: "/overview",
+                  icon: AtomIcon,
+                  info: "Main dashboard view",
+                  "data-testid": "overview",
+                },
+              ]}
+              className="custom-nav"
+              itemClassname="custom-item"
+              iconClassName="custom-icon"
+            />
+          );
 
       const nav = screen.getByTestId("vertical-tab-overview").closest("nav");
       await expect(nav).toHaveClass("custom-nav");

@@ -1,6 +1,7 @@
-import classNames from "@calcom/ui/classNames";
+import type { LucideIcon } from "lucide-react";
 import { CheckIcon } from "lucide-react";
-import { Icon } from "../icon";
+
+import classNames from "@calcom/ui/classNames";
 
 import { Badge } from "../badge/Badge";
 import { Button } from "../button/Button";
@@ -13,7 +14,6 @@ import {
   CommandItem,
   CommandSeparator,
 } from "../command/Command";
-import type { IconName } from "../icon/";
 import { Popover, PopoverTrigger, PopoverContent } from "../popover/Popover";
 
 export interface FilterOption {
@@ -27,7 +27,7 @@ interface FilterSelectProps {
   options: FilterOption[];
   selectedValue?: string | number | null;
   onChange: (value: string | number | null) => void;
-  buttonIcon?: IconName;
+  buttonIcon?: LucideIcon;
   placeholder?: string;
   emptyText?: string;
   testId?: string;

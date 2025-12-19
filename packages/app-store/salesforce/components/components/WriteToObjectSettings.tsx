@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { CheckIcon, PencilIcon, PlusIcon, XIcon } from "lucide-react";
+
 import type z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -327,14 +329,14 @@ const WriteToObjectSettings = ({
                       <>
                         <Button
                           size="sm"
-                          StartIcon="check"
+                          StartIcon={CheckIcon}
                           variant="icon"
                           color="primary"
                           onClick={() => saveEditing(key)}
                         />
                         <Button
                           size="sm"
-                          StartIcon="x"
+                          StartIcon={XIcon}
                           variant="icon"
                           color="secondary"
                           onClick={() => cancelEditing(key)}
@@ -344,14 +346,14 @@ const WriteToObjectSettings = ({
                       <>
                         <Button
                           size="sm"
-                          StartIcon="pencil"
+                          StartIcon={PencilIcon}
                           variant="icon"
                           color="minimal"
                           onClick={() => startEditing(key)}
                         />
                         <Button
                           size="sm"
-                          StartIcon="x"
+                          StartIcon={XIcon}
                           variant="icon"
                           color="minimal"
                           onClick={() => {
@@ -470,7 +472,7 @@ const WriteToObjectSettings = ({
           </Section.SubSectionNested>
           <Button
             className="text-subtle mt-2 w-fit"
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             color="minimal"
             size="sm"
             disabled={

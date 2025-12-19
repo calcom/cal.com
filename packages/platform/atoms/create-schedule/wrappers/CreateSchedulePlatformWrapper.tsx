@@ -1,4 +1,6 @@
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { PlusIcon } from "lucide-react";
+
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,7 +40,7 @@ export const CreateSchedulePlatformWrapper = ({
             type="button"
             data-testid={name}
             className={customClassNames?.createScheduleButton}
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             onClick={() => setIsDialogOpen(true)}>
             {name ?? t("new")}
           </Button>

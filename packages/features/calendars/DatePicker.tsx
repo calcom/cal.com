@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -448,7 +450,7 @@ const DatePicker = ({
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon="chevron-left"
+              StartIcon={ChevronLeftIcon}
               aria-label={t("view_previous_month")}
             />
             <Button
@@ -460,7 +462,7 @@ const DatePicker = ({
               data-testid="incrementMonth"
               color="minimal"
               variant="icon"
-              StartIcon="chevron-right"
+              StartIcon={ChevronRightIcon}
               aria-label={t("view_next_month")}
             />
           </div>

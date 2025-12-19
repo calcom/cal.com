@@ -1,5 +1,7 @@
  
 import startCase from "lodash/startCase";
+import { ChevronDownIcon } from "lucide-react";
+
 
 import type { FilterType } from "@calcom/types/data-table";
 import { Badge } from "@calcom/ui/components/badge";
@@ -143,7 +145,7 @@ export function FilterPopover({ column }: FilterPopoverProps) {
           color="secondary"
           className="h-[34px] items-center"
           StartIcon={icon}
-          EndIcon="chevron-down"
+          EndIcon={ChevronDownIcon}
           data-testid={`filter-popover-trigger-${column.id}`}>
           <span>{startCase(column.title)}</span>
           <AppliedFilterValue column={column} filterValue={filterValue} />

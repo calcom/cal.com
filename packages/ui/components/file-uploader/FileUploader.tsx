@@ -1,13 +1,14 @@
 "use client";
 
+import { FileIcon, FileTextIcon, UploadIcon, VideoIcon, XIcon } from "lucide-react";
 import { useCallback, useState } from "react";
+
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../button";
 import { Input, Label } from "../form";
-import { Icon } from "../icon";
 import { showToast } from "../toast";
 
 export interface FileData {
@@ -181,11 +182,11 @@ export default function FileUploader({
     [files, onFilesChange]
   );
 
-  const getFileIcon = (fileType: string) => {
-    if (fileType.startsWith("image/")) return "file";
-    if (fileType.startsWith("video/")) return "video";
-    return "file-text";
-  };
+    const getFileIcon = (fileType: string) => {
+      if (fileType.startsWith("image/")) return FileIcon;
+      if (fileType.startsWith("video/")) return VideoIcon;
+      return FileTextIcon;
+    };
 
   const extensionsString = allowedExtensions.length > 0 ? allowedExtensions.join(",") : "any";
 
@@ -201,14 +202,14 @@ export default function FileUploader({
     <div>
       <div className="stack-y-3">
         <div className="flex items-center gap-2">
-          <Label
-            htmlFor={id}
-            className={`mb-0 inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              disabled ? "cursor-not-allowed opacity-50" : ""
-            }`}>
-            <Icon name="upload" className="h-4 w-4" />
-            {buttonText}
-          </Label>
+                    <Label
+                      htmlFor={id}
+                      className={`mb-0 inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        disabled ? "cursor-not-allowed opacity-50" : ""
+                      }`}>
+                      <UploadIcon className="h-4 w-4" />
+                      {buttonText}
+                    </Label>
           <div className="flex items-center">
             <Input
               id={id}
@@ -232,9 +233,12 @@ export default function FileUploader({
         <div className="mt-2 stack-y-1 transition">
           {files.map((fileData) => (
             <div key={fileData.id} className="flex items-center justify-between rounded-md border">
-              <div className="flex min-w-0 items-center gap-2 pl-2">
-                <Icon name={getFileIcon(fileData.file.type)} className="h-5 w-5 shrink-0" />
-                <div className="min-w-0 border-l py-2 pl-3">
+                            <div className="flex min-w-0 items-center gap-2 pl-2">
+                              {(() => {
+                                const IconComponent = getFileIcon(fileData.file.type);
+                                return <IconComponent className="h-5 w-5 shrink-0" />;
+                              })()}
+                              <div className="min-w-0 border-l py-2 pl-3">
                   <p className="text-emphasis truncate text-sm font-medium">{fileData.file.name}</p>
                   <p className="text-xs">{formatFileSize(fileData.file.size)}</p>
                 </div>
@@ -243,7 +247,7 @@ export default function FileUploader({
                 variant="icon"
                 color="destructive"
                 size="sm"
-                StartIcon="x"
+                StartIcon={XIcon}
                 onClick={() => handleFileRemove(fileData.id)}
                 className="mx-2 h-6 w-6 shrink-0"
               />

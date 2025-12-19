@@ -1,8 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { ArrowLeftIcon, RotateCwIcon } from "lucide-react";
-import { Icon } from "../icon";
+import type { ReactNode } from "react";
 
 import { type ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import classNames from "@calcom/ui/classNames";

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { TrashIcon } from "lucide-react";
+import { PlusIcon, TrashIcon } from "lucide-react";
 import type { ChangeEvent } from "react";
 import type {
   ButtonGroupProps,
@@ -253,7 +253,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   return (
     <CalButton
       size="sm"
-      StartIcon="plus"
+      StartIcon={PlusIcon}
       data-testid={dataTestId}
       type="button"
       color="minimal"

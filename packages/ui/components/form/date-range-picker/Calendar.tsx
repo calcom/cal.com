@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { Icon } from "../../icon";
+import * as React from "react";
 import { DayPicker } from "react-day-picker";
 
 import dayjs from "@calcom/dayjs";

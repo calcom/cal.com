@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ArrowRightIcon, PlusIcon } from "lucide-react";
+
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -232,7 +234,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
         {counter === 5 && <p className="text-subtle my-2 text-sm">{t("org_max_team_warnings")}</p>}
         {counter < 5 && (
           <Button
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             color="secondary"
             onClick={handleCounterIncrease}
             aria-label={t("add_a_team")}
@@ -242,7 +244,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
           </Button>
         )}
         <Button
-          EndIcon="arrow-right"
+          EndIcon={ArrowRightIcon}
           type="submit"
           color="primary"
           className="mt-6 w-full justify-center"

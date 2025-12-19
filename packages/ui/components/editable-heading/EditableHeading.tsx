@@ -2,7 +2,6 @@
 
 import classNames from "classnames";
 import { PencilIcon } from "lucide-react";
-import { Icon } from "../icon";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 

@@ -1,6 +1,8 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
+import { PlusIcon, Trash2Icon } from "lucide-react";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -118,7 +120,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
         <Button
           color="secondary"
           data-testid="new-member-button"
-          StartIcon="plus"
+          StartIcon={PlusIcon}
           onClick={() => setMemberInviteModal(true)}
           className={classNames("w-full justify-center", totalFetched > 0 && "mt-6")}>
           {isOrg ? t("add_org_members") : t("add_team_member")}
@@ -247,7 +249,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       {(member.role !== "OWNER" || isAdminOrOwner) && member.id !== session.data?.user.id && (
         <Button
           data-testid="remove-member-button"
-          StartIcon="trash-2"
+          StartIcon={Trash2Icon}
           variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"

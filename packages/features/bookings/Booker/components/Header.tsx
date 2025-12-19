@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { CalendarIcon, Grid3x3Icon, Columns3Icon } from "lucide-react";
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, Columns3Icon, Grid3x3Icon } from "lucide-react";
 import { shallow } from "zustand/shallow";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -120,7 +120,7 @@ export function Header({
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon="chevron-left"
+            StartIcon={ChevronLeftIcon}
             aria-label="Previous Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
           />
@@ -128,7 +128,7 @@ export function Header({
             className="group rtl:mr-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon="chevron-right"
+            StartIcon={ChevronRightIcon}
             aria-label="Next Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : extraDays)}
           />

@@ -1,6 +1,8 @@
 "use client";
 
 import { useReducer } from "react";
+import { PlusIcon } from "lucide-react";
+
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
 import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
@@ -148,7 +150,7 @@ const IntegrationsContainer = ({
                   data-testid="add-apps"
                   href={variant ? `/apps/categories/${variant}` : "/apps"}
                   color="secondary"
-                  StartIcon="plus">
+                  StartIcon={PlusIcon}>
                   {t("add")}
                 </Button>
               }

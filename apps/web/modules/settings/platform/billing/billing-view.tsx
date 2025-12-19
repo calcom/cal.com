@@ -1,6 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { ExternalLinkIcon } from "lucide-react";
+
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import Shell from "@calcom/features/shell/Shell";
@@ -93,7 +95,7 @@ export default function PlatformBillingUpgrade() {
             <CtaRow
               title={t("view_and_manage_billing_details")}
               description={t("view_and_edit_billing_details")}>
-              <Button color="primary" href={billingHref} target="_blank" EndIcon="external-link">
+              <Button color="primary" href={billingHref} target="_blank" EndIcon={ExternalLinkIcon}>
                 {t("billing_portal")}
               </Button>
             </CtaRow>

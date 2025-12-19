@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TriangleAlertIcon, MailOpenIcon } from "lucide-react";
+import { ExternalLinkIcon, MailOpenIcon, TriangleAlertIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -193,7 +193,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
                   : "https://mail.google.com/mail/u/0/"
               }
               target="_blank"
-              EndIcon="external-link">
+              EndIcon={ExternalLinkIcon}>
               {t("open_in_gmail")}
             </Button>
           </div>

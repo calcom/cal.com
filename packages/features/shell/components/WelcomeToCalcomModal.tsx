@@ -1,7 +1,7 @@
 "use client";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { UserIcon, CheckIcon } from "lucide-react";
+import { CheckIcon, ExternalLinkIcon, UserIcon } from "lucide-react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
@@ -101,7 +101,7 @@ export function WelcomeToCalcomModal() {
             color="minimal"
             href="https://cal.com/docs"
             target="_blank"
-            EndIcon="external-link"
+            EndIcon={ExternalLinkIcon}
             className="pointer-events-none opacity-0">
             {t("learn_more")}
           </Button>

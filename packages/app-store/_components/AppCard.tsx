@@ -142,7 +142,7 @@ export default function AppCard({
               <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
                 <p>{t("this_app_is_not_setup_already")}</p>
                 <Link href={`/apps/${app.slug}/setup`}>
-                  <Button StartIcon="settings">{t("setup")}</Button>
+                  <Button StartIcon={SettingsIcon}>{t("setup")}</Button>
                 </Link>
               </div>
             )}

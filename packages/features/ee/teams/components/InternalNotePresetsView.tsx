@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { TrashIcon, CornerDownRightIcon } from "lucide-react";
+import { CornerDownRightIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 
@@ -165,7 +165,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                 <Button
                   type="button"
                   color="minimal"
-                  StartIcon="plus"
+                  StartIcon={PlusIcon}
                   onClick={addNewPreset}
                   className="mt-4">
                   {t("add_preset")}

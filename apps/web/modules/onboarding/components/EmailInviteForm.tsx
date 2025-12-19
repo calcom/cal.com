@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
-import { XIcon } from "lucide-react";
+import { PlusIcon, XIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -108,7 +108,7 @@ export function EmailInviteForm({
           type="button"
           color="secondary"
           size="sm"
-          StartIcon="plus"
+          StartIcon={PlusIcon}
           className={showTeamSelect ? "mt-2 w-fit" : "w-fit"}
           onClick={() =>
             append(

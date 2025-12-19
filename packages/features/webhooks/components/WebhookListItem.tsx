@@ -1,6 +1,8 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
+
 
 import type { Webhook } from "../lib/dto/types";
 import { getWebhookVersionLabel } from "../lib/constants";
@@ -138,7 +140,7 @@ export default function WebhookListItem(props: {
             <Button
               className="hidden lg:flex"
               color="destructive"
-              StartIcon="trash"
+              StartIcon={TrashIcon}
               variant="icon"
               onClick={onDeleteWebhook}
             />
@@ -146,12 +148,12 @@ export default function WebhookListItem(props: {
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon={EllipsisIcon} variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {props.permissions.canEditWebhook && (
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
+                  <DropdownItem StartIcon={PencilIcon} color="secondary" onClick={props.onEditWebhook}>
                     {t("edit")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -161,7 +163,7 @@ export default function WebhookListItem(props: {
 
               {props.permissions.canDeleteWebhook && (
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                  <DropdownItem StartIcon={TrashIcon} color="destructive" onClick={onDeleteWebhook}>
                     {t("delete")}
                   </DropdownItem>
                 </DropdownMenuItem>

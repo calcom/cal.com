@@ -1,4 +1,6 @@
 import type { Table } from "@tanstack/react-table";
+import { ExternalLinkIcon } from "lucide-react";
+
 import { useQueryState, parseAsBoolean } from "nuqs";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -46,7 +48,7 @@ export function DynamicLink<T extends { username: string | null }>({
             </Button>
             <Button
               color="secondary"
-              EndIcon="external-link"
+              EndIcon={ExternalLinkIcon}
               size="sm"
               href={dynamicLinkOfSelectedUsers}
               target="_blank"

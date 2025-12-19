@@ -1,4 +1,6 @@
 import { useRouter } from "next/navigation";
+import { PlusIcon } from "lucide-react";
+
 
 import type { PlatformOAuthClientDto } from "@calcom/platform-types";
 import { Button } from "@calcom/ui/components/button";
@@ -78,8 +80,8 @@ const NewOAuthClientButton = ({ redirectLink, label }: { redirectLink: string; l
         router.push(redirectLink);
       }}
       color="secondary"
-      StartIcon="plus">
-      {!!label ? label : "Add"}
+      StartIcon={PlusIcon}>
+      {label ? label : "Add"}
     </Button>
   );
 };

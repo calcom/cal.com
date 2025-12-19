@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { XIcon } from "lucide-react";
+import { PlusIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -485,7 +485,7 @@ const RoundRobinHosts = ({
               />
             </p>
           </div>
-          <Button color="secondary" size="sm" StartIcon="plus" onClick={handleAddGroup}>
+          <Button color="secondary" size="sm" StartIcon={PlusIcon} onClick={handleAddGroup}>
             {t("add_group")}
           </Button>
         </div>

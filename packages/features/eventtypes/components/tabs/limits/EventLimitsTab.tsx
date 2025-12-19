@@ -1,4 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { PlusIcon, Trash2Icon } from "lucide-react";
+
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
@@ -913,7 +915,7 @@ const IntervalLimitItem = ({
       {hasDeleteButton && !disabled && (
         <Button
           variant="icon"
-          StartIcon="trash-2"
+          StartIcon={Trash2Icon}
           color="destructive"
           className={classNames("border-none", customClassNames?.addLimitButton)}
           onClick={() => onDelete(limitKey)}
@@ -1028,7 +1030,7 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
                   );
                 })}
             {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && !disabled && (
-              <Button color="minimal" StartIcon="plus" onClick={addLimit}>
+              <Button color="minimal" StartIcon={PlusIcon} onClick={addLimit}>
                 {t("add_limit")}
               </Button>
             )}

@@ -1,6 +1,5 @@
+import { CheckIcon, CircleIcon, XIcon } from "lucide-react";
 import type { FieldValues } from "react-hook-form";
-import { XIcon, CircleIcon, CheckIcon } from "lucide-react";
-import { Icon } from "../../icon";
 import { useFormContext } from "react-hook-form";
 
 import { InputError } from "./InputError";

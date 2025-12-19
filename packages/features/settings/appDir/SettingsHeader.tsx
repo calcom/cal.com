@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { LoaderIcon } from "lucide-react";
+import { ArrowLeftIcon, LoaderIcon } from "lucide-react";
 
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -57,7 +57,7 @@ export default function Header({
                 color="minimal"
                 onClick={onBackButtonClick}
                 className="rounded-md ltr:mr-2 rtl:ml-2"
-                StartIcon="arrow-left"
+                StartIcon={ArrowLeftIcon}
                 aria-label={t("go_back")}
               />
             )}

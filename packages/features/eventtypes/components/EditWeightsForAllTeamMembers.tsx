@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { UploadIcon, SearchIcon, InfoIcon, ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, DownloadIcon, InfoIcon, SearchIcon, UploadIcon } from "lucide-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -287,7 +287,7 @@ export const EditWeightsForAllTeamMembers = ({
                   <input type="file" accept=".csv" className="hidden" onChange={handleUploadCsv} />
                   {t("upload")}
                 </label>
-                <Button color="secondary" StartIcon="download" onClick={handleDownloadCsv}>
+                <Button color="secondary" StartIcon={DownloadIcon} onClick={handleDownloadCsv}>
                   {t("download")}
                 </Button>
               </div>

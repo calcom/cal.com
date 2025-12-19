@@ -1,4 +1,6 @@
 import { usePathname } from "next/navigation";
+import { XIcon } from "lucide-react";
+
 import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
@@ -236,7 +238,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     </div>
                     <div className="flex w-10 justify-center">
                       <Button
-                        StartIcon="x"
+                        StartIcon={XIcon}
                         variant="icon"
                         size="sm"
                         color="minimal"

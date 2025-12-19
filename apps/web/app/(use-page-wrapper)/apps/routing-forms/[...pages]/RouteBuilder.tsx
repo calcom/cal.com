@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { GlobeIcon, ZapIcon, UserCheckIcon, BlocksIcon, ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, BlocksIcon, GlobeIcon, PlusIcon, UserCheckIcon, ZapIcon } from "lucide-react";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
@@ -1324,14 +1324,14 @@ const Routes = ({
             text="Routes determine where your form responses will be sent based on the answers provided."
             buttonText={t("add_a_new_route")}
             buttonOnClick={createRoute}
-            buttonStartIcon="plus"
+            buttonStartIcon={PlusIcon}
             buttonClassName="mt-6"
             buttonDataTestId="add-route-button"
           />
         ) : (
           <Button
             color="minimal"
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             className="mb-6"
             onClick={createRoute}
             data-testid="add-route-button">

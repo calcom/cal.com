@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { EllipsisIcon } from "lucide-react";
+
 import type { z } from "zod";
 
 import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
@@ -589,7 +591,7 @@ export function BookingActionsDropdown({
             type="button"
             color="secondary"
             size={size}
-            StartIcon="ellipsis"
+            StartIcon={EllipsisIcon}
             className={classNames("px-2", className)}
             // Prevent click from bubbling to parent row/container click handlers
             onClick={(e) => e.stopPropagation()}

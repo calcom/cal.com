@@ -1,7 +1,9 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, ChevronUpIcon, CopyIcon, EllipsisIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -10,8 +12,6 @@ import { Badge } from "../badge";
 import { Button } from "../button";
 import { Dropdown, DropdownMenuTrigger, DropdownMenuContent, DropdownItem } from "../dropdown";
 import { Input } from "../form/inputs/TextField";
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void; color?: "destructive" | "minimal"; disabled?: boolean };
 
@@ -23,26 +23,26 @@ type FormCardActionsProps = {
 const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) => {
   type ActionItem = {
     label: string;
-    icon: IconName;
+    icon: LucideIcon;
     onClick: () => void;
     color: "destructive" | "minimal";
     disabled?: boolean;
   };
 
-  const actions: ActionItem[] = [
-    duplicateField?.fn && {
-      label: "Duplicate",
-      icon: "copy",
-      onClick: () => duplicateField.fn(),
-    },
-    deleteField?.fn && {
-      label: "Delete",
-      icon: "trash",
-      onClick: () => deleteField.fn(),
-      color: deleteField.color ?? "minimal",
-      disabled: deleteField.disabled,
-    },
-  ].filter((action): action is ActionItem => !!action);
+    const actions: ActionItem[] = [
+      duplicateField?.fn && {
+        label: "Duplicate",
+        icon: CopyIcon,
+        onClick: () => duplicateField.fn(),
+      },
+      deleteField?.fn && {
+        label: "Delete",
+        icon: TrashIcon,
+        onClick: () => deleteField.fn(),
+        color: deleteField.color ?? "minimal",
+        disabled: deleteField.disabled,
+      },
+    ].filter((action): action is ActionItem => !!action);
 
   if (actions.length === 0) return null;
 
@@ -63,14 +63,14 @@ const FormCardActions = ({ deleteField, duplicateField }: FormCardActionsProps) 
     );
   }
 
-  // If multiple actions, show dropdown
-  return (
-    <Dropdown>
-      <DropdownMenuTrigger asChild>
-        <Button type="button" variant="icon" color="minimal" className="ml-2">
-          <Icon name="ellipsis" className="text-default h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
+    // If multiple actions, show dropdown
+    return (
+      <Dropdown>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="icon" color="minimal" className="ml-2">
+            <EllipsisIcon className="text-default h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
       <DropdownMenuContent>
         {actions.map((action) => (
           <DropdownItem
@@ -115,7 +115,7 @@ export default function FormCard({
   moveDown?: Action | null;
   className?: string;
   badge?: { text: string; href?: string; variant: BadgeProps["variant"] } | null;
-  leftIcon?: IconName;
+  leftIcon?: LucideIcon;
   collapsible?: boolean;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
@@ -131,52 +131,51 @@ export default function FormCard({
 
   return (
     <div className={className} {...restProps}>
-      <div className="absolute left-0 top-1/2 -translate-y-1/2">
-        {moveUp?.check() ? (
-          <button
-            type="button"
-            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
-            onClick={() => moveUp?.fn()}>
-            <Icon name="arrow-up" />
-          </button>
-        ) : null}
-        {moveDown?.check() ? (
-          <button
-            type="button"
-            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
-            onClick={() => moveDown?.fn()}>
-            <Icon name="arrow-down" />
-          </button>
-        ) : null}
-      </div>
+            <div className="absolute left-0 top-1/2 -translate-y-1/2">
+              {moveUp?.check() ? (
+                <button
+                  type="button"
+                  className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+                  onClick={() => moveUp?.fn()}>
+                  <ArrowUpIcon />
+                </button>
+              ) : null}
+              {moveDown?.check() ? (
+                <button
+                  type="button"
+                  className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+                  onClick={() => moveDown?.fn()}>
+                  <ArrowDownIcon />
+                </button>
+              ) : null}
+            </div>
       <div className="w-full">
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-2">
-            {leftIcon && (
-              <div className="text-subtle border-subtle rounded-lg border p-1.5">
-                <Icon name={leftIcon} className="text-default h-4 w-4" />
-              </div>
-            )}
-            {collapsible && (
-              <Button
-                size="sm"
-                variant="icon"
-                color="minimal"
-                CustomStartIcon={
-                  <Icon
-                    name="chevron-up"
-                    className={classNames(
-                      "text-default h-4 w-4 transition-transform",
-                      isCollapsed && "rotate-180"
-                    )}
-                  />
-                }
-                onClick={() => {
-                  toggleFormCard();
-                }}
-                className="text-muted"
-              />
-            )}
+                        {leftIcon && (
+                          <div className="text-subtle border-subtle rounded-lg border p-1.5">
+                            {React.createElement(leftIcon, { className: "text-default h-4 w-4" })}
+                          </div>
+                        )}
+                        {collapsible && (
+                          <Button
+                            size="sm"
+                            variant="icon"
+                            color="minimal"
+                            CustomStartIcon={
+                              <ChevronUpIcon
+                                className={classNames(
+                                  "text-default h-4 w-4 transition-transform",
+                                  isCollapsed && "rotate-180"
+                                )}
+                              />
+                            }
+                            onClick={() => {
+                              toggleFormCard();
+                            }}
+                            className="text-muted"
+                          />
+                        )}
             {typeof label === "string" ? (
               isLabelEditable ? (
                 <Input type="text" value={label} onChange={(e) => onLabelChange?.(e.target.value)} />

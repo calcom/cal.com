@@ -7,6 +7,8 @@
 // 1. org/[orgSlug]/team/[slug]
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
+import { ArrowRightIcon } from "lucide-react";
+
 import Link from "next/link";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -200,7 +202,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                     <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                       <Button
                         color="minimal"
-                        EndIcon="arrow-right"
+                        EndIcon={ArrowRightIcon}
                         data-testid="book-a-team-member-btn"
                         className="dark:hover:bg-darkgray-200"
                         href={{

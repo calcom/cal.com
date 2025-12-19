@@ -1,4 +1,6 @@
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { EllipsisIcon, ExternalLinkIcon, LinkIcon, PencilIcon, TrashIcon } from "lucide-react";
+
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -81,7 +83,7 @@ export default function OtherTeamListItem(props: Props) {
                       showToast(t("link_copied"), "success");
                     }}
                     variant="icon"
-                    StartIcon="link"
+                    StartIcon={LinkIcon}
                   />
                 </Tooltip>
               )}
@@ -92,7 +94,7 @@ export default function OtherTeamListItem(props: Props) {
                     type="button"
                     color="secondary"
                     variant="icon"
-                    StartIcon="ellipsis"
+                    StartIcon={EllipsisIcon}
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent hidden={hideDropdown}>
@@ -100,7 +102,7 @@ export default function OtherTeamListItem(props: Props) {
                     <DropdownItem
                       type="button"
                       href={`/settings/teams/other/${team.id}/profile`}
-                      StartIcon="pencil">
+                      StartIcon={PencilIcon}>
                       {t("edit_team") as string}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -115,7 +117,7 @@ export default function OtherTeamListItem(props: Props) {
                             ? `${orgBranding.fullDomain}`
                             : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/other`
                         }/${team.slug}`}
-                        StartIcon="external-link">
+                        StartIcon={ExternalLinkIcon}>
                         {t("preview_team") as string}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -127,7 +129,7 @@ export default function OtherTeamListItem(props: Props) {
                         <DropdownItem
                           color="destructive"
                           type="button"
-                          StartIcon="trash"
+                          StartIcon={TrashIcon}
                           className="rounded-t-none"
                           onClick={(e) => {
                             e.stopPropagation();

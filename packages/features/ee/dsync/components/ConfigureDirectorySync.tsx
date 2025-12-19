@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { TrashIcon } from "lucide-react";
+
 
 import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -73,7 +75,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
           {/* Delete directory sync connection */}
           <Dialog open={deleteDirectoryOpen} onOpenChange={setDeleteDirectoryOpen}>
             <DialogTrigger asChild>
-              <Button color="destructive" className="mt-1" StartIcon="trash">
+              <Button color="destructive" className="mt-1" StartIcon={TrashIcon}>
                 {t("directory_sync_delete_connection")}
               </Button>
             </DialogTrigger>

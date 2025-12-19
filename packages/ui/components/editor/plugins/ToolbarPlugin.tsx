@@ -1,8 +1,7 @@
 "use client";
 
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
-import { ChevronDownIcon } from "lucide-react";
-import { Icon } from "../../icon";
+import { BoldIcon, ChevronDownIcon, ItalicIcon, LinkIcon } from "lucide-react";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
   $isListNode,
@@ -500,7 +499,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               color="minimal"
               variant="icon"
               type="button"
-              StartIcon="bold"
+              StartIcon={BoldIcon}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
               }}
@@ -513,7 +512,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               color="minimal"
               variant="icon"
               type="button"
-              StartIcon="italic"
+              StartIcon={ItalicIcon}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
               }}
@@ -527,7 +526,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                 color="minimal"
                 variant="icon"
                 type="button"
-                StartIcon="link"
+                StartIcon={LinkIcon}
                 onClick={insertLink}
                 className={isLink ? "bg-subtle" : ""}
               />

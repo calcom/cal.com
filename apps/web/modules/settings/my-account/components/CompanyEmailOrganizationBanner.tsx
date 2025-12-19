@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ExternalLinkIcon } from "lucide-react";
+
 
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -73,7 +75,7 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
             <Button color="secondary" onClick={onDismissAction}>
               {t("dismiss")}
             </Button>
-            <Button color="primary" EndIcon="external-link" onClick={handleLearnMore}>
+            <Button color="primary" EndIcon={ExternalLinkIcon} onClick={handleLearnMore}>
               {t("upgrade")}
             </Button>
           </div>

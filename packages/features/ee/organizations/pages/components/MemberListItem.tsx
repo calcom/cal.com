@@ -1,4 +1,6 @@
 import classNames from "classnames";
+import { EllipsisIcon, ExternalLinkIcon } from "lucide-react";
+
 
 import TeamPill, { TeamRole } from "@calcom/ee/teams/components/TeamPill";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -72,7 +74,7 @@ export default function MemberListItem(props: Props) {
                   color="secondary"
                   className={classNames("rounded-r-md")}
                   variant="icon"
-                  StartIcon="external-link"
+                  StartIcon={ExternalLinkIcon}
                   disabled={!member.accepted}
                 />
               </Tooltip>
@@ -81,7 +83,7 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+                  <Button type="button" variant="icon" color="minimal" StartIcon={EllipsisIcon} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
@@ -90,7 +92,7 @@ export default function MemberListItem(props: Props) {
                       href={`/${user.username}`}
                       target="_blank"
                       type="button"
-                      StartIcon="external-link">
+                      StartIcon={ExternalLinkIcon}>
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>

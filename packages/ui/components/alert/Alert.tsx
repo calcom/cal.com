@@ -1,10 +1,9 @@
 import { cva } from "class-variance-authority";
 import classNames from "classnames";
+import type { LucideIcon } from "lucide-react";
+import { CircleXIcon, InfoIcon, TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
-
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
 
 export const alertStyles = cva("rounded-[10px] p-3", {
   variants: {
@@ -27,7 +26,7 @@ export interface AlertProps {
   className?: string;
   iconClassName?: string;
   severity: "warning" | "error" | "info" | "neutral";
-  CustomIcon?: IconName;
+  CustomIcon?: LucideIcon;
   customIconColor?: string;
 }
 
@@ -39,8 +38,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
       <div className="relative flex md:flex-row">
         {CustomIcon ? (
           <div className="shrink-0">
-            <Icon
-              name={CustomIcon}
+            <CustomIcon
               data-testid="custom-icon"
               aria-hidden="true"
               className={classNames(`h4 mr-2 w-4`, iconClassName, customIconColor ?? "text-default")}
@@ -49,32 +47,28 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
         ) : (
           <div className={classNames("mr-2 shrink-0", props.title ? "" : "mt-0.5")}>
             {severity === "error" && (
-              <Icon
-                name="circle-x"
+              <CircleXIcon
                 data-testid="circle-x"
                 className={classNames("h4 w-4", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "warning" && (
-              <Icon
-                name="triangle-alert"
+              <TriangleAlertIcon
                 data-testid="alert-triangle"
                 className={classNames("h4 w-4", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "info" && (
-              <Icon
-                name="info"
+              <InfoIcon
                 data-testid="info"
                 className={classNames("h4 w-4", iconClassName)}
                 aria-hidden="true"
               />
             )}
             {severity === "neutral" && (
-              <Icon
-                name="info"
+              <InfoIcon
                 data-testid="neutral"
                 className={classNames("text-default h4 w-4 fill-transparent", iconClassName)}
                 aria-hidden="true"

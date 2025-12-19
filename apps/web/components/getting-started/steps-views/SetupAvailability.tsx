@@ -1,4 +1,6 @@
 import { useForm } from "react-hook-form";
+import { ArrowRightIcon } from "lucide-react";
+
 
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
@@ -75,7 +77,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
 
       <div>
         <Button
-          EndIcon="arrow-right"
+          EndIcon={ArrowRightIcon}
           data-testid="save-availability"
           type="submit"
           className="mt-2 w-full justify-center p-2 text-sm sm:mt-8"

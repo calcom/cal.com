@@ -1,6 +1,5 @@
 import * as Popover from "@radix-ui/react-popover";
 import { GlobeIcon } from "lucide-react";
-import { Icon } from "../icon";
 
 import {
   formatTime,

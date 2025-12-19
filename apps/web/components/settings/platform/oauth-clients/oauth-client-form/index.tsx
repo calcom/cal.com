@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -138,7 +138,7 @@ export const OAuthClientForm = ({
                     type="button"
                     color="minimal"
                     variant="icon"
-                    StartIcon="plus"
+                    StartIcon={PlusIcon}
                     className="text-default mx-2"
                     disabled={isFormDisabled}
                     onClick={() => {
@@ -151,7 +151,7 @@ export const OAuthClientForm = ({
                       type="button"
                       color="destructive"
                       variant="icon"
-                      StartIcon="trash"
+                      StartIcon={TrashIcon}
                       className="text-default mx-2"
                       disabled={isFormDisabled}
                       onClick={() => {

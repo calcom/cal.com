@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
  
 import { get, pick } from "lodash";
@@ -328,7 +328,7 @@ const ProfileView = ({ user }: Props) => {
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <SectionBottomActions align="end">
           <DialogTrigger asChild>
-            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon="trash-2">
+            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Trash2Icon}>
               {t("delete_account")}
             </Button>
           </DialogTrigger>
@@ -694,7 +694,7 @@ const ProfileForm = ({
             </div>
             <Button
               color="secondary"
-              StartIcon="plus"
+              StartIcon={PlusIcon}
               className="mt-2"
               onClick={() => handleAddSecondaryEmail()}
               data-testid="add-secondary-email">

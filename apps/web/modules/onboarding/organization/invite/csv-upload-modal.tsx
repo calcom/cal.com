@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FileTextIcon, UploadIcon, DownloadIcon } from "lucide-react";
+import { DownloadIcon, FileTextIcon, UploadIcon } from "lucide-react";
 import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -190,7 +190,7 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
                 <p className="text-emphasis text-sm font-medium">{t("need_template")}</p>
                 <p className="text-subtle text-xs">{t("download_csv_template_description")}</p>
               </div>
-              <Button color="secondary" StartIcon="download" size="sm" onClick={handleDownloadTemplate}>
+              <Button color="secondary" StartIcon={DownloadIcon} size="sm" onClick={handleDownloadTemplate}>
                 {t("download_template")}
               </Button>
             </div>

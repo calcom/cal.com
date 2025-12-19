@@ -1,9 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Slot } from "@radix-ui/react-slot";
+import type { LucideIcon } from "lucide-react";
 
 import cn from "../../classNames";
-import type { IconName } from "../icon";
-import { Icon as IconComponent } from "../icon";
 
 const Root = ({
   children,
@@ -59,15 +58,15 @@ const Description = ({
 
 const Icon = ({
   ref,
-  name,
+  IconComponent,
   size = "md",
   iconSlot,
 }: {
   ref?: React.Ref<HTMLDivElement>;
   size?: "sm" | "md";
-  name?: IconName;
+  IconComponent?: LucideIcon;
   iconSlot?: React.ReactNode;
-} & ({ name: IconName; iconSlot?: never } | { name?: never; iconSlot: React.ReactNode })) => {
+} & ({ IconComponent: LucideIcon; iconSlot?: never } | { IconComponent?: never; iconSlot: React.ReactNode })) => {
   return (
     <div
       ref={ref}
@@ -78,9 +77,9 @@ const Icon = ({
       )}>
       {iconSlot ? (
         iconSlot
-      ) : (
-        <IconComponent name={name!} className={cn(size === "sm" && "h-4 w-4", size === "md" && "h-6 w-6")} />
-      )}
+      ) : IconComponent ? (
+        <IconComponent className={cn(size === "sm" && "h-4 w-4", size === "md" && "h-6 w-6")} />
+      ) : null}
     </div>
   );
 };
@@ -96,7 +95,7 @@ const Header = ({
 }: {
   children?: React.ReactNode;
   ref?: React.Ref<HTMLDivElement>;
-  icon?: IconName;
+  icon?: LucideIcon;
   iconSlot?: React.ReactNode;
   title?: string;
   description?: string;
@@ -105,7 +104,7 @@ const Header = ({
   return (
     <div ref={ref} className="flex items-center justify-between flex-wrap sm:flex-nowrap gap-3">
       <div className="flex items-center gap-2">
-        {icon && !iconSlot && <Icon name={icon} />}
+        {icon && !iconSlot && <Icon IconComponent={icon} />}
         {iconSlot && <Icon iconSlot={iconSlot} />}
         <div className="flex flex-col gap-0.5">
           {title && <Title>{title}</Title>}
@@ -146,7 +145,7 @@ const SubSectionHeader = ({
   labelFor,
 }: {
   children: React.ReactNode;
-  icon?: IconName;
+  icon?: LucideIcon;
   title: string;
   labelFor?: string;
   classNames?: {
@@ -166,7 +165,7 @@ const SubSectionHeader = ({
         classNames?.container
       )}>
       <div className={cn("flex items-center gap-2", classNames?.title)}>
-        {icon && <Icon name={icon} size="sm" />}
+        {icon && <Icon IconComponent={icon} size="sm" />}
         <div className={cn("flex", classNames?.title)}>
           <h4 className="text-default text-sm font-medium leading-none" id={labelFor}>
             {title}

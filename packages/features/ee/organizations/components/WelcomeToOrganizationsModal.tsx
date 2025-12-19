@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ExternalLinkIcon } from "lucide-react";
+
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -158,7 +160,7 @@ export function WelcomeToOrganizationsModal() {
             color="minimal"
             href="https://cal.com/docs/organizations"
             target="_blank"
-            EndIcon="external-link"
+            EndIcon={ExternalLinkIcon}
             className="pointer-events-none opacity-0">
             {t("learn_more")}
           </Button>

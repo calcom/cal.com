@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { PencilIcon, MenuIcon, WaypointsIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, CodeIcon, DownloadIcon, ExternalLinkIcon, EyeIcon, LinkIcon, MenuIcon, PencilIcon, SettingsIcon, TrashIcon, WaypointsIcon } from "lucide-react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -98,7 +98,7 @@ const Actions = ({
             <Button
               color="secondary"
               type="button"
-              StartIcon="settings"
+              StartIcon={SettingsIcon}
               data-testid={isMobile ? "settings-button-mobile" : "settings-button"}
               onClick={() => {
                 setIsSettingsDialogOpen(true);
@@ -113,7 +113,7 @@ const Actions = ({
               type="button"
               rel="noreferrer"
               action="preview"
-              StartIcon="external-link">
+              StartIcon={ExternalLinkIcon}>
               {t("view_form")}
             </FormAction>
             <FormAction
@@ -122,7 +122,7 @@ const Actions = ({
               routingForm={form}
               color="minimal"
               type="button"
-              StartIcon="calendar">
+              StartIcon={CalendarIcon}>
               {t("routing_incomplete_booking_tab")}
             </FormAction>
             <FormAction
@@ -131,7 +131,7 @@ const Actions = ({
               routingForm={form}
               color="minimal"
               type="button"
-              StartIcon="link">
+              StartIcon={LinkIcon}>
               {t("copy_link_to_form")}
             </FormAction>
             <FormAction
@@ -141,7 +141,7 @@ const Actions = ({
               color="minimal"
               type="button"
               data-testid="download-responses"
-              StartIcon="download">
+              StartIcon={DownloadIcon}>
               {t("download_responses")}
             </FormAction>
             {form?.id && (
@@ -152,7 +152,7 @@ const Actions = ({
                 color="minimal"
                 type="button"
                 data-testid="view-responses"
-                StartIcon="eye">
+                StartIcon={EyeIcon}>
                 {t("view_responses")}
               </FormAction>
             )}
@@ -162,7 +162,7 @@ const Actions = ({
               color="minimal"
               type="button"
               className="w-full"
-              StartIcon="code">
+              StartIcon={CodeIcon}>
               {t("embed")}
             </FormAction>
             <DropdownMenuSeparator className="hidden sm:block" />
@@ -173,7 +173,7 @@ const Actions = ({
               type="button"
               color="destructive"
               disabled={!permissions.canDelete}
-              StartIcon="trash">
+              StartIcon={TrashIcon}>
               {t("delete")}
             </FormAction>
             <div className="block sm:hidden">
@@ -268,7 +268,7 @@ export function Header({
         <Button
           color="minimal"
           variant="icon"
-          StartIcon="arrow-left"
+          StartIcon={ArrowLeftIcon}
           href={`${appUrl}`}
           data-testid="back-button"
         />

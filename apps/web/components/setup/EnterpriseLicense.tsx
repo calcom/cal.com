@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderIcon, CheckIcon } from "lucide-react";
+import { CheckIcon, ExternalLinkIcon, LoaderIcon } from "lucide-react";
  
 import { noop } from "lodash";
 import { useCallback, useState } from "react";
@@ -93,7 +93,7 @@ const EnterpriseLicense = (
         <div>
           <Button
             className="w-full justify-center text-lg"
-            EndIcon="external-link"
+            EndIcon={ExternalLinkIcon}
             href="https://go.cal.com/get-license"
             target="_blank">
             {t("purchase_license")}

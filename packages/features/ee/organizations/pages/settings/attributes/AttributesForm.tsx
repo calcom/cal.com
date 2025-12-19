@@ -1,4 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PlusIcon, XIcon } from "lucide-react";
+
 import React, { useState } from "react";
 import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
@@ -144,7 +146,7 @@ const NonGroupOption = ({
         <Button
           type="button"
           variant="icon"
-          StartIcon="x"
+          StartIcon={XIcon}
           color="minimal"
           className="mb-2"
           disabled={index === 0 && form.getValues("options").length === 1}
@@ -228,7 +230,7 @@ const GroupOption = ({
         <Button
           type="button"
           variant="icon"
-          StartIcon="x"
+          StartIcon={XIcon}
           color="minimal"
           className="mb-2"
           disabled={index === 0 && form.getValues("options").length === 1}
@@ -443,7 +445,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                   );
                 })}
               </div>
-              <Button type="button" StartIcon="plus" color="secondary" onClick={() => append({ value: "" })}>
+              <Button type="button" StartIcon={PlusIcon} color="secondary" onClick={() => append({ value: "" })}>
                 {t("new_option")}
               </Button>
             </div>
@@ -457,7 +459,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
               />
               <Button
                 type="button"
-                StartIcon="plus"
+                StartIcon={PlusIcon}
                 color="secondary"
                 onClick={() => append({ value: "", isGroup: true })}>
                 {t("new_group_option")}

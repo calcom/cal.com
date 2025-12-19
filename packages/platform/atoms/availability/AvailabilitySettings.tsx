@@ -1,7 +1,7 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import { InfoIcon } from "lucide-react";
+import { ArrowLeftIcon, EllipsisVerticalIcon, InfoIcon, PlusIcon, TrashIcon } from "lucide-react";
 import React, {
   useMemo,
   useState,
@@ -147,7 +147,7 @@ const DeleteDialogButton = ({
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          StartIcon="trash"
+          StartIcon={TrashIcon}
           variant="icon"
           color="destructive"
           aria-label={t("delete")}
@@ -262,7 +262,7 @@ const DateOverride = ({
             <Button
               className={classNames?.button}
               color="secondary"
-              StartIcon="plus"
+              StartIcon={PlusIcon}
               data-testid="add-override">
               {t("add_an_override")}
             </Button>
@@ -500,7 +500,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                     )}>
                     <div className="flex flex-row items-center pt-16">
-                      <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
+                      <Button StartIcon={ArrowLeftIcon} color="minimal" onClick={() => setOpenSidebar(false)} />
                       <p className="-ml-2">{t("availability_settings")}</p>
                       {allowDelete && (
                         <DeleteDialogButton
@@ -628,7 +628,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             </Button>
             <Button
               className="ml-3 sm:hidden"
-              StartIcon="ellipsis-vertical"
+              StartIcon={EllipsisVerticalIcon}
               variant="icon"
               color="secondary"
               onClick={() => setOpenSidebar(true)}

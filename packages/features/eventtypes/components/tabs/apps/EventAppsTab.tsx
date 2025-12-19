@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { LockIcon } from "lucide-react";
+
 import { useFormContext } from "react-hook-form";
 
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
@@ -137,7 +139,7 @@ export const EventAppsTab = ({
               description={t("empty_installed_apps_description")}
               buttonRaw={
                 appsDisableProps.disabled ? (
-                  <Button StartIcon="lock" color="secondary" disabled>
+                  <Button StartIcon={LockIcon} color="secondary" disabled>
                     {t("locked_by_team_admin")}
                   </Button>
                 ) : (

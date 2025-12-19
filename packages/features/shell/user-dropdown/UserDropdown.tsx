@@ -1,5 +1,5 @@
 import { signOut } from "next-auth/react";
-import { ChevronDownIcon, UserIcon, SettingsIcon, MoonIcon } from "lucide-react";
+import { BlocksIcon, ChevronDownIcon, CircleHelpIcon, DownloadIcon, LogOutIcon, MapIcon, MoonIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
@@ -168,14 +168,14 @@ export function UserDropdown({ small }: UserDropdownProps) {
               )}
 
               <DropdownMenuItem>
-                <DropdownItem StartIcon="map" target="_blank" href={ROADMAP}>
+                <DropdownItem StartIcon={MapIcon} target="_blank" href={ROADMAP}>
                   {t("visit_roadmap")}
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <DropdownItem
                   type="button"
-                  StartIcon="circle-help"
+                  StartIcon={CircleHelpIcon}
                   aria-hidden="true"
                   onClick={handleHelpClick}>
                   {t("help")}
@@ -183,7 +183,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
               </DropdownMenuItem>
               {!isPlatformPages && (
                 <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
+                  <DropdownItem StartIcon={DownloadIcon} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                     {t("download_desktop_app")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -191,7 +191,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
 
               {!isPlatformPages && isPlatformUser && (
                 <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon="blocks" target="_blank" rel="noreferrer" href="/settings/platform">
+                  <DropdownItem StartIcon={BlocksIcon} target="_blank" rel="noreferrer" href="/settings/platform">
                     Platform
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -201,7 +201,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
               <DropdownMenuItem>
                 <DropdownItem
                   type="button"
-                  StartIcon="log-out"
+                  StartIcon={LogOutIcon}
                   aria-hidden="true"
                   onClick={() => {
                     signOut({ callbackUrl: "/auth/logout" });

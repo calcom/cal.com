@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CheckIcon } from "lucide-react";
+import { CalendarRangeIcon, CheckIcon, ChevronDownIcon } from "lucide-react";
 import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
 
@@ -174,8 +174,8 @@ export const DateRangeFilter = ({
         <Button
           color="secondary"
           className="items-center capitalize"
-          StartIcon="calendar-range"
-          EndIcon="chevron-down"
+          StartIcon={CalendarRangeIcon}
+          EndIcon={ChevronDownIcon}
           data-testid={`filter-popover-trigger-${column.id}`}>
           {showColumnName && (
             <>

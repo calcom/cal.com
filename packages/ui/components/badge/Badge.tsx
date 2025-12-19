@@ -1,11 +1,9 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import type { LucideIcon } from "lucide-react";
 import React from "react";
 
 import classNames from "@calcom/ui/classNames";
-
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
 
 export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded-[4px] gap-x-1", {
   variants: {
@@ -38,7 +36,7 @@ type InferredBadgeStyles = VariantProps<typeof badgeStyles>;
 
 type IconOrDot =
   | {
-      startIcon?: IconName;
+      startIcon?: LucideIcon;
       withDot?: never;
       customDot?: never;
     }
@@ -90,16 +88,15 @@ export const Badge = function Badge(props: BadgeProps) {
           <circle cx="4" cy="4" r="4" />
         </svg>
       ) : null}
-      {customStartIcon ? (
-        <span data-testid="custom-icon">{customStartIcon}</span>
-      ) : StartIcon ? (
-        <Icon
-          name={StartIcon}
-          data-testid="start-icon"
-          className="stroke-[3px]"
-          style={{ width: 12, height: 12 }}
-        />
-      ) : null}
+            {customStartIcon ? (
+              <span data-testid="custom-icon">{customStartIcon}</span>
+            ) : StartIcon ? (
+              <StartIcon
+                data-testid="start-icon"
+                className="stroke-[3px]"
+                style={{ width: 12, height: 12 }}
+              />
+            ) : null}
       {children}
     </>
   );

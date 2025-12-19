@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CopyIcon } from "lucide-react";
+import { CopyIcon, LogOutIcon, Trash2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -203,7 +203,7 @@ const ProfileView = () => {
               <Button
                 color="destructive"
                 className="border"
-                StartIcon="trash-2"
+                StartIcon={Trash2Icon}
                 data-testid="disband-team-button">
                 {t("disband_team")}
               </Button>
@@ -223,7 +223,7 @@ const ProfileView = () => {
         <Dialog>
           <SectionBottomActions align="end">
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon="log-out">
+              <Button color="destructive" className="border" StartIcon={LogOutIcon}>
                 {t("leave_team")}
               </Button>
             </DialogTrigger>

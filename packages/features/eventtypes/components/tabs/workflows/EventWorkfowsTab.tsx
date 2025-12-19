@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LockIcon } from "lucide-react";
+import { ExternalLinkIcon, LockIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -135,7 +135,7 @@ const WorkflowListItem = (props: ItemProps) => {
         {workflow.permissions?.canUpdate && (
           <div className="flex-none">
             <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
-              <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
+              <Button type="button" color="minimal" className="mr-4" EndIcon={ExternalLinkIcon}>
                 <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
               </Button>
             </Link>

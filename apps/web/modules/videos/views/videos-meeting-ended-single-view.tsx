@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { XIcon, CalendarIcon } from "lucide-react";
+import { ArrowRightIcon, CalendarIcon, XIcon } from "lucide-react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -48,7 +48,7 @@ export default function MeetingUnavailable(props: PageProps) {
                 </div>
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
-                    <Button data-testid="return-home" href="/event-types" EndIcon="arrow-right">
+                    <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRightIcon}>
                       {t("go_back")}
                     </Button>
                   </div>

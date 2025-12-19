@@ -1,4 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { EllipsisIcon, EyeIcon, TrashIcon } from "lucide-react";
+
 import { useMemo } from "react";
 
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -77,11 +79,11 @@ export function useBlockedEntriesColumns({
             <div className="flex items-center justify-end">
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
+                  <Button type="button" variant="icon" color="secondary" StartIcon={EllipsisIcon} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <DropdownItem type="button" StartIcon="eye" onClick={() => onViewDetails(entry)}>
+                    <DropdownItem type="button" StartIcon={EyeIcon} onClick={() => onViewDetails(entry)}>
                       {t("view_details")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -90,7 +92,7 @@ export function useBlockedEntriesColumns({
                       <DropdownItem
                         type="button"
                         color="destructive"
-                        StartIcon="trash"
+                        StartIcon={TrashIcon}
                         onClick={() => onDelete(entry)}>
                         {t("remove_from_blocklist")}
                       </DropdownItem>

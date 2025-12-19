@@ -1,6 +1,6 @@
-import { Tooltip } from "../tooltip/Tooltip";
 import { InfoIcon } from "lucide-react";
-import { Icon } from "../icon";
+
+import { Tooltip } from "../tooltip/Tooltip";
 
 export function InfoBadge({ content }: { content: string }) {
   return (

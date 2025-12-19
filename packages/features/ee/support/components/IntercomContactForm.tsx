@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { MessageCircleIcon, LoaderIcon, SendIcon } from "lucide-react";
+import { LoaderIcon, MessageCircleIcon, SendIcon, XIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -134,7 +134,7 @@ export const IntercomContactForm = () => {
             <Button
               color="minimal"
               variant="button"
-              StartIcon="x"
+              StartIcon={XIcon}
               size="sm"
               onClick={() => setIsOpen(false)}
             />

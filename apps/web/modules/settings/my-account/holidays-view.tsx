@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useMemo, useCallback } from "react";
-import { TriangleAlertIcon, CalendarIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, TriangleAlertIcon } from "lucide-react";
 
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -26,7 +26,7 @@ function HolidaysCTA() {
       <Button
         color="primary"
         size="base"
-        StartIcon="plus"
+        StartIcon={PlusIcon}
         className="invisible flex items-center justify-between px-2 md:px-4"
         aria-hidden="true"
         tabIndex={-1}>

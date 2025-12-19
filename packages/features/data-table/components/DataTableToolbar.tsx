@@ -1,6 +1,8 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
+import { XIcon } from "lucide-react";
+
 import { forwardRef, useEffect } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { useState, type Ref, type ChangeEvent } from "react";
@@ -80,7 +82,7 @@ function ClearFiltersButtonComponent<TData>(
     <Button
       ref={ref}
       color="minimal"
-      EndIcon="x"
+      EndIcon={XIcon}
       onClick={() => table.resetColumnFilters()}
       className="h-8 px-2 lg:px-3">
       {t("clear")}

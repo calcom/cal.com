@@ -1,10 +1,10 @@
 "use client";
 
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import { ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
 
-import { Icon } from "../icon";
 import type { ButtonBaseProps, ButtonProps } from "./Button";
 import { Button, buttonClasses } from "./Button";
 
@@ -51,7 +51,7 @@ export const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(funct
               size: mainButtonProps.size,
               className: "rounded-l-none px-2",
             })}>
-            <Icon name="chevron-down" className="h-4 w-4" />
+            <ChevronDownIcon className="h-4 w-4" />
           </button>
         </DropdownMenuPrimitive.Trigger>
 
@@ -64,7 +64,7 @@ export const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(funct
                 key={index}
                 className="text-default hover:bg-subtle focus:bg-subtle flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm outline-none"
                 onClick={item.action}>
-                {item.icon && <Icon name={item.icon} className="h-4 w-4" />}
+                {item.icon && <item.icon className="h-4 w-4" />}
                 {item.label}
               </DropdownMenuPrimitive.Item>
             ))}

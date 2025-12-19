@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { GlobeIcon, UserIcon } from "lucide-react";
+import { ExternalLinkIcon, GlobeIcon, UserIcon } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -274,7 +274,7 @@ const EventTypeScheduleDetails = memo(
                 href={editAvailabilityRedirectUrl}
                 disabled={isSchedulePending}
                 color="minimal"
-                EndIcon="external-link"
+                EndIcon={ExternalLinkIcon}
                 target="_blank"
                 rel="noopener noreferrer">
                 {t("edit_availability")}
@@ -415,7 +415,7 @@ const EventTypeRestrictionScheduleDetails = memo(
                 href={restrictionScheduleRedirectUrl}
                 disabled={isSchedulePending}
                 color="minimal"
-                EndIcon="external-link"
+                EndIcon={ExternalLinkIcon}
                 target="_blank"
                 rel="noopener noreferrer">
                 {t("edit_availability")}

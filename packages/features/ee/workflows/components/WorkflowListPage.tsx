@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { LinkIcon } from "lucide-react";
+import { EllipsisIcon, LinkIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -258,7 +258,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               type="button"
                               color="secondary"
                               variant="icon"
-                              StartIcon="pencil"
+                              StartIcon={PencilIcon}
                               disabled={
                                 workflow.permissions ? !workflow.permissions?.canUpdate : workflow.readOnly
                               }
@@ -277,7 +277,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               disabled={
                                 workflow.permissions ? !workflow.permissions?.canDelete : workflow.readOnly
                               }
-                              StartIcon="trash-2"
+                              StartIcon={Trash2Icon}
                               data-testid="delete-button"
                             />
                           </Tooltip>
@@ -289,7 +289,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                         <div className="block sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
-                              <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
+                              <Button type="button" color="minimal" variant="icon" StartIcon={EllipsisIcon} />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               {(workflow.permissions
@@ -298,7 +298,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 <DropdownMenuItem>
                                   <DropdownItem
                                     type="button"
-                                    StartIcon="pencil"
+                                    StartIcon={PencilIcon}
                                     onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
                                     {t("edit")}
                                   </DropdownItem>
@@ -311,7 +311,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                   <DropdownItem
                                     type="button"
                                     color="destructive"
-                                    StartIcon="trash-2"
+                                    StartIcon={Trash2Icon}
                                     onClick={() => {
                                       setDeleteDialogOpen(true);
                                       setwWorkflowToDeleteId(workflow.id);

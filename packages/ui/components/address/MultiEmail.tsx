@@ -1,6 +1,6 @@
+import { UserPlusIcon, XIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { XIcon } from "lucide-react";
-import { Icon } from "../icon";
 
 import { Button } from "../button";
 import { EmailField } from "../form";
@@ -64,7 +64,7 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
               data-testid="add-another-email"
               type="button"
               color="minimal"
-              StartIcon="user-plus"
+              StartIcon={UserPlusIcon}
               className="my-2.5"
               onClick={() => {
                 const updatedValue = [...value];
@@ -84,7 +84,7 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
           data-testid="add-emails"
           color="minimal"
           variant="button"
-          StartIcon="user-plus"
+          StartIcon={UserPlusIcon}
           onClick={() => {
             const updatedValue = [...value];
             updatedValue.push("");

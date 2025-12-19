@@ -1,6 +1,8 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { PlusIcon } from "lucide-react";
+
 import { useReducer, useState } from "react";
 
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
@@ -204,7 +206,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     return (
       <Dropdown>
         <DropdownMenuTrigger asChild>
-          <Button color="secondary" StartIcon="plus">
+          <Button color="secondary" StartIcon={PlusIcon}>
             {t("add")}
           </Button>
         </DropdownMenuTrigger>

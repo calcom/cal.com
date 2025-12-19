@@ -2,6 +2,8 @@
 
 // import { debounce } from "lodash";
 import { keepPreviousData } from "@tanstack/react-query";
+import { PlusIcon } from "lucide-react";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -81,7 +83,7 @@ export const TeamMembersCTA = () => {
     <Button
       type="button"
       color="primary"
-      StartIcon="plus"
+      StartIcon={PlusIcon}
       className="ml-auto"
       onClick={() => memberInvitationModalRef.current?.(true)}
       data-testid="new-member-button">

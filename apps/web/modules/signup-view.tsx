@@ -1,6 +1,8 @@
 "use client";
 
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
+import { ArrowLeftIcon } from "lucide-react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -377,7 +379,7 @@ export default function Signup({
                 <Button
                   color="minimal"
                   className="hover:bg-subtle todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
-                  StartIcon="arrow-left"
+                  StartIcon={ArrowLeftIcon}
                   data-testid="signup-back-button"
                   onClick={() => {
                     setDisplayEmailForm(false);

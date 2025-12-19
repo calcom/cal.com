@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PlusIcon } from "lucide-react";
+import { ClipboardIcon, PlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -131,7 +131,7 @@ export default function OAuthView() {
                 }}
                 type="button"
                 className="rounded-l-none text-base"
-                StartIcon="clipboard">
+                StartIcon={ClipboardIcon}>
                 {t("copy")}
               </Button>
             </Tooltip>
@@ -152,7 +152,7 @@ export default function OAuthView() {
                     }}
                     type="button"
                     className="rounded-l-none text-base"
-                    StartIcon="clipboard">
+                    StartIcon={ClipboardIcon}>
                     {t("copy")}
                   </Button>
                 </Tooltip>

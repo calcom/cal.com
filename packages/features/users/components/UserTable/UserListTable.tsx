@@ -1,6 +1,8 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
+import { FileDownIcon, PlusIcon } from "lucide-react";
+
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -675,7 +677,7 @@ function UserListTableContent({
             <DataTableToolbar.CTA
               type="button"
               color="secondary"
-              StartIcon="file-down"
+              StartIcon={FileDownIcon}
               loading={isDownloading}
               onClick={() => handleDownload()}
               data-testid="export-members-button">
@@ -685,7 +687,7 @@ function UserListTableContent({
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"
-                StartIcon="plus"
+                StartIcon={PlusIcon}
                 onClick={() => {
                   dispatch({
                     type: "INVITE_MEMBER",

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { PlusIcon } from "lucide-react";
+
 
 import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -396,7 +398,7 @@ const PlatformAdditionalCalendarSelector = ({
   return (
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button StartIcon="plus" color="secondary" className="md:rounded-md">
+        <Button StartIcon={PlusIcon} color="secondary" className="md:rounded-md">
           {t("add")}
         </Button>
       </DropdownMenuTrigger>

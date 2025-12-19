@@ -1,6 +1,5 @@
 import classNames from "classnames";
-import { CheckIcon, XIcon, InfoIcon } from "lucide-react";
-import { Icon } from "../icon";
+import { CheckIcon, InfoIcon, XIcon } from "lucide-react";
 import type { ExternalToast } from "sonner";
 import { toast } from "sonner";
 

@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { XIcon, CornerDownRightIcon, CheckIcon } from "lucide-react";
+import { CheckIcon, CornerDownRightIcon, PlusIcon, XIcon } from "lucide-react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -402,7 +402,7 @@ const Locations: React.FC<LocationsProps> = ({
           <li>
             <Button
               data-testid="add-location"
-              StartIcon="plus"
+              StartIcon={PlusIcon}
               color="minimal"
               disabled={seatsEnabled}
               className={classNames(customClassNames?.addLocationButton)}

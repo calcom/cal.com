@@ -1,6 +1,8 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
+
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -128,25 +130,25 @@ export default function EventTypeWebhookListItem(props: {
           <Button
             className="hidden lg:flex"
             color="destructive"
-            StartIcon="trash"
+            StartIcon={TrashIcon}
             variant="icon"
             onClick={onDeleteWebhook}
           />
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon={EllipsisIcon} variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
-                <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
+                <DropdownItem StartIcon={PencilIcon} color="secondary" onClick={props.onEditWebhook}>
                   {t("edit")}
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
 
               <DropdownMenuItem>
-                <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                <DropdownItem StartIcon={TrashIcon} color="destructive" onClick={onDeleteWebhook}>
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>

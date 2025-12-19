@@ -1,4 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CopyIcon, PlusIcon, TrashIcon } from "lucide-react";
+
 import type {
   ArrayPath,
   Control,
@@ -150,7 +152,7 @@ const CopyButton = ({
           tooltip={labels?.copyTime ?? t("copy_times_to_tooltip")}
           color="minimal"
           variant="icon"
-          StartIcon="copy"
+          StartIcon={CopyIcon}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -283,7 +285,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 type="button"
                 color="minimal"
                 variant="icon"
-                StartIcon="plus"
+                StartIcon={PlusIcon}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const slotRange: any = getDateSlotRange(
@@ -331,7 +333,7 @@ const RemoveTimeButton = ({
       type="button"
       variant="icon"
       color="destructive"
-      StartIcon="trash"
+      StartIcon={TrashIcon}
       onClick={() => remove(index)}
       className={className}
       tooltip={labels?.deleteTime ?? t("delete")}

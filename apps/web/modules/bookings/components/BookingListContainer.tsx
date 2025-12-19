@@ -1,6 +1,8 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
+import { ListFilterIcon } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 
@@ -53,7 +55,7 @@ function FilterButton({ table, displayedFilterCount, setShowFilters }: FilterBut
   return (
     <Button
       color="secondary"
-      StartIcon="list-filter"
+      StartIcon={ListFilterIcon}
       className="h-full"
       size="sm"
       onClick={() => setShowFilters((value) => !value)}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-import { PlusIcon, EyeOffIcon } from "lucide-react";
+import { EyeOffIcon, ListFilterIcon, PlusIcon } from "lucide-react";
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
 
@@ -44,7 +44,7 @@ function AddFilterButtonComponent<TData>(
               ref={ref}
               color="secondary"
               data-testid="add-filter-button"
-              StartIcon="list-filter"
+              StartIcon={ListFilterIcon}
               className="h-full">
               {t("filter")}
             </Button>

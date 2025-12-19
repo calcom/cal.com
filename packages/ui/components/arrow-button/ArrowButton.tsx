@@ -1,5 +1,4 @@
-import { Icon } from "../icon";
-import { ArrowUpIcon, ArrowDownIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 export type ArrowButtonProps = {
   arrowDirection: "up" | "down";

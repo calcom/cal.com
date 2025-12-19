@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ChevronDownIcon, MenuIcon } from "lucide-react";
+import { ChevronDownIcon, MenuIcon, PlusIcon } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -310,7 +310,7 @@ const FormEdit = ({
       </div>
       {hookFormFields.length ? (
         <div className={classNames("flex")}>
-          <Button data-testid="add-field" type="button" StartIcon="plus" color="secondary" onClick={addField}>
+          <Button data-testid="add-field" type="button" StartIcon={PlusIcon} color="secondary" onClick={addField}>
             Add question
           </Button>
         </div>
@@ -350,7 +350,7 @@ const FormEdit = ({
             Fields are the form fields that the booker would see.
           </p>
         </div>
-        <Button data-testid="add-field" onClick={addField} StartIcon="plus" className="mt-6">
+        <Button data-testid="add-field" onClick={addField} StartIcon={PlusIcon} className="mt-6">
           Add question
         </Button>
       </div>

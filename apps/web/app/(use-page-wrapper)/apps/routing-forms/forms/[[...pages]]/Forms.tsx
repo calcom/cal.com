@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { FileTextIcon, ShuffleIcon, ChartBarIcon, CircleCheckIcon, MailIcon, DownloadIcon } from "lucide-react";
+import { ChartBarIcon, CircleCheckIcon, CodeIcon, CopyIcon, DownloadIcon, ExternalLinkIcon, FileTextIcon, LinkIcon, MailIcon, PencilIcon, ShuffleIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import posthog from "posthog-js";
@@ -255,7 +255,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="preview"
                                       routingForm={form}
                                       target="_blank"
-                                      StartIcon="external-link"
+                                      StartIcon={ExternalLinkIcon}
                                       color="secondary"
                                       variant="icon"
                                     />
@@ -265,7 +265,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                     action="copyLink"
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon="link"
+                                    StartIcon={LinkIcon}
                                     tooltip={t("copy_link_to_form")}
                                   />
                                   <FormAction
@@ -273,7 +273,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                     action="embed"
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon="code"
+                                    StartIcon={CodeIcon}
                                     tooltip={t("embed")}
                                   />
                                   <FormActionsDropdown disabled={readOnly}>
@@ -282,14 +282,14 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="minimal"
                                       className="flex!"
-                                      StartIcon="pencil">
+                                      StartIcon={PencilIcon}>
                                       {t("edit")}
                                     </FormAction>
                                     <FormAction
                                       action="download"
                                       routingForm={form}
                                       color="minimal"
-                                      StartIcon="download">
+                                      StartIcon={DownloadIcon}>
                                       {t("download_responses")}
                                     </FormAction>
                                     <FormAction
@@ -297,7 +297,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="minimal"
                                       className="w-full"
-                                      StartIcon="copy">
+                                      StartIcon={CopyIcon}>
                                       {t("duplicate")}
                                     </FormAction>
                                     <FormAction
@@ -305,7 +305,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       routingForm={form}
                                       color="destructive"
                                       className="w-full"
-                                      StartIcon="trash">
+                                      StartIcon={TrashIcon}>
                                       {t("delete")}
                                     </FormAction>
                                   </FormActionsDropdown>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, SlidersHorizontalIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -44,7 +44,7 @@ export const DateTargetSelector = ({ value, onChange }: DateTargetSelectorProps)
         <Button
           variant="icon"
           color="secondary"
-          StartIcon="sliders-horizontal"
+          StartIcon={SlidersHorizontalIcon}
           role="combobox"
           aria-expanded={open}>
           <span className="sr-only">{selectedOption.label}</span>

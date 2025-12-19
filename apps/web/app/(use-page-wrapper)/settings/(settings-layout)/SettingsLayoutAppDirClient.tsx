@@ -1,6 +1,8 @@
 "use client";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import { MenuIcon } from "lucide-react";
+
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -967,7 +969,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="bg-cal-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
         <div className="flex items-center space-x-3">
-          <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
+          <Button StartIcon={MenuIcon} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 

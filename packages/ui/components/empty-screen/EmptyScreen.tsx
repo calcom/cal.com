@@ -1,14 +1,13 @@
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../button";
-import type { IconName } from "../icon";
-import { Icon } from "../icon";
 
 export function EmptyScreen({
-  Icon: icon,
+  Icon: IconComponent,
   customIcon,
   avatar,
   headline,
@@ -23,7 +22,7 @@ export function EmptyScreen({
   iconWrapperClassName,
   limitWidth = true,
 }: {
-  Icon?: IconName;
+  Icon?: LucideIcon;
   customIcon?: React.ReactElement;
   avatar?: React.ReactElement;
   headline: string | React.ReactElement;
@@ -51,18 +50,17 @@ export function EmptyScreen({
           <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full">{avatar}</div>
         )}
 
-        {!icon ? null : (
-          <div
-            className={classNames(
-              "bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full ",
-              iconWrapperClassName
-            )}>
-            <Icon
-              name={icon}
-              className={classNames("text-default inline-block h-10 w-10 stroke-[1.3px]", iconClassName)}
-            />
-          </div>
-        )}
+                {!IconComponent ? null : (
+                  <div
+                    className={classNames(
+                      "bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full ",
+                      iconWrapperClassName
+                    )}>
+                    <IconComponent
+                      className={classNames("text-default inline-block h-10 w-10 stroke-[1.3px]", iconClassName)}
+                    />
+                  </div>
+                )}
         {!customIcon ? null : <>{customIcon}</>}
         <div className={`flex ${limitWidth ? "max-w-[420px]" : ""}  flex-col items-center`}>
           <h2

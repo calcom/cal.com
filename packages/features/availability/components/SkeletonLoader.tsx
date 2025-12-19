@@ -1,6 +1,8 @@
 "use client";
 
 import classNames from "@calcom/ui/classNames";
+import { EllipsisIcon } from "lucide-react";
+
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
@@ -30,7 +32,7 @@ function SkeletonItem() {
           type="button"
           variant="icon"
           color="secondary"
-          StartIcon="ellipsis"
+          StartIcon={EllipsisIcon}
           disabled
         />
       </div>

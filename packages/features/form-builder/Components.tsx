@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { XIcon } from "lucide-react";
+import { UserPlusIcon, XIcon } from "lucide-react";
 import type { z } from "zod";
 
 import type {
@@ -291,7 +291,7 @@ export const Components: Record<FieldType, Component> = {
                   data-testid="add-another-guest"
                   type="button"
                   color="minimal"
-                  StartIcon="user-plus"
+                  StartIcon={UserPlusIcon}
                   className="my-2.5"
                   onClick={() => {
                     value.push("");
@@ -310,7 +310,7 @@ export const Components: Record<FieldType, Component> = {
               data-testid="add-guests"
               color="minimal"
               variant="button"
-              StartIcon="user-plus"
+              StartIcon={UserPlusIcon}
               onClick={() => {
                 value.push("");
                 setValue(value);

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PencilIcon } from "lucide-react";
+import { ArrowLeftIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -451,7 +451,7 @@ function WorkflowPage({
                 color="secondary"
                 size="sm"
                 variant="icon"
-                StartIcon="arrow-left"
+                StartIcon={ArrowLeftIcon}
                 href="/workflows"
                 data-testid="go-back-button"
               />
@@ -508,7 +508,7 @@ function WorkflowPage({
                 <Button
                   color="destructive"
                   type="button"
-                  StartIcon="trash-2"
+                  StartIcon={Trash2Icon}
                   data-testid="delete-button"
                   onClick={() => {
                     setDeleteDialogOpen(true);

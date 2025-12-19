@@ -1,4 +1,6 @@
 import { useSession } from "next-auth/react";
+import { LockIcon, PlusIcon, TrashIcon } from "lucide-react";
+
 import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { components } from "react-select";
@@ -197,7 +199,7 @@ export default function InstantEventController({
                                   type="button"
                                   color="destructive"
                                   variant="icon"
-                                  StartIcon="trash"
+                                  StartIcon={TrashIcon}
                                   onClick={() => {
                                     const newParameters = parameters.filter((_, i) => i !== index);
                                     setParameters(newParameters);
@@ -211,7 +213,7 @@ export default function InstantEventController({
                           </div>
                           <Button
                             color="minimal"
-                            StartIcon="plus"
+                            StartIcon={PlusIcon}
                             onClick={() => {
                               const newParameters = [...parameters, ""];
                               setParameters(newParameters);
@@ -346,7 +348,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon="plus"
+        StartIcon={PlusIcon}
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
@@ -400,7 +402,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
                   description={t("create_instant_meeting_webhook_description")}
                   buttonRaw={
                     isChildrenManagedEventType && !isManagedEventType ? (
-                      <Button StartIcon="lock" color="secondary" disabled>
+                      <Button StartIcon={LockIcon} color="secondary" disabled>
                         {t("locked_by_admin")}
                       </Button>
                     ) : (

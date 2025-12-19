@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { CalendarIcon } from "lucide-react";
+import { ArrowRightIcon, CalendarIcon } from "lucide-react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -30,7 +30,7 @@ export default function MeetingNotStarted(props: PageProps) {
             </>
           }
           buttonRaw={
-            <Button data-testid="return-home" href="/event-types" EndIcon="arrow-right">
+            <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRightIcon}>
               {t("go_back")}
             </Button>
           }

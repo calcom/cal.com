@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLinkIcon, RepeatIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon, RepeatIcon, XIcon } from "lucide-react";
 import { useMemo } from "react";
 import { z } from "zod";
 
@@ -213,7 +213,7 @@ function BookingDetailsSheetInner({
                 variant="icon"
                 size="sm"
                 color="secondary"
-                StartIcon="chevron-up"
+                StartIcon={ChevronUpIcon}
                 disabled={!navigation.canGoPrev || navigation.isTransitioning}
                 onClick={(e) => {
                   e.preventDefault();
@@ -224,7 +224,7 @@ function BookingDetailsSheetInner({
                 variant="icon"
                 size="sm"
                 color="secondary"
-                StartIcon="chevron-down"
+                StartIcon={ChevronDownIcon}
                 disabled={!navigation.canGoNext || navigation.isTransitioning}
                 onClick={(e) => {
                   e.preventDefault();
@@ -235,7 +235,7 @@ function BookingDetailsSheetInner({
                 variant="icon"
                 size="sm"
                 color="secondary"
-                StartIcon="x"
+                StartIcon={XIcon}
                 onClick={(e) => {
                   e.preventDefault();
                   handleClose();

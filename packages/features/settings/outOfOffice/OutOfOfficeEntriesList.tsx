@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import { ClockIcon } from "lucide-react";
+import { ClockIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -270,7 +270,7 @@ function OutOfOfficeEntriesListContent({
                       color="secondary"
                       variant="icon"
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
-                      StartIcon="pencil"
+                      StartIcon={PencilIcon}
                       onClick={() => {
                         const startDateOffset = -1 * item.start.getTimezoneOffset();
                         const endDateOffset = -1 * item.end.getTimezoneOffset();
@@ -314,7 +314,7 @@ function OutOfOfficeEntriesListContent({
                         isFetching ||
                         !item.canEditAndDelete
                       }
-                      StartIcon="trash-2"
+                      StartIcon={Trash2Icon}
                       data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
                       onClick={() => {
                         deleteOutOfOfficeEntryMutation.mutate({

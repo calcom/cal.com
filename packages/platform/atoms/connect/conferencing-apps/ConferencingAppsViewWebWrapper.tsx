@@ -1,6 +1,8 @@
 "use client";
 
 import { useReducer } from "react";
+import { PlusIcon } from "lucide-react";
+
 
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
@@ -181,7 +183,7 @@ const AddConferencingButton = () => {
   const { t } = useLocale();
 
   return (
-    <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
+    <Button color="secondary" StartIcon={PlusIcon} href="/apps/categories/conferencing">
       {t("add")}
     </Button>
   );

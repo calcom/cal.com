@@ -1,8 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { CircleAlertIcon } from "lucide-react";
-import { Icon } from "../icon";
+import type { ReactNode } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

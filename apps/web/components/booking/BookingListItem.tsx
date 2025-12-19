@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RefreshCcwIcon, EyeOffIcon } from "lucide-react";
+import { CircleXIcon, EyeOffIcon, MailIcon, RefreshCcwIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -471,7 +471,7 @@ function BookingListItem(booking: BookingItemProps) {
                 e.stopPropagation();
                 setIsCancelDialogOpen(true);
               }}
-              StartIcon="circle-x"
+              StartIcon={CircleXIcon}
               disabled={isActionDisabled("cancel", actionContext)}
               data-booking-uid={booking.uid}
               color="destructive">
@@ -747,7 +747,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
           {!isSmsCalEmail(email) && (
             <DropdownMenuItem className="focus:outline-none">
               <DropdownItem
-                StartIcon="mail"
+                StartIcon={MailIcon}
                 href={`mailto:${email}`}
                 onClick={(e) => {
                   setOpenDropdown(false);

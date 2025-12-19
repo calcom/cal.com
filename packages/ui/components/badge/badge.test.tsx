@@ -1,6 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { InfoIcon } from "lucide-react";
-import { Icon } from "../icon";
 import { vi } from "vitest";
 
 import { Badge, badgeStyles } from "./Badge";

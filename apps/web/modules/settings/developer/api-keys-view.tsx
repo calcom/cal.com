@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PlusIcon } from "lucide-react";
+
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
@@ -27,7 +29,7 @@ export const NewApiKeyButton = () => {
   return (
     <Button
       color="secondary"
-      StartIcon="plus"
+      StartIcon={PlusIcon}
       onClick={() => {
         apiKeyModalRef.current?.(true);
         apiKeyToEditRef.current?.(undefined);

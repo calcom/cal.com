@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { XIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-react";
-import { Icon } from "../../icon";
+import { ArrowDownIcon, ArrowUpIcon, PlusIcon, XIcon } from "lucide-react";
 import {
   useFieldArray,
   useFormContext,
@@ -304,7 +303,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
         <Button
           type="button"
           color={addOptionButtonColor}
-          StartIcon="plus"
+          StartIcon={PlusIcon}
           onClick={addOption}
           className="mt-4 border-none"
           disabled={disabled}>

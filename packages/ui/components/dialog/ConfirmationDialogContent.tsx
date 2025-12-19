@@ -1,6 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { CircleAlertIcon, CheckIcon } from "lucide-react";
-import { Icon } from "../icon";
+import { CheckIcon, CircleAlertIcon } from "lucide-react";
 import type { PropsWithChildren, ReactElement } from "react";
 import React from "react";
 

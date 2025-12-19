@@ -1,6 +1,8 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
+import { CalendarIcon } from "lucide-react";
+
 import { format, isBefore, isSameDay } from "date-fns";
 import { useState, useMemo, type HTMLAttributes } from "react";
 
@@ -102,7 +104,7 @@ export function DatePickerWithRange({
           <Button
             data-testid="date-range"
             color="secondary"
-            EndIcon="calendar"
+            EndIcon={CalendarIcon}
             className={classNames("justify-between text-left font-normal", !dates && "text-subtle")}>
             {dates?.startDate ? (
               dates?.endDate ? (

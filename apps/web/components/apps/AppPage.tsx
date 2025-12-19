@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CircleAlertIcon, BookOpenIcon, ExternalLinkIcon, MailIcon, FileIcon, ShieldIcon, FlagIcon } from "lucide-react";
+import { BookOpenIcon, CheckIcon, CircleAlertIcon, ExternalLinkIcon, FileIcon, FlagIcon, MailIcon, ShieldIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
@@ -204,7 +204,7 @@ export const AppPage = ({
         <Button
           onClick={() => handleAppInstall()}
           className="mt-2"
-          StartIcon="external-link"
+          StartIcon={ExternalLinkIcon}
           loading={isLoading}
           disabled={isLoading}>
           {t("visit")}
@@ -268,7 +268,7 @@ export const AppPage = ({
         {isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
-              <Button StartIcon="check" color="secondary" disabled>
+              <Button StartIcon={CheckIcon} color="secondary" disabled>
                 {existingCredentials.length > 0
                   ? t("active_install", { count: existingCredentials.length })
                   : t("default")}

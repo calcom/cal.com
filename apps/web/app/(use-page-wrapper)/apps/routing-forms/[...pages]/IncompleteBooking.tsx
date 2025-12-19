@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { GlobeIcon } from "lucide-react";
+import { GlobeIcon, TrashIcon } from "lucide-react";
 import type z from "zod";
 
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
@@ -180,7 +180,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                         </div>
                         <div>
                           <Button
-                            StartIcon="trash"
+                            StartIcon={TrashIcon}
                             variant="icon"
                             color="destructive"
                             onClick={() => {

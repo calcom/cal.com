@@ -1,5 +1,5 @@
 import posthog from "posthog-js";
-import { LoaderIcon, PhoneIcon } from "lucide-react";
+import { ChevronDownIcon, EllipsisIcon, ExternalLinkIcon, LoaderIcon, MonitorIcon, PhoneIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -158,7 +158,7 @@ export function PhoneNumberTab({
                       color="secondary"
                       className="rounded-[10px]"
                       disabled={readOnly}
-                      EndIcon="chevron-down">
+                      EndIcon={ChevronDownIcon}>
                       {t("test_agent")}
                     </Button>
                   </DropdownMenuTrigger>
@@ -166,7 +166,7 @@ export function PhoneNumberTab({
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"
-                        StartIcon="phone"
+                        StartIcon={PhoneIcon}
                         onClick={() => {
                           setIsTestAgentDialogOpen(true);
                         }}>
@@ -176,7 +176,7 @@ export function PhoneNumberTab({
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"
-                        StartIcon="monitor"
+                        StartIcon={MonitorIcon}
                         onClick={() => {
                           setIsWebCallDialogOpen(true);
                         }}>
@@ -188,13 +188,13 @@ export function PhoneNumberTab({
                 {!readOnly && (
                   <Dropdown>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
+                      <Button type="button" color="secondary" variant="icon" StartIcon={EllipsisIcon} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
-                          StartIcon="trash"
+                          StartIcon={TrashIcon}
                           color="destructive"
                           onClick={() => {
                             if (readOnly) return;
@@ -290,7 +290,7 @@ export function PhoneNumberTab({
                 posthog.capture("calai_buy_number_modal_opened");
                 setIsBuyDialogOpen(true);
               }}
-              StartIcon="external-link"
+              StartIcon={ExternalLinkIcon}
               className="px-6"
               disabled={readOnly || buyNumberMutation.isPending}>
               {t("buy")}

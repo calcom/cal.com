@@ -1,4 +1,3 @@
-import { Icon } from "../../icon";
 import { InfoIcon } from "lucide-react";
 
 type InputErrorProp = {

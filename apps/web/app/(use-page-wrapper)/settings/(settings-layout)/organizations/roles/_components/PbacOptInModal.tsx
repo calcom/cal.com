@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ShieldCheckIcon, LockIcon, UsersIcon, ShieldIcon } from "lucide-react";
+import { ArrowRightIcon, LockIcon, ShieldCheckIcon, ShieldIcon, UsersIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -116,7 +116,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
               onClick={handleOptIn}
               loading={enablePbacMutation.isPending}
               className="w-full justify-center sm:w-3/4"
-              EndIcon="arrow-right"
+              EndIcon={ArrowRightIcon}
               onMouseEnter={() => setIsButtonHovered(true)}
               onMouseLeave={() => setIsButtonHovered(false)}>
               {t("pbac_opt_in_enable_button")}

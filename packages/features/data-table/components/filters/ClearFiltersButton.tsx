@@ -1,4 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { XIcon } from "lucide-react";
+
 import { Button } from "@calcom/ui/components/button";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -19,7 +21,7 @@ export const ClearFiltersButton = ({ exclude }: { exclude?: string[] }) => {
         data-testid="clear-filters-button"
         target="_blank"
         rel="noreferrer"
-        StartIcon="x"
+        StartIcon={XIcon}
         onClick={() => clearAll(exclude)}>
         {t("clear")}
       </Button>

@@ -1,5 +1,5 @@
 import type { Dispatch } from "react";
-import { UserIcon } from "lucide-react";
+import { DownloadIcon, UserIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
@@ -119,7 +119,7 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
               <audio controls className="h-11 w-[258px]" src={selectedCall.recording_url}>
                 Your browser does not support the audio element.
               </audio>
-              <Button color="minimal" href={selectedCall.recording_url} target="_blank" StartIcon="download">
+              <Button color="minimal" href={selectedCall.recording_url} target="_blank" StartIcon={DownloadIcon}>
                 {t("download")}
               </Button>
             </div>

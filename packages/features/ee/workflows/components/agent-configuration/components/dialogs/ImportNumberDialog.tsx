@@ -1,5 +1,5 @@
 import { Controller } from "react-hook-form";
-import { InfoIcon } from "lucide-react";
+import { ExternalLinkIcon, InfoIcon } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -222,7 +222,7 @@ export function ImportNumberDialog({
                   type="button"
                   color="secondary"
                   size="base"
-                  EndIcon="external-link"
+                  EndIcon={ExternalLinkIcon}
                   href="https://cal.com/help/importing/import-numbers"
                   target="_blank"
                   className="text-emphasis my-auto">

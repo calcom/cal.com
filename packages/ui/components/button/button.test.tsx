@@ -1,5 +1,7 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { fireEvent, render, screen } from "@testing-library/react";
+import { PlusIcon } from "lucide-react";
+
 import { useState } from "react";
 import { vi } from "vitest";
 
@@ -140,7 +142,7 @@ describe.skip("(skipped) Tests for Button component", () => {
 
   test("Should render StartIcon and Plus icon if is fab variant", async () => {
     render(
-      <Button variant="fab" StartIcon="plus" data-testid="start-icon">
+      <Button variant="fab" StartIcon={PlusIcon} data-testid="start-icon">
         Test Button
       </Button>
     );
@@ -150,7 +152,7 @@ describe.skip("(skipped) Tests for Button component", () => {
 
   test("Should render just StartIcon if is not fab variant", async () => {
     render(
-      <Button StartIcon="plus" data-testid="start-icon">
+      <Button StartIcon={PlusIcon} data-testid="start-icon">
         Test Button
       </Button>
     );
@@ -160,7 +162,7 @@ describe.skip("(skipped) Tests for Button component", () => {
 
   test("Should render EndIcon and Plus icon if is fab variant", async () => {
     render(
-      <Button variant="fab" EndIcon="plus" data-testid="end-icon">
+      <Button variant="fab" EndIcon={PlusIcon} data-testid="end-icon">
         Test Button
       </Button>
     );
@@ -170,7 +172,7 @@ describe.skip("(skipped) Tests for Button component", () => {
 
   test("Should render just EndIcon if is not fab variant", async () => {
     render(
-      <Button EndIcon="plus" data-testid="end-icon">
+      <Button EndIcon={PlusIcon} data-testid="end-icon">
         Test Button
       </Button>
     );

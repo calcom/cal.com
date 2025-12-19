@@ -1,6 +1,8 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
+import { BookIcon, PlusIcon } from "lucide-react";
+
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 
@@ -115,7 +117,7 @@ export function BlockedEntriesTable({ permissions, onAddClick }: BlockedEntriesT
             buttonRaw={
               <div className="flex gap-2">
                 <Button
-                  StartIcon="plus"
+                  StartIcon={PlusIcon}
                   onClick={onAddClick}
                   color="primary"
                   disabled={!permissions?.canCreate}>
@@ -123,7 +125,7 @@ export function BlockedEntriesTable({ permissions, onAddClick }: BlockedEntriesT
                 </Button>
                 {IS_CALCOM && (
                   <Button
-                    StartIcon="book"
+                    StartIcon={BookIcon}
                     color="secondary"
                     onClick={() =>
                       window.open("https://cal.com/help/security/blocklist", "_blank", "noopener,noreferrer")

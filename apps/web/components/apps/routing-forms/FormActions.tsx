@@ -1,4 +1,6 @@
 import { useRouter } from "next/navigation";
+import { EllipsisIcon } from "lucide-react";
+
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -177,7 +179,7 @@ export const FormActionsDropdown = ({
               disabled && "opacity-30",
               "ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
             )}
-            StartIcon="ellipsis"
+            StartIcon={EllipsisIcon}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>{children}</DropdownMenuContent>

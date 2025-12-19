@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { PlusIcon } from "lucide-react";
+
 import { useForm, Controller, useFormContext } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -383,7 +385,7 @@ function DelegationCredentialList() {
 
   const AddDwDButton = () => {
     return (
-      <Button type="button" color="secondary" StartIcon="plus" className="mt-6" onClick={onCreateClick}>
+      <Button type="button" color="secondary" StartIcon={PlusIcon} className="mt-6" onClick={onCreateClick}>
         {t("add_delegation_credential")}
       </Button>
     );
@@ -403,7 +405,7 @@ function DelegationCredentialList() {
 
   return (
     <div>
-      {!!delegations?.length ? (
+      {delegations?.length ? (
         <>
           <ul className="stack-y-2 [&>*:last-child]:rounded-b-xl">
             {delegations.map(
