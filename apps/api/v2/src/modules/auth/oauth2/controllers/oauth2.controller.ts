@@ -16,6 +16,7 @@ import {
   HttpException,
   HttpStatus,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   Param,
   Post,
@@ -36,6 +37,8 @@ import { HttpError } from "@calcom/platform-libraries";
 @ApiExcludeController(true)
 @ApiTags("Auth / OAuth2")
 export class OAuth2Controller {
+  private readonly logger = new Logger("OAuth2Controller");
+
   constructor(private readonly oAuthService: OAuthService) {}
 
   @Get("/")
@@ -58,9 +61,8 @@ export class OAuth2Controller {
         const httpError = err as HttpError;
         throw new HttpException(httpError.message, httpError.statusCode);
       }
-      throw new InternalServerErrorException(
-        err instanceof Error ? err.message : "Could not get oAuthClient"
-      );
+      this.logger.error(err);
+      throw new InternalServerErrorException("Could not get oAuthClient");
     }
   }
 
@@ -130,9 +132,8 @@ export class OAuth2Controller {
         const httpError = err as HttpError;
         throw new HttpException(httpError.message, httpError.statusCode);
       }
-      throw new InternalServerErrorException(
-        err instanceof Error ? err.message : "Could not exchange code for tokens"
-      );
+      this.logger.error(err);
+      throw new InternalServerErrorException("Could not exchange code for tokens");
     }
   }
 
@@ -161,8 +162,8 @@ export class OAuth2Controller {
         const httpError = err as HttpError;
         throw new HttpException(httpError.message, httpError.statusCode);
       }
-
-      throw new InternalServerErrorException(err instanceof Error ? err.message : "Could not refresh tokens");
+      this.logger.error(err);
+      throw new InternalServerErrorException("Could not refresh tokens");
     }
   }
 }

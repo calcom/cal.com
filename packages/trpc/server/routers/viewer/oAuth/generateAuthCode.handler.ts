@@ -42,7 +42,7 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
 
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: err instanceof Error ? err.message : "server_error",
+      message: "server_error",
     });
   }
 };
