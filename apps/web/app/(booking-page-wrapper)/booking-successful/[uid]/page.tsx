@@ -19,8 +19,17 @@ export default function BookingSuccessful() {
   const { booking } = bookingData;
 
   // Format the data for the BookingSuccessCard
-  const startTime = booking.startTime ? dayjs(booking.startTime) : null;
-  const endTime = booking.endTime ? dayjs(booking.endTime) : null;
+  // Ensure UTC ISO strings are properly parsed before timezone conversion to handle DST correctly
+  const startTime = booking.startTime
+    ? typeof booking.startTime === "string" && booking.startTime.endsWith("Z")
+      ? dayjs.utc(booking.startTime)
+      : dayjs(booking.startTime)
+    : null;
+  const endTime = booking.endTime
+    ? typeof booking.endTime === "string" && booking.endTime.endsWith("Z")
+      ? dayjs.utc(booking.endTime)
+      : dayjs(booking.endTime)
+    : null;
   const timeZone = booking.booker?.timeZone || booking.host?.timeZone || dayjs.tz.guess();
 
   const formattedDate = startTime ? startTime.tz(timeZone).format("dddd, MMMM D, YYYY") : "";

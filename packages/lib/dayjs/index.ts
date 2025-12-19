@@ -25,11 +25,18 @@ export const formatTime = (
   timeZone?: string | null
 ) => {
   // console.log(timeZone, date);
-  return timeZone
-    ? dayjs(date)
-        .tz(timeZone)
-        .format(timeFormat === 12 ? "h:mma" : "HH:mm")
-    : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+  if (timeZone) {
+    // If date is a UTC ISO string (ends with 'Z'), parse as UTC first to ensure correct DST handling
+    // This is critical for times near DST transitions - ensures the correct UTC offset is applied
+    // for the specific date/time when converting to the target timezone
+    if (typeof date === "string" && date.endsWith("Z")) {
+      return dayjs.utc(date).tz(timeZone).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+    }
+    // For Date objects or Dayjs objects, use standard timezone conversion
+    // Date objects created from UTC strings are already correctly parsed
+    return dayjs(date).tz(timeZone).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+  }
+  return dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
 };
 
 /**
@@ -43,7 +50,7 @@ export const isSupportedTimeZone = (timeZone: string) => {
   try {
     dayjs().tz(timeZone);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };

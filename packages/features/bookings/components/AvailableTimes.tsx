@@ -115,6 +115,8 @@ const SlotItem = ({
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const layout = useBookerStoreContext((state) => state.layout);
   const hasTimeSlots = !!seatsPerTimeSlot;
+  // Ensure UTC ISO strings are properly parsed before timezone conversion to handle DST correctly
+  // slot.time is always a UTC ISO string from the backend (e.g., "2024-03-31T01:00:00.000Z")
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
   const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);

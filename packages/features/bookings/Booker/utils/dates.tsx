@@ -16,6 +16,8 @@ interface EventFromTime {
 }
 
 export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: EventFromTime) => {
+  // new Date() correctly parses UTC ISO strings (ending with 'Z'), ensuring proper DST handling
+  // when converting to the target timezone via Intl.DateTimeFormat
   const startDate = new Date(date);
   const formattedDate = new Intl.DateTimeFormat(language, {
     timeZone,
@@ -40,6 +42,8 @@ export const formatEventFromToTime = ({
   timeZone,
   language,
 }: EventFromToTime) => {
+  // new Date() correctly parses UTC ISO strings (ending with 'Z'), ensuring proper DST handling
+  // when converting to the target timezone via Intl.DateTimeFormat
   const startDate = new Date(date);
   const endDate = duration
     ? new Date(new Date(date).setMinutes(startDate.getMinutes() + duration))
