@@ -7,7 +7,7 @@ import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.containe
 import { HttpError } from "@calcom/lib/http-error";
 
 async function handler(req: NextRequest) {
-  const { client_id, client_secret, grant_type, refresh_token, code_verifier } = await parseUrlFormData(req);
+  const { client_id, client_secret, grant_type, refresh_token } = await parseUrlFormData(req);
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
     return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });

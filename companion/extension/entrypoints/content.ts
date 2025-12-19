@@ -56,6 +56,9 @@ export default defineContentScript({
     iframeContainer.style.pointerEvents = "none";
 
     const iframe = document.createElement("iframe");
+    // URL is determined at build time:
+    // - ext:build-dev  → uses EXPO_PUBLIC_COMPANION_DEV_URL (localhost)
+    // - ext:build-prod → uses https://companion.cal.com
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
     iframe.src = COMPANION_URL;
