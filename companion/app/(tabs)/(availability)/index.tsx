@@ -30,6 +30,7 @@ import {
   useSetScheduleAsDefault,
 } from "../../../hooks";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { AvailabilityListItem } from "../../../components/availability-list-item/AvailabilityListItem";
 
 export default function Availability() {
   const router = useRouter();
@@ -260,65 +261,6 @@ export default function Availability() {
     );
   };
 
-  const renderSchedule = ({ item: schedule, index }: { item: Schedule; index: number }) => {
-    return (
-      <TouchableOpacity
-        className="border-b border-[#E5E5EA] bg-white active:bg-[#F8F9FA] "
-        onPress={() => handleSchedulePress(schedule)}
-        onLongPress={() => handleScheduleLongPress(schedule)}
-        style={{ paddingHorizontal: 16, paddingVertical: 16 }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="mr-4 flex-1">
-            <View className="mb-1 flex-row flex-wrap items-center">
-              <Text className="text-base font-semibold text-[#333]">{schedule.name}</Text>
-              {schedule.isDefault && (
-                <View className="ml-2 rounded bg-[#666] px-2 py-0.5">
-                  <Text className="text-xs font-semibold text-white">Default</Text>
-                </View>
-              )}
-            </View>
-
-            {schedule.availability && schedule.availability.length > 0 ? (
-              <View>
-                {schedule.availability.map((slot, slotIndex) => (
-                  <View
-                    key={`${schedule.id}-${slot.days.join("-")}-${slotIndex}`}
-                    className={slotIndex > 0 ? "mt-2" : ""}
-                  >
-                    <Text className="text-sm text-[#666]">
-                      {slot.days.join(", ")} {slot.startTime} - {slot.endTime}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Text className="text-sm text-[#666]">No availability set</Text>
-            )}
-
-            <View className="mt-2 flex-row items-center">
-              <Ionicons name="globe-outline" size={14} color="#666" />
-              <Text className="ml-1.5 text-sm text-[#666]">{schedule.timeZone}</Text>
-            </View>
-          </View>
-
-          {/* Three dots button - vertically centered on the right */}
-          <TouchableOpacity
-            className="items-center justify-center rounded-lg border border-[#E5E5EA]"
-            style={{ width: 32, height: 32 }}
-            onPress={(e) => {
-              e.stopPropagation();
-              setSelectedSchedule(schedule);
-              setShowActionsModal(true);
-            }}
-          >
-            <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   if (loading) {
     return (
       <View className="flex-1 bg-[#f8f9fa]">
@@ -448,7 +390,7 @@ export default function Availability() {
         {/* Schedules list */}
         <Activity mode={showList ? "visible" : "hidden"}>
           <FlatList
-            className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+            className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
             contentContainerStyle={{
               paddingBottom: 90,
               paddingHorizontal: 8,
@@ -456,7 +398,18 @@ export default function Availability() {
             }}
             data={filteredSchedules}
             keyExtractor={(item) => item.id.toString()}
-            renderItem={renderSchedule}
+            renderItem={({ item, index }) => (
+              <AvailabilityListItem
+                item={item}
+                index={index}
+                handleSchedulePress={handleSchedulePress}
+                handleScheduleLongPress={handleScheduleLongPress}
+                setSelectedSchedule={setSelectedSchedule}
+                setShowActionsModal={setShowActionsModal}
+                onDuplicate={handleDuplicate}
+                onDelete={handleDelete}
+              />
+            )}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             showsVerticalScrollIndicator={false}
             contentInsetAdjustmentBehavior="automatic"
