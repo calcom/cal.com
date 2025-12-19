@@ -874,9 +874,9 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
         },
       ],
       datesOutOfOffice,
+      datesOutOfOfficeTimeZone: "UTC",
     });
 
-    // Filter slots by day
     const day1Slots = slots.filter((slot) => slot.time.format("YYYY-MM-DD") === "2025-11-17");
     const day2Slots = slots.filter((slot) => slot.time.format("YYYY-MM-DD") === "2025-11-18");
 
@@ -925,6 +925,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       eventLength: 30,
       dateRanges,
       datesOutOfOffice,
+      datesOutOfOfficeTimeZone: "Europe/Berlin",
     });
 
     expect(slots.length).toBeGreaterThan(0);
@@ -1008,6 +1009,48 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     slots.forEach((slot) => {
       expect(slot.away).toBeUndefined();
     });
+
+    vi.useRealTimers();
+  });
+
+  it("should mark slots as away when host OOO day maps to next UTC day (LA host, Kolkata booker)", async () => {
+    vi.setSystemTime(dayjs.utc("2026-01-10T00:00:00Z").toDate());
+
+    const datesOutOfOffice = {
+      "2026-01-16": {
+        fromUser: { id: 1, displayName: "Host User" },
+        toUser: null,
+        reason: "OOO",
+        emoji: "🏖️",
+      },
+    };
+
+    const dateRanges = [
+      {
+        start: dayjs.tz("2026-01-16T16:00:00", "America/Los_Angeles"),
+        end: dayjs.tz("2026-01-16T17:00:00", "America/Los_Angeles"),
+      },
+    ];
+
+    const inviteeDate = dayjs.tz("2026-01-17T00:00:00", "Asia/Kolkata");
+
+    const slots = getSlots({
+      inviteeDate,
+      frequency: 30,
+      minimumBookingNotice: 0,
+      eventLength: 30,
+      dateRanges,
+      datesOutOfOffice,
+      datesOutOfOfficeTimeZone: "America/Los_Angeles",
+    });
+
+    const targetSlot = slots.find(
+      (slot) => slot.time.tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm") === "2026-01-17 05:30"
+    );
+
+    expect(targetSlot).toBeDefined();
+    expect(targetSlot?.away).toBe(true);
+    expect(targetSlot?.reason).toBe("OOO");
 
     vi.useRealTimers();
   });
