@@ -238,6 +238,7 @@ export class CalComOAuthService {
 
   private async launchExtensionAuthFlow(authUrl: string): Promise<string> {
     return new Promise((resolve, reject) => {
+      // Try Chrome/Chromium identity API first
       if (typeof chrome !== "undefined" && chrome.identity) {
         chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (responseUrl) => {
           if (chrome.runtime.lastError) {
@@ -249,6 +250,29 @@ export class CalComOAuthService {
           }
         });
         return;
+      }
+
+      // Try Firefox/Safari browser.identity API (Promise-based)
+      // @ts-ignore - Firefox/Safari use browser namespace
+      if (typeof browser !== "undefined" && browser.identity) {
+        try {
+          // @ts-ignore - Firefox/Safari browser.identity returns Promise
+          browser.identity
+            .launchWebAuthFlow({ url: authUrl, interactive: true })
+            .then((responseUrl: string | undefined) => {
+              if (responseUrl) {
+                resolve(responseUrl);
+              } else {
+                reject(new Error("OAuth cancelled"));
+              }
+            })
+            .catch((error: Error) => {
+              reject(new Error(`OAuth flow failed: ${error.message}`));
+            });
+          return;
+        } catch {
+          // Fall through to iframe-based flow
+        }
       }
 
       if (this.isRunningInIframe()) {
@@ -511,10 +535,108 @@ export class CalComOAuthService {
   }
 }
 
+/**
+ * Browser type for OAuth configuration selection.
+ * Used to determine which OAuth client credentials to use.
+ */
+type BrowserType = "chrome" | "firefox" | "safari" | "edge" | "brave" | "unknown";
+
+/**
+ * Detects the current browser type for OAuth configuration.
+ * This is used in web/extension context to select the appropriate OAuth credentials.
+ */
+function detectBrowserType(): BrowserType {
+  if (Platform.OS !== "web" || typeof navigator === "undefined") {
+    return "unknown";
+  }
+
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  // Check for Brave first (it identifies as Chrome but has Brave-specific properties)
+  // @ts-ignore - Brave adds this to navigator
+  if (navigator.brave && typeof navigator.brave.isBrave === "function") {
+    return "brave";
+  }
+
+  // Check for Edge (Chromium-based Edge includes "Edg/" in user agent)
+  if (userAgent.includes("edg/")) {
+    return "edge";
+  }
+
+  // Check for Firefox
+  if (userAgent.includes("firefox")) {
+    return "firefox";
+  }
+
+  // Check for Safari (must check after Chrome since Chrome also includes "safari")
+  if (
+    userAgent.includes("safari") &&
+    !userAgent.includes("chrome") &&
+    !userAgent.includes("chromium")
+  ) {
+    return "safari";
+  }
+
+  // Check for Chrome (or other Chromium-based browsers)
+  if (userAgent.includes("chrome") || userAgent.includes("chromium")) {
+    return "chrome";
+  }
+
+  return "unknown";
+}
+
+/**
+ * Gets browser-specific OAuth configuration.
+ * Falls back to default (Chrome) config if browser-specific config is not available.
+ */
+function getBrowserSpecificOAuthConfig(): { clientId: string; redirectUri: string } {
+  // Default values (Chrome/Brave)
+  const defaultClientId = process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID || "";
+  const defaultRedirectUri = process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI || "";
+
+  // For mobile apps, always use default config
+  if (Platform.OS !== "web") {
+    return { clientId: defaultClientId, redirectUri: defaultRedirectUri };
+  }
+
+  const browserType = detectBrowserType();
+
+  switch (browserType) {
+    case "firefox":
+      return {
+        clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID_FIREFOX || defaultClientId,
+        redirectUri:
+          process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI_FIREFOX || defaultRedirectUri,
+      };
+
+    case "safari":
+      return {
+        clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID_SAFARI || defaultClientId,
+        redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI_SAFARI || defaultRedirectUri,
+      };
+
+    case "edge":
+      return {
+        clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID_EDGE || defaultClientId,
+        redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI_EDGE || defaultRedirectUri,
+      };
+
+    case "chrome":
+    case "brave":
+    case "unknown":
+    default:
+      // Chrome, Brave, and unknown browsers use the default configuration
+      return { clientId: defaultClientId, redirectUri: defaultRedirectUri };
+  }
+}
+
 export function createCalComOAuthService(overrides: Partial<OAuthConfig> = {}): CalComOAuthService {
+  // Get browser-specific OAuth config
+  const browserConfig = getBrowserSpecificOAuthConfig();
+
   const config: OAuthConfig = {
-    clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID || "",
-    redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI || "",
+    clientId: browserConfig.clientId,
+    redirectUri: browserConfig.redirectUri,
     calcomBaseUrl: "https://app.cal.com",
     ...overrides,
   };

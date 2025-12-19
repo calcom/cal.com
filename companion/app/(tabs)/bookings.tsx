@@ -933,6 +933,49 @@ export default function Bookings() {
     const isCancelled = item.status?.toUpperCase() === "CANCELLED";
     const isRejected = item.status?.toUpperCase() === "REJECTED";
 
+    // Pre-compute host and attendees display
+    const getHostAndAttendeesDisplay = () => {
+      const hasHostOrAttendees =
+        (item.hosts && item.hosts.length > 0) ||
+        item.user ||
+        (item.attendees && item.attendees.length > 0);
+
+      if (!hasHostOrAttendees) return null;
+
+      const currentUserEmail = userInfo?.email?.toLowerCase();
+      const hostEmail = item.hosts?.[0]?.email?.toLowerCase() || item.user?.email?.toLowerCase();
+      const isCurrentUserHost = currentUserEmail && hostEmail && currentUserEmail === hostEmail;
+
+      const hostName = isCurrentUserHost
+        ? "You"
+        : item.hosts?.[0]?.name || item.hosts?.[0]?.email || item.user?.name || item.user?.email;
+
+      const attendeesDisplay =
+        item.attendees && item.attendees.length > 0
+          ? item.attendees.length === 1
+            ? item.attendees[0].name || item.attendees[0].email
+            : item.attendees
+                .slice(0, 2)
+                .map((att) => att.name || att.email)
+                .join(", ") +
+              (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")
+          : null;
+
+      if (hostName && attendeesDisplay) {
+        return `${hostName} and ${attendeesDisplay}`;
+      } else if (hostName) {
+        return hostName;
+      } else if (attendeesDisplay) {
+        return attendeesDisplay;
+      }
+      return null;
+    };
+
+    const hostAndAttendeesDisplay = getHostAndAttendeesDisplay();
+    const meetingInfo = getMeetingInfo(item.location);
+    const title = item.title || "";
+    const description = item.description || "";
+
     return (
       <View className="border-b border-[#E5E5EA] bg-white">
         <TouchableOpacity
@@ -944,7 +987,6 @@ export default function Bookings() {
           }}
           style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
         >
-          {/* Time and Date Row */}
           <View className="mb-2 flex-row flex-wrap items-center">
             <Text className="text-sm font-medium text-[#333]">
               {formatDate(startTime, isUpcoming)}
@@ -953,126 +995,62 @@ export default function Bookings() {
               {formatTime(startTime)} - {formatTime(endTime)}
             </Text>
           </View>
-
-          {/* Badges Row */}
           <View className="mb-3 flex-row flex-wrap items-center">
-            {isPending && (
+            {isPending ? (
               <View className="mb-1 mr-2 rounded bg-[#FF9500] px-2 py-0.5">
                 <Text className="text-xs font-medium text-white">Unconfirmed</Text>
               </View>
-            )}
+            ) : null}
           </View>
-
-          {/* Title */}
           <Text
             className={`mb-2 text-lg font-medium leading-5 text-[#333] ${isCancelled || isRejected ? "line-through" : ""}`}
             numberOfLines={2}
           >
-            {item.title}
+            {title}
           </Text>
-
-          {/* Description */}
-          {item.description && (
+          {description ? (
             <Text className="mb-2 text-sm leading-5 text-[#666]" numberOfLines={1}>
-              &quot;{item.description}&quot;
+              &quot;{description}&quot;
             </Text>
-          )}
-
-          {/* Host and Attendees */}
-          {((item.hosts && item.hosts.length > 0) ||
-            item.user ||
-            (item.attendees && item.attendees.length > 0)) && (
-            <Text className="mb-2 text-sm text-[#333]">
-              {(() => {
-                // Check if current user is the host
-                const currentUserEmail = userInfo?.email?.toLowerCase();
-                const hostEmail =
-                  item.hosts?.[0]?.email?.toLowerCase() || item.user?.email?.toLowerCase();
-                const isCurrentUserHost =
-                  currentUserEmail && hostEmail && currentUserEmail === hostEmail;
-
-                // Get host display name
-                const hostName = isCurrentUserHost
-                  ? "You"
-                  : item.hosts?.[0]?.name ||
-                    item.hosts?.[0]?.email ||
-                    item.user?.name ||
-                    item.user?.email;
-
-                // Get attendees display
-                const attendeesDisplay =
-                  item.attendees && item.attendees.length > 0
-                    ? item.attendees.length === 1
-                      ? item.attendees[0].name || item.attendees[0].email
-                      : item.attendees
-                          .slice(0, 2)
-                          .map((att) => att.name || att.email)
-                          .join(", ") +
-                        (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")
-                    : null;
-
-                // Combine host and attendees
-                if (hostName && attendeesDisplay) {
-                  return `${hostName} and ${attendeesDisplay}`;
-                } else if (hostName) {
-                  return hostName;
-                } else if (attendeesDisplay) {
-                  return attendeesDisplay;
-                }
-                return null;
-              })()}
-            </Text>
-          )}
-
-          {/* Meeting Link - only for video conferencing apps */}
-          {(() => {
-            const meetingInfo = getMeetingInfo(item.location);
-            if (!meetingInfo) return null;
-
-            return (
-              <View className="mb-1 flex-row">
-                <TouchableOpacity
-                  className="flex-row items-center"
-                  style={{ alignSelf: "flex-start" }}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                  onPress={async (e) => {
-                    e.stopPropagation();
-                    try {
-                      await Linking.openURL(meetingInfo.cleanUrl);
-                    } catch {
-                      showErrorAlert("Error", "Failed to open meeting link. Please try again.");
-                    }
-                  }}
-                >
-                  {meetingInfo.iconUrl ? (
-                    <SvgImage
-                      uri={meetingInfo.iconUrl}
-                      width={16}
-                      height={16}
-                      style={{ marginRight: 6 }}
-                    />
-                  ) : (
-                    <Ionicons
-                      name="videocam"
-                      size={16}
-                      color="#007AFF"
-                      style={{ marginRight: 6 }}
-                    />
-                  )}
-                  <Text className="text-sm font-medium text-[#007AFF]">{meetingInfo.label}</Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })()}
+          ) : null}
+          {hostAndAttendeesDisplay ? (
+            <Text className="mb-2 text-sm text-[#333]">{hostAndAttendeesDisplay}</Text>
+          ) : null}
+          {meetingInfo ? (
+            <View className="mb-1 flex-row">
+              <TouchableOpacity
+                className="flex-row items-center"
+                style={{ alignSelf: "flex-start" }}
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                onPress={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    await Linking.openURL(meetingInfo.cleanUrl);
+                  } catch {
+                    showErrorAlert("Error", "Failed to open meeting link. Please try again.");
+                  }
+                }}
+              >
+                {meetingInfo.iconUrl ? (
+                  <SvgImage
+                    uri={meetingInfo.iconUrl}
+                    width={16}
+                    height={16}
+                    style={{ marginRight: 6 }}
+                  />
+                ) : (
+                  <Ionicons name="videocam" size={16} color="#007AFF" style={{ marginRight: 6 }} />
+                )}
+                <Text className="text-sm font-medium text-[#007AFF]">{meetingInfo.label}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
         </TouchableOpacity>
-
-        {/* Action buttons row */}
         <View
           className="flex-row items-center justify-end"
           style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
         >
-          {/* Confirm and Reject buttons for unconfirmed bookings */}
-          {isPending && (
+          {isPending ? (
             <>
               <TouchableOpacity
                 className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-white"
@@ -1119,9 +1097,7 @@ export default function Bookings() {
                 <Text className="ml-1 text-sm font-medium text-[#3C3F44]">Reject</Text>
               </TouchableOpacity>
             </>
-          )}
-
-          {/* Three dots button */}
+          ) : null}
           <TouchableOpacity
             className="items-center justify-center rounded-lg border border-[#E5E5EA]"
             style={{ width: 32, height: 32 }}
