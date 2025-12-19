@@ -1,6 +1,6 @@
 "use client";
 
-import { LinkIcon, PlusIcon } from "lucide-react";
+import { LinkIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm, Controller, useFormContext } from "react-hook-form";
 
@@ -85,14 +85,14 @@ function DelegationListItemActions({
             id: "edit",
             label: t("edit"),
             onClick: () => onEdit(delegation),
-            icon: "pencil",
+            icon: PencilIcon,
           },
           {
             id: "delete",
             label: t("delete"),
             disabled: true,
             onClick: () => onDelete(delegation.id),
-            icon: "trash",
+            icon: TrashIcon,
           },
         ]}
       />

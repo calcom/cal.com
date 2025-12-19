@@ -1,5 +1,6 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import startCase from "lodash/startCase";
+import { CircleIcon } from "lucide-react";
 import { useMemo } from "react";
 import { z } from "zod";
 
@@ -232,7 +233,7 @@ export const useInsightsColumns = ({
           </div>
         ),
         meta: {
-          filter: { type: ColumnFilterType.MULTI_SELECT, icon: "circle" },
+          filter: { type: ColumnFilterType.MULTI_SELECT, icon: CircleIcon },
         },
       }),
       columnHelper.accessor("bookingCreatedAt", {

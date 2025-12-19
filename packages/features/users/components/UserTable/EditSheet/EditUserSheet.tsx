@@ -1,3 +1,11 @@
+import {
+  AtSign as AtSignIcon,
+  Calendar as CalendarIcon,
+  Clock as ClockIcon,
+  ExternalLink as ExternalLinkIcon,
+  Fingerprint as FingerprintIcon,
+  Users as UsersIcon,
+} from "lucide-react";
 import type { Dispatch } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -97,21 +105,21 @@ export function EditUserSheet({
                       value={removeProtocol(
                         `${orgBranding?.fullDomain ?? WEBAPP_URL}/${loadedUser?.username}`
                       )}
-                      icon="external-link"
+                      icon={ExternalLinkIcon}
                     />
-                    <DisplayInfo label={t("email")} value={loadedUser?.email ?? ""} icon="at-sign" />
-                    <DisplayInfo label={t("role")} value={[loadedUser?.role ?? ""]} icon="fingerprint" />
-                    <DisplayInfo label={t("timezone")} value={loadedUser?.timeZone ?? ""} icon="clock" />
+                    <DisplayInfo label={t("email")} value={loadedUser?.email ?? ""} icon={AtSignIcon} />
+                    <DisplayInfo label={t("role")} value={[loadedUser?.role ?? ""]} icon={FingerprintIcon} />
+                    <DisplayInfo label={t("timezone")} value={loadedUser?.timeZone ?? ""} icon={ClockIcon} />
                     <DisplayInfo
                       label={t("teams")}
                       value={!teamNames || teamNames.length === 0 ? "" : teamNames}
-                      icon="users"
+                      icon={UsersIcon}
                       coloredBadges
                     />
                     <DisplayInfo
                       label={t("availability")}
                       value={!schedulesNames || schedulesNames.length === 0 ? "" : schedulesNames}
-                      icon="calendar"
+                      icon={CalendarIcon}
                     />
                   </div>
                   {canViewAttributes && usersAttributes && usersAttributes?.length > 0 && (

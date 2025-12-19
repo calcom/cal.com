@@ -1,5 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FingerprintIcon, Grid3x3Icon } from "lucide-react";
+import {
+  AtSign as AtSignIcon,
+  ExternalLink as ExternalLinkIcon,
+  FingerprintIcon,
+  Grid3x3Icon,
+} from "lucide-react";
 import type { Dispatch } from "react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -222,13 +227,13 @@ export function EditMemberSheet({
             <SheetBody className="stack-y-4 flex flex-col p-4">
               <div className="stack-y-4 mb-4 flex flex-col">
                 <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
-                <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
-                <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />
+                <DisplayInfo label="Cal" value={bookingLink} icon={ExternalLinkIcon} />
+                <DisplayInfo label={t("email")} value={selectedUser.email} icon={AtSignIcon} />
                 {!editMode ? (
                   <DisplayInfo
                     label={t("role")}
                     value={[selectedUser.customRole?.name || selectedUser.role]}
-                    icon="fingerprint"
+                    icon={FingerprintIcon}
                   />
                 ) : (
                   <div className="flex items-center gap-6">

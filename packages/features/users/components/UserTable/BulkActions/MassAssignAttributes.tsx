@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-import { CheckIcon, ChevronRightIcon } from "lucide-react";
+import { CheckIcon, ChevronRightIcon, Tags as TagsIcon } from "lucide-react";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -258,7 +258,7 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
         }
       }}>
       <PopoverTrigger asChild>
-        <DataTableSelectionBar.Button icon="tags" color="secondary">
+        <DataTableSelectionBar.Button Icon={TagsIcon} color="secondary">
           {t("add_attributes")}
         </DataTableSelectionBar.Button>
       </PopoverTrigger>

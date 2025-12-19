@@ -1,4 +1,5 @@
 import { m } from "framer-motion";
+import { Calendar as CalendarIcon, Globe as GlobeIcon, User as UserIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
@@ -189,7 +190,7 @@ export const EventMeta = ({
           )}
           <div className="stack-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
-              <EventMetaBlock icon="calendar">
+              <EventMetaBlock Icon={CalendarIcon}>
                 {t("former_time")}
                 <br />
                 <span className="line-through" data-testid="former_time_p">
@@ -204,7 +205,7 @@ export const EventMeta = ({
               </EventMetaBlock>
             )}
             {selectedTimeslot && (
-              <EventMetaBlock icon="calendar">
+              <EventMetaBlock Icon={CalendarIcon}>
                 <FromToTime
                   date={selectedTimeslot}
                   duration={selectedDuration || event.length}
@@ -218,7 +219,7 @@ export const EventMeta = ({
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
-              icon="globe">
+              Icon={GlobeIcon}>
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
@@ -254,7 +255,7 @@ export const EventMeta = ({
               )}
             </EventMetaBlock>
             {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
-              <EventMetaBlock icon="user" className={`${colorClass}`}>
+              <EventMetaBlock Icon={UserIcon} className={`${colorClass}`}>
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <p>
                     <SeatsAvailabilityText

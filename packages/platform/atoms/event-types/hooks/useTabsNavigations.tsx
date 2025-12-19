@@ -2,6 +2,18 @@
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import type { TFunction } from "i18next";
+import {
+  CalendarIcon,
+  ClockIcon,
+  Grid3X3Icon,
+  LinkIcon,
+  PhoneIcon,
+  RepeatIcon,
+  SettingsIcon,
+  UsersIcon,
+  WebhookIcon,
+  ZapIcon,
+} from "lucide-react";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -90,7 +102,7 @@ export const useTabsNavigations = ({
       navigation.splice(3, 0, {
         name: t("recurring"),
         href: `/event-types/${eventTypeId}?tabName=recurring`,
-        icon: "repeat",
+        icon: RepeatIcon,
         info: t(`recurring_event_tab_description`),
         "data-testid": "recurring",
       });
@@ -98,7 +110,7 @@ export const useTabsNavigations = ({
     navigation.splice(1, 0, {
       name: t("availability"),
       href: `/event-types/${eventTypeId}?tabName=availability`,
-      icon: "calendar",
+      icon: CalendarIcon,
       info:
         isManagedEventType || isChildrenManagedEventType
           ? formMethods.getValues("schedule") === null
@@ -118,7 +130,7 @@ export const useTabsNavigations = ({
       navigation.splice(2, 0, {
         name: t("assignment"),
         href: `/event-types/${eventTypeId}?tabName=team`,
-        icon: "users",
+        icon: UsersIcon,
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
@@ -131,7 +143,7 @@ export const useTabsNavigations = ({
         navigation.push({
           name: t("instant_tab_title"),
           href: `/event-types/${eventType.id}?tabName=instant`,
-          icon: "phone-call",
+          icon: PhoneIcon,
           info: t(`instant_event_tab_description`),
           "data-testid": "instant_tab_title",
         });
@@ -140,7 +152,7 @@ export const useTabsNavigations = ({
     navigation.push({
       name: t("webhooks"),
       href: `/event-types/${eventTypeId}?tabName=webhooks`,
-      icon: "webhook",
+      icon: WebhookIcon,
       info: `${activeWebhooksNumber} ${t("active")}`,
       "data-testid": "webhooks",
     });
@@ -197,28 +209,28 @@ function getNavigation({
     {
       name: t("basics"),
       href: `/event-types/${id}?tabName=setup`,
-      icon: "link",
+      icon: LinkIcon,
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
       "data-testid": `basics`,
     },
     {
       name: t("event_limit_tab_title"),
       href: `/event-types/${id}?tabName=limits`,
-      icon: "clock",
+      icon: ClockIcon,
       info: t(`event_limit_tab_description`),
       "data-testid": "event_limit_tab_title",
     },
     {
       name: t("event_advanced_tab_title"),
       href: `/event-types/${id}?tabName=advanced`,
-      icon: "sliders-vertical",
+      icon: SettingsIcon,
       info: t(`event_advanced_tab_description`),
       "data-testid": "event_advanced_tab_title",
     },
     {
       name: t("apps"),
       href: `/event-types/${id}?tabName=apps`,
-      icon: "grid-3x3",
+      icon: Grid3X3Icon,
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
       "data-testid": "apps",
@@ -230,7 +242,7 @@ function getNavigation({
     baseNavigation.push({
       name: t("workflows"),
       href: `/event-types/${id}?tabName=workflows`,
-      icon: "zap",
+      icon: ZapIcon,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
       "data-testid": "workflows",
     });
