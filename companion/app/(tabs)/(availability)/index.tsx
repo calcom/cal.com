@@ -408,6 +408,7 @@ export default function Availability() {
                 setShowActionsModal={setShowActionsModal}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
+                onSetAsDefault={handleSetAsDefault}
               />
             )}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

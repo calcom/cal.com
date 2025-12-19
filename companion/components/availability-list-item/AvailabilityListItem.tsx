@@ -11,6 +11,7 @@ export interface AvailabilityListItemProps {
   setShowActionsModal: (show: boolean) => void;
   onDuplicate?: (schedule: Schedule) => void;
   onDelete?: (schedule: Schedule) => void;
+  onSetAsDefault?: (schedule: Schedule) => void;
 }
 
 export const AvailabilityListItem = ({

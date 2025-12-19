@@ -10,6 +10,7 @@ export const AvailabilityListItem = ({
   handleSchedulePress,
   onDuplicate,
   onDelete,
+  onSetAsDefault,
 }: AvailabilityListItemProps) => {
   const scheduleActions: {
     label: string;
@@ -17,16 +18,26 @@ export const AvailabilityListItem = ({
     onPress: () => void;
     role: "default" | "destructive";
   }[] = [
+    ...(!schedule.isDefault && onSetAsDefault
+      ? [
+          {
+            label: "Set as Default",
+            icon: "star",
+            onPress: () => onSetAsDefault(schedule),
+            role: "default" as const,
+          },
+        ]
+      : []),
     {
       label: "Duplicate",
       icon: "square.on.square",
-      onPress: () => onDuplicate(schedule),
+      onPress: () => onDuplicate?.(schedule),
       role: "default",
     },
     {
       label: "Delete",
       icon: "trash",
-      onPress: () => onDelete(schedule),
+      onPress: () => onDelete?.(schedule),
       role: "destructive",
     },
   ];
