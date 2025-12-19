@@ -32,7 +32,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Spinner } from "@calcom/ui/components/icon/Spinner";
+import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];

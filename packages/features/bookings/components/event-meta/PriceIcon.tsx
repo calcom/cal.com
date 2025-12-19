@@ -1,6 +1,6 @@
 import { CreditCardIcon } from "lucide-react";
 
-import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
+import { SatSymbol } from "@calcom/ui/components/icon";
 
 export function PriceIcon(props: { currency: string; className?: string }) {
   const { className, currency } = props;
