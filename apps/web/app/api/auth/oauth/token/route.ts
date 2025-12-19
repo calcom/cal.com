@@ -50,7 +50,6 @@ async function handler(req: NextRequest) {
       }
     );
   } catch (err) {
-    console.log(err, err instanceof HttpError);
     if (err instanceof HttpError) {
       return NextResponse.json({ error: err.message }, { status: err.statusCode });
     }
