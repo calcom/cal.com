@@ -7,7 +7,6 @@ import { updateAttributeSyncSchema } from "./updateAttributeSync.schema";
 import { createAttributePbacProcedure } from "./util";
 
 export const attributeSyncRouter = router({
-  // Query: Get enabled app credentials (Salesforce, etc.)
   getEnabledAppCredentials: createAttributePbacProcedure("organization.attributes.read")
     .input(getEnabledAppCredentialsSchema)
     .query(async (opts) => {
@@ -15,7 +14,6 @@ export const attributeSyncRouter = router({
       return handler(opts);
     }),
 
-  // Query: Get all attribute sync configurations
   getAllAttributeSyncs: createAttributePbacProcedure("organization.attributes.read")
     .input(getAllAttributeSyncsSchema)
     .query(async (opts) => {
@@ -30,7 +28,7 @@ export const attributeSyncRouter = router({
       return handler(opts);
     }),
 
-  updateAttributeSync: createAttributePbacProcedure("organization.attributes.create")
+  updateAttributeSync: createAttributePbacProcedure("organization.attributes.update")
     .input(updateAttributeSyncSchema)
     .mutation(async (opts) => {
       const { default: handler } = await import("./updateAttributeSync.handler");

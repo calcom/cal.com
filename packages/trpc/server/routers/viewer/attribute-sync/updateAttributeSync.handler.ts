@@ -14,10 +14,17 @@ type UpdateAttributeSyncOptions = {
 
 const updateAttributeSyncHandler = async ({ ctx, input }: UpdateAttributeSyncOptions) => {
   const currentUserOrgId = ctx.user.organizationId;
-
-  if (input.organizationId !== currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
-
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
+
+  // Verify the sync exists and belongs to the user's organization
+  const integrationAttributeSync = await integrationAttributeSyncService.getById(input.id);
+
+  if (!integrationAttributeSync) throw new TRPCError({ code: "NOT_FOUND" });
+
+  if (integrationAttributeSync.organizationId !== currentUserOrgId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
   await integrationAttributeSyncService.updateIncludeRulesAndMappings(input);
 };
 

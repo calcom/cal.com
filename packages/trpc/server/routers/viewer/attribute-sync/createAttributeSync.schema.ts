@@ -4,7 +4,7 @@ import { attributeSyncRuleSchema } from "@calcom/features/ee/integration-attribu
 
 const fieldMappingSchema = z.object({
   integrationFieldName: z.string().min(1),
-  attributeId: z.string(),
+  attributeId: z.string().min(1),
   enabled: z.boolean(),
 });
 
