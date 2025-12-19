@@ -12,6 +12,7 @@ const sessionGetter: GetSessionFn = () =>
       email: "",
       image: "",
       id: 1,
+      uuid: "test-uuid-mock-context",
       username: "" /* Not used in this context */,
       role: UserPermissionRole.USER,
       profile: {
