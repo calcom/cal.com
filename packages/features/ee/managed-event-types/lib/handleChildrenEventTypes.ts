@@ -6,7 +6,11 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
+import {
+  allManagedEventTypeProps,
+  allManagedEventTypePropsForZod,
+  unlockedManagedEventTypePropsForZod,
+} from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
 interface handleChildrenEventTypesProps {
@@ -157,9 +161,9 @@ export default async function handleChildrenEventTypes({
     bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
   });
 
-  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
+  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypePropsForZod);
   const managedEventTypeValues = allManagedEventTypePropsZod
-    .omit(unlockedManagedEventTypeProps)
+    .omit(unlockedManagedEventTypePropsForZod)
     .parse(eventType);
 
   // Check we are certainly dealing with a managed event type through its metadata
@@ -170,7 +174,7 @@ export default async function handleChildrenEventTypes({
 
   // Define the values for unlocked properties to use on creation, not updation
   const unlockedEventTypeValues = allManagedEventTypePropsZod
-    .pick(unlockedManagedEventTypeProps)
+    .pick(unlockedManagedEventTypePropsForZod)
     .parse(eventType);
   // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
   const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
