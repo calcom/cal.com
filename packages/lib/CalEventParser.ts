@@ -119,16 +119,6 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
     `;
 };
 
-export const getDescription = (
-  calEvent: Pick<CalendarEvent, "description">,
-  t: TFunction,
-  stripMarkdownForIcs = false
-) => {
-  if (!calEvent.description) return "";
-  const text = stripMarkdownForIcs
-    ? stripMarkdown(calEvent.description, { preserveNewlines: true })
-    : calEvent.description;
-  return `${t("description")}:\n${text}`;
 /**
  * Converts HTML to plain text while preserving line breaks and links.
  * Used for calendar event descriptions that are stored as HTML from the rich text editor.
@@ -158,11 +148,23 @@ const htmlToPlainText = (html: string): string => {
   );
 };
 
-export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
+export const getDescription = (
+  calEvent: Pick<CalendarEvent, "description">,
+  t: TFunction,
+  stripMarkdownForIcs = false
+) => {
   if (!calEvent.description) {
     return "";
   }
-  const plainText = htmlToPlainText(calEvent.description);
+
+  // First convert HTML to plain text (handles rich text editor content)
+  let plainText = htmlToPlainText(calEvent.description);
+
+  // Then strip markdown if needed (for ICS files and plain text emails)
+  if (stripMarkdownForIcs) {
+    plainText = stripMarkdown(plainText, { preserveNewlines: true });
+  }
+
   return `${t("description")}\n${plainText}`;
 };
 
