@@ -1,3 +1,4 @@
+import { ClockIcon, CopyIcon, ExternalLinkIcon, GiftIcon, LockIcon, SettingsIcon } from "lucide-react";
 import type { User as UserAuth } from "next-auth";
 import posthog from "posthog-js";
 
@@ -41,7 +42,7 @@ export function useBottomNavItems({
         name: "skip_trial",
         href: "",
         isLoading: skipTeamTrialsMutation.isPending,
-        icon: "clock",
+        icon: ClockIcon,
         onClick: (e: { preventDefault: () => void }) => {
           e.preventDefault();
           skipTeamTrialsMutation.mutate({});
@@ -51,7 +52,7 @@ export function useBottomNavItems({
     {
       name: "view_public_page",
       href: publicPageUrl,
-      icon: "external-link",
+      icon: ExternalLinkIcon,
       target: "__blank",
     },
     {
@@ -62,13 +63,13 @@ export function useBottomNavItems({
         navigator.clipboard.writeText(publicPageUrl);
         showToast(t("link_copied"), "success");
       },
-      icon: "copy",
+      icon: CopyIcon,
     },
     IS_DUB_REFERRALS_ENABLED
       ? {
         name: "referral_text",
         href: "/refer",
-        icon: "gift",
+        icon: GiftIcon,
         onClick: () => {
           posthog.capture("refer_and_earn_clicked")
         }
@@ -79,13 +80,13 @@ export function useBottomNavItems({
       ? {
         name: "impersonation",
         href: "/settings/admin/impersonation",
-        icon: "lock",
+        icon: LockIcon,
       }
       : null,
     {
       name: "settings",
       href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
-      icon: "settings",
+      icon: SettingsIcon,
     },
   ].filter(Boolean) as NavigationItemType[];
 }

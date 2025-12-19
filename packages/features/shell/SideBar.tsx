@@ -1,3 +1,4 @@
+import { ArrowLeftIcon, ArrowRightIcon, RotateCwIcon } from "lucide-react";
 import type { User as UserAuth } from "next-auth";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -13,7 +14,6 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Credits } from "@calcom/ui/components/credits";
 import { ButtonOrLink } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -112,19 +112,13 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 color="minimal"
                 onClick={() => window.history.back()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon
-                  name="arrow-left"
-                  className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0"
-                />
+                <ArrowLeftIcon className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon
-                  name="arrow-right"
-                  className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0"
-                />
+                <ArrowRightIcon className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
               </button>
               {!!user?.org && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
@@ -162,15 +156,19 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                   )}
                   onClick={item.onClick}>
                   {!!item.icon && (
-                    <Icon
-                      name={item.isLoading ? "rotate-cw" : item.icon}
-                      className={classNames(
-                        "h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit",
-                        "ml-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
-                        item.isLoading && "animate-spin"
-                      )}
-                      aria-hidden="true"
-                    />
+                    (() => {
+                      const IconComponent = item.isLoading ? RotateCwIcon : item.icon;
+                      return (
+                        <IconComponent
+                          className={classNames(
+                            "h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit",
+                            "ml-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
+                            item.isLoading && "animate-spin"
+                          )}
+                          aria-hidden="true"
+                        />
+                      );
+                    })()
                   )}
                   {isLocaleReady ? (
                     <span className="hidden w-full justify-between lg:flex">

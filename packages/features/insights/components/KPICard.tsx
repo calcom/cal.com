@@ -1,8 +1,9 @@
 "use client";
 
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { calculateDeltaType, valueFormatter } from "../lib";
@@ -43,10 +44,10 @@ export const KPICard = ({
     switch (type) {
       case "increase":
       case "moderateIncrease":
-        return "arrow-up" as const;
+        return ArrowUpIcon;
       case "decrease":
       case "moderateDecrease":
-        return "arrow-down" as const;
+        return ArrowDownIcon;
       case "unchanged":
       default:
         return null;
@@ -54,7 +55,7 @@ export const KPICard = ({
   };
 
   const badgeVariant = getBadgeVariant(deltaType);
-  const deltaIcon = getDeltaIcon(deltaType);
+  const DeltaIcon = getDeltaIcon(deltaType);
 
   return (
     <div>
@@ -64,7 +65,7 @@ export const KPICard = ({
       </div>
       <div className="mt-4 flex items-center justify-start space-x-2">
         <Badge variant={badgeVariant} className="flex items-center gap-1">
-          {deltaIcon && <Icon name={deltaIcon} className="h-3 w-3" />}
+          {DeltaIcon && <DeltaIcon className="h-3 w-3" />}
           {deltaValue}%
         </Badge>
         <div className="flex justify-start space-x-1 truncate">
