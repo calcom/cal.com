@@ -47,13 +47,14 @@ export default defineContentScript({
     sidebarContainer.style.transform = "translateX(100%)";
     sidebarContainer.style.display = "none";
 
-    // Create iframe container with max width
+    // Create iframe container - positioned to right side
     const iframeContainer = document.createElement("div");
-    iframeContainer.style.width = "100%";
-    iframeContainer.style.height = "100%";
-    iframeContainer.style.display = "flex";
-    iframeContainer.style.justifyContent = "flex-end";
-    iframeContainer.style.pointerEvents = "none";
+    iframeContainer.style.position = "absolute";
+    iframeContainer.style.top = "0";
+    iframeContainer.style.right = "0";
+    iframeContainer.style.bottom = "0";
+    iframeContainer.style.width = "400px";
+    iframeContainer.style.overflow = "hidden";
 
     const iframe = document.createElement("iframe");
     // URL is determined at build time:
@@ -62,13 +63,18 @@ export default defineContentScript({
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
     iframe.src = COMPANION_URL;
-    iframe.style.width = "400px";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    iframe.style.borderRadius = "0";
-    iframe.style.backgroundColor = "transparent";
-    iframe.style.pointerEvents = "auto";
-    iframe.style.transition = "none";
+    // Use explicit dimensions - Brave has issues with percentage-based sizing
+    iframe.style.cssText = `
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 400px !important;
+      height: 100vh !important;
+      border: none !important;
+      background-color: transparent !important;
+      pointer-events: auto !important;
+      display: block !important;
+    `;
 
     iframeContainer.appendChild(iframe);
 
@@ -108,15 +114,17 @@ export default defineContentScript({
       if (event.data.type === "cal-companion-expand") {
         // Disable transition for instant expansion
         iframe.style.transition = "none";
-        iframe.style.width = "100%";
-        iframeContainer.style.pointerEvents = "auto";
-        iframeContainer.style.justifyContent = "center";
+        iframe.style.width = "100vw";
+        iframeContainer.style.width = "100%";
+        iframeContainer.style.left = "0";
+        iframeContainer.style.right = "0";
       } else if (event.data.type === "cal-companion-collapse") {
         // Disable transition for instant collapse
         iframe.style.transition = "none";
         iframe.style.width = "400px";
-        iframeContainer.style.pointerEvents = "none";
-        iframeContainer.style.justifyContent = "flex-end";
+        iframeContainer.style.width = "400px";
+        iframeContainer.style.left = "auto";
+        iframeContainer.style.right = "0";
       } else if (event.data.type === "cal-extension-oauth-request") {
         // Handle OAuth request from iframe
         handleOAuthRequest(event.data.authUrl, iframe.contentWindow);
@@ -521,6 +529,7 @@ export default defineContentScript({
 
     // Listen for extension icon click
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      // Skip debug-log messages to avoid infinite loop
       if (message.action === "icon-clicked") {
         if (isClosed) {
           openSidebar();

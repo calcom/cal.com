@@ -690,17 +690,17 @@ export default function EventTypes() {
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
-            {selectedEventType && (
+            {selectedEventType ? (
               <>
                 <View className="border-b border-gray-200 p-6">
                   <Text className="mb-2 text-lg font-semibold text-gray-900">
                     {selectedEventType.title}
                   </Text>
-                  {selectedEventType.description && (
+                  {selectedEventType.description ? (
                     <Text className="text-sm text-gray-600">
                       {normalizeMarkdown(selectedEventType.description)}
                     </Text>
-                  )}
+                  ) : null}
                 </View>
 
                 <View className="p-2">
@@ -759,7 +759,7 @@ export default function EventTypes() {
                   </TouchableOpacity>
                 </View>
               </>
-            )}
+            ) : null}
           </TouchableOpacity>
         </TouchableOpacity>
       </FullScreenModal>
@@ -844,12 +844,12 @@ export default function EventTypes() {
                     Delete Event Type
                   </Text>
                   <Text className="text-sm leading-5 text-gray-600">
-                    {eventTypeToDelete && (
+                    {eventTypeToDelete ? (
                       <>
                         This will permanently delete the "{eventTypeToDelete.title}" event type.
                         This action cannot be undone.
                       </>
-                    )}
+                    ) : null}
                   </Text>
                 </View>
               </View>
@@ -881,13 +881,13 @@ export default function EventTypes() {
       </FullScreenModal>
 
       {/* Toast for Web Platform */}
-      {showToast && (
+      {showToast ? (
         <View className="absolute bottom-8 left-1/2 z-50 -translate-x-1/2 transform">
           <View className="rounded-full bg-gray-800 px-6 py-3 shadow-lg">
             <Text className="text-sm font-medium text-white">{toastMessage}</Text>
           </View>
         </View>
-      )}
+      ) : null}
     </>
   );
 }
