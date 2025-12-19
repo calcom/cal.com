@@ -7,12 +7,15 @@ import { CalendarBatchWrapper } from "../CalendarBatchWrapper";
 describe("CalendarBatchWrapper", () => {
   let mockOriginalCalendar: Calendar;
   let getAvailabilityMock: ReturnType<typeof vi.fn>;
+  let getAvailabilityWithTimeZonesMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     getAvailabilityMock = vi.fn().mockResolvedValue([]);
+    getAvailabilityWithTimeZonesMock = vi.fn().mockResolvedValue([]);
 
     mockOriginalCalendar = {
       getAvailability: getAvailabilityMock,
+      getAvailabilityWithTimeZones: getAvailabilityWithTimeZonesMock,
       createEvent: vi.fn(),
       updateEvent: vi.fn(),
       deleteEvent: vi.fn(),
@@ -372,6 +375,207 @@ describe("CalendarBatchWrapper", () => {
       await wrapper.listCalendars();
 
       expect(mockOriginalCalendar.listCalendars).toHaveBeenCalled();
+    });
+  });
+
+  describe("getAvailabilityWithTimeZones batching behavior", () => {
+    test("should make separate calls for calendars without delegationCredentialId", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar" },
+        { externalId: "cal2@test.com", integration: "google_calendar" },
+      ];
+
+      await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", selectedCalendars, false);
+
+      // Each calendar without delegationCredentialId should be processed separately
+      expect(getAvailabilityWithTimeZonesMock).toHaveBeenCalledTimes(2);
+    });
+
+    test("should batch calendars with the same delegationCredentialId together", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar", delegationCredentialId: "delegation-1" },
+        { externalId: "cal2@test.com", integration: "google_calendar", delegationCredentialId: "delegation-1" },
+        { externalId: "cal3@test.com", integration: "google_calendar", delegationCredentialId: "delegation-2" },
+      ];
+
+      await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", selectedCalendars, false);
+
+      // Should make 2 calls: one for delegation-1 (batched), one for delegation-2
+      expect(getAvailabilityWithTimeZonesMock).toHaveBeenCalledTimes(2);
+
+      // Verify calls in an order-independent way
+      const allCalls = getAvailabilityWithTimeZonesMock.mock.calls as [
+        string,
+        string,
+        IntegrationCalendar[],
+        boolean
+      ][];
+
+      // Find the call for delegation-1 (should have 2 calendars batched)
+      const delegation1Call = allCalls.find(
+        (call) => call[2].length === 2 && call[2][0].delegationCredentialId === "delegation-1"
+      );
+      expect(delegation1Call).toBeDefined();
+      const delegation1Ids = new Set(delegation1Call![2].map((c) => c.externalId));
+      expect(delegation1Ids).toEqual(new Set(["cal1@test.com", "cal2@test.com"]));
+
+      // Find the call for delegation-2 (should have 1 calendar)
+      const delegation2Call = allCalls.find(
+        (call) => call[2].length === 1 && call[2][0].delegationCredentialId === "delegation-2"
+      );
+      expect(delegation2Call).toBeDefined();
+      expect(delegation2Call![2][0].externalId).toBe("cal3@test.com");
+    });
+
+    test("should chunk delegated calendars into groups of 50 for API limits", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      // Create 120 calendars with the same delegationCredentialId
+      const selectedCalendars: IntegrationCalendar[] = Array.from({ length: 120 }, (_, i) => ({
+        externalId: `cal${i}@test.com`,
+        integration: "google_calendar",
+        delegationCredentialId: "delegation-1",
+      }));
+
+      await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", selectedCalendars, false);
+
+      // Should make 3 calls: 50 + 50 + 20
+      expect(getAvailabilityWithTimeZonesMock).toHaveBeenCalledTimes(3);
+    });
+
+    test("should make a single call with empty array when no calendars provided to honor fallbackToPrimary", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", [], true);
+
+      // Should make exactly 1 call with empty array so fallbackToPrimary can be honored
+      expect(getAvailabilityWithTimeZonesMock).toHaveBeenCalledTimes(1);
+      expect(getAvailabilityWithTimeZonesMock).toHaveBeenCalledWith("2024-01-01", "2024-01-31", [], true);
+    });
+
+    test("should flatten and combine results from all batched calls", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar", delegationCredentialId: "delegation-1" },
+        { externalId: "cal2@test.com", integration: "google_calendar", delegationCredentialId: "delegation-2" },
+      ];
+
+      type AvailabilityWithTimeZone = { start: Date | string; end: Date | string; timeZone: string };
+      const busyTimes1: AvailabilityWithTimeZone[] = [
+        { start: new Date("2024-01-01T10:00:00Z"), end: new Date("2024-01-01T11:00:00Z"), timeZone: "America/New_York" },
+      ];
+      const busyTimes2: AvailabilityWithTimeZone[] = [
+        { start: new Date("2024-01-02T14:00:00Z"), end: new Date("2024-01-02T15:00:00Z"), timeZone: "Europe/London" },
+      ];
+
+      getAvailabilityWithTimeZonesMock
+        .mockResolvedValueOnce(busyTimes1)
+        .mockResolvedValueOnce(busyTimes2);
+
+      const result = await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", selectedCalendars, false);
+
+      // Should return combined results from both calls
+      expect(result).toHaveLength(2);
+      expect(result).toEqual([...busyTimes1, ...busyTimes2]);
+    });
+
+    test("should return empty array when underlying calendar does not implement getAvailabilityWithTimeZones", async () => {
+      const calendarWithoutMethod = {
+        getAvailability: getAvailabilityMock,
+        createEvent: vi.fn(),
+        updateEvent: vi.fn(),
+        deleteEvent: vi.fn(),
+        listCalendars: vi.fn().mockResolvedValue([]),
+      } as unknown as Calendar;
+
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: calendarWithoutMethod });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar" },
+      ];
+
+      const result = await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", selectedCalendars, false);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("getAvailabilityWithTimeZones partial failure handling", () => {
+    test("should return partial results when some batches fail", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar", delegationCredentialId: "delegation-1" },
+        { externalId: "cal2@test.com", integration: "google_calendar", delegationCredentialId: "delegation-2" },
+        { externalId: "cal3@test.com", integration: "google_calendar", delegationCredentialId: "delegation-3" },
+      ];
+
+      type AvailabilityWithTimeZone = { start: Date | string; end: Date | string; timeZone: string };
+      const successfulBusyTimes: AvailabilityWithTimeZone[] = [
+        { start: new Date("2024-01-01T10:00:00Z"), end: new Date("2024-01-01T11:00:00Z"), timeZone: "UTC" },
+      ];
+
+      // First call succeeds, second fails, third succeeds
+      getAvailabilityWithTimeZonesMock
+        .mockResolvedValueOnce(successfulBusyTimes)
+        .mockRejectedValueOnce(new Error("API rate limit exceeded"))
+        .mockResolvedValueOnce(successfulBusyTimes);
+
+      const result = await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", selectedCalendars, false);
+
+      // Should return results from successful batches only (2 successful calls)
+      expect(result).toHaveLength(2);
+      expect(getAvailabilityWithTimeZonesMock).toHaveBeenCalledTimes(3);
+    });
+
+    test("should return empty array when all batches fail", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar", delegationCredentialId: "delegation-1" },
+        { externalId: "cal2@test.com", integration: "google_calendar", delegationCredentialId: "delegation-2" },
+      ];
+
+      // All calls fail
+      getAvailabilityWithTimeZonesMock
+        .mockRejectedValueOnce(new Error("Network error"))
+        .mockRejectedValueOnce(new Error("API error"));
+
+      const result = await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", selectedCalendars, false);
+
+      // Should return empty array when all batches fail
+      expect(result).toHaveLength(0);
+      expect(getAvailabilityWithTimeZonesMock).toHaveBeenCalledTimes(2);
+    });
+
+    test("should not throw when some batches fail", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar" },
+        { externalId: "cal2@test.com", integration: "google_calendar" },
+      ];
+
+      type AvailabilityWithTimeZone = { start: Date | string; end: Date | string; timeZone: string };
+      const successResult: AvailabilityWithTimeZone[] = [
+        { start: new Date("2024-01-01T10:00:00Z"), end: new Date("2024-01-01T11:00:00Z"), timeZone: "UTC" },
+      ];
+
+      // First call fails, second succeeds
+      getAvailabilityWithTimeZonesMock
+        .mockRejectedValueOnce(new Error("Permission denied"))
+        .mockResolvedValueOnce(successResult);
+
+      // Should not throw, should return partial results
+      const result = await wrapper.getAvailabilityWithTimeZones("2024-01-01", "2024-01-31", selectedCalendars, false);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].timeZone).toBe("UTC");
     });
   });
 });
