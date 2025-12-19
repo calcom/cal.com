@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";

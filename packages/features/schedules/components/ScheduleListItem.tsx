@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";

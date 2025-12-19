@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";

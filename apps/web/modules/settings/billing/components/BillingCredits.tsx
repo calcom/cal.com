@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useMemo } from "react";

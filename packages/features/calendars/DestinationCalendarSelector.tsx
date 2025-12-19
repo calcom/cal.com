@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";

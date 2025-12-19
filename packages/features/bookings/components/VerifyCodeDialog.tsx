@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 

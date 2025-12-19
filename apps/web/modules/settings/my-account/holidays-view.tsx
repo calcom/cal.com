@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useMemo, useCallback } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";

@@ -1,5 +1,5 @@
 import type { GroupBase, Props, ValueContainerProps } from "react-select";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { components } from "react-select";
 
 import { Select } from "@calcom/ui/components/form";

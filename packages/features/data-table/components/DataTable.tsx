@@ -1,7 +1,7 @@
 "use client";
 
 import type { Row } from "@tanstack/react-table";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
 import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";

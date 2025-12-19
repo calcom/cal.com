@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
  
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";

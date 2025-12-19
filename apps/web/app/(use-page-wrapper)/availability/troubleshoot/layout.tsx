@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 

@@ -1,5 +1,5 @@
 import posthog from "posthog-js";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 

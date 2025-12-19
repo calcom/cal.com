@@ -1,5 +1,5 @@
 import { signOut } from "next-auth/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";

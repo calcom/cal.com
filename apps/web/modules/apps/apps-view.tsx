@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChangeEventHandler } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useState } from "react";
 
 import { AllApps } from "@calcom/features/apps/components/AllApps";

@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";

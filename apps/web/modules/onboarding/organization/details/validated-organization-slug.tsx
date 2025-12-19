@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import classNames from "@calcom/ui/classNames";
 import { Label, TextField } from "@calcom/ui/components/form";

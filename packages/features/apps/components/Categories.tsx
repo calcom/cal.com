@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -1,5 +1,5 @@
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 

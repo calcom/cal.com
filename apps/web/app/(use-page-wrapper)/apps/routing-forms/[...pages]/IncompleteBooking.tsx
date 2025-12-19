@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type z from "zod";
 
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";

@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useState } from "react";
 
 import {

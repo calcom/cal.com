@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { useDataTable } from "@calcom/features/data-table";
 import NoSSR from "@calcom/lib/components/NoSSR";

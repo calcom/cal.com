@@ -1,7 +1,7 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import React, {
   useMemo,
   useState,

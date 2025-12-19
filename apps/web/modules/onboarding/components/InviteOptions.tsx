@@ -1,7 +1,7 @@
 "use client";
 
 import { useFlags } from "@calcom/features/flags/hooks";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 

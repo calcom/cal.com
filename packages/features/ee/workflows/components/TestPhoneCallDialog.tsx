@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type { UseFormReturn } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";

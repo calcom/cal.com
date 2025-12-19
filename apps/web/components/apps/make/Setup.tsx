@@ -1,5 +1,5 @@
 import type { InferGetServerSidePropsType } from "next";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";

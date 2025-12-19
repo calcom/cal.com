@@ -4,7 +4,7 @@ import type {
   EventLocationTypeFromApp,
   LocationObject,
 } from "@calcom/app-store/locations";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

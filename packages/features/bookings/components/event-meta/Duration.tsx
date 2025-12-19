@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useEffect, useRef } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";

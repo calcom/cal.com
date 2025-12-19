@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { usePathname } from "next/navigation";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";

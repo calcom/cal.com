@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
 import type { Dispatch, SetStateAction } from "react";
 

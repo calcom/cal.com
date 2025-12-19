@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useForm, useFieldArray } from "react-hook-form";

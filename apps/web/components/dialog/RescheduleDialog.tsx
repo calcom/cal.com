@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";

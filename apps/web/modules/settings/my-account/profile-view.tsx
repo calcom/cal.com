@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
  
 import { get, pick } from "lodash";

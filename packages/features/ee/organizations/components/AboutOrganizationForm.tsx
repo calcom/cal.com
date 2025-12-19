@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";

@@ -1,5 +1,5 @@
 import type { Action } from "kbar";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import {
   KBarAnimator,
   KBarPortal,

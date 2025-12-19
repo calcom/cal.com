@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui/components/form";

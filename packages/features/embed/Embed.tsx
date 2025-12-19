@@ -1,5 +1,5 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";

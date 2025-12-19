@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { shallow } from "zustand/shallow";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type { z } from "zod";
 
 import type {

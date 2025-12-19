@@ -1,5 +1,5 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";

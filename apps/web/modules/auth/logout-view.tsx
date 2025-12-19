@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useRouter } from "next/navigation";
 import type { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";

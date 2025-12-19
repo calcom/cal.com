@@ -1,5 +1,5 @@
 import type { GroupBase, Props, SingleValue } from "react-select";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";

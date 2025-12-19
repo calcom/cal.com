@@ -1,5 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 

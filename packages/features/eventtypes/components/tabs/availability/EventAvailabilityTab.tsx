@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";

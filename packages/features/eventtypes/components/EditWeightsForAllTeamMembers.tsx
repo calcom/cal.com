@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useState, useEffect, useRef, useMemo } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";

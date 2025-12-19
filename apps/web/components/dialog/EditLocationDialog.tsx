@@ -1,5 +1,5 @@
 import { ErrorMessage } from "@hookform/error-message";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { useEffect, useState } from "react";

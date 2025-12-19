@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import {

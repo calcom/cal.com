@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 

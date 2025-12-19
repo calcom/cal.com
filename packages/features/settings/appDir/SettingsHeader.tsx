@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";

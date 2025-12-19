@@ -1,5 +1,5 @@
 import { ErrorMessage } from "@hookform/error-message";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type { TFunction } from "i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";

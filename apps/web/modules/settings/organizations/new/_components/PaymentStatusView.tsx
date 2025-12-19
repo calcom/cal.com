@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useEffect, useState } from "react";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";

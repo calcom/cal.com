@@ -1,5 +1,5 @@
 import { useSearchParams } from "next/navigation";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";

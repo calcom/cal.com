@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import type { Dispatch } from "react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";

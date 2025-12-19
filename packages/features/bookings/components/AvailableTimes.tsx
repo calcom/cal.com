@@ -1,6 +1,6 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
 import * as HoverCard from "@radix-ui/react-hover-card";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 

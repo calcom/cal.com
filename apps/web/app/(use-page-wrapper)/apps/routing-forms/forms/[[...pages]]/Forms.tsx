@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import posthog from "posthog-js";
