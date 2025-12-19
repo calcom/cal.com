@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Booking } from "../services/calcom";
 import { showErrorAlert } from "../utils/alerts";
 import { openInAppBrowser } from "../utils/browser";
+import { shadows } from "../utils/shadows";
 import { SvgImage } from "../components/SvgImage";
 import { FullScreenModal } from "../components/FullScreenModal";
 import { BookingActionsModal } from "../components/BookingActionsModal";
@@ -571,13 +572,7 @@ export default function BookingDetail() {
             className="w-[90%] max-w-[500px] rounded-2xl bg-white"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 20 },
-              shadowOpacity: 0.25,
-              shadowRadius: 25,
-              elevation: 24,
-            }}
+            style={shadows.xl()}
           >
             {/* Header */}
             <View className="px-8 pb-4 pt-6">
