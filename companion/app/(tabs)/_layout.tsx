@@ -28,7 +28,7 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="availability">
+      <NativeTabs.Trigger name="(availability)">
         <NativeTabs.Trigger.Icon
           sf="clock"
           src={<VectorIcon family={MaterialCommunityIcons} name="clock" />}
