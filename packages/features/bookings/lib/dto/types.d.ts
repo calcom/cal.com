@@ -60,8 +60,8 @@ export type InstantBookingCreateResult = {
 // More properties to be added to this config in followup PRs
 export type BookingFlowConfig = {
   isDryRun: boolean;
-  useCacheIfEnabled: boolean;
-  noEmail: boolean;
-  hostname: string | null;
-  forcedSlug: string | null;
+  useCacheIfEnabled?: boolean;
+  noEmail?: boolean;
+  hostname?: string | null;
+  forcedSlug?: string | null;
 };
