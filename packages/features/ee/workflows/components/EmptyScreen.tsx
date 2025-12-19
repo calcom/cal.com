@@ -1,14 +1,15 @@
+import type { LucideIcon } from "lucide-react";
+import { MailIcon, SmartphoneIcon, ZapIcon } from "lucide-react";
+
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import cn from "@calcom/ui/classNames";
 import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
-import type { IconName } from "@calcom/ui/components/icon";
 
 import { WorkflowCreationDialog, useWorkflowCreation } from "./WorkflowCreationDialog";
 
 type WorkflowExampleType = {
-  icon: IconName;
+  icon: LucideIcon;
   iconWrapperClassName?: string;
   title: string;
   description: string;
@@ -16,7 +17,7 @@ type WorkflowExampleType = {
 };
 
 function WorkflowExample(props: WorkflowExampleType) {
-  const { icon: iconName, title, description, iconWrapperClassName, image } = props;
+  const { icon: IconComponent, title, description, iconWrapperClassName, image } = props;
 
   return (
     <div className="bg-default border-subtle max-h-24 max-w-[600px] rounded-xl border border-solid p-2.5">
@@ -36,7 +37,7 @@ function WorkflowExample(props: WorkflowExampleType) {
                 className={cn("text-default h-5 w-5")}
               />
             ) : (
-              <Icon name={iconName} className={cn("text-default h-5 w-5")} aria-hidden="true" />
+              <IconComponent className={cn("text-default h-5 w-5")} aria-hidden="true" />
             )}
           </div>
         </div>
@@ -53,69 +54,69 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
   const { t } = useLocale();
   const { showDialog, setShowDialog, pendingTeamId, openDialog } = useWorkflowCreation();
 
-  const workflowsExamples: WorkflowExampleType[] = [
-    { icon: "smartphone", title: t("send_sms_reminder"), description: t("send_sms_reminder_description") },
-    {
-      icon: "smartphone",
-      title: t("follow_up_with_no_shows"),
-      description: t("follow_up_with_no_shows_description"),
-    },
-    {
-      icon: "mail",
-      title: t("remind_attendees_to_bring_id"),
-      description: t("remind_attendees_to_bring_id_description"),
-    },
-    {
-      icon: "mail",
-      title: t("email_to_remind_booking"),
-      description: t("email_to_remind_booking_description"),
-    },
-    {
-      icon: "mail",
-      title: t("custom_email_reminder"),
-      description: t("custom_email_reminder_description"),
-    },
-    {
-      icon: "smartphone",
-      title: t("custom_sms_reminder"),
-      description: t("custom_sms_reminder_description"),
-    },
-  ];
+    const workflowsExamples: WorkflowExampleType[] = [
+      { icon: SmartphoneIcon, title: t("send_sms_reminder"), description: t("send_sms_reminder_description") },
+      {
+        icon: SmartphoneIcon,
+        title: t("follow_up_with_no_shows"),
+        description: t("follow_up_with_no_shows_description"),
+      },
+      {
+        icon: MailIcon,
+        title: t("remind_attendees_to_bring_id"),
+        description: t("remind_attendees_to_bring_id_description"),
+      },
+      {
+        icon: MailIcon,
+        title: t("email_to_remind_booking"),
+        description: t("email_to_remind_booking_description"),
+      },
+      {
+        icon: MailIcon,
+        title: t("custom_email_reminder"),
+        description: t("custom_email_reminder_description"),
+      },
+      {
+        icon: SmartphoneIcon,
+        title: t("custom_sms_reminder"),
+        description: t("custom_sms_reminder_description"),
+      },
+    ];
 
-  const calAITemplates: WorkflowExampleType[] = [
-    {
-      icon: "phone-outgoing",
-      title: t("call_to_confirm_booking"),
-      description: t("cal_ai_phone_call_action_description"),
-      iconWrapperClassName: "bg-[#2A2947]",
-      image: "/call-outgoing.svg",
-    },
-    {
-      icon: "phone-outgoing",
-      title: t("follow_up_with_no_shows"),
-      description: t("follow_up_with_no_shows_description"),
-      iconWrapperClassName: "bg-[#2A2947]",
-      image: "/call-outgoing.svg",
-    },
-    {
-      icon: "phone-outgoing",
-      title: t("remind_attendees_to_bring_id"),
-      description: t("remind_attendees_to_bring_id_description"),
-      iconWrapperClassName: "bg-[#2A2947]",
-      image: "/call-outgoing.svg",
-    },
-  ];
+    const calAITemplates: WorkflowExampleType[] = [
+      {
+        icon: SmartphoneIcon,
+        title: t("call_to_confirm_booking"),
+        description: t("cal_ai_phone_call_action_description"),
+        iconWrapperClassName: "bg-[#2A2947]",
+        image: "/call-outgoing.svg",
+      },
+      {
+        icon: SmartphoneIcon,
+        title: t("follow_up_with_no_shows"),
+        description: t("follow_up_with_no_shows_description"),
+        iconWrapperClassName: "bg-[#2A2947]",
+        image: "/call-outgoing.svg",
+      },
+      {
+        icon: SmartphoneIcon,
+        title: t("remind_attendees_to_bring_id"),
+        description: t("remind_attendees_to_bring_id_description"),
+        iconWrapperClassName: "bg-[#2A2947]",
+        image: "/call-outgoing.svg",
+      },
+    ];
   // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (Smile icon),
 
   if (props.isFilteredView) {
-    return <ClassicEmptyScreen Icon="zap" headline={t("no_workflows")} description={t("change_filter")} />;
+    return <ClassicEmptyScreen Icon={ZapIcon} headline={t("no_workflows")} description={t("change_filter")} />;
   }
 
   return (
     <>
       <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md ">
         <div className="bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full">
-          <Icon name="zap" className="dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
+          <ZapIcon className="dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>
