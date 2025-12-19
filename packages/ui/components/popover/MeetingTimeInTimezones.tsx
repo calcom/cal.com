@@ -1,4 +1,5 @@
 import * as Popover from "@radix-ui/react-popover";
+import { GlobeIcon } from "lucide-react";
 import { Icon } from "../icon";
 
 import {
@@ -8,7 +9,6 @@ import {
   isSupportedTimeZone,
   sortByTimezone,
 } from "@calcom/lib/dayjs";
-
 
 type Attendee = {
   id: number;
@@ -68,7 +68,7 @@ const MeetingTimeInTimezones = ({
       <Popover.Trigger
         onClick={preventBubbling}
         className="popover-button text-emphasis hover:bg-emphasis focus:bg-emphasis invisible ml-2 inline-flex h-5 w-5 items-center justify-center rounded-sm transition-colors group-hover:visible">
-        <Icon name="globe" className="h-3.5 w-3.5" />
+        <GlobeIcon className="h-3.5 w-3.5" />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content

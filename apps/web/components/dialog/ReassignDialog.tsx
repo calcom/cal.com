@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Icon } from "@calcom/ui/components/icon";
+import { LoaderIcon, CheckIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
@@ -285,7 +285,7 @@ export const ReassignDialog = ({
                     {isFetching && teamMemberOptions.length === 0 ? (
                       <div className="flex h-full items-center justify-center">
                         <div className="flex flex-col items-center gap-2">
-                          <Icon name="loader" className="text-subtle h-5 w-5 animate-spin" />
+                          <LoaderIcon className="text-subtle h-5 w-5 animate-spin" />
                           <p className="text-subtle text-sm">{t("loading")}</p>
                         </div>
                       </div>
@@ -326,7 +326,7 @@ export const ReassignDialog = ({
                           <span className="text-emphasis w-full text-sm">{member.label}</span>
                           {watchedTeamMemberId === member.value && (
                             <div className="place-self-end pr-2">
-                              <Icon name="check" className="text-emphasis h-4 w-4" />
+                              <CheckIcon className="text-emphasis h-4 w-4" />
                             </div>
                           )}
                         </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { PhoneIcon } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -100,7 +100,7 @@ export function TestPhoneCallDialog({
             onClick={handleTestCall}
             loading={testCallMutation.isPending}
             disabled={!testPhoneNumber}>
-            <Icon name="phone" className="mr-2 h-4 w-4" />
+            <PhoneIcon className="mr-2 h-4 w-4" />
             {t("make_test_call")}
           </Button>
         </DialogFooter>

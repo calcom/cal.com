@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { Icon } from "@calcom/ui/components/icon";
+import { UserIcon, UsersIcon, BuildingIcon } from "lucide-react";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -121,15 +121,15 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       {
         value: "INDIVIDUAL",
         label: t("invite_team_individual_segment"),
-        iconLeft: <Icon name="user" />,
+        iconLeft: <UserIcon />,
       },
-      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Icon name="users" /> },
+      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <UsersIcon /> },
     ];
     if (canSeeOrganization) {
       array.unshift({
         value: "ORGANIZATION",
         label: t("organization"),
-        iconLeft: <Icon name="building" />,
+        iconLeft: <BuildingIcon />,
       });
     }
     return array;

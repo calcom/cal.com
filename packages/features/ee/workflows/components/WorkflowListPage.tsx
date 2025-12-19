@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Icon } from "@calcom/ui/components/icon";
+import { LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -167,7 +167,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               {/*active on all badge */}
                               {workflow.isActiveOnAll ? (
                                 <div>
-                                  <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                   {workflow.isOrg ? t("active_on_all_teams") : t("active_on_all_event_types")}
                                 </div>
                               ) : workflow.activeOn && workflow.activeOn.length > 0 ? (
@@ -184,7 +184,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                       </p>
                                     ))}>
                                   <div>
-                                    <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                    <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_event_types", {
                                       count: workflow.activeOn.filter((wf) =>
                                         workflow.teamId ? wf.eventType.parentId === null : true
@@ -199,7 +199,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                     <p key={key}>{activeOn.team.name}</p>
                                   ))}>
                                   <div>
-                                    <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                    <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                     {t("active_on_teams", {
                                       count: workflow.activeOnTeams?.length,
                                     })}
@@ -208,7 +208,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               ) : (
                                 // active on no teams or event types
                                 <div>
-                                  <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  <LinkIcon className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                   {workflow.isOrg ? t("no_active_teams") : t("no_active_event_types")}
                                 </div>
                               )}

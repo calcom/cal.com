@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Icon } from "@calcom/ui/components/icon";
+import { PencilIcon } from "lucide-react";
  
 import { noop } from "lodash";
 import type { FC } from "react";
@@ -92,7 +92,7 @@ const IntegrationContainer = ({
           <div className="flex items-center justify-self-end">
             {app.keys && (
               <Button color="secondary" className="mr-2" onClick={() => showKeyModal()}>
-                <Icon name="pencil" />
+                <PencilIcon />
               </Button>
             )}
 

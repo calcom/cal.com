@@ -1,5 +1,5 @@
 import { ErrorMessage } from "@hookform/error-message";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "lucide-react";
 import type { TFunction } from "i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -126,7 +126,7 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <InfoIcon className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message || "invalid_input")}</p>
                     </div>
                   );

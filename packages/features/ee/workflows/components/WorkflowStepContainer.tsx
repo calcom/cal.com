@@ -1,5 +1,5 @@
 import { type TFunction } from "i18next";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon, PhoneIcon, CircleHelpIcon } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -678,7 +678,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           )}
           {!!timeSectionText && (
             <div className="mt-1 flex text-gray-500">
-              <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+              <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
               <p className="text-sm">{t("testing_sms_workflow_info_message")}</p>
             </div>
           )}
@@ -823,7 +823,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                       />
                       <div className="mt-1.5 flex items-center gap-1">
-                        <Icon name="info" size="10" className="text-gray-500" />
+                        <InfoIcon size="10" className="text-gray-500" />
                         <div className="text-subtle text-xs">{t("sender_id_info")}</div>
                       </div>
                     </div>
@@ -895,7 +895,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
                   {arePhoneNumbersActive.length > 0 ? (
                     <div className="flex items-center gap-2">
-                      <Icon name="phone" className="text-emphasis h-4 w-4" />
+                      <PhoneIcon className="text-emphasis h-4 w-4" />
                       <span className="text-emphasis text-sm">
                         {formatPhoneNumber(arePhoneNumbersActive[0].phoneNumber)}
                       </span>
@@ -1403,7 +1403,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="ml-1 mt-2">
                   <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                     <div className="text-subtle ml-1 flex items-center gap-2">
-                      <Icon name="circle-help" className="h-3 w-3" />
+                      <CircleHelpIcon className="h-3 w-3" />
                       <p className="text-left text-xs">
                         {isFormTrigger(trigger)
                           ? t("using_form_responses_as_variables")
@@ -1642,7 +1642,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               ).length > 0 && (
                 <div className="bg-cal-muted rounded-lg p-3">
                   <div className="flex items-center gap-2">
-                    <Icon name="phone" className="text-emphasis h-4 w-4" />
+                    <PhoneIcon className="text-emphasis h-4 w-4" />
                     <span className="text-emphasis text-sm font-medium">
                       {formatPhoneNumber(
                         getActivePhoneNumbers(
@@ -1703,7 +1703,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <>
                       <div className="bg-attention rounded-lg p-3">
                         <div className="flex items-start gap-2">
-                          <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
+                          <InfoIcon className="text-attention mt-0.5 h-4 w-4" />
                           <div className="stack-y-2">
                             <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
                             <ul className="text-attention list-inside list-disc stack-y-1 text-sm">
@@ -1718,7 +1718,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {relevantPhoneNumbers.map((phone) => (
                         <div key={phone.phoneNumber} className="p-3 rounded-lg bg-cal-muted">
                           <div className="flex gap-2 items-center">
-                            <Icon name="phone" className="w-4 h-4 text-emphasis" />
+                            <PhoneIcon className="w-4 h-4 text-emphasis" />
                             <span className="text-sm font-medium text-emphasis">
                               {formatPhoneNumber(phone.phoneNumber)}
                             </span>

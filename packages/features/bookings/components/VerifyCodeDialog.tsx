@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
@@ -113,7 +113,7 @@ export const VerifyCodeDialog = ({
             {error && (
               <div className="mt-2 flex items-center gap-x-2 text-sm text-red-700">
                 <div>
-                  <Icon name="info" className="h-3 w-3" />
+                  <InfoIcon className="h-3 w-3" />
                 </div>
                 <p>{error}</p>
               </div>

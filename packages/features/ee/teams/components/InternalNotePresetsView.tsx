@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Icon } from "@calcom/ui/components/icon";
+import { TrashIcon, CornerDownRightIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 
@@ -141,11 +141,11 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                           variant="icon"
                           onClick={() => remove(index)}
                           disabled={fields.length === 1}>
-                          <Icon name="trash" className="h-4 w-5" />
+                          <TrashIcon className="h-4 w-5" />
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Icon name="corner-down-right" className="h-4 w-4" />
+                        <CornerDownRightIcon className="h-4 w-4" />
                         <Controller
                           name={`presets.${index}.cancellationReason`}
                           control={form.control}

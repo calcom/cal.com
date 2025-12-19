@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";
@@ -44,7 +44,7 @@ export function Logout(props: PageProps) {
     <AuthContainer showLogo>
       <div className="mb-4">
         <div className="bg-cal-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <Icon name="check" className="h-6 w-6 text-green-600" />
+          <CheckIcon className="h-6 w-6 text-green-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">

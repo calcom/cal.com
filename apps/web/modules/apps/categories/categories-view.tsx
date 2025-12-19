@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,7 +21,7 @@ export default function Apps({ categories }: PageProps) {
         <Link
           href="/apps"
           className="text-emphasis inline-flex items-center justify-start gap-1 rounded-sm py-2">
-          <Icon name="arrow-left" className="h-4 w-4" />
+          <ArrowLeftIcon className="h-4 w-4" />
           {isLocaleReady ? t("app_store") : <SkeletonText className="h-6 w-24" />}{" "}
         </Link>
       </div>
@@ -37,7 +37,7 @@ export default function Apps({ categories }: PageProps) {
                 <h3 className="font-medium capitalize">{category.name}</h3>
                 <p className="text-subtle text-sm">
                   {t("number_apps", { count: category.count })}{" "}
-                  <Icon name="arrow-right" className="inline-block h-4 w-4" />
+                  <ArrowRightIcon className="inline-block h-4 w-4" />
                 </p>
               </div>
             </Link>

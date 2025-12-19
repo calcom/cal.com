@@ -10,12 +10,13 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
-// Convert kebab-case to PascalCase
-function kebabToPascal(str) {
-  return str
+// Convert kebab-case to PascalCase with Icon suffix
+function kebabToPascalIcon(str) {
+  const pascal = str
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
+  return pascal + "Icon";
 }
 
 // Find all files that use Icon component
@@ -63,15 +64,15 @@ function transformFile(filePath) {
     return { skipped: true, reason: 'no-icons' };
   }
   
-  // Generate lucide-react imports
-  const lucideImports = Array.from(iconNames).map(name => kebabToPascal(name));
+    // Generate lucide-react imports with Icon suffix
+    const lucideImports = Array.from(iconNames).map(name => kebabToPascalIcon(name));
   
   // Check if file already imports from lucide-react
   const hasLucideImport = /from ["']lucide-react["']/.test(content);
   
-  // Transform Icon usages to direct component usage
-  for (const iconName of iconNames) {
-    const pascalName = kebabToPascal(iconName);
+    // Transform Icon usages to direct component usage with Icon suffix
+    for (const iconName of iconNames) {
+      const pascalName = kebabToPascalIcon(iconName);
     
     // Replace <Icon name="icon-name" ... /> with <PascalName ... />
     // This regex captures everything between <Icon and /> except the name prop

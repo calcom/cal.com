@@ -1,5 +1,5 @@
 import { useState, Suspense, useMemo, useEffect } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { PencilIcon, InfoIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -227,7 +227,7 @@ const destinationCalendarComponents = {
                   aria-label="edit custom name"
                   className="hover:stroke-3 hover:text-emphasis py-0! min-w-fit px-1.5 -mr-1.5 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
-                  <Icon name="pencil" className="h-4 w-4" />
+                  <PencilIcon className="h-4 w-4" />
                 </Button>
               }
             />
@@ -241,7 +241,7 @@ const destinationCalendarComponents = {
                 label={
                   <>
                     {t("display_add_to_calendar_organizer")}
-                    <Icon name="info" className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
+                    <InfoIcon className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
                   </>
                 }
                 checked={useEventTypeDestinationCalendarEmail}

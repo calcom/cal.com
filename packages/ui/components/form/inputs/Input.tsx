@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { EyeOffIcon, EyeIcon, SearchIcon } from "lucide-react";
 import { Icon } from "../../icon";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -52,9 +53,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
             type="button"
             onClick={() => toggleIsPasswordVisible()}>
             {isPasswordVisible ? (
-              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+              <EyeOffIcon className="h-4 w-4 stroke-[2.5px]" />
             ) : (
-              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+              <EyeIcon className="h-4 w-4 stroke-[2.5px]" />
             )}
             <span className="sr-only">{textLabel}</span>
           </button>
@@ -187,7 +188,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
   return (
     <InputField
       ref={ref}
-      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
+      addOnLeading={<SearchIcon className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
       containerClassName="mt-1"
       {...props}

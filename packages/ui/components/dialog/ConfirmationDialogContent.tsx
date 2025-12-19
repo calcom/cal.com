@@ -1,4 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { CircleAlertIcon, CheckIcon } from "lucide-react";
 import { Icon } from "../icon";
 import type { PropsWithChildren, ReactElement } from "react";
 import React from "react";
@@ -49,17 +50,17 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
               <div className="bg-error mx-auto rounded-full p-2 text-center">
-                <Icon name="circle-alert" className="h-5 w-5 text-red-600 dark:text-red-100" />
+                <CircleAlertIcon className="h-5 w-5 text-red-600 dark:text-red-100" />
               </div>
             )}
             {variety === "warning" && (
               <div className="bg-attention mx-auto rounded-full p-2 text-center">
-                <Icon name="circle-alert" className="h-5 w-5 text-orange-600" />
+                <CircleAlertIcon className="h-5 w-5 text-orange-600" />
               </div>
             )}
             {variety === "success" && (
               <div className="bg-cal-success mx-auto rounded-full p-2 text-center">
-                <Icon name="check" className="h-5 w-5 text-green-600" />
+                <CheckIcon className="h-5 w-5 text-green-600" />
               </div>
             )}
           </div>

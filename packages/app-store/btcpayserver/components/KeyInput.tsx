@@ -1,7 +1,8 @@
 "use client";
 
 import classNames from "classnames";
-import { Icon } from "@calcom/ui/components/icon";
+import { EyeOffIcon, EyeIcon } from "lucide-react";
+
 
 import type { FormEvent } from "react";
 import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
@@ -174,9 +175,9 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
             type="button"
             onClick={() => toggleIsPasswordVisible()}>
             {isPasswordVisible ? (
-              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+              <EyeOffIcon className="h-4 w-4 stroke-[2.5px]" />
             ) : (
-              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+              <EyeIcon className="h-4 w-4 stroke-[2.5px]" />
             )}
           </button>
         </Addon>

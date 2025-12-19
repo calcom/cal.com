@@ -1,5 +1,5 @@
 import type { Action } from "kbar";
-import { Icon } from "@calcom/ui/components/icon";
+import { SearchIcon, ArrowUpIcon, ArrowDownIcon, CornerDownLeftIcon, CommandIcon } from "lucide-react";
 import {
   KBarAnimator,
   KBarPortal,
@@ -257,7 +257,7 @@ export const KBarContent = () => {
       <KBarPositioner className="overflow-scroll">
         <KBarAnimator className="bg-default z-10 w-full max-w-(--breakpoint-sm) overflow-hidden rounded-md shadow-lg">
           <div className="border-subtle flex items-center justify-center border-b">
-            <Icon name="search" className="text-default mx-3 h-4 w-4" />
+            <SearchIcon className="text-default mx-3 h-4 w-4" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
               className="bg-default placeholder:text-subtle text-default w-full rounded-sm py-2.5 focus-visible:outline-none px-0 border-0 focus:ring-0"
@@ -273,11 +273,11 @@ export const KBarContent = () => {
           )}
           <RenderResults />
           <div className="text-subtle border-subtle hidden items-center space-x-1 border-t px-2 py-1.5 text-xs sm:flex">
-            <Icon name="arrow-up" className="h-4 w-4" />
-            <Icon name="arrow-down" className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
-            <Icon name="corner-down-left" className="h-4 w-4" />
+            <ArrowUpIcon className="h-4 w-4" />
+            <ArrowDownIcon className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
+            <CornerDownLeftIcon className="h-4 w-4" />
             <span className="pr-2">{t("open")}</span>
-            {isMac ? <Icon name="command" className="h-3 w-3" /> : "CTRL"}
+            {isMac ? <CommandIcon className="h-3 w-3" /> : "CTRL"}
             <span className="pr-1">+ K </span>
             <span className="pr-2">{t("close")}</span>
           </div>
@@ -297,7 +297,7 @@ export const KBarTrigger = () => {
           color="minimal"
           onClick={query.toggle}
           className="text-default hover:bg-subtle todesktop:hover:!bg-transparent lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md px-3 py-2 text-sm font-medium transition lg:px-2">
-          <Icon name="search" className="h-4 w-4 shrink-0 text-inherit" />
+          <SearchIcon className="h-4 w-4 shrink-0 text-inherit" />
         </button>
       </Tooltip>
     </>

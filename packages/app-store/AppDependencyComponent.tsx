@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon, CircleXIcon, ArrowRightIcon } from "lucide-react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,7 +30,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="flex items-start">
                 <div>
-                  <Icon name="check" className="mr-2 mt-1 font-semibold" />
+                  <CheckIcon className="mr-2 mt-1 font-semibold" data-testid="check-icon" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -54,7 +54,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="text-error flex items-start">
                 <div>
-                  <Icon name="circle-x" className="mr-2 mt-1 font-semibold" />
+                  <CircleXIcon className="mr-2 mt-1 font-semibold" data-testid="circle-x-icon" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -73,7 +73,7 @@ export const AppDependencyComponent = ({
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
                           </span>
-                          <Icon name="arrow-right" />
+                          <ArrowRightIcon />
                         </Link>
                       </>
                     </div>

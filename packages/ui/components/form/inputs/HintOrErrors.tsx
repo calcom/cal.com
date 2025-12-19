@@ -1,4 +1,5 @@
 import type { FieldValues } from "react-hook-form";
+import { XIcon, CircleIcon, CheckIcon } from "lucide-react";
 import { Icon } from "../../icon";
 import { useFormContext } from "react-hook-form";
 
@@ -55,16 +56,16 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
                 className={error !== undefined ? (submitted ? "text-error" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
-                    <Icon name="x" size="12"
+                    <XIcon size="12"
                       strokeWidth="3"
                       className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
                   ) : (
-                    <Icon name="circle" fill="currentColor"
+                    <CircleIcon fill="currentColor"
                       size="5"
                       className="inline-block ltr:mr-2 rtl:ml-2" />
                   )
                 ) : (
-                  <Icon name="check" size="12"
+                  <CheckIcon size="12"
                     strokeWidth="3"
                     className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
                 )}
@@ -94,11 +95,11 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
           return (
             <li key={key} className={dirty ? "text-green-600" : ""}>
               {dirty ? (
-                <Icon name="check" size="12"
+                <CheckIcon size="12"
                   strokeWidth="3"
                   className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
               ) : (
-                <Icon name="circle" fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
+                <CircleIcon fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
               )}
               {t(`${fieldName}_hint_${key}`)}
             </li>

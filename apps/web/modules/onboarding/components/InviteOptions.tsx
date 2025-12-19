@@ -1,7 +1,7 @@
 "use client";
 
 import { useFlags } from "@calcom/features/flags/hooks";
-import { Icon } from "@calcom/ui/components/icon";
+import { MailIcon, UploadIcon, LinkIcon } from "lucide-react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
@@ -68,7 +68,7 @@ export const InviteOptions = ({
           onClick={onInviteViaEmail}
           disabled={isSubmitting}>
           <div className="flex items-center gap-1">
-            <Icon name="mail" className="h-4 w-4" />
+            <MailIcon className="h-4 w-4" />
             <span>{t("invite_via_email")}</span>
           </div>
         </Button>
@@ -80,7 +80,7 @@ export const InviteOptions = ({
             onClick={onUploadCSV}
             disabled={isSubmitting}>
             <div className="flex items-center gap-1">
-              <Icon name="upload" className="h-4 w-4" />
+              <UploadIcon className="h-4 w-4" />
               <span>{t("upload_csv_file")}</span>
             </div>
           </Button>
@@ -93,7 +93,7 @@ export const InviteOptions = ({
             onClick={onCopyInviteLink}
             disabled>
             <div className="flex items-center gap-1">
-              <Icon name="link" className="h-4 w-4" />
+              <LinkIcon className="h-4 w-4" />
               <span>{t("copy_invite_link")}</span>
             </div>
           </Button>

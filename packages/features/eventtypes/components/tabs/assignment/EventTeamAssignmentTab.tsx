@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -543,7 +543,7 @@ const RoundRobinHosts = ({
                       type="button"
                       onClick={() => handleRemoveGroup(group.id)}
                       className="text-subtle hover:text-default rounded p-1">
-                      <Icon name="x" className="h-4 w-4" />
+                      <XIcon className="h-4 w-4" />
                     </button>
                   </div>
                   <AddMembersWithSwitchComponent groupId={group.id} />

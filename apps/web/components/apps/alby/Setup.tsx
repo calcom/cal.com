@@ -1,5 +1,5 @@
 import { auth, Client, webln } from "@getalby/sdk";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
@@ -165,7 +165,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
 
             {/* TODO: remove when invoices are generated using user identifier */}
             <div className="mt-4 rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-              <Icon name="info" className="mb-0.5 inline-flex h-4 w-4" /> Your Alby lightning address will be
+              <InfoIcon className="mb-0.5 inline-flex h-4 w-4" /> Your Alby lightning address will be
               used to generate invoices. If you update your lightning address, please disconnect and setup the
               Alby app again.
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Icon } from "@calcom/ui/components/icon";
+import { CopyIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -447,7 +447,7 @@ type FormValues = z.infer<typeof teamProfileFormSchema>;
                   type="button"
                   aria-label="copy team id"
                   onClick={() => handleCopy(teamId.toString())}>
-                  <Icon name="copy" className="ml-1 h-4 w-4" />
+                  <CopyIcon className="ml-1 h-4 w-4" />
                 </Button>
               </Tooltip>
             }

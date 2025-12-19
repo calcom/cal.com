@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { Icon } from "@calcom/ui/components/icon";
+import { CalendarIcon } from "lucide-react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -24,7 +24,7 @@ export default function MeetingNotStarted(props: PageProps) {
             <>
               <h2 className="mb-2 text-center font-medium">{props.booking.title}</h2>
               <p className="text-subtle text-center">
-                <Icon name="calendar" className="-mt-1 mr-1 inline-block h-4 w-4" />
+                <CalendarIcon className="-mt-1 mr-1 inline-block h-4 w-4" />
                 {dayjs(props.booking.startTime).format(`${detectBrowserTimeFormat}, dddd DD MMMM YYYY`)}
               </p>
             </>

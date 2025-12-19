@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -227,7 +227,7 @@ export const OAuthClientForm = ({
               className="max-w-[400px] whitespace-normal"
               content="If enabled and the managed user has calendar connected, an event in the calendar will be created. By default true. Disable it if you want to create events in the calendar manually.">
               <div className="ml-1">
-                <Icon name="info" className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                <InfoIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
               </div>
             </Tooltip>
           </div>
@@ -251,7 +251,7 @@ export const OAuthClientForm = ({
               className="max-w-[400px] whitespace-normal"
               content="If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.">
               <div className="ml-1">
-                <Icon name="info" className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                <InfoIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
               </div>
             </Tooltip>
           </div>

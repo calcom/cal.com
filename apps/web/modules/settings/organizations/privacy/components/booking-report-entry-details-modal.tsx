@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Icon } from "@calcom/ui/components/icon";
+import { ExternalLinkIcon, MailIcon, GlobeIcon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -135,7 +135,7 @@ export function BookingReportEntryDetailsModal({
                   <Link href={`/booking/${entry.booking.uid}`}>
                     <div className="text-subtle flex items-center gap-1 text-sm">
                       {entry.booking.title}
-                      <Icon name="external-link" className="h-4 w-4" />
+                      <ExternalLinkIcon className="h-4 w-4" />
                     </div>
                   </Link>
                 </div>
@@ -159,12 +159,12 @@ export function BookingReportEntryDetailsModal({
                       {
                         value: WatchlistType.EMAIL,
                         label: t("block_this_email"),
-                        iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                        iconLeft: <MailIcon className="h-4 w-4" />,
                       },
                       {
                         value: WatchlistType.DOMAIN,
                         label: t("block_all_from_domain"),
-                        iconLeft: <Icon name="globe" className="h-4 w-4" />,
+                        iconLeft: <GlobeIcon className="h-4 w-4" />,
                       },
                     ]}
                   />

@@ -1,5 +1,5 @@
 import type { Dispatch } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { UserIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
@@ -143,7 +143,7 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
                     return (
                       <div key={index} className="stack-y-1">
                         <div className="flex items-center gap-2">
-                          <Icon name="user" className={isAgent ? "text-info" : "text-success"} />
+                          <UserIcon className={isAgent ? "text-info" : "text-success"} />
                           <span className={`text-sm font-medium ${isAgent ? "text-info" : "text-success"}`}>
                             {isAgent ? t("agent") : t("user")}
                           </span>

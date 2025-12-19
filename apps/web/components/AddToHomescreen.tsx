@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -40,7 +40,7 @@ export default function AddToHomescreen() {
                 type="button"
                 className="-mr-1 flex rounded-md p-2 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
                 <span className="sr-only">{t("dismiss")}</span>
-                <Icon name="x" className="text-inverted h-6 w-6 dark:text-white" aria-hidden="true" />
+                <XIcon className="text-inverted h-6 w-6 dark:text-white" aria-hidden="true" />
               </button>
             </div>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon, InfoIcon } from "lucide-react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
@@ -182,7 +182,7 @@ export default function CancelBooking(props: Props) {
       {error && !props.showErrorAsToast && (
         <div className="mt-8">
           <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-            <Icon name="x" className="h-6 w-6 text-red-600" />
+            <XIcon className="h-6 w-6 text-red-600" />
           </div>
           <div className="mt-3 text-center sm:mt-5">
             <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
@@ -230,7 +230,7 @@ export default function CancelBooking(props: Props) {
           />
           {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
-              <Icon name="info" className="text-subtle h-4 w-4" />
+              <InfoIcon className="text-subtle h-4 w-4" />
               <p className="text-subtle text-sm leading-none">
                 {t("notify_attendee_cancellation_reason_warning")}
               </p>

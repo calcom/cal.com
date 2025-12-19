@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { ClockIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -39,7 +39,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
       <DialogContent enableOverflow data-testid="reschedule-dialog">
         <div className="flex flex-row md:space-x-3">
           <div className="bg-subtle hidden h-10 w-10 shrink-0 justify-center rounded-full md:flex">
-            <Icon name="clock" className="m-auto h-6 w-6" />
+            <ClockIcon className="m-auto h-6 w-6" />
           </div>
           <div className="w-full md:pt-1">
             <DialogHeader title={t("send_reschedule_request")} />

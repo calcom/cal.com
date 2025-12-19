@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Icon } from "@calcom/ui/components/icon";
+import { PencilIcon, MenuIcon, WaypointsIcon } from "lucide-react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -298,7 +298,7 @@ export function Header({
                 color="minimal"
                 onClick={() => setIsEditing(true)}
                 CustomStartIcon={
-                  <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                  <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
                 }>
                 <span className="sr-only">Edit</span>
               </Button>
@@ -319,13 +319,13 @@ export function Header({
               {
                 value: "form-edit",
                 label: t("form"),
-                iconLeft: <Icon name="menu" className="h-3 w-3" />,
+                iconLeft: <MenuIcon className="h-3 w-3" />,
                 dataTestId: "toggle-group-item-form-edit",
               },
               {
                 value: "route-builder",
                 label: t("routing"),
-                iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
+                iconLeft: <WaypointsIcon className="h-3 w-3" />,
               },
             ]}
           />
@@ -355,12 +355,12 @@ export function Header({
             {
               value: "form-edit",
               label: t("form"),
-              iconLeft: <Icon name="menu" className="h-3 w-3" />,
+              iconLeft: <MenuIcon className="h-3 w-3" />,
             },
             {
               value: "route-builder",
               label: t("routing"),
-              iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
+              iconLeft: <WaypointsIcon className="h-3 w-3" />,
             },
           ]}
         />

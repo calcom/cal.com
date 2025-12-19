@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -52,7 +52,7 @@ export function AppStoreCategories({
               )}
               <p className="text-subtle pt-2 text-sm font-medium">
                 {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
-                <Icon name="arrow-right" className="inline-block h-4 w-4" />
+                <ArrowRightIcon className="inline-block h-4 w-4" />
               </p>
             </div>
           </Link>

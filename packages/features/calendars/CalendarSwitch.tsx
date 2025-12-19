@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, RotateCwIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -113,12 +113,12 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       </label>
       {!!props.destination && (
         <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <Icon name="arrow-left" className="h-4 w-4" />
+          <ArrowLeftIcon className="h-4 w-4" />
           {t("adding_events_to")}
         </span>
       )}
       {mutation.isPending && (
-        <Icon name="rotate-cw" className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />
+        <RotateCwIcon className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />
       )}
     </div>
   );

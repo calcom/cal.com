@@ -1,9 +1,9 @@
 import * as React from "react";
+import { FileDownIcon, XIcon } from "lucide-react";
 import { Icon } from "../icon";
 import { toast } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 
 type ProgressToastProps = {
   message?: string;
@@ -20,11 +20,11 @@ export const ProgressToast = ({ message, progress, onClose, toastId }: ProgressT
     <div className="animate-fade-in-up bg-subtle shadow-elevation-low border-subtle stack-y-2 mb-2 flex h-auto flex-col rounded-lg border px-3 py-2.5 text-sm font-semibold md:max-w-sm">
       <div className="flex items-center gap-2">
         <span className="mt-0.5">
-          <Icon name="file-down" className="h-4 w-4" />
+          <FileDownIcon className="h-4 w-4" />
         </span>
         <p className="m-0 w-full text-left">{message || defaultMessage}</p>
         <button onClick={() => onClose(toastId)} aria-label={t("close")}>
-          <Icon name="x" className="h-4 w-4 hover:cursor-pointer" />
+          <XIcon className="h-4 w-4 hover:cursor-pointer" />
         </button>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full">

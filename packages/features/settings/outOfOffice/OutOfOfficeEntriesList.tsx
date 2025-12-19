@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import { Icon } from "@calcom/ui/components/icon";
+import { ClockIcon } from "lucide-react";
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -406,7 +406,7 @@ function OutOfOfficeEntriesListContent({
                       <div className="w-12" />
                     </div>
                     <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                      <Icon name="clock" size={28} className="text-black" />
+                      <ClockIcon size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-56 bg-white text-lg font-bold" />
                       <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">
                         z

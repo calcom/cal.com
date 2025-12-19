@@ -1,6 +1,6 @@
 /* eslint-disable react/no-danger */
 import type { Dispatch, SetStateAction } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { StarIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -59,7 +59,7 @@ export const MintlifyChat = ({ searchText, aiResponse, setAiResponse }: Mintlify
           isGenerating ? "cursor-not-allowed" : "cursor-pointer"
         )}>
         <div>
-          <Icon name="star" />
+          <StarIcon />
         </div>
         <div>
           <div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon } from "lucide-react";
  
 import { forwardRef, useState } from "react";
 
@@ -66,7 +66,7 @@ function ColumnVisibilityButtonComponent<TData>(
                         "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isVisible ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                       )}>
-                      <Icon name="check" className={classNames("h-4 w-4", !isVisible && "invisible")} />
+                      <CheckIcon className={classNames("h-4 w-4", !isVisible && "invisible")} />
                     </div>
                     {column.columnDef.header}
                   </CommandItem>

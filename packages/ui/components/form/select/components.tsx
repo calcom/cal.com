@@ -1,4 +1,5 @@
 import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
+import { CheckIcon } from "lucide-react";
 import { Icon } from "../../icon";
 import { components as reactSelectComponents } from "react-select";
 
@@ -68,7 +69,7 @@ export const OptionComponent = <
         ) : (
           <></>
         )}
-        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
+        {props.isSelected && <CheckIcon className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>
   );

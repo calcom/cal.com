@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { Icon } from "@calcom/ui/components/icon";
+import { TrashIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -78,7 +78,7 @@ export default function ICSFeedSetup() {
                           type="button"
                           className="mb-2 h-min text-sm"
                           onClick={() => setUrls((urls) => urls.filter((_, ii) => i !== ii))}>
-                          <Icon name="trash" size={16} />
+                          <TrashIcon size={16} />
                         </button>
                       ) : null}
                     </div>
@@ -91,7 +91,7 @@ export default function ICSFeedSetup() {
                   onClick={() => {
                     setUrls((urls) => urls.concat(""));
                   }}>
-                  {t("add")} <Icon name="plus" className="inline" size={16} />
+                  {t("add")} <PlusIcon className="inline" size={16} />
                 </button>
 
                 {errorMessage && (

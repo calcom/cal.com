@@ -1,7 +1,7 @@
 "use client";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { Icon } from "@calcom/ui/components/icon";
+import { TerminalIcon, FolderIcon, SparklesIcon } from "lucide-react";
 import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -12,17 +12,17 @@ export const AdminAPIView = () => {
 
   const features = [
     {
-      icon: <Icon name="terminal" className="h-5 w-5 text-pink-500" />,
+      icon: <TerminalIcon className="h-5 w-5 text-pink-500" />,
       title: t("admin_api"),
       description: t("leverage_our_api"),
     },
     {
-      icon: <Icon name="folder" className="h-5 w-5 text-red-500" />,
+      icon: <FolderIcon className="h-5 w-5 text-red-500" />,
       title: `SCIM & ${t("directory_sync")}`,
       description: t("directory_sync_description"),
     },
     {
-      icon: <Icon name="sparkles" className="h-5 w-5 text-blue-500" />,
+      icon: <SparklesIcon className="h-5 w-5 text-blue-500" />,
       title: "Cal.ai",
       description: t("use_cal_ai_to_make_call_description"),
     },

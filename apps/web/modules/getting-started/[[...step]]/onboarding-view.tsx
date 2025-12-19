@@ -1,7 +1,7 @@
 "use client";
 
 import type { TFunction } from "i18next";
-import { Icon } from "@calcom/ui/components/icon";
+import { LoaderIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useTransition } from "react";
@@ -176,7 +176,7 @@ const OnboardingPage = (props: PageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToStep} />
             </div>
             <StepCard>
-              <Suspense fallback={<Icon name="loader" />}>
+              <Suspense fallback={<LoaderIcon />}>
                 {currentStep === "user-settings" && (
                   <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} user={user} />
                 )}

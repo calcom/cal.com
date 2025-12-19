@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icon } from "@calcom/ui/components/icon";
+import { CircleAlertIcon, ArrowRightIcon } from "lucide-react";
 import { useState } from "react";
 import posthog from "posthog-js";
 
@@ -79,7 +79,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                   <div className="items-start space-x-2.5">
                     <div className="flex items-start">
                       <div>
-                        <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
+                        <CircleAlertIcon className="mr-2 mt-1 font-semibold" />
                       </div>
                       <div>
                         <span className="text-xs font-semibold">
@@ -99,7 +99,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                                 <span className="mr-1">
                                   {t("connect_app", { dependencyName: dependency.name })}
                                 </span>
-                                <Icon name="arrow-right" className="inline-block h-3 w-3" />
+                                <ArrowRightIcon className="inline-block h-3 w-3" />
                               </Link>
                             </>
                           </div>

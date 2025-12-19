@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "lucide-react";
 
 import { useDataTable } from "@calcom/features/data-table";
 import NoSSR from "@calcom/lib/components/NoSSR";
@@ -40,7 +40,7 @@ const TimezoneBadgeContent = () => {
 
   return (
     <Tooltip content={timezoneData.tooltipContent}>
-      <Icon name="info" data-testid="timezone-mismatch-badge" className="text-subtle" />
+      <InfoIcon data-testid="timezone-mismatch-badge" className="text-subtle" />
     </Tooltip>
   );
 };

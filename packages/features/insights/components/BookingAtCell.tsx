@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Icon } from "@calcom/ui/components/icon";
+import { CopyIcon } from "lucide-react";
 import { useId } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -52,7 +52,7 @@ export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId:
                       e.stopPropagation();
                       copyToClipboard(row.bookingUserEmail ?? "");
                     }}>
-                    <Icon name="copy" />
+                    <CopyIcon />
                   </button>
                 </p>
               </div>

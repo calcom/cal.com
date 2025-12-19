@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { CalendarIcon, Grid3x3Icon, Columns3Icon } from "lucide-react";
 import { shallow } from "zustand/shallow";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -194,7 +194,7 @@ const LayoutToggle = ({
         value: BookerLayouts.MONTH_VIEW,
         label: (
           <>
-            <Icon name="calendar" width="16" height="16" />
+            <CalendarIcon width="16" height="16" />
             <span className="sr-only">${t("switch_monthly")}</span>
           </>
         ),
@@ -204,7 +204,7 @@ const LayoutToggle = ({
         value: BookerLayouts.WEEK_VIEW,
         label: (
           <>
-            <Icon name="grid-3x3" width="16" height="16" />
+            <Grid3x3Icon width="16" height="16" />
             <span className="sr-only">${t("switch_weekly")}</span>
           </>
         ),
@@ -214,7 +214,7 @@ const LayoutToggle = ({
         value: BookerLayouts.COLUMN_VIEW,
         label: (
           <>
-            <Icon name="columns-3" width="16" height="16" />
+            <Columns3Icon width="16" height="16" />
             <span className="sr-only">${t("switch_columnview")}</span>
           </>
         ),

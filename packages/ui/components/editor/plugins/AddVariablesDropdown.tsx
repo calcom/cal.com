@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from "react";
+import { ChevronDownIcon } from "lucide-react";
 import { Icon } from "../../icon";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -108,13 +109,13 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
             <>
               <div className="hidden sm:flex">
                 {t("add_variable")}
-                <Icon name="chevron-down" className="ml-1 mt-[2px] h-4 w-4" />
+                <ChevronDownIcon className="ml-1 mt-[2px] h-4 w-4" />
               </div>
               <div className="block sm:hidden">
                 {props.addVariableButtonTop ? (
                   <div className="flex">
                     {t("add_variable")}
-                    <Icon name="chevron-down" className="ml-1 mt-[2px] h-4 w-4" />
+                    <ChevronDownIcon className="ml-1 mt-[2px] h-4 w-4" />
                   </div>
                 ) : (
                   "+"
@@ -124,7 +125,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
           ) : (
             <div className="flex">
               {t("add_variable")}
-              <Icon name="chevron-down" className="ml-1 mt-[2px] h-4 w-4" />
+              <ChevronDownIcon className="ml-1 mt-[2px] h-4 w-4" />
             </div>
           )}
         </div>

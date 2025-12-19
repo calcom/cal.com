@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -99,7 +99,7 @@ export const EventDuration = ({
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 left-0 flex">
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
-            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+            <ChevronLeftIcon className="text-subtle h-4 w-4" />
           </div>
           <div className="to-default flex h-9 w-5 bg-linear-to-l from-transparent" />
         </button>
@@ -129,7 +129,7 @@ export const EventDuration = ({
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex">
           <div className="to-default flex h-9 w-5 bg-linear-to-r from-transparent" />
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
-            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+            <ChevronRightIcon className="text-subtle h-4 w-4" />
           </div>
         </button>
       )}

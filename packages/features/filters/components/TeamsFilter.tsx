@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { Icon } from "@calcom/ui/components/icon";
+import { LayersIcon, UserIcon } from "lucide-react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef, useState } from "react";
 
@@ -83,7 +83,7 @@ export const TeamsFilter = ({
 
           <FilterCheckboxField
             id="all"
-            icon={<Icon name="layers" className="h-4 w-4" />}
+            icon={<LayersIcon className="h-4 w-4" />}
             checked={!query.teamIds && !isUserInQuery}
             onChange={removeAllQueryParams}
             label={t("all")}
@@ -91,7 +91,7 @@ export const TeamsFilter = ({
 
           <FilterCheckboxField
             id="yours"
-            icon={<Icon name="user" className="h-4 w-4" />}
+            icon={<UserIcon className="h-4 w-4" />}
             checked={!!isUserInQuery}
             onChange={(e) => {
               if (e.target.checked) {

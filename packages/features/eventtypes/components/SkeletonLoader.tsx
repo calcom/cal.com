@@ -1,5 +1,5 @@
 import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { Icon } from "@calcom/ui/components/icon";
+import { SearchIcon, ClockIcon, UserIcon } from "lucide-react";
 
 function SkeletonLoader() {
   return (
@@ -56,7 +56,7 @@ export function SearchSkeletonLoader() {
     <div className="max-w-64 mb-4">
       <div className="bg-default border-default flex h-8 items-center gap-1 rounded-[10px] border px-3 py-2">
         <div className="flex items-center justify-center">
-          <Icon name="search" className="text-subtle h-4 w-4" />
+          <SearchIcon className="text-subtle h-4 w-4" />
         </div>
         <SkeletonText className="max-w-56 h-4 w-full" />
       </div>
@@ -88,11 +88,11 @@ function SkeletonItem() {
         <div className="">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
             <li className="flex items-center whitespace-nowrap">
-              <Icon name="clock" className="text-subtle mr-1.5 mt-0.5 inline h-4 w-4" />
+              <ClockIcon className="text-subtle mr-1.5 mt-0.5 inline h-4 w-4" />
               <SkeletonText className="h-4 w-12" />
             </li>
             <li className="flex items-center whitespace-nowrap">
-              <Icon name="user" className="text-subtle mr-1.5 mt-0.5 inline h-4 w-4" />
+              <UserIcon className="text-subtle mr-1.5 mt-0.5 inline h-4 w-4" />
               <SkeletonText className="h-4 w-12" />
             </li>
           </ul>

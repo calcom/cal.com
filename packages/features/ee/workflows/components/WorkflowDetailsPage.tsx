@@ -1,5 +1,5 @@
 import { useSearchParams } from "next/navigation";
-import { Icon } from "@calcom/ui/components/icon";
+import { ZapIcon, ArrowRightIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -188,7 +188,7 @@ export default function WorkflowDetailsPage(props: Props) {
           label={
             <div className="flex gap-2 items-center pt-1 pb-2">
               <div className="p-1 ml-1 rounded-lg border border-subtle text-subtle">
-                <Icon name="zap" size="16" />
+                <ZapIcon size="16" />
               </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
             </div>
@@ -230,7 +230,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     label={
                       <div className="flex gap-2 items-center pt-1 pb-2">
                         <div className="p-1 rounded-lg border border-subtle text-subtle">
-                          <Icon name="arrow-right" size="16" />
+                          <ArrowRightIcon size="16" />
                         </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
                       </div>

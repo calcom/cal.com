@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Icon } from "@calcom/ui/components/icon";
+import { FileTextIcon, ShuffleIcon, ChartBarIcon, CircleCheckIcon, MailIcon, DownloadIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import posthog from "posthog-js";
@@ -91,32 +91,32 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const forms = queryRes.data?.filtered;
   const features = [
     {
-      icon: <Icon name="file-text" className="h-5 w-5 text-orange-500" />,
+      icon: <FileTextIcon className="h-5 w-5 text-orange-500" />,
       title: t("create_your_first_form"),
       description: t("create_your_first_form_description"),
     },
     {
-      icon: <Icon name="shuffle" className="h-5 w-5 text-lime-500" />,
+      icon: <ShuffleIcon className="h-5 w-5 text-lime-500" />,
       title: t("create_your_first_route"),
       description: t("route_to_the_right_person"),
     },
     {
-      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
+      icon: <ChartBarIcon className="h-5 w-5 text-blue-500" />,
       title: t("reporting"),
       description: t("reporting_feature"),
     },
     {
-      icon: <Icon name="circle-check" className="h-5 w-5 text-teal-500" />,
+      icon: <CircleCheckIcon className="h-5 w-5 text-teal-500" />,
       title: t("test_routing_form"),
       description: t("test_preview_description"),
     },
     {
-      icon: <Icon name="mail" className="h-5 w-5 text-yellow-500" />,
+      icon: <MailIcon className="h-5 w-5 text-yellow-500" />,
       title: t("routing_forms_send_email_owner"),
       description: t("routing_forms_send_email_owner_description"),
     },
     {
-      icon: <Icon name="download" className="h-5 w-5 text-violet-500" />,
+      icon: <DownloadIcon className="h-5 w-5 text-violet-500" />,
       title: t("download_responses"),
       description: t("download_responses_description"),
     },

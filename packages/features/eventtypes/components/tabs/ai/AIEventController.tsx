@@ -1,5 +1,5 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
@@ -90,7 +90,7 @@ const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: stri
   const { t } = useLocale();
   return (
     <div data-testid={`error-message-${fieldName}`} className="mt-2 flex items-center text-sm text-red-700 ">
-      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+      <InfoIcon className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
       <p>{t(message || "invalid_input")}</p>
     </div>
   );

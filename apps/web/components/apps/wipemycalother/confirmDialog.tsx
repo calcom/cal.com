@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Icon } from "@calcom/ui/components/icon";
+import { ClockIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -83,7 +83,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
       <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <Icon name="clock" className="m-auto h-5 w-5" />
+            <ClockIcon className="m-auto h-5 w-5" />
           </div>
           <div className="pt-1">
             <DialogHeader title="Wipe My Calendar" />

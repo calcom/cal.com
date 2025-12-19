@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -43,7 +43,7 @@ export const OptionComponent = ({ ...props }: OptionProps<Option>) => {
     <components.Option {...props}>
       <div className="flex">
         <span className="mr-auto">{label}</span>
-        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
+        {props.isSelected && <CheckIcon className="ml-2 h-4 w-4" />}
       </div>
     </components.Option>
   );

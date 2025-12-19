@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -128,7 +128,7 @@ export function TeamListBulkAction({ table }: Props) {
                             "border-subtle ml-auto flex h-4 w-4 items-center justify-center rounded-sm border",
                             isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                           )}>
-                          <Icon name="check" className={classNames("h-4 w-4")} />
+                          <CheckIcon className={classNames("h-4 w-4")} />
                         </div>
                       </CommandItem>
                     );

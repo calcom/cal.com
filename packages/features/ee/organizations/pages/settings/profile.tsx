@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Icon } from "@calcom/ui/components/icon";
+import { PlusIcon, CopyIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -330,7 +330,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   <Avatar
                     alt="calVideoLogo"
                     imageSrc={value}
-                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+                    fallback={<PlusIcon className="text-subtle h-6 w-6" />}
                     size="lg"
                   />
                   <div className="ms-4">
@@ -407,7 +407,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                       type="button"
                       aria-label="copy organization id"
                       onClick={() => handleCopy(value.toString())}>
-                      <Icon name="copy" className="ml-1 h-4 w-4" />
+                      <CopyIcon className="ml-1 h-4 w-4" />
                     </Button>
                   </Tooltip>
                 }

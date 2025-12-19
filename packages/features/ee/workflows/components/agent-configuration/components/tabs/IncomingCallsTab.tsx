@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon, PhoneIncomingIcon } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -89,7 +89,7 @@ export function IncomingCallsTab({
       <div className="p-8 rounded-xl border border-subtle">
         <div className="flex flex-col items-center stack-y-6 text-center">
           <div className="flex justify-center items-center w-16 h-16 rounded-lg bg-cal-muted">
-            <Icon name="info" className="w-8 h-8 text-subtle" />
+            <InfoIcon className="w-8 h-8 text-subtle" />
           </div>
           <div className="stack-y-2">
             <h3 className="text-lg font-semibold text-emphasis">{t("setup_incoming_agent")}</h3>
@@ -105,7 +105,7 @@ export function IncomingCallsTab({
       <div className="p-8 rounded-xl border border-subtle">
         <div className="flex flex-col items-center stack-y-6 text-center">
           <div className="flex justify-center items-center w-16 h-16 rounded-lg bg-cal-muted">
-            <Icon name="phone-incoming" className="w-8 h-8 text-subtle" />
+            <PhoneIncomingIcon className="w-8 h-8 text-subtle" />
           </div>
           <div className="stack-y-2">
             <h3 className="text-lg font-semibold text-emphasis">{t("setup_inbound_agent")}</h3>

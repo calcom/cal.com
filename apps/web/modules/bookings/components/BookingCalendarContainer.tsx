@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import React, { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -138,11 +138,11 @@ function BookingCalendarInner({
           <ButtonGroup combined>
             <Button color="secondary" onClick={goToPreviousWeek}>
               <span className="sr-only">{t("view_previous_week")}</span>
-              <Icon name="chevron-left" className="h-4 w-4" />
+              <ChevronLeftIcon className="h-4 w-4" />
             </Button>
             <Button color="secondary" onClick={goToNextWeek}>
               <span className="sr-only">{t("view_next_week")}</span>
-              <Icon name="chevron-right" className="h-4 w-4" />
+              <ChevronRightIcon className="h-4 w-4" />
             </Button>
           </ButtonGroup>
           <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />

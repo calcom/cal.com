@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { LoaderIcon } from "lucide-react";
 
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -79,7 +79,7 @@ export default function Header({
           <div className={classNames("shrink-0", ctaClassName)}>{CTA}</div>
         </div>
       </header>
-      <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
+      <Suspense fallback={<LoaderIcon className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
     </div>
   );
 }

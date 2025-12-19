@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,7 +38,7 @@ const TimeUnitAddonSuffix = ({
         <button className="flex items-center">
           <div className="mr-1 w-3/5">{timeUnit ? timeUnitOptions[timeUnit] : "undefined"}</div>
           <div className="w-1/4 pt-1">
-            {isDropdownOpen ? <Icon name="chevron-up" /> : <Icon name="chevron-down" />}
+            {isDropdownOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
           </div>
         </button>
       </DropdownMenuTrigger>

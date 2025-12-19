@@ -1,5 +1,5 @@
 import type { InferGetServerSidePropsType } from "next";
-import { Icon } from "@calcom/ui/components/icon";
+import { ClipboardIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -164,7 +164,7 @@ const CopyApiKey = ({ apiKey }: { apiKey: string }) => {
             }}
             type="button"
             className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-            <Icon name="clipboard" className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+            <ClipboardIcon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
             {t("copy")}
           </Button>
         </Tooltip>
