@@ -12,13 +12,13 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
@@ -73,10 +73,10 @@ function responseDataIsBooking(data: unknown): data is BookingOutput_2024_08_13 
 }
 
 describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
-  // Split into two separate describe blocks with their own app instances
-  // to ensure each test suite authenticates as the booking owner.
-  // This fixes the flaky 401 errors that occurred when authenticating as a different user
-  // than the booking owner.
+  // Use real API key authentication instead of withApiAuth mock to avoid
+  // Passport strategy registration conflicts between test suites.
+  // This ensures the authenticated user is the booking owner, fixing the
+  // flaky 401 errors that occurred when authenticating as a different user.
 
   describe("OAuth client managed user bookings - emails disabled", () => {
     let app: INestApplication;
@@ -89,21 +89,17 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
     let user: User;
     let eventTypeId: number;
     let createdBookingUid: string;
-
-    // Generate email upfront so it's known before module compilation
-    const userEmail = `confirm-emails-disabled-2024-08-13-user-${randomString()}@api.com`;
+    let apiKeyString: string;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-        })
-      )
+      const moduleRef = await Test.createTestingModule({
+        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+      })
         .overrideGuard(PermissionsGuard)
         .useValue({
           canActivate: () => true,
@@ -116,6 +112,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
         name: `confirm-emails-disabled-2024-08-13-organization-${randomString()}`,
@@ -134,15 +131,19 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         "secret"
       );
 
-      // Create user with the same email used for authentication
+      // Create user who will own the bookings
       user = await userRepositoryFixture.create({
-        email: userEmail,
+        email: `confirm-emails-disabled-2024-08-13-user-${randomString()}@api.com`,
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
           },
         },
       });
+
+      // Create API key for the user to authenticate confirm/decline requests
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
+      apiKeyString = keyString;
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `confirm-emails-disabled-2024-08-13-schedule-${randomString()}`,
@@ -217,6 +218,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     it("should not send an email when confirming a booking", async () => {
       return request(app.getHttpServer())
         .post(`/v2/bookings/${createdBookingUid}/confirm`)
+        .set("Authorization", `Bearer cal_test_${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -271,6 +273,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     it("should not send an email when declining a booking", async () => {
       return request(app.getHttpServer())
         .post(`/v2/bookings/${createdBookingUid}/decline`)
+        .set("Authorization", `Bearer cal_test_${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -292,7 +295,6 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
   describe("OAuth client managed user bookings - emails enabled", () => {
     let app: INestApplication;
-    let unauthenticatedApp: INestApplication;
     let organization: Team;
     let oAuthClient: PlatformOAuthClient;
 
@@ -302,30 +304,16 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
     let user: User;
     let eventTypeId: number;
     let createdBookingUid: string;
     let rescheduledBookingUid: string;
-
-    // Generate email upfront so it's known before module compilation
-    const userEmail = `confirm-emails-enabled-2024-08-13-user-${randomString()}@api.com`;
+    let apiKeyString: string;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-        })
-      )
-        .overrideGuard(PermissionsGuard)
-        .useValue({
-          canActivate: () => true,
-        })
-        .compile();
-
-      // Create a separate unauthenticated app for attendee reschedule test
-      const unauthModuleRef = await Test.createTestingModule({
+      const moduleRef = await Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
       })
         .overrideGuard(PermissionsGuard)
@@ -340,6 +328,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
         name: `confirm-emails-enabled-2024-08-13-organization-${randomString()}`,
@@ -358,15 +347,19 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         "secret"
       );
 
-      // Create user with the same email used for authentication
+      // Create user who will own the bookings
       user = await userRepositoryFixture.create({
-        email: userEmail,
+        email: `confirm-emails-enabled-2024-08-13-user-${randomString()}@api.com`,
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
           },
         },
       });
+
+      // Create API key for the user to authenticate confirm/decline/reschedule requests
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
+      apiKeyString = keyString;
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `confirm-emails-enabled-2024-08-13-schedule-${randomString()}`,
@@ -389,11 +382,6 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
       await app.init();
-
-      // Initialize unauthenticated app for attendee reschedule test
-      unauthenticatedApp = unauthModuleRef.createNestApplication();
-      bootstrap(unauthenticatedApp as NestExpressApplication);
-      await unauthenticatedApp.init();
     });
 
     beforeEach(async () => {
@@ -444,6 +432,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       it("should send an email when confirming a booking", async () => {
         return request(app.getHttpServer())
           .post(`/v2/bookings/${createdBookingUid}/confirm`)
+          .set("Authorization", `Bearer cal_test_${apiKeyString}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -459,12 +448,13 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         it("should send confirmation emails when organizer reschedules a booking that requires confirmation", async () => {
           const body: RescheduleBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2030, 0, 8, 14, 30, 0)).toISOString(),
-            rescheduledBy: userEmail,
+            rescheduledBy: user.email,
           };
 
           return request(app.getHttpServer())
             .post(`/v2/bookings/${createdBookingUid}/reschedule`)
             .send(body)
+            .set("Authorization", `Bearer cal_test_${apiKeyString}`)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
             .then(async (response) => {
@@ -492,8 +482,8 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
             start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
           };
 
-          // Use unauthenticated app to simulate attendee reschedule (not authenticated as booking owner)
-          return request(unauthenticatedApp.getHttpServer())
+          // No authentication header to simulate attendee reschedule (uses OptionalApiAuthGuard)
+          return request(app.getHttpServer())
             .post(`/v2/bookings/${rescheduledBookingUid}/reschedule`)
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -563,6 +553,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       it("should send an email when declining a booking", async () => {
         return request(app.getHttpServer())
           .post(`/v2/bookings/${createdBookingUid}/decline`)
+          .set("Authorization", `Bearer cal_test_${apiKeyString}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -579,7 +570,6 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       await teamRepositoryFixture.delete(organization.id);
       await userRepositoryFixture.deleteByEmail(user.email);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
-      await unauthenticatedApp.close();
       await app.close();
     });
   });
