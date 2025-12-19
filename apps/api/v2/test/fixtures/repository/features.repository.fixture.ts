@@ -27,17 +27,24 @@ export class FeaturesRepositoryFixture {
   }
 
   async setTeamFeatureState(
-    teamId: number,
-    featureId: string,
-    state: "enabled" | "disabled" | "inherit",
-    assignedBy = "test"
+    input:
+      | { teamId: number; featureId: string; state: "enabled" | "disabled"; assignedBy?: string }
+      | { teamId: number; featureId: string; state: "inherit" }
   ) {
-    await this.featuresRepository.setTeamFeatureState({
-      teamId,
-      featureId: featureId as FeatureId,
-      state,
-      assignedBy,
-    });
+    if (input.state === "inherit") {
+      await this.featuresRepository.setTeamFeatureState({
+        teamId: input.teamId,
+        featureId: input.featureId as FeatureId,
+        state: input.state,
+      });
+    } else {
+      await this.featuresRepository.setTeamFeatureState({
+        teamId: input.teamId,
+        featureId: input.featureId as FeatureId,
+        state: input.state,
+        assignedBy: input.assignedBy ?? "test",
+      });
+    }
   }
 
   async disableFeatureForTeam(teamId: number, featureSlug: string) {
