@@ -354,9 +354,15 @@ describe("Slots 2024-09-04 Endpoints", () => {
       Settings.now = () => mockDate.getTime();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       clear();
       Settings.now = originalSettingsNow;
+      // Clean up any slot reservations that may have been created during the test
+      // This ensures tests don't interfere with each other even if a test fails mid-execution
+      await selectedSlotRepositoryFixture.deleteByEventTypeId(collectiveEventTypeId);
+      await selectedSlotRepositoryFixture.deleteByEventTypeId(roundRobinEventTypeId);
+      await selectedSlotRepositoryFixture.deleteByEventTypeId(roundRobinEventTypeWithoutFixedHostsId);
+      await selectedSlotRepositoryFixture.deleteByEventTypeId(roundRobinEventTypeWithFixedAndNonFixedHostsId);
     });
 
     it("should get collective team event slots in UTC", async () => {

@@ -21,6 +21,7 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -41,8 +42,9 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
 
-    const sharedUsername = `slots-2024-09-04-shared-username-${randomString()}`;
+    const sharedUsername= `slots-2024-09-04-shared-username-${randomString()}`;
     const sharedEventTypeSlug = `slots-2024-09-04-shared-event-type-slug-${randomString()}`;
 
     const orgUserEmailOne = `slots-2024-09-04-org-user-one-${randomString()}@api.com`;
@@ -94,6 +96,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+      selectedSlotRepositoryFixture = new SelectedSlotRepositoryFixture(moduleRef);
 
       organization = await organizationsRepositoryFixture.create({
         name: orgSlug,
@@ -241,9 +244,13 @@ describe("Slots 2024-09-04 Endpoints", () => {
       Settings.now = () => mockDate.getTime();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       clear();
       Settings.now = originalSettingsNow;
+      // Clean up any slot reservations that may have been created during the test
+      // This ensures tests don't interfere with each other even if a test fails mid-execution
+      await selectedSlotRepositoryFixture.deleteByEventTypeId(collectiveEventTypeId);
+      await selectedSlotRepositoryFixture.deleteByEventTypeId(roundRobinEventTypeId);
     });
 
     describe("org and non org user have the same username and event type slug", () => {
