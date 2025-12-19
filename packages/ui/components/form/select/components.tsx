@@ -1,4 +1,4 @@
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, SparklesIcon } from "lucide-react";
 import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
@@ -50,7 +50,7 @@ export const OptionComponent = <
       <div className="flex items-center justify-between">
         <span className="w-full" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
           {(props.data as unknown as ExtendedOption).isCalAi ? (
-            <Badge startIcon="sparkles" variant="purple" className="mr-1 hidden md:inline-flex">
+            <Badge startIcon={SparklesIcon} variant="purple" className="mr-1 hidden md:inline-flex">
               Cal.ai
             </Badge>
           ) : (

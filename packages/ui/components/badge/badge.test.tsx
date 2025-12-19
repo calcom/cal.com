@@ -40,7 +40,7 @@ describe("Badge", () => {
   });
 
   test("renders with startIcon when provided", () => {
-    render(<Badge startIcon="info">{children}</Badge>);
+    render(<Badge startIcon={InfoIcon}>{children}</Badge>);
     expect(screen.getByTestId("start-icon")).toBeInTheDocument();
   });
 

@@ -66,7 +66,7 @@ export function EmptyScreen({
           <h2
             className={classNames(
               "text-semibold font-cal text-emphasis text-center text-xl normal-nums",
-              icon && "mt-6",
+              IconComponent && "mt-6",
               !description && "mb-8"
             )}>
             {headline}
