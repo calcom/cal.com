@@ -29,7 +29,10 @@ export const getClientHandler = async ({ input }: GetClientOptions) => {
     if (err instanceof HttpError) {
       throw new TRPCError({ code: httpStatusToTrpcCode(err.statusCode), message: err.message });
     }
-  }
 
-  throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: err instanceof Error ? err.message : "",
+    });
+  }
 };

@@ -45,9 +45,8 @@ async function handler(req: NextRequest) {
     if (err instanceof HttpError) {
       return NextResponse.json({ error: err.message }, { status: err.statusCode });
     }
+    return NextResponse.json({ error: err instanceof Error ? err.message : "server_error" }, { status: 500 });
   }
-
-  return NextResponse.json({ error: "server_error" }, { status: 500 });
 }
 
 export const POST = defaultResponderForAppDir(handler);

@@ -39,8 +39,10 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
         message: err.message,
       });
     }
+
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: err instanceof Error ? err.message : "",
+    });
   }
-  throw new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-  });
 };

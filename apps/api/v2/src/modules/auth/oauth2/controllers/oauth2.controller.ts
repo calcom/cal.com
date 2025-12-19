@@ -58,8 +58,10 @@ export class OAuth2Controller {
         const httpError = err as HttpError;
         throw new HttpException(httpError.message, httpError.statusCode);
       }
+      throw new InternalServerErrorException(
+        err instanceof Error ? err.message : "Could not get oAuthClient"
+      );
     }
-    throw new InternalServerErrorException("Could not get oAuthClient");
   }
 
   @Post("/authorize")
@@ -128,8 +130,10 @@ export class OAuth2Controller {
         const httpError = err as HttpError;
         throw new HttpException(httpError.message, httpError.statusCode);
       }
+      throw new InternalServerErrorException(
+        err instanceof Error ? err.message : "Could not exchange code for tokens"
+      );
     }
-    throw new InternalServerErrorException("Could not exchange code for tokens");
   }
 
   @Post("/refresh")
@@ -157,7 +161,8 @@ export class OAuth2Controller {
         const httpError = err as HttpError;
         throw new HttpException(httpError.message, httpError.statusCode);
       }
+
+      throw new InternalServerErrorException(err instanceof Error ? err.message : "Could not refresh tokens");
     }
-    throw new InternalServerErrorException("Could not refresh tokens");
   }
 }
