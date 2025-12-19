@@ -1,7 +1,8 @@
 "use client";
 
+import { EllipsisIcon, PencilIcon, TrashIcon, ZapIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
 
 
 import type { Webhook } from "../lib/dto/types";
@@ -103,7 +104,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon="zap">
+                startIcon={ZapIcon}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}

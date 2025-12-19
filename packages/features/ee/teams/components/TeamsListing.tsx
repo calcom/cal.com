@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { UsersIcon, RefreshCcwIcon, UserPlusIcon, MailIcon, VideoIcon, EyeOffIcon, InfoIcon } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
@@ -154,7 +154,7 @@ export function TeamsListing({
           }
           isParentLoading={<SkeletonLoaderTeamList />}>
           <EmptyScreen
-            Icon="users"
+            Icon={UsersIcon}
             headline={t("create_team_to_get_started")}
             description={t("create_first_team_and_invite_others")}
             buttonRaw={

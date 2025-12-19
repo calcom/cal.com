@@ -866,7 +866,7 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
 
   return (
     <EmptyScreen
-      Icon="link"
+      Icon={LinkIcon}
       headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
@@ -905,7 +905,7 @@ const EmptyEventTypeList = ({
   return (
     <>
       <EmptyScreen
-        Icon="link"
+        Icon={LinkIcon}
         headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
         description={t("new_team_event_type_description")}
         className="mb-16"

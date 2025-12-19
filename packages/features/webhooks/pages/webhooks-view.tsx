@@ -1,5 +1,6 @@
 "use client";
 
+import { LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
@@ -81,7 +82,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
         </div>
       ) : (
         <EmptyScreen
-          Icon="link"
+          Icon={LinkIcon}
           headline={t("create_your_first_webhook")}
           description={t("create_your_first_webhook_description", { appName: APP_NAME })}
           className="mt-6 rounded-b-lg"

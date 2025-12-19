@@ -1,6 +1,7 @@
 "use client";
 
 import type { Table as ReactTable } from "@tanstack/react-table";
+import { CalendarIcon } from "lucide-react";
 
 import { DataTableWrapper } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -53,7 +54,7 @@ export function BookingList({
       EmptyView={
         <div className="flex items-center justify-center pt-2 xl:pt-0">
           <EmptyScreen
-            Icon="calendar"
+            Icon={CalendarIcon}
             headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
             description={t("no_status_bookings_yet_description", {
               status: t(status).toLowerCase(),

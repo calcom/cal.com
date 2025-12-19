@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLinkIcon, LockIcon } from "lucide-react";
+import { ExternalLinkIcon, LockIcon, ZapIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -221,7 +221,6 @@ function EventWorkflowsTab(props: Props) {
           : allActiveWorkflows.concat(disabledWorkflows);
       setSortedWorkflows(allSortedWorkflows);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
@@ -285,7 +284,7 @@ function EventWorkflowsTab(props: Props) {
           ) : (
             <div className="pt-2 before:border-0">
               <EmptyScreen
-                Icon="zap"
+                Icon={ZapIcon}
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={

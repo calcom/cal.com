@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LockIcon, PlusIcon } from "lucide-react";
+import { LockIcon, PlusIcon, WebhookIcon } from "lucide-react";
 
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -198,9 +198,9 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     </div>
                   </>
                 ) : (
-                  <EmptyScreen
-                    Icon="webhook"
-                    headline={t("create_your_first_webhook")}
+                    <EmptyScreen
+                      Icon={WebhookIcon}
+                      headline={t("create_your_first_webhook")}
                     description={t("first_event_type_webhook_description")}
                     buttonRaw={
                       cannotEditWebhooks ? (

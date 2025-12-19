@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PencilIcon } from "lucide-react";
+import { CircleAlertIcon, PencilIcon } from "lucide-react";
  
 import { noop } from "lodash";
 import type { FC } from "react";
@@ -126,7 +126,7 @@ const IntegrationContainer = ({
   );
 };
 
-const querySchema = z.object({
+const _querySchema = z.object({
   category: z
     .nativeEnum({ ...AppCategories, conferencing: "conferencing" })
     .optional()
@@ -309,7 +309,7 @@ const AdminAppsListContainer = () => {
   if (!apps || apps.length === 0) {
     return (
       <EmptyScreen
-        Icon="circle-alert"
+        Icon={CircleAlertIcon}
         headline={t("no_available_apps")}
         description={t("no_available_apps_description")}
       />

@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { LockIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { LockIcon, PhoneCallIcon, PlusIcon, TrashIcon, WebhookIcon } from "lucide-react";
 
 import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
@@ -108,7 +108,7 @@ export default function InstantEventController({
         {!isOrg || !isTeamEvent ? (
           <EmptyScreen
             headline={t("instant_tab_title")}
-            Icon="phone-call"
+            Icon={PhoneCallIcon}
             description={t("uprade_to_create_instant_bookings")}
             buttonRaw={<Button href="/enterprise">{t("upgrade")}</Button>}
           />
@@ -397,7 +397,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
             ) : (
               <>
                 <EmptyScreen
-                  Icon="webhook"
+                  Icon={WebhookIcon}
                   headline={t("create_your_first_webhook")}
                   description={t("create_instant_meeting_webhook_description")}
                   buttonRaw={

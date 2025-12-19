@@ -1,3 +1,4 @@
+import { ClipboardIcon, ClockIcon, PlusIcon, RefreshCwIcon, UserIcon, UsersIcon } from "lucide-react";
 import { useMemo } from "react";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
@@ -32,9 +33,9 @@ export const EventTypeDescription = ({
   eventType,
   className,
   shortenDescription,
-  isPublic,
+  isPublic: _isPublic,
 }: EventTypeDescriptionProps) => {
-  const { t, i18n } = useLocale();
+  const { t, i18n: _i18n } = useLocale();
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),
@@ -57,7 +58,6 @@ export const EventTypeDescription = ({
               "text-subtle line-clamp-3 wrap-break-word py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
               shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
             )}
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: markdownToSafeHTML(eventType.descriptionAsSafeHTML || ""),
             }}
@@ -67,21 +67,21 @@ export const EventTypeDescription = ({
           {metadata?.multipleDuration ? (
             metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
-                <Badge variant="gray" startIcon="clock">
+                <Badge variant="gray" startIcon={ClockIcon}>
                   {dur}m
                 </Badge>
               </li>
             ))
           ) : (
             <li>
-              <Badge variant="gray" startIcon="clock">
+              <Badge variant="gray" startIcon={ClockIcon}>
                 {eventType.length}m
               </Badge>
             </li>
           )}
           {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
             <li>
-              <Badge variant="gray" startIcon="users">
+              <Badge variant="gray" startIcon={UsersIcon}>
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
               </Badge>
@@ -89,7 +89,7 @@ export const EventTypeDescription = ({
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="hidden xl:block" data-testid="repeat-eventtype">
-              <Badge variant="gray" startIcon="refresh-cw">
+              <Badge variant="gray" startIcon={RefreshCwIcon}>
                 {t("repeats_up_to", {
                   count: recurringEvent.count,
                 })}
@@ -113,7 +113,7 @@ export const EventTypeDescription = ({
           )}
           {eventType.requiresConfirmation && (
             <li className="hidden xl:block" data-testid="requires-confirmation-badge">
-              <Badge variant="gray" startIcon="clipboard">
+              <Badge variant="gray" startIcon={ClipboardIcon}>
                 {metadata?.requiresConfirmationThreshold
                   ? t("may_require_confirmation")
                   : t("requires_confirmation")}
@@ -123,7 +123,7 @@ export const EventTypeDescription = ({
           {/* TODO: Maybe add a tool tip to this? */}
           {eventType.requiresConfirmation || (recurringEvent?.count && recurringEvent.count) ? (
             <li className="block xl:hidden">
-              <Badge variant="gray" startIcon="plus">
+              <Badge variant="gray" startIcon={PlusIcon}>
                 <p>{[eventType.requiresConfirmation, recurringEvent?.count].filter(Boolean).length}</p>
               </Badge>
             </li>
@@ -132,7 +132,7 @@ export const EventTypeDescription = ({
           )}
           {eventType?.seatsPerTimeSlot ? (
             <li>
-              <Badge variant="gray" startIcon="user">
+              <Badge variant="gray" startIcon={UserIcon}>
                 <p>{t("event_type_seats", { numberOfSeats: eventType.seatsPerTimeSlot })} </p>
               </Badge>
             </li>

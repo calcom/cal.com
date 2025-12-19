@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CircleXIcon, EyeOffIcon, MailIcon, RefreshCcwIcon } from "lucide-react";
+import { CircleXIcon, EyeOffIcon, MailIcon, RefreshCcwIcon, SendIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -240,7 +240,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
+      <Badge startIcon={SendIcon} size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );

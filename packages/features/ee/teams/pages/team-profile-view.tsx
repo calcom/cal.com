@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CopyIcon, LogOutIcon, Trash2Icon } from "lucide-react";
+import { CopyIcon, ExternalLinkIcon, LinkIcon, LogOutIcon, Trash2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -176,10 +176,10 @@ const ProfileView = () => {
           </div>
           <div>
             <Link href={permalink} passHref={true} target="_blank">
-              <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
+              <LinkIconButton Icon={ExternalLinkIcon}>{t("preview")}</LinkIconButton>
             </Link>
             <LinkIconButton
-              Icon="link"
+              Icon={LinkIcon}
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
                 showToast("Copied to clipboard", "success");

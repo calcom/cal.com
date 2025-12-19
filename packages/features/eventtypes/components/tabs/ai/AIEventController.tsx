@@ -1,5 +1,5 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, SparklesIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
@@ -44,7 +44,7 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
         {!isOrg || !isTeamEvent ? (
           <EmptyScreen
             headline={t("Cal.ai")}
-            Icon="sparkles"
+            Icon={SparklesIcon}
             description={t("upgrade_to_cal_ai_phone_number_description")}
             buttonRaw={<Button href="/enterprise">{t("upgrade")}</Button>}
           />

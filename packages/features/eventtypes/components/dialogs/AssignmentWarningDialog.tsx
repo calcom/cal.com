@@ -1,3 +1,4 @@
+import { CircleAlertIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import type { MutableRefObject } from "react";
@@ -30,7 +31,7 @@ const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
       <DialogContent
         title={t("leave_without_assigning_anyone")}
         description={`${t("leave_without_adding_attendees")} ${t("no_availability_shown_to_bookers")}`}
-        Icon="circle-alert"
+        Icon={CircleAlertIcon}
         enableOverflow
         type="confirmation">
         <DialogFooter className="mt-6">
