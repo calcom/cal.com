@@ -46,7 +46,7 @@ export const buttonClasses = cva(
       variant: {
         button: "",
         icon: "flex justify-center",
-        fab: "min-w-14 min-h-14 md:min-w-min md:min-h-min rounded-full justify-center md:rounded-[10px] radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
+        fab: "min-w-14 min-h-14 md:min-w-0 md:min-h-0 rounded-full justify-center md:rounded-[10px] radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
       },
       color: {
         primary: [
@@ -314,7 +314,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <Icon name={EndIcon} className="-mr-1 me-2 ms-2 hidden h-5 w-5 shrink-0 md:inline" />
+              <Icon name={EndIcon} className="me-2 ms-2 -mr-1 hidden h-5 w-5 shrink-0 md:inline" />
               <Icon name="plus" data-testid="plus" className="inline h-6 w-6 shrink-0 md:hidden" />
             </>
           ) : (
