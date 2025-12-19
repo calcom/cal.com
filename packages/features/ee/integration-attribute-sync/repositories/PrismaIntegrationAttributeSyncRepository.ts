@@ -109,7 +109,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
     return IntegrationAttributeSyncOutputMapper.toDomain(created);
   }
 
-  async updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams): Promise<void> {
+  updateTransactionWithRuleAndMappings(params: IIntegrationAttributeSyncUpdateParams) {
     const {
       integrationAttributeSync,
       attributeSyncRule,
@@ -118,58 +118,62 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
       fieldMappingsToDelete,
     } = params;
 
-    this.prismaClient.$transaction([
-      this.prismaClient.integrationAttributeSync.update({
-        where: {
-          id: integrationAttributeSync.id,
-        },
-        data: {
-          ...integrationAttributeSync,
-        },
-      }),
-      this.prismaClient.attributeSyncRule.update({
-        where: {
-          id: attributeSyncRule.id,
-        },
-        data: {
-          ...attributeSyncRule,
-        },
-      }),
-      ...fieldMappingsToUpdate.map((mapping) =>
-        this.prismaClient.attributeSyncFieldMapping.update({
+    return this.prismaClient
+      .$transaction([
+        this.prismaClient.integrationAttributeSync.update({
           where: {
-            id: mapping.id,
+            id: integrationAttributeSync.id,
           },
           data: {
-            ...mapping,
+            ...integrationAttributeSync,
           },
-        })
-      ),
-      ...(fieldMappingsToCreate.length > 0
-        ? [
-            this.prismaClient.attributeSyncFieldMapping.createMany({
-              data: fieldMappingsToCreate.map((mapping) => ({
-                ...mapping,
-                integrationAttributeSyncId: integrationAttributeSync.id,
-              })),
-            }),
-          ]
-        : []),
-      ...(fieldMappingsToDelete.length > 0
-        ? [
-            this.prismaClient.attributeSyncFieldMapping.deleteMany({
-              where: { id: { in: fieldMappingsToDelete } },
-            }),
-          ]
-        : []),
-    ]);
+        }),
+        this.prismaClient.attributeSyncRule.update({
+          where: {
+            id: attributeSyncRule.id,
+          },
+          data: {
+            ...attributeSyncRule,
+          },
+        }),
+        ...fieldMappingsToUpdate.map((mapping) =>
+          this.prismaClient.attributeSyncFieldMapping.update({
+            where: {
+              id: mapping.id,
+            },
+            data: {
+              ...mapping,
+            },
+          })
+        ),
+        ...(fieldMappingsToCreate.length > 0
+          ? [
+              this.prismaClient.attributeSyncFieldMapping.createMany({
+                data: fieldMappingsToCreate.map((mapping) => ({
+                  ...mapping,
+                  integrationAttributeSyncId: integrationAttributeSync.id,
+                })),
+              }),
+            ]
+          : []),
+        ...(fieldMappingsToDelete.length > 0
+          ? [
+              this.prismaClient.attributeSyncFieldMapping.deleteMany({
+                where: { id: { in: fieldMappingsToDelete } },
+              }),
+            ]
+          : []),
+      ])
+      .then(() => {});
   }
 
-  async deleteById(id: string): Promise<void> {
-    this.prismaClient.integrationAttributeSync.delete({
-      where: {
-        id,
-      },
-    });
+  deleteById(id: string) {
+    return this.prismaClient.integrationAttributeSync
+      .delete({
+        where: {
+          id,
+        },
+      })
+      .then(() => {});
   }
 }
