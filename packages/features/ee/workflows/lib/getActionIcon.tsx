@@ -1,5 +1,6 @@
+import { BellIcon, MailIcon, SmartphoneIcon, ZapIcon } from "lucide-react";
+
 import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
 
 import type { WorkflowStep } from "../lib/types";
@@ -7,8 +8,7 @@ import type { WorkflowStep } from "../lib/types";
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
   if (steps.length === 0) {
     return (
-      <Icon
-        name="zap"
+      <ZapIcon
         className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
         aria-hidden="true"
       />
@@ -18,16 +18,14 @@ export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.El
   if (steps.length === 1) {
     if (isSMSOrWhatsappAction(steps[0].action)) {
       return (
-        <Icon
-          name="smartphone"
+        <SmartphoneIcon
           className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
           aria-hidden="true"
         />
       );
     } else {
       return (
-        <Icon
-          name="mail"
+        <MailIcon
           className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
           aria-hidden="true"
         />
@@ -53,31 +51,27 @@ export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.El
     switch (messageType) {
       case "SMS":
         return (
-          <Icon
-            name="smartphone"
+          <SmartphoneIcon
             className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
             aria-hidden="true"
           />
         );
       case "EMAIL":
         return (
-          <Icon
-            name="mail"
+          <MailIcon
             className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
             aria-hidden="true"
           />
         );
       case "MIX":
         return (
-          <Icon
-            name="bell"
+          <BellIcon
             className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
             aria-hidden="true"
           />
         );
       default:
-        <Icon
-          name="zap"
+        <ZapIcon
           className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
           aria-hidden="true"
         />;

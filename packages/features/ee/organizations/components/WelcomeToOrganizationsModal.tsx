@@ -1,13 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLinkIcon } from "lucide-react";
-
+import type { LucideIcon } from "lucide-react";
+import { BuildingIcon, CheckIcon, ExternalLinkIcon, UserIcon, UsersIcon } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
 import { useWelcomeModal } from "../hooks/useWelcomeModal";
@@ -77,8 +76,7 @@ export function WelcomeToOrganizationsModal() {
                     top: "50%",
                     transform: "translate(-50%, -50%)",
                   }}>
-                  <Icon
-                    name="users"
+                  <UsersIcon
                     className="text-emphasis opacity-70"
                     style={{ width: LARGE.icon, height: LARGE.icon }}
                   />
@@ -87,13 +85,13 @@ export function WelcomeToOrganizationsModal() {
                 {/* Surrounding user icons */}
                 {(
                   [
-                    { initialDeg: 30, duration: 20, icon: "user" },
-                    { initialDeg: 190, duration: 25, icon: "user" },
-                    { initialDeg: 320, duration: 15, icon: "user" },
-                    { initialDeg: 280, duration: 20, icon: "building" },
-                  ] as Array<{ initialDeg: number; duration: number; icon: IconName }>
-                ).map(({ initialDeg, duration, icon }, index) => {
-                  const r = RINGS[index % RINGS.length]; // icon orbit radius - each icon on a different ring (we have more icons than ring so we cycle through them)
+                    { initialDeg: 30, duration: 20, Icon: UserIcon },
+                    { initialDeg: 190, duration: 25, Icon: UserIcon },
+                    { initialDeg: 320, duration: 15, Icon: UserIcon },
+                    { initialDeg: 280, duration: 20, Icon: BuildingIcon },
+                  ] as Array<{ initialDeg: number; duration: number; Icon: LucideIcon }>
+                ).map(({ initialDeg, duration, Icon }, index) => {
+                  const r = RINGS[index % RINGS.length];
                   const steps = 60;
                   const xKeyframes = [];
                   const yKeyframes = [];
@@ -123,11 +121,9 @@ export function WelcomeToOrganizationsModal() {
                         ease: "linear",
                       }}
                       transformTemplate={({ x, y }) =>
-                        // Lock the icon to the center of the ring and only translate on x and y
                         `translate(-50%, -50%) translateX(${x}) translateY(${y})`
                       }>
                       <Icon
-                        name={icon}
                         className="text-default"
                         style={{ width: SMALL.icon, height: SMALL.icon }}
                       />
@@ -147,7 +143,7 @@ export function WelcomeToOrganizationsModal() {
             <div className="mb-2 flex flex-col gap-3">
               {features.map((feature) => (
                 <div key={feature} className="flex items-start gap-2">
-                  <Icon name="check" className="text-muted mt-0.5 h-4 w-4 shrink-0" />
+                  <CheckIcon className="text-muted mt-0.5 h-4 w-4 shrink-0" />
                   <span className="text-default text-sm font-medium leading-tight">{t(feature)}</span>
                 </div>
               ))}
