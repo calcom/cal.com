@@ -1,4 +1,5 @@
 import { usePathname } from "next/navigation";
+import { UserPlusIcon } from "lucide-react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -38,7 +39,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       <Section.Content>
         <Section.SubSection>
           <Section.SubSectionHeader
-            icon="user-plus"
+            icon={UserPlusIcon}
             title={t("hubspot_ignore_guests")}
             labelFor="ignore-guests">
             <Switch
@@ -53,7 +54,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
         </Section.SubSection>
         <Section.SubSection>
           <Section.SubSectionHeader
-            icon="user-plus"
+            icon={UserPlusIcon}
             title={t("skip_contact_creation", { appName: "HubSpot" })}
             labelFor="skip-contact-creation">
             <Switch

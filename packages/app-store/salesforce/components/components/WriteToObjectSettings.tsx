@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckIcon, PencilIcon, PlusIcon, XIcon } from "lucide-react";
+import { CheckIcon, PencilIcon, PlusIcon, XIcon, StarIcon } from "lucide-react";
 
 import type z from "zod";
 
@@ -145,7 +145,7 @@ const WriteToObjectSettings = ({
 
   return (
     <>
-      <Section.SubSectionHeader icon="star" labelFor="write-to-object-settings" title={optionLabel}>
+      <Section.SubSectionHeader icon={StarIcon} labelFor="write-to-object-settings" title={optionLabel}>
         <Switch
           checked={optionEnabled}
           onCheckedChange={optionSwitchOnChange}

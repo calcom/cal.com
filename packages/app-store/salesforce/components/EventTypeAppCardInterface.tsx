@@ -1,5 +1,5 @@
 import { usePathname } from "next/navigation";
-import { XIcon } from "lucide-react";
+import { XIcon, AtSignIcon, ZapIcon, UserPlusIcon, BadgeCheckIcon, UsersIcon, CalendarIcon } from "lucide-react";
 
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToOb
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
   const pathname = usePathname();
 
-  const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
+  const { getAppData, setAppData, disabled: _disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
   const isRoundRobinLeadSkipEnabled = getAppData("roundRobinLeadSkip");
   const roundRobinSkipCheckRecordOn =
@@ -79,7 +79,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     return (
       <Section.SubSection>
         <Section.SubSectionHeader
-          icon="at-sign"
+          icon={AtSignIcon}
           title={t("salesforce_create_new_contact_under_account")}
           labelFor="create-new-contact-under-account">
           <Switch
@@ -109,7 +109,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       <Section.Content>
         <Section.SubSection>
           <Section.SubSectionHeader
-            icon="zap"
+            icon={ZapIcon}
             title={t("salesforce_add_attendees_as")}
             justify="start"
             labelFor="add-attendees-as">
@@ -131,7 +131,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
         <Section.SubSection>
           <Section.SubSectionHeader
-            icon="user-plus"
+            icon={UserPlusIcon}
             title={t("salesforce_ignore_guests")}
             labelFor="ignore-guests">
             <Switch
@@ -148,7 +148,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         {createEventOnSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
           <Section.SubSection>
             <Section.SubSectionHeader
-              icon="user-plus"
+              icon={UserPlusIcon}
               title={t("skip_contact_creation", { appName: "Salesforce" })}
               labelFor="skip-contact-creation">
               <Switch
@@ -167,7 +167,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <>
             <Section.SubSection>
               <Section.SubSectionHeader
-                icon="user-plus"
+                icon={UserPlusIcon}
                 title={t("salesforce_create_event_on_contact")}
                 labelFor="create-event-on-contact">
                 <Switch
@@ -188,7 +188,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <CreateContactUnderAccount />
             <Section.SubSection>
               <Section.SubSectionHeader
-                icon="user-plus"
+                icon={UserPlusIcon}
                 title={t("salesforce_if_account_does_not_exist")}
                 labelFor="create-lead-if-account-null">
                 <Switch
@@ -205,7 +205,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         ) : null}
 
         <Section.SubSection>
-          <Section.SubSectionHeader icon="badge-check" title={t("on_booking_write_to_event_object")}>
+          <Section.SubSectionHeader icon={BadgeCheckIcon} title={t("on_booking_write_to_event_object")}>
             <Switch
               size="sm"
               labelOnLeading
@@ -326,7 +326,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
         <Section.SubSection>
           <Section.SubSectionHeader
-            icon="user-plus"
+            icon={UserPlusIcon}
             title={t("salesforce_change_record_owner_on_booking")}
             labelFor="change-record-owner-on-booking">
             <Switch
@@ -361,7 +361,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <>
             <Section.SubSection>
               <Section.SubSectionHeader
-                icon="users"
+                icon={UsersIcon}
                 title={t("salesforce_book_directly_with_attendee_owner")}
                 labelFor="book-directly-with-attendee-owner">
                 <Switch
@@ -406,10 +406,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 <>
                   {checkOwnerSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
                     <Section.SubSection>
-                      <Section.SubSectionHeader
-                        icon="users"
-                        title={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
-                        labelFor="round-robin-skip-fallback-to-lead-owner">
+                        <Section.SubSectionHeader
+                          icon={UsersIcon}
+                          title={t("salesforce_round_robin_skip_fallback_to_lead_owner")}
+                          labelFor="round-robin-skip-fallback-to-lead-owner">
                         <Switch
                           id="round-robin-skip-fallback-to-lead-owner"
                           size="sm"
@@ -423,7 +423,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   ) : null}
                   <Section.SubSection>
                     <Section.SubSectionHeader
-                      icon="users"
+                      icon={UsersIcon}
                       title={t("salesforce_if_free_email_domain_skip_owner_check")}
                       labelFor="if-free-email-domain-skip-owner-check">
                       <Switch
@@ -458,7 +458,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
         <Section.SubSection>
           <Section.SubSectionHeader
-            icon="calendar"
+            icon={CalendarIcon}
             title="Send no show attendee data to event object"
             labelFor="send-no-show-attendee-data">
             <Switch
