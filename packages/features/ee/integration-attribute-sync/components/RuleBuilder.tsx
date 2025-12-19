@@ -1,20 +1,21 @@
 import type { MultiValue, SingleValue } from "react-select";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 import { Button } from "@calcom/ui/components/button";
 import { Input, Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import {
-  CONDITION_TYPE_OPTIONS,
   formatConditionValue,
+  getConditionTypeOptions,
   getDefaultAttributeCondition,
   getDefaultTeamCondition,
   getOperatorOptionsForAttributeType,
+  getParentOperatorOptions,
+  getTeamOperatorOptions,
   isArrayOperator,
   isTeamCondition,
-  PARENT_OPERATOR_OPTIONS,
-  TEAM_OPERATOR_OPTIONS,
 } from "../lib/ruleHelpers";
 import type {
   AttributeCondition,
@@ -52,7 +53,9 @@ const ConditionComponent = ({
   attributes,
   isLoading,
 }: ConditionComponentProps) => {
-  const conditionTypeOption = CONDITION_TYPE_OPTIONS.find((opt) => opt.value === condition.identifier);
+  const { t } = useLocale();
+  const conditionTypeOptions = getConditionTypeOptions(t);
+  const conditionTypeOption = conditionTypeOptions.find((opt) => opt.value === condition.identifier);
 
   const handleTypeChange = (newType: { value: ConditionIdentifier; label: string } | null) => {
     if (!newType) return;
@@ -72,7 +75,7 @@ const ConditionComponent = ({
         className="w-32"
         value={conditionTypeOption}
         onChange={handleTypeChange}
-        options={CONDITION_TYPE_OPTIONS}
+        options={conditionTypeOptions}
         isDisabled={isLoading}
       />
 
@@ -113,7 +116,9 @@ interface TeamConditionFieldsProps {
 }
 
 const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: TeamConditionFieldsProps) => {
-  const operatorOption = TEAM_OPERATOR_OPTIONS.find((opt) => opt.value === condition.operator);
+  const { t } = useLocale();
+  const teamOperatorOptions = getTeamOperatorOptions(t);
+  const operatorOption = teamOperatorOptions.find((opt) => opt.value === condition.operator);
   const isMulti = isArrayOperator(condition.operator);
 
   const selectedTeams = isMulti
@@ -155,14 +160,14 @@ const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: Te
 
   return (
     <>
-      <span className="text-default text-sm">team</span>
+      <span className="text-default text-sm">{t("team").toLowerCase()}</span>
 
       <Select
         size="sm"
         className="w-40"
         value={operatorOption}
         onChange={handleOperatorChange}
-        options={TEAM_OPERATOR_OPTIONS}
+        options={teamOperatorOptions}
         isDisabled={isLoading}
       />
 
@@ -175,7 +180,7 @@ const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: Te
           options={teamOptions}
           isLoading={isLoading}
           isDisabled={isLoading}
-          placeholder="Select team(s)..."
+          placeholder={t("attribute_sync_select_teams")}
           className="w-full"
         />
       </div>
@@ -196,6 +201,7 @@ const AttributeConditionFields = ({
   attributes,
   isLoading,
 }: AttributeConditionFieldsProps) => {
+  const { t } = useLocale();
   const selectedAttribute = attributes.find((attr) => attr.id === condition.attributeId);
 
   const attributeOptions = attributes.map((attr) => ({
@@ -203,7 +209,9 @@ const AttributeConditionFields = ({
     label: attr.name,
   }));
 
-  const operatorOptions = selectedAttribute ? getOperatorOptionsForAttributeType(selectedAttribute.type) : [];
+  const operatorOptions = selectedAttribute
+    ? getOperatorOptionsForAttributeType(selectedAttribute.type, t)
+    : [];
 
   const operatorOption = operatorOptions.find((opt) => opt.value === condition.operator);
 
@@ -214,7 +222,7 @@ const AttributeConditionFields = ({
     if (!newAttribute) return;
 
     // Reset operator and value when attribute changes
-    const defaultOperator = getOperatorOptionsForAttributeType(newAttribute.type)[0];
+    const defaultOperator = getOperatorOptionsForAttributeType(newAttribute.type, t)[0];
 
     onChange({
       ...condition,
@@ -276,7 +284,7 @@ const AttributeConditionFields = ({
     if (!selectedAttribute) {
       return (
         <div className="text-subtle flex-1 text-sm" style={{ minWidth: "200px" }}>
-          Select an attribute first
+          {t("attribute_sync_select_attribute_first")}
         </div>
       );
     }
@@ -305,7 +313,7 @@ const AttributeConditionFields = ({
               options={valueOptions}
               isLoading={isLoading}
               isDisabled={isLoading}
-              placeholder="Select value(s)..."
+              placeholder={t("attribute_sync_select_values")}
               className="w-full"
             />
           </div>
@@ -320,7 +328,7 @@ const AttributeConditionFields = ({
               value={condition.value[0] || ""}
               onChange={handleTextValueChange}
               disabled={isLoading}
-              placeholder="Enter text value..."
+              placeholder={t("attribute_sync_enter_text_value")}
               className="h-7 text-sm"
             />
           </div>
@@ -334,7 +342,7 @@ const AttributeConditionFields = ({
               value={condition.value[0] || ""}
               onChange={handleNumberValueChange}
               disabled={isLoading}
-              placeholder="Enter number value..."
+              placeholder={t("attribute_sync_enter_number_value")}
               className="h-7 text-sm"
             />
           </div>
@@ -344,7 +352,7 @@ const AttributeConditionFields = ({
 
   return (
     <>
-      <span className="text-default text-sm">attribute</span>
+      <span className="text-default text-sm">{t("attribute").toLowerCase()}</span>
 
       <Select
         size="sm"
@@ -354,7 +362,7 @@ const AttributeConditionFields = ({
         options={attributeOptions}
         isLoading={isLoading}
         isDisabled={isLoading}
-        placeholder="Select attribute..."
+        placeholder={t("attribute_sync_select_attribute")}
       />
 
       {selectedAttribute && (
@@ -383,7 +391,9 @@ export const RuleBuilder = ({
   isLoadingTeams,
   isLoadingAttributes,
 }: RuleBuilderProps) => {
-  const parentOperatorOption = PARENT_OPERATOR_OPTIONS.find((opt) => opt.value === value.operator);
+  const { t } = useLocale();
+  const parentOperatorOptions = getParentOperatorOptions(t);
+  const parentOperatorOption = parentOperatorOptions.find((opt) => opt.value === value.operator);
   const isLoading = isLoadingTeams || isLoadingAttributes;
 
   const handleOperatorChange = (newOperator: { value: RuleOperator; label: string } | null) => {
@@ -423,26 +433,26 @@ export const RuleBuilder = ({
         <div className="border-subtle rounded-lg border p-1">
           <Icon name="filter" className="text-subtle h-4 w-4" />
         </div>
-        <span className="text-emphasis ml-2 text-sm font-medium">User Filter Rules</span>
+        <span className="text-emphasis ml-2 text-sm font-medium">{t("attribute_sync_user_filter_rules")}</span>
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-2 px-2">
-        <span className="text-default text-sm">Sync users where</span>
+        <span className="text-default text-sm">{t("attribute_sync_sync_users_where")}</span>
         <Select
           size="sm"
           className="w-28"
           value={parentOperatorOption}
           onChange={handleOperatorChange}
-          options={PARENT_OPERATOR_OPTIONS}
+          options={parentOperatorOptions}
           isDisabled={isLoading}
         />
-        <span className="text-default text-sm">conditions match:</span>
+        <span className="text-default text-sm">{t("attribute_sync_conditions_match")}</span>
       </div>
 
       <div className="bg-muted mt-2 space-y-2 rounded-xl p-2">
         {value.conditions.length === 0 ? (
           <div className="text-subtle py-6 text-center text-sm">
-            No conditions added. Click below to add your first condition.
+            {t("attribute_sync_no_conditions")}
           </div>
         ) : (
           value.conditions.map((condition, index) => (
@@ -466,7 +476,7 @@ export const RuleBuilder = ({
         className="mt-2"
         onClick={handleAddCondition}
         disabled={isLoading}>
-        Add condition
+        {t("attribute_sync_add_condition")}
       </Button>
     </div>
   );

@@ -2,6 +2,8 @@ import type { AttributeType } from "@calcom/prisma/enums";
 
 import type { Condition, TeamCondition, AttributeCondition, ConditionOperator } from "../schemas/zod";
 
+type TFunction = (key: string) => string;
+
 // Factory functions
 export const getDefaultTeamCondition = (): TeamCondition => ({
   identifier: "teamId",
@@ -41,39 +43,39 @@ export const formatConditionValue = (
 };
 
 // Operator options for teams
-export const TEAM_OPERATOR_OPTIONS = [
-  { value: "in" as const, label: "is any of" },
-  { value: "notIn" as const, label: "is not any of" },
+export const getTeamOperatorOptions = (t: TFunction) => [
+  { value: "in" as const, label: t("attribute_sync_operator_is_any_of") },
+  { value: "notIn" as const, label: t("attribute_sync_operator_is_not_any_of") },
 ];
 
 // Operator options based on attribute type
-export const getOperatorOptionsForAttributeType = (type: AttributeType) => {
+export const getOperatorOptionsForAttributeType = (type: AttributeType, t: TFunction) => {
   switch (type) {
     case "SINGLE_SELECT":
       return [
-        { value: "equals" as const, label: "is" },
-        { value: "notEquals" as const, label: "is not" },
+        { value: "equals" as const, label: t("attribute_sync_operator_is") },
+        { value: "notEquals" as const, label: t("attribute_sync_operator_is_not") },
       ];
     case "MULTI_SELECT":
       return [
-        { value: "in" as const, label: "includes any of" },
-        { value: "notIn" as const, label: "does not include" },
+        { value: "in" as const, label: t("attribute_sync_operator_includes_any_of") },
+        { value: "notIn" as const, label: t("attribute_sync_operator_does_not_include") },
       ];
     case "TEXT":
     case "NUMBER":
       return [
-        { value: "equals" as const, label: "equals" },
-        { value: "notEquals" as const, label: "not equals" },
+        { value: "equals" as const, label: t("attribute_sync_operator_equals") },
+        { value: "notEquals" as const, label: t("attribute_sync_operator_not_equals") },
       ];
   }
 };
 
-export const PARENT_OPERATOR_OPTIONS = [
-  { value: "AND" as const, label: "All" },
-  { value: "OR" as const, label: "Any" },
+export const getParentOperatorOptions = (t: TFunction) => [
+  { value: "AND" as const, label: t("all") },
+  { value: "OR" as const, label: t("any") },
 ];
 
-export const CONDITION_TYPE_OPTIONS = [
-  { value: "teamId" as const, label: "Team" },
-  { value: "attributeId" as const, label: "Attribute" },
+export const getConditionTypeOptions = (t: TFunction) => [
+  { value: "teamId" as const, label: t("team") },
+  { value: "attributeId" as const, label: t("attribute") },
 ];

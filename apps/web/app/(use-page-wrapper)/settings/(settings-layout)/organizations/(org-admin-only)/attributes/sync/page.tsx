@@ -1,4 +1,4 @@
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 import IntegrationAttributeSyncView from "@calcom/features/ee/integration-attribute-sync/IntegrationAttributeSyncView";
 import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
@@ -19,6 +19,8 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
+  const t = await getTranslate();
+
   // PBAC permission check - redirect if user doesn't have permission
   const session = await validateUserHasOrgPerms({
     permission: "organization.attributes.create",
@@ -48,7 +50,7 @@ const Page = async () => {
   ]);
 
   return (
-    <SettingsHeader title="Attribute Sync" description="Setup attribute syncing with 3rd party integrations">
+    <SettingsHeader title={t("attribute_sync")} description={t("attribute_sync_description")}>
       <IntegrationAttributeSyncView
         credentialsData={credentialData}
         initialIntegrationAttributeSyncs={integrationAttributeSyncs}
