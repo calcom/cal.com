@@ -2746,6 +2746,7 @@
   "account_already_linked": "Account is already linked",
   "send_email": "Send email",
   "mark_as_no_show": "Mark as no-show",
+  "update_no_show_status":"Update no-show status",
   "meeting_notes": "Meeting notes",
   "meeting_notes_subtitle": "Add any notes that will help us get ready for our meeting.",
   "unmark_as_no_show": "Unmark no-show",
