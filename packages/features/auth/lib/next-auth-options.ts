@@ -323,6 +323,7 @@ if (isSAMLLoginEnabled) {
       });
       return {
         id: profile.id || 0,
+        uuid: user?.uuid || "",
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
         email: profile.email || "",
