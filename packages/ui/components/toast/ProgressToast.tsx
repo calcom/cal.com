@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../icon";
 import { toast } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

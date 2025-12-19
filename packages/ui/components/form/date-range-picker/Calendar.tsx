@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../../icon";
 import { DayPicker } from "react-day-picker";
 
 import dayjs from "@calcom/dayjs";

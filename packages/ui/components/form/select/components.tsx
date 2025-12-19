@@ -1,5 +1,5 @@
 import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../../icon";
 import { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/ui/classNames";

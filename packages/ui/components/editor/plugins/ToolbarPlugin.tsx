@@ -1,7 +1,7 @@
 "use client";
 
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../../icon";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
   $isListNode,

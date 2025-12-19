@@ -1,5 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../icon";
 
 import { Button } from "../button";
 import { EmailField } from "../form";

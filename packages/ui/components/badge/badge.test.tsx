@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../icon";
 import { vi } from "vitest";
 
 import { Badge, badgeStyles } from "./Badge";

@@ -1,5 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../icon";
 import type { PropsWithChildren, ReactElement } from "react";
 import React from "react";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../icon";
 
 import { type ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import classNames from "@calcom/ui/classNames";

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../../icon";
 import React, { forwardRef, useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 

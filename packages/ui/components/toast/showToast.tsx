@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../icon";
 import type { ExternalToast } from "sonner";
 import { toast } from "sonner";
 

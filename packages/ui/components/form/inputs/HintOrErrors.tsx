@@ -1,5 +1,5 @@
 import type { FieldValues } from "react-hook-form";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../../icon";
 import { useFormContext } from "react-hook-form";
 
 import { InputError } from "./InputError";

@@ -1,5 +1,5 @@
 import * as Popover from "@radix-ui/react-popover";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../icon";
 
 import {
   formatTime,

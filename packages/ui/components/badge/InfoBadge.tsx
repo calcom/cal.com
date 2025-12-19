@@ -1,5 +1,5 @@
 import { Tooltip } from "../tooltip/Tooltip";
-import { Icon } from "@calcom/ui";
+import { Icon } from "../icon";
 
 export function InfoBadge({ content }: { content: string }) {
   return (
