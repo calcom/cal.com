@@ -16,22 +16,22 @@ type AddClientOptions = {
 };
 
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
-  const { clientId, scopes, teamSlug, codeChallenge, codeChallengeMethod, state } = input;
+  const { clientId, scopes, teamSlug, codeChallenge, codeChallengeMethod, state, redirectUri } = input;
   const oAuthService = getOAuthService();
 
   try {
-    const oAuthClient = await oAuthService.getClient(clientId);
-    const code = await oAuthService.generateAuthorizationCode(
+    const oAuthClientRedirectUri = redirectUri;
+    const { authorizationCode, client } = await oAuthService.generateAuthorizationCode(
       clientId,
       ctx.user.id,
-      oAuthClient.redirectUri, // TODO: frontend should provide the redirect URL
+      oAuthClientRedirectUri,
       scopes as AccessScope[],
       state,
       teamSlug,
       codeChallenge,
       codeChallengeMethod
     );
-    return { client: oAuthClient, authorizationCode: code.authorizationCode };
+    return { client, authorizationCode: authorizationCode };
   } catch (err) {
     if (err instanceof HttpError) {
       throw new TRPCError({

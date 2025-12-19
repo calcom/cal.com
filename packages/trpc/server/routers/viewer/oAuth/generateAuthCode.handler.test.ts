@@ -50,6 +50,7 @@ describe("generateAuthCodeHandler", () => {
         codeChallenge: "test_challenge",
         codeChallengeMethod: "S256" as const,
         scopes: [],
+        redirectUri: "https://app.example.com/callback",
       };
 
       const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
@@ -77,6 +78,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: undefined,
         codeChallengeMethod: "S256" as const,
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
@@ -98,6 +100,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
@@ -120,6 +123,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: "MD5",
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputMD5 })).rejects.toThrow(
@@ -136,6 +140,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: "plain",
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
@@ -181,6 +186,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: undefined,
         codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
       };
 
       const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
@@ -219,6 +225,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: "S256" as const,
+        redirectUri: "https://app.example.com/callback",
       };
 
       const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
@@ -247,6 +254,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
@@ -270,12 +278,13 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: undefined,
         codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "UNAUTHORIZED",
-          message: "OAuth client with ID 'invalid_client' not found",
+          message: "Client ID not valid",
         })
       );
 
@@ -308,6 +317,7 @@ describe("generateAuthCodeHandler", () => {
       // Test S256
       const inputS256 = {
         clientId: "public_client_123",
+        redirectUri: "https://app.example.com/callback",
         scopes: [],
         teamSlug: undefined,
         codeChallenge: "test_challenge",
@@ -323,6 +333,7 @@ describe("generateAuthCodeHandler", () => {
       // Test invalid method
       const inputInvalid = {
         clientId: "public_client_123",
+        redirectUri: "https://app.example.com/callback",
         scopes: [],
         teamSlug: undefined,
         codeChallenge: "test_challenge",
@@ -343,6 +354,7 @@ describe("generateAuthCodeHandler", () => {
         teamSlug: undefined,
         codeChallenge: "test_challenge",
         codeChallengeMethod: "plain",
+        redirectUri: "https://app.example.com/callback",
       };
 
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(

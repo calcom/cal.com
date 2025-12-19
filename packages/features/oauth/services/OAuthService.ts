@@ -28,6 +28,7 @@ export interface OAuth2Tokens {
 export interface AuthorizeResult {
   redirectUrl: string;
   authorizationCode: string;
+  client: OAuth2Client;
 }
 
 export interface OAuthError {
@@ -141,7 +142,7 @@ export class OAuthService {
       state,
     });
 
-    return { redirectUrl, authorizationCode };
+    return { redirectUrl, authorizationCode, client };
   }
 
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
