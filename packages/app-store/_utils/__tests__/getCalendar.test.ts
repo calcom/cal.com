@@ -9,11 +9,14 @@ interface TestCalendarResult extends Calendar {
   __isBatchWrapper?: boolean;
 }
 
-// Type for mock delegation credential
+// Type for mock delegation credential - matches CredentialForCalendarService.delegatedTo
 interface MockDelegationCredential {
-  id: string;
-  serviceAccountKey?: {
-    client_email: string;
+  id?: string;
+  serviceAccountKey: {
+    client_email?: string;
+    tenant_id?: string;
+    client_id: string;
+    private_key: string;
   };
 }
 
@@ -151,7 +154,10 @@ describe("getCalendar", () => {
     test("should return CalendarBatchWrapper when cache is not supported but batch is supported", async () => {
       const mockCredential = createMockCredential({
         type: "google_calendar",
-        delegatedTo: { id: "delegation-1" },
+        delegatedTo: {
+          id: "delegation-1",
+          serviceAccountKey: { client_id: "test-client-id", private_key: "test-private-key" },
+        },
       });
 
       // Disable cache, enable batch
@@ -168,7 +174,10 @@ describe("getCalendar", () => {
     test("should return CalendarBatchWrapper when cache is supported but explicitly disabled", async () => {
       const mockCredential = createMockCredential({
         type: "google_calendar",
-        delegatedTo: { id: "delegation-1" },
+        delegatedTo: {
+          id: "delegation-1",
+          serviceAccountKey: { client_id: "test-client-id", private_key: "test-private-key" },
+        },
       });
 
       // Cache supported but disabled via shouldServeCache=false, batch enabled
@@ -199,7 +208,10 @@ describe("getCalendar", () => {
     test("should prioritize cache wrapper over batch wrapper when both are supported", async () => {
       const mockCredential = createMockCredential({
         type: "google_calendar",
-        delegatedTo: { id: "delegation-1" },
+        delegatedTo: {
+          id: "delegation-1",
+          serviceAccountKey: { client_id: "test-client-id", private_key: "test-private-key" },
+        },
       });
 
       // Enable both cache and batch
@@ -330,7 +342,10 @@ describe("getCalendar", () => {
     test("should not use batch wrapper for non-google calendar types", async () => {
       const mockCredential = createMockCredential({
         type: "office365_calendar",
-        delegatedTo: { id: "delegation-1" },
+        delegatedTo: {
+          id: "delegation-1",
+          serviceAccountKey: { client_id: "test-client-id", private_key: "test-private-key" },
+        },
       });
 
       // Disable cache, batch returns false for non-google
