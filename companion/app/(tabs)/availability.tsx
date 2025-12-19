@@ -273,11 +273,11 @@ export default function Availability() {
           <View className="mr-4 flex-1">
             <View className="mb-1 flex-row flex-wrap items-center">
               <Text className="text-base font-semibold text-[#333]">{schedule.name}</Text>
-              {schedule.isDefault && (
+              {schedule.isDefault ? (
                 <View className="ml-2 rounded bg-[#666] px-2 py-0.5">
                   <Text className="text-xs font-semibold text-white">Default</Text>
                 </View>
-              )}
+              ) : null}
             </View>
 
             {schedule.availability && schedule.availability.length > 0 ? (
@@ -360,7 +360,7 @@ export default function Availability() {
       <Header />
 
       {/* Empty state - no schedules */}
-      {showEmptyState && (
+      {showEmptyState ? (
         <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
           <ScrollView
             contentContainerStyle={{
@@ -380,10 +380,10 @@ export default function Availability() {
             />
           </ScrollView>
         </View>
-      )}
+      ) : null}
 
       {/* Search bar and content for non-empty states */}
-      {!showEmptyState && (
+      {!showEmptyState ? (
         <>
           <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
             <TextInput
@@ -406,7 +406,7 @@ export default function Availability() {
           </View>
 
           {/* Search empty state */}
-          {showSearchEmptyState && (
+          {showSearchEmptyState ? (
             <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
               <ScrollView
                 contentContainerStyle={{
@@ -424,10 +424,10 @@ export default function Availability() {
                 />
               </ScrollView>
             </View>
-          )}
+          ) : null}
 
           {/* Schedules list */}
-          {showList && (
+          {showList ? (
             <View className="flex-1 px-2 pt-4 md:px-4">
               <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
                 <FlatList
@@ -440,9 +440,9 @@ export default function Availability() {
                 />
               </View>
             </View>
-          )}
+          ) : null}
         </>
-      )}
+      ) : null}
 
       {/* Create Schedule Modal */}
       <FullScreenModal
@@ -536,7 +536,7 @@ export default function Availability() {
             {/* Actions List */}
             <View className="p-2">
               {/* Set as Default - only show if not already default */}
-              {selectedSchedule && !selectedSchedule.isDefault && (
+              {selectedSchedule && !selectedSchedule.isDefault ? (
                 <>
                   <TouchableOpacity
                     onPress={() => {
@@ -553,7 +553,7 @@ export default function Availability() {
 
                   <View className="mx-4 my-2 h-px bg-gray-200" />
                 </>
-              )}
+              ) : null}
 
               {/* Duplicate */}
               <TouchableOpacity

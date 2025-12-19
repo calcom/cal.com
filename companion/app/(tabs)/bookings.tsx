@@ -429,7 +429,7 @@ export default function Bookings() {
               />
             </View>
           </View>
-          {selectedEventTypeId !== null && (
+          {selectedEventTypeId !== null ? (
             <View className="mt-2 flex-row items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2">
               <Text className="flex-1 text-sm text-[#333]">
                 Filtered by {selectedEventTypeLabel || "event type"}
@@ -438,7 +438,7 @@ export default function Bookings() {
                 <Text className="text-sm font-semibold text-[#007AFF]">Clear filter</Text>
               </TouchableOpacity>
             </View>
-          )}
+          ) : null}
         </View>
       </>
     );
@@ -1169,7 +1169,7 @@ export default function Bookings() {
       {renderSegmentedControl()}
 
       {/* Empty state - no bookings */}
-      {showEmptyState && (
+      {showEmptyState ? (
         <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
           <ScrollView
             contentContainerStyle={{
@@ -1187,10 +1187,10 @@ export default function Bookings() {
             />
           </ScrollView>
         </View>
-      )}
+      ) : null}
 
       {/* Search empty state */}
-      {showSearchEmptyState && (
+      {showSearchEmptyState ? (
         <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
           <ScrollView
             contentContainerStyle={{
@@ -1208,10 +1208,10 @@ export default function Bookings() {
             />
           </ScrollView>
         </View>
-      )}
+      ) : null}
 
       {/* Bookings list */}
-      {showList && (
+      {showList ? (
         <View className="flex-1 px-2 pt-4 md:px-4">
           <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
             <FlatList
@@ -1224,7 +1224,7 @@ export default function Bookings() {
             />
           </View>
         </View>
-      )}
+      ) : null}
 
       {/* Filter Modal */}
       <FullScreenModal
@@ -1266,17 +1266,17 @@ export default function Bookings() {
                     >
                       {eventType.title}
                     </Text>
-                    {selectedEventTypeId === eventType.id && (
+                    {selectedEventTypeId === eventType.id ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
 
-                {eventTypes.length === 0 && (
+                {eventTypes.length === 0 ? (
                   <View className="items-center py-4">
                     <Text className="text-sm text-[#666]">No event types found</Text>
                   </View>
-                )}
+                ) : null}
               </ScrollView>
             )}
           </TouchableOpacity>
@@ -1340,7 +1340,7 @@ export default function Bookings() {
         }}
       >
         <ScrollView className="flex-1 p-4">
-          {rescheduleBooking && (
+          {rescheduleBooking ? (
             <>
               <Text className="mb-4 text-base text-gray-600">
                 Reschedule "{rescheduleBooking.title}"
@@ -1418,7 +1418,7 @@ export default function Bookings() {
                 <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
               </TouchableOpacity>
             </>
-          )}
+          ) : null}
         </ScrollView>
       </FullScreenModal>
 
