@@ -1,7 +1,8 @@
 "use client";
 
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
-import { ArrowLeftIcon, InfoIcon, StarIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarHeartIcon, InfoIcon, Link2Icon, ShieldCheckIcon, StarIcon, UsersIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -59,24 +60,29 @@ type FormValues = z.infer<typeof signupSchema>;
 
 export type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
-const FEATURES = [
+const FEATURES: {
+  title: string;
+  description: string;
+  i18nOptions?: { appName: string };
+  icon: LucideIcon;
+}[] = [
   {
     title: "connect_all_calendars",
     description: "connect_all_calendars_description",
     i18nOptions: {
       appName: APP_NAME,
     },
-    icon: "calendar-heart" as const,
+    icon: CalendarHeartIcon,
   },
   {
     title: "set_availability",
     description: "set_availbility_description",
-    icon: "users" as const,
+    icon: UsersIcon,
   },
   {
     title: "share_a_link_or_embed",
     description: "share_a_link_or_embed_description",
-    icon: "link-2" as const,
+    icon: Link2Icon,
     i18nOptions: {
       appName: APP_NAME,
     },
@@ -588,7 +594,7 @@ export default function Signup({
                           ? "opacity-50"
                           : ""
                       )}>
-                      <Icon name="shield-check" className="mr-2 h-5 w-5" />
+                      <ShieldCheckIcon className="mr-2 h-5 w-5" />
                       {t("create_account_with_saml")}
                     </Button>
                   ) : (
@@ -821,24 +827,27 @@ export default function Signup({
               />
             </div>
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
-              {FEATURES.map((feature, index) => (
-                <div key={index} className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
-                  <div className="text-emphasis items-center">
-                    <Icon name={feature.icon} className="mb-1 h-4 w-4" />
-                    <span className="text-sm font-medium">{t(feature.title)}</span>
+              {FEATURES.map((feature, index) => {
+                const FeatureIcon = feature.icon;
+                return (
+                  <div key={index} className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                    <div className="text-emphasis items-center">
+                      <FeatureIcon className="mb-1 h-4 w-4" />
+                      <span className="text-sm font-medium">{t(feature.title)}</span>
+                    </div>
+                    <div className="text-subtle text-sm">
+                      <p>
+                        {t(
+                          feature.description,
+                          feature.i18nOptions && {
+                            ...feature.i18nOptions,
+                          }
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-subtle text-sm">
-                    <p>
-                      {t(
-                        feature.description,
-                        feature.i18nOptions && {
-                          ...feature.i18nOptions,
-                        }
-                      )}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { ArrowLeftIcon, MenuIcon } from "lucide-react";
+import { ArrowLeftIcon, ChevronDownIcon, ChevronRightIcon, CreditCardIcon, KeyIcon, LockIcon, MenuIcon, TerminalIcon, UserIcon, UsersIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -35,7 +35,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "my_account",
       href: "/settings/my-account",
-      icon: "user",
+      icon: UserIcon,
       children: [
         {
           name: "profile",
@@ -79,7 +79,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "security",
       href: "/settings/security",
-      icon: "key",
+      icon: KeyIcon,
       children: [
         {
           name: "password",
@@ -101,7 +101,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "billing",
       href: "/settings/billing",
-      icon: "credit-card",
+      icon: CreditCardIcon,
       children: [
         {
           name: "manage_billing",
@@ -113,7 +113,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "developer",
       href: "/settings/developer",
-      icon: "terminal",
+      icon: TerminalIcon,
       children: [
         //
         {
@@ -189,19 +189,19 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "teams",
       href: "/teams",
-      icon: "users",
+      icon: UsersIcon,
       children: [],
     },
     {
       name: "other_teams",
       href: "/settings/organizations/teams/other",
-      icon: "users",
+      icon: UsersIcon,
       children: [],
     },
     {
       name: "admin",
       href: "/settings/admin",
-      icon: "lock",
+      icon: LockIcon,
       children: [
         //
         {
@@ -553,11 +553,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
                     }`}>
                     <div className="me-3">
-                      {teamMenuState[index].teamMenuOpen ? (
-                        <Icon name="chevron-down" className="h-4 w-4" />
-                      ) : (
-                        <Icon name="chevron-right" className="h-4 w-4" />
-                      )}
+                        {teamMenuState[index].teamMenuOpen ? (
+                          <ChevronDownIcon className="h-4 w-4" />
+                        ) : (
+                          <ChevronRightIcon className="h-4 w-4" />
+                        )}
                     </div>
                     {}
                     {!team.parentId && (
@@ -731,8 +731,7 @@ const SettingsSidebarContainer = ({
                   <div className={`${!tab.children?.length ? "mb-3!" : ""}`}>
                     <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                       {tab && tab.icon && (
-                        <Icon
-                          name={tab.icon}
+                        <tab.icon
                           className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                         />
                       )}
@@ -786,8 +785,7 @@ const SettingsSidebarContainer = ({
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
-                          <Icon
-                            name={tab.icon}
+                          <tab.icon
                             className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                           />
                         )}
@@ -822,8 +820,7 @@ const SettingsSidebarContainer = ({
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
                         {tab && tab.icon && (
-                          <Icon
-                            name={tab.icon}
+                          <tab.icon
                             className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                           />
                         )}
@@ -887,9 +884,9 @@ const SettingsSidebarContainer = ({
                                   }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" className="h-4 w-4" />
+                                      <ChevronDownIcon className="h-4 w-4" />
                                     ) : (
-                                      <Icon name="chevron-right" className="h-4 w-4" />
+                                      <ChevronRightIcon className="h-4 w-4" />
                                     )}
                                   </div>
                                   {}
@@ -971,7 +968,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <Icon name="arrow-left" className="text-default h-4 w-4" />
+            <ArrowLeftIcon className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
