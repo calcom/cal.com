@@ -193,6 +193,14 @@ export default class HubspotCalendarService implements CRM {
       const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
       if (associatedMeeting) {
         this.log.debug("association:creation:ok", { associatedMeeting });
+
+        const organizerEmail = event.organizer.email;
+        for (const contact of contacts) {
+          if (contact.id) {
+            await this.setContactOwner(contact.id, organizerEmail);
+          }
+        }
+
         return Promise.resolve({
           uid: meetingEvent.id,
           id: meetingEvent.id,
@@ -310,5 +318,29 @@ export default class HubspotCalendarService implements CRM {
 
   async handleAttendeeNoShow() {
     console.log("Not implemented");
+  }
+
+  private async getHubspotOwnerIdFromEmail(email: string): Promise<string | null> {
+    try {
+      const ownersResponse = await this.hubspotClient.crm.owners.ownersApi.getPage();
+      const owner = ownersResponse.results.find((o) => o.email?.toLowerCase() === email.toLowerCase());
+      return owner?.id ?? null;
+    } catch (error) {
+      this.log.error("Error fetching HubSpot owner:", error);
+      return null;
+    }
+  }
+
+  private async setContactOwner(contactId: string, organizerEmail: string): Promise<void> {
+    try {
+      const ownerId = await this.getHubspotOwnerIdFromEmail(organizerEmail);
+      if (!ownerId) return;
+
+      await this.hubspotClient.crm.contacts.basicApi.update(contactId, {
+        properties: { hubspot_owner_id: ownerId },
+      });
+    } catch (error) {
+      this.log.error("Error setting contact owner:", error);
+    }
   }
 }
