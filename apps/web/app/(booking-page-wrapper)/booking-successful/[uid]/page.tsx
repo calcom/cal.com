@@ -2,9 +2,20 @@
 
 import { useParams } from "next/navigation";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { DecoyBookingSuccessCard } from "@calcom/features/bookings/Booker/components/DecoyBookingSuccessCard";
 import { useDecoyBooking } from "@calcom/features/bookings/Booker/components/hooks/useDecoyBooking";
+
+function parseBookingTime(time: string | Date | null | undefined): Dayjs | null {
+  if (!time) return null;
+
+  if (typeof time === "string" && time.endsWith("Z")) {
+    return dayjs.utc(time);
+  }
+
+  return dayjs(time);
+}
 
 export default function BookingSuccessful() {
   const params = useParams();
@@ -18,18 +29,8 @@ export default function BookingSuccessful() {
 
   const { booking } = bookingData;
 
-  // Format the data for the BookingSuccessCard
-  // Ensure UTC ISO strings are properly parsed before timezone conversion to handle DST correctly
-  const startTime = booking.startTime
-    ? typeof booking.startTime === "string" && booking.startTime.endsWith("Z")
-      ? dayjs.utc(booking.startTime)
-      : dayjs(booking.startTime)
-    : null;
-  const endTime = booking.endTime
-    ? typeof booking.endTime === "string" && booking.endTime.endsWith("Z")
-      ? dayjs.utc(booking.endTime)
-      : dayjs(booking.endTime)
-    : null;
+  const startTime = parseBookingTime(booking.startTime);
+  const endTime = parseBookingTime(booking.endTime);
   const timeZone = booking.booker?.timeZone || booking.host?.timeZone || dayjs.tz.guess();
 
   const formattedDate = startTime ? startTime.tz(timeZone).format("dddd, MMMM D, YYYY") : "";
