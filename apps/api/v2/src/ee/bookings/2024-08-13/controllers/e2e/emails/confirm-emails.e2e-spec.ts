@@ -292,6 +292,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
   describe("OAuth client managed user bookings - emails enabled", () => {
     let app: INestApplication;
+    let unauthenticatedApp: INestApplication;
     let organization: Team;
     let oAuthClient: PlatformOAuthClient;
 
@@ -317,6 +318,16 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
           imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
         })
       )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      // Create a separate unauthenticated app for attendee reschedule test
+      const unauthModuleRef = await Test.createTestingModule({
+        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+      })
         .overrideGuard(PermissionsGuard)
         .useValue({
           canActivate: () => true,
@@ -377,8 +388,12 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
-
       await app.init();
+
+      // Initialize unauthenticated app for attendee reschedule test
+      unauthenticatedApp = unauthModuleRef.createNestApplication();
+      bootstrap(unauthenticatedApp as NestExpressApplication);
+      await unauthenticatedApp.init();
     });
 
     beforeEach(async () => {
@@ -472,11 +487,13 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         });
 
         it("should send requested rescheduling emails when attendee rescheduling a booking that requires confirmation", async () => {
+          expect(rescheduledBookingUid).toBeDefined();
           const body: RescheduleBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
           };
 
-          return request(app.getHttpServer())
+          // Use unauthenticated app to simulate attendee reschedule (not authenticated as booking owner)
+          return request(unauthenticatedApp.getHttpServer())
             .post(`/v2/bookings/${rescheduledBookingUid}/reschedule`)
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -562,6 +579,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       await teamRepositoryFixture.delete(organization.id);
       await userRepositoryFixture.deleteByEmail(user.email);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+      await unauthenticatedApp.close();
       await app.close();
     });
   });
