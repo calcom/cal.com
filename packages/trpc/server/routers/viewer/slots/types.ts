@@ -34,6 +34,8 @@ export const getScheduleSchemaObject = z.object({
   routedTeamMemberIds: z.array(z.number()).nullish(),
   skipContactOwner: z.boolean().nullish(),
   rrHostSubsetIds: z.array(z.number()).nullish(),
+  // Partial loading for large round-robin events
+  rrHostLoadMode: z.enum(["partial", "full"]).optional().default("partial"),
   _enableTroubleshooter: z.boolean().optional(),
   _bypassCalendarBusyTimes: z.boolean().optional(),
   _silentCalendarFailures: z.boolean().optional(),

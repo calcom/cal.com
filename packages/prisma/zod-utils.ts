@@ -284,6 +284,14 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     })
     .optional(),
   bookerLayouts: bookerLayouts.optional(),
+  // Partial loading configuration for large round-robin events
+  rrPartialLoading: z
+    .object({
+      enabled: z.boolean().optional(),
+      percentage: z.number().min(1).max(100).optional(), // Percentage of hosts to load (default: 20)
+      minimum: z.number().min(1).optional(), // Minimum hosts to load regardless of percentage (default: 10)
+    })
+    .optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
