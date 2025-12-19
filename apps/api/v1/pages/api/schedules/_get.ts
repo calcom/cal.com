@@ -48,8 +48,8 @@ export const schemaUserIds = z
  *                             "id": 987,
  *                             "eventTypeId": null,
  *                             "days": [1, 2, 3, 4, 5],
- *                             "startTime": "09:00:00",
- *                             "endTime": "23:00:00"
+ *                             "startTime": "2023-02-13T09:00:00.000Z",
+ *                             "endTime": "2023-02-13T23:00:00.000Z"
  *                           }
  *                         ]
  *                       },
@@ -63,8 +63,8 @@ export const schemaUserIds = z
  *                             "id": 876,
  *                             "eventTypeId": null,
  *                             "days": [1, 2, 3, 4, 5],
- *                             "startTime": "09:00:00",
- *                             "endTime": "17:00:00"
+ *                             "startTime": "2023-02-13T09:00:00.000Z",
+ *                             "endTime": "2023-02-13T17:00:00.000Z"
  *                           }
  *                         ]
  *                       }

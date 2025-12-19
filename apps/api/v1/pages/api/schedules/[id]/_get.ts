@@ -46,22 +46,22 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *                           "id": 111,
  *                           "eventTypeId": null,
  *                           "days": [0, 1, 2, 3, 4, 6],
- *                           "startTime": "00:00:00",
- *                           "endTime": "23:45:00"
+ *                           "startTime": "2023-02-13T00:00:00.000Z",
+ *                           "endTime": "2023-02-13T23:45:00.000Z"
  *                         },
  *                         {
  *                           "id": 112,
  *                           "eventTypeId": null,
  *                           "days": [5],
- *                           "startTime": "00:00:00",
- *                           "endTime": "12:00:00"
+ *                           "startTime": "2023-02-13T00:00:00.000Z",
+ *                           "endTime": "2023-02-13T12:00:00.000Z"
  *                         },
  *                         {
  *                           "id": 113,
  *                           "eventTypeId": null,
  *                           "days": [5],
- *                           "startTime": "15:00:00",
- *                           "endTime": "23:45:00"
+ *                           "startTime": "2023-02-13T15:00:00.000Z",
+ *                           "endTime": "2023-02-13T23:45:00.000Z"
  *                         }
  *                       ]
  *                     }
