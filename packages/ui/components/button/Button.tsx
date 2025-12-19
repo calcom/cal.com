@@ -44,9 +44,9 @@ export const buttonClasses = cva(
   {
     variants: {
       variant: {
-        button: "",
+        button: "md:min-w-min md:min-h-min",
         icon: "flex justify-center",
-        fab: "min-w-14 min-h-14 md:min-w-0 md:min-h-0 rounded-full justify-center md:rounded-[10px] radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
+        fab: "min-w-14 min-h-14 md:min-w-min md:min-h-min rounded-full justify-center md:rounded-[10px] radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
       },
       color: {
         primary: [
