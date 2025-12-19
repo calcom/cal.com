@@ -323,7 +323,6 @@ if (isSAMLLoginEnabled) {
       });
       return {
         id: profile.id || 0,
-        uuid: user?.uuid || "",
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
         email: profile.email || "",
@@ -411,7 +410,6 @@ if (isSAMLLoginEnabled) {
         const [userProfile] = user?.allProfiles ?? [];
         return {
           id: id as unknown as number,
-          uuid: user.uuid,
           firstName,
           lastName,
           email,
