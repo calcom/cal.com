@@ -31,6 +31,7 @@ export type InternalGetSlotsQuery = {
   orgSlug: string | null | undefined;
   rescheduleUid: string | null;
   rrHostSubsetIds?: number[];
+  rrHostLoadMode: "partial" | "full";
 };
 
 export type InternalGetSlotsQueryWithRouting = InternalGetSlotsQuery & {
@@ -81,6 +82,7 @@ export class SlotsInputService_2024_09_04 {
       orgSlug,
       rescheduleUid,
       rrHostSubsetIds: query.rrHostSubsetIds,
+      rrHostLoadMode: "partial" as const, // Default to partial loading for API v2
     };
   }
 
