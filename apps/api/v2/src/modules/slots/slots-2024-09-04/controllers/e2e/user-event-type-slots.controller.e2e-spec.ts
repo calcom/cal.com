@@ -20,7 +20,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { advanceTo, clear } from "jest-date-mock";
-import { DateTime } from "luxon";
+import { DateTime, Settings } from "luxon";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
@@ -212,12 +212,18 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     // Set system time to 2050-09-04 so that the 2050-09-05 to 2050-09-09 date range
     // is within 1 year from "now" and doesn't get clamped by the date range limit
+    // We need to mock both jest-date-mock (for new Date()) and Luxon's Settings.now (for DateTime.utc())
+    let originalSettingsNow: typeof Settings.now;
     beforeEach(() => {
-      advanceTo(new Date("2050-09-04T00:00:00.000Z"));
+      const mockDate = new Date("2050-09-04T00:00:00.000Z");
+      advanceTo(mockDate);
+      originalSettingsNow = Settings.now;
+      Settings.now = () => mockDate.getTime();
     });
 
     afterEach(() => {
       clear();
+      Settings.now = originalSettingsNow;
     });
 
     it("should get slots in UTC by event type id", async () => {
@@ -445,6 +451,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const now = "2050-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
+      Settings.now = () => newDate.getTime();
 
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
@@ -581,6 +588,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const now = "2050-09-05T14:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
+      Settings.now = () => newDate.getTime();
 
       const slotStartTime = "2050-09-05T13:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
@@ -691,6 +699,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const now = "2050-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
+      Settings.now = () => newDate.getTime();
 
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
@@ -748,6 +757,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       const now = "2050-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
       advanceTo(newDate);
+      Settings.now = () => newDate.getTime();
 
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
@@ -1362,6 +1372,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         const now = "2050-09-05T12:00:00.000Z";
         const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
         advanceTo(newDate);
+        Settings.now = () => newDate.getTime();
 
         const slotDuration = 60;
         const slotStartTime = "2050-09-05T10:00:00.000Z";
