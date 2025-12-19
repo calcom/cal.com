@@ -96,6 +96,7 @@ export default function Authorize() {
     if (client?.isTrusted && selectedAccount) {
       generateAuthCodeMutation.mutate({
         clientId: client_id as string,
+        redirectUri: client.redirectUri,
         scopes,
         codeChallenge: code_challenge || undefined,
         codeChallengeMethod: (code_challenge_method as "S256") || undefined,
@@ -223,6 +224,7 @@ export default function Authorize() {
               generateAuthCodeMutation.mutate({
                 clientId: client_id as string,
                 scopes,
+                redirectUri: client.redirectUri,
                 teamSlug: selectedAccount?.value.startsWith("team/")
                   ? selectedAccount?.value.substring(5)
                   : undefined, // team account starts with /team/<slug>
