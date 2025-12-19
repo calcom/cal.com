@@ -186,10 +186,14 @@ export const getDescription = (t: TFunction, description?: string | null, stripM
   if (!description) {
     return "";
   }
-  const text = stripMarkdownForIcs
-    ? stripMarkdown(description, { preserveNewlines: true })
-    : htmlToPlainText(description);
-  return `${t("description")}:\n${text}`;
+
+  let plainText = htmlToPlainText(description);
+
+  if (stripMarkdownForIcs) {
+    plainText = stripMarkdown(plainText, { preserveNewlines: true });
+  }
+
+  return `${t("description")}:\n${plainText}`;
 };
 
 export const getLocation = (calEvent: {
