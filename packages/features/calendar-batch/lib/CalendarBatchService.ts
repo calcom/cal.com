@@ -22,12 +22,6 @@ export class CalendarBatchService {
       return false;
     }
 
-    // this is temporary for testing the new feature in a sandbox team
-    if (credential.teamId !== 34037) {
-      log.info("[Temporary] Only 34037 team is supported");
-      return false;
-    }
-
     return true;
   }
 }
