@@ -123,10 +123,10 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
     const paymentMetadata = {
       identifier: "cal.com",
       bookingId,
-      eventTypeId: booking.eventType?.id,
+      eventTypeId: booking.eventType?.id ?? null,
       bookerEmail: evt.attendees[0].email,
-      eventTitle: booking.eventType?.title,
-      externalId: paymentExternalId,
+      eventTitle: booking.eventType?.title ?? null,
+      externalId: paymentExternalId ?? null,
     };
 
     const eventTypeInfo: EventTypeInfo = {
