@@ -2,7 +2,10 @@ import type { CredentialRepository } from "@calcom/features/credentials/reposito
 
 import type { ZCreateAttributeSyncSchema } from "@calcom/trpc/server/routers/viewer/attribute-sync/createAttributeSync.schema";
 import { enabledAppSlugs } from "../constants";
-import type { IIntegrationAttributeSyncRepository } from "../repositories/IIntegrationAttributeSyncRepository";
+import {
+  type IIntegrationAttributeSyncRepository,
+  AttributeSyncIntegrations,
+} from "../repositories/IIntegrationAttributeSyncRepository";
 import { type ISyncFormData, attributeSyncRuleSchema } from "../schemas/zod";
 
 interface IIntegrationAttributeSyncServiceDeps {
@@ -40,10 +43,17 @@ export class IntegrationAttributeSyncService {
 
     const parsedRule = attributeSyncRuleSchema.parse(input.rule);
 
+    const integrationValue = credential.app?.slug || credential.type;
+    if (
+      !Object.values(AttributeSyncIntegrations).includes(integrationValue as AttributeSyncIntegrations)
+    ) {
+      throw new Error(`Unsupported integration type: ${integrationValue}`);
+    }
+
     return this.deps.integrationAttributeSyncRepository.create({
       name: input.name,
       organizationId,
-      integration: credential.app?.slug || credential.type,
+      integration: integrationValue as AttributeSyncIntegrations,
       credentialId: input.credentialId,
       enabled: input.enabled,
       rule: parsedRule,
