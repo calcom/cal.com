@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { TouchableOpacity, Text, Alert, Platform } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
+import React, { useState } from "react";
+import { TouchableOpacity, Text, Alert, Platform } from "react-native";
 
 interface LogoutButtonProps {
   className?: string;
@@ -57,7 +57,7 @@ export function LogoutButton({ className = "" }: LogoutButtonProps) {
     <>
       <TouchableOpacity
         onPress={handleLogoutPress}
-        className={`"px-4 rounded-lg" bg-gray-600 py-2 ${className}`}
+        className={`px-4 rounded-lg bg-gray-600 py-2 ${className}`}
         style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
         activeOpacity={0.7}
       >
