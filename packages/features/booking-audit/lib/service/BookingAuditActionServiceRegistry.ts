@@ -15,6 +15,8 @@ import { AttendeeRemovedAuditActionService, type AttendeeRemovedAuditData } from
 import { ReassignmentAuditActionService, type ReassignmentAuditData } from "../actions/ReassignmentAuditActionService";
 import { LocationChangedAuditActionService, type LocationChangedAuditData } from "../actions/LocationChangedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAuditData } from "../actions/AttendeeNoShowUpdatedAuditActionService";
+import { SeatBookedAuditActionService, type SeatBookedAuditData } from "../actions/SeatBookedAuditActionService";
+import { SeatRescheduledAuditActionService, type SeatRescheduledAuditData } from "../actions/SeatRescheduledAuditActionService";
 
 /**
  * Union type for all audit action data types
@@ -32,8 +34,9 @@ export type AuditActionData =
     | AttendeeRemovedAuditData
     | ReassignmentAuditData
     | LocationChangedAuditData
-    | AttendeeNoShowUpdatedAuditData;
-
+    | AttendeeNoShowUpdatedAuditData
+    | SeatBookedAuditData
+    | SeatRescheduledAuditData;
 
 /**
  * BookingAuditActionServiceRegistry
@@ -47,12 +50,10 @@ interface BookingAuditActionServiceRegistryDeps {
 }
 
 export class BookingAuditActionServiceRegistry {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private readonly actionServices: Map<BookingAuditAction, IAuditActionService<any, any>>;
+    private readonly actionServices: Map<BookingAuditAction, IAuditActionService>;
 
     constructor(private deps: BookingAuditActionServiceRegistryDeps) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const services: Array<[BookingAuditAction, IAuditActionService<any, any>]> = [
+        const services: Array<[BookingAuditAction, IAuditActionService]> = [
             ["CREATED", new CreatedAuditActionService()],
             ["CANCELLED", new CancelledAuditActionService()],
             ["RESCHEDULED", new RescheduledAuditActionService()],
@@ -65,6 +66,8 @@ export class BookingAuditActionServiceRegistry {
             ["REASSIGNMENT", new ReassignmentAuditActionService(deps.userRepository)],
             ["LOCATION_CHANGED", new LocationChangedAuditActionService()],
             ["ATTENDEE_NO_SHOW_UPDATED", new AttendeeNoShowUpdatedAuditActionService()],
+            ["SEAT_BOOKED", new SeatBookedAuditActionService()],
+            ["SEAT_RESCHEDULED", new SeatRescheduledAuditActionService()],
         ];
         this.actionServices = new Map(services);
     }
@@ -73,11 +76,10 @@ export class BookingAuditActionServiceRegistry {
      * Get Action Service - Returns the appropriate action service for the given action type
      * 
      * @param action - The booking audit action type
-     * @returns The corresponding action service instance
+     * @returns The corresponding action service instance with proper typing
      * @throws Error if no service is found for the action
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getActionService(action: BookingAuditAction): IAuditActionService<any, any> {
+    getActionService(action: BookingAuditAction): IAuditActionService {
         const service = this.actionServices.get(action);
         if (!service) {
             throw new Error(`No action service found for: ${action}`);
