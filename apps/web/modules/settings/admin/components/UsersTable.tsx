@@ -63,7 +63,7 @@ const LockStatusTable = ({
       id: string;
       label: string;
       onClick: () => void;
-      Icon: LucideIcon;
+      icon: LucideIcon;
     }> = [
       {
         id: "unlock-sms",
@@ -74,7 +74,7 @@ const LockStatusTable = ({
             teamId: team ? team.id : undefined,
             lock: smsLockState !== SMSLockState.LOCKED,
           }),
-        Icon: LockIcon,
+        icon: LockIcon,
       },
     ];
     if (smsLockState === SMSLockState.REVIEW_NEEDED) {
@@ -87,7 +87,7 @@ const LockStatusTable = ({
             teamId: team ? team.id : undefined,
             lock: false,
           }),
-        Icon: PencilIcon,
+        icon: PencilIcon,
       });
     }
 

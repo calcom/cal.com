@@ -1,4 +1,5 @@
-import type { IconName } from "@calcom/ui/components/icon";
+import type { LucideIcon } from "lucide-react";
+import { CalendarCheck2Icon, GithubIcon, RocketIcon, TriangleAlertIcon } from "lucide-react";
 
 type IndividualPlatformPlan = {
   plan: string;
@@ -7,8 +8,8 @@ type IndividualPlatformPlan = {
   includes: string[];
 };
 
-type HelpCardInfo = {
-  icon: IconName;
+export type HelpCardInfo = {
+  Icon: LucideIcon;
   variant: "basic" | "ProfileCard" | "SidebarCard" | null;
   title: string;
   description: string;
@@ -72,7 +73,7 @@ export const platformPlans: IndividualPlatformPlan[] = [
 
 export const helpCards: HelpCardInfo[] = [
   {
-    icon: "rocket",
+    Icon: RocketIcon,
     title: "Try our Platform Starter Kit",
     description:
       "If you are building a marketplace or platform from scratch, our Platform Starter Kit has everything you need.",
@@ -83,7 +84,7 @@ export const helpCards: HelpCardInfo[] = [
     },
   },
   {
-    icon: "github",
+    Icon: GithubIcon,
     title: "Get the Source code",
     description:
       "Our Platform Starter Kit is being used in production by Cal.com itself. You can find the ready-to-rock source code on GitHub.",
@@ -94,7 +95,7 @@ export const helpCards: HelpCardInfo[] = [
     },
   },
   {
-    icon: "calendar-check-2",
+    Icon: CalendarCheck2Icon,
     title: "Contact us",
     description:
       "Book our engineering team for a 15 minute onboarding call and debug a problem. Please come prepared with questions.",
@@ -105,7 +106,7 @@ export const helpCards: HelpCardInfo[] = [
     },
   },
   {
-    icon: "triangle-alert",
+    Icon: TriangleAlertIcon,
     title: "Report issue",
     description:
       "You can submit a ticket on GitHub or upgrade your plan to receive real-time support with developer conferences",
