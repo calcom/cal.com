@@ -30,7 +30,7 @@ describe("generateAuthCodeHandler", () => {
     };
 
     it("should generate authorization code for PUBLIC client with valid PKCE", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
       prismaMock.accessCode.create.mockResolvedValue({
         id: 1,
         code: "test_auth_code",
@@ -69,7 +69,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should reject PUBLIC client without code_challenge", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
 
       const input = {
         clientId: "public_client_123",
@@ -90,7 +90,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should reject PUBLIC client without code_challenge_method", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
 
       const input = {
         clientId: "public_client_123",
@@ -111,7 +111,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should reject PUBLIC client with invalid code_challenge_method", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
 
       // Test with MD5 (invalid method)
       const inputMD5 = {
@@ -155,10 +155,12 @@ describe("generateAuthCodeHandler", () => {
       redirectUri: "https://app.example.com/callback",
       name: "Test Confidential Client",
       clientType: "CONFIDENTIAL" as const,
+      isTrusted: undefined,
+      logo: undefined,
     };
 
     it("should generate authorization code for CONFIDENTIAL client without PKCE", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockConfidentialClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockConfidentialClient);
       prismaMock.accessCode.create.mockResolvedValue({
         id: 1,
         code: "test_auth_code",
@@ -198,7 +200,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should accept CONFIDENTIAL client with valid PKCE for enhanced security", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockConfidentialClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockConfidentialClient);
       prismaMock.accessCode.create.mockResolvedValue({
         id: 1,
         code: "test_auth_code",
@@ -237,7 +239,7 @@ describe("generateAuthCodeHandler", () => {
     });
 
     it("should reject CONFIDENTIAL client with code_challenge but missing method", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockConfidentialClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockConfidentialClient);
 
       const input = {
         clientId: "confidential_client_456",
@@ -260,7 +262,7 @@ describe("generateAuthCodeHandler", () => {
 
   describe("Client validation", () => {
     it("should reject invalid client ID", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(null);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(null);
 
       const input = {
         clientId: "invalid_client",
@@ -273,7 +275,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "UNAUTHORIZED",
-          message: "Client ID not valid",
+          message: "OAuth client with ID 'invalid_client' not found",
         })
       );
 
@@ -288,7 +290,7 @@ describe("generateAuthCodeHandler", () => {
         clientType: "PUBLIC" as const,
       };
 
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
       prismaMock.accessCode.create.mockResolvedValue({
         id: 1,
         code: "test_auth_code",
@@ -316,7 +318,7 @@ describe("generateAuthCodeHandler", () => {
 
       // Reset mocks for next test
       vi.clearAllMocks();
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(mockPublicClient);
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
 
       // Test invalid method
       const inputInvalid = {

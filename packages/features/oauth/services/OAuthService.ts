@@ -7,7 +7,7 @@ import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuth
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { HttpError } from "@calcom/lib/http-error";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
-import type { AccessScope } from "@calcom/prisma/enums";
+import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 
 export interface OAuth2Client {
   clientId: string;
@@ -15,6 +15,7 @@ export interface OAuth2Client {
   name: string;
   logo: string | null;
   isTrusted: boolean;
+  clientType: OAuthClientType;
 }
 
 export interface OAuth2Tokens {
@@ -26,6 +27,7 @@ export interface OAuth2Tokens {
 
 export interface AuthorizeResult {
   redirectUrl: string;
+  authorizationCode: string;
 }
 
 export interface OAuthError {
@@ -72,6 +74,7 @@ export class OAuthService {
       name: client.name,
       logo: client.logo,
       isTrusted: client.isTrusted,
+      clientType: client.clientType,
     };
   }
 
@@ -85,7 +88,7 @@ export class OAuthService {
     codeChallenge?: string,
     codeChallengeMethod?: string
   ): Promise<AuthorizeResult> {
-    const client = await this.oAuthClientRepository.findByClientIdWithType(clientId);
+    const client = await this.oAuthClientRepository.findByClientId(clientId);
 
     if (!client) {
       throw new HttpError({ message: "Client ID not valid", statusCode: 401 });
@@ -138,7 +141,7 @@ export class OAuthService {
       state,
     });
 
-    return { redirectUrl };
+    return { redirectUrl, authorizationCode };
   }
 
   private validateRedirectUri(registeredUri: string, providedUri: string): void {

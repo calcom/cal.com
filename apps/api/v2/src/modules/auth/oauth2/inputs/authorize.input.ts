@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsOptional, IsString } from "class-validator";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
+import { Equals, IsArray, IsEnum, IsOptional, IsString } from "class-validator";
 
 import { AccessScope } from "@calcom/prisma/enums";
 
@@ -28,7 +28,7 @@ export class OAuth2AuthorizeInput {
   })
   @IsArray()
   @IsEnum(AccessScope, { each: true })
-  scopes!: AccessScope[];
+  scopes: AccessScope[] = [];
 
   @ApiProperty({
     description: "The team slug to authorize for (optional)",
@@ -46,12 +46,8 @@ export class OAuth2AuthorizeInput {
   @IsString()
   codeChallenge?: string;
 
-  @ApiProperty({
-    description: "PKCE code challenge method (must be S256)",
-    required: false,
-    example: "S256",
-  })
-  @IsOptional()
+  @ApiHideProperty()
   @IsString()
-  codeChallengeMethod?: string;
+  @Equals("S256")
+  codeChallengeMethod: string = "S256";
 }

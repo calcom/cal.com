@@ -1,4 +1,8 @@
-import { prisma } from "@calcom/prisma";
+import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
+import { HttpError } from "@calcom/lib/http-error";
+import { httpStatusToTrpcCode } from "@calcom/trpc/server/lib/toTRPCError";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TGetClientInputSchema } from "./getClient.schema";
 
@@ -9,17 +13,23 @@ type GetClientOptions = {
 export const getClientHandler = async ({ input }: GetClientOptions) => {
   const { clientId } = input;
 
-  const client = await prisma.oAuthClient.findUnique({
-    where: {
-      clientId,
-    },
-    select: {
-      clientId: true,
-      redirectUri: true,
-      name: true,
-      logo: true,
-      isTrusted: true,
-    },
-  });
-  return client;
+  const oAuthService = getOAuthService();
+
+  try {
+    const oAuthClient = await oAuthService.getClient(clientId);
+
+    return {
+      clientId: oAuthClient.clientId,
+      redirectUri: oAuthClient.redirectUri,
+      name: oAuthClient.name,
+      logo: oAuthClient.logo,
+      isTrusted: oAuthClient.isTrusted,
+    };
+  } catch (err) {
+    if (err instanceof HttpError) {
+      throw new TRPCError({ code: httpStatusToTrpcCode(err.statusCode), message: "OAuthClient not found" });
+    }
+  }
+
+  throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 };
