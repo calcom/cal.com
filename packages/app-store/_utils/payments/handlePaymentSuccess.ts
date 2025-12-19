@@ -94,9 +94,12 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
       id: booking.id,
     },
     data: bookingData,
+    select: {
+      status: true,
+    },
   });
 
-  const [payment] = await prisma.$transaction([paymentUpdate, bookingUpdate]);
+  const [payment, updatedBooking] = await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
   const platformClientParams = platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined;
   const teamId = await getTeamIdFromEventType({
@@ -134,15 +137,12 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
       length: booking.eventType?.length,
     };
 
-    // Use the current booking status (might be PENDING if requires confirmation)
-    const currentBookingStatus = requiresConfirmation && !isConfirmed ? "PENDING" : "ACCEPTED";
-
     const payload: EventPayloadType = {
       ...evt,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,
-      status: currentBookingStatus,
+      status: updatedBooking.status,
       smsReminderNumber: booking.smsReminderNumber || undefined,
       paymentId: paymentId,
       metadata: paymentMetadata,
