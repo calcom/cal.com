@@ -531,7 +531,6 @@ export const EventAdvancedTab = ({
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
-  // const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
   const allowReschedulingCancelledBookingsLocked = shouldLockDisableProps(
     "allowReschedulingCancelledBookings"
   );
