@@ -4,6 +4,7 @@
  */
 import type getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
+import type { TraceContext } from "@calcom/lib/tracing";
 import type { SchedulingType } from "@calcom/prisma/enums";
 
 import type { ExtendedBookingCreateBody } from "../bookingCreateBodySchema";
@@ -37,12 +38,12 @@ export type CreateBookingMeta = {
   hostname?: string;
   forcedSlug?: string;
   noEmail?: boolean;
+  traceContext?: TraceContext;
 } & PlatformParams;
 
 export type BookingHandlerInput = {
   bookingData: CreateRegularBookingData;
-  bookingMeta: CreateBookingMeta;
-};
+} & CreateBookingMeta;
 
 // TODO: In a followup PR, we working on defining the type here itself instead of inferring it.
 export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
@@ -56,10 +57,7 @@ export type InstantBookingCreateResult = {
   userId: number | null;
 };
 
+// More properties to be added to this config in followup PRs
 export type BookingFlowConfig = {
   isDryRun: boolean;
-  useCacheIfEnabled: boolean;
-  noEmail: boolean;
-  hostname: string | null;
-  forcedSlug: string | null;
 };
