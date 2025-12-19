@@ -4,7 +4,6 @@ import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
-import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
@@ -21,6 +20,7 @@ import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { FromToTime } from "../utils/dates";
+import { ScrollableWithGradients } from "./ScrollableWithGradients";
 import { useBookerTime } from "./hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
@@ -56,6 +56,7 @@ export const EventMeta = ({
   children,
   selectedTimeslot,
   roundRobinHideOrgAndTeam,
+  hideEventTypeDetails = false,
 }: {
   event?: Pick<
     BookerEvent,
@@ -94,6 +95,7 @@ export const EventMeta = ({
   children?: React.ReactNode;
   selectedTimeslot: string | null;
   roundRobinHideOrgAndTeam?: boolean;
+  hideEventTypeDetails?: boolean;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
@@ -107,9 +109,6 @@ export const EventMeta = ({
     shallow
   );
   const { i18n, t } = useLocale();
-  const embedUiConfig = useEmbedUiConfig();
-  const isEmbed = useIsEmbed();
-  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
   const [TimezoneSelect] = useMemo(
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
@@ -176,15 +175,16 @@ export const EventMeta = ({
             {translatedTitle ?? event?.title}
           </EventTitle>
           {(event.description || translatedDescription) && (
-            <EventMetaBlock
-              data-testid="event-meta-description"
-              contentClassName="mb-8 wrap-break-word max-w-full max-h-[180px] scroll-bar pr-4">
-              <div
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{
-                  __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
-                }}
-              />
+            <EventMetaBlock data-testid="event-meta-description" contentClassName="mb-8">
+              <ScrollableWithGradients
+                className="wrap-break-word scroll-bar max-h-[180px] max-w-full overflow-y-auto pr-4"
+                ariaLabel={t("description")}>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
+                  }}
+                />
+              </ScrollableWithGradients>
             </EventMetaBlock>
           )}
           <div className="stack-y-4 font-medium rtl:-mr-2">

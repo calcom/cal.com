@@ -1,8 +1,8 @@
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -57,7 +57,7 @@ const fetchEventTypeGroups = async ({
   teamId,
 }: {
   ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaClient };
-  profile: NonNullable<Awaited<ReturnType<typeof ProfileRepository.findByUpId>>>;
+  profile: NonNullable<Awaited<ReturnType<typeof ProfileRepository.findByUpIdWithAuth>>>;
   parentOrgHasLockedEventTypes: boolean | undefined;
   skipEventTypes: boolean;
   teamId?: number;
@@ -214,7 +214,7 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
   const shouldSkipEventTypes = isOrg;
 
   const userProfile = ctx.user.profile;
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
+  const profile = await ProfileRepository.findByUpIdWithAuth(userProfile.upId, ctx.user.id);
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
 

@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+  }
+
+  input:focus {
+    --tw-ring-color: rgb(0 0 0);
+    --tw-border-opacity: 1;
+    border-color: rgb(0 0 0);
+  }
+}
