@@ -44,8 +44,9 @@ export class StripeBillingService implements IBillingProviderService {
     successUrl: string;
     cancelUrl: string;
     metadata?: Record<string, string>;
+    allowPromotionCodes?: boolean;
   }) {
-    const { priceId, quantity, successUrl, cancelUrl, metadata } = args;
+    const { priceId, quantity, successUrl, cancelUrl, metadata, allowPromotionCodes = true } = args;
 
     const session = await this.stripe.checkout.sessions.create({
       line_items: [{ price: priceId, quantity }],
@@ -53,6 +54,7 @@ export class StripeBillingService implements IBillingProviderService {
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: metadata,
+      allow_promotion_codes: allowPromotionCodes,
       invoice_creation: {
         enabled: true,
       },
