@@ -1,6 +1,7 @@
 "use client";
 
 import classNames from "classnames";
+import { ArrowRightIcon, BadgeCheckIcon } from "lucide-react";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { Toaster } from "sonner";
@@ -16,7 +17,6 @@ import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Icon } from "@calcom/ui/components/icon";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
@@ -75,16 +75,10 @@ export function UserPage(props: PageProps) {
             <h1 className="font-cal text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
               {profile.name}
               {!isOrg && user.verified && (
-                <Icon
-                  name="badge-check"
-                  className="mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black"
-                />
+                <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
               )}
               {isOrg && (
-                <Icon
-                  name="badge-check"
-                  className="mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black"
-                />
+                <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 fill-yellow-500 text-white dark:text-black" />
               )}
             </h1>
             {!isBioEmpty && (
@@ -117,10 +111,7 @@ export function UserPage(props: PageProps) {
                 }}
                 className="bg-default border-subtle dark:bg-cal-muted dark:hover:bg-subtle hover:bg-cal-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0"
                 data-testid="event-type-link">
-                <Icon
-                  name="arrow-right"
-                  className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
-                />
+                <ArrowRightIcon className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
                 {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                 <div className="block w-full p-5">
                   <div className="flex flex-wrap items-center">

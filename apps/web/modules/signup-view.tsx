@@ -1,8 +1,7 @@
 "use client";
 
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
-import { ArrowLeftIcon } from "lucide-react";
-
+import { ArrowLeftIcon, InfoIcon, StarIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -45,7 +44,6 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form, SelectField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
@@ -150,12 +148,12 @@ function UsernameField({
           <div className="text-sm ">
             {usernameTaken ? (
               <div className="text-error flex items-center">
-                <Icon name="info" className="mr-1 inline-block h-4 w-4" />
+                <InfoIcon className="mr-1 inline-block h-4 w-4" />
                 <p>{t("already_in_use_error")}</p>
               </div>
             ) : premium ? (
               <div data-testid="premium-username-warning" className="flex items-center">
-                <Icon name="star" className="mr-1 inline-block h-4 w-4" />
+                <StarIcon className="mr-1 inline-block h-4 w-4" />
                 <p>
                   {t("premium_username", {
                     price: getPremiumPlanPriceValue(),
