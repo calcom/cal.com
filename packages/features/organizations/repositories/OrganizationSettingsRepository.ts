@@ -20,6 +20,7 @@ export class OrganizationSettingsRepository {
     });
   }
 
+  // Returns array for future multi-domain support
   async getVerifiedDomains(organizationId: number): Promise<string[]> {
     const settings = await this.prismaClient.organizationSettings.findUnique({
       where: { organizationId },

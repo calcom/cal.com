@@ -71,9 +71,9 @@ export async function validateSamlAccountConversion(
   conversionContext: string
 ): Promise<AccountConversionValidationResult> {
   if (!samlTenant) {
-    // This shouldn't happen - Jackson should return requested.tenant for org-based SAML
-    log.error("SAML conversion with missing tenant - needs investigation", { email, conversionContext });
-    return { allowed: true }; // backwards compat
+    // Deny by default - if tenant is missing, we cannot verify IdP authority
+    log.error("SAML conversion blocked - missing tenant", { email, conversionContext });
+    return { allowed: false, errorUrl: SAML_NOT_AUTHORITATIVE_ERROR_URL };
   }
 
   const samlOrgTeamId = getTeamIdFromSamlTenant(samlTenant);

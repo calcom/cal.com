@@ -170,9 +170,12 @@ describe("validateSamlAccountConversion", () => {
     setupMocks({ verifiedDomains: [], hasMembership: false });
   });
 
-  it("allows when no SAML tenant provided", async () => {
+  it("blocks when no SAML tenant provided (deny by default)", async () => {
     const result = await validateSamlAccountConversion(undefined, "user@example.com", "CAL→SAML");
-    expect(result).toEqual({ allowed: true });
+    expect(result).toEqual({
+      allowed: false,
+      errorUrl: "/auth/error?error=saml-idp-not-authoritative",
+    });
   });
 
   it("allows when tenant is not org-based", async () => {
