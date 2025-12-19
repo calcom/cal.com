@@ -1,6 +1,6 @@
 import classNames from "classnames";
-import { StarIcon, CheckIcon, ExternalLinkIcon } from "lucide-react";
- 
+import { StarIcon, CheckIcon, ExternalLinkIcon, PencilIcon } from "lucide-react";
+
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -104,12 +104,12 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const updateUsername = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
-      onSuccessMutation && (await onSuccessMutation());
+      if (onSuccessMutation) await onSuccessMutation();
       await update({ username: inputUsernameValue });
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
-      onErrorMutation && onErrorMutation(error);
+      if (onErrorMutation) onErrorMutation(error);
     },
   });
 
@@ -270,7 +270,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent
-          Icon="pencil"
+          Icon={PencilIcon}
           title={t("confirm_username_change_dialog_title")}
           description={
             <>

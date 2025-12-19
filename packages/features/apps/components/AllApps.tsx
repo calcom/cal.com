@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -142,7 +142,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
 export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
+  const [appsContainerRef, _enableAnimation] = useAutoAnimate<HTMLDivElement>();
 
   const handleCategoryChange = (category: string | null) => {
     const validCategory =
@@ -189,7 +189,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         </div>
       ) : (
         <EmptyScreen
-          Icon="search"
+          Icon={SearchIcon}
           headline={t("no_results")}
           description={searchText ? searchText?.toString() : ""}
         />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ChartBarIcon, CircleCheckIcon, CodeIcon, CopyIcon, DownloadIcon, ExternalLinkIcon, FileTextIcon, LinkIcon, MailIcon, PencilIcon, ShuffleIcon, TrashIcon } from "lucide-react";
+import { ChartBarIcon, CircleCheckIcon, CodeIcon, CopyIcon, DownloadIcon, ExternalLinkIcon, FileTextIcon, GitMergeIcon, LinkIcon, MailIcon, MenuIcon, MessageCircleIcon, PencilIcon, ShuffleIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import posthog from "posthog-js";
@@ -186,7 +186,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 queryRes={queryRes}
                 emptyScreen={
                   <EmptyScreen
-                    Icon="git-merge"
+                    Icon={GitMergeIcon}
                     headline={t("create_your_first_form")}
                     description={t("create_your_first_form_description")}
                     buttonRaw={<NewFormButton setNewFormDialogState={setNewFormDialogState} />}
@@ -194,7 +194,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 }
                 noResultsScreen={
                   <EmptyScreen
-                    Icon="git-merge"
+                    Icon={GitMergeIcon}
                     headline={t("no_results_for_filter")}
                     description={t("change_filter_common")}
                   />
@@ -313,13 +313,13 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                               </>
                             }>
                             <div className="flex flex-wrap gap-1">
-                              <Badge variant="gray" startIcon="menu">
+                              <Badge variant="gray" startIcon={MenuIcon}>
                                 {fields.length} {fields.length === 1 ? "field" : "fields"}
                               </Badge>
-                              <Badge variant="gray" startIcon="git-merge">
+                              <Badge variant="gray" startIcon={GitMergeIcon}>
                                 {userRoutes.length} {userRoutes.length === 1 ? "route" : "routes"}
                               </Badge>
-                              <Badge variant="gray" startIcon="message-circle">
+                              <Badge variant="gray" startIcon={MessageCircleIcon}>
                                 {form._count.responses}{" "}
                                 {form._count.responses === 1 ? "response" : "responses"}
                               </Badge>

@@ -1,3 +1,4 @@
+import { CalendarIcon } from "lucide-react";
 import Link from "next/link";
 import { Fragment } from "react";
 
@@ -66,7 +67,7 @@ export function OverlayCalendarSettingsModal({
               <>
                 {connectedCalendars.length === 0 ? (
                   <EmptyScreen
-                    Icon="calendar"
+                    Icon={CalendarIcon}
                     headline={t("no_calendar_installed")}
                     description={t("no_calendar_installed_description")}
                     buttonText={t("add_a_calendar")}
@@ -82,9 +83,7 @@ export function OverlayCalendarSettingsModal({
                         {item?.error === undefined && item.calendars && (
                           <ListItem className="flex-col rounded-md">
                             <div className="flex w-full flex-1 items-center space-x-3 pb-4 rtl:space-x-reverse">
-                              {
-                                // eslint-disable-next-line @next/next/no-img-element
-                                item.integration.logo && (
+                              {item.integration.logo && (
                                   <img
                                     className={classNames(
                                       "h-10 w-10",

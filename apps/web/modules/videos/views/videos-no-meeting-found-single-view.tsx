@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, XIcon } from "lucide-react";
 
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
@@ -13,7 +13,7 @@ export default function NoMeetingFound() {
     <>
       <main className="mx-auto my-24 max-w-3xl">
         <EmptyScreen
-          Icon="x"
+          Icon={XIcon}
           headline={t("no_meeting_found")}
           description={t("no_meeting_found_description")}
           buttonRaw={

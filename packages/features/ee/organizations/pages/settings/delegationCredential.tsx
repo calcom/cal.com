@@ -1,8 +1,7 @@
 "use client";
 
+import { LinkIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { PlusIcon } from "lucide-react";
-
 import { useForm, Controller, useFormContext } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -426,7 +425,7 @@ function DelegationCredentialList() {
         </>
       ) : (
         <EmptyScreen
-          Icon="link"
+          Icon={LinkIcon}
           headline={t("add_delegation_credential")}
           description={t("delegation_credential_description")}
           className="rounded-b-lg rounded-t-none border-t-0"

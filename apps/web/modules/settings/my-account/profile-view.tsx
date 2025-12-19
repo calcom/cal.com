@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InfoIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { InfoIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
  
 import { get, pick } from "lodash";
@@ -337,7 +337,7 @@ const ProfileView = ({ user }: Props) => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon="triangle-alert">
+          Icon={TriangleAlertIcon}>
           <>
             <div className="mb-10">
               <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
@@ -381,7 +381,7 @@ const ProfileView = ({ user }: Props) => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon="triangle-alert">
+          Icon={TriangleAlertIcon}>
           <div className="mb-10">
             <div className="mb-4 grid gap-2 md:grid-cols-2">
               <div>
@@ -427,7 +427,7 @@ const ProfileView = ({ user }: Props) => {
           title={t("create_account_password")}
           description={t("create_account_password_hint")}
           type="creation"
-          Icon="triangle-alert">
+          Icon={TriangleAlertIcon}>
           <DialogFooter>
             <DialogClose />
           </DialogFooter>
@@ -439,7 +439,7 @@ const ProfileView = ({ user }: Props) => {
           title={t("disconnect_account")}
           description={t("disconnect_account_hint")}
           type="creation"
-          Icon="triangle-alert">
+          Icon={TriangleAlertIcon}>
           <DialogFooter>
             <Button
               color="primary"
@@ -500,9 +500,9 @@ const ProfileForm = ({
   handleAccountDisconnect,
   extraField,
   isPending = false,
-  isFallbackImg,
+  _isFallbackImg,
   user,
-  userOrganization,
+  _userOrganization,
   isCALIdentityProvider,
 }: {
   defaultValues: FormValues;
@@ -604,7 +604,7 @@ const ProfileForm = ({
     handleAccountDisconnect(getUpdatedFormValues(formMethods.getValues()));
   };
 
-  const { data: usersAttributes, isPending: usersAttributesPending } =
+  const { data: usersAttributes, isPending: _usersAttributesPending } =
     trpc.viewer.attributes.getByUserId.useQuery({
       userId: user.id,
     });

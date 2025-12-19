@@ -1,5 +1,6 @@
 import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { AlertCircleIcon, CalendarIcon } from "lucide-react";
 
 import { EventTypeListItem } from "../components/EventTypeListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -48,7 +49,7 @@ export const ListEventTypesPlatformWrapper = ({
   if (error) {
     return (
       <EmptyScreen
-        Icon="alert-circle"
+        Icon={AlertCircleIcon}
         headline={t("error_loading_event_types")}
         description={error.message}
         className="w-full"
@@ -59,7 +60,7 @@ export const ListEventTypesPlatformWrapper = ({
   if (!isLoadingEventTypes && (!eventTypes || eventTypes.length === 0)) {
     return (
       <EmptyScreen
-        Icon="calendar"
+        Icon={CalendarIcon}
         headline={t("no_event_types")}
         description={t("no_event_types_have_been_setup")}
         className="w-full"

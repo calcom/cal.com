@@ -1,8 +1,7 @@
 "use client";
 
+import { CalendarIcon, PlusIcon } from "lucide-react";
 import { useReducer } from "react";
-import { PlusIcon } from "lucide-react";
-
 
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
@@ -112,7 +111,7 @@ export const InstalledConferencingApps = ({
   if (integrations.items.length === 0) {
     return (
       <EmptyScreen
-        Icon="calendar"
+        Icon={CalendarIcon}
         headline={t("no_category_apps", {
           category: t("conferencing").toLowerCase(),
         })}

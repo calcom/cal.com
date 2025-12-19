@@ -1,6 +1,5 @@
+import { TrashIcon, TriangleAlertIcon } from "lucide-react";
 import { useState } from "react";
-import { TrashIcon } from "lucide-react";
-
 
 import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -53,7 +52,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
         <EmptyScreen
           headline="Error"
           description={error.message || "Error getting dsync data"}
-          Icon="triangle-alert"
+          Icon={TriangleAlertIcon}
         />
       </div>
     );
@@ -83,7 +82,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
               title={t("directory_sync_delete_title")}
               description={t("directory_sync_delete_description")}
               type="creation"
-              Icon="triangle-alert">
+              Icon={TriangleAlertIcon}>
               <>
                 <div className="mb-10">
                   <p className="text-default mb-4">{t("directory_sync_delete_confirmation")}</p>

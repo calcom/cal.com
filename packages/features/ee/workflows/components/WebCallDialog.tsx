@@ -1,4 +1,5 @@
 import {
+  InfoIcon,
   LoaderIcon,
   MessageCircleIcon,
   MicIcon,
@@ -366,7 +367,7 @@ export function WebCallDialog({
         {!creditsLoading && (
           <Alert
             severity="info"
-            CustomIcon="info"
+            CustomIcon={InfoIcon}
             title={t("credits_required")}
             message={
               hasCredits ? (

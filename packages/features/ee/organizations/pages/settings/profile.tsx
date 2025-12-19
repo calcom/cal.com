@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusIcon, CopyIcon } from "lucide-react";
+import { CopyIcon, LinkIcon, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -150,7 +150,6 @@ const OrgProfileView = ({
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
                   <div
                     className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
                       __html: markdownToSafeHTML(currentOrganisation.bio || ""),
                     }}
@@ -159,14 +158,14 @@ const OrgProfileView = ({
               )}
             </div>
             <div className="">
-              <LinkIconButton
-                Icon="link"
-                onClick={() => {
-                  navigator.clipboard.writeText(orgBranding.fullDomain);
-                  showToast("Copied to clipboard", "success");
-                }}>
-                {t("copy_link_org")}
-              </LinkIconButton>
+                <LinkIconButton
+                  Icon={LinkIcon}
+                  onClick={() => {
+                    navigator.clipboard.writeText(orgBranding.fullDomain);
+                    showToast("Copied to clipboard", "success");
+                  }}>
+                  {t("copy_link_org")}
+                </LinkIconButton>
             </div>
           </div>
         )}
@@ -221,7 +220,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     try {
       await navigator.clipboard.writeText(value);
       showToast(t("organization_id_copied"), "success");
-    } catch (error) {
+    } catch {
       showToast(t("error_copying_to_clipboard"), "error");
     }
   };
@@ -289,7 +288,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                 <>
                   <OrgBanner
                     data-testid="profile-upload-banner"
-                    alt={`${defaultValues.name} Banner` || ""}
+                    alt={`${defaultValues.name} Banner`}
                     className="grid min-h-[150px] w-full place-items-center rounded-md sm:min-h-[200px]"
                     fallback={t("no_target", { target: "banner" })}
                     imageSrc={value}

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PlusIcon } from "lucide-react";
-
+import { LinkIcon, PlusIcon } from "lucide-react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
@@ -86,7 +85,7 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
             </>
           ) : (
             <EmptyScreen
-              Icon="link"
+              Icon={LinkIcon}
               headline={t("create_first_api_key")}
               description={t("create_first_api_key_description", { appName: APP_NAME })}
               className="rounded-b-lg rounded-t-none border-t-0"

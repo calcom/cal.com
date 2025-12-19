@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { CirclePlusIcon } from "lucide-react";
+import { CirclePlusIcon, ZapIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import posthog from "posthog-js";
@@ -135,7 +135,7 @@ export function WorkflowCreationDialog({
         description={t("how_would_you_like_to_start")}
         type="creation"
         enableOverflow
-        Icon="zap">
+        Icon={ZapIcon}>
         <RadioGroup
           value={selectedOption}
           onValueChange={handleOptionChange}

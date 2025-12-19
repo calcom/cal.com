@@ -1,6 +1,5 @@
+import { Grid3X3Icon, LockIcon } from "lucide-react";
 import Link from "next/link";
-import { LockIcon } from "lucide-react";
-
 import { useFormContext } from "react-hook-form";
 
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
@@ -134,7 +133,7 @@ export const EventAppsTab = ({
           )}
           {!isPendingApps && !installedApps?.length ? (
             <EmptyScreen
-              Icon="grid-3x3"
+              Icon={Grid3X3Icon}
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
               buttonRaw={

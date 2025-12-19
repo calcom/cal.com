@@ -1,8 +1,7 @@
 "use client";
 
+import { CalendarIcon, PlusIcon } from "lucide-react";
 import { useEffect, Suspense } from "react";
-import { PlusIcon } from "lucide-react";
-
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
@@ -167,7 +166,7 @@ export function CalendarListContainer({
         </>
       ) : (
         <EmptyScreen
-          Icon="calendar"
+          Icon={CalendarIcon}
           headline={t("no_category_apps", {
             category: t("calendar").toLowerCase(),
           })}

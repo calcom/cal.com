@@ -4,6 +4,8 @@ import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } fro
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
+import { PhoneIcon } from "lucide-react";
+
 import {
   DataTableProvider,
   DataTableWrapper,
@@ -313,7 +315,7 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         }
         EmptyView={
             <EmptyScreen
-              Icon="phone"
+              Icon={PhoneIcon}
               headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_call_history")}
               description={t("no_call_history_description")}
               className="mb-16"

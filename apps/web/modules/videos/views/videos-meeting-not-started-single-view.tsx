@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { ArrowRightIcon, CalendarIcon } from "lucide-react";
+import { ArrowRightIcon, CalendarIcon, ClockIcon } from "lucide-react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -18,7 +18,7 @@ export default function MeetingNotStarted(props: PageProps) {
     <>
       <main className="mx-auto my-24 max-w-3xl">
         <EmptyScreen
-          Icon="clock"
+          Icon={ClockIcon}
           headline={t("this_meeting_has_not_started_yet")}
           description={
             <>

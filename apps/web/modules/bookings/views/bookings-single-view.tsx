@@ -2,7 +2,7 @@
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import { CalendarIcon, CheckIcon, ChevronLeftIcon, ExternalLinkIcon, XIcon } from "lucide-react";
+import { CalendarIcon, CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronUpIcon, CircleAlertIcon, ExternalLinkIcon, UserXIcon, XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -53,7 +53,6 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -722,10 +721,11 @@ export default function Success(props: PageProps) {
                                 className="font-medium transition hover:text-blue-500 focus:outline-none">
                                 <div className="flex items-center gap-1">
                                   {showUtmParams ? t("hide") : t("show")}
-                                  <Icon
-                                    name={showUtmParams ? "chevron-up" : "chevron-down"}
-                                    className="size-4"
-                                  />
+                                  {showUtmParams ? (
+                                    <ChevronUpIcon className="size-4" />
+                                  ) : (
+                                    <ChevronDownIcon className="size-4" />
+                                  )}
                                 </div>
                               </button>
 
@@ -1026,7 +1026,7 @@ export default function Success(props: PageProps) {
                   (noShow ? (
                     <>
                       <EmptyScreen
-                        Icon="user-x"
+                        Icon={UserXIcon}
                         iconClassName="text-error"
                         iconWrapperClassName="bg-error"
                         headline={t("host_no_show")}
@@ -1102,7 +1102,7 @@ export default function Success(props: PageProps) {
                       </span>
                     </div>
                   }
-                  CustomIcon="circle-alert"
+                  CustomIcon={CircleAlertIcon}
                   customIconColor="text-attention dark:text-orange-200"
                 />
               )}
