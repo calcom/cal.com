@@ -91,7 +91,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
           </ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
-              <CircleAlertIcon className="h-4 w-4 shrink-0 text-red-500" />
+              <CircleAlertIcon className="h-8 w-8 shrink-0 text-red-500 sm:h-4 sm:w-4" />
               <ListItemText component="p" className="wrap-break-word whitespace-pre-wrap text-red-500">
                 {t("invalid_credential", { appName: title })}
               </ListItemText>

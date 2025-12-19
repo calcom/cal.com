@@ -7,9 +7,9 @@ import {
   ClockIcon,
   Grid3X3Icon,
   LinkIcon,
-  PhoneIcon,
+  PhoneCallIcon,
   RepeatIcon,
-  SettingsIcon,
+  SlidersVerticalIcon,
   UsersIcon,
   WebhookIcon,
   ZapIcon,
@@ -143,7 +143,7 @@ export const useTabsNavigations = ({
         navigation.push({
           name: t("instant_tab_title"),
           href: `/event-types/${eventType.id}?tabName=instant`,
-          icon: PhoneIcon,
+          icon: PhoneCallIcon,
           info: t(`instant_event_tab_description`),
           "data-testid": "instant_tab_title",
         });
@@ -223,7 +223,7 @@ function getNavigation({
     {
       name: t("event_advanced_tab_title"),
       href: `/event-types/${id}?tabName=advanced`,
-      icon: SettingsIcon,
+      icon: SlidersVerticalIcon,
       info: t(`event_advanced_tab_description`),
       "data-testid": "event_advanced_tab_title",
     },
