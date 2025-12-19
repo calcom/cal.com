@@ -129,7 +129,7 @@ export const handleNewRecurringBooking = async function (
   }
 
   if (createdBookings.length > 0) {
-    await this.fireEvents({
+    await this.fireBookingEvents({
       createdBookings,
       eventTypeId: firstBooking.eventTypeId,
       rescheduleUid: firstBooking.rescheduleUid ?? null,
@@ -152,7 +152,7 @@ export interface IRecurringBookingServiceDependencies {
 export class RecurringBookingService implements IBookingService {
   constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
 
-  async fireEvents({ createdBookings, eventTypeId, rescheduleUid, userUuid, creationSource }: { createdBookings: BookingResponse[], eventTypeId: number, rescheduleUid: string | null, userUuid: string | null, creationSource: CreationSource | undefined }) {
+  async fireBookingEvents({ createdBookings, eventTypeId, rescheduleUid, userUuid, creationSource }: { createdBookings: BookingResponse[], eventTypeId: number, rescheduleUid: string | null, userUuid: string | null, creationSource: CreationSource | undefined }) {
     type ValidBooking = BookingResponse & { uid: string; startTime: Date; endTime: Date; status: BookingStatus };
     type ValidRescheduledBooking = ValidBooking & { previousBooking: ValidBooking & { status: BookingStatus } };
 
