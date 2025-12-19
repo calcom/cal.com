@@ -45,9 +45,19 @@ export const getCalendar = async (
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   const originalCalendar = new CalendarService(credential as any);
+  return resolveCalendarServeStrategy(originalCalendar, credential, shouldServeCache);
+};
 
+/**
+ * Resolve best calendar strategy for current calendar and credential
+ */
+const resolveCalendarServeStrategy = async (
+  originalCalendar: Calendar,
+  credential: CredentialForCalendarService,
+  shouldServeCache?: boolean
+): Promise<Calendar> => {
   // if shouldServeCache is not supplied, determine on the fly.
   if (typeof shouldServeCache === "undefined") {
     const featuresRepository = new FeaturesRepository(prisma);
@@ -64,19 +74,26 @@ export const getCalendar = async (
     );
     shouldServeCache = isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser;
   }
-  if (CalendarCacheEventService.isCalendarTypeSupported(calendarType) && shouldServeCache) {
-    log.info(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
+  if (CalendarCacheEventService.isCalendarTypeSupported(credential.type) && shouldServeCache) {
+    log.info("Calendar Cache is enabled, using CalendarCacheService for credential", {
+      credentialId: credential.id,
+    });
     const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
     return new CalendarCacheWrapper({
       originalCalendar: originalCalendar as unknown as Calendar,
       calendarCacheEventRepository,
     });
-  } else if (CalendarBatchService.isCalendarTypeSupported(calendarType)) {
+  } else if (CalendarBatchService.isSupported(credential)) {
     // If calendar cache isn't supported, we try calendar batch as the second layer of optimization
-    log.info(`Calendar Batch is supported, using CalendarBatchService for credential ${credential.id}`);
+    log.info("Calendar Batch is supported, using CalendarBatchService for credential", {
+      credentialId: credential.id,
+    });
     return new CalendarBatchWrapper({ originalCalendar: originalCalendar as unknown as Calendar });
   }
 
   // Ended up returning unoptimized original calendar
+  log.info("Calendar Cache and Batch aren't supported, serving regular calendar for credential", {
+    credentialId: credential.id,
+  });
   return originalCalendar;
 };
