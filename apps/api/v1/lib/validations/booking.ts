@@ -128,7 +128,6 @@ export const schemaBookingReadPublic = Booking.extend({
   title: true,
   startTime: true,
   endTime: true,
-  timeZone: true,
   attendees: true,
   user: true,
   eventType: true,

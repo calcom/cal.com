@@ -6,7 +6,6 @@ export const schemaDestinationCalendarBaseBodyParams = DestinationCalendarSchema
   integration: true,
   externalId: true,
   eventTypeId: true,
-  bookingId: true,
   userId: true,
 }).partial();
 
@@ -43,6 +42,5 @@ export const schemaDestinationCalendarReadPublic = DestinationCalendarSchema.pic
   integration: true,
   externalId: true,
   eventTypeId: true,
-  bookingId: true,
   userId: true,
 });
