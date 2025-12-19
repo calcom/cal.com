@@ -1,19 +1,19 @@
-import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
-import prisma from "@calcom/prisma";
+import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
 
 export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,
   loggedInUserId,
   verificationCode,
-  isReschedule,
+  userRepository,
 }: {
   bookerEmail: string;
   loggedInUserId?: number;
   verificationCode?: string;
-  isReschedule: boolean;
+  userRepository: UserRepository;
 }) => {
   const baseEmail = extractBaseEmail(bookerEmail);
 
@@ -25,36 +25,10 @@ export const checkIfBookerEmailIsBlocked = async ({
     (guestEmail: string) => guestEmail.toLowerCase() === baseEmail.toLowerCase()
   );
 
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        {
-          email: baseEmail,
-          emailVerified: {
-            not: null,
-          },
-        },
-        {
-          secondaryEmails: {
-            some: {
-              email: baseEmail,
-              emailVerified: {
-                not: null,
-              },
-            },
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      email: true,
-      requiresBookerEmailVerification: true,
-    },
-  });
+  const user = await userRepository.findVerifiedUserByEmail({ email: baseEmail });
 
   const blockedByUserSetting = user?.requiresBookerEmailVerification ?? false;
-  const shouldBlock = !!blacklistedByEnv || (blockedByUserSetting && !isReschedule);
+  const shouldBlock = !!blacklistedByEnv || blockedByUserSetting;
 
   if (!shouldBlock) {
     return false;

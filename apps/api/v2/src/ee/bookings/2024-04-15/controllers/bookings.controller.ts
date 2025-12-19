@@ -7,20 +7,13 @@ import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ma
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
-import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
-import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
 import { RegularBookingService } from "@/lib/services/regular-booking.service";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import {
-  AuthOptionalUser,
-  GetOptionalUser,
-} from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
@@ -45,8 +38,6 @@ import {
   NotFoundException,
   UseGuards,
   BadRequestException,
-  UnauthorizedException,
-  ForbiddenException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
@@ -122,10 +113,8 @@ export class BookingsController_2024_04_15 {
     private readonly usersService: UsersService,
     private readonly regularBookingService: RegularBookingService,
     private readonly recurringBookingService: RecurringBookingService,
-    private readonly instantBookingCreateService: InstantBookingCreateService,
-    private readonly eventTypeRepository: PrismaEventTypeRepository,
-    private readonly teamRepository: PrismaTeamRepository
-  ) { }
+    private readonly instantBookingCreateService: InstantBookingCreateService
+  ) {}
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
@@ -177,12 +166,8 @@ export class BookingsController_2024_04_15 {
   }
 
   @Get("/:bookingUid/reschedule")
-  @UseGuards(OptionalApiAuthGuard)
-  async getBookingForReschedule(
-    @Param("bookingUid") bookingUid: string,
-    @GetOptionalUser() user: AuthOptionalUser
-  ): Promise<ApiResponse<unknown>> {
-    const booking = await getBookingForReschedule(bookingUid, user?.id);
+  async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
+    const booking = await getBookingForReschedule(bookingUid);
 
     if (!booking) {
       throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
@@ -205,8 +190,6 @@ export class BookingsController_2024_04_15 {
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
     try {
-      await this.checkBookingRequiresAuthentication(req, body.eventTypeId, body.rescheduleUid);
-
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -270,7 +253,6 @@ export class BookingsController_2024_04_15 {
         const res = await handleCancelBooking({
           bookingData: bookingRequest.body,
           userId: bookingRequest.userId,
-          userUuid: bookingRequest.userUuid,
           arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
           platformClientId: bookingRequest.platformClientId,
           platformCancelUrl: bookingRequest.platformCancelUrl,
@@ -301,7 +283,7 @@ export class BookingsController_2024_04_15 {
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard)
   async markNoShow(
-    @GetUser() user: UserWithProfile,
+    @GetUser("id") userId: number,
     @Body() body: MarkNoShowInput_2024_04_15,
     @Param("bookingUid") bookingUid: string
   ): Promise<MarkNoShowOutput_2024_04_15> {
@@ -310,8 +292,7 @@ export class BookingsController_2024_04_15 {
         bookingUid: bookingUid,
         attendees: body.attendees,
         noShowHost: body.noShowHost,
-        userId: user.id,
-        userUuid: user.uuid,
+        userId,
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
@@ -380,7 +361,7 @@ export class BookingsController_2024_04_15 {
   ): Promise<ApiResponse<InstantBookingCreateResult>> {
     const oAuthClientId =
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
-    req.userId = (await this.getOwner(req))?.id ?? -1;
+    req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
       const bookingReq = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
       const instantMeeting = await this.instantBookingCreateService.createBooking({
@@ -407,45 +388,30 @@ export class BookingsController_2024_04_15 {
     throw new InternalServerErrorException("Could not create instant booking.");
   }
 
-  private async getOwner(req: Request): Promise<{ id: number; uuid: string } | null> {
+  private async getOwnerId(req: Request): Promise<number | undefined> {
     try {
       const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (!bearerToken) {
-        return null;
+      if (bearerToken) {
+        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
+          const apiKeyHash = sha256Hash(strippedApiKey);
+          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
+          return keyData?.userId;
+        } else {
+          // Access Token
+          const ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
+          return ownerId;
+        }
       }
-
-      let ownerId: number | null = null;
-
-      if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
-        const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-        const apiKeyHash = sha256Hash(strippedApiKey);
-        const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
-        ownerId = keyData?.userId ?? null;
-      } else {
-        // Access Token
-        ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
-      }
-
-      if (!ownerId) {
-        return null;
-      }
-
-      const user = await this.usersRepository.findById(ownerId);
-      if (!user) {
-        return null;
-      }
-
-      return { id: user.id, uuid: user.uuid };
     } catch (err) {
       this.logger.error(err);
-      return null;
     }
   }
 
-  private async getOwnerRescheduledBooking(
+  private async getOwnerIdRescheduledBooking(
     request: Request,
     platformClientId?: string
-  ): Promise<{ id: number; uuid: string } | null> {
+  ): Promise<number | undefined> {
     if (
       platformClientId &&
       request.body.rescheduledBy &&
@@ -457,15 +423,13 @@ export class BookingsController_2024_04_15 {
       );
     }
 
-    if (request.body.rescheduledBy && request.body.rescheduledBy !== request.body.responses.email) {
-      const user = await this.usersRepository.findByEmail(request.body.rescheduledBy);
-      if (!user) {
-        return null;
+    if (request.body.rescheduledBy) {
+      if (request.body.rescheduledBy !== request.body.responses.email) {
+        return (await this.usersRepository.findByEmail(request.body.rescheduledBy))?.id;
       }
-      return { id: user.id, uuid: user.uuid };
     }
 
-    return null;
+    return undefined;
   }
 
   private async getOAuthClientIdFromEventType(eventTypeId: number): Promise<string | undefined> {
@@ -477,77 +441,6 @@ export class BookingsController_2024_04_15 {
       return undefined;
     }
     return oAuthClientParams.platformClientId;
-  }
-
-  private async isValidRescheduleBooking(rescheduleUid: string, eventTypeId: number): Promise<boolean> {
-    const { bookingInfo } = await getBookingInfo(rescheduleUid);
-    if (!bookingInfo) {
-      return false;
-    }
-    if (bookingInfo.status !== "ACCEPTED" && bookingInfo.status !== "PENDING") {
-      return false;
-    }
-    if (bookingInfo.eventTypeId !== eventTypeId) {
-      return false;
-    }
-    return true;
-  }
-
-  private async checkBookingRequiresAuthentication(
-    req: Request,
-    eventTypeId: number,
-    rescheduleUid?: string
-  ): Promise<void> {
-    const eventType = await this.eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
-      id: eventTypeId,
-    });
-
-    if (!eventType?.bookingRequiresAuthentication) {
-      return;
-    }
-
-    if (rescheduleUid) {
-      const isValidRescheduleBooking = await this.isValidRescheduleBooking(rescheduleUid, eventTypeId);
-      if (isValidRescheduleBooking) {
-        return;
-      } else {
-        throw new BadRequestException(
-          "Trying to reschedule an event-type which requires authentication but provided invalid rescheduleUid."
-        );
-      }
-    }
-
-    const owner = await this.getOwner(req);
-    const userId = owner?.id;
-
-    if (!userId) {
-      throw new UnauthorizedException(
-        "This event type requires authentication. Please provide valid credentials."
-      );
-    }
-
-    const isEventTypeOwner = eventType.userId === userId;
-    const isHost = eventType.hosts.some((host) => host.userId === userId);
-    const isTeamAdminOrOwner = eventType.team?.members.some((member) => member.userId === userId) ?? false;
-
-    let isOrgAdminOrOwner = false;
-    if (eventType.team?.parentId) {
-      const orgTeam = await this.teamRepository.getTeamByIdIfUserIsAdmin({
-        userId,
-        teamId: eventType.team.parentId,
-      });
-      isOrgAdminOrOwner = !!orgTeam;
-    } else if (eventType.team?.isOrganization) {
-      isOrgAdminOrOwner = isTeamAdminOrOwner;
-    }
-
-    const isAuthorized = isEventTypeOwner || isHost || isTeamAdminOrOwner || isOrgAdminOrOwner;
-
-    if (!isAuthorized) {
-      throw new ForbiddenException(
-        "You are not authorized to book this event type. You must be the event type owner, a host, a team admin/owner, or an organization admin/owner."
-      );
-    }
   }
 
   private async getOAuthClientsParams(clientId: string, isEmbed = false): Promise<OAuthRequestParams> {
@@ -581,16 +474,12 @@ export class BookingsController_2024_04_15 {
     oAuthClientId?: string,
     platformBookingLocation?: string,
     isEmbed?: string
-  ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
+  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const requestId = req.get("X-Request-Id");
     const clone = { ...req };
-    const owner = clone.body.rescheduleUid
-      ? await this.getOwnerRescheduledBooking(req, oAuthClientId)
-      : await this.getOwner(req);
-
-    const userId = owner?.id;
-    const userUuid = owner?.uuid;
-
+    const userId = clone.body.rescheduleUid
+      ? await this.getOwnerIdRescheduledBooking(req, oAuthClientId)
+      : await this.getOwnerId(req);
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
@@ -601,7 +490,7 @@ export class BookingsController_2024_04_15 {
       oAuthClientId,
       ...oAuthParams,
     });
-    Object.assign(clone, { userId, userUuid, ...oAuthParams, platformBookingLocation });
+    Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
     clone.body = {
       ...clone.body,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
@@ -610,13 +499,10 @@ export class BookingsController_2024_04_15 {
     if (oAuthClientId) {
       await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
     }
-    return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
+    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
-  async setPlatformAttendeesEmails(
-    requestBody: { responses?: { email?: string; guests?: string[] } },
-    oAuthClientId: string
-  ): Promise<void> {
+  async setPlatformAttendeesEmails(requestBody: any, oAuthClientId: string): Promise<void> {
     if (requestBody?.responses?.email) {
       requestBody.responses.email = await this.platformBookingsService.getPlatformAttendeeEmail(
         requestBody.responses.email,
@@ -636,12 +522,9 @@ export class BookingsController_2024_04_15 {
     oAuthClientId?: string,
     platformBookingLocation?: string,
     isEmbed?: string
-  ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
+  ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const clone = { ...req };
-    const owner = await this.getOwner(req);
-    const userId = owner?.id ?? -1;
-    const userUuid = owner?.uuid;
-
+    const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
@@ -655,7 +538,6 @@ export class BookingsController_2024_04_15 {
     });
     Object.assign(clone, {
       userId,
-      userUuid,
       ...oAuthParams,
       platformBookingLocation,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
@@ -664,7 +546,7 @@ export class BookingsController_2024_04_15 {
     if (oAuthClientId) {
       await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
     }
-    return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
+    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
   private handleBookingErrors(
@@ -682,9 +564,6 @@ export class BookingsController_2024_04_15 {
 
     if (err instanceof Error) {
       const error = err as Error;
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
       if (Object.values(ErrorCode).includes(error.message as unknown as ErrorCode)) {
         throw new HttpException(error.message, 400);
       }
