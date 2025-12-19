@@ -1,8 +1,10 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import defaultPrisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import type { WebhookSubscriber } from "./dto/types";
+import { WebhookOutputMapper } from "./infrastructure/mappers/WebhookOutputMapper";
 
 export type GetSubscriberOptions = {
   userId?: number | null;
@@ -13,25 +15,11 @@ export type GetSubscriberOptions = {
   oAuthClientId?: string | null;
 };
 
-const webhookSelect = {
-  id: true,
-  subscriberUrl: true,
-  payloadTemplate: true,
-  appId: true,
-  secret: true,
-  time: true,
-  timeUnit: true,
-  eventTriggers: true,
-} satisfies Prisma.WebhookSelect;
-
-export type GetWebhooksReturnType = Prisma.WebhookGetPayload<{
-  select: typeof webhookSelect;
-}>[];
 
 const getWebhooks = async (
   options: GetSubscriberOptions,
   prisma: PrismaClient = defaultPrisma
-): Promise<GetWebhooksReturnType> => {
+): Promise<WebhookSubscriber[]> => {
   const teamId = options.teamId;
   const userId = options.userId ?? 0;
   const eventTypeId = options.eventTypeId ?? 0;
@@ -85,10 +73,20 @@ const getWebhooks = async (
         },
       },
     },
-    select: webhookSelect,
+    select: {
+      id: true,
+      subscriberUrl: true,
+      payloadTemplate: true,
+      appId: true,
+      secret: true,
+      time: true,
+      timeUnit: true,
+      eventTriggers: true,
+      version: true,
+    },
   });
 
-  return allWebhooks;
+  return allWebhooks.map(WebhookOutputMapper.toSubscriberPartial);
 };
 
 export default withReporting(getWebhooks, "getWebhooks");
