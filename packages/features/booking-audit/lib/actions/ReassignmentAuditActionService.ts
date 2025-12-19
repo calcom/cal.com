@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
 
 /**
  * Reassignment Audit Action Service
@@ -15,12 +15,12 @@ const fieldsSchemaV1 = z.object({
     assignedToId: NumberChangeSchema,
     assignedById: NumberChangeSchema,
     reassignmentReason: StringChangeSchema,
+    reassignmentType: z.enum(["manual", "roundRobin"]),
     userPrimaryEmail: StringChangeSchema.optional(),
     title: StringChangeSchema.optional(),
 });
 
-export class ReassignmentAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class ReassignmentAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "REASSIGNMENT" as const;
     private static dataSchemaV1 = z.object({
@@ -64,8 +64,8 @@ export class ReassignmentAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): Promise<TranslationWithParams> {
-        const { fields } = storedData;
+    async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+        const { fields } = this.parseStored(storedData);
         const user = await this.userRepository.findById({ id: fields.assignedToId.new });
         const reassignedToName = user?.name || "Unknown";
         return {
@@ -74,12 +74,29 @@ export class ReassignmentAuditActionService
         };
     }
 
-    getDisplayJson(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }): ReassignmentAuditDisplayData {
-        const { fields } = storedData;
+    getDisplayJson({
+        storedData,
+    }: GetDisplayJsonParams): ReassignmentAuditDisplayData {
+        const { fields } = this.parseStored(storedData);
         return {
             newAssignedToId: fields.assignedToId.new,
             reassignmentReason: fields.reassignmentReason.new ?? null,
         };
+    }
+
+    getDisplayFields(storedData: BaseStoredAuditData): Array<{
+        labelKey: string;
+        valueKey: string;
+    }> {
+        const { fields } = storedData;
+        const typeTranslationKey = `booking_audit_action.assignmentType_${fields.reassignmentType}`;
+
+        return [
+            {
+                labelKey: "booking_audit_action.type",
+                valueKey: typeTranslationKey,
+            }
+        ];
     }
 }
 

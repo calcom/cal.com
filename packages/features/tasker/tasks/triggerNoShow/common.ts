@@ -28,7 +28,7 @@ type ParticipantsWithEmail = (Participants[number] & { email?: string; isLoggedI
 export function sendWebhookPayload(
   webhook: Webhook,
   triggerEvent: WebhookTriggerEvents,
-  booking: Booking,
+  booking: Booking & { guests?: Booking["attendees"] },
   maxStartTime: number,
   participants: ParticipantsWithEmail,
   originalRescheduledBooking?: OriginalRescheduledBooking,
@@ -50,6 +50,12 @@ export function sendWebhookPayload(
       endTime: booking.endTime,
       participants,
       ...(hostEmail ? { hostEmail } : {}),
+      ...(triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+        ? { noShowHost: booking.noShowHost }
+        : {}),
+      ...(triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW && booking.guests
+        ? { guests: booking.guests }
+        : {}),
       ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
@@ -134,6 +140,7 @@ export const prepareNoShowTrigger = async (
 ): Promise<{
   booking: Booking;
   webhook: TWebhook;
+  hosts: Host[];
   hostsThatDidntJoinTheCall: Host[];
   hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
@@ -228,6 +235,7 @@ export const prepareNoShowTrigger = async (
   }
 
   return {
+    hosts,
     hostsThatDidntJoinTheCall,
     hostsThatJoinedTheCall,
     booking,
