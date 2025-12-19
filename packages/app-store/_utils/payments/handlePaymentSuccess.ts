@@ -15,6 +15,7 @@ import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-c
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -180,6 +181,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
 
     // Trigger BOOKING_PAID workflows
     try {
+      const meetingUrl = getVideoCallUrlFromCalEvent(evt);
       const calendarEventForWorkflow = {
         ...evt,
         eventType: {
@@ -193,7 +195,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number,
             })) || [],
         },
         bookerUrl: bookerUrl,
-        metadata: { videoCallUrl: evt.videoCallData?.url },
+        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
       };
 
       const creditService = new CreditService();
