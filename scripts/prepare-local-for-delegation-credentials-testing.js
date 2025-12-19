@@ -62,7 +62,12 @@ async function main() {
     },
   });
   if (!delegationFeature) {
-    await featuresRepository.setTeamFeatureState(org.id, "delegation-credential", "enabled", "prepare-local-script");
+    await featuresRepository.setTeamFeatureState({
+      teamId: org.id,
+      featureId: "delegation-credential",
+      state: "enabled",
+      assignedBy: "prepare-local-script",
+    });
     console.log("Created TeamFeatures: delegation-credential");
   } else {
     console.log("TeamFeatures: delegation-credential already exists, skipping.");
@@ -79,7 +84,12 @@ async function main() {
     },
   });
   if (!calendarCacheFeature) {
-    await featuresRepository.setTeamFeatureState(org.id, "calendar-cache", "enabled", "prepare-local-script");
+    await featuresRepository.setTeamFeatureState({
+      teamId: org.id,
+      featureId: "calendar-cache",
+      state: "enabled",
+      assignedBy: "prepare-local-script",
+    });
     console.log("Created TeamFeatures: calendar-cache");
   } else {
     console.log("TeamFeatures: calendar-cache already exists, skipping.");
