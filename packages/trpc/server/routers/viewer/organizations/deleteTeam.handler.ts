@@ -1,4 +1,6 @@
+import logger from "@calcom/lib/logger";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -20,6 +22,7 @@ export const deleteTeamHandler = async ({ ctx, input }: DeleteOptions) => {
     select: {
       id: true,
       parentId: true,
+      metadata: true,
     },
   });
 
@@ -46,8 +49,19 @@ export const deleteTeamHandler = async ({ ctx, input }: DeleteOptions) => {
       message: "You are not authorized to delete teams in this organization",
     });
   }
-
-  // delete all memberships
+   
+ // Safe Stripe Cancellation Fix
+  const metadata = team.metadata as { subscriptionId?: string } | null;
+  if (metadata?.subscriptionId) {
+    try {
+      await stripe.subscriptions.cancel(metadata.subscriptionId);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error("Failed to cancel Stripe subscription during team disband", { message: error.message });
+      }
+    }
+  }
+ 
   await prisma.membership.deleteMany({
     where: {
       teamId: input.teamId,
