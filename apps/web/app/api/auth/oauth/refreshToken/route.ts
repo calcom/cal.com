@@ -52,7 +52,7 @@ async function handler(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ error: "error_refresh_tokens" }, { status: 500 });
+  return NextResponse.json({ error: "server_error" }, { status: 500 });
 }
 
 export const POST = defaultResponderForAppDir(handler);
