@@ -1,5 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { User } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 
@@ -22,7 +22,7 @@ export function VoiceSelector({ selectedVoiceId, onVoiceDialogOpen, disabled = f
         onClick={onVoiceDialogOpen}
         disabled={disabled}
         className="w-full justify-start">
-        <User className="mr-2 h-4 w-4" />
+        <Icon name="user" className="mr-2 h-4 w-4" />
         {selectedVoiceId ? <span className="text-sm">{selectedVoiceId}</span> : t("select_voice")}
       </Button>
     </div>

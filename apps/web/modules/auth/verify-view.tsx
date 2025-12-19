@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TriangleAlert, MailOpen } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { signIn } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -59,7 +59,7 @@ const querySchema = z.object({
 
 const PaymentFailedIcon = () => (
   <div className="rounded-full bg-orange-900 p-3">
-    <TriangleAlert className="h-6 w-6 shrink-0 p-0.5 font-extralight text-orange-100" />
+    <Icon name="triangle-alert" className="h-6 w-6 shrink-0 p-0.5 font-extralight text-orange-100" />
   </div>
 );
 
@@ -108,7 +108,7 @@ const PaymentSuccess = () => (
 
 const MailOpenIcon = () => (
   <div className="bg-default rounded-full p-3">
-    <MailOpen className="text-emphasis h-12 w-12 shrink-0 p-0.5 font-extralight" />
+    <Icon name="mail-open" className="text-emphasis h-12 w-12 shrink-0 p-0.5 font-extralight" />
   </div>
 );
 

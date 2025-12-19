@@ -1,8 +1,8 @@
 import { SatSymbol } from "@calcom/ui/components/icon";
-import { CreditCard } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 export function PriceIcon(props: { currency: string; className?: string }) {
   const { className, currency } = props;
-  if (currency !== "BTC") return <CreditCard className={className} />;
+  if (currency !== "BTC") return <Icon name="credit-card" className={className} />;
   return <SatSymbol className={className} />;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Users, RefreshCcw, UserPlus } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -14,17 +14,17 @@ export default function UpgradeTipWrapper({ children }: { children: React.ReactN
   const session = useSession();
   const features = [
     {
-      icon: <Users className="h-5 w-5" />,
+      icon: <Icon name="users" className="h-5 w-5" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <RefreshCcw className="h-5 w-5" />,
+      icon: <Icon name="refresh-ccw" className="h-5 w-5" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <UserPlus className="h-5 w-5" />,
+      icon: <Icon name="user-plus" className="h-5 w-5" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },

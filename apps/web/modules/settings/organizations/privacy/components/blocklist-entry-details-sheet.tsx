@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { ExternalLink } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -102,7 +102,7 @@ export function BlocklistEntryDetailsSheet({
                           <Link key={report.booking.uid} href={`/booking/${report.booking.uid}`}>
                             <div className="text-subtle flex items-center gap-1 text-sm">
                               {report.booking.title}
-                              <ExternalLink className="h-4 w-4" />
+                              <Icon name="external-link" className="h-4 w-4" />
                             </div>
                           </Link>
                         );

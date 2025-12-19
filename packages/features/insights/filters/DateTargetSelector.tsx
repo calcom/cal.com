@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -66,7 +66,7 @@ export const DateTargetSelector = ({ value, onChange }: DateTargetSelectorProps)
                   <div className="text-muted-foreground text-sm">{option.description}</div>
                 </div>
                 {selectedOption.value === option.value && (
-                  <Check className="text-primary-foreground h-4 w-4" />
+                  <Icon name="check" className="text-primary-foreground h-4 w-4" />
                 )}
               </CommandItem>
             ))}

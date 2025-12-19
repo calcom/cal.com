@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
 
@@ -236,7 +236,7 @@ export const DateRangeFilter = ({
                     updateDateRangeFromPreset(option.value);
                   }}>
                   <span className="capitalize">{t(option.labelKey, option.i18nOptions)}</span>
-                  {selectedPreset.value === option.value && <Check />}
+                  {selectedPreset.value === option.value && <Icon name="check" />}
                 </CommandItem>
               ))}
             </CommandList>

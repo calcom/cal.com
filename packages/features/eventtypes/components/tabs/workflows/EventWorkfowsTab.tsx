@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lock } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -153,7 +153,7 @@ const WorkflowListItem = (props: ItemProps) => {
           }>
           <div className="flex items-center ltr:mr-2 rtl:ml-2">
             {workflow.readOnly && props.isChildrenManagedEventType && (
-              <Lock className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
             )}
             <Switch
               checked={isActive}

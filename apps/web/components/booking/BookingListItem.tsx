@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RefreshCcw, EyeOff } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useState, useEffect, useRef } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -652,7 +652,7 @@ const RecurringBookingsTooltip = ({
                 );
               })}>
               <div className="text-default">
-                <RefreshCcw strokeWidth="3"
+                <Icon name="refresh-ccw" strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3" />
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
@@ -735,7 +735,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
             <>
-              {displayName} <EyeOff className="inline h-4" />
+              {displayName} <Icon name="eye-off" className="inline h-4" />
             </>
           ) : (
             <>{displayName}</>

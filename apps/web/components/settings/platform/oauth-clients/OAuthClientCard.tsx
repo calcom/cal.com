@@ -1,5 +1,4 @@
 import { useRouter } from "next/navigation";
-import { Asterisk } from "lucide-react";
 import React from "react";
 
 import type { PERMISSION_MAP } from "@calcom/platform-constants";
@@ -118,7 +117,7 @@ export const OAuthClientCard = ({
           <div className="font-semibold">Client Secret:</div>
           <div className="flex items-center justify-center rounded-md">
             {[...new Array(20)].map((_, index) => (
-              <Asterisk key={`${index}asterisk`} className="h-2 w-2" />
+              <Icon name="asterisk" key={`${index}asterisk`} className="h-2 w-2" />
             ))}
             <Icon
               name="clipboard"

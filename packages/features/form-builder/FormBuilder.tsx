@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Mail, Phone, ArrowUp, ArrowDown } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
@@ -169,12 +169,12 @@ export const FormBuilder = function FormBuilder({
                 {
                   value: "email",
                   label: "Email",
-                  iconLeft: <Mail className="h-4 w-4" />,
+                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
                 },
                 {
                   value: "phone",
                   label: "Phone",
-                  iconLeft: <Phone className="h-4 w-4" />,
+                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
                 },
               ]}
               onValueChange={(value) => {
@@ -278,7 +278,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
-                        <ArrowUp className="h-5 w-5" />
+                        <Icon name="arrow-up" className="h-5 w-5" />
                       </button>
                     )}
                     {index < fields.length - 1 && (
@@ -286,7 +286,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
-                        <ArrowDown className="h-5 w-5" />
+                        <Icon name="arrow-down" className="h-5 w-5" />
                       </button>
                     )}
                   </>

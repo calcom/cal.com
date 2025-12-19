@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Info } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { vi } from "vitest";
 
 import { Badge, badgeStyles } from "./Badge";
@@ -45,7 +45,7 @@ describe("Badge", () => {
   });
 
   test("renders with customStartIcon when provided", () => {
-    render(<Badge customStartIcon={<Info data-testid="custom-icon" />}>{children}</Badge>);
+    render(<Badge customStartIcon={<Icon name="info" />}>{children}</Badge>);
     expect(screen.getByTestId("custom-icon")).toBeInTheDocument();
   });
 

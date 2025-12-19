@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { FileText, Shuffle, ChartBar, CircleCheck, Mail, Download } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import posthog from "posthog-js";
@@ -91,32 +91,32 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const forms = queryRes.data?.filtered;
   const features = [
     {
-      icon: <FileText className="h-5 w-5 text-orange-500" />,
+      icon: <Icon name="file-text" className="h-5 w-5 text-orange-500" />,
       title: t("create_your_first_form"),
       description: t("create_your_first_form_description"),
     },
     {
-      icon: <Shuffle className="h-5 w-5 text-lime-500" />,
+      icon: <Icon name="shuffle" className="h-5 w-5 text-lime-500" />,
       title: t("create_your_first_route"),
       description: t("route_to_the_right_person"),
     },
     {
-      icon: <ChartBar className="h-5 w-5 text-blue-500" />,
+      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
       title: t("reporting"),
       description: t("reporting_feature"),
     },
     {
-      icon: <CircleCheck className="h-5 w-5 text-teal-500" />,
+      icon: <Icon name="circle-check" className="h-5 w-5 text-teal-500" />,
       title: t("test_routing_form"),
       description: t("test_preview_description"),
     },
     {
-      icon: <Mail className="h-5 w-5 text-yellow-500" />,
+      icon: <Icon name="mail" className="h-5 w-5 text-yellow-500" />,
       title: t("routing_forms_send_email_owner"),
       description: t("routing_forms_send_email_owner_description"),
     },
     {
-      icon: <Download className="h-5 w-5 text-violet-500" />,
+      icon: <Icon name="download" className="h-5 w-5 text-violet-500" />,
       title: t("download_responses"),
       description: t("download_responses_description"),
     },

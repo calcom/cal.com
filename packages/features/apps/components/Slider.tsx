@@ -1,7 +1,7 @@
 "use client";
 
 import type { Options } from "@glidejs/glide";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import Glide from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
@@ -64,10 +64,10 @@ export const Slider = <T extends string | unknown>({
           )}
           <div className="glide__arrows ml-auto flex items-center gap-x-1" data-glide-el="controls">
             <SliderButton data-glide-dir="<">
-              <ArrowLeft className="h-5 w-5" />
+              <Icon name="arrow-left" className="h-5 w-5" />
             </SliderButton>
             <SliderButton data-glide-dir=">">
-              <ArrowRight className="h-5 w-5" />
+              <Icon name="arrow-right" className="h-5 w-5" />
             </SliderButton>
           </div>
         </div>

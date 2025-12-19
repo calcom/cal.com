@@ -1,7 +1,7 @@
 "use client";
 
 import { APP_NAME } from "@calcom/lib/constants";
-import { User, Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
@@ -73,7 +73,7 @@ export function WelcomeToCalcomModal() {
                   top: "50%",
                   transform: "translate(-50%, -50%)",
                 }}>
-                <User className="text-emphasis opacity-70"
+                <Icon name="user" className="text-emphasis opacity-70"
                   style={{ width: LARGE.icon, height: LARGE.icon }} />
               </div>
             </div>
@@ -89,7 +89,7 @@ export function WelcomeToCalcomModal() {
           <div className="mb-2 flex flex-col gap-3">
             {features.map((feature) => (
               <div key={feature} className="flex items-start gap-2">
-                <Check className="text-muted mt-0.5 h-4 w-4 shrink-0" />
+                <Icon name="check" className="text-muted mt-0.5 h-4 w-4 shrink-0" />
                 <span className="text-default text-sm font-medium leading-tight">{t(feature)}</span>
               </div>
             ))}

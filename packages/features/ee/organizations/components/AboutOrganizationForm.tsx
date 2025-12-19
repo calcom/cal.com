@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
@@ -50,7 +50,7 @@ export const AboutOrganizationForm = () => {
                 <div className="flex items-center">
                   <Avatar
                     alt=""
-                    fallback={<Plus className="text-subtle h-6 w-6" />}
+                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                     className="items-center"
                     imageSrc={value}
                     size="lg"

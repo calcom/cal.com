@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { Loader } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 
@@ -10,7 +10,7 @@ export default function TroubleshooterLayout({ children }: { children: React.Rea
     <>
       <div className="flex flex-1 *:flex-1">
         <ErrorBoundary>
-          <Suspense fallback={<Loader />}>{children}</Suspense>
+          <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
         </ErrorBoundary>
       </div>
     </>

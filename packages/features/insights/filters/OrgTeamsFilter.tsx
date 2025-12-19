@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { Layers } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useState } from "react";
 
 import {
@@ -100,7 +100,7 @@ export const OrgTeamsFilter = () => {
           <FilterCheckboxField
             id="all"
             testId="org-teams-filter-item"
-            icon={<Layers className="h-4 w-4" />}
+            icon={<Icon name="layers" className="h-4 w-4" />}
             checked={orgTeamsType === "org"}
             onChange={(e) => {
               if (e.target.checked) {

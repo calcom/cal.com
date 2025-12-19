@@ -1,5 +1,5 @@
 import type { GroupBase, Props, ValueContainerProps } from "react-select";
-import { Plus } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { components } from "react-select";
 
 import { Select } from "@calcom/ui/components/form";
@@ -24,7 +24,7 @@ const LimitedChipsContainer = <Option, IsMulti extends boolean, Group extends Gr
       {overflowCounter > 0 && (
         <span className="bg-subtle text-default flex items-center justify-center rounded-md px-2 py-[5px] text-[14px] font-medium leading-4">
           <>
-            <Plus className="mr-1 inline h-3 w-3 stroke-[3px]" />{" "}
+            <Icon name="plus" className="mr-1 inline h-3 w-3 stroke-[3px]" />{" "}
             <span>{overflowCounter} more</span>
           </>
         </span>

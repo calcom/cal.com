@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import type z from "zod";
 
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
@@ -105,7 +105,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-0.5">
               <div className="border-subtle rounded-lg border p-1">
-                <Globe className="text-subtle h-4 w-4" />
+                <Icon name="globe" className="text-subtle h-4 w-4" />
               </div>
               <div className="flex flex-col">
                 <span className="text-emphasis ml-2 text-sm font-medium">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Menu, Calendar } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -42,13 +42,13 @@ export function ViewToggleButton({ bookingsV3Enabled }: ViewToggleButtonProps) {
             value: "list",
             label: "",
             tooltip: t("list_view"),
-            iconLeft: <Menu className="h-4 w-4" />,
+            iconLeft: <Icon name="menu" className="h-4 w-4" />,
           },
           {
             value: "calendar",
             label: "",
             tooltip: t("calendar_view"),
-            iconLeft: <Calendar className="h-4 w-4" />,
+            iconLeft: <Icon name="calendar" className="h-4 w-4" />,
           },
         ]}
       />

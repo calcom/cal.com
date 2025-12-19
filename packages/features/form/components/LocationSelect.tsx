@@ -1,5 +1,5 @@
 import type { GroupBase, Props, SingleValue } from "react-select";
-import { Phone, MapPin, Link, Map, Video } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -47,19 +47,19 @@ const OptionWithIcon = ({
   const getIconFromValue = (value: string) => {
     switch (value) {
       case "phone":
-        return <Phone className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "userPhone":
-        return <Phone className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "inPerson":
-        return <MapPin className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "attendeeInPerson":
-        return <MapPin className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "link":
-        return <Link className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Icon name="link" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "somewhereElse":
-        return <Map className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Icon name="map" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       default:
-        return <Video className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <Icon name="video" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
     }
   };
 

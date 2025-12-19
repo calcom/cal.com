@@ -1,6 +1,6 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
 import * as HoverCard from "@radix-ui/react-hover-card";
-import { CalendarX2 } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 
@@ -284,7 +284,7 @@ export const AvailableTimes = ({
           <div
             data-testId="no-slots-available"
             className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
-            <CalendarX2 className="text-muted mb-2 h-4 w-4" />
+            <Icon name="calendar-x-2" className="text-muted mb-2 h-4 w-4" />
             <p className={classNames("text-muted", showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm")}>
               {t("all_booked_today")}
             </p>

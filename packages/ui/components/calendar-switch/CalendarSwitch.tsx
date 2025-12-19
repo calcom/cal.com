@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ArrowLeft, RotateCw } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { type ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import classNames from "@calcom/ui/classNames";
@@ -34,11 +34,11 @@ export function CalendarSwitchComponent(
       </label>
       {!!props.destination && (
         <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <ArrowLeft className="h-4 w-4" />
+          <Icon name="arrow-left" className="h-4 w-4" />
           {translations.spanText}
         </span>
       )}
-      {isLoading && <RotateCw className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
+      {isLoading && <Icon name="rotate-cw" className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
     </div>
   );
 }

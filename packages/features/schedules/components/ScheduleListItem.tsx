@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Globe } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
@@ -74,7 +74,7 @@ export function ScheduleListItem({
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <span className="my-1 flex items-center first-letter:text-xs">
-                  <Globe className="h-3.5 w-3.5" />
+                  <Icon name="globe" className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </span>
               )}

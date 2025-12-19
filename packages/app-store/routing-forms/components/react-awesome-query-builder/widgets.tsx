@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Trash } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import type { ChangeEvent } from "react";
 import type {
   ButtonGroupProps,
@@ -238,7 +238,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <Trash className="text-subtle m-0 h-4 w-4" onClick={onClick} />
+        <Icon name="trash" className="text-subtle m-0 h-4 w-4" onClick={onClick} />
       </button>
     );
   }

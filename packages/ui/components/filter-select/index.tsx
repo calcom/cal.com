@@ -1,5 +1,5 @@
 import classNames from "@calcom/ui/classNames";
-import { Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { Badge } from "../badge/Badge";
 import { Button } from "../button/Button";
@@ -78,7 +78,7 @@ export function FilterSelect({
                         "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                       )}>
-                      <Check className="h-4 w-4" />
+                      <Icon name="check" className="h-4 w-4" />
                     </div>
                     {option.icon}
                     <span>{option.label}</span>

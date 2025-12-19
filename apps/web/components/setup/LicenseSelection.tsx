@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader, Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import Link from "next/link";
@@ -180,9 +180,9 @@ const LicenseSelection = (
                       )}
                       addOnSuffix={
                         checkLicenseLoading ? (
-                          <Loader className="h-5 w-5 animate-spin" />
+                          <Icon name="loader" className="h-5 w-5 animate-spin" />
                         ) : licenseValidation?.valid && licenseTouched ? (
-                          <Check className="h-5 w-5 text-green-700" />
+                          <Icon name="check" className="h-5 w-5 text-green-700" />
                         ) : undefined
                       }
                       color={errors.licenseKey ? "warn" : ""}

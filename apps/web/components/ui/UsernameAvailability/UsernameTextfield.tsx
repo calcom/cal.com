@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
  
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";
@@ -143,7 +143,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             <div className="absolute right-[2px] top-6 flex h-7 flex-row">
               <span className={classNames("bg-default mx-0 p-3")}>
                 {usernameIsAvailable ? (
-                  <Check className="relative bottom-[6px] h-4 w-4" />
+                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
                 ) : (
                   <></>
                 )}

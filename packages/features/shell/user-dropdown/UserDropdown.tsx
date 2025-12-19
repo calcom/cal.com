@@ -1,5 +1,5 @@
 import { signOut } from "next-auth/react";
-import { ChevronDown, User, Settings, Moon } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
@@ -115,7 +115,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   {isPending ? "Loading..." : user?.name ?? "Nameless User"}
                 </span>
               </span>
-              <ChevronDown className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+              <Icon name="chevron-down" className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
                 aria-hidden="true" />
             </span>
           )}
@@ -137,7 +137,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     <DropdownItem
                       type="button"
                       CustomStartIcon={
-                        <User className="text-default h-4 w-4" aria-hidden="true" />
+                        <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
                       }
                       href="/settings/my-account/profile">
                       {t("my_profile")}
@@ -147,7 +147,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     <DropdownItem
                       type="button"
                       CustomStartIcon={
-                        <Settings className="text-default h-4 w-4" aria-hidden="true" />
+                        <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
                       }
                       href="/settings/my-account/general">
                       {t("my_settings")}
@@ -157,7 +157,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     <DropdownItem
                       type="button"
                       CustomStartIcon={
-                        <Moon className="text-default h-4 w-4" aria-hidden="true" />
+                        <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
                       }
                       href="/settings/my-account/out-of-office">
                       {t("out_of_office")}

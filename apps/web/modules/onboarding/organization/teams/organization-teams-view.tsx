@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -136,7 +136,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                           });
                           remove(index);
                         }}>
-                        <X className="h-4 w-4" />
+                        <Icon name="x" className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}

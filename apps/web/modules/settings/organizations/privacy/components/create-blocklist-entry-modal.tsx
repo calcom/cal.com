@@ -1,7 +1,7 @@
 "use client";
 
 import { Controller, useForm } from "react-hook-form";
-import { Mail, Globe } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -81,8 +81,8 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
   };
 
   const typeOptions = [
-    { label: t("email"), value: WatchlistType.EMAIL, iconLeft: <Mail className="h-4 w-4" /> },
-    { label: t("domain"), value: WatchlistType.DOMAIN, iconLeft: <Globe className="h-4 w-4" /> },
+    { label: t("email"), value: WatchlistType.EMAIL, iconLeft: <Icon name="mail" className="h-4 w-4" /> },
+    { label: t("domain"), value: WatchlistType.DOMAIN, iconLeft: <Icon name="globe" className="h-4 w-4" /> },
   ];
 
   return (

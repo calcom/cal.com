@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/Navbar";
-import { CircleCheckBig, X } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { Inter } from "next/font/google";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
@@ -40,7 +40,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             className="my-10 w-[440px] overflow-hidden rounded-md border-[0.7px] border-black px-10 py-5">
             {booking.status === "accepted" ? (
               <div className="mx-2 my-4 flex flex-col items-center justify-center text-center">
-                <CircleCheckBig className="my-5 flex h-[40px] w-[40px] rounded-full bg-green-500" />
+                <Icon name="circle-check-big" className="my-5 flex h-[40px] w-[40px] rounded-full bg-green-500" />
                 <h1 className="text-xl font-bold" data-testid="booking-success-message">
                   This meeting is scheduled
                 </h1>
@@ -48,7 +48,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               </div>
             ) : (
               <div className="mx-2 my-4 flex flex-col items-center justify-center text-center">
-                <X className="my-5 flex h-[40px] w-[40px] rounded-full bg-red-400" />
+                <Icon name="x" className="my-5 flex h-[40px] w-[40px] rounded-full bg-red-400" />
                 <h4 className="text-2xl font-bold">This event is cancelled</h4>
               </div>
             )}

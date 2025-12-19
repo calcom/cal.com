@@ -1,7 +1,7 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import { Info } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import React, {
   useMemo,
   useState,
@@ -227,7 +227,7 @@ const DateOverride = ({
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
-            <Info className="h-4 w-4" />
+            <Icon name="info" className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>

@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { X, CornerDownRight, Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -242,7 +242,7 @@ const Locations: React.FC<LocationsProps> = ({
                     }}
                     aria-label={t("remove")}>
                     <div className="h-4 w-4">
-                      <X className={classNames(
+                      <Icon name="x" className={classNames(
                           "hover:text-emphasis text-subtle h-4 w-4",
                           customClassNames?.removeLocationIcon
                         )} />
@@ -265,7 +265,7 @@ const Locations: React.FC<LocationsProps> = ({
                   <div className="w-full">
                     <div className="flex gap-2">
                       <div className="flex items-center justify-center">
-                        <CornerDownRight className="h-4 w-4" />
+                        <Icon name="corner-down-right" className="h-4 w-4" />
                       </div>
                       <LocationInput
                         data-testid={`${eventLocationType.type}-location-input`}
@@ -371,7 +371,7 @@ const Locations: React.FC<LocationsProps> = ({
         ) && (
           <div className="text-default flex items-center text-sm">
             <div className="mr-1.5 h-3 w-3">
-              <Check className="h-3 w-3" />
+              <Icon name="check" className="h-3 w-3" />
             </div>
             <p className="text-default text-sm">
               <ServerTrans

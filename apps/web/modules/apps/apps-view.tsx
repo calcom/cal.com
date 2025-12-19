@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChangeEventHandler } from "react";
-import { Search } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useState } from "react";
 
 import { AllApps } from "@calcom/features/apps/components/AllApps";
@@ -39,7 +39,7 @@ function AppsSearch({
   const { t } = useLocale();
   return (
     <TextField
-      addOnLeading={<Search className="text-subtle h-4 w-4" />}
+      addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
       containerClassName={classNames("focus:ring-offset-0! m-1", className)}
       type="search"

@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -205,7 +205,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
         {showContent ? (
           <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center stack-y-4 p-4 lg:stack-y-5">
             <div className="rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-              <Info className="mb-0.5 inline-flex h-4 w-4" /> Create or connect to an existing
+              <Icon name="info" className="mb-0.5 inline-flex h-4 w-4" /> Create or connect to an existing
               HitPay account to receive payments for your paid bookings.
             </div>
 

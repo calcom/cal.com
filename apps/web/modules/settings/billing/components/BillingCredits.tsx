@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Info } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -236,7 +236,7 @@ export default function BillingCredits() {
                       {numberFormatter.format(creditsData.credits.additionalCredits)}
                     </p>
                     <Tooltip content={t("view_additional_credits_expense_tip")}>
-                      <Info className="text-emphasis h-3 w-3" />
+                      <Icon name="info" className="text-emphasis h-3 w-3" />
                     </Tooltip>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-import { Check, ChevronRight } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -137,7 +137,7 @@ function SelectedAttributeToAssign() {
                       "ml-auto flex h-4 w-4 items-center justify-center rounded-sm border"
                     )}>
                     {selectedAttributeOptions?.includes(option.id) ? (
-                      <Check className={classNames("h-4 w-4")} />
+                      <Icon name="check" className={classNames("h-4 w-4")} />
                     ) : null}
                   </div>
                 </CommandItem>
@@ -194,7 +194,7 @@ function Content({ showMultiSelectWarning }: { showMultiSelectWarning: boolean }
                     <span>{option.name}</span>
                     <div
                       className={classNames("ml-auto flex h-4 w-4 items-center justify-center rounded-sm")}>
-                      <ChevronRight className={classNames("h-4 w-4")} />
+                      <Icon name="chevron-right" className={classNames("h-4 w-4")} />
                     </div>
                   </CommandItem>
                 );

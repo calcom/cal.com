@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Plus, Info } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -67,7 +67,7 @@ export default function Authorize() {
           {client.logo ? (
             <Avatar
               alt=""
-              fallback={<Plus className="text-subtle h-6 w-6" />}
+              fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
               className="items-center"
               imageSrc={client.logo}
               size="lg"
@@ -75,7 +75,7 @@ export default function Authorize() {
           ) : (
             <Avatar
               alt=""
-              fallback={<Plus className="text-subtle h-6 w-6" />}
+              fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
               className="items-center"
               imageSrc="/cal-com-icon.svg"
               size="lg"
@@ -98,7 +98,7 @@ export default function Authorize() {
         <ul className="stack-y-4 text-sm text-black">{permissions}</ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
-            <Info className="mr-1 mt-0.5 h-4 w-4" />
+            <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1 ">
             <div className="mb-1 text-sm font-medium">

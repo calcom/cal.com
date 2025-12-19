@@ -1,5 +1,5 @@
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
-import { Clipboard } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -100,7 +100,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <Clipboard className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
+              <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>
@@ -122,7 +122,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <Clipboard className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
+              <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>
@@ -158,7 +158,7 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
-              <Clipboard className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
+              <Icon name="clipboard" className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
               {t("copy")}
             </Button>
           </Tooltip>

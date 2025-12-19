@@ -1,10 +1,10 @@
-import { Link, MapPin } from "lucide-react";
 
 import type {
   DefaultEventLocationType,
   EventLocationTypeFromApp,
   LocationObject,
 } from "@calcom/app-store/locations";
+import { Icon } from "@calcom/ui";
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -82,7 +82,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       return (
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
           {eventLocationType.iconUrl === "/link.svg" ? (
-            <Link className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+            <Icon name="link" className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
           ) : (
             <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
           )}
@@ -99,7 +99,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
   return filteredLocations.length > 1 ? (
     <div className="flex flex-row items-center text-sm font-medium">
       {isPlatform ? (
-        <MapPin className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")} />
+        <Icon name="map-pin" className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")} />
       ) : (
         <img
           src="/map-pin-dark.svg"

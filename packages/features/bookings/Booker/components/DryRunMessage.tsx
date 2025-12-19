@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Info } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -17,7 +17,7 @@ export const DryRunMessage = ({ isEmbed }: { isEmbed?: boolean }) => {
       } z-50 -translate-x-1/2 transform cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm shadow-md`}>
       <div className="flex items-center gap-3">
         <div className="relative">
-          <Info className="h-5 w-5 text-orange-500" />
+          <Icon name="info" className="h-5 w-5 text-orange-500" />
         </div>
         <div className="text-emphasis font-medium" data-testid="dry-run-msg">
           {t("dry_run_mode_active")}

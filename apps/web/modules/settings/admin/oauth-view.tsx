@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -94,7 +94,7 @@ export default function OAuthView() {
             <div className="mb-5 mt-5 flex items-center">
               <Avatar
                 alt=""
-                fallback={<Plus className="text-subtle h-6 w-6" />}
+                fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                 className="mr-5 items-center"
                 imageSrc={logo}
                 size="lg"

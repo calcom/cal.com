@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Pencil } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -484,7 +484,7 @@ function WorkflowPage({
                       disabled={isPending}
                       onClick={() => setIsEditingName(true)}
                       CustomStartIcon={
-                        <Pencil className="text-subtle group-hover:text-default h-3 w-3" />
+                        <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
                       }>
                       <span className="sr-only">{t("edit")}</span>
                     </Button>

@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Star, Check, ExternalLink } from "lucide-react";
+import { Icon } from "@calcom/ui";
  
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";
@@ -246,12 +246,12 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 usernameIsAvailable ? "" : ""
               )}>
               {isInputUsernamePremium ? (
-                <Star className="mt-[2px] h-4 w-4 fill-orange-400" />
+                <Icon name="star" className="mt-[2px] h-4 w-4 fill-orange-400" />
               ) : (
                 <></>
               )}
               {!isInputUsernamePremium && usernameIsAvailable ? (
-                <Check className="mt-[2px] h-4 w-4" />
+                <Icon name="check" className="mt-[2px] h-4 w-4" />
               ) : (
                 <></>
               )}
@@ -307,7 +307,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <ExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <Icon name="external-link" className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

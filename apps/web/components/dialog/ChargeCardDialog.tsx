@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { CreditCard, TriangleAlert } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -45,7 +45,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
       <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className=" bg-subtle flex h-10 w-10 shrink-0 justify-center rounded-full">
-            <CreditCard className="m-auto h-6 w-6" />
+            <Icon name="credit-card" className="m-auto h-6 w-6" />
           </div>
           <div className="pt-1">
             <DialogHeader title={t("charge_card")} />
@@ -53,7 +53,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
 
             {chargeError && (
               <div className="mt-4 flex text-red-500">
-                <TriangleAlert className="mr-2 h-5 w-5 " aria-hidden="true" />
+                <Icon name="triangle-alert" className="mr-2 h-5 w-5 " aria-hidden="true" />
                 <p className="text-sm">{chargeError}</p>
               </div>
             )}

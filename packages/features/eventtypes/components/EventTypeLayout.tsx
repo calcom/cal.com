@@ -1,5 +1,5 @@
 import { useMemo, useState, Suspense } from "react";
-import { Loader } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -278,7 +278,7 @@ function EventTypeSingleLayout({
       }>
       <Suspense fallback={
         <div className="flex h-64 items-center justify-center">
-          <Loader className="h-5 w-5 animate-spin" />
+          <Icon name="loader" className="h-5 w-5 animate-spin" />
         </div>
       }>
         <div className="flex flex-col xl:flex-row xl:space-x-6">

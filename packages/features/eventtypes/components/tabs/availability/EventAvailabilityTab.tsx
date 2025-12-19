@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Globe, User } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -262,7 +262,7 @@ const EventTypeScheduleDetails = memo(
         <div className="bg-cal-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
             <span className="text-default flex items-center justify-center text-center text-sm sm:justify-start">
-              <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+              <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
           </div>
@@ -392,7 +392,7 @@ const EventTypeRestrictionScheduleDetails = memo(
                 "text-default flex items-center justify-center text-sm sm:justify-start",
                 useBookerTimezone && "text-muted line-through"
               )}>
-              <Globe className={classNames("h-3.5 w-3.5 ltr:mr-2 rtl:ml-2", useBookerTimezone && "text-muted")} />
+              <Icon name="globe" className={classNames("h-3.5 w-3.5 ltr:mr-2 rtl:ml-2", useBookerTimezone && "text-muted")} />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
             <div className="ltr:mr-2 rtl:ml-2">
@@ -660,7 +660,7 @@ const TeamMemberSchedule = ({
     <>
       <div className={classNames("flex w-full items-center", customClassNames?.labelContainer)}>
         {!isPlatform && <Avatar size="sm" imageSrc={avatar} alt={label || ""} />}
-        {isPlatform && <User className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
+        {isPlatform && <Icon name="user" className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
         <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{label}</p>
       </div>
       <div className="flex w-full flex-col pt-2">

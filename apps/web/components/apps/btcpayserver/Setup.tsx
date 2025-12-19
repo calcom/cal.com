@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -324,7 +324,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
                       disabled={loading || validating || !updatable}>
                       {loading ? (
                         <>
-                          <Loader className="mr-2 animate-spin" />
+                          <Icon name="loader" className="mr-2 animate-spin" />
                           {t("connecting")}
                         </>
                       ) : (

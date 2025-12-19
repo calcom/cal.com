@@ -2,7 +2,7 @@
 
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useSession } from "next-auth/react";
-import { Plus, Info } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -139,7 +139,7 @@ export default function Authorize() {
         <div className="flex items-center justify-center">
           <Avatar
             alt=""
-            fallback={<Plus className="text-subtle h-6 w-6" />}
+            fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
             className="items-center"
             imageSrc={client.logo}
             size="lg"
@@ -193,7 +193,7 @@ export default function Authorize() {
         </ul>
         <div className="bg-subtle mt-8 mb-8 flex rounded-md p-3">
           <div>
-            <Info className="mr-1 mt-0.5 h-4 w-4" />
+            <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1">
             <div className="mb-1 text-sm font-medium">

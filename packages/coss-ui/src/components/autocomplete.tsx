@@ -1,7 +1,7 @@
 "use client";
 
 import { Autocomplete as AutocompletePrimitive } from "@base-ui/react/autocomplete";
-import { ChevronsUpDownIcon, XIcon } from "lucide-react";
+import { ChevronsUpDown, X } from "lucide-react";
 
 import { cn } from "@coss/ui/lib/utils";
 import { Input } from "@coss/ui/components/input";
@@ -42,7 +42,7 @@ function AutocompleteInput({
             sizeValue === "sm" ? "end-0" : "end-0.5",
           )}
         >
-          <ChevronsUpDownIcon />
+          <ChevronsUpDown />
         </AutocompleteTrigger>
       )}
       {showClear && (
@@ -52,7 +52,7 @@ function AutocompleteInput({
             sizeValue === "sm" ? "end-0" : "end-0.5",
           )}
         >
-          <XIcon />
+          <X />
         </AutocompleteClear>
       )}
     </div>
@@ -220,7 +220,7 @@ function AutocompleteClear({
       data-slot="autocomplete-clear"
       {...props}
     >
-      <XIcon />
+      <X />
     </AutocompletePrimitive.Clear>
   );
 }

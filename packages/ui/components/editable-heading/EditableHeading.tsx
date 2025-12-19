@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "classnames";
-import { Pencil } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
@@ -47,7 +47,7 @@ export const EditableHeading = function EditableHeading({
             onChange={(e) => onChange && onChange(e.target.value)}
           />
           {!isEditing && isReady && !disabled && (
-            <Pencil className="text-subtle group-hover:text-subtle -mt-px ml-3 inline h-3 w-3" />
+            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-3 inline h-3 w-3" />
           )}
         </label>
       </div>

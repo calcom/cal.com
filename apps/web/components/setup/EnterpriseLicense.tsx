@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader, Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
  
 import { noop } from "lodash";
 import { useCallback, useState } from "react";
@@ -122,9 +122,9 @@ const EnterpriseLicense = (
                 )}
                 addOnSuffix={
                   checkLicenseLoading ? (
-                    <Loader className="h-5 w-5 animate-spin" />
+                    <Icon name="loader" className="h-5 w-5 animate-spin" />
                   ) : errors.licenseKey === undefined && isDirty ? (
-                    <Check className="h-5 w-5 text-green-700" />
+                    <Icon name="check" className="h-5 w-5 text-green-700" />
                   ) : undefined
                 }
                 color={errors.licenseKey ? "warn" : ""}

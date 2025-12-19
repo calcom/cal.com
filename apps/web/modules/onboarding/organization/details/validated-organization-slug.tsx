@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { Loader } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import classNames from "@calcom/ui/classNames";
 import { Label, TextField } from "@calcom/ui/components/form";
@@ -84,7 +84,7 @@ export function ValidatedOrganizationSlug({
         addOnSuffix={
           <div className="flex items-center gap-2">
             {validationState === "checking" && (
-              <Loader className="text-subtle h-3 w-3 animate-spin" />
+              <Icon name="loader" className="text-subtle h-3 w-3 animate-spin" />
             )}
             <span className="text-subtle text-sm">.cal.com</span>
           </div>

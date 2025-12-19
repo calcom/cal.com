@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -90,7 +90,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 flex  lg:left-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <ChevronLeft className="text-subtle h-4 w-4" />
+            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
           </div>
           <div className="to-default flex h-12 w-5 bg-linear-to-l from-transparent" />
         </button>
@@ -131,7 +131,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex ">
           <div className="to-default flex h-12 w-5 bg-linear-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <ChevronRight className="text-subtle h-4 w-4" />
+            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
           </div>
         </button>
       )}

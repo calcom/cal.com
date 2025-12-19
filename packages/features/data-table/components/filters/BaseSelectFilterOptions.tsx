@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Check } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -146,7 +146,7 @@ export function BaseSelectFilterOptions<
                     isOptionSelected(filterValue, optionValue) ? "bg-primary-default" : "border opacity-50"
                   )}>
                   {isOptionSelected(filterValue, optionValue) && (
-                    <Check className="text-primary-foreground h-4 w-4" />
+                    <Icon name="check" className="text-primary-foreground h-4 w-4" />
                   )}
                 </div>
                 {optionLabel}

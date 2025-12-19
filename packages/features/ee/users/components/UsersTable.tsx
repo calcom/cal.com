@@ -1,5 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import { Building, Lock } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -207,11 +207,11 @@ function UsersTableBare() {
                         <span>/{user.username}</span>
                         {user.profiles[0]?.username && (
                           <span className="flex items-center gap-1">
-                            <Building className="text-subtle size-5" />
+                            <Icon name="building" className="text-subtle size-5" />
                             <span>{user.profiles[0]?.username}</span>
                           </span>
                         )}
-                        {user.locked && <Lock />}
+                        {user.locked && <Icon name="lock" />}
                         <br />
                       </div>
                       <span className="break-all">{user.email}</span>

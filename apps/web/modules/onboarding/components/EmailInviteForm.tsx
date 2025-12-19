@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
-import { X } from "lucide-react";
+import { Icon } from "@calcom/ui";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -98,7 +98,7 @@ export function EmailInviteForm({
                 className="h-7 w-7"
                 disabled={fields.length === 1}
                 onClick={() => remove(index)}>
-                <X className="h-4 w-4" />
+                <Icon name="x" className="h-4 w-4" />
               </Button>
             </div>
           ))}

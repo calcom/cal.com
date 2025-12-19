@@ -1,5 +1,5 @@
 import posthog from "posthog-js";
-import { Loader, Phone } from "lucide-react";
+import { Icon } from "@calcom/ui";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -129,7 +129,7 @@ export function PhoneNumberTab({
           {updateAgentMutation.isPending && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Loader className="h-4 w-4 animate-spin" />
+                <Icon name="loader" className="h-4 w-4 animate-spin" />
                 {t("updating")}...
               </div>
             </div>
@@ -277,7 +277,7 @@ export function PhoneNumberTab({
       <div className="border-subtle rounded-xl border p-8">
         <div className="flex flex-col items-center stack-y-6 text-center">
           <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
-            <Phone className="text-subtle h-8 w-8" />
+            <Icon name="phone" className="text-subtle h-8 w-8" />
           </div>
           <div className="stack-y-2">
             <h3 className="text-emphasis text-lg font-semibold">{t("no_phone_numbers")}</h3>
