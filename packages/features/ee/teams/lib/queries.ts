@@ -409,16 +409,16 @@ export async function isTeamMember(userId: number, teamId: number) {
   }));
 }
 
+// Type derived from the actual query result to ensure type safety at call sites
+type EventTypeForChildCreation = Awaited<ReturnType<typeof getEventTypesToAddNewMembers>>[number];
+
 export function generateNewChildEventTypeDataForDB({
   eventType,
   userId,
   includeWorkflow = true,
   includeUserConnect = true,
 }: {
-  eventType: Omit<
-    Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>,
-    "locations"
-  > & { locations: Prisma.JsonValue | null };
+  eventType: EventTypeForChildCreation;
   userId: number;
   includeWorkflow?: boolean;
   includeUserConnect?: boolean;
