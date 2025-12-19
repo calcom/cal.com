@@ -1135,6 +1135,7 @@ model Webhook {
   scheduledTriggers     WebhookScheduledTriggers[]
   time                  Int?
   timeUnit              TimeUnit?
+  version               String                     @default("2021-10-20")
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
   @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
@@ -1703,6 +1704,7 @@ model UserFeatures {
   userId     Int
   feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
   featureId  String
+  enabled    Boolean
   assignedAt DateTime @default(now())
   assignedBy String
   updatedAt  DateTime @updatedAt
@@ -1716,6 +1718,7 @@ model TeamFeatures {
   teamId     Int
   feature    Feature  @relation(fields: [featureId], references: [slug], onDelete: Cascade)
   featureId  String
+  enabled    Boolean
   assignedAt DateTime @default(now())
   assignedBy String
   updatedAt  DateTime @updatedAt
@@ -1767,6 +1770,7 @@ model OAuthClient {
   clientType   OAuthClientType @default(CONFIDENTIAL)
   name         String
   logo         String?
+  isTrusted    Boolean         @default(false)
   accessCodes  AccessCode[]
 }
 
@@ -2718,6 +2722,18 @@ enum BookingAuditAction {
 
   // Rescheduling
   RESCHEDULE_REQUESTED @map("reschedule_requested")
+
+  // Seat management
+  SEAT_BOOKED      @map("seat_booked")
+  SEAT_RESCHEDULED @map("seat_rescheduled")
+}
+
+enum BookingAuditSource {
+  API_V1  @map("api_v1")
+  API_V2  @map("api_v2")
+  WEBAPP  @map("webapp")
+  WEBHOOK @map("webhook")
+  UNKNOWN @map("unknown")
 }
 
 enum AuditActorType {
@@ -2725,6 +2741,7 @@ enum AuditActorType {
   GUEST    @map("guest") // Non-registered user
   ATTENDEE @map("attendee") // Has Attendee record with us
   SYSTEM   @map("system") // Automated actions
+  APP      @map("app") // App-triggered actions (payment webhooks, integrations)
 }
 
 model AuditActor {
@@ -2733,13 +2750,19 @@ model AuditActor {
 
   // References for different actor types (soft references, no FK constraints)
   // These fields intentionally do NOT have foreign key constraints to preserve audit trail integrity:
-  // - When a User or Attendee is deleted, their AuditActor record persists with these IDs intact
+  // - When a User, Attendee, or Credential is deleted, their AuditActor record persists with these IDs intact
   // - This maintains immutable audit history even after source records are removed
-  userUuid   String? @db.Uuid // For USER type - references User.uuid without FK constraint
-  attendeeId Int? // For ATTENDEE type - references Attendee.id without FK constraint
+  // - For APP actors: when credential is deleted, name/email fields are populated to preserve app identity
+  userUuid     String? @db.Uuid // For USER type - references User.uuid without FK constraint
+  attendeeId   Int? // For ATTENDEE type - references Attendee.id without FK constraint
+  credentialId Int? // For APP type - references Credential.id without FK constraint
 
-  // Identity fields - only for GUEST/SYSTEM(System too might not have all) type. Attendee and User maintain their own identity fields.
-  // They could be set as anonymized for User/Attendee record as well when they are deleted to preserve the audit trail.
+  // Identity fields - for GUEST/SYSTEM/APP types when source record is deleted
+  // - GUEST: email/name stored directly
+  // - SYSTEM: email/name for system identifier
+  // - APP: email/name used when using appSlug mode (fallback), or preserved when credential deleted
+  // - USER/ATTENDEE: derive from their tables using userUuid/attendeeId
+  // These fields can be anonymized when User/Attendee records are deleted to preserve audit trail
   email String?
   phone String?
   name  String?
@@ -2750,11 +2773,13 @@ model AuditActor {
   // TODO: Add pseudonymizedAt and related fields when we anonymize the data on deletion
   @@unique([userUuid])
   @@unique([attendeeId])
+  @@unique([credentialId]) // One actor per credential
   @@unique([email]) // Prevent duplicate email actors
   @@unique([phone]) // Prevent duplicate phone actors
   @@index([email])
   @@index([userUuid])
   @@index([attendeeId])
+  @@index([credentialId])
 }
 
 model BookingAudit {
@@ -2784,11 +2809,17 @@ model BookingAudit {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  source BookingAuditSource
+
+  // Operation ID for correlating related audit logs across different audit types (BookingAudit, UserAudit, etc.) or for bulk operations
+  operationId String
+
   data Json?
 
   @@index([actorId])
   @@index([bookingUid])
   @@index([timestamp])
+  @@index([operationId])
 }
 
 enum PhoneNumberSubscriptionStatus {

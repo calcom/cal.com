@@ -1,9 +1,13 @@
 import { z } from "zod";
 
-export const ZRemoveHostsFromEventTypes = z.object({
+export type TRemoveHostsFromEventTypes = {
+  userIds: number[];
+  teamId: number;
+  eventTypeIds: number[];
+};
+
+export const ZRemoveHostsFromEventTypes: z.ZodType<TRemoveHostsFromEventTypes> = z.object({
   userIds: z.array(z.number()),
   teamId: z.number(),
   eventTypeIds: z.array(z.number()),
 });
-
-export type TRemoveHostsFromEventTypes = z.infer<typeof ZRemoveHostsFromEventTypes>;
