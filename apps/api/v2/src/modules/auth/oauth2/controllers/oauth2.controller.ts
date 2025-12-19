@@ -146,8 +146,7 @@ export class OAuth2Controller {
       const tokens = await this.oAuthService.refreshAccessToken(
         clientId,
         body.refreshToken,
-        body.clientSecret,
-        body.codeVerifier
+        body.clientSecret
       );
       return {
         status: SUCCESS_STATUS,

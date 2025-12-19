@@ -239,8 +239,7 @@ export class OAuthService {
   async refreshAccessToken(
     clientId: string,
     refreshToken: string,
-    clientSecret?: string,
-    codeVerifier?: string
+    clientSecret?: string
   ): Promise<OAuth2Tokens> {
     const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
 
@@ -262,18 +261,11 @@ export class OAuthService {
       throw new HttpError({ message: "invalid_grant", statusCode: 400 });
     }
 
-    const pkceError = this.verifyPKCE(client, decodedToken, codeVerifier);
-    if (pkceError) {
-      throw new HttpError({ message: pkceError, statusCode: 400 });
-    }
-
     const tokens = this.createTokens({
       clientId,
       userId: decodedToken.userId,
       teamId: decodedToken.teamId,
       scopes: decodedToken.scope,
-      codeChallenge: decodedToken.codeChallenge,
-      codeChallengeMethod: decodedToken.codeChallengeMethod,
     });
 
     return tokens;

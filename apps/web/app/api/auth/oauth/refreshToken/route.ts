@@ -23,12 +23,7 @@ async function handler(req: NextRequest) {
   try {
     const oAuthService = getOAuthService();
     const refreshTokenValue = refresh_token || req.headers.get("authorization")?.split(" ")[1] || "";
-    const tokens = await oAuthService.refreshAccessToken(
-      client_id,
-      refreshTokenValue,
-      client_secret,
-      code_verifier
-    );
+    const tokens = await oAuthService.refreshAccessToken(client_id, refreshTokenValue, client_secret);
 
     return NextResponse.json(
       {

@@ -21,12 +21,4 @@ export class OAuth2RefreshInput {
   @IsString()
   @Equals("refresh_token")
   grantType: string = "refresh_token";
-
-  @ApiProperty({
-    description: "PKCE code verifier (required if PKCE was used in the original authorization)",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  codeVerifier?: string;
 }
