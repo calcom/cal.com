@@ -191,6 +191,12 @@ export const buttonClasses = cva(
       },
       {
         variant: "icon",
+        size: "base",
+        color: "destructive",
+        className: "hover:border-semantic-error",
+      },
+      {
+        variant: "icon",
         size: "xs",
         className: "h-5 w-5 p-1! rounded-md",
       },
