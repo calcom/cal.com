@@ -1,3 +1,4 @@
+import { ShieldIcon } from "lucide-react";
 
 const TwoFactorModalHeader = ({ title, description }: { title: string; description: string }) => {
   return (

@@ -102,9 +102,7 @@ export const OAuthClientCard = ({
           <div className="flex flex-row items-center gap-2">
             <div className="font-semibold">Client Id:</div>
             <div>{id}</div>
-            <Icon
-              name="clipboard"
-              type="button"
+            <ClipboardIcon
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
                 navigator.clipboard.writeText(id);
@@ -119,9 +117,7 @@ export const OAuthClientCard = ({
             {[...new Array(20)].map((_, index) => (
               <AsteriskIcon key={`${index}asterisk`} className="h-2 w-2" />
             ))}
-            <Icon
-              name="clipboard"
-              type="button"
+            <ClipboardIcon
               className="ml-2 h-4 w-4 cursor-pointer"
               onClick={() => {
                 navigator.clipboard.writeText(secret);
@@ -134,9 +130,7 @@ export const OAuthClientCard = ({
           <div className="flex flex-row items-center gap-2">
             <div className="font-semibold">Organization Id:</div>
             <div>{organizationId}</div>
-            <Icon
-              name="clipboard"
-              type="button"
+            <ClipboardIcon
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
                 navigator.clipboard.writeText(organizationId.toString());
