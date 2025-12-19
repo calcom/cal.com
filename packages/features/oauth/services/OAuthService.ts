@@ -280,7 +280,6 @@ export class OAuthService {
     client: { clientType: string; clientSecret?: string | null },
     clientSecret?: string
   ): boolean {
-    console.log("validateClient", client.clientSecret, client.clientType);
     if (client.clientType === "CONFIDENTIAL") {
       if (!clientSecret) return false;
 
