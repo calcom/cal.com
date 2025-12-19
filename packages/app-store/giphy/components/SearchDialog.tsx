@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import { LinkIcon, SearchIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -8,8 +10,6 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import type { IconName } from "@calcom/ui/components/icon";
 
 interface ISearchDialog {
   isOpenDialog: boolean;
@@ -89,21 +89,21 @@ export const SearchDialog = (props: ISearchDialog) => {
     return null;
   };
 
-  const renderTab = (iconName: IconName, text: string, mode: Mode) => (
-    <div
-      className={classNames(
-        "flex cursor-pointer items-center border-b-2 p-2 text-sm ",
-        selectedMode === mode ? "text-default border-emphasis" : "text-subtle border-transparent"
-      )}
-      onClick={() => {
-        setKeyword("");
-        setGifImage("");
-        setSelectedMode(mode);
-      }}>
-      <Icon name={iconName} className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-      {text}
-    </div>
-  );
+    const renderTab = (IconComponent: LucideIcon, text: string, mode: Mode) => (
+      <div
+        className={classNames(
+          "flex cursor-pointer items-center border-b-2 p-2 text-sm ",
+          selectedMode === mode ? "text-default border-emphasis" : "text-subtle border-transparent"
+        )}
+        onClick={() => {
+          setKeyword("");
+          setGifImage("");
+          setSelectedMode(mode);
+        }}>
+        <IconComponent className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+        {text}
+      </div>
+    );
 
   const handleFormSubmit = async (event: React.SyntheticEvent) => {
     event.stopPropagation();
@@ -123,8 +123,8 @@ export const SearchDialog = (props: ISearchDialog) => {
         </h3>
         <p className="text-subtle mb-3 text-sm font-light">{t("find_gif_spice_confirmation")}</p>
         <div className="border-emphasis flex items-center border-b border-solid">
-          {renderTab("search", t("search_giphy"), MODE_SEARCH)}
-          {renderTab("link", t("add_link_from_giphy"), MODE_URL)}
+                    {renderTab(SearchIcon, t("search_giphy"), MODE_SEARCH)}
+                    {renderTab(LinkIcon, t("add_link_from_giphy"), MODE_URL)}
         </div>
         <form
           className="flex w-full justify-center space-x-2 stack-y-2 rtl:space-x-reverse"

@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { PlusIcon, Trash2Icon } from "lucide-react";
+import { InfoIcon, PlusIcon, Trash2Icon } from "lucide-react";
 
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { Key } from "react";
@@ -32,7 +32,6 @@ import {
   Select,
   SettingsToggle,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
@@ -276,15 +275,12 @@ function RollingLimitRadioItem({
                 );
               }}
             />
-            <Tooltip
-              content={t("always_show_x_days_description", {
-                x: periodDaysWatch,
-              })}>
-              <Icon
-                name="info"
-                className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
-              />
-            </Tooltip>
+                        <Tooltip
+                          content={t("always_show_x_days_description", {
+                            x: periodDaysWatch,
+                          })}>
+                          <InfoIcon className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
+                        </Tooltip>
           </div>
         </div>
       </div>
@@ -392,7 +388,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
-  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+  const _isRecurringEvent = !!formMethods.getValues("recurringEvent");
 
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
@@ -408,9 +404,9 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
-  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
-    (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
-  );
+    const [_maxActiveBookingsPerBookerToggle, _setMaxActiveBookingsPerBookerToggle] = useState(
+      (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
+    );
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");

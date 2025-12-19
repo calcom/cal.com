@@ -1,24 +1,26 @@
+import type { LucideIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
+
 import { Button } from "@calcom/ui/components/button";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 type EmptyStateProps = {
-  icon: IconName;
+  icon: LucideIcon;
   header: string;
   text: string;
   buttonText: string;
   buttonOnClick: () => void;
-  buttonStartIcon?: IconName;
+  buttonStartIcon?: LucideIcon;
   buttonClassName?: string;
   buttonDataTestId?: string;
 };
 
 export const EmptyState = ({
-  icon,
+  icon: IconComponent,
   header,
   text,
   buttonText,
   buttonOnClick,
-  buttonStartIcon = "plus",
+  buttonStartIcon = PlusIcon,
   buttonClassName,
   buttonDataTestId,
 }: EmptyStateProps) => {
@@ -28,7 +30,7 @@ export const EmptyState = ({
         {/* Icon card - Top */}
         <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
           <div className="flex h-full items-center justify-center">
-            <Icon name={icon} className="text-emphasis h-4 w-4" />
+            <IconComponent className="text-emphasis h-4 w-4" />
           </div>
         </div>
         {/* Left fanned card */}

@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import { CirclePlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import posthog from "posthog-js";
@@ -8,15 +10,13 @@ import { trpc } from "@calcom/trpc/react";
 import cn from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
-import type { IconName } from "@calcom/ui/components/icon";
 import { RadioGroup, Radio, RadioIndicator } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
 
 type WorkflowOptionCardProps = {
   title: string;
   description: string;
-  icon?: IconName;
+  icon?: LucideIcon;
   isSelected: boolean;
   onClick: () => void;
   iconWrapperClassName?: string;
@@ -25,7 +25,7 @@ type WorkflowOptionCardProps = {
 };
 
 function WorkflowOptionCard(props: WorkflowOptionCardProps) {
-  const { title, description, icon, isSelected, onClick, image, iconWrapperClassName, value } = props;
+  const { title, description, icon: IconComponent, isSelected, onClick, image, iconWrapperClassName, value } = props;
 
   return (
     <div
@@ -55,7 +55,10 @@ function WorkflowOptionCard(props: WorkflowOptionCardProps) {
               className={cn("text-default h-5 w-5")}
             />
           ) : (
-            <Icon name={icon || "circle-plus"} className={cn("text-default h-5 w-5")} aria-hidden="true" />
+            (() => {
+              const Icon = IconComponent || CirclePlusIcon;
+              return <Icon className={cn("text-default h-5 w-5")} aria-hidden="true" />;
+            })()
           )}
         </div>
         <h3 className="text-emphasis text-sm font-semibold">{title}</h3>
@@ -141,7 +144,7 @@ export function WorkflowCreationDialog({
             <WorkflowOptionCard
               title={t("start_from_scratch_title")}
               description={t("start_from_scratch_description")}
-              icon="circle-plus"
+              icon={CirclePlusIcon}
               isSelected={selectedOption === "scratch"}
               onClick={() => setSelectedOption("scratch")}
               iconWrapperClassName="bg-cal-muted"
