@@ -16,9 +16,9 @@ import type {
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
+import { selectHostsForPartialLoading } from "@calcom/features/bookings/lib/host-filtering/rankHostsByShortfall";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { RRHostRankingService } from "@calcom/features/bookings/lib/host-filtering/rankHostsByShortfall";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -1119,17 +1119,31 @@ export class AvailableSlotsService {
     let partialLoadInfo: { isPartialLoad: boolean; totalHosts: number; loadedHosts: number } | undefined;
 
     if (shouldUsePartialLoading && eventType.team) {
-      const rankingService = new RRHostRankingService(this.dependencies.bookingRepo);
-      const rankingResult = await rankingService.rankAndSelectHosts({
+      // Get RR hosts (non-fixed) for ordering
+      const rrHosts = allHosts.filter((h) => !h.isFixed);
+
+      // Order hosts by priority (higher priority first), then by a rotating seed for fairness
+      // This respects Priority Ranking while ensuring fair rotation over time
+      const rotationSeed = this.getWeeklyRotationSeed(eventType.id);
+      const orderedUserIds = rrHosts
+        .map((h) => ({
+          id: h.user.id,
+          priority: h.priority ?? 2, // Default priority is 2 (medium)
+          hash: this.hashUserId(h.user.id, rotationSeed),
+        }))
+        .sort((a, b) => {
+          // Sort by priority descending (higher priority first)
+          const priorityDiff = b.priority - a.priority;
+          if (priorityDiff !== 0) return priorityDiff;
+          // For same priority, use rotating hash for fairness
+          return b.hash - a.hash;
+        })
+        .map((h) => h.id);
+
+      // Select subset of hosts based on the ordered list
+      const rankingResult = selectHostsForPartialLoading({
         hosts: allHosts,
-        eventType: {
-          id: eventType.id,
-          isRRWeightsEnabled: eventType.isRRWeightsEnabled,
-          team: {
-            rrResetInterval: eventType.team.rrResetInterval,
-            rrTimestampBasis: eventType.team.rrTimestampBasis,
-          },
-        },
+        orderedUserIds,
         partialLoadPercentage: rrPartialLoadingConfig.percentage ?? 20,
         partialLoadMinimum: rrPartialLoadingConfig.minimum ?? 10,
       });
@@ -1588,5 +1602,25 @@ export class AvailableSlotsService {
       ...troubleshooterData,
       ...(partialLoadInfo ? { partialLoadInfo } : {}),
     };
+  }
+
+  /**
+   * Generates a weekly rotation seed for partial loading.
+   * This ensures hosts rotate fairly over time while maintaining
+   * cache stability within each week.
+   */
+  private getWeeklyRotationSeed(eventTypeId: number): number {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const weekNumber = Math.floor((now.getTime() - startOfYear.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    return eventTypeId * 1000 + weekNumber;
+  }
+
+  /**
+   * Hashes a user ID with a seed for deterministic but rotating ordering.
+   */
+  private hashUserId(userId: number, seed: number): number {
+    const combined = userId * 31 + seed;
+    return ((combined * 2654435761) >>> 0) % 1000000;
   }
 }
