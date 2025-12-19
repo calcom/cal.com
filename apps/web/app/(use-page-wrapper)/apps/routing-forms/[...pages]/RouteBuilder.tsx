@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { LucideIcon } from "lucide-react";
 import { ArrowRightIcon, BlocksIcon, GlobeIcon, PlusIcon, UserCheckIcon, ZapIcon } from "lucide-react";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
@@ -102,12 +103,13 @@ function useEnsureEventTypeIdInRedirectUrlAction({
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventOptions, setRoute, route.id, route.action?.value]);
 }
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 
 function getEmptyQueryValue() {
@@ -146,14 +148,14 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata?: Record<string, any>;
+    eventTypeAppMetadata?: Record<string, unknown>;
     isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
-      eventTypeAppMetadata?: Record<string, any>;
+      eventTypeAppMetadata?: Record<string, unknown>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -373,7 +375,7 @@ const Route = ({
   attributes?: Attribute[];
   cardOptions?: {
     collapsible?: boolean;
-    leftIcon?: IconName;
+    leftIcon?: LucideIcon;
   };
 }) => {
   const { t } = useLocale();
@@ -397,6 +399,7 @@ const Route = ({
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
     setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEnsureEventTypeIdInRedirectUrlAction({
@@ -1157,7 +1160,7 @@ const Routes = ({
     });
   };
 
-  const availableRouters =
+  const _availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
         const routerValidInContext = areTheySiblingEntities({
