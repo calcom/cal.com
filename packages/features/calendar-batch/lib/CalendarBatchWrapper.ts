@@ -169,8 +169,26 @@ export class CalendarBatchWrapper implements Calendar {
       );
     }
 
-    const results = await Promise.all(tasks);
-    return results.flat();
+    const results = await Promise.allSettled(tasks);
+
+    // Log any failed batches but continue with successful ones
+    const failedResults = results.filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+    if (failedResults.length > 0) {
+      log.warn("Some calendar availability batches failed", {
+        failedCount: failedResults.length,
+        totalCount: results.length,
+        errors: failedResults.map((r) => r.reason),
+      });
+    }
+
+    // Return only successful results
+    const successfulResults = results
+      .filter((result): result is PromiseFulfilledResult<EventBusyDate[]> => result.status === "fulfilled")
+      .map((result) => result.value);
+
+    return successfulResults.flat();
   }
 
   async getAvailabilityWithTimeZones(
@@ -229,8 +247,29 @@ export class CalendarBatchWrapper implements Calendar {
       tasks.push(calendar.getAvailabilityWithTimeZones(dateFrom, dateTo, [], fallbackToPrimary));
     }
 
-    const results = await Promise.all(tasks);
-    return results.flat();
+    const results = await Promise.allSettled(tasks);
+
+    // Log any failed batches but continue with successful ones
+    const failedResults = results.filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+    if (failedResults.length > 0) {
+      log.warn("Some calendar availability with timezones batches failed", {
+        failedCount: failedResults.length,
+        totalCount: results.length,
+        errors: failedResults.map((r) => r.reason),
+      });
+    }
+
+    // Return only successful results
+    type AvailabilityWithTimeZone = { start: Date | string; end: Date | string; timeZone: string };
+    const successfulResults = results
+      .filter(
+        (result): result is PromiseFulfilledResult<AvailabilityWithTimeZone[]> => result.status === "fulfilled"
+      )
+      .map((result) => result.value);
+
+    return successfulResults.flat();
   }
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {

@@ -268,6 +268,76 @@ describe("CalendarBatchWrapper", () => {
     });
   });
 
+  describe("partial failure handling", () => {
+    test("should return partial results when some batches fail", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar", delegationCredentialId: "delegation-1" },
+        { externalId: "cal2@test.com", integration: "google_calendar", delegationCredentialId: "delegation-2" },
+        { externalId: "cal3@test.com", integration: "google_calendar", delegationCredentialId: "delegation-3" },
+      ];
+
+      const successfulBusyTimes: EventBusyDate[] = [
+        { start: new Date("2024-01-01T10:00:00Z"), end: new Date("2024-01-01T11:00:00Z") },
+      ];
+
+      // First call succeeds, second fails, third succeeds
+      getAvailabilityMock
+        .mockResolvedValueOnce(successfulBusyTimes)
+        .mockRejectedValueOnce(new Error("API rate limit exceeded"))
+        .mockResolvedValueOnce(successfulBusyTimes);
+
+      const result = await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false);
+
+      // Should return results from successful batches only (2 successful calls)
+      expect(result).toHaveLength(2);
+      expect(getAvailabilityMock).toHaveBeenCalledTimes(3);
+    });
+
+    test("should return empty array when all batches fail", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar", delegationCredentialId: "delegation-1" },
+        { externalId: "cal2@test.com", integration: "google_calendar", delegationCredentialId: "delegation-2" },
+      ];
+
+      // All calls fail
+      getAvailabilityMock
+        .mockRejectedValueOnce(new Error("Network error"))
+        .mockRejectedValueOnce(new Error("API error"));
+
+      const result = await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false);
+
+      // Should return empty array when all batches fail
+      expect(result).toHaveLength(0);
+      expect(getAvailabilityMock).toHaveBeenCalledTimes(2);
+    });
+
+    test("should not throw when some batches fail", async () => {
+      const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        { externalId: "cal1@test.com", integration: "google_calendar" },
+        { externalId: "cal2@test.com", integration: "google_calendar" },
+      ];
+
+      // First call fails, second succeeds
+      getAvailabilityMock
+        .mockRejectedValueOnce(new Error("Permission denied"))
+        .mockResolvedValueOnce([{ start: new Date("2024-01-01T10:00:00Z"), end: new Date("2024-01-01T11:00:00Z") }]);
+
+      // Should not throw, should return partial results
+      await expect(
+        wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false)
+      ).resolves.not.toThrow();
+
+      const result = await wrapper.getAvailability("2024-01-01", "2024-01-31", selectedCalendars, undefined, false);
+      expect(result).toBeDefined();
+    });
+  });
+
   describe("pass-through methods", () => {
     test("createEvent should delegate to original calendar", async () => {
       const wrapper = new CalendarBatchWrapper({ originalCalendar: mockOriginalCalendar });
