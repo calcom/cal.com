@@ -27,7 +27,7 @@ export const getClientHandler = async ({ input }: GetClientOptions) => {
     };
   } catch (err) {
     if (err instanceof HttpError) {
-      throw new TRPCError({ code: httpStatusToTrpcCode(err.statusCode), message: "OAuthClient not found" });
+      throw new TRPCError({ code: httpStatusToTrpcCode(err.statusCode), message: err.message });
     }
   }
 
