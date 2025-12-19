@@ -9,6 +9,7 @@ import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository"
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BusyTimesService } from "@/lib/services/busy-times.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
+import { LuckyUserService } from "@/lib/services/lucky-user.service";
 import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
 import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { RedisService } from "@/modules/redis/redis.service";
@@ -35,7 +36,8 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     checkBookingLimitsService: CheckBookingLimitsService,
     userAvailabilityService: UserAvailabilityService,
     busyTimesService: BusyTimesService,
-    noSlotsNotificationService: NoSlotsNotificationService
+    noSlotsNotificationService: NoSlotsNotificationService,
+    luckyUserService: LuckyUserService
   ) {
     super({
       oooRepo: oooRepoDependency,
@@ -53,6 +55,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       qualifiedHostsService,
       featuresRepo: featuresRepository,
       noSlotsNotificationService,
+      luckyUserService,
     });
   }
 }
