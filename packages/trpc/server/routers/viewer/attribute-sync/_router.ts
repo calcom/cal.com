@@ -2,18 +2,10 @@ import { router } from "../../../trpc";
 import { createAttributeSyncSchema } from "./createAttributeSync.schema";
 import { deleteAttributeSyncSchema } from "./deleteAttributeSync.schema";
 import { getAllAttributeSyncsSchema } from "./getAllAttributeSyncs.schema";
-import { getEnabledAppCredentialsSchema } from "./getEnabledAppCredentials.schema";
 import { updateAttributeSyncSchema } from "./updateAttributeSync.schema";
 import { createAttributePbacProcedure } from "./util";
 
 export const attributeSyncRouter = router({
-  getEnabledAppCredentials: createAttributePbacProcedure("organization.attributes.read")
-    .input(getEnabledAppCredentialsSchema)
-    .query(async (opts) => {
-      const { default: handler } = await import("./getEnabledAppCredentials.handler");
-      return handler(opts);
-    }),
-
   getAllAttributeSyncs: createAttributePbacProcedure("organization.attributes.read")
     .input(getAllAttributeSyncsSchema)
     .query(async (opts) => {
