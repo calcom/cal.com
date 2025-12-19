@@ -7,17 +7,11 @@ import { expect } from "@playwright/test";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
-import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { entries } from "@calcom/prisma/zod-utils";
 
 import { test } from "./lib/fixtures";
-import {
-  bookTimeSlot,
-  confirmReschedule,
-  createUserWithLimits,
-  expectSlotNotAllowedToBook,
-} from "./lib/testUtils";
+import { bookTimeSlot, createUserWithLimits, expectSlotNotAllowedToBook } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -63,20 +57,20 @@ const getLastEventUrlWithMonth = (user: Awaited<ReturnType<typeof createUserWith
   return `/${user.username}/${user.eventTypes.at(-1)?.slug}?month=${date.format("YYYY-MM")}`;
 };
 
-test.describe("Booking limits", () => {
+test.describe("Duration limits", () => {
   entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
     const limitUnit = intervalLimitKeyToUnit(limitKey);
 
     // test one limit at a time
-    test.fixme(`Per ${limitUnit}`, async ({ page, users }) => {
-      const slug = `booking-limit-${limitUnit}`;
-      const singleLimit = { [limitKey]: bookingLimit };
+    test(limitUnit, async ({ page, users }) => {
+      const slug = `duration-limit-${limitUnit}`;
+      const singleLimit = { [limitKey]: bookingLimit * EVENT_LENGTH };
 
       const user = await createUserWithLimits({
         users,
         slug,
         length: EVENT_LENGTH,
-        bookingLimits: singleLimit,
+        durationLimits: singleLimit,
       });
 
       let slotUrl = "";
@@ -93,7 +87,6 @@ test.describe("Booking limits", () => {
       await expect(bookingDay).toBeVisible({ timeout: 10_000 });
       const availableDaysBefore = await availableDays.count();
 
-      let latestRescheduleUrl: string | null = null;
       await test.step("can book up to limit", async () => {
         for (let i = 0; i < bookingLimit; i++) {
           await bookingDay.click();
@@ -104,9 +97,6 @@ test.describe("Booking limits", () => {
           slotUrl = page.url();
 
           await expect(page.getByTestId("success-page")).toBeVisible();
-          latestRescheduleUrl = await page
-            .locator('span[data-testid="reschedule-link"] > a')
-            .getAttribute("href");
 
           await page.goto(monthUrl);
         }
@@ -138,54 +128,6 @@ test.describe("Booking limits", () => {
         await expectSlotNotAllowedToBook(page);
       });
 
-      await test.step("but can reschedule", async () => {
-        const bookingId = latestRescheduleUrl?.split("/").pop();
-        const rescheduledBooking = await prisma.booking.findFirstOrThrow({ where: { uid: bookingId } });
-
-        const year = rescheduledBooking.startTime.getFullYear();
-        const month = String(rescheduledBooking.startTime.getMonth() + 1).padStart(2, "0");
-        const day = String(rescheduledBooking.startTime.getDate()).padStart(2, "0");
-
-        await page.goto(
-          `/${user.username}/${
-            user.eventTypes.at(-1)?.slug
-          }?rescheduleUid=${bookingId}&date=${year}-${month}-${day}&month=${year}-${month}`
-        );
-
-        const formerDay = availableDays.getByText(rescheduledBooking.startTime.getDate().toString(), {
-          exact: true,
-        });
-        await expect(formerDay).toBeVisible();
-
-        const formerTimeElement = page.locator('[data-testid="former_time_p"]');
-        await expect(formerTimeElement).toBeVisible();
-
-        await page.locator('[data-testid="time"]').nth(0).click();
-
-        await expect(page.locator('[name="name"]')).toBeDisabled();
-        await expect(page.locator('[name="email"]')).toBeDisabled();
-
-        await confirmReschedule(page);
-
-        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-        const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: bookingId } });
-        expect(newBooking).not.toBeNull();
-
-        const updatedRescheduledBooking = await prisma.booking.findFirstOrThrow({
-          where: { uid: bookingId },
-        });
-        expect(updatedRescheduledBooking.status).toBe(BookingStatus.CANCELLED);
-
-        await prisma.booking.deleteMany({
-          where: {
-            id: {
-              in: [newBooking.id, rescheduledBooking.id],
-            },
-          },
-        });
-      });
-
       await test.step(`month after booking`, async () => {
         await page.goto(getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
 
@@ -200,13 +142,20 @@ test.describe("Booking limits", () => {
 
   test.describe("multiple limits", () => {
     test("day limit with multiple limits set", async ({ page, users }) => {
-      const slug = "booking-limit-multiple-day";
+      const slug = "duration-limit-multiple-day";
+
+      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
+        return {
+          ...limits,
+          [limitKey]: bookingLimit * EVENT_LENGTH,
+        };
+      }, {} as Record<keyof IntervalLimit, number>);
 
       const user = await createUserWithLimits({
         users,
         slug,
         length: EVENT_LENGTH,
-        bookingLimits: BOOKING_LIMITS_MULTIPLE,
+        durationLimits,
       });
 
       const bookingDate = firstMondayInBookingMonth;
@@ -259,13 +208,20 @@ test.describe("Booking limits", () => {
     });
 
     test("week limit with multiple limits set", async ({ page, users, bookings }) => {
-      const slug = "booking-limit-multiple-week";
+      const slug = "duration-limit-multiple-week";
+
+      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
+        return {
+          ...limits,
+          [limitKey]: bookingLimit * EVENT_LENGTH,
+        };
+      }, {} as Record<keyof IntervalLimit, number>);
 
       const user = await createUserWithLimits({
         users,
         slug,
         length: EVENT_LENGTH,
-        bookingLimits: BOOKING_LIMITS_MULTIPLE,
+        durationLimits,
       });
 
       const baseBookingDate = firstMondayInBookingMonth;
@@ -337,22 +293,26 @@ test.describe("Booking limits", () => {
     });
 
     test("month limit with multiple limits set", async ({ page, users, bookings }) => {
-      const slug = "booking-limit-multiple-month";
+      const slug = "duration-limit-multiple-month";
+
+      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
+        return {
+          ...limits,
+          [limitKey]: bookingLimit * EVENT_LENGTH,
+        };
+      }, {} as Record<keyof IntervalLimit, number>);
 
       const user = await createUserWithLimits({
         users,
         slug,
         length: EVENT_LENGTH,
-        bookingLimits: BOOKING_LIMITS_MULTIPLE,
+        durationLimits,
       });
 
-      // Pre-create bookings for day (1) and week (2 total, so 1 more) limits
       const baseBookingDate = firstMondayInBookingMonth;
       const eventTypeId = user.eventTypes.at(-1)?.id;
       if (!eventTypeId) throw new Error("Event type not found");
 
-      // Create 2 bookings (day limit: 1, week limit: 2 total)
-      // First booking on Monday at 10:00, second on Tuesday at 10:00
       for (let i = 0; i < 2; i++) {
         const date = baseBookingDate.add(i, "day").hour(10).minute(0);
         await bookings.create(user.id, user.username, eventTypeId, {
@@ -361,11 +321,10 @@ test.describe("Booking limits", () => {
         });
       }
 
-      // Test month limit - need to book 1 more (total 3, but 2 already exist)
-      // Move to next week for month limit test (similar to week limit test)
+      // Move to next week for month limit test (similar to booking-limits test)
       const bookingDate = baseBookingDate.add(1, "week");
       const monthLimitValue = BOOKING_LIMITS_MULTIPLE.PER_MONTH;
-      const bookingsToMake = monthLimitValue - 2; // 2 already exist from previous limits
+      const bookingsToMake = monthLimitValue - 2;
 
       const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
       await page.goto(monthUrl);
@@ -414,23 +373,26 @@ test.describe("Booking limits", () => {
     });
 
     test("year limit with multiple limits set", async ({ page, users, bookings }) => {
-      const slug = "booking-limit-multiple-year";
+      const slug = "duration-limit-multiple-year";
+
+      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
+        return {
+          ...limits,
+          [limitKey]: bookingLimit * EVENT_LENGTH,
+        };
+      }, {} as Record<keyof IntervalLimit, number>);
 
       const user = await createUserWithLimits({
         users,
         slug,
         length: EVENT_LENGTH,
-        bookingLimits: BOOKING_LIMITS_MULTIPLE,
+        durationLimits,
       });
 
-      // Pre-create bookings for day (1), week (2 total), and month (3 total) limits
       const baseBookingDate = firstMondayInBookingMonth;
       const eventTypeId = user.eventTypes.at(-1)?.id;
       if (!eventTypeId) throw new Error("Event type not found");
 
-      // Create 3 bookings (day: 1, week: 2, month: 3 total)
-      // Spread across different days to satisfy day/week/month limits
-      // Monday, Tuesday, and next Monday (to span a week)
       const dates = [
         baseBookingDate.hour(10).minute(0),
         baseBookingDate.add(1, "day").hour(10).minute(0),
@@ -444,11 +406,9 @@ test.describe("Booking limits", () => {
         });
       }
 
-      // Test year limit - need to book 1 more (total 4, but 3 already exist)
       const yearLimitValue = BOOKING_LIMITS_MULTIPLE.PER_YEAR;
-      const bookingsToMake = yearLimitValue - 3; // 3 already exist from previous limits
+      const bookingsToMake = yearLimitValue - 3;
 
-      // Move to next month for year limit test
       const bookingDate = incrementDate(baseBookingDate, "month");
 
       const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
