@@ -1,5 +1,6 @@
+import type { LucideIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, CopyIcon, EllipsisIcon, ListFilterIcon, SquarePenIcon, Trash2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { CheckIcon, ChevronDownIcon, EllipsisIcon, ListFilterIcon } from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -14,7 +15,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@calcom/ui/components/dropdown";
-import { type IconName } from "@calcom/ui/components/icon";
 
 import { useDataTable } from "../../hooks";
 import type {
@@ -28,7 +28,7 @@ import { DuplicateSegmentDialog } from "./DuplicateSegmentDialog";
 import { RenameSegmentDialog } from "./RenameSegmentDialog";
 
 type SubmenuItem = {
-  iconName: IconName;
+  Icon: LucideIcon;
   labelKey: string;
   onClick: (segment: CombinedFilterSegment) => void;
   isDestructive?: boolean;
@@ -51,7 +51,7 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
 
   const submenuItems: SubmenuItem[] = [
     {
-      iconName: "square-pen",
+      Icon: SquarePenIcon,
       labelKey: "rename",
       onClick: (segment) => {
         if (segment.type === "system") {
@@ -64,14 +64,14 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
       adminOnly: true,
     },
     {
-      iconName: "copy",
+      Icon: CopyIcon,
       labelKey: "duplicate",
       onClick: (segment) => setSegmentToDuplicate(segment),
       adminOnly: false,
       enabledForSystemSegment: true,
     },
     {
-      iconName: "trash-2",
+      Icon: Trash2Icon,
       labelKey: "delete",
       onClick: (segment) => {
         if (segment.type === "system") {
@@ -278,7 +278,7 @@ function DropdownItemWithSubmenu({
                 <DropdownMenuItem key={index}>
                   <DropdownItem
                     color={item.isDestructive ? "destructive" : undefined}
-                    StartIcon={item.iconName}
+                    StartIcon={item.Icon}
                     onClick={(event) => {
                       event.preventDefault();
                       item.onClick(segment);
