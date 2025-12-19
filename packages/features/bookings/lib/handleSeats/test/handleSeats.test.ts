@@ -184,7 +184,7 @@ describe("handleSeats", () => {
         },
       });
 
-      createMockNextJsRequest({
+      const { req: _req } = createMockNextJsRequest({
         method: "POST",
         body: mockBookingData,
       });
@@ -203,7 +203,7 @@ describe("handleSeats", () => {
           reqBodyUser: reqBookingUser,
           tAttendees: expect.any(Function),
           additionalNotes: expect.anything(),
-          noEmail: false,
+          noEmail: undefined,
         })
       );
 
@@ -343,7 +343,7 @@ describe("handleSeats", () => {
           reqBodyUser: reqBookingUser,
           tAttendees: expect.any(Function),
           additionalNotes: expect.anything(),
-          noEmail: false,
+          noEmail: undefined,
         })
       );
 
@@ -1371,7 +1371,7 @@ describe("handleSeats", () => {
           },
         });
 
-        createMockNextJsRequest({
+        const { req: _req } = createMockNextJsRequest({
           method: "POST",
           body: mockBookingData,
         });
