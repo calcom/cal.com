@@ -308,7 +308,11 @@ describe("getCalendar", () => {
         type: "google_calendar",
         delegatedTo: {
           id: "delegation-credential-id",
-          serviceAccountKey: { client_email: "test@test.iam.gserviceaccount.com" },
+          serviceAccountKey: {
+            client_email: "test@test.iam.gserviceaccount.com",
+            client_id: "test-client-id",
+            private_key: "test-private-key",
+          },
         },
       });
 
