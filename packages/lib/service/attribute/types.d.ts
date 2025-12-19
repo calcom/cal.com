@@ -1,6 +1,8 @@
 import type { Attribute, AttributeToUser, AttributeOption } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 
+export { Attribute, AttributeOption };
+
 export type AttributeName = string;
 export type AttributeId = string;
 export type BulkAttributeAssigner =
@@ -18,29 +20,7 @@ export type AttributeOptionAssignment = AttributeToUser & {
   };
 };
 
-export type Attribute = {
-  name: string;
-  slug: string;
-  type: AttributeType;
-  id: string;
-  options: {
-    id: string;
-    value: string;
-    slug: string;
-  }[];
-};
-
-export type AttributeOptionValue = {
-  value: string;
-  isGroup: boolean;
-  contains: {
-    id: string;
-    slug: string;
-    value: string;
-  }[];
-};
-
 export type AttributeOptionValueWithType = {
-  type: Attribute["type"];
-  attributeOption: AttributeOptionValue | AttributeOptionValue[];
+  type: AttributeType;
+  attributeOption: AttributeOption | AttributeOption[];
 };

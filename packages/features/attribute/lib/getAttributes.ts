@@ -3,7 +3,7 @@ import { PrismaAttributeRepository } from "@calcom/features/attribute/repositori
 import { PrismaAttributeToUserRepository } from "@calcom/features/attribute/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { AttributeId } from "@calcom/lib/service/attribute/types";
+import type { AttributeId, AttributeOptionValueWithType } from "@calcom/lib/service/attribute/types";
 import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
@@ -51,21 +51,6 @@ type FullAttribute = {
     isGroup: boolean;
     contains: string[];
   }[];
-};
-
-export type AttributeOptionValue = {
-  value: string;
-  isGroup: boolean;
-  contains: {
-    id: string;
-    slug: string;
-    value: string;
-  }[];
-};
-
-export type AttributeOptionValueWithType = {
-  type: Attribute["type"];
-  attributeOption: AttributeOptionValue | AttributeOptionValue[];
 };
 
 async function _findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: number; teamId: number }) {

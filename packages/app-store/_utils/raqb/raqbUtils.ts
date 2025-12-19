@@ -10,7 +10,7 @@ import { caseInsensitive } from "@calcom/lib/raqb/utils";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   AttributeOptionValueWithType,
-  AttributeOptionValue,
+  AttributeOption,
   Attribute,
 } from "@calcom/lib/service/attribute/types";
 import { AttributeType } from "@calcom/prisma/enums";
@@ -95,8 +95,8 @@ export const buildStateFromQueryValue = ({
 
 export function getValueOfAttributeOption(
   attributeOptions:
-    | Pick<AttributeOptionValue, "isGroup" | "contains" | "value">
-    | Pick<AttributeOptionValue, "isGroup" | "contains" | "value">[]
+    | Pick<AttributeOption, "isGroup" | "contains" | "value">
+    | Pick<AttributeOption, "isGroup" | "contains" | "value">[]
 ) {
   if (!(attributeOptions instanceof Array)) {
     return transformAttributeOption(attributeOptions);
@@ -107,7 +107,7 @@ export function getValueOfAttributeOption(
     .filter((value, index, self) => self.indexOf(value) === index);
 
   function transformAttributeOption(
-    attributeOption: Pick<AttributeOptionValue, "isGroup" | "contains" | "value">
+    attributeOption: Pick<AttributeOption, "isGroup" | "contains" | "value">
   ) {
     if (attributeOption.isGroup) {
       const subOptions = attributeOption.contains.map((option) => option.value);
