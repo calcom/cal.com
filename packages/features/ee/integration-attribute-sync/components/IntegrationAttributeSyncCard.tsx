@@ -26,6 +26,10 @@ export interface IIntegrationAttributeSyncCardProps {
     label: string;
   }[];
   attributes: Attribute[];
+  attributeOptions: {
+    value: string;
+    label: string;
+  }[];
   organizationId: number;
   onSubmit: (data: ISyncFormData) => void;
   isSubmitting: boolean;
@@ -39,6 +43,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
     credentialOptions,
     teamOptions,
     attributes,
+    attributeOptions,
     organizationId,
     onSubmit,
     onCancel,
@@ -96,7 +101,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
   };
 
   const handleDelete = () => {
-    if (!sync) return; // Safety check for create mode
+    if (!sync) return;
     setShowDeleteDialog(true);
   };
 
@@ -230,7 +235,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                       <FieldMappingBuilder
                         value={{ mappings: field.value || [] }}
                         onChange={(fieldMappings) => field.onChange(fieldMappings.mappings)}
-                        attributes={attributes ?? []}
+                        attributeOptions={attributeOptions}
                       />
                       {fieldState.error && (
                         <p className="mt-1 text-xs text-red-600">{fieldState.error.message}</p>

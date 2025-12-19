@@ -48,11 +48,16 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
       label: `${cred.type} ${cred.team?.name ? `(${cred.team.name})` : ""}`,
     })) ?? [];
 
-  // Transform teams data for rule builder
   const teamOptions =
     organizationTeams?.map((team) => ({
       value: String(team.id),
       label: team.name,
+    })) ?? [];
+
+  const attributeOptions =
+    attributes?.map((attr) => ({
+      value: attr.id,
+      label: attr.name,
     })) ?? [];
 
   const handleAddNewSync = () => {
@@ -74,6 +79,7 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
               credentialOptions={credentialOptions}
               teamOptions={teamOptions}
               attributes={attributes}
+              attributeOptions={attributeOptions}
               organizationId={organizationId}
             />
           ))}
@@ -85,6 +91,7 @@ const IntegrationAttributeSyncView = (props: IIntegrationAttributeSyncViewProps)
           credentialOptions={credentialOptions}
           teamOptions={teamOptions}
           attributes={attributes}
+          attributeOptions={attributeOptions}
           organizationId={organizationId}
           onCancel={handleCancel}
         />
