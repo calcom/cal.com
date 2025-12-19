@@ -90,15 +90,16 @@ export const Badge = function Badge(props: BadgeProps) {
           <circle cx="4" cy="4" r="4" />
         </svg>
       ) : null}
-      {customStartIcon ||
-        (StartIcon ? (
-          <Icon
-            name={StartIcon}
-            data-testid="start-icon"
-            className="stroke-[3px]"
-            style={{ width: 12, height: 12 }}
-          />
-        ) : null)}
+      {customStartIcon ? (
+        <span data-testid="custom-icon">{customStartIcon}</span>
+      ) : StartIcon ? (
+        <Icon
+          name={StartIcon}
+          data-testid="start-icon"
+          className="stroke-[3px]"
+          style={{ width: 12, height: 12 }}
+        />
+      ) : null}
       {children}
     </>
   );
