@@ -2640,17 +2640,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@base-ui-components/react@npm:^1.0.0-beta.4":
-  version: 1.0.0-beta.4
-  resolution: "@base-ui-components/react@npm:1.0.0-beta.4"
+"@base-ui/react@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@base-ui/react@npm:1.0.0"
   dependencies:
     "@babel/runtime": ^7.28.4
-    "@base-ui-components/utils": 0.1.2
+    "@base-ui/utils": 0.2.3
     "@floating-ui/react-dom": ^2.1.6
     "@floating-ui/utils": ^0.2.10
     reselect: ^5.1.1
-    tabbable: ^6.2.0
-    use-sync-external-store: ^1.5.0
+    tabbable: ^6.3.0
+    use-sync-external-store: ^1.6.0
   peerDependencies:
     "@types/react": ^17 || ^18 || ^19
     react: ^17 || ^18 || ^19
@@ -2658,18 +2658,18 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 591dc4359e18b9a02f693c11adc2952aeed4746c3a144b758454276a47221bf5ea61830de4da507ad8a275490040e7ea5a78266f325226e5c23b727b3ef6b7ff
+  checksum: c7bf7bac226edd3b71a2d5ec7629a4dd135cd8a830dc27776e3a9028555d02d4aa270ebaff7fd090378a84dffcc91beb396c0f1998530f22bcd7313543a04e77
   languageName: node
   linkType: hard
 
-"@base-ui-components/utils@npm:0.1.2":
-  version: 0.1.2
-  resolution: "@base-ui-components/utils@npm:0.1.2"
+"@base-ui/utils@npm:0.2.3":
+  version: 0.2.3
+  resolution: "@base-ui/utils@npm:0.2.3"
   dependencies:
     "@babel/runtime": ^7.28.4
     "@floating-ui/utils": ^0.2.10
     reselect: ^5.1.1
-    use-sync-external-store: ^1.5.0
+    use-sync-external-store: ^1.6.0
   peerDependencies:
     "@types/react": ^17 || ^18 || ^19
     react: ^17 || ^18 || ^19
@@ -2677,7 +2677,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: b5213da6b1ede5cb27bd61b2b602ee3812a770b4a9a5a58ea571806b8656ea28fc14b7b2916402c0189a354348d3ac8cc4ae4c2a468530cc9a5003ad3e24d4dc
+  checksum: 7d287170aa73a73ef1d56f7b59e00a099d30e3b87a9fc14c9baf7e8250d592ef897b01cd21a6c046b41a34262f703beffed4f099a8a6d0576bad768d217a2ffc
   languageName: node
   linkType: hard
 
@@ -3207,7 +3207,6 @@ __metadata:
   resolution: "@calcom/config@workspace:packages/config"
   dependencies:
     "@calcom/eslint-plugin-eslint": "workspace:*"
-    "@tailwindcss/forms": ^0.5.10
     "@tailwindcss/typography": ^0.5.4
     "@todesktop/tailwind-variants": ^1.0.0
     "@trivago/prettier-plugin-sort-imports": 4.1.1
@@ -4977,10 +4976,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@coss/ui@workspace:packages/coss-ui"
   dependencies:
-    "@base-ui-components/react": ^1.0.0-beta.4
-    class-variance-authority: ^0.4.0
-    clsx: ^2.0.0
-    tailwind-merge: ^2.0.0
+    "@base-ui/react": ^1.0.0
+    class-variance-authority: 0.7.1
+    clsx: ^2.1.1
+    lucide-react: 0.555.0
+    tailwind-merge: ^3.4.0
+    ts-node: ^10.9.2
+    tsc-absolute: 1.0.0
+    typescript: 5.9.0-beta
   languageName: unknown
   linkType: soft
 
@@ -17268,17 +17271,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tailwindcss/forms@npm:^0.5.10":
-  version: 0.5.10
-  resolution: "@tailwindcss/forms@npm:0.5.10"
-  dependencies:
-    mini-svg-data-uri: ^1.2.3
-  peerDependencies:
-    tailwindcss: ">=3.0.0 || >= 3.0.0-alpha.1 || >= 4.0.0-alpha.20 || >= 4.0.0-beta.1"
-  checksum: 4526d02edccc4e44599d9588f83e4ac3e9435d137da5638653de2e74d5b612ade449a8c26d075be21692c1ac00a514aaffdb6723e526e3c8314c9a75a9f45979
-  languageName: node
-  linkType: hard
-
 "@tailwindcss/node@npm:4.1.15":
   version: 4.1.15
   resolution: "@tailwindcss/node@npm:4.1.15"
@@ -23736,6 +23728,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"class-variance-authority@npm:0.7.1, class-variance-authority@npm:^0.7.0, class-variance-authority@npm:^0.7.1":
+  version: 0.7.1
+  resolution: "class-variance-authority@npm:0.7.1"
+  dependencies:
+    clsx: ^2.1.1
+  checksum: e05ba26ef9ec38f7c675047ce366b067d60af6c954dba08f7802af19a9460a534ae752d8fe1294fff99d0fa94a669b16ccebd87e8a20f637c0736cf2751dd2c5
+  languageName: node
+  linkType: hard
+
 "class-variance-authority@npm:^0.4.0":
   version: 0.4.0
   resolution: "class-variance-authority@npm:0.4.0"
@@ -23745,15 +23746,6 @@ __metadata:
     typescript:
       optional: true
   checksum: 86037e5baa231a0c36a6dc2f260f6c18daa66bdccb6f4c1baee7112abd3dd2a11f412cfb3a0377b65357cc41ec6cb2f9cc70e9f64275109703fd6839ed50a450
-  languageName: node
-  linkType: hard
-
-"class-variance-authority@npm:^0.7.0, class-variance-authority@npm:^0.7.1":
-  version: 0.7.1
-  resolution: "class-variance-authority@npm:0.7.1"
-  dependencies:
-    clsx: ^2.1.1
-  checksum: e05ba26ef9ec38f7c675047ce366b067d60af6c954dba08f7802af19a9460a534ae752d8fe1294fff99d0fa94a669b16ccebd87e8a20f637c0736cf2751dd2c5
   languageName: node
   linkType: hard
 
@@ -35755,6 +35747,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:0.555.0":
+  version: 0.555.0
+  resolution: "lucide-react@npm:0.555.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 070691202cee3691d9fc8706e4a4c4ba5bad67b9ed9b12b70b3a8bc374c9e6e8ae0e0e167347753ac41f179864b7d8a5498bf3fea655b2ad7fd60a9ae8908510
+  languageName: node
+  linkType: hard
+
 "lucide-static@npm:^0.424.0":
   version: 0.424.0
   resolution: "lucide-static@npm:0.424.0"
@@ -37071,15 +37072,6 @@ __metadata:
   version: 1.0.1
   resolution: "min-indent@npm:1.0.1"
   checksum: bfc6dd03c5eaf623a4963ebd94d087f6f4bbbfd8c41329a7f09706b0cb66969c4ddd336abeb587bc44bc6f08e13bf90f0b374f9d71f9f01e04adc2cd6f083ef1
-  languageName: node
-  linkType: hard
-
-"mini-svg-data-uri@npm:^1.2.3":
-  version: 1.4.4
-  resolution: "mini-svg-data-uri@npm:1.4.4"
-  bin:
-    mini-svg-data-uri: cli.js
-  checksum: 997f1fbd8d59a70f03761e18626d335197a3479cb9d1ff75678e4b64b864d32a0b8fc18115eabde035e5299b8b4a354a78e57dd6ac10f9d604162a6170898d09
   languageName: node
   linkType: hard
 
@@ -46813,10 +46805,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tabbable@npm:^6.2.0":
-  version: 6.2.0
-  resolution: "tabbable@npm:6.2.0"
-  checksum: f8440277d223949272c74bb627a3371be21735ca9ad34c2570f7e1752bd646ccfc23a9d8b1ee65d6561243f4134f5fbbf1ad6b39ac3c4b586554accaff4a1300
+"tabbable@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "tabbable@npm:6.3.0"
+  checksum: 5ffeb2db569db7f3fe11b766f599bc0b67100697034e5c6264995555e8dead029c2e51d6b1e5ea65781e9077bf05ca40d3313c1c47351124a7e68727bc0f3968
   languageName: node
   linkType: hard
 
@@ -46827,10 +46819,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwind-merge@npm:^2.0.0":
-  version: 2.6.0
-  resolution: "tailwind-merge@npm:2.6.0"
-  checksum: 18976c4096920bc6125f1dc837479805de996d86bcc636f98436f65c297003bde89ffe51dfd325b7c97fc71b1dbba8505459dd96010e7b181badd29aea996440
+"tailwind-merge@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "tailwind-merge@npm:3.4.0"
+  checksum: 172d0bc19af4512e037e481354e9038211b2748f1a96f51a6c33559aec2fc4230e6ad52c0b16c4ccc03d8392b87781a615cd1b93badcbd6333b160eb5aca30f7
   languageName: node
   linkType: hard
 
@@ -47844,6 +47836,44 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ts-node@npm:^10.9.2":
+  version: 10.9.2
+  resolution: "ts-node@npm:10.9.2"
+  dependencies:
+    "@cspotcode/source-map-support": ^0.8.0
+    "@tsconfig/node10": ^1.0.7
+    "@tsconfig/node12": ^1.0.7
+    "@tsconfig/node14": ^1.0.0
+    "@tsconfig/node16": ^1.0.2
+    acorn: ^8.4.1
+    acorn-walk: ^8.1.1
+    arg: ^4.1.0
+    create-require: ^1.1.0
+    diff: ^4.0.1
+    make-error: ^1.1.1
+    v8-compile-cache-lib: ^3.0.1
+    yn: 3.1.1
+  peerDependencies:
+    "@swc/core": ">=1.2.50"
+    "@swc/wasm": ">=1.2.50"
+    "@types/node": "*"
+    typescript: ">=2.7"
+  peerDependenciesMeta:
+    "@swc/core":
+      optional: true
+    "@swc/wasm":
+      optional: true
+  bin:
+    ts-node: dist/bin.js
+    ts-node-cwd: dist/bin-cwd.js
+    ts-node-esm: dist/bin-esm.js
+    ts-node-script: dist/bin-script.js
+    ts-node-transpile-only: dist/bin-transpile.js
+    ts-script: dist/bin-script-deprecated.js
+  checksum: fde256c9073969e234526e2cfead42591b9a2aec5222bac154b0de2fa9e4ceb30efcd717ee8bc785a56f3a119bdd5aa27b333d9dbec94ed254bd26f8944c67ac
+  languageName: node
+  linkType: hard
+
 "tsafe@npm:^1.8.5":
   version: 1.8.12
   resolution: "tsafe@npm:1.8.12"
@@ -47851,7 +47881,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsc-absolute@npm:^1.0.0":
+"tsc-absolute@npm:1.0.0, tsc-absolute@npm:^1.0.0":
   version: 1.0.0
   resolution: "tsc-absolute@npm:1.0.0"
   dependencies:
@@ -49277,7 +49307,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:^1.5.0":
+"use-sync-external-store@npm:^1.6.0":
   version: 1.6.0
   resolution: "use-sync-external-store@npm:1.6.0"
   peerDependencies:
