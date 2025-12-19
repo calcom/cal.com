@@ -10,7 +10,7 @@ import prisma from "@calcom/prisma";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 async function handler(req: NextRequest) {
-  const { client_id, client_secret, grant_type, refresh_token, code_verifier } = await parseUrlFormData(req);
+  const { client_id, client_secret, grant_type, refresh_token } = await parseUrlFormData(req);
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
     return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
@@ -62,11 +62,6 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
-  const pkceError = OAuthService.verifyPKCE(client, decodedRefreshToken, code_verifier);
-  if (pkceError) {
-    return NextResponse.json({ error: pkceError.error }, { status: pkceError.status });
-  }
-
   const accessTokenExpiresIn = 1800; // 30 minutes
 
   const payloadAuthToken: OAuthTokenPayload = {
@@ -83,11 +78,6 @@ async function handler(req: NextRequest) {
     scope: decodedRefreshToken.scope,
     token_type: "Refresh Token",
     clientId: client_id,
-    // Preserve PKCE information for any client that used PKCE originally
-    ...(decodedRefreshToken.codeChallenge && {
-      codeChallenge: decodedRefreshToken.codeChallenge,
-      codeChallengeMethod: decodedRefreshToken.codeChallengeMethod,
-    }),
   };
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {

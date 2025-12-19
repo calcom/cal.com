@@ -429,7 +429,7 @@ export default function Bookings() {
               />
             </View>
           </View>
-          {selectedEventTypeId !== null && (
+          {selectedEventTypeId !== null ? (
             <View className="mt-2 flex-row items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2">
               <Text className="flex-1 text-sm text-[#333]">
                 Filtered by {selectedEventTypeLabel || "event type"}
@@ -438,7 +438,7 @@ export default function Bookings() {
                 <Text className="text-sm font-semibold text-[#007AFF]">Clear filter</Text>
               </TouchableOpacity>
             </View>
-          )}
+          ) : null}
         </View>
       </>
     );
@@ -933,6 +933,46 @@ export default function Bookings() {
     const isCancelled = item.status?.toUpperCase() === "CANCELLED";
     const isRejected = item.status?.toUpperCase() === "REJECTED";
 
+    const getHostAndAttendeesDisplay = () => {
+      const hasHostOrAttendees =
+        (item.hosts && item.hosts.length > 0) ||
+        item.user ||
+        (item.attendees && item.attendees.length > 0);
+
+      if (!hasHostOrAttendees) return null;
+
+      const currentUserEmail = userInfo?.email?.toLowerCase();
+      const hostEmail = item.hosts?.[0]?.email?.toLowerCase() || item.user?.email?.toLowerCase();
+      const isCurrentUserHost = currentUserEmail && hostEmail && currentUserEmail === hostEmail;
+
+      const hostName = isCurrentUserHost
+        ? "You"
+        : item.hosts?.[0]?.name || item.hosts?.[0]?.email || item.user?.name || item.user?.email;
+
+      const attendeesDisplay =
+        item.attendees && item.attendees.length > 0
+          ? item.attendees.length === 1
+            ? item.attendees[0].name || item.attendees[0].email
+            : item.attendees
+                .slice(0, 2)
+                .map((att) => att.name || att.email)
+                .join(", ") +
+              (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")
+          : null;
+
+      if (hostName && attendeesDisplay) {
+        return `${hostName} and ${attendeesDisplay}`;
+      } else if (hostName) {
+        return hostName;
+      } else if (attendeesDisplay) {
+        return attendeesDisplay;
+      }
+      return null;
+    };
+
+    const hostAndAttendeesDisplay = getHostAndAttendeesDisplay();
+    const meetingInfo = getMeetingInfo(item.location);
+
     return (
       <View className="border-b border-[#E5E5EA] bg-white">
         <TouchableOpacity
@@ -953,16 +993,14 @@ export default function Bookings() {
               {formatTime(startTime)} - {formatTime(endTime)}
             </Text>
           </View>
-
           {/* Badges Row */}
           <View className="mb-3 flex-row flex-wrap items-center">
-            {isPending && (
+            {isPending ? (
               <View className="mb-1 mr-2 rounded bg-[#FF9500] px-2 py-0.5">
                 <Text className="text-xs font-medium text-white">Unconfirmed</Text>
               </View>
-            )}
+            ) : null}
           </View>
-
           {/* Title */}
           <Text
             className={`mb-2 text-lg font-medium leading-5 text-[#333] ${isCancelled || isRejected ? "line-through" : ""}`}
@@ -970,109 +1008,52 @@ export default function Bookings() {
           >
             {item.title}
           </Text>
-
           {/* Description */}
-          {item.description && (
+          {item.description ? (
             <Text className="mb-2 text-sm leading-5 text-[#666]" numberOfLines={1}>
               &quot;{item.description}&quot;
             </Text>
-          )}
-
+          ) : null}
           {/* Host and Attendees */}
-          {((item.hosts && item.hosts.length > 0) ||
-            item.user ||
-            (item.attendees && item.attendees.length > 0)) && (
-            <Text className="mb-2 text-sm text-[#333]">
-              {(() => {
-                // Check if current user is the host
-                const currentUserEmail = userInfo?.email?.toLowerCase();
-                const hostEmail =
-                  item.hosts?.[0]?.email?.toLowerCase() || item.user?.email?.toLowerCase();
-                const isCurrentUserHost =
-                  currentUserEmail && hostEmail && currentUserEmail === hostEmail;
-
-                // Get host display name
-                const hostName = isCurrentUserHost
-                  ? "You"
-                  : item.hosts?.[0]?.name ||
-                    item.hosts?.[0]?.email ||
-                    item.user?.name ||
-                    item.user?.email;
-
-                // Get attendees display
-                const attendeesDisplay =
-                  item.attendees && item.attendees.length > 0
-                    ? item.attendees.length === 1
-                      ? item.attendees[0].name || item.attendees[0].email
-                      : item.attendees
-                          .slice(0, 2)
-                          .map((att) => att.name || att.email)
-                          .join(", ") +
-                        (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")
-                    : null;
-
-                // Combine host and attendees
-                if (hostName && attendeesDisplay) {
-                  return `${hostName} and ${attendeesDisplay}`;
-                } else if (hostName) {
-                  return hostName;
-                } else if (attendeesDisplay) {
-                  return attendeesDisplay;
-                }
-                return null;
-              })()}
-            </Text>
-          )}
-
-          {/* Meeting Link - only for video conferencing apps */}
-          {(() => {
-            const meetingInfo = getMeetingInfo(item.location);
-            if (!meetingInfo) return null;
-
-            return (
-              <View className="mb-1 flex-row">
-                <TouchableOpacity
-                  className="flex-row items-center"
-                  style={{ alignSelf: "flex-start" }}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                  onPress={async (e) => {
-                    e.stopPropagation();
-                    try {
-                      await Linking.openURL(meetingInfo.cleanUrl);
-                    } catch {
-                      showErrorAlert("Error", "Failed to open meeting link. Please try again.");
-                    }
-                  }}
-                >
-                  {meetingInfo.iconUrl ? (
-                    <SvgImage
-                      uri={meetingInfo.iconUrl}
-                      width={16}
-                      height={16}
-                      style={{ marginRight: 6 }}
-                    />
-                  ) : (
-                    <Ionicons
-                      name="videocam"
-                      size={16}
-                      color="#007AFF"
-                      style={{ marginRight: 6 }}
-                    />
-                  )}
-                  <Text className="text-sm font-medium text-[#007AFF]">{meetingInfo.label}</Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })()}
+          {hostAndAttendeesDisplay ? (
+            <Text className="mb-2 text-sm text-[#333]">{hostAndAttendeesDisplay}</Text>
+          ) : null}
+          {/* Meeting Link */}
+          {meetingInfo ? (
+            <View className="mb-1 flex-row">
+              <TouchableOpacity
+                className="flex-row items-center"
+                style={{ alignSelf: "flex-start" }}
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                onPress={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    await Linking.openURL(meetingInfo.cleanUrl);
+                  } catch {
+                    showErrorAlert("Error", "Failed to open meeting link. Please try again.");
+                  }
+                }}
+              >
+                {meetingInfo.iconUrl ? (
+                  <SvgImage
+                    uri={meetingInfo.iconUrl}
+                    width={16}
+                    height={16}
+                    style={{ marginRight: 6 }}
+                  />
+                ) : (
+                  <Ionicons name="videocam" size={16} color="#007AFF" style={{ marginRight: 6 }} />
+                )}
+                <Text className="text-sm font-medium text-[#007AFF]">{meetingInfo.label}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
         </TouchableOpacity>
-
-        {/* Action buttons row */}
         <View
           className="flex-row items-center justify-end"
           style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
         >
-          {/* Confirm and Reject buttons for unconfirmed bookings */}
-          {isPending && (
+          {isPending ? (
             <>
               <TouchableOpacity
                 className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-white"
@@ -1119,9 +1100,7 @@ export default function Bookings() {
                 <Text className="ml-1 text-sm font-medium text-[#3C3F44]">Reject</Text>
               </TouchableOpacity>
             </>
-          )}
-
-          {/* Three dots button */}
+          ) : null}
           <TouchableOpacity
             className="items-center justify-center rounded-lg border border-[#E5E5EA]"
             style={{ width: 32, height: 32 }}
@@ -1193,7 +1172,7 @@ export default function Bookings() {
       {renderSegmentedControl()}
 
       {/* Empty state - no bookings */}
-      {showEmptyState && (
+      {showEmptyState ? (
         <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
           <ScrollView
             contentContainerStyle={{
@@ -1211,10 +1190,10 @@ export default function Bookings() {
             />
           </ScrollView>
         </View>
-      )}
+      ) : null}
 
       {/* Search empty state */}
-      {showSearchEmptyState && (
+      {showSearchEmptyState ? (
         <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
           <ScrollView
             contentContainerStyle={{
@@ -1232,10 +1211,10 @@ export default function Bookings() {
             />
           </ScrollView>
         </View>
-      )}
+      ) : null}
 
       {/* Bookings list */}
-      {showList && (
+      {showList ? (
         <View className="flex-1 px-2 pt-4 md:px-4">
           <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
             <FlatList
@@ -1248,7 +1227,7 @@ export default function Bookings() {
             />
           </View>
         </View>
-      )}
+      ) : null}
 
       {/* Filter Modal */}
       <FullScreenModal
@@ -1290,17 +1269,17 @@ export default function Bookings() {
                     >
                       {eventType.title}
                     </Text>
-                    {selectedEventTypeId === eventType.id && (
+                    {selectedEventTypeId === eventType.id ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 ))}
 
-                {eventTypes.length === 0 && (
+                {eventTypes.length === 0 ? (
                   <View className="items-center py-4">
                     <Text className="text-sm text-[#666]">No event types found</Text>
                   </View>
-                )}
+                ) : null}
               </ScrollView>
             )}
           </TouchableOpacity>
@@ -1364,7 +1343,7 @@ export default function Bookings() {
         }}
       >
         <ScrollView className="flex-1 p-4">
-          {rescheduleBooking && (
+          {rescheduleBooking ? (
             <>
               <Text className="mb-4 text-base text-gray-600">
                 Reschedule "{rescheduleBooking.title}"
@@ -1442,7 +1421,7 @@ export default function Bookings() {
                 <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
               </TouchableOpacity>
             </>
-          )}
+          ) : null}
         </ScrollView>
       </FullScreenModal>
 

@@ -291,7 +291,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
         </View>
 
         {/* Seats Configuration - shown when enabled */}
-        {props.seatsEnabled && (
+        {props.seatsEnabled ? (
           <View className="gap-4 border-t border-[#E5E5EA] p-5">
             {/* Number of seats per booking */}
             <View>
@@ -342,14 +342,14 @@ export function AdvancedTab(props: AdvancedTabProps) {
                     : "border-[#D1D5DB] bg-white"
                 }`}
               >
-                {props.showAvailabilityCount && (
+                {props.showAvailabilityCount ? (
                   <Ionicons name="checkmark" size={14} color="#fff" />
-                )}
+                ) : null}
               </View>
               <Text className="text-sm text-[#333]">Show the number of available seats</Text>
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
       </View>
 
       <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
@@ -397,7 +397,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
         </View>
 
         {/* Timezone selector - shown when enabled */}
-        {props.lockTimezone && (
+        {props.lockTimezone ? (
           <View className="border-t border-[#E5E5EA] p-5">
             <Text className="mb-2 text-sm font-medium text-[#333]">Timezone</Text>
             <TouchableOpacity
@@ -423,7 +423,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
               <Ionicons name="chevron-down" size={20} color="#666" />
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
       </View>
 
       <ConfigureOnWebCard

@@ -3,6 +3,8 @@ on:
   workflow_call:
 env:
   NODE_OPTIONS: --max-old-space-size=4096
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 permissions:
   contents: read
 jobs:

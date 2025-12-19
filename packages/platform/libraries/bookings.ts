@@ -18,3 +18,4 @@ export { BookingEmailAndSmsTriggerDevTasker } from "@calcom/features/bookings/li
 export { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 export { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 export { BookingAuditTaskerProducerService } from "@calcom/features/booking-audit/lib/service/BookingAuditTaskerProducerService";
+export { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";

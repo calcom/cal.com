@@ -84,15 +84,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Save OAuth tokens to storage
   const saveOAuthTokens = async (tokens: OAuthTokens) => {
     await storage.set(OAUTH_TOKENS_KEY, JSON.stringify(tokens));
     await storage.set(AUTH_TYPE_KEY, "oauth");
+
+    if (oauthService) {
+      try {
+        await oauthService.syncTokensToExtension(tokens);
+      } catch (error) {
+        console.warn("Failed to sync tokens to extension:", error);
+      }
+    }
   };
 
-  // Clear all auth data from storage
   const clearAuth = async () => {
     await storage.removeAll([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, OAUTH_TOKENS_KEY, AUTH_TYPE_KEY]);
+
+    if (oauthService) {
+      try {
+        await oauthService.clearTokensFromExtension();
+      } catch (error) {
+        console.warn("Failed to clear tokens from extension:", error);
+      }
+    }
   };
 
   // Reset all auth state
@@ -147,11 +161,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Refresh token if expired
     let tokens = storedTokens;
+    let tokensWereRefreshed = false;
     if (oauthService.isTokenExpired(storedTokens) && storedTokens.refreshToken) {
       try {
         console.log("Access token expired, refreshing...");
         tokens = await oauthService.refreshAccessToken(storedTokens.refreshToken);
         await saveOAuthTokens(tokens);
+        tokensWereRefreshed = true;
       } catch (refreshError) {
         console.error("Failed to refresh token:", refreshError);
         await clearAuth();
@@ -169,6 +185,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
     if (tokens.refreshToken) {
       setupRefreshTokenFunction(oauthService);
+    }
+
+    if (!tokensWereRefreshed) {
+      try {
+        await oauthService.syncTokensToExtension(tokens);
+      } catch (error) {
+        console.warn("Failed to sync tokens to extension on init:", error);
+      }
     }
   };
 

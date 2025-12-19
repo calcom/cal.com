@@ -34,7 +34,7 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-vi.mock("@calcom/lib/server/queries/organisations", () => {
+vi.mock("@calcom/features/pbac/utils/isOrganisationAdmin", () => {
   return {
     isOrganisationAdmin: vi.fn(),
     isOrganisationOwner: vi.fn(),

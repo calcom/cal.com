@@ -64,7 +64,7 @@ export function RecurringTab({
         </View>
 
         {/* Recurring Configuration - shown when enabled */}
-        {recurringEnabled && (
+        {recurringEnabled ? (
           <View className="mt-4 gap-4 border-t border-[#E5E5EA] pt-4">
             {/* Repeats Every */}
             <View>
@@ -126,7 +126,7 @@ export function RecurringTab({
               </View>
             </View>
           </View>
-        )}
+        ) : null}
       </View>
     </View>
   );

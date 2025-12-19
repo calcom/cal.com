@@ -163,7 +163,7 @@ export function BookingActionsModal({
             </View>
 
             {/* View Recordings */}
-            {hasLocationUrl && (
+            {hasLocationUrl ? (
               <TouchableOpacity
                 onPress={() => {
                   if (afterEventActionsDisabled) return;
@@ -184,10 +184,10 @@ export function BookingActionsModal({
                   View Recordings
                 </Text>
               </TouchableOpacity>
-            )}
+            ) : null}
 
             {/* Meeting Session Details */}
-            {hasLocationUrl && (
+            {hasLocationUrl ? (
               <TouchableOpacity
                 onPress={() => {
                   if (afterEventActionsDisabled) return;
@@ -208,7 +208,7 @@ export function BookingActionsModal({
                   Meeting Session Details
                 </Text>
               </TouchableOpacity>
-            )}
+            ) : null}
 
             {/* Mark as No-Show - disabled for upcoming and unconfirmed bookings */}
             <TouchableOpacity

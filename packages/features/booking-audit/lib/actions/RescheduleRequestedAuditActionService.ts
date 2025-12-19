@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { StringChangeSchema, BooleanChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
 
 /**
  * Reschedule Requested Audit Action Service
@@ -16,8 +16,7 @@ const fieldsSchemaV1 = z.object({
     rescheduled: BooleanChangeSchema.optional(),
 });
 
-export class RescheduleRequestedAuditActionService
-    implements IAuditActionService<typeof fieldsSchemaV1, typeof fieldsSchemaV1> {
+export class RescheduleRequestedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "RESCHEDULE_REQUESTED" as const;
     private static dataSchemaV1 = z.object({
@@ -61,17 +60,14 @@ export class RescheduleRequestedAuditActionService
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: { storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }; userTimeZone: string }): Promise<TranslationWithParams> {
+    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
         return { key: "booking_audit_action.reschedule_requested" };
     }
 
     getDisplayJson({
         storedData,
-    }: {
-        storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> };
-        userTimeZone: string;
-    }): RescheduleRequestedAuditDisplayData {
-        const { fields } = storedData;
+    }: GetDisplayJsonParams): RescheduleRequestedAuditDisplayData {
+        const { fields } = this.parseStored(storedData);
         return {
             reason: fields.cancellationReason.new ?? null,
             requestedBy: fields.cancelledBy.new ?? null,

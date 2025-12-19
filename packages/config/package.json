@@ -11,7 +11,6 @@
   ],
   "dependencies": {
     "@calcom/eslint-plugin-eslint": "workspace:*",
-    "@tailwindcss/forms": "^0.5.10",
     "@todesktop/tailwind-variants": "^1.0.0",
     "eslint-config-next": "^13.2.1",
     "eslint-config-prettier": "^8.6.0",

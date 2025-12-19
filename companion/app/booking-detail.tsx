@@ -365,7 +365,7 @@ export default function BookingDetail() {
           <View className="mb-2 rounded-2xl bg-white p-6">
             <Text className="mb-4 text-base font-medium text-[#666]">Who</Text>
             {/* Show host from user field or hosts array */}
-            {(booking.user || (booking.hosts && booking.hosts.length > 0)) && (
+            {booking.user || (booking.hosts && booking.hosts.length > 0) ? (
               <View className="mb-4">
                 {booking.user ? (
                   <View className="flex-row items-start">
@@ -412,8 +412,8 @@ export default function BookingDetail() {
                   ))
                 ) : null}
               </View>
-            )}
-            {booking.attendees && booking.attendees.length > 0 && (
+            ) : null}
+            {booking.attendees && booking.attendees.length > 0 ? (
               <View>
                 {booking.attendees.map((attendee, index) => (
                   <View key={index} className={`flex-row items-start ${index > 0 ? "mt-4" : ""}`}>
@@ -431,11 +431,11 @@ export default function BookingDetail() {
                   </View>
                 ))}
               </View>
-            )}
+            ) : null}
           </View>
 
           {/* Where Section */}
-          {locationProvider && (
+          {locationProvider ? (
             <View className="mb-2 rounded-2xl bg-white p-6">
               <Text className="mb-4 text-base font-medium text-[#666]">Where</Text>
               {locationProvider.url ? (
@@ -443,14 +443,14 @@ export default function BookingDetail() {
                   onPress={handleJoinMeeting}
                   className="flex-row flex-wrap items-center"
                 >
-                  {locationProvider.iconUrl && (
+                  {locationProvider.iconUrl ? (
                     <SvgImage
                       uri={locationProvider.iconUrl}
                       width={20}
                       height={20}
                       style={{ marginRight: 8 }}
                     />
-                  )}
+                  ) : null}
                   <Text className="text-base text-[#007AFF]">{locationProvider.label}: </Text>
                   <Text className="flex-1 text-base text-[#007AFF]" numberOfLines={1}>
                     {locationProvider.url}
@@ -458,55 +458,55 @@ export default function BookingDetail() {
                 </TouchableOpacity>
               ) : (
                 <View className="flex-row items-center">
-                  {locationProvider.iconUrl && (
+                  {locationProvider.iconUrl ? (
                     <SvgImage
                       uri={locationProvider.iconUrl}
                       width={20}
                       height={20}
                       style={{ marginRight: 8 }}
                     />
-                  )}
+                  ) : null}
                   <Text className="text-base text-[#333]">{locationProvider.label}</Text>
                 </View>
               )}
             </View>
-          )}
+          ) : null}
 
           {/* Recurring Event Section */}
-          {(booking.recurringEventId || booking.recurringBookingUid) && (
+          {booking.recurringEventId || booking.recurringBookingUid ? (
             <View className="mb-2 rounded-2xl bg-white p-6">
               <Text className="mb-2 text-base font-medium text-[#666]">Recurring Event</Text>
               <Text className="text-base text-[#666]">Every 2 weeks for 6 occurrences</Text>
             </View>
-          )}
+          ) : null}
 
           {/* Description Section */}
-          {booking.description && (
+          {booking.description ? (
             <View className="mb-2 rounded-2xl bg-white p-6">
               <Text className="mb-2 text-base font-medium text-[#666]">Description</Text>
               <Text className="text-base leading-6 text-[#666]">{booking.description}</Text>
             </View>
-          )}
+          ) : null}
 
           {/* Join Meeting Button */}
-          {locationProvider?.url && (
+          {locationProvider?.url ? (
             <TouchableOpacity
               onPress={handleJoinMeeting}
               className="mb-2 flex-row items-center justify-center rounded-lg bg-black px-6 py-4"
             >
-              {locationProvider.iconUrl && (
+              {locationProvider.iconUrl ? (
                 <SvgImage
                   uri={locationProvider.iconUrl}
                   width={20}
                   height={20}
                   style={{ marginRight: 8 }}
                 />
-              )}
+              ) : null}
               <Text className="text-base font-semibold text-white">
                 Join {locationProvider.label}
               </Text>
             </TouchableOpacity>
-          )}
+          ) : null}
         </ScrollView>
       </View>
 

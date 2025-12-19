@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZGetInputSchema = z.object({
+export type TGetInputSchema = {
+  teamId: number | null;
+};
+
+export const ZGetInputSchema: z.ZodType<TGetInputSchema> = z.object({
   teamId: z.union([z.number(), z.null()]),
 });
-
-export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;

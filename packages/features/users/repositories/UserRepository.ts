@@ -1,13 +1,13 @@
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -123,7 +123,7 @@ const userSelect = {
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
-  constructor(private prismaClient: PrismaClient) { }
+  constructor(private prismaClient: PrismaClient) {}
 
   async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await this.prismaClient.membership.findMany({
@@ -236,35 +236,35 @@ export class UserRepository {
     // Lookup in profiles because that's where the organization usernames exist
     const profiles = orgSlug
       ? (
-        await ProfileRepository.findManyByOrgSlugOrRequestedSlug({
-          orgSlug: orgSlug,
-          usernames: usernameList,
-        })
-      ).map((profile) => ({
-        ...profile,
-        organization: getParsedTeam(profile.organization),
-      }))
+          await ProfileRepository.findManyByOrgSlugOrRequestedSlug({
+            orgSlug: orgSlug,
+            usernames: usernameList,
+          })
+        ).map((profile) => ({
+          ...profile,
+          organization: getParsedTeam(profile.organization),
+        }))
       : null;
     const where =
       profiles && profiles.length > 0
         ? {
-          // Get UserIds from profiles
-          id: {
-            in: profiles.map((profile) => profile.user.id),
-          },
-        }
+            // Get UserIds from profiles
+            id: {
+              in: profiles.map((profile) => profile.user.id),
+            },
+          }
         : {
-          username: {
-            in: usernameList,
-          },
-          ...(orgSlug
-            ? {
-              organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
-            }
-            : {
-              organization: null,
-            }),
-        };
+            username: {
+              in: usernameList,
+            },
+            ...(orgSlug
+              ? {
+                  organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+                }
+              : {
+                  organization: null,
+                }),
+          };
     return { where, profiles };
   }
 
@@ -681,27 +681,27 @@ export class UserRepository {
 
   async enrichEntityWithProfile<
     T extends
-    | {
-      profile: {
-        id: number;
-        username: string | null;
-        organizationId: number | null;
-        organization?: {
-          id: number;
-          name: string;
-          calVideoLogo?: string | null;
-          bannerUrl: string | null;
-          slug: string | null;
-          metadata: Prisma.JsonValue;
-        };
-      };
-    }
-    | {
-      user: {
-        username: string | null;
-        id: number;
-      };
-    }
+      | {
+          profile: {
+            id: number;
+            username: string | null;
+            organizationId: number | null;
+            organization?: {
+              id: number;
+              name: string;
+              calVideoLogo?: string | null;
+              bannerUrl: string | null;
+              slug: string | null;
+              metadata: Prisma.JsonValue;
+            };
+          };
+        }
+      | {
+          user: {
+            username: string | null;
+            id: number;
+          };
+        }
   >(entity: T) {
     if ("profile" in entity) {
       const { profile, ...entityWithoutProfile } = entity;
@@ -714,11 +714,11 @@ export class UserRepository {
           ...profileWithoutOrganization,
           ...(parsedOrg
             ? {
-              organization: parsedOrg,
-            }
+                organization: parsedOrg,
+              }
             : {
-              organization: null,
-            }),
+                organization: null,
+              }),
         },
       };
       return ret;
@@ -754,10 +754,10 @@ export class UserRepository {
       data: {
         movedToProfile: data.movedToProfileId
           ? {
-            connect: {
-              id: data.movedToProfileId,
-            },
-          }
+              connect: {
+                id: data.movedToProfileId,
+              },
+            }
           : undefined,
       },
     });
@@ -803,15 +803,15 @@ export class UserRepository {
         locked,
         ...(organizationIdValue
           ? {
-            organizationId: organizationIdValue,
-            profiles: {
-              create: {
-                username,
-                organizationId: organizationIdValue,
-                uid: ProfileRepository.generateProfileUid(),
+              organizationId: organizationIdValue,
+              profiles: {
+                create: {
+                  username,
+                  organizationId: organizationIdValue,
+                  uid: ProfileRepository.generateProfileUid(),
+                },
               },
-            },
-          }
+            }
           : {}),
         ...rest,
       },
@@ -1014,19 +1014,19 @@ export class UserRepository {
     };
   }
 
-    async findUnlockedUserForSession({ userId }: { userId: number }) {
-      const user = await this.prismaClient.user.findUnique({
-        where: {
-          id: userId,
-          // Locked users can't login
-          locked: false,
-        },
-        select: {
-          id: true,
-          uuid: true,
-          username: true,
-          name: true,
-          email: true,
+  async findUnlockedUserForSession({ userId }: { userId: number }) {
+    const user = await this.prismaClient.user.findUnique({
+      where: {
+        id: userId,
+        // Locked users can't login
+        locked: false,
+      },
+      select: {
+        id: true,
+        uuid: true,
+        username: true,
+        name: true,
+        email: true,
         emailVerified: true,
         bio: true,
         avatarUrl: true,

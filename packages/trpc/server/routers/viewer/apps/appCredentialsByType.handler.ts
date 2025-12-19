@@ -37,6 +37,7 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
       user: {
         select: {
           name: true,
+          email: true,
         },
       },
       team: {

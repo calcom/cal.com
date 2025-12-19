@@ -259,6 +259,7 @@ const createTeamAndAddUser = async (
         featureId: featureFlag,
         assignedBy: "e2e-fixture",
         assignedAt: new Date(),
+        enabled: true,
       })),
     });
   }
@@ -428,6 +429,7 @@ export const createUsersFixture = (
             featureId: featureFlag,
             assignedBy: "e2e-fixture",
             assignedAt: new Date(),
+            enabled: true,
           })),
         });
       }
