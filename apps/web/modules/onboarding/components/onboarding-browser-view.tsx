@@ -1,8 +1,18 @@
 "use client";
 
 import classNames from "classnames";
-import { ArrowRightIcon } from "lucide-react";
-
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  BellIcon,
+  ClockIcon,
+  EllipsisVerticalIcon,
+  LockIcon,
+  MapPinIcon,
+  MessageCircleIcon,
+  RotateCwIcon,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
@@ -12,7 +22,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 type OnboardingBrowserViewProps = {
   avatar?: string | null;
@@ -70,37 +79,37 @@ export const OnboardingBrowserView = ({
     title: string;
     description: string;
     duration: number;
-    icon: IconName;
+    Icon: LucideIcon;
   }> = [
     {
       title: t("onboarding_browser_view_demo"),
       description: t("onboarding_browser_view_demo_description"),
       duration: 15,
-      icon: "bell",
+      Icon: BellIcon,
     },
     {
       title: t("onboarding_browser_view_quick_meeting"),
       description: t("onboarding_browser_view_quick_meeting_description"),
       duration: 15,
-      icon: "bell",
+      Icon: BellIcon,
     },
     {
       title: t("onboarding_browser_view_longer_meeting"),
       description: t("onboarding_browser_view_longer_meeting_description"),
       duration: 30,
-      icon: "clock",
+      Icon: ClockIcon,
     },
     {
       title: t("in_person_meeting"),
       description: t("onboarding_browser_view_in_person_description"),
       duration: 120,
-      icon: "map-pin",
+      Icon: MapPinIcon,
     },
     {
       title: t("onboarding_browser_view_ask_question"),
       description: t("onboarding_browser_view_ask_question_description"),
       duration: 15,
-      icon: "message-circle",
+      Icon: MessageCircleIcon,
     },
   ];
   return (
@@ -109,15 +118,15 @@ export const OnboardingBrowserView = ({
       <div className="border-subtle bg-default flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b p-3">
         {/* Navigation buttons */}
         <div className="flex shrink-0 items-center gap-4 opacity-50">
-          <Icon name="arrow-left" className="text-subtle h-4 w-4" />
-          <Icon name="arrow-right" className="text-subtle h-4 w-4" />
-          <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
+          <ArrowLeftIcon className="text-subtle h-4 w-4" />
+          <ArrowRightIcon className="text-subtle h-4 w-4" />
+          <RotateCwIcon className="text-subtle h-4 w-4" />
         </div>
         <div className="bg-cal-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
-          <Icon name="lock" className="text-subtle h-4 w-4" />
+          <LockIcon className="text-subtle h-4 w-4" />
           <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}</p>
         </div>
-        <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
+        <EllipsisVerticalIcon className="text-subtle h-4 w-4" />
       </div>
       {/* Content */}
       <div className="bg-cal-muted h-full pl-11 pt-11">
@@ -167,7 +176,7 @@ export const OnboardingBrowserView = ({
                       <div className="flex items-center gap-1">
                         <h3 className="text-default text-sm font-semibold leading-none">{event.title}</h3>
                         <div className="bg-emphasis flex h-4 items-center justify-center gap-1 rounded-md px-1">
-                          <Icon name={event.icon} className="text-emphasis h-3 w-3" />
+                          <event.Icon className="text-emphasis h-3 w-3" />
                           <span className="text-emphasis text-xs font-medium leading-none">
                             {event.duration} {t("minute_timeUnit")}
                           </span>

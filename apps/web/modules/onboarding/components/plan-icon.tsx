@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-
-import { Icon, type IconName } from "@calcom/ui/components/icon";
+import type { LucideIcon } from "lucide-react";
+import { UserIcon, UsersIcon } from "lucide-react";
 
 // Ring sizes - just the diameters, all centered on the icon
 const RING_SIZES = [166, 233, 345, 465];
@@ -18,11 +18,11 @@ const TEAM_ICON_POSITIONS = [
 ];
 
 export function PlanIcon({
-  icon,
+  icon: IconComponent,
   variant = "single",
   animationDirection = "down",
 }: {
-  icon: IconName;
+  icon: LucideIcon;
   variant?: "single" | "organization" | "team";
   animationDirection?: "up" | "down";
 }) {
@@ -37,12 +37,10 @@ export function PlanIcon({
         }}>
         {/* Icon */}
         <div className="size-12 flex items-center justify-center">
-          <Icon
-            name={variant === "organization" ? "users" : icon}
-            size={32}
-            strokeWidth={1.75}
-            className="text-emphasis opacity-80"
-          />
+          {(() => {
+            const DisplayIcon = variant === "organization" ? UsersIcon : IconComponent;
+            return <DisplayIcon size={32} strokeWidth={1.75} className="text-emphasis opacity-80" />;
+          })()}
         </div>
 
         {/* Inner highlight/shine effect */}
@@ -95,7 +93,7 @@ export function PlanIcon({
           background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-muted, #f7f7f7))",
         }}>
         <div className="flex items-center justify-center opacity-70">
-          <Icon name="user" size={24} strokeWidth={1.75} className="text-emphasis" />
+          <UserIcon size={24} strokeWidth={1.75} className="text-emphasis" />
         </div>
         <div
           className="pointer-events-none absolute inset-0 rounded-full"
