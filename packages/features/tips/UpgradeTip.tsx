@@ -55,7 +55,7 @@ export function UpgradeTip({
           />
         </picture>
         <div className="relative my-4 px-8 pb-4 sm:px-14">
-          <h1 className={classNames("font-cal mt-4 text-3xl")}>{title}</h1>
+          <h1 className={classNames("font-heading mt-4 text-3xl")}>{title}</h1>
           <p className={classNames("mb-8 mt-4 max-w-sm")}>{description}</p>
           {buttons}
         </div>
@@ -65,7 +65,7 @@ export function UpgradeTip({
         {features.map((feature) => (
           <div key={feature.title} className="bg-cal-muted mb-4 min-h-[180px] w-full rounded-md  p-8 md:mb-0">
             {feature.icon}
-            <h2 className="font-cal text-emphasis mt-4 text-lg">{feature.title}</h2>
+            <h2 className="font-heading text-emphasis mt-4 text-lg">{feature.title}</h2>
             <p className="text-default">{feature.description}</p>
           </div>
         ))}
