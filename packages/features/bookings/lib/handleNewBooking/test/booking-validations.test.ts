@@ -24,15 +24,13 @@ import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
-vi.mock("@calcom/trpc/server/routers/viewer/auth/util", () => ({
+vi.mock("@calcom/features/auth/lib/verifyCodeUnAuthenticated", () => ({
   verifyCodeUnAuthenticated: vi.fn(),
 }));
 
-const { mockFindManyByEmailsWithEmailVerificationSettings, mockFindByEmailWithEmailVerificationSetting } =
-  vi.hoisted(() => ({
-    mockFindManyByEmailsWithEmailVerificationSettings: vi.fn(),
-    mockFindByEmailWithEmailVerificationSetting: vi.fn(),
-  }));
+const { mockFindManyByEmailsWithEmailVerificationSettings } = vi.hoisted(() => ({
+  mockFindManyByEmailsWithEmailVerificationSettings: vi.fn(),
+}));
 
 vi.mock("@calcom/features/users/repositories/UserRepository", async (importOriginal) => {
   const actual = await importOriginal();
@@ -45,7 +43,6 @@ vi.mock("@calcom/features/users/repositories/UserRepository", async (importOrigi
       const realInstance = new OriginalUserRepository(prisma);
       realInstance.findManyByEmailsWithEmailVerificationSettings =
         mockFindManyByEmailsWithEmailVerificationSettings;
-      realInstance.findByEmailWithEmailVerificationSetting = mockFindByEmailWithEmailVerificationSetting;
       return realInstance;
     }),
   };
@@ -61,7 +58,6 @@ function resetBlacklistedEmails() {
 
 beforeEach(() => {
   mockFindManyByEmailsWithEmailVerificationSettings.mockResolvedValue([]);
-  mockFindByEmailWithEmailVerificationSetting.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -558,7 +554,9 @@ describe("Booking Validation Specifications", () => {
 
     test("should create booking when main booker provides valid verification code", async () => {
       const handleNewBooking = getNewBookingHandler();
-      const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
+      const { verifyCodeUnAuthenticated } = await import(
+        "@calcom/features/auth/lib/verifyCodeUnAuthenticated"
+      );
 
       vi.mocked(verifyCodeUnAuthenticated).mockResolvedValue(true);
 
@@ -1071,7 +1069,9 @@ describe("Booking Validation Specifications", () => {
 
     test("should throw error when invalid verification code is provided", async () => {
       const handleNewBooking = getNewBookingHandler();
-      const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
+      const { verifyCodeUnAuthenticated } = await import(
+        "@calcom/features/auth/lib/verifyCodeUnAuthenticated"
+      );
 
       vi.mocked(verifyCodeUnAuthenticated).mockResolvedValue(false);
 
