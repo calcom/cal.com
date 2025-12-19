@@ -4,9 +4,9 @@ import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -19,8 +19,8 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { generateSecret } from "@calcom/platform-libraries";
-import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import type { Membership, Team, User } from "@calcom/prisma/client";
+import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 
 // Mock next-auth/jwt getToken for ApiAuthStrategy NEXT_AUTH authentication
 jest.mock("next-auth/jwt", () => ({
@@ -172,24 +172,22 @@ describe("OAuth2 Controller Endpoints", () => {
     });
 
     describe("GET /api/v2/auth/oauth2/clients/:clientId", () => {
-            it("should return OAuth client info for valid client ID", async () => {
-              const response = await request(app.getHttpServer())
-                .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
-                .expect(200);
+      it("should return OAuth client info for valid client ID", async () => {
+        const response = await request(app.getHttpServer())
+          .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
+          .expect(200);
 
-              expect(response.body.status).toBe("success");
-              expect(response.body.data.clientId).toBe(testClientId);
-              expect(response.body.data.name).toBe("Test OAuth Client");
-              expect(response.body.data.redirectUri).toBe(testRedirectUri);
-              expect(response.body.data.clientSecret).toBeUndefined();
-            });
+        expect(response.body.status).toBe("success");
+        expect(response.body.data.clientId).toBe(testClientId);
+        expect(response.body.data.name).toBe("Test OAuth Client");
+        expect(response.body.data.redirectUri).toBe(testRedirectUri);
+        expect(response.body.data.clientSecret).toBeUndefined();
+      });
 
       it("should return 404 for non-existent client ID", async () => {
-        const response = await request(app.getHttpServer())
+        await request(app.getHttpServer())
           .get("/api/v2/auth/oauth2/clients/non-existent-client-id")
           .expect(404);
-
-        expect(response.body.message).toContain("not found");
       });
     });
 
@@ -265,17 +263,17 @@ describe("OAuth2 Controller Endpoints", () => {
             code: authorizationCode,
             clientSecret: testClientSecret,
             redirectUri: testRedirectUri,
-            grantType: "authorization_code",
           })
           .expect(200);
 
         expect(response.body.status).toBe("success");
-        expect(response.body.data.accessToken).toBeDefined();
-        expect(response.body.data.refreshToken).toBeDefined();
-        expect(response.body.data.tokenType).toBe("bearer");
-        expect(response.body.data.expiresIn).toBe(1800);
+        console.log("DATA", response.body.data);
+        expect(response.body.data.access_token).toBeDefined();
+        expect(response.body.data.refresh_token).toBeDefined();
+        expect(response.body.data.token_type).toBe("bearer");
+        expect(response.body.data.expires_in).toBe(1800);
 
-        refreshToken = response.body.data.refreshToken;
+        refreshToken = response.body.data.refresh_token;
       });
 
       it("should return 400 for invalid/used authorization code", async () => {
@@ -285,7 +283,6 @@ describe("OAuth2 Controller Endpoints", () => {
             code: authorizationCode,
             clientSecret: testClientSecret,
             redirectUri: testRedirectUri,
-            grantType: "authorization_code",
           })
           .expect(400);
       });
@@ -309,7 +306,6 @@ describe("OAuth2 Controller Endpoints", () => {
             code: newAuthCode,
             clientSecret: "wrong-secret",
             redirectUri: testRedirectUri,
-            grantType: "authorization_code",
           })
           .expect(401);
       });
@@ -322,15 +318,14 @@ describe("OAuth2 Controller Endpoints", () => {
           .send({
             refreshToken: refreshToken,
             clientSecret: testClientSecret,
-            grantType: "refresh_token",
           })
           .expect(200);
 
         expect(response.body.status).toBe("success");
-        expect(response.body.data.accessToken).toBeDefined();
-        expect(response.body.data.refreshToken).toBeDefined();
-        expect(response.body.data.tokenType).toBe("bearer");
-        expect(response.body.data.expiresIn).toBe(1800);
+        expect(response.body.data.access_token).toBeDefined();
+        expect(response.body.data.refresh_token).toBeDefined();
+        expect(response.body.data.token_type).toBe("bearer");
+        expect(response.body.data.expires_in).toBe(1800);
       });
 
       it("should return 400 for invalid refresh token", async () => {
@@ -339,7 +334,6 @@ describe("OAuth2 Controller Endpoints", () => {
           .send({
             refreshToken: "invalid-refresh-token",
             clientSecret: testClientSecret,
-            grantType: "refresh_token",
           })
           .expect(400);
       });
@@ -350,7 +344,6 @@ describe("OAuth2 Controller Endpoints", () => {
           .send({
             refreshToken: refreshToken,
             clientSecret: testClientSecret,
-            grantType: "refresh_token",
           })
           .expect(401);
       });

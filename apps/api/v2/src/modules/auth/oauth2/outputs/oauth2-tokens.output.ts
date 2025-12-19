@@ -10,32 +10,32 @@ export class OAuth2TokensDto {
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   })
   @IsString()
-  @Expose()
-  accessToken!: string;
+  @Expose({ name: "accessToken" })
+  access_token!: string;
 
   @ApiProperty({
     description: "The token type",
     example: "bearer",
   })
   @IsString()
-  @Expose()
-  tokenType!: string;
+  @Expose({ name: "tokenType" })
+  token_type!: string;
 
   @ApiProperty({
     description: "The refresh token",
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   })
   @IsString()
-  @Expose()
-  refreshToken!: string;
+  @Expose({ name: "refreshToken" })
+  refresh_token!: string;
 
   @ApiProperty({
     description: "The number of seconds until the access token expires",
     example: 1800,
   })
   @IsNumber()
-  @Expose()
-  expiresIn!: number;
+  @Expose({ name: "expiresIn" })
+  expires_in!: number;
 }
 
 export class OAuth2TokensResponseDto {

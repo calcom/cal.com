@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { Equals, IsOptional, IsString } from "class-validator";
 
 export class OAuth2RefreshInput {
@@ -17,13 +17,10 @@ export class OAuth2RefreshInput {
   @IsString()
   clientSecret?: string;
 
-  @ApiProperty({
-    description: "The grant type (must be refresh_token)",
-    example: "refresh_token",
-  })
+  @ApiHideProperty()
   @IsString()
   @Equals("refresh_token")
-  grantType!: string;
+  grantType: string = "refresh_token";
 
   @ApiProperty({
     description: "PKCE code verifier (required if PKCE was used in the original authorization)",

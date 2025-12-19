@@ -6,8 +6,8 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OAuth2AuthorizeInput } from "@/modules/auth/oauth2/inputs/authorize.input";
 import { OAuth2ExchangeInput } from "@/modules/auth/oauth2/inputs/exchange.input";
 import { OAuth2RefreshInput } from "@/modules/auth/oauth2/inputs/refresh.input";
-import { OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
-import { OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
+import { OAuth2ClientDto, OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
+import { OAuth2TokensDto, OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
 import {
   Body,
   Controller,
@@ -23,6 +23,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiExcludeController, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
 import type { Response } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -50,7 +51,7 @@ export class OAuth2Controller {
 
       return {
         status: SUCCESS_STATUS,
-        data: client,
+        data: plainToInstance(OAuth2ClientDto, client, { strategy: "excludeAll" }),
       };
     } catch (err) {
       if (err instanceof HttpError) {
@@ -120,7 +121,7 @@ export class OAuth2Controller {
       );
       return {
         status: SUCCESS_STATUS,
-        data: tokens,
+        data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
     } catch (err) {
       if (err instanceof HttpError) {
@@ -150,7 +151,7 @@ export class OAuth2Controller {
       );
       return {
         status: SUCCESS_STATUS,
-        data: tokens,
+        data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
     } catch (err) {
       if (err instanceof HttpError) {

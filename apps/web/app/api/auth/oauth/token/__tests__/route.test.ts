@@ -40,7 +40,6 @@ vi.mock("next/server", () => ({
         searchParams: urlObj.searchParams,
       };
     }
-    e;
 
     async text(): Promise<string> {
       return this._body;
@@ -309,7 +308,6 @@ describe("POST /api/auth/oauth/token", () => {
       });
 
       const response = await POST(tokenRequest, { params: Promise.resolve({}) });
-      console.log(await response.json());
       expect(response).toBeDefined();
       if (!response) throw new Error("Response is undefined");
       const data = await response.json();

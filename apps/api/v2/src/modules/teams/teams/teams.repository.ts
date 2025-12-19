@@ -120,20 +120,4 @@ export class TeamsRepository {
       },
     });
   }
-
-  async findTeamBySlugWithAdminRole(teamSlug: string, userId: number) {
-    return this.dbRead.prisma.team.findFirst({
-      where: {
-        slug: teamSlug,
-        members: {
-          some: {
-            userId,
-            role: {
-              in: ["OWNER", "ADMIN"],
-            },
-          },
-        },
-      },
-    });
-  }
 }

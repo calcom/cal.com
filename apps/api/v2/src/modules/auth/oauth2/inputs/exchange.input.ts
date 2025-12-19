@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { Equals, IsOptional, IsString } from "class-validator";
 
 export class OAuth2ExchangeInput {
@@ -24,13 +24,10 @@ export class OAuth2ExchangeInput {
   @IsString()
   redirectUri!: string;
 
-  @ApiProperty({
-    description: "The grant type (must be authorization_code)",
-    example: "authorization_code",
-  })
+  @ApiHideProperty()
   @IsString()
   @Equals("authorization_code")
-  grantType!: string;
+  grantType: string = "authorization_code";
 
   @ApiProperty({
     description: "PKCE code verifier (required if code_challenge was used)",
