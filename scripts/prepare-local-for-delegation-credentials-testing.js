@@ -55,6 +55,7 @@ async function main() {
         teamId: org.id,
         featureId: "delegation-credential",
       },
+      enabled: true,
     },
   });
   if (!delegationFeature) {
@@ -64,6 +65,7 @@ async function main() {
         featureId: "delegation-credential",
         assignedAt: new Date(),
         assignedBy: "prepare-local-script",
+        enabled: true,
       },
     });
     console.log("Created TeamFeatures: delegation-credential");
@@ -78,6 +80,7 @@ async function main() {
         teamId: org.id,
         featureId: "calendar-cache",
       },
+      enabled: true,
     },
   });
   if (!calendarCacheFeature) {
@@ -87,6 +90,7 @@ async function main() {
         featureId: "calendar-cache",
         assignedAt: new Date(),
         assignedBy: "prepare-local-script",
+        enabled: true,
       },
     });
     console.log("Created TeamFeatures: calendar-cache");

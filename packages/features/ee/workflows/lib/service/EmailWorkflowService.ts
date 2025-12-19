@@ -9,6 +9,7 @@ import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builde
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -35,7 +36,6 @@ import type {
   ScheduleEmailReminderAction,
 } from "../types";
 import { WorkflowService } from "./WorkflowService";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 
 export class EmailWorkflowService {
   constructor(
@@ -208,9 +208,13 @@ export class EmailWorkflowService {
         }
     }
 
-    // The evt builder already validates the bookerUrl exists
-    if (!evt || typeof evt.bookerUrl !== "string") {
+    // Only check for bookerUrl when evt is provided (not for form submissions)
+    if (evt && typeof evt.bookerUrl !== "string") {
       throw new Error("bookerUrl not a part of the evt");
+    }
+
+    if (!evt && !formData) {
+      throw new Error("Either evt or formData must be provided");
     }
 
     const contextData: WorkflowContextData = evt
@@ -311,7 +315,8 @@ export class EmailWorkflowService {
         organizerEmail: evt.organizer.email,
         sendToEmail: sendTo[0],
       });
-      const meetingUrl = getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+      const meetingUrl =
+        getVideoCallUrlFromCalEvent(evt) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
@@ -440,11 +445,14 @@ export class EmailWorkflowService {
         ]
       : undefined;
 
+    const customReplyToEmail =
+      evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
+
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && {
-        replyTo: evt?.eventType?.customReplyToEmail || evt.organizer.email,
+        replyTo: customReplyToEmail || evt.organizer.email,
       }),
       attachments,
       sender,

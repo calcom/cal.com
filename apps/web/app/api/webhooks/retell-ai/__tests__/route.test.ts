@@ -91,13 +91,13 @@ vi.mock("@calcom/emails/email-manager", () => ({
 const mockFindByPhoneNumber = vi.fn();
 const mockFindByProviderAgentId = vi.fn();
 
-vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
+vi.mock("@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository", () => ({
   PrismaPhoneNumberRepository: vi.fn().mockImplementation(() => ({
     findByPhoneNumber: mockFindByPhoneNumber,
   })),
 }));
 
-vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
+vi.mock("@calcom/features/calAIPhone/repositories/PrismaAgentRepository", () => ({
   PrismaAgentRepository: vi.fn().mockImplementation(() => ({
     findByProviderAgentId: mockFindByProviderAgentId,
   })),
