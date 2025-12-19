@@ -5,6 +5,7 @@ import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManage
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
