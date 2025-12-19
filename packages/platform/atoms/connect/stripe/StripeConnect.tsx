@@ -1,9 +1,10 @@
+import type { LucideIcon } from "lucide-react";
+import { CreditCardIcon } from "lucide-react";
 import type { FC } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import type { ButtonColor } from "@calcom/ui/components/button";
-import type { IconName } from "@calcom/ui/components/icon";
 
 import type { OnCheckErrorType, UseCheckProps } from "../../hooks/connect/useCheck";
 import { useCheck } from "../../hooks/stripe/useCheck";
@@ -13,7 +14,7 @@ import { cn } from "../../src/lib/utils";
 
 type StripeConnectProps = {
   teamId?: number | null;
-  icon?: IconName;
+  icon?: LucideIcon;
   color?: ButtonColor;
   isClickable?: boolean;
   className?: string;
@@ -64,8 +65,8 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
   return (
     <AtomsWrapper>
       <Button
-        StartIcon={!!icon ? icon : "credit-card"}
-        color={!!color ? color : "primary"}
+        StartIcon={icon || CreditCardIcon}
+        color={color || "primary"}
         disabled={isClickable ? false : isDisabled}
         className={cn(
           "",

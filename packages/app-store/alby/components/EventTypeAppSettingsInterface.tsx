@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { SatSymbol } from "@calcom/ui/components/icon";
+import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
 
 import { PaypalPaymentOptions as paymentOptions } from "../zod";
 

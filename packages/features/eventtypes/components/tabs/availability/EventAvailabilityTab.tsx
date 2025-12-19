@@ -32,7 +32,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Spinner } from "@calcom/ui/components/icon";
+import { Spinner } from "@calcom/ui/components/icon/Spinner";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
@@ -466,8 +466,7 @@ const EventTypeSchedule = ({
         shouldDirty: true,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scheduleId, schedulesQueryData]);
+  }, [scheduleId, schedulesQueryData, fieldName, eventType.restrictionScheduleId, isManagedEventType, setValue, formFieldName]);
 
   if (isSchedulesPending || !schedulesQueryData) {
     return <SelectSkeletonLoader />;
