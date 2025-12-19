@@ -1,12 +1,14 @@
 import z from "zod";
 
-const ruleIdentifierEnum = z.enum(["teamId", "attributeId"]);
-const ruleOperatorEnum = z.enum(["equals", "notEquals", "in", "notIn"]);
+// Enum schemas
+const conditionIdentifierSchema = z.enum(["teamId", "attributeId"]);
+const conditionOperatorSchema = z.enum(["equals", "notEquals", "in", "notIn"]);
+const ruleOperatorSchema = z.enum(["AND", "OR"]);
 
 // Base condition schema
 const baseConditionSchema = z.object({
-  identifier: ruleIdentifierEnum,
-  operator: ruleOperatorEnum,
+  identifier: conditionIdentifierSchema,
+  operator: conditionOperatorSchema,
 });
 
 // Team condition schema
@@ -29,11 +31,18 @@ export const attributeSyncRuleConditionSchema = z.discriminatedUnion("identifier
 ]);
 
 export const attributeSyncRuleSchema = z.object({
-  operator: z.enum(["AND", "OR"]),
+  operator: ruleOperatorSchema,
   conditions: z.array(attributeSyncRuleConditionSchema),
 });
 
-export type IAttributeSyncRule = z.infer<typeof attributeSyncRuleSchema>;
+// Inferred types from schemas
+export type ConditionIdentifier = z.infer<typeof conditionIdentifierSchema>;
+export type ConditionOperator = z.infer<typeof conditionOperatorSchema>;
+export type RuleOperator = z.infer<typeof ruleOperatorSchema>;
+export type TeamCondition = z.infer<typeof teamConditionSchema>;
+export type AttributeCondition = z.infer<typeof attributeConditionSchema>;
+export type Condition = z.infer<typeof attributeSyncRuleConditionSchema>;
+export type Rule = z.infer<typeof attributeSyncRuleSchema>;
 
 const newFieldMappingSchema = z.object({
   integrationFieldName: z.string(),
@@ -43,6 +52,15 @@ const newFieldMappingSchema = z.object({
 
 const fieldMappingSchema = newFieldMappingSchema.extend({
   id: z.string(),
+});
+
+// Schema for field mapping with optional id (used in form state)
+const fieldMappingWithOptionalIdSchema = newFieldMappingSchema.extend({
+  id: z.string().optional(),
+});
+
+const _fieldMappingFormStateSchema = z.object({
+  mappings: z.array(fieldMappingWithOptionalIdSchema),
 });
 
 export const syncFormDataSchema = z
@@ -58,4 +76,6 @@ export const syncFormDataSchema = z
   })
   .passthrough(); // Allow extra fields to pass through
 
+export type FieldMapping = z.infer<typeof fieldMappingWithOptionalIdSchema>;
+export type FieldMappingFormState = z.infer<typeof _fieldMappingFormStateSchema>;
 export type ISyncFormData = z.infer<typeof syncFormDataSchema>;

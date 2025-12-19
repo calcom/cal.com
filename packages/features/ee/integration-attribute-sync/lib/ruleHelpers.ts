@@ -1,6 +1,6 @@
 import type { AttributeType } from "@calcom/prisma/enums";
 
-import type { Condition, TeamCondition, AttributeCondition, ConditionOperator } from "../types/rule";
+import type { Condition, TeamCondition, AttributeCondition, ConditionOperator } from "../schemas/zod";
 
 // Factory functions
 export const getDefaultTeamCondition = (): TeamCondition => ({

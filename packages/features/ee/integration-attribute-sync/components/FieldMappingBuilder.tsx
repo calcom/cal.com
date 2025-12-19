@@ -5,7 +5,7 @@ import { Input, Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import { getDefaultFieldMapping } from "../lib/fieldMappingHelpers";
-import type { FieldMapping, FieldMappingFormState } from "../types/fieldMapping";
+import type { FieldMapping, FieldMappingFormState } from "../schemas/zod";
 
 interface FieldMappingBuilderProps {
   value: FieldMappingFormState;

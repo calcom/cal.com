@@ -24,7 +24,7 @@ import type {
   Rule,
   RuleOperator,
   TeamCondition,
-} from "../types/rule";
+} from "../schemas/zod";
 
 interface RuleBuilderProps {
   value: Rule;

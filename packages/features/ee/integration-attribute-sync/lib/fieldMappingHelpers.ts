@@ -1,4 +1,4 @@
-import type { FieldMapping } from "../types/fieldMapping";
+import type { FieldMapping } from "../schemas/zod";
 
 export const getDefaultFieldMapping = (): FieldMapping => ({
   integrationFieldName: "",
