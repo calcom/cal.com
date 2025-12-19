@@ -5,7 +5,7 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { HttpError } from "@calcom/lib/http-error";
 import type logger from "@calcom/lib/logger";
-import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
+import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 import type {
@@ -332,7 +332,7 @@ export class BookingDataPreparationService {
         noEmail: !!rawBookingMeta.noEmail,
         hostname: rawBookingMeta.hostname ?? null,
         forcedSlug: rawBookingMeta.forcedSlug ?? null,
-        useCacheIfEnabled: bookingData._shouldServeCache ?? false,
+        useCacheIfEnabled: false,
       },
       hashedBookingLinkData: {
         hasHashedBookingLink: bookingData.hasHashedBookingLink ?? false,
@@ -407,6 +407,7 @@ export class BookingDataPreparationService {
       loggedInUserId: loggedInUser.id ?? undefined,
       bookerEmail,
       verificationCode: rawBookingData.verificationCode,
+      isReschedule: !!rawBookingData.rescheduleUid,
       userRepository: this.userRepository,
     });
 
