@@ -1,9 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import {
-  getFeatureOptInService,
-  getFeaturesRepository,
-} from "@calcom/features/di/containers/FeatureOptInService";
+import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { FeatureId } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
