@@ -96,8 +96,11 @@ export class OAuth2Controller {
       return res.redirect(303, result.redirectUrl);
     } catch (err: unknown) {
       if (!isValidClient) {
-        const message = err instanceof Error ? err.message : "oauth_client_not_found";
-        throw new HttpException(message, HttpStatus.NOT_FOUND);
+        if (err instanceof ErrorWithCode) {
+          const statusCode = getHttpStatusCode(err);
+          throw new HttpException(err.message, statusCode);
+        }
+        throw new HttpException("oauth_client_not_found", HttpStatus.NOT_FOUND);
       }
       const errorRedirectUrl = this.oAuthService.buildErrorRedirectUrl(body.redirectUri, err, body.state);
       return res.redirect(303, errorRedirectUrl);
