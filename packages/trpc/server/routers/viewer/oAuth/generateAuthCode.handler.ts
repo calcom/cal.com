@@ -1,5 +1,6 @@
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 import type { AccessScope } from "@calcom/prisma/enums";
 import { httpStatusToTrpcCode } from "@calcom/trpc/server/lib/toTRPCError";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -33,9 +34,9 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
     );
     return { client, authorizationCode: authorizationCode };
   } catch (err) {
-    if (err instanceof HttpError) {
+    if (err instanceof ErrorWithCode) {
       throw new TRPCError({
-        code: httpStatusToTrpcCode(err.statusCode),
+        code: httpStatusToTrpcCode(getHttpStatusCode(err)),
         message: err.message,
       });
     }
