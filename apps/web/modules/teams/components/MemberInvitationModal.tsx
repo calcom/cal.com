@@ -1,12 +1,13 @@
 import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import posthog from "posthog-js";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import type { PendingMember } from "@calcom/features/ee/teams/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -29,7 +30,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
-import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 
 type MemberInvitationModalProps = {
@@ -236,7 +236,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           />
         </div>
 
-        <Form form={newMemberFormMethods} handleSubmit={(values) => { props.onSubmit(values, resetFields); posthog.capture("teams_modal_invite_members_button_clicked") }}>
+        <Form
+          form={newMemberFormMethods}
+          handleSubmit={(values) => {
+            props.onSubmit(values, resetFields);
+            posthog.capture("teams_modal_invite_members_button_clicked");
+          }}>
           <div className="mb-10 mt-6 space-y-6">
             {/* Individual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
