@@ -56,9 +56,10 @@ export class OAuth2Controller {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2ClientDto, client, { strategy: "excludeAll" }),
       };
-    } catch (err) {
+    } catch (err: unknown) {
       if (err instanceof ErrorWithCode) {
-        throw new HttpException(err.message, getHttpStatusCode(err));
+        const statusCode = getHttpStatusCode(err);
+        throw new HttpException(err.message, statusCode);
       }
       this.logger.error(err);
       throw new InternalServerErrorException("Could not get oAuthClient");
@@ -94,10 +95,10 @@ export class OAuth2Controller {
         body.codeChallengeMethod
       );
       return res.redirect(303, result.redirectUrl);
-    } catch (err) {
+    } catch (err: unknown) {
       if (!isValidClient) {
-        const httpError = err as HttpError;
-        throw new NotFoundException(httpError?.message ?? "oauth_client_not_found");
+        const message = err instanceof Error ? err.message : "oauth_client_not_found";
+        throw new NotFoundException(message);
       }
       const errorRedirectUrl = this.oAuthService.buildErrorRedirectUrl(body.redirectUri, err, body.state);
       return res.redirect(303, errorRedirectUrl);
@@ -126,9 +127,10 @@ export class OAuth2Controller {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
-    } catch (err) {
+    } catch (err: unknown) {
       if (err instanceof ErrorWithCode) {
-        throw new HttpException(err.message, getHttpStatusCode(err));
+        const statusCode = getHttpStatusCode(err);
+        throw new HttpException(err.message, statusCode);
       }
       this.logger.error(err);
       throw new InternalServerErrorException("Could not exchange code for tokens");
@@ -155,9 +157,10 @@ export class OAuth2Controller {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
-    } catch (err) {
+    } catch (err: unknown) {
       if (err instanceof ErrorWithCode) {
-        throw new HttpException(err.message, getHttpStatusCode(err));
+        const statusCode = getHttpStatusCode(err);
+        throw new HttpException(err.message, statusCode);
       }
       this.logger.error(err);
       throw new InternalServerErrorException("Could not refresh tokens");
