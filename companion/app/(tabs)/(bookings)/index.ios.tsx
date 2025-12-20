@@ -36,6 +36,7 @@ import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
 import { showErrorAlert } from "../../../utils/alerts";
 import { offlineAwareRefresh } from "../../../utils/network";
 import { getMeetingInfo } from "../../../utils/meetings-utils";
+import { getEmptyStateContent } from "../../../utils/bookings-utils";
 
 export default function Bookings() {
   const router = useRouter();
@@ -177,41 +178,6 @@ export default function Bookings() {
 
   const clearEventTypeFilter = () => {
     setSelectedEventTypeId(null);
-  };
-
-  const getEmptyStateContent = () => {
-    switch (activeFilter) {
-      case "upcoming":
-        return {
-          icon: "calendar-outline" as const,
-          title: "No upcoming bookings",
-          text: "As soon as someone books a time with you it will show up here.",
-        };
-      case "unconfirmed":
-        return {
-          icon: "calendar-outline" as const,
-          title: "No unconfirmed bookings",
-          text: "Your unconfirmed bookings will show up here.",
-        };
-      case "past":
-        return {
-          icon: "calendar-outline" as const,
-          title: "No past bookings",
-          text: "Your past bookings will show up here.",
-        };
-      case "cancelled":
-        return {
-          icon: "calendar-outline" as const,
-          title: "No cancelled bookings",
-          text: "Your canceled bookings will show up here.",
-        };
-      default:
-        return {
-          icon: "calendar-outline" as const,
-          title: "No bookings found",
-          text: "Your bookings will appear here.",
-        };
-    }
   };
 
   const handleBookingPress = (booking: Booking) => {
@@ -686,7 +652,7 @@ export default function Bookings() {
   const showEmptyState = bookings.length === 0 && !loading;
   const showSearchEmptyState =
     filteredBookings.length === 0 && searchQuery.trim() !== "" && !loading && !showEmptyState;
-  const emptyState = getEmptyStateContent();
+  const emptyState = getEmptyStateContent(activeFilter);
 
   const buildActiveBookingFilter = () => {
     const currentFilterOption = filterOptions.find((option) => option.key === activeFilter);
