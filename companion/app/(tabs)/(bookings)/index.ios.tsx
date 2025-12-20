@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import { useRouter } from "expo-router";
-import React, { useState, useEffect, useMemo } from "react";
+import { Stack, useRouter } from "expo-router";
+import React, { useState, useEffect, useMemo, Activity } from "react";
 import {
   View,
   Text,
@@ -15,30 +15,29 @@ import {
   TextInput,
   ActionSheetIOS,
   Linking,
-  Modal,
   ScrollView,
 } from "react-native";
 import type { NativeSyntheticEvent } from "react-native";
 
-import { CalComAPIService, Booking, EventType } from "../../services/calcom";
-import { Header } from "../../components/Header";
-import { FullScreenModal } from "../../components/FullScreenModal";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { BookingActionsModal } from "../../components/BookingActionsModal";
-import { EmptyScreen } from "../../components/EmptyScreen";
-import { SvgImage } from "../../components/SvgImage";
-import { getAppIconUrl } from "../../utils/getAppIconUrl";
-import { useAuth } from "../../contexts/AuthContext";
+import { CalComAPIService, Booking, EventType } from "../../../services/calcom";
+import { Header } from "../../../components/Header";
+import { FullScreenModal } from "../../../components/FullScreenModal";
+import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { BookingActionsModal } from "../../../components/BookingActionsModal";
+import { EmptyScreen } from "../../../components/EmptyScreen";
+import { SvgImage } from "../../../components/SvgImage";
+import { getAppIconUrl } from "../../../utils/getAppIconUrl";
+import { useAuth } from "../../../contexts/AuthContext";
 import {
   useBookings,
   useCancelBooking,
   useConfirmBooking,
   useDeclineBooking,
   useRescheduleBooking,
-} from "../../hooks";
-import { showErrorAlert } from "../../utils/alerts";
-import { offlineAwareRefresh } from "../../utils/network";
-import { openInAppBrowser } from "../../utils/browser";
+} from "../../../hooks";
+import { showErrorAlert } from "../../../utils/alerts";
+import { offlineAwareRefresh } from "../../../utils/network";
+import { openInAppBrowser } from "../../../utils/browser";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
@@ -1167,67 +1166,146 @@ export default function Bookings() {
   const emptyState = getEmptyStateContent();
 
   return (
-    <View className="flex-1 bg-[#f8f9fa]">
-      <Header />
-      {renderSegmentedControl()}
+    <>
+      {/* <Stack.Header
+        style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
+      >
+        <Stack.Header.Title large>Bookings</Stack.Header.Title>
+        <Stack.Header.Right>
+          <Stack.Header.Button onPress={() => {}} tintColor="#000">
+            <Icon sf="0.circle" />
+            <Label>Back</Label>
+          </Stack.Header.Button>
 
-      {/* Empty state - no bookings */}
-      {showEmptyState ? (
-        <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
-          <ScrollView
-            contentContainerStyle={{
-              flexGrow: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              padding: 20,
-            }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          >
-            <EmptyScreen
-              icon={emptyState.icon}
-              headline={emptyState.title}
-              description={emptyState.text}
-            />
-          </ScrollView>
-        </View>
-      ) : null}
+          <Stack.Header.Menu title="Filter" icon={"0.circle.ar"}>
+            <Stack.Header.MenuAction>
+              <Label>Filter</Label>
+            </Stack.Header.MenuAction>
+          </Stack.Header.Menu>
+        </Stack.Header.Right>
+        <Stack.Header.SearchBar
+          placeholder="Search schedules"
+          onChangeText={(e) => handleSearch(e.nativeEvent.text)}
+          obscureBackground={false}
+          barTintColor="#fff"
+        />
+      </Stack.Header> */}
 
-      {/* Search empty state */}
-      {showSearchEmptyState ? (
-        <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
-          <ScrollView
-            contentContainerStyle={{
-              flexGrow: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              padding: 20,
-            }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          >
-            <EmptyScreen
-              icon="search-outline"
-              headline={`No results found for "${searchQuery}"`}
-              description="Try searching with different keywords"
-            />
-          </ScrollView>
-        </View>
-      ) : null}
+      <Stack.Screen
+        options={{
+          unstable_headerRightItems: () => [
+            {
+              type: "menu",
+              label: "Filter",
+              icon: {
+                name: "line.3.horizontal.decrease",
+                type: "sfSymbol",
+              },
+              labelStyle: {
+                fontWeight: "600",
+                color: "#007AFF",
+              },
+              menu: {
+                items: [
+                  {
+                    type: "action",
+                    label: "Event Type",
+                    icon: {
+                      name: "figure.arms.open",
+                      type: "sfSymbol",
+                    },
+                    onPress: () => {},
+                  },
+                ],
+              },
+            },
+            {
+              type: "menu",
+              label: "Upcoming",
+              labelStyle: {
+                fontWeight: "600",
+                color: "#007AFF",
+              },
+              // icon: {
+              //   name: "line.3.horizontal.decrease",
+              //   type: "sfSymbol",
+              // },
+              menu: {
+                title: "Filter by",
+                items: [
+                  {
+                    type: "action",
+                    label: "Event Type",
+                    icon: {
+                      name: "figure.arms.open",
+                      type: "sfSymbol",
+                    },
+                    onPress: () => {},
+                    // state: "off",
+                  },
+                  {
+                    type: "action",
+                    label: "Status",
+                    icon: {
+                      name: "paintbrush.fill",
+                      type: "sfSymbol",
+                    },
+                    onPress: () => {},
+                    // state: filterMode === "styles" ? "on" : "off",
+                  },
+                  {
+                    type: "action",
+                    label: "Date",
+                    icon: {
+                      name: "heart.fill",
+                      type: "sfSymbol",
+                    },
+                    onPress: () => {},
+                    // state: filterMode === "moods" ? "on" : "off",
+                  },
+                ],
+              },
+            },
+          ],
+        }}
+      />
 
       {/* Bookings list */}
-      {showList ? (
-        <View className="flex-1 px-2 pt-4 md:px-4">
-          <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-            <FlatList
-              data={groupBookingsByMonth(filteredBookings)}
-              keyExtractor={(item) => item.key}
-              renderItem={renderListItem}
-              contentContainerStyle={{ paddingBottom: 90 }}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
-        </View>
-      ) : null}
+      <FlatList
+        data={groupBookingsByMonth(filteredBookings)}
+        keyExtractor={(item) => item.key}
+        renderItem={renderListItem}
+        contentContainerStyle={{ paddingBottom: 90 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
+        style={{ backgroundColor: "white" }}
+        ListEmptyComponent={
+          <>
+            <ScrollView
+              style={{ backgroundColor: "white" }}
+              contentInsetAdjustmentBehavior="automatic"
+            >
+              <Activity mode={showSearchEmptyState ? "visible" : "hidden"}>
+                <EmptyScreen
+                  icon="search-outline"
+                  headline={`No results found for "${searchQuery}"`}
+                  description="Try searching with different keywords"
+                />
+              </Activity>
+              <Activity mode={showEmptyState ? "visible" : "hidden"}>
+                <EmptyScreen
+                  icon={emptyState.icon}
+                  headline={emptyState.title}
+                  description={emptyState.text}
+                />
+              </Activity>
+            </ScrollView>
+            {/* Empty state - no bookings */}
+          </>
+        }
+      />
 
       {/* Filter Modal */}
       <FullScreenModal
@@ -1527,6 +1605,6 @@ export default function Bookings() {
           </TouchableOpacity>
         </TouchableOpacity>
       </FullScreenModal>
-    </View>
+    </>
   );
 }
