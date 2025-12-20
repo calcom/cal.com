@@ -21,7 +21,6 @@ import {
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
-import { slugify } from "@calcom/platform-libraries";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
@@ -209,7 +208,6 @@ export class BaseCreateEventTypeInput {
 
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
-  @Transform(({ value }) => (typeof value === "string" ? slugify(value) : value))
   slug!: string;
 
   @IsOptional()
