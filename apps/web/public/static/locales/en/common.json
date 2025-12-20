@@ -2893,6 +2893,7 @@
   "field_identifiers_as_variables": "Use field identifiers as variables for your custom event redirect",
   "field_identifiers_as_variables_with_example": "Use field identifiers as variables for your custom event redirect (e.g. {{variable}})",
   "account_already_linked": "Account is already linked",
+  "no_default_calendar": "No default calendar found for this account, unable to link",
   "send_email": "Send email",
   "cal_ai_phone_call_action": "Call attendee using Cal.ai Voice Agent",
   "call_to_confirm_booking": "Call to confirm booking",
