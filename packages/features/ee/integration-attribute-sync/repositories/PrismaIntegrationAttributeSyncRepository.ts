@@ -1,3 +1,4 @@
+import type { Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { IntegrationAttributeSyncOutputMapper } from "../mappers/IntegrationAttributeSyncOutputMapper";
@@ -83,7 +84,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
         enabled,
         attributeSyncRule: {
           create: {
-            rule,
+            rule: rule as unknown as Prisma.InputJsonValue,
           },
         },
         syncFieldMappings: {
@@ -94,15 +95,16 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
           })),
         },
       },
-      select: {
-        id: true,
-        name: true,
-        organizationId: true,
-        integration: true,
-        credentialId: true,
-        enabled: true,
+      include: {
         attributeSyncRule: true,
-        syncFieldMappings: true,
+        syncFieldMappings: {
+          select: {
+            id: true,
+            integrationFieldName: true,
+            attributeId: true,
+            enabled: true,
+          },
+        },
       },
     });
 
@@ -133,7 +135,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
             id: attributeSyncRule.id,
           },
           data: {
-            rule: attributeSyncRule.rule as PrismaClient.InputJsonValue,
+            rule: attributeSyncRule.rule as unknown as Prisma.InputJsonValue,
           },
         }),
         ...fieldMappingsToUpdate.map(({ id, ...mappingData }) =>
