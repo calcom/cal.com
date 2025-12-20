@@ -3,7 +3,7 @@ import type { Retell } from "retell-sdk";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
-import type { Prisma, Membership, WorkflowStep as PrismaWorkflowStep } from "@calcom/prisma/client";
+import type { Prisma, Membership, Workflow as PrismaWorkflow } from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
@@ -98,7 +98,7 @@ export type ScheduleEmailReminderAction = Extract<
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
 
-export type WorkflowType = Workflow & {
+export type WorkflowType = PrismaWorkflow & {
   team: {
     id: number;
     name: string;
@@ -151,7 +151,7 @@ export type CallDetailsAction =
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: (PrismaWorkflowStep & {
+  steps: (WorkflowStep & {
     senderName: string | null;
     agentId?: string | null;
     inboundAgentId?: string | null;
