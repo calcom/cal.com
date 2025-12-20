@@ -1,10 +1,10 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
+import type { AttributeId, AttributeOptionValueWithType } from "@calcom/app-store/routing-forms/types/types";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { AttributeId, AttributeOptionValueWithType } from "@calcom/lib/service/attribute/types";
 import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";

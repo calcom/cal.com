@@ -1,15 +1,15 @@
+import type {
+  AttributeId,
+  AttributeName,
+  BulkAttributeAssigner,
+  AttributeOptionAssignment,
+} from "@calcom/app-store/routing-forms/types/types";
 import { findAssignmentsForMember } from "@calcom/features/attributes/lib/utils";
 import { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type {
-  AttributeId,
-  AttributeName,
-  BulkAttributeAssigner,
-  AttributeOptionAssignment,
-} from "@calcom/lib/service/attribute/types";
 import {
   doesSupportMultipleValues,
   isAssignmentForLockedAttribute,
