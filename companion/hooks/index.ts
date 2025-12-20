@@ -72,6 +72,8 @@ export {
   type BookingFilterOption,
 } from "./useActiveBookingFilter";
 
+export { useBookingActions } from "./useBookingActions";
+
 // Re-export query keys for advanced use cases
 export { queryKeys } from "../config/cache.config";
 

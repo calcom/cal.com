@@ -35,6 +35,7 @@ import {
   useConfirmBooking,
   useDeclineBooking,
   useRescheduleBooking,
+  useBookingActions,
 } from "../../../hooks";
 import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
 import { showErrorAlert } from "../../../utils/alerts";
@@ -45,11 +46,14 @@ import {
   getEmptyStateContent,
   formatTime,
   formatDate,
-  formatMonthYear,
-  getMonthYearKey,
+  formatDateTime,
+  getStatusColor,
+  formatStatusText,
   groupBookingsByMonth,
   searchBookings,
   filterByEventType,
+  getHostAndAttendeesDisplay,
+  getBookingDetailsMessage,
 } from "../../../utils/bookings-utils";
 import type { ListItem } from "../../../utils/bookings-utils";
 
@@ -63,15 +67,6 @@ export default function Bookings() {
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
   const [eventTypesLoading, setEventTypesLoading] = useState(false);
   const [showBookingActionsModal, setShowBookingActionsModal] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-  const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
-  const [rescheduleDate, setRescheduleDate] = useState("");
-  const [rescheduleTime, setRescheduleTime] = useState("");
-  const [rescheduleReason, setRescheduleReason] = useState("");
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectBooking, setRejectBooking] = useState<Booking | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
 
   // Use the active booking filter hook
   const { activeFilter, filterLabels, activeIndex, filterParams, handleSegmentChange } =
@@ -105,6 +100,45 @@ export default function Bookings() {
 
   // Reschedule booking mutation
   const { mutate: rescheduleBookingMutation, isPending: isRescheduling } = useRescheduleBooking();
+
+  // Booking actions hook
+  const {
+    showRescheduleModal,
+    setShowRescheduleModal,
+    rescheduleBooking,
+    rescheduleDate,
+    setRescheduleDate,
+    rescheduleTime,
+    setRescheduleTime,
+    rescheduleReason,
+    setRescheduleReason,
+    showRejectModal,
+    setShowRejectModal,
+    rejectBooking,
+    rejectReason,
+    setRejectReason,
+    selectedBooking,
+    setSelectedBooking,
+    handleBookingPress,
+    handleRescheduleBooking,
+    handleSubmitReschedule,
+    handleCloseRescheduleModal,
+    handleCancelBooking,
+    handleConfirmBooking,
+    handleOpenRejectModal,
+    handleRejectBooking,
+    handleSubmitReject,
+    handleCloseRejectModal,
+  } = useBookingActions({
+    router,
+    cancelMutation: cancelBookingMutation,
+    confirmMutation: confirmBookingMutation,
+    declineMutation: declineBookingMutation,
+    rescheduleMutation: rescheduleBookingMutation,
+    isConfirming,
+    isDeclining,
+    isRescheduling,
+  });
 
   // Sort bookings based on active filter
   const bookings = useMemo(() => {
@@ -262,13 +296,6 @@ export default function Bookings() {
     );
   };
 
-  const handleBookingPress = (booking: Booking) => {
-    router.push({
-      pathname: "/booking-detail",
-      params: { uid: booking.uid },
-    });
-  };
-
   const handleBookingPressOld = (booking: Booking) => {
     if (Platform.OS !== "ios") {
       // Fallback for non-iOS platforms
@@ -323,18 +350,6 @@ export default function Bookings() {
     );
   };
 
-  const getBookingDetailsMessage = (booking: Booking): string => {
-    const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
-    const startTime = booking.start || booking.startTime || "";
-    const endTime = booking.end || booking.endTime || "";
-
-    return `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(
-      startTime
-    )} - ${formatTime(endTime)}\nAttendees: ${attendeesList}\nStatus: ${formatStatusText(booking.status)}${
-      booking.location ? `\nLocation: ${booking.location}` : ""
-    }`;
-  };
-
   const getBookingActions = (booking: Booking) => {
     const baseActions = [
       {
@@ -355,7 +370,7 @@ export default function Bookings() {
             },
             {
               title: "Cancel event",
-              onPress: () => handleCancelEvent(booking),
+              onPress: () => handleCancelBooking(booking),
               destructive: true,
             },
           ];
@@ -418,202 +433,6 @@ export default function Bookings() {
     }
   };
 
-  const handleRescheduleBooking = (booking: Booking) => {
-    // Pre-fill with the current booking date/time
-    const currentDate = new Date(booking.startTime);
-    const dateStr = currentDate.toISOString().split("T")[0]; // YYYY-MM-DD
-    const timeStr = currentDate.toTimeString().slice(0, 5); // HH:MM
-
-    setRescheduleBooking(booking);
-    setRescheduleDate(dateStr);
-    setRescheduleTime(timeStr);
-    setRescheduleReason("");
-    setShowRescheduleModal(true);
-  };
-
-  const handleSubmitReschedule = () => {
-    if (!rescheduleBooking || !rescheduleDate || !rescheduleTime) {
-      showErrorAlert("Error", "Please enter both date and time");
-      return;
-    }
-
-    // Parse the date and time
-    const dateTimeStr = `${rescheduleDate}T${rescheduleTime}:00`;
-    const newDateTime = new Date(dateTimeStr);
-
-    // Validate the date
-    if (isNaN(newDateTime.getTime())) {
-      showErrorAlert(
-        "Error",
-        "Invalid date or time format. Please use YYYY-MM-DD for date and HH:MM for time."
-      );
-      return;
-    }
-
-    // Check if the new time is in the future
-    if (newDateTime <= new Date()) {
-      showErrorAlert("Error", "Please select a future date and time");
-      return;
-    }
-
-    // Convert to UTC ISO string
-    const startUtc = newDateTime.toISOString();
-
-    rescheduleBookingMutation(
-      {
-        uid: rescheduleBooking.uid,
-        start: startUtc,
-        reschedulingReason: rescheduleReason || undefined,
-      },
-      {
-        onSuccess: () => {
-          setShowRescheduleModal(false);
-          setRescheduleBooking(null);
-          Alert.alert("Success", "Booking rescheduled successfully");
-        },
-        onError: (error) => {
-          showErrorAlert("Error", error.message || "Failed to reschedule booking");
-        },
-      }
-    );
-  };
-
-  const handleCancelEvent = (booking: Booking) => {
-    Alert.alert("Cancel Event", `Are you sure you want to cancel "${booking.title}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Cancel Event",
-        style: "destructive",
-        onPress: () => {
-          // Prompt for cancellation reason
-          Alert.prompt(
-            "Cancellation Reason",
-            "Please provide a reason for cancelling this booking:",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Cancel Event",
-                style: "destructive",
-                onPress: (reason) => {
-                  const cancellationReason = reason?.trim() || "Event cancelled by host";
-                  cancelBookingMutation(
-                    { uid: booking.uid, reason: cancellationReason },
-                    {
-                      onSuccess: () => {
-                        Alert.alert("Success", "Event cancelled successfully");
-                      },
-                      onError: (error) => {
-                        console.error("Failed to cancel booking:", error);
-                        showErrorAlert("Error", "Failed to cancel event. Please try again.");
-                      },
-                    }
-                  );
-                },
-              },
-            ],
-            "plain-text",
-            "",
-            "default"
-          );
-        },
-      },
-    ]);
-  };
-
-  const handleConfirmBooking = (booking: Booking) => {
-    Alert.alert("Confirm Booking", `Are you sure you want to confirm "${booking.title}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Confirm",
-        onPress: () => {
-          confirmBookingMutation(
-            { uid: booking.uid },
-            {
-              onSuccess: () => {
-                Alert.alert("Success", "Booking confirmed successfully");
-              },
-              onError: (error) => {
-                showErrorAlert("Error", error.message || "Failed to confirm booking");
-              },
-            }
-          );
-        },
-      },
-    ]);
-  };
-
-  const handleRejectBooking = (booking: Booking) => {
-    Alert.alert("Decline Booking", `Are you sure you want to decline "${booking.title}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Decline",
-        style: "destructive",
-        onPress: () => {
-          // Show optional reason input
-          Alert.prompt(
-            "Decline Reason",
-            "Optionally provide a reason for declining (press OK to skip)",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "OK",
-                onPress: (reason?: string) => {
-                  declineBookingMutation(
-                    { uid: booking.uid, reason: reason || undefined },
-                    {
-                      onSuccess: () => {
-                        Alert.alert("Success", "Booking declined successfully");
-                      },
-                      onError: (error) => {
-                        showErrorAlert("Error", error.message || "Failed to decline booking");
-                      },
-                    }
-                  );
-                },
-              },
-            ],
-            "plain-text",
-            "",
-            "default"
-          );
-        },
-      },
-    ]);
-  };
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    // API v2 2024-08-13 returns status in lowercase, so normalize to uppercase for comparison
-    const normalizedStatus = status.toUpperCase();
-    switch (normalizedStatus) {
-      case "ACCEPTED":
-        return "#34C759";
-      case "PENDING":
-        return "#FF9500";
-      case "CANCELLED":
-        return "#FF3B30";
-      case "REJECTED":
-        return "#FF3B30";
-      default:
-        return "#666";
-    }
-  };
-
-  const formatStatusText = (status: string) => {
-    // Capitalize first letter for display
-    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-  };
-
   const renderBooking = ({ item }: { item: Booking }) => {
     const startTime = item.start || item.startTime || "";
     const endTime = item.end || item.endTime || "";
@@ -622,44 +441,7 @@ export default function Bookings() {
     const isCancelled = item.status?.toUpperCase() === "CANCELLED";
     const isRejected = item.status?.toUpperCase() === "REJECTED";
 
-    const getHostAndAttendeesDisplay = () => {
-      const hasHostOrAttendees =
-        (item.hosts && item.hosts.length > 0) ||
-        item.user ||
-        (item.attendees && item.attendees.length > 0);
-
-      if (!hasHostOrAttendees) return null;
-
-      const currentUserEmail = userInfo?.email?.toLowerCase();
-      const hostEmail = item.hosts?.[0]?.email?.toLowerCase() || item.user?.email?.toLowerCase();
-      const isCurrentUserHost = currentUserEmail && hostEmail && currentUserEmail === hostEmail;
-
-      const hostName = isCurrentUserHost
-        ? "You"
-        : item.hosts?.[0]?.name || item.hosts?.[0]?.email || item.user?.name || item.user?.email;
-
-      const attendeesDisplay =
-        item.attendees && item.attendees.length > 0
-          ? item.attendees.length === 1
-            ? item.attendees[0].name || item.attendees[0].email
-            : item.attendees
-                .slice(0, 2)
-                .map((att) => att.name || att.email)
-                .join(", ") +
-              (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")
-          : null;
-
-      if (hostName && attendeesDisplay) {
-        return `${hostName} and ${attendeesDisplay}`;
-      } else if (hostName) {
-        return hostName;
-      } else if (attendeesDisplay) {
-        return attendeesDisplay;
-      }
-      return null;
-    };
-
-    const hostAndAttendeesDisplay = getHostAndAttendeesDisplay();
+    const hostAndAttendeesDisplay = getHostAndAttendeesDisplay(item, userInfo?.email);
     const meetingInfo = getMeetingInfo(item.location);
 
     return (
@@ -780,9 +562,7 @@ export default function Bookings() {
                 disabled={isConfirming || isDeclining}
                 onPress={(e) => {
                   e.stopPropagation();
-                  setRejectBooking(item);
-                  setRejectReason("");
-                  setShowRejectModal(true);
+                  handleOpenRejectModal(item);
                 }}
               >
                 <Ionicons name="close" size={16} color="#3C3F44" />
@@ -1019,18 +799,12 @@ export default function Bookings() {
           Alert.alert("Report Booking", "Report booking functionality coming soon");
         }}
         onCancelBooking={() => {
-          if (selectedBooking) handleCancelEvent(selectedBooking);
+          if (selectedBooking) handleCancelBooking(selectedBooking);
         }}
       />
 
       {/* Reschedule Modal */}
-      <FullScreenModal
-        visible={showRescheduleModal}
-        onRequestClose={() => {
-          setShowRescheduleModal(false);
-          setRescheduleBooking(null);
-        }}
-      >
+      <FullScreenModal visible={showRescheduleModal} onRequestClose={handleCloseRescheduleModal}>
         <ScrollView className="flex-1 p-4">
           {rescheduleBooking ? (
             <>
@@ -1102,10 +876,7 @@ export default function Bookings() {
               {/* Cancel Button */}
               <TouchableOpacity
                 className="mt-3 rounded-lg bg-gray-100 p-4"
-                onPress={() => {
-                  setShowRescheduleModal(false);
-                  setRescheduleBooking(null);
-                }}
+                onPress={handleCloseRescheduleModal}
               >
                 <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
               </TouchableOpacity>
@@ -1118,20 +889,12 @@ export default function Bookings() {
       <FullScreenModal
         visible={showRejectModal}
         animationType="fade"
-        onRequestClose={() => {
-          setShowRejectModal(false);
-          setRejectBooking(null);
-          setRejectReason("");
-        }}
+        onRequestClose={handleCloseRejectModal}
       >
         <TouchableOpacity
           className="flex-1 items-center justify-center bg-black/50 p-4"
           activeOpacity={1}
-          onPress={() => {
-            setShowRejectModal(false);
-            setRejectBooking(null);
-            setRejectReason("");
-          }}
+          onPress={handleCloseRejectModal}
         >
           <TouchableOpacity
             className="w-full max-w-sm rounded-2xl bg-white"
@@ -1176,11 +939,7 @@ export default function Bookings() {
                 {/* Close Button */}
                 <TouchableOpacity
                   className="rounded-md border border-gray-300 bg-white px-4 py-2"
-                  onPress={() => {
-                    setShowRejectModal(false);
-                    setRejectBooking(null);
-                    setRejectReason("");
-                  }}
+                  onPress={handleCloseRejectModal}
                 >
                   <Text className="text-sm font-medium text-gray-700">Close</Text>
                 </TouchableOpacity>
@@ -1188,24 +947,7 @@ export default function Bookings() {
                 {/* Reject Button */}
                 <TouchableOpacity
                   className="rounded-md bg-gray-900 px-4 py-2"
-                  onPress={() => {
-                    if (rejectBooking) {
-                      declineBookingMutation(
-                        { uid: rejectBooking.uid, reason: rejectReason || undefined },
-                        {
-                          onSuccess: () => {
-                            setShowRejectModal(false);
-                            setRejectBooking(null);
-                            setRejectReason("");
-                            Alert.alert("Success", "Booking rejected successfully");
-                          },
-                          onError: (error) => {
-                            showErrorAlert("Error", "Failed to reject booking. Please try again.");
-                          },
-                        }
-                      );
-                    }
-                  }}
+                  onPress={handleSubmitReject}
                   disabled={isDeclining}
                   style={{ opacity: isDeclining ? 0.5 : 1 }}
                 >

@@ -243,3 +243,117 @@ export const filterByEventType = (bookings: Booking[], eventTypeId: number | nul
   }
   return bookings.filter((booking) => booking.eventTypeId === eventTypeId);
 };
+
+/**
+ * Format a date string to a complete date/time string
+ * @param dateString ISO date string
+ * @returns Formatted date/time string (e.g., "Mon, Dec 25, 2:30 PM")
+ */
+export const formatDateTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
+/**
+ * Get color for booking status
+ * @param status Booking status string
+ * @returns Hex color code
+ */
+export const getStatusColor = (status: string): string => {
+  // API v2 2024-08-13 returns status in lowercase, so normalize to uppercase for comparison
+  const normalizedStatus = status.toUpperCase();
+  switch (normalizedStatus) {
+    case "ACCEPTED":
+      return "#34C759";
+    case "PENDING":
+      return "#FF9500";
+    case "CANCELLED":
+      return "#FF3B30";
+    case "REJECTED":
+      return "#FF3B30";
+    default:
+      return "#666";
+  }
+};
+
+/**
+ * Format status text for display
+ * @param status Booking status string
+ * @returns Capitalized status text
+ */
+export const formatStatusText = (status: string): string => {
+  // Capitalize first letter for display
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+};
+
+/**
+ * Get formatted display string for host and attendees
+ * @param booking Booking object
+ * @param currentUserEmail Current user's email (optional)
+ * @returns Formatted string or null if no host/attendees
+ */
+export const getHostAndAttendeesDisplay = (
+  booking: Booking,
+  currentUserEmail?: string
+): string | null => {
+  const hasHostOrAttendees =
+    (booking.hosts && booking.hosts.length > 0) ||
+    booking.user ||
+    (booking.attendees && booking.attendees.length > 0);
+
+  if (!hasHostOrAttendees) return null;
+
+  const hostEmail = booking.hosts?.[0]?.email?.toLowerCase() || booking.user?.email?.toLowerCase();
+  const isCurrentUserHost =
+    currentUserEmail && hostEmail && currentUserEmail.toLowerCase() === hostEmail;
+
+  const hostName = isCurrentUserHost
+    ? "You"
+    : booking.hosts?.[0]?.name ||
+      booking.hosts?.[0]?.email ||
+      booking.user?.name ||
+      booking.user?.email;
+
+  const attendeesDisplay =
+    booking.attendees && booking.attendees.length > 0
+      ? booking.attendees.length === 1
+        ? booking.attendees[0].name || booking.attendees[0].email
+        : booking.attendees
+            .slice(0, 2)
+            .map((att) => att.name || att.email)
+            .join(", ") +
+          (booking.attendees.length > 2 ? ` and ${booking.attendees.length - 2} more` : "")
+      : null;
+
+  if (hostName && attendeesDisplay) {
+    return `${hostName} and ${attendeesDisplay}`;
+  } else if (hostName) {
+    return hostName;
+  } else if (attendeesDisplay) {
+    return attendeesDisplay;
+  }
+  return null;
+};
+
+/**
+ * Get shareable booking details message
+ * @param booking Booking object
+ * @returns Formatted booking details string
+ */
+export const getBookingDetailsMessage = (booking: Booking): string => {
+  const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
+  const startTime = booking.start || booking.startTime || "";
+  const endTime = booking.end || booking.endTime || "";
+
+  return `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(
+    startTime
+  )} - ${formatTime(endTime)}\nAttendees: ${attendeesList}\nStatus: ${formatStatusText(booking.status)}${
+    booking.location ? `\nLocation: ${booking.location}` : ""
+  }`;
+};
