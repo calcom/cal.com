@@ -717,7 +717,7 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
-          customCalendarReminder: null,
+          customCalendarReminder: 10,
         },
       ],
     };
