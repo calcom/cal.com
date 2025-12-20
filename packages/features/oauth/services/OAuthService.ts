@@ -5,7 +5,8 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 
@@ -66,7 +67,7 @@ export class OAuthService {
     const client = await this.oAuthClientRepository.findByClientId(clientId);
 
     if (!client) {
-      throw new HttpError({ message: `OAuth client with ID '${clientId}' not found`, statusCode: 404 });
+      throw new ErrorWithCode(ErrorCode.NotFound, `OAuth client with ID '${clientId}' not found`);
     }
 
     return {
@@ -92,27 +93,21 @@ export class OAuthService {
     const client = await this.oAuthClientRepository.findByClientId(clientId);
 
     if (!client) {
-      throw new HttpError({ message: "Client ID not valid", statusCode: 401 });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "Client ID not valid");
     }
 
     this.validateRedirectUri(client.redirectUri, redirectUri);
 
     if (client.clientType === "PUBLIC") {
       if (!codeChallenge) {
-        throw new HttpError({ message: "code_challenge required for public clients", statusCode: 400 });
+        throw new ErrorWithCode(ErrorCode.BadRequest, "code_challenge required for public clients");
       }
       if (!codeChallengeMethod || codeChallengeMethod !== "S256") {
-        throw new HttpError({
-          message: "code_challenge_method must be S256 for public clients",
-          statusCode: 400,
-        });
+        throw new ErrorWithCode(ErrorCode.BadRequest, "code_challenge_method must be S256 for public clients");
       }
     } else if (client.clientType === "CONFIDENTIAL") {
       if (codeChallenge && (!codeChallengeMethod || codeChallengeMethod !== "S256")) {
-        throw new HttpError({
-          message: "code_challenge_method must be S256 when PKCE is used",
-          statusCode: 400,
-        });
+        throw new ErrorWithCode(ErrorCode.BadRequest, "code_challenge_method must be S256 when PKCE is used");
       }
     }
 
@@ -120,7 +115,7 @@ export class OAuthService {
     if (teamSlug) {
       const team = await this.teamsRepository.findTeamBySlugWithAdminRole(teamSlug, userId);
       if (!team) {
-        throw new HttpError({ message: "Team not found or user is not an admin/owner", statusCode: 401 });
+        throw new ErrorWithCode(ErrorCode.Unauthorized, "Team not found or user is not an admin/owner");
       }
       teamId = team.id;
     }
@@ -147,10 +142,7 @@ export class OAuthService {
 
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
     if (providedUri !== registeredUri) {
-      throw new HttpError({
-        message: "redirect_uri does not match registered redirect URI",
-        statusCode: 400,
-      });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "redirect_uri does not match registered redirect URI");
     }
   }
 
@@ -174,13 +166,13 @@ export class OAuthService {
   }
 
   private mapErrorToOAuthError(error: unknown): OAuthError {
-    if (error instanceof HttpError && error.statusCode === 400) {
+    if (error instanceof ErrorWithCode && error.code === ErrorCode.BadRequest) {
       return {
         error: "invalid_request",
         errorDescription: error.message,
       };
     }
-    if (error instanceof HttpError && error.statusCode === 401) {
+    if (error instanceof ErrorWithCode && error.code === ErrorCode.Unauthorized) {
       return {
         error: "unauthorized_client",
         errorDescription: error.message,
@@ -188,7 +180,7 @@ export class OAuthService {
     }
     return {
       error: "server_error",
-      errorDescription: error instanceof HttpError ? error.message : "An unexpected error occurred",
+      errorDescription: error instanceof ErrorWithCode ? error.message : "An unexpected error occurred",
     };
   }
 
@@ -201,15 +193,15 @@ export class OAuthService {
   ): Promise<OAuth2Tokens> {
     const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
     if (!client) {
-      throw new HttpError({ message: "invalid_client", statusCode: 401 });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client");
     }
 
     if (redirectUri && client.redirectUri !== redirectUri) {
-      throw new HttpError({ message: "invalid_grant", statusCode: 400 });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant");
     }
 
     if (!this.validateClient(client, clientSecret)) {
-      throw new HttpError({ message: "invalid_client", statusCode: 401 });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client");
     }
 
     const accessCode = await this.accessCodeRepository.findValidCode(code, clientId);
@@ -217,12 +209,12 @@ export class OAuthService {
     await this.accessCodeRepository.deleteExpiredAndUsedCodes(code, clientId);
 
     if (!accessCode) {
-      throw new HttpError({ message: "invalid_grant", statusCode: 400 });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant");
     }
 
     const pkceError = this.verifyPKCE(client, accessCode, codeVerifier);
     if (pkceError) {
-      throw new HttpError({ message: pkceError, statusCode: 400 });
+      throw new ErrorWithCode(ErrorCode.BadRequest, pkceError);
     }
 
     const tokens = this.createTokens({
@@ -245,21 +237,21 @@ export class OAuthService {
     const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
 
     if (!client) {
-      throw new HttpError({ message: "invalid_client", statusCode: 401 });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client");
     }
 
     if (!this.validateClient(client, clientSecret)) {
-      throw new HttpError({ message: "invalid_client", statusCode: 401 });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client");
     }
 
     const decodedToken = this.verifyRefreshToken(refreshToken);
 
     if (!decodedToken || decodedToken.token_type !== "Refresh Token") {
-      throw new HttpError({ message: "invalid_grant", statusCode: 400 });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant");
     }
 
     if (decodedToken.clientId !== clientId) {
-      throw new HttpError({ message: "invalid_grant", statusCode: 400 });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant");
     }
 
     const tokens = this.createTokens({
@@ -323,7 +315,7 @@ export class OAuthService {
   }): OAuth2Tokens {
     const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
     if (!secretKey) {
-      throw new HttpError({ message: "CALENDSO_ENCRYPTION_KEY is not set", statusCode: 500 });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "CALENDSO_ENCRYPTION_KEY is not set");
     }
 
     const accessTokenPayload = {
@@ -367,7 +359,7 @@ export class OAuthService {
   private verifyRefreshToken(refreshToken: string): DecodedRefreshToken | null {
     const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
     if (!secretKey) {
-      throw new HttpError({ message: "CALENDSO_ENCRYPTION_KEY is not set", statusCode: 500 });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "CALENDSO_ENCRYPTION_KEY is not set");
     }
 
     try {

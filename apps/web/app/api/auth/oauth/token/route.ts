@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 async function handler(req: NextRequest) {
   const { code, client_id, client_secret, grant_type, redirect_uri, code_verifier } = await parseUrlFormData(
@@ -50,8 +51,8 @@ async function handler(req: NextRequest) {
       }
     );
   } catch (err) {
-    if (err instanceof HttpError) {
-      return NextResponse.json({ error: err.message }, { status: err.statusCode });
+    if (err instanceof ErrorWithCode) {
+      return NextResponse.json({ error: err.message }, { status: getHttpStatusCode(err) });
     }
   }
   return NextResponse.json({ error: "error_code_exchange" }, { status: 500 });
