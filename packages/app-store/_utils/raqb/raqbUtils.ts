@@ -8,10 +8,7 @@ import { resolveQueryValue } from "@calcom/lib/raqb/resolveQueryValue";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { caseInsensitive } from "@calcom/lib/raqb/utils";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type {
-  AttributeOptionValueWithType,
-  TransformedAttributeOption,
-} from "@calcom/lib/service/attribute/types";
+import type { AttributeOptionValueWithType, AttributeOptionValue } from "@calcom/lib/service/attribute/types";
 import { AttributeType } from "@calcom/prisma/enums";
 
 function ensureArray(value: string | string[]) {
@@ -92,9 +89,7 @@ export const buildStateFromQueryValue = ({
   };
 };
 
-export function getValueOfAttributeOption(
-  attributeOptions: TransformedAttributeOption | TransformedAttributeOption[]
-) {
+export function getValueOfAttributeOption(attributeOptions: AttributeOptionValue | AttributeOptionValue[]) {
   if (!(attributeOptions instanceof Array)) {
     return transformAttributeOption(attributeOptions);
   }
@@ -103,7 +98,7 @@ export function getValueOfAttributeOption(
     .flat()
     .filter((value, index, self) => self.indexOf(value) === index);
 
-  function transformAttributeOption(attributeOption: TransformedAttributeOption) {
+  function transformAttributeOption(attributeOption: AttributeOptionValue) {
     if (attributeOption.isGroup) {
       const subOptions = attributeOption.contains.map((option) => option.value);
       console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
