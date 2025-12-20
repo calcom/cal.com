@@ -19,7 +19,6 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
@@ -97,12 +96,9 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
   const userEmailsDisabled = `confirm-emails-2024-08-13-user-${randomString()}@api.com`;
 
   beforeAll(async () => {
-    const moduleRef = await withApiAuth(
-      authEmail,
-      Test.createTestingModule({
-        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-      })
-    )
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+    })
       .overrideGuard(PermissionsGuard)
       .useValue({
         canActivate: () => true,
