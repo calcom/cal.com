@@ -235,7 +235,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
         expect(response.headers.location).toBeDefined();
         const redirectUrl = new URL(response.headers.location);
-        expect(redirectUrl.searchParams.get("error")).toBe("unauthorized_client");
+        expect(redirectUrl.searchParams.get("error")).toBe("access_denied");
         expect(redirectUrl.searchParams.get("state")).toBe("test-state-456");
       });
 

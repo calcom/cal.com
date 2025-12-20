@@ -84,7 +84,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge required for public clients",
+          message: "invalid_request",
         })
       );
 
@@ -106,7 +106,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: "invalid_request",
         })
       );
 
@@ -129,7 +129,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputMD5 })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: "invalid_request",
         })
       );
 
@@ -146,7 +146,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: "invalid_request",
         })
       );
 
@@ -260,7 +260,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 when PKCE is used",
+          message: "invalid_request",
         })
       );
 
@@ -284,7 +284,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "UNAUTHORIZED",
-          message: "Client ID not valid",
+          message: "unauthorized_client",
         })
       );
 
@@ -343,7 +343,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputInvalid })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: "invalid_request",
         })
       );
 
@@ -360,7 +360,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input: inputPlain })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "code_challenge_method must be S256 for public clients",
+          message: "invalid_request",
         })
       );
     });
