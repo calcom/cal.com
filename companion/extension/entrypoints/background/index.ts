@@ -1,5 +1,6 @@
 /// <reference types="chrome" />
 import type { OAuthTokens } from "../../../services/oauthService";
+import type { Booking } from "../../../services/types/bookings.types";
 
 const DEV_API_KEY = import.meta.env.EXPO_PUBLIC_CAL_API_KEY as string | undefined;
 const IS_DEV_MODE = Boolean(DEV_API_KEY && DEV_API_KEY.length > 0);
@@ -643,7 +644,7 @@ async function checkAuthStatus(): Promise<boolean> {
 /**
  * Get booking status to check attendee no-show status
  */
-async function getBookingStatus(bookingUid: string): Promise<unknown> {
+async function getBookingStatus(bookingUid: string): Promise<Booking> {
   const authHeader = await getAuthHeader();
 
   const response = await fetch(`${API_BASE_URL}/bookings/${bookingUid}`, {
@@ -680,7 +681,7 @@ async function getBookingStatus(bookingUid: string): Promise<unknown> {
   }
 
   const data = await response.json();
-  return data?.data || data;
+  return (data?.data ?? data) as Booking;
 }
 
 /**
@@ -690,7 +691,7 @@ async function markAttendeeNoShow(
   bookingUid: string,
   attendeeEmail: string,
   absent: boolean
-): Promise<unknown> {
+): Promise<Booking> {
   const authHeader = await getAuthHeader();
 
   const response = await fetch(`${API_BASE_URL}/bookings/${bookingUid}/mark-absent`, {
@@ -730,5 +731,5 @@ async function markAttendeeNoShow(
   }
 
   const data = await response.json();
-  return data?.data || data;
+  return (data?.data ?? data) as Booking;
 }

@@ -1,13 +1,31 @@
 /// <reference types="chrome" />
 
-/**
- * Google Calendar Integration for Cal.com Companion Extension
- * Adds "Mark No Show" buttons to past meeting attendees in Google Calendar
- */
-
-// Cache for booking status to avoid repeated API calls
+// Google Calendar integration: inject a no-show toggle next to attendees in event popups.
 const bookingStatusCache = new Map<string, { data: Map<string, boolean>; timestamp: number }>();
 const CACHE_TTL = 30000; // 30 seconds cache
+let authStatusCache: { isAuthenticated: boolean; timestamp: number } | null = null;
+const AUTH_CACHE_TTL = 5000; // 5 seconds
+const NO_SHOW_BUTTON_SELECTOR = "[data-cal-noshow-btn]";
+
+async function getIsAuthenticatedCached(): Promise<boolean> {
+  const now = Date.now();
+  if (authStatusCache && now - authStatusCache.timestamp < AUTH_CACHE_TTL) {
+    return authStatusCache.isAuthenticated;
+  }
+
+  const authResponse = await new Promise<{ isAuthenticated: boolean }>((resolve) => {
+    chrome.runtime.sendMessage({ action: "check-auth-status" }, (response) => {
+      if (chrome.runtime.lastError) {
+        resolve({ isAuthenticated: false });
+      } else {
+        resolve(response || { isAuthenticated: false });
+      }
+    });
+  });
+
+  authStatusCache = { isAuthenticated: authResponse.isAuthenticated, timestamp: now };
+  return authResponse.isAuthenticated;
+}
 
 // Styles for injected elements
 const STYLES = `
@@ -249,8 +267,7 @@ function isEventInPast(eventElement: Element): boolean {
   const now = new Date();
   const dateTimeText = eventElement.textContent || "";
 
-  // Strategy 1: Look for date/time information in the event popup
-  // Google Calendar formats: "Saturday, 20 December⋅11:00 – 11:30am" or "Dec 20, 2024, 11:00 AM – 11:30 AM"
+  // Try to infer the end time from the popup text (best effort).
   const datePatterns = [
     // Full date format: "Saturday, 20 December 2024⋅11:00 – 11:30am"
     /(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)(?:\s+(\d{4}))?/i,
@@ -336,7 +353,7 @@ function isEventInPast(eventElement: Element): boolean {
     }
   }
 
-  // Strategy 2: Check for data attributes that might indicate past events
+  // Fallback: data attributes (if present).
   const eventStartAttr =
     eventElement.getAttribute("data-start") || eventElement.getAttribute("data-event-start");
   if (eventStartAttr) {
@@ -350,7 +367,7 @@ function isEventInPast(eventElement: Element): boolean {
     }
   }
 
-  // Strategy 3: Look for "past" indicators in CSS classes or aria labels
+  // Fallback: CSS/aria hints.
   const hasPastIndicator =
     eventElement.classList.contains("past") ||
     eventElement.classList.contains("completed") ||
@@ -361,8 +378,7 @@ function isEventInPast(eventElement: Element): boolean {
     return true;
   }
 
-  // Strategy 4: Check if event end time is mentioned and compare
-  // Look for patterns like "ended", "was", "past meeting"
+  // Fallback: keyword hints.
   const pastKeywords = ["ended", "was", "past meeting", "completed", "finished"];
   const textLower = dateTimeText.toLowerCase();
   if (pastKeywords.some((keyword) => textLower.includes(keyword))) {
@@ -391,8 +407,7 @@ function parseAttendees(eventPopup: Element): AttendeeInfo[] {
   const attendees: AttendeeInfo[] = [];
   const seenEmails = new Set<string>();
 
-  // Strategy 1: Use Google Calendar's actual structure
-  // Look for role="treeitem" elements with data-email attribute (the actual attendee containers)
+  // Prefer Google Calendar attendee rows.
   const attendeeItems = eventPopup.querySelectorAll('[role="treeitem"][data-email]');
 
   attendeeItems.forEach((el) => {
@@ -435,7 +450,7 @@ function parseAttendees(eventPopup: Element): AttendeeInfo[] {
     });
   });
 
-  // Strategy 2: Fallback to other selectors if no treeitem elements found
+  // Fallbacks (DOM variants, then text parsing).
   const allText = eventPopup.innerHTML || eventPopup.textContent || "";
   const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
 
@@ -508,7 +523,7 @@ function parseAttendees(eventPopup: Element): AttendeeInfo[] {
     }
   }
 
-  // Strategy 2: Parse from "Who:" section in event description
+  // Fallback: parse from "Who:" section.
   if (attendees.length === 0) {
     const whoSection = allText.match(/Who:([\s\S]*?)(?:Where:|When:|$)/i);
     if (whoSection) {
@@ -546,7 +561,7 @@ function parseAttendees(eventPopup: Element): AttendeeInfo[] {
     }
   }
 
-  // Strategy 3: Look for guest list containers and parse children
+  // Fallback: scan guest list containers.
   if (attendees.length === 0) {
     const guestListContainers = eventPopup.querySelectorAll(
       '[data-guests], [aria-label*="guest" i], [aria-label*="attendee" i], [jsname="xR2lFb"]'
@@ -686,21 +701,10 @@ async function handleMarkNoShow(
   container: HTMLDivElement,
   bookingUid: string,
   attendeeEmail: string,
-  attendeeName: string,
   isCurrentlyMarked: boolean
 ): Promise<void> {
   // Check authentication first
-  const authResponse = await new Promise<{ isAuthenticated: boolean }>((resolve) => {
-    chrome.runtime.sendMessage({ action: "check-auth-status" }, (response) => {
-      if (chrome.runtime.lastError) {
-        resolve({ isAuthenticated: false });
-      } else {
-        resolve(response || { isAuthenticated: false });
-      }
-    });
-  });
-
-  if (!authResponse.isAuthenticated) {
+  if (!(await getIsAuthenticatedCached())) {
     // Not logged in - open sidebar for login (no alert, just open sidebar)
     openSidebarForLogin();
     return;
@@ -856,7 +860,7 @@ function createNoShowButton(
   container.className = "cal-noshow-btn-container";
   container.dataset.attendeeEmail = attendee.email;
   container.dataset.marked = isMarked ? "true" : "false";
-  container.dataset.calNoShowBtn = "true";
+  container.dataset.calNoshowBtn = "true";
   container.dataset.bookingUid = bookingUid || "";
 
   // Create button with icon and text
@@ -873,7 +877,9 @@ function createNoShowButton(
     e.stopPropagation();
 
     const currentlyMarked = container.dataset.marked === "true";
-    handleMarkNoShow(container, bookingUid, attendee.email, attendee.name, currentlyMarked);
+    // Read the latest booking UID from the DOM at click-time (popup content can render in phases)
+    const latestBookingUid = container.dataset.bookingUid || bookingUid;
+    handleMarkNoShow(container, latestBookingUid, attendee.email, currentlyMarked);
   };
 
   button.addEventListener("click", handleClick);
@@ -886,25 +892,6 @@ function createNoShowButton(
  * Inject no-show buttons into an event popup
  */
 async function injectNoShowButtons(eventPopup: Element): Promise<void> {
-  // Check if buttons already injected for this popup
-  // Use a more specific check to avoid duplicate injections
-  const existingButtons = eventPopup.querySelectorAll("[data-cal-noshow-btn]");
-  if (existingButtons.length > 0) {
-    // Verify buttons are still attached to the DOM and visible
-    const stillAttached = Array.from(existingButtons).some((btn) => {
-      const isInDOM = document.body.contains(btn);
-      if (!isInDOM) return false;
-      // Check if button is actually visible (not hidden by display:none or similar)
-      const style = window.getComputedStyle(btn);
-      return style.display !== "none" && style.visibility !== "hidden";
-    });
-    if (stillAttached) {
-      // Buttons exist, but check if they're in the right place
-      // Google Calendar might have moved them - verify they're still next to attendee names
-      return;
-    }
-  }
-
   // Get the event description text
   const popupText = eventPopup.textContent || "";
 
@@ -950,14 +937,30 @@ async function injectNoShowButtons(eventPopup: Element): Promise<void> {
   // Per requirements: Show button even for non-Cal.com events, but it will show error on click
   // This allows users to see the feature is available
 
-  // Find where to inject buttons
-  // Look for guest list container or individual guest elements
-  const guestContainer = eventPopup.querySelector('[data-guests], [aria-label*="guest"]');
+  const existingButtonContainers = Array.from(
+    eventPopup.querySelectorAll(".cal-noshow-btn-container[data-attendee-email]")
+  ) as HTMLDivElement[];
 
-  // Fetch booking status to check no-show status for each attendee
+  const existingButtonByEmail = new Map<string, HTMLDivElement>();
+  existingButtonContainers.forEach((el) => {
+    const email = el.getAttribute("data-attendee-email")?.toLowerCase();
+    if (email) existingButtonByEmail.set(email, el);
+  });
+
+  const attendeesToInject = nonOrganizerAttendees.filter(
+    (a) => !existingButtonByEmail.has(a.email.toLowerCase())
+  );
+
+  type BookingStatusAttendee = { email: string; noShow?: boolean; absent?: boolean };
+  type BookingStatusPayload = { attendees?: BookingStatusAttendee[] };
+  type BookingStatusMessageResponse =
+    | { success: true; data: BookingStatusPayload }
+    | { success: false; error?: string };
+
+  // Fetch booking status to compute initial mark/unmark state.
   const attendeeNoShowStatus = new Map<string, boolean>();
 
-  if (bookingUid) {
+  if (bookingUid && (await getIsAuthenticatedCached())) {
     // Check cache first
     const cached = bookingStatusCache.get(bookingUid);
     const now = Date.now();
@@ -968,60 +971,82 @@ async function injectNoShowButtons(eventPopup: Element): Promise<void> {
         attendeeNoShowStatus.set(key, value);
       });
     } else {
-      // Fetch from API
-      try {
-        const statusResponse = await new Promise<{ success: boolean; data?: any; error?: string }>(
-          (resolve) => {
-            chrome.runtime.sendMessage(
-              { action: "get-booking-status", payload: { bookingUid } },
-              (response) => {
-                if (chrome.runtime.lastError) {
-                  resolve({ success: false, error: chrome.runtime.lastError.message });
-                } else {
-                  resolve(response || { success: false });
-                }
-              }
-            );
+      const statusResponse = await new Promise<BookingStatusMessageResponse>((resolve) => {
+        chrome.runtime.sendMessage(
+          { action: "get-booking-status", payload: { bookingUid } },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              resolve({ success: false, error: chrome.runtime.lastError.message });
+              return;
+            }
+            if (response && typeof response === "object" && "success" in response) {
+              resolve(response as BookingStatusMessageResponse);
+              return;
+            }
+            resolve({ success: false });
           }
         );
+      });
 
-        if (statusResponse.success && statusResponse.data?.attendees) {
-          statusResponse.data.attendees.forEach(
-            (att: { email: string; noShow?: boolean; absent?: boolean }) => {
-              if (att.email) {
-                // Check both noShow and absent fields (API might use either)
-                const isMarked = att.noShow === true || att.absent === true;
-                attendeeNoShowStatus.set(att.email.toLowerCase(), isMarked);
-              }
-            }
+      if (statusResponse.success && statusResponse.data.attendees) {
+        statusResponse.data.attendees.forEach((att) => {
+          attendeeNoShowStatus.set(
+            att.email.toLowerCase(),
+            att.noShow === true || att.absent === true
           );
+        });
 
-          // Cache the result
-          bookingStatusCache.set(bookingUid, {
-            data: new Map(attendeeNoShowStatus),
-            timestamp: now,
-          });
-        }
-      } catch (error) {
-        // Silently fail - we'll just show default button state
-        console.error("Failed to fetch booking status:", error);
+        bookingStatusCache.set(bookingUid, {
+          data: new Map(attendeeNoShowStatus),
+          timestamp: now,
+        });
       }
     }
   }
 
-  nonOrganizerAttendees.forEach((attendee) => {
-    // Check if button already exists for this attendee
-    const existingButton = eventPopup.querySelector(`[data-attendee-email="${attendee.email}"]`);
-    if (existingButton) {
-      return; // Skip if button already exists
-    }
+  // Sync existing buttons (e.g. when bookingUid appears after initial injection)
+  if (bookingUid && existingButtonByEmail.size > 0) {
+    nonOrganizerAttendees.forEach((attendee) => {
+      const emailLower = attendee.email.toLowerCase();
+      const existingContainer = existingButtonByEmail.get(emailLower);
+      if (!existingContainer) return;
 
+      // Ensure click-time booking UID is correct even if we injected before the link rendered
+      if (!existingContainer.dataset.bookingUid) existingContainer.dataset.bookingUid = bookingUid;
+
+      if (attendeeNoShowStatus.size === 0) return;
+
+      const shouldBeMarked = attendeeNoShowStatus.get(emailLower) || false;
+      const currentlyMarked = existingContainer.dataset.marked === "true";
+      if (shouldBeMarked === currentlyMarked) return;
+
+      const btn = existingContainer.querySelector(".cal-noshow-btn") as HTMLButtonElement | null;
+      if (btn) {
+        if (shouldBeMarked) {
+          btn.classList.add("marked");
+          btn.innerHTML = `${createEyeIcon()}<span>Unmark no-show</span>`;
+          btn.setAttribute("aria-label", "Unmark no-show");
+        } else {
+          btn.classList.remove("marked");
+          btn.innerHTML = `${createNoShowIcon()}<span>Mark as no-show</span>`;
+          btn.setAttribute("aria-label", "Mark as no-show");
+        }
+      }
+      existingContainer.dataset.marked = shouldBeMarked ? "true" : "false";
+    });
+  }
+
+  if (attendeesToInject.length === 0) {
+    // Nothing new to inject (but we may have synced existing buttons above)
+    return;
+  }
+
+  attendeesToInject.forEach((attendee) => {
     // Check if this attendee is already marked as no-show
     const isMarked = attendeeNoShowStatus.get(attendee.email.toLowerCase()) || false;
 
     // Create and inject button container
     const buttonContainer = createNoShowButton(bookingUid || "", attendee, isMarked);
-
     // Button will always show, even without booking UID
     // The click handler will check auth and booking UID when clicked
 
@@ -1125,6 +1150,9 @@ function observeEventPopups(): void {
   // Track button injection attempts to avoid infinite loops
   const injectionAttempts = new WeakMap<Element, number>();
   const MAX_INJECTION_ATTEMPTS = 10;
+  // Throttle sync attempts per popup (for phased rendering / login while open)
+  const lastSyncAttempt = new WeakMap<Element, number>();
+  const SYNC_ATTEMPT_TTL = 2000; // 2 seconds
 
   // Function to check and inject buttons
   const checkAndInject = (element: Element, force: boolean = false) => {
@@ -1145,9 +1173,10 @@ function observeEventPopups(): void {
 
     if (isCalComEvent) {
       // Check if buttons already exist
-      const existingButtons = element.querySelectorAll("[data-cal-noshow-btn]");
+      const existingButtons = element.querySelectorAll(NO_SHOW_BUTTON_SELECTOR);
       const hasValidButtons = Array.from(existingButtons).some((btn) => {
-        return document.body.contains(btn) && window.getComputedStyle(btn).display !== "none";
+        const style = window.getComputedStyle(btn);
+        return btn.isConnected && style.display !== "none" && style.visibility !== "hidden";
       });
 
       // Only inject if buttons don't exist or were removed
@@ -1156,6 +1185,19 @@ function observeEventPopups(): void {
         setTimeout(() => {
           void injectNoShowButtons(element);
           injectionAttempts.set(element, attempts + 1);
+        }, 200);
+        return;
+      }
+
+      // Buttons exist: still attempt a throttled "sync pass" so state can update once bookingUid/auth becomes available.
+      const now = Date.now();
+      const last = lastSyncAttempt.get(element) || 0;
+      if (now - last < SYNC_ATTEMPT_TTL) return;
+
+      if (extractBookingUid(text)) {
+        lastSyncAttempt.set(element, now);
+        setTimeout(() => {
+          void injectNoShowButtons(element);
         }, 200);
       }
     }
@@ -1170,10 +1212,10 @@ function observeEventPopups(): void {
           if (removedNode instanceof Element) {
             // Check if one of our buttons was removed
             const removedButton =
-              removedNode.querySelector?.("[data-cal-noshow-btn]") ||
+              removedNode.querySelector?.(NO_SHOW_BUTTON_SELECTOR) ||
               (removedNode.hasAttribute?.("data-cal-noshow-btn") ? removedNode : null);
 
-            if (removedButton || removedNode.hasAttribute?.("data-cal-noshow-btn")) {
+            if (removedButton) {
               // Find the popup that contains this button's attendee
               const popup =
                 mutation.target instanceof Element
@@ -1212,7 +1254,7 @@ function observeEventPopups(): void {
           if (node.querySelector?.('[role="treeitem"][data-email]')) {
             const popup = node.closest('[role="dialog"], [aria-modal="true"], [data-eventid]');
             if (popup) {
-              checkAndInject(popup);
+              checkAndInject(popup, true);
             }
           }
         }
@@ -1225,7 +1267,7 @@ function observeEventPopups(): void {
         const popup = target.closest('[role="dialog"], [aria-modal="true"], [data-eventid]');
         if (popup) {
           // Only re-inject if buttons are missing
-          const hasButtons = popup.querySelector("[data-cal-noshow-btn]");
+          const hasButtons = popup.querySelector(NO_SHOW_BUTTON_SELECTOR);
           if (!hasButtons) {
             checkAndInject(popup);
           }
@@ -1238,7 +1280,7 @@ function observeEventPopups(): void {
           '[role="dialog"], [aria-modal="true"], [data-eventid]'
         );
         if (popup) {
-          const hasButtons = popup.querySelector("[data-cal-noshow-btn]");
+          const hasButtons = popup.querySelector(NO_SHOW_BUTTON_SELECTOR);
           if (!hasButtons) {
             checkAndInject(popup);
           }
@@ -1287,9 +1329,10 @@ function observeEventPopups(): void {
 
       if (isCalComEvent) {
         // Check if buttons exist and are still attached
-        const existingButtons = popup.querySelectorAll("[data-cal-noshow-btn]");
+        const existingButtons = popup.querySelectorAll(NO_SHOW_BUTTON_SELECTOR);
         const validButtons = Array.from(existingButtons).filter((btn) => {
-          return document.body.contains(btn) && window.getComputedStyle(btn).display !== "none";
+          const style = window.getComputedStyle(btn);
+          return btn.isConnected && style.display !== "none" && style.visibility !== "hidden";
         });
 
         // If buttons are missing or removed, re-inject
@@ -1305,26 +1348,9 @@ function observeEventPopups(): void {
  * Initialize Google Calendar integration
  */
 export function initGoogleCalendarIntegration(): void {
-  console.log("Cal.com: Initializing Google Calendar integration");
-
   // Inject styles
   injectStyles();
 
   // Start observing for event popups
   observeEventPopups();
-
-  // Also check for existing popups on page load
-  setTimeout(() => {
-    const existingPopups = document.querySelectorAll(
-      '[data-eventid], [data-eventchip], [role="dialog"][aria-modal="true"]'
-    );
-    existingPopups.forEach((popup) => {
-      const text = popup.textContent || "";
-      if (text.includes("cal.com") || text.includes("Cal.com") || text.includes("booking")) {
-        void injectNoShowButtons(popup);
-      }
-    });
-  }, 1000);
-
-  console.log("Cal.com: Google Calendar integration initialized");
 }
