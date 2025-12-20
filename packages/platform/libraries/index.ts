@@ -83,6 +83,7 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
 export { ErrorWithCode } from "@calcom/lib/errors";
+export { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 

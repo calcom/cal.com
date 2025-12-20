@@ -28,7 +28,7 @@ import { plainToInstance } from "class-transformer";
 import type { Response } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { HttpError } from "@calcom/platform-libraries";
+import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries";
 
 @Controller({
   path: "/v2/auth/oauth2/clients/:clientId",
@@ -57,9 +57,8 @@ export class OAuth2Controller {
         data: plainToInstance(OAuth2ClientDto, client, { strategy: "excludeAll" }),
       };
     } catch (err) {
-      if (err instanceof HttpError) {
-        const httpError = err as HttpError;
-        throw new HttpException(httpError.message, httpError.statusCode);
+      if (err instanceof ErrorWithCode) {
+        throw new HttpException(err.message, getHttpStatusCode(err));
       }
       this.logger.error(err);
       throw new InternalServerErrorException("Could not get oAuthClient");
@@ -128,9 +127,8 @@ export class OAuth2Controller {
         data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
     } catch (err) {
-      if (err instanceof HttpError) {
-        const httpError = err as HttpError;
-        throw new HttpException(httpError.message, httpError.statusCode);
+      if (err instanceof ErrorWithCode) {
+        throw new HttpException(err.message, getHttpStatusCode(err));
       }
       this.logger.error(err);
       throw new InternalServerErrorException("Could not exchange code for tokens");
@@ -158,9 +156,8 @@ export class OAuth2Controller {
         data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
     } catch (err) {
-      if (err instanceof HttpError) {
-        const httpError = err as HttpError;
-        throw new HttpException(httpError.message, httpError.statusCode);
+      if (err instanceof ErrorWithCode) {
+        throw new HttpException(err.message, getHttpStatusCode(err));
       }
       this.logger.error(err);
       throw new InternalServerErrorException("Could not refresh tokens");
