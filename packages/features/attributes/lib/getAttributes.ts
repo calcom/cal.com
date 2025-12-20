@@ -1,6 +1,6 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
-import { PrismaAttributeRepository } from "@calcom/features/attribute/repositories/PrismaAttributeRepository";
-import { PrismaAttributeToUserRepository } from "@calcom/features/attribute/repositories/PrismaAttributeToUserRepository";
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
+import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { AttributeId, AttributeOptionValueWithType } from "@calcom/lib/service/attribute/types";

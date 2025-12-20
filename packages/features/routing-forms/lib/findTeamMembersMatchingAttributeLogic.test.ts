@@ -2,7 +2,7 @@ import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import * as getAttributesModule from "@calcom/features/attribute/lib/getAttributes";
+import * as getAttributesModule from "@calcom/features/attributes/lib/getAttributes";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
@@ -13,7 +13,7 @@ import {
   TroubleshooterCase,
 } from "./findTeamMembersMatchingAttributeLogic";
 
-vi.mock("@calcom/features/attribute/lib/getAttributes", () => {
+vi.mock("@calcom/features/attributes/lib/getAttributes", () => {
   return {
     getAttributesAssignmentData: vi.fn(),
   };

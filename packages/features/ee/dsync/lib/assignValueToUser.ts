@@ -1,6 +1,6 @@
-import { findAssignmentsForMember } from "@calcom/features/attribute/lib/utils";
-import { PrismaAttributeOptionRepository } from "@calcom/features/attribute/repositories/PrismaAttributeOptionRepository";
-import { PrismaAttributeRepository } from "@calcom/features/attribute/repositories/PrismaAttributeRepository";
+import { findAssignmentsForMember } from "@calcom/features/attributes/lib/utils";
+import { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

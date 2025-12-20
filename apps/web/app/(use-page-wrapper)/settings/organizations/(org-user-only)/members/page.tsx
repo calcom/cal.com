@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { PrismaAttributeRepository } from "@calcom/features/attribute/repositories/PrismaAttributeRepository";
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Resource, CustomAction, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";

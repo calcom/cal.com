@@ -1,7 +1,7 @@
 import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
-import { getUsersAttributes } from "@calcom/features/attribute/lib/getAttributes";
+import { getUsersAttributes } from "@calcom/features/attributes/lib/getAttributes";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";

@@ -1,4 +1,4 @@
-import { getWhereClauseForAttributeOptionsManagedByCalcom } from "@calcom/features/attribute/lib/utils";
+import { getWhereClauseForAttributeOptionsManagedByCalcom } from "@calcom/features/attributes/lib/utils";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
