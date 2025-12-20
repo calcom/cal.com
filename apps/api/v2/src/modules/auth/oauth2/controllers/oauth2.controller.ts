@@ -79,10 +79,8 @@ export class OAuth2Controller {
     @GetUser("id") userId: number,
     @Res() res: Response
   ): Promise<void> {
-    let isValidClient = false;
     try {
       const client = await this.oAuthService.getClient(clientId);
-      isValidClient = !!client.redirectUri && !!client.clientId;
       const result = await this.oAuthService.generateAuthorizationCode(
         client.clientId,
         userId,
@@ -95,12 +93,11 @@ export class OAuth2Controller {
       );
       return res.redirect(303, result.redirectUrl);
     } catch (err: unknown) {
-      if (!isValidClient) {
-        if (err instanceof ErrorWithCode) {
+      if (err instanceof ErrorWithCode) {
+        if (err.message === "unauthorized_client" || err?.data?.["cause"] === "redirect_uri_mismatch") {
           const statusCode = getHttpStatusCode(err);
           throw new HttpException(err.message, statusCode);
         }
-        throw new HttpException("oauth_client_not_found", HttpStatus.NOT_FOUND);
       }
       const errorRedirectUrl = this.oAuthService.buildErrorRedirectUrl(body.redirectUri, err, body.state);
       return res.redirect(303, errorRedirectUrl);

@@ -144,7 +144,7 @@ export class OAuthService {
 
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
     if (providedUri !== registeredUri) {
-      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", { cause: "redirect_uri_mismatch" });
     }
   }
 

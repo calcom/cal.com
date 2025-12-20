@@ -239,19 +239,15 @@ describe("OAuth2 Controller Endpoints", () => {
         expect(redirectUrl.searchParams.get("state")).toBe("test-state-456");
       });
 
-      it("should redirect with error for mismatched redirect URI", async () => {
-        const response = await request(app.getHttpServer())
+      it("should throw error 400 for mismatched redirect URI", async () => {
+        await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
             redirectUri: "https://wrong-domain.com/callback",
             scopes: [AccessScope.READ_BOOKING],
             state: "test-state-789",
           })
-          .expect(303);
-
-        expect(response.headers.location).toBeDefined();
-        const redirectUrl = new URL(response.headers.location);
-        expect(redirectUrl.searchParams.get("error")).toBe("invalid_request");
+          .expect(400);
       });
     });
 
