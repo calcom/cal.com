@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Echipă fără nume",
+  "number_member_one": "{{count}} membru",
+  "number_member_other": "{{count}} (de) membri",
+  "org_no_teams_yet": "Această organizație nu are încă echipe",
+  "org_no_teams_yet_description": "Dacă sunteți administrator, creați echipe pentru a fi afișate aici.",
+  "you_cannot_see_teams_of_org": "Nu poți vedea echipele unei organizații private.",
+  "you_cannot_see_team_members": "Nu puteți vedea toți membrii unei echipe private.",
+  "or": "SAU",
+  "book_a_team_member": "Rezervați în schimb un membru al echipei",
+  "user_from_team": "{{user}} din {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Colectiv",
+  "may_require_confirmation": "Poate necesita confirmare",
+  "requires_confirmation": "Necesită confirmare",
+  "event_type_seats": "{{numberOfSeats}} (de) locuri",
+  "team_is_unpublished": "Echipa {{team}} nu este publicată",
+  "team_is_unpublished_description": "Acest link de {{entity}} nu este disponibil momentan. Contactați proprietarul {{entity}} sau rugați-l să îl publice.",
+  "org_is_unpublished_description": "Acest link de organizație nu este disponibil momentan. Contactați proprietarul organizației sau rugați-l să îl publice."
+}

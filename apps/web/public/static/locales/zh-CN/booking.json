@@ -1,0 +1,20 @@
+{
+  "nameless_team": "未命名团队",
+  "number_member_one": "{{count}} 个成员",
+  "number_member_other": "{{count}} 个成员",
+  "org_no_teams_yet": "此组织尚无团队",
+  "org_no_teams_yet_description": "如果您是管理员，请务必创建要在此处显示的团队。",
+  "you_cannot_see_teams_of_org": "您无法看到私有组织的团队。",
+  "you_cannot_see_team_members": "您无法看到私密团队的所有团队成员。",
+  "or": "或",
+  "book_a_team_member": "预约一个团队成员来替代",
+  "user_from_team": "来自 {{team}} 的 {{user}}",
+  "round_robin": "轮流模式",
+  "collective": "集体模式",
+  "may_require_confirmation": "可能需要确认",
+  "requires_confirmation": "需要确认",
+  "event_type_seats": "{{numberOfSeats}} 个位置",
+  "team_is_unpublished": "{{team}} 已被取消发布",
+  "team_is_unpublished_description": "该{{entity}}链接当前不可用。请联系{{entity}}所有者或请他们发布。",
+  "org_is_unpublished_description": "该组织链接当前不可用。请联系组织所有者或要求他们发布。"
+}

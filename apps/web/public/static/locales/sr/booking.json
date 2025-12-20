@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Tim bez imena",
+  "number_member_one": "{{count}} član",
+  "number_member_other": "{{count}} članova",
+  "org_no_teams_yet": "Ova organizacija još uvek nema timove",
+  "org_no_teams_yet_description": "Ako ste administrator, obavezno kreirajte timove koji će ovde biti prikazani.",
+  "you_cannot_see_teams_of_org": "Ne možete videti timove privatne organizacije.",
+  "you_cannot_see_team_members": "Nećete moći da vidite sve članove privatnog tima.",
+  "or": "ILI",
+  "book_a_team_member": "Umesto toga, rezervišite sastanak sa članom tima",
+  "user_from_team": "{{user}} iz {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Kolektiv",
+  "may_require_confirmation": "Može da zahteva potvrdu",
+  "requires_confirmation": "Potrebna je potvrda",
+  "event_type_seats": "{{numberOfSeats}} mesta",
+  "team_is_unpublished": "Opozvano je objavljivanje tima {{team}}",
+  "team_is_unpublished_description": "Ovaj link {{entity}} više nije dostupan. Obratite se vlasniku {{entity}} i zamolite ga da objavi.",
+  "org_is_unpublished_description": "Ovaj link Organizacije trenutno nije dostupan. Obratite se vlasniku Organizacije i zamolite ga da ga objavi."
+}

@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Nameless Team",
+  "number_member_one": "{{count}} member",
+  "number_member_other": "{{count}} members",
+  "org_no_teams_yet": "This organization has no teams yet",
+  "org_no_teams_yet_description": "If you are an administrator, be sure to create teams to be shown here.",
+  "you_cannot_see_teams_of_org": "You cannot see teams of a private organization.",
+  "you_cannot_see_team_members": "You cannot see all the team members of a private team.",
+  "or": "OR",
+  "book_a_team_member": "Book a team member instead",
+  "user_from_team": "{{user}} from {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Collective",
+  "may_require_confirmation": "May require confirmation",
+  "requires_confirmation": "Requires confirmation",
+  "event_type_seats": "{{numberOfSeats}} seats",
+  "team_is_unpublished": "{{team}} is unpublished",
+  "team_is_unpublished_description": "This team link is currently not available. Please contact the team owner or ask them to publish it.",
+  "org_is_unpublished_description": "This organization link is currently not available. Please contact the organization owner or ask them to publish it."
+}

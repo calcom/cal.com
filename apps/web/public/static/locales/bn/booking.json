@@ -1,0 +1,20 @@
+{
+  "nameless_team": "নামবিহীন টিম",
+  "number_member_one": "{{count}} সদস্য",
+  "number_member_other": "{{count}} সদস্য",
+  "org_no_teams_yet": "এই সংস্থার এখনও কোনও দল নেই",
+  "org_no_teams_yet_description": "আপনি যদি প্রশাসক হন তবে এখানে প্রদর্শিত দলগুলি তৈরি করতে ভুলবেন না।",
+  "you_cannot_see_teams_of_org": "আপনি কোনও বেসরকারী সংস্থার দল দেখতে পাচ্ছেন না।",
+  "you_cannot_see_team_members": "আপনি কোনও বেসরকারী দলের সমস্ত দলের সদস্য দেখতে পারবেন না।",
+  "or": "বা",
+  "book_a_team_member": "পরিবর্তে একটি দলের সদস্য বুক করুন",
+  "user_from_team": "{{user}} থেকে {{team}}",
+  "round_robin": "রাউন্ড রবিন",
+  "collective": "সমষ্টিগত",
+  "may_require_confirmation": "নিশ্চিতকরণের প্রয়োজন হতে পারে",
+  "requires_confirmation": "নিশ্চিতকরণ প্রয়োজন",
+  "event_type_seats": "{{numberOfSeats}} আসন",
+  "team_is_unpublished": "{{team}} অপ্রকাশিত",
+  "team_is_unpublished_description": "এই দলের লিঙ্কটি বর্তমানে উপলভ্য নয়। ",
+  "org_is_unpublished_description": "এই সংস্থার লিঙ্কটি বর্তমানে উপলভ্য নয়। "
+}

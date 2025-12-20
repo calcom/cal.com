@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Nimetön tiimi",
+  "number_member_one": "{{count}} jäsen",
+  "number_member_other": "{{count}} jäsentä",
+  "org_no_teams_yet": "Tällä organisaatiolla ei ole vielä tiimejä",
+  "org_no_teams_yet_description": "Jos olet järjestelmänvalvoja, muista luoda tiimejä, jotta ne näkyvät täällä.",
+  "you_cannot_see_teams_of_org": "Et voi nähdä yksityisen organisaation tiimejä.",
+  "you_cannot_see_team_members": "Et voi nähdä yksityisen tiimin kaikkia jäseniä.",
+  "or": "TAI",
+  "book_a_team_member": "Varaa tiimin jäsen",
+  "user_from_team": "{{user}} tiimistä {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Yhteinen",
+  "may_require_confirmation": "Saattaa vaatia vahvistuksen",
+  "requires_confirmation": "Vaatii vahvistuksen",
+  "event_type_seats": "{{numberOfSeats}} paikkaa",
+  "team_is_unpublished": "{{team}} ei ole julkaistu",
+  "team_is_unpublished_description": "Tämä tiimin linkki ei ole tällä hetkellä käytettävissä. Ota yhteyttä tiimin omistajaan tai pyydä heitä julkaisemaan se.",
+  "org_is_unpublished_description": "Tämä organisaation linkki ei ole tällä hetkellä käytettävissä. Ota yhteyttä organisaation omistajaan tai pyydä heitä julkaisemaan se."
+}

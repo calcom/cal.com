@@ -1,0 +1,20 @@
+{
+  "nameless_team": "ក្រុមគ្មានឈ្មោះ",
+  "number_member_one": "{{count}} សមាជិក",
+  "number_member_other": "{{count}} សមាជិក",
+  "org_no_teams_yet": "អង្គការនេះមិនមានក្រុមនៅឡើយទេ",
+  "org_no_teams_yet_description": "ប្រសិនបើអ្នកជាអ្នកគ្រប់គ្រង សូមប្រាកដថាបានបង្កើតក្រុមដើម្បីបង្ហាញនៅទីនេះ។",
+  "you_cannot_see_teams_of_org": "អ្នកមិនអាចមើលឃើញក្រុមនៃអង្គការសម្ងាត់បានទេ។",
+  "you_cannot_see_team_members": "អ្នកមិនអាចមើលឃើញសមាជិកទាំងអស់នៃក្រុមសម្ងាត់បានទេ។",
+  "or": "ឬ",
+  "book_a_team_member": "កក់សមាជិកក្រុម",
+  "user_from_team": "{{user}} ពី {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "សហគមន៍",
+  "may_require_confirmation": "អាចត្រូវការការបញ្ជាក់",
+  "requires_confirmation": "ទាមទារការបញ្ជាក់",
+  "event_type_seats": "{{numberOfSeats}} កៅអី",
+  "team_is_unpublished": "{{team}} មិនបានបោះពុម្ពផ្សាយ",
+  "team_is_unpublished_description": "តំណភ្ជាប់ក្រុមនេះមិនមានសម្រាប់ឥឡូវទេ។ សូមទាក់ទងម្ចាស់ក្រុមឬស្នើសុំឱ្យពួកគេបោះពុម្ពផ្សាយវា។",
+  "org_is_unpublished_description": "តំណភ្ជាប់អង្គការនេះមិនមានសម្រាប់ឥឡូវទេ។ សូមទាក់ទងម្ចាស់អង្គការឬស្នើសុំឱ្យពួកគេបោះពុម្ពផ្សាយវា។"
+}

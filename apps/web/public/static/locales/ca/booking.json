@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Equip sense nom",
+  "number_member_one": "{{count}} membre",
+  "number_member_other": "{{count}} membres",
+  "org_no_teams_yet": "Aquesta organització encara no té equips",
+  "org_no_teams_yet_description": "Si sou administrador, assegureu-vos de crear equips perquè es mostrin aquí.",
+  "you_cannot_see_teams_of_org": "No pots veure els equips d'una organització privada.",
+  "you_cannot_see_team_members": "No pots veure tots els membres d'un equip privat.",
+  "or": "O",
+  "book_a_team_member": "Reserva amb un membre de l'equip",
+  "user_from_team": "{{user}} de {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Col·lectiu",
+  "may_require_confirmation": "Pot requerir confirmació",
+  "requires_confirmation": "Requereix confirmació",
+  "event_type_seats": "{{numberOfSeats}} places",
+  "team_is_unpublished": "{{team}} no està publicat",
+  "team_is_unpublished_description": "Aquest enllaç d'equip no està disponible actualment. Si us plau, contacta amb el propietari de l'equip o demana-li que el publiqui.",
+  "org_is_unpublished_description": "Aquest enllaç d'organització no està disponible actualment. Si us plau, contacta amb el propietari de l'organització o demana-li que el publiqui."
+}

@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Naamloos team",
+  "number_member_one": "{{count}} lid",
+  "number_member_other": "{{count}} leden",
+  "org_no_teams_yet": "Deze organisatie heeft nog geen teams",
+  "org_no_teams_yet_description": "Als u een beheerder bent, zorg er dan voor dat u teams maakt die hier weergegeven worden.",
+  "you_cannot_see_teams_of_org": "Je kunt de teams van een privéorganisatie niet zien.",
+  "you_cannot_see_team_members": "U kunt niet alle teamleden van een privéteam zien.",
+  "or": "OF",
+  "book_a_team_member": "Of, reserveer een teamlid",
+  "user_from_team": "{{user}} van {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Collectief",
+  "may_require_confirmation": "Kan bevestiging vereisen",
+  "requires_confirmation": "Vereist bevestiging",
+  "event_type_seats": "{{numberOfSeats}} plaatsen",
+  "team_is_unpublished": "{{team}} is niet gepubliceerd",
+  "team_is_unpublished_description": "Deze {{entity}}-link is momenteel niet beschikbaar. Neem contact op met de {{entity}}-eigenaar of vraag hem het te publiceren.",
+  "org_is_unpublished_description": "Deze organisatiekoppeling is momenteel niet beschikbaar. Neem contact op met de organisatie-eigenaar of vraag om het te publiceren."
+}

@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Nhóm chưa đặt tên",
+  "number_member_one": "{{count}} thành viên",
+  "number_member_other": "{{count}} thành viên",
+  "org_no_teams_yet": "Tổ chức này chưa có nhóm nào",
+  "org_no_teams_yet_description": "Nếu bạn là một quản trị viên, hãy bảo đảm tạo nhóm các nhóm cần được hiển thị tại đây.",
+  "you_cannot_see_teams_of_org": "Bạn không thể thấy các nhóm của một tổ chức riêng tư.",
+  "you_cannot_see_team_members": "Bạn không thể thấy tất cả thành viên nhóm của một nhóm riêng tư.",
+  "or": "HOẶC",
+  "book_a_team_member": "Đặt lịch một thành viên trong nhóm",
+  "user_from_team": "{{user}} từ {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Tập thể",
+  "may_require_confirmation": "Có thể yêu cầu xác nhận",
+  "requires_confirmation": "Yêu cầu xác nhận",
+  "event_type_seats": "{{numberOfSeats}} chỗ ngồi",
+  "team_is_unpublished": "{{team}} chưa được công bố",
+  "team_is_unpublished_description": "Liên kết {{entity}} này hiện không khả dụng. Hãy liên lạc với chủ {{entity}} hoặc yêu cầu họ công bố liên kết đó.",
+  "org_is_unpublished_description": "Liên kết tổ chức này hiện không khả dụng. Hãy liên lạc với chủ tổ chức hoặc yêu cầu họ công bố liên kết đó."
+}

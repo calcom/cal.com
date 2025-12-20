@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Tým bez názvu",
+  "number_member_one": "Počet členů: {{count}}",
+  "number_member_other": "Počet členů: {{count}}",
+  "org_no_teams_yet": "Tato organizace zatím neobsahuje žádné týmy",
+  "org_no_teams_yet_description": "Pokud jste správce, nezapomeňte vytvořit týmy, které se zde budou zobrazovat.",
+  "you_cannot_see_teams_of_org": "Nemůžete vidět týmy soukromé organizace.",
+  "you_cannot_see_team_members": "V soukromém týmu nelze vidět všechny členy týmu.",
+  "or": "NEBO",
+  "book_a_team_member": "Namísto toho si rezervujte člena týmu",
+  "user_from_team": "{{user}} z {{team}}",
+  "round_robin": "Plánování Round Robin",
+  "collective": "Souhrn",
+  "may_require_confirmation": "Může vyžadovat potvrzení",
+  "requires_confirmation": "Vyžaduje potvrzení",
+  "event_type_seats": "Počet míst: {{numberOfSeats}}",
+  "team_is_unpublished": "Tým {{team}} není zveřejněn",
+  "team_is_unpublished_description": "Tento odkaz subjektu ({{entity}}) není v současné době k dispozici. Kontaktujte prosím vlastníka subjektu ({{entity}}) nebo ho požádejte o jeho zveřejnění.",
+  "org_is_unpublished_description": "Tento odkaz organizace není v současné době k dispozici. Kontaktujte prosím vlastníka organizace nebo ho požádejte o jeho zveřejnění."
+}

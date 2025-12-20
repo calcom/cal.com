@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Команда без назви",
+  "number_member_one": "{{count}} учасник",
+  "number_member_other": "Учасників: {{count}}",
+  "org_no_teams_yet": "В організації поки немає команд",
+  "org_no_teams_yet_description": "Якщо ви адміністратор, не забудьте створити команди, які з’являться тут.",
+  "you_cannot_see_teams_of_org": "Ви не можете бачити команди приватної організації.",
+  "you_cannot_see_team_members": "Ви не можете бачити всіх учасників приватної команди.",
+  "or": "АБО",
+  "book_a_team_member": "Натомість забронювати час учасника команди",
+  "user_from_team": "{{user}} із команди «{{team}}»",
+  "round_robin": "Ротація",
+  "collective": "Групова",
+  "may_require_confirmation": "Може вимагати підтвердження",
+  "requires_confirmation": "Потрібне підтвердження",
+  "event_type_seats": "Місць: {{numberOfSeats}}",
+  "team_is_unpublished": "Публікацію команди «{{team}}» скасовано",
+  "team_is_unpublished_description": "Посилання на {{entity}} зараз недоступне. Зверніться до власника {{entity}} або попросіть його опублікувати посилання.",
+  "org_is_unpublished_description": "Посилання на цю організацію зараз недоступне. Зверніться до власника організації або попросіть його опублікувати посилання."
+}

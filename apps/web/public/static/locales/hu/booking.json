@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Névtelen csapat",
+  "number_member_one": "{{count}} tag",
+  "number_member_other": "{{count}} tag",
+  "org_no_teams_yet": "Ennek a szervezetnek még nincsenek csapatai",
+  "org_no_teams_yet_description": "Ha Ön rendszergazda, feltétlenül hozzon létre csapatokat, amelyek itt megjelennek.",
+  "you_cannot_see_teams_of_org": "Nem láthatja a magánszervezetek csapatait.",
+  "you_cannot_see_team_members": "Nem láthatja a privát csapat összes csapattagját.",
+  "or": "vagy",
+  "book_a_team_member": "Foglaljon inkáb egy másik csapattagnál",
+  "user_from_team": "{{user}} a következőtől: {{team}}",
+  "round_robin": "Körmérkőzés",
+  "collective": "Többrésztvevős",
+  "may_require_confirmation": "Megerősítést igényelhet",
+  "requires_confirmation": "Megerősítést igényel",
+  "event_type_seats": "{{numberOfSeats}} ülőhely",
+  "team_is_unpublished": "{{team}} nincs közzétéve",
+  "team_is_unpublished_description": "Ez a csapatlink jelenleg nem érhető el. Kérjük, lépjen kapcsolatba a csapat tulajdonosával, vagy kérje meg, hogy tegye közzé.",
+  "org_is_unpublished_description": "Ez a szervezeti link jelenleg nem érhető el. Kérjük, lépjen kapcsolatba a szervezet tulajdonosával, vagy kérje meg, hogy tegye közzé."
+}

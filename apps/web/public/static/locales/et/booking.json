@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Nimetu meeskond",
+  "number_member_one": "{{count}} liige",
+  "number_member_other": "{{count}} liiget",
+  "org_no_teams_yet": "Sellel organisatsioonil pole veel meeskondi",
+  "org_no_teams_yet_description": "Kui olete administraator, looge kindlasti siin kuvamiseks meeskonnad.",
+  "you_cannot_see_teams_of_org": "Te ei saa näha eraorganisatsiooni meeskondi.",
+  "you_cannot_see_team_members": "Te ei saa näha erameeskonna kõiki meeskonnaliikmeid.",
+  "or": "VÕI",
+  "book_a_team_member": "Broneerige selle asemel meeskonnaliige",
+  "user_from_team": "{{user}} meeskonnast {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Kollektiiv",
+  "may_require_confirmation": "Võib nõuda kinnitust",
+  "requires_confirmation": "Nõuab kinnitust",
+  "event_type_seats": "{{numberOfSeats}} kohta",
+  "team_is_unpublished": "{{team}} on avaldamata",
+  "team_is_unpublished_description": "See meeskonnalink pole praegu saadaval. Võtke ühendust meeskonna omanikuga või paluge tal see avaldada.",
+  "org_is_unpublished_description": "See organisatsiooni link pole praegu saadaval. Võtke ühendust organisatsiooni omanikuga või paluge tal see avaldada."
+}

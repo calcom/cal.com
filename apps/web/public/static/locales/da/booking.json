@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Unavngivet team",
+  "number_member_one": "{{count}} medlem",
+  "number_member_other": "{{count}} medlemmer",
+  "org_no_teams_yet": "Denne organisation har ingen teams endnu",
+  "org_no_teams_yet_description": "Hvis du er administrator, skal du sørge for at oprette teams, der vises her.",
+  "you_cannot_see_teams_of_org": "Du kan ikke se teams i en privat organisation.",
+  "you_cannot_see_team_members": "Du kan ikke se alle teammedlemmer i et privat team.",
+  "or": "ELLER",
+  "book_a_team_member": "Book et teammedlem i stedet",
+  "user_from_team": "{{user}} fra {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Kollektiv",
+  "may_require_confirmation": "Kan kræve bekræftelse",
+  "requires_confirmation": "Kræver bekræftelse",
+  "event_type_seats": "{{numberOfSeats}} pladser",
+  "team_is_unpublished": "{{team}} er upubliceret",
+  "team_is_unpublished_description": "Dette teamlink er i øjeblikket ikke tilgængeligt. Kontakt venligst teamindehaveren eller bed dem om at offentliggøre det.",
+  "org_is_unpublished_description": "Dette organisationslink er i øjeblikket ikke tilgængeligt. Kontakt venligst organisationsindehaveren eller bed dem om at offentliggøre det."
+}

@@ -1,0 +1,20 @@
+{
+  "nameless_team": "이름 없는 팀",
+  "number_member_one": "회원 {{count}}명",
+  "number_member_other": "회원 {{count}}명",
+  "org_no_teams_yet": "이 조직에 아직 팀이 없습니다",
+  "org_no_teams_yet_description": "관리자인 경우 여기에 표시할 팀을 만들어야 합니다.",
+  "you_cannot_see_teams_of_org": "비공개 조직의 팀을 볼 수 없습니다.",
+  "you_cannot_see_team_members": "비공개 팀의 모든 팀원을 볼 수 없습니다.",
+  "or": "또는",
+  "book_a_team_member": "대신 팀원을 예약하세요.",
+  "user_from_team": "{{team}}의 {{user}}",
+  "round_robin": "라운드 로빈",
+  "collective": "집단",
+  "may_require_confirmation": "확인이 필요할 수 있음",
+  "requires_confirmation": "확인 필수",
+  "event_type_seats": "{{numberOfSeats}}개 시트",
+  "team_is_unpublished": "{{team}} 팀은 게시되지 않았습니다",
+  "team_is_unpublished_description": "이 {{entity}} 링크는 현재 사용할 수 없습니다. {{entity}} 소유자에게 연락하거나 게시하라고 요청하십시오.",
+  "org_is_unpublished_description": "이 조직 링크는 현재 사용할 수 없습니다. 조직 소유자에게 문의하거나 게시해 달라고 요청하세요."
+}

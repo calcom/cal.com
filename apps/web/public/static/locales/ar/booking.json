@@ -1,0 +1,20 @@
+{
+  "nameless_team": "فريق بدون اسم",
+  "number_member_one": "{{count}} عضو",
+  "number_member_other": "{{count}} من الأعضاء",
+  "org_no_teams_yet": "هذه المنظمة ليس لديها فرق بعد",
+  "org_no_teams_yet_description": "إذا كنت مسؤول، تأكد من إنشاء فرق لعرضها هنا.",
+  "you_cannot_see_teams_of_org": "لا يمكنك رؤية فرق المؤسسة الخاصة.",
+  "you_cannot_see_team_members": "لا يمكنك رؤية جميع أعضاء الفريق السري.",
+  "or": "أو",
+  "book_a_team_member": "حجز عضو في الفريق بدلًا من ذلك",
+  "user_from_team": "{{user}} من {{team}}",
+  "round_robin": "الترتيب الدوري",
+  "collective": "جماعي",
+  "may_require_confirmation": "قد يتطلب التأكيد",
+  "requires_confirmation": "يتطلب التأكيد",
+  "event_type_seats": "{{numberOfSeats}} من المقاعد",
+  "team_is_unpublished": "لم يُنشر {{team}}",
+  "team_is_unpublished_description": "رابط هذا {{entity}} غير متاح حاليًا. يرجى الاتصال بمالك {{entity}} أو طلب نشره منه.",
+  "org_is_unpublished_description": "رابط هذه المنظمة غير متاح حاليًا. يرجى الاتصال بمالك المنظمة أو طلب النشر منه."
+}

@@ -1,0 +1,20 @@
+{
+  "nameless_team": "名称未設定のチーム",
+  "number_member_one": "{{count}} 人のメンバー",
+  "number_member_other": "{{count}} 人のメンバー",
+  "org_no_teams_yet": "この組織にはまだチームがありません",
+  "org_no_teams_yet_description": "管理者である場合には、ここに表示されるチームを必ず作成してください。",
+  "you_cannot_see_teams_of_org": "非公開の組織のチームを見ることはできません。",
+  "you_cannot_see_team_members": "非公開チームでは、チームメンバーを確認することができません。",
+  "or": "もしくは",
+  "book_a_team_member": "代わりにチームメンバーを予約する",
+  "user_from_team": "{{team}} の {{user}}",
+  "round_robin": "ラウンドロビン",
+  "collective": "全体",
+  "may_require_confirmation": "確認が必要となる可能性があります",
+  "requires_confirmation": "確認が必要です",
+  "event_type_seats": "{{numberOfSeats}} 席",
+  "team_is_unpublished": "{{team}} は公開されていません",
+  "team_is_unpublished_description": "この {{entity}} のリンクは現在利用できません。{{entity}} の所有者に問い合わせるか、リンクを公開するように依頼してください。",
+  "org_is_unpublished_description": "この組織のリンクは現在利用できません。組織の所有者に連絡するか、リンクを公開するよう依頼してください。"
+}

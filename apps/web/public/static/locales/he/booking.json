@@ -1,0 +1,20 @@
+{
+  "nameless_team": "צוות ללא שם",
+  "number_member_one": "חבר {{count}}",
+  "number_member_other": "{{count}} חברים",
+  "org_no_teams_yet": "בארגון הזה עדיין אין צוותים",
+  "org_no_teams_yet_description": "אם את/ה מנהל/ת מערכת, צור/צרי צוותים שיוצגו כאן.",
+  "you_cannot_see_teams_of_org": "אי אפשר לצפות בצוותים של ארגון פרטי.",
+  "you_cannot_see_team_members": "אין לך אפשרות לראות את כל חברי הצוות של צוות פרטי.",
+  "or": "או",
+  "book_a_team_member": "שריין זמן של חבר/ת צוות, במקום זאת",
+  "user_from_team": "{{user}} מצוות {{team}}",
+  "round_robin": "לפי תורות",
+  "collective": "קבוצתי",
+  "may_require_confirmation": "עשוי לחייב אישור",
+  "requires_confirmation": "נדרש אישור",
+  "event_type_seats": "{{numberOfSeats}} מושבים",
+  "team_is_unpublished": "צוות {{team}} אינו מפורסם",
+  "team_is_unpublished_description": "קישור ה-{{entity}} הזה אינו זמין כעת. יש ליצור קשר עם הבעלים של ה-{{entity}} או לבקש מהם לפרסם אותו.",
+  "org_is_unpublished_description": "הקישור לארגון הזה אינו זמין כעת. יש ליצור קשר עם הבעלים של הארגון או לבקש מהם לפרסם אותו."
+}

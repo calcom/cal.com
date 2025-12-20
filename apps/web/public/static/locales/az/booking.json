@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Adsız Komanda",
+  "number_member_one": "{{count}} üzv",
+  "number_member_other": "{{count}} üzv",
+  "org_no_teams_yet": "Bu təşkilatda hələ komanda yoxdur",
+  "org_no_teams_yet_description": "Əgər siz administratorsunuzsa, burada göstərmək üçün komandalar yaratdığınızdan əmin olun.",
+  "you_cannot_see_teams_of_org": "Gizli təşkilatın komandalarını görə bilməzsiniz.",
+  "you_cannot_see_team_members": "Gizli komandanın bütün üzvlərini görə bilməzsiniz.",
+  "or": "VƏ YA",
+  "book_a_team_member": "Komanda üzvünü sifariş et",
+  "user_from_team": "{{user}} {{team}} komandasında",
+  "round_robin": "Round Robin",
+  "collective": "Kollektiv",
+  "may_require_confirmation": "Təsdiq tələb edə bilər",
+  "requires_confirmation": "Təsdiq tələb edir",
+  "event_type_seats": "{{numberOfSeats}} oturacaq",
+  "team_is_unpublished": "{{team}} yayımlanmayıb",
+  "team_is_unpublished_description": "Bu komanda bağlantısı hazırda mövcud deyil. Zəhmət olmasa komanda sahibinə müraciət edin və ya onu yayımlamasını xahiş edin.",
+  "org_is_unpublished_description": "Bu təşkilat bağlantısı hazırda mövcud deyil. Zəhmət olmasa təşkilat sahibinə müraciət edin və ya onu yayımlamasını xahiş edin."
+}

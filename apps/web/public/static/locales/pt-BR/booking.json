@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Equipe sem nome",
+  "number_member_one": "{{count}} membro",
+  "number_member_other": "{{count}} membros",
+  "org_no_teams_yet": "Esta organização ainda não tem nenhuma equipe",
+  "org_no_teams_yet_description": "Se você for administrador, não se esqueça de criar equipes para mostrar aqui.",
+  "you_cannot_see_teams_of_org": "Você não pode equipes de uma organização privada.",
+  "you_cannot_see_team_members": "Você não pode ver todos os membros da equipe de uma equipe privada.",
+  "or": "OU",
+  "book_a_team_member": "Agende um membro da equipe no lugar",
+  "user_from_team": "{{user}} do {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Coletivo",
+  "may_require_confirmation": "Pode exigir confirmação",
+  "requires_confirmation": "Requer confirmação",
+  "event_type_seats": "{{numberOfSeats}} assentos",
+  "team_is_unpublished": "Publicação de {{team}} cancelada",
+  "team_is_unpublished_description": "O link de {{entity}} não está disponível por enquanto. Fale com o proprietário de {{entity}} ou peça que seja publicado.",
+  "org_is_unpublished_description": "Este link da organização não está disponível no momento. Entre em contato com o proprietário da organização ou peça que seja publicado."
+}

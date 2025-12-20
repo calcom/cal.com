@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Tím bez mena",
+  "number_member_one": "{{count}} člen",
+  "number_member_other": "{{count}} členov",
+  "org_no_teams_yet": "Táto organizácia zatiaľ nemá žiadne tímy",
+  "org_no_teams_yet_description": "Ak ste administrátor, nezabudnite vytvoriť tímy, aby sa tu zobrazili.",
+  "you_cannot_see_teams_of_org": "Nemôžete vidieť tímy súkromnej organizácie.",
+  "you_cannot_see_team_members": "Nemôžete vidieť všetkých členov súkromného tímu.",
+  "or": "ALEBO",
+  "book_a_team_member": "Rezervovať člena tímu namiesto toho",
+  "user_from_team": "{{user}} z {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Kolektívne",
+  "may_require_confirmation": "Môže vyžadovať potvrdenie",
+  "requires_confirmation": "Vyžaduje potvrdenie",
+  "event_type_seats": "{{numberOfSeats}} miest",
+  "team_is_unpublished": "{{team}} nie je publikovaný",
+  "team_is_unpublished_description": "Tento odkaz tímu momentálne nie je dostupný. Kontaktujte prosím vlastníka tímu alebo ho požiadajte o publikovanie.",
+  "org_is_unpublished_description": "Tento odkaz na organizáciu momentálne nie je dostupný. Kontaktujte prosím vlastníka organizácie alebo ho požiadajte o publikovanie."
+}

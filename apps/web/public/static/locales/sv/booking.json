@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Namnlöst team",
+  "number_member_one": "{{count}} medlem",
+  "number_member_other": "{{count}} medlemmar",
+  "org_no_teams_yet": "Denna organisation har inga team än",
+  "org_no_teams_yet_description": "Om du är administratör ska du skapa team som visas här.",
+  "you_cannot_see_teams_of_org": "Du kan inte se teamen i en privat organisation.",
+  "you_cannot_see_team_members": "Du kan inte se alla teammedlemmar i ett privat team.",
+  "or": "ELLER",
+  "book_a_team_member": "Boka en teammedlem istället",
+  "user_from_team": "{{user}} från {{team}}",
+  "round_robin": "Tur och ordning",
+  "collective": "Kollektiv",
+  "may_require_confirmation": "Kan kräva bekräftelse",
+  "requires_confirmation": "Kräver bekräftelse",
+  "event_type_seats": "{{numberOfSeats}} platser",
+  "team_is_unpublished": "{{team}} har avpublicerats",
+  "team_is_unpublished_description": "Den här {{entity}}-länken är för närvarande inte tillgänglig. Kontakta ägaren till {{entity}} eller be vederbörande att publicera den.",
+  "org_is_unpublished_description": "Den här organisationslänken är för närvarande inte tillgänglig. Kontakta organisationens ägare eller be denne att publicera den."
+}

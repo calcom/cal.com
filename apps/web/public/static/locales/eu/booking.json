@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Izenik gabeko taldea",
+  "number_member_one": "{{count}} kide",
+  "number_member_other": "{{count}} kide",
+  "org_no_teams_yet": "Erakunde honek oraindik ez du talderik",
+  "org_no_teams_yet_description": "Administratzailea bazara, ziurtatu taldeak sortzen hemen agertzeko.",
+  "you_cannot_see_teams_of_org": "Ezin dituzu erakunde pribatu bateko taldeak ikusi.",
+  "you_cannot_see_team_members": "Ezin dituzu talde pribatu bateko kide guztiak ikusi.",
+  "or": "EDO",
+  "book_a_team_member": "Erreserbatu taldekide bat ordez",
+  "user_from_team": "{{team}} taldeko {{user}}",
+  "round_robin": "Round Robin",
+  "collective": "Kolektiboa",
+  "may_require_confirmation": "Baieztapena behar izan dezake",
+  "requires_confirmation": "Baieztapena behar du",
+  "event_type_seats": "{{numberOfSeats}} eserleku",
+  "team_is_unpublished": "{{team}} ez dago argitaratuta",
+  "team_is_unpublished_description": "Talde honen esteka ez dago eskuragarri momentu honetan. Mesedez, jarri harremanetan taldearen jabearekin edo eskatu argitaratzeko.",
+  "org_is_unpublished_description": "Erakunde honen esteka ez dago eskuragarri momentu honetan. Mesedez, jarri harremanetan erakundearen jabearekin edo eskatu argitaratzeko."
+}

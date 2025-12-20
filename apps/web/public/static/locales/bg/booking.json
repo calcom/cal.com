@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Безименен екип",
+  "number_member_one": "{{count}} член",
+  "number_member_other": "{{count}} члена",
+  "org_no_teams_yet": "Тази организация все още няма екипи",
+  "org_no_teams_yet_description": "Ако сте администратор, не забравяйте да създадете екипи, които да се показват тук.",
+  "you_cannot_see_teams_of_org": "Не можеш да видиш екипите на частна организация.",
+  "you_cannot_see_team_members": "Не можеш да видиш всички членове на частния екип.",
+  "or": "ИЛИ",
+  "book_a_team_member": "Резервирайте член на екипа вместо това",
+  "user_from_team": "{{user}} от {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Колективно",
+  "may_require_confirmation": "Може да изисква потвърждение",
+  "requires_confirmation": "Изисква потвърждение",
+  "event_type_seats": "{{numberOfSeats}} места",
+  "team_is_unpublished": "{{team}} не е публикуван",
+  "team_is_unpublished_description": "Тази връзка към екипа в момента не е достъпна. Моля, свържете се със собственика на екипа или го помолете да я публикува.",
+  "org_is_unpublished_description": "Тази връзка към организацията в момента не е достъпна. Моля, свържете се със собственика на организацията или го помолете да я публикува."
+}

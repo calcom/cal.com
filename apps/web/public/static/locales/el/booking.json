@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Ανώνυμη ομάδα",
+  "number_member_one": "{{count}} μέλος",
+  "number_member_other": "{{count}} μέλη",
+  "org_no_teams_yet": "Αυτός ο οργανισμός δεν έχει ακόμη ομάδες",
+  "org_no_teams_yet_description": "Εάν είστε διαχειριστής, φροντίστε να δημιουργήσετε ομάδες για να εμφανίζονται εδώ.",
+  "you_cannot_see_teams_of_org": "Δεν μπορείτε να δείτε τις ομάδες ενός ιδιωτικού οργανισμού.",
+  "you_cannot_see_team_members": "Δεν μπορείτε να δείτε όλα τα μέλη μιας ιδιωτικής ομάδας.",
+  "or": "Ή",
+  "book_a_team_member": "Κράτηση με άλλο μέλος της ομάδας",
+  "user_from_team": "{{user}} από {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Συλλογικό",
+  "may_require_confirmation": "Ενδέχεται να απαιτεί επιβεβαίωση",
+  "requires_confirmation": "Απαιτεί επιβεβαίωση",
+  "event_type_seats": "{{numberOfSeats}} θέσεις",
+  "team_is_unpublished": "Η ομάδα {{team}} δεν έχει δημοσιευτεί",
+  "team_is_unpublished_description": "Αυτός ο σύνδεσμος ομάδας δεν είναι διαθέσιμος αυτή τη στιγμή. Παρακαλούμε επικοινωνήστε με τον ιδιοκτήτη της ομάδας ή ζητήστε του να τον δημοσιεύσει.",
+  "org_is_unpublished_description": "Αυτός ο σύνδεσμος οργανισμού δεν είναι διαθέσιμος αυτή τη στιγμή. Παρακαλούμε επικοινωνήστε με τον ιδιοκτήτη του οργανισμού ή ζητήστε του να τον δημοσιεύσει."
+}

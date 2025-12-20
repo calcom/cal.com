@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Безымянная команда",
+  "number_member_one": "Участники: {{count}}",
+  "number_member_other": "Участники: {{count}}",
+  "org_no_teams_yet": "У этой организации еще нет команд",
+  "org_no_teams_yet_description": "Если вы администратор, не забудьте создать команды, которые будут отображаться здесь.",
+  "you_cannot_see_teams_of_org": "Вы не можете видеть команды приватной организации.",
+  "you_cannot_see_team_members": "Вы не можете видеть список участников закрытой команды.",
+  "or": "ИЛИ",
+  "book_a_team_member": "Забронировать встречу с одним из членов команды",
+  "user_from_team": "{{user}} из {{team}}",
+  "round_robin": "По кругу",
+  "collective": "Коллективная встреча",
+  "may_require_confirmation": "Может потребоваться подтверждение",
+  "requires_confirmation": "Требуется подтверждение",
+  "event_type_seats": "Мест: {{numberOfSeats}}",
+  "team_is_unpublished": "Команда {{team}} снята с публикации",
+  "team_is_unpublished_description": "Эта ссылка на {{entity}} в настоящее время недоступна. Свяжитесь с владельцем {{entity}} и попросите его опубликовать ее.",
+  "org_is_unpublished_description": "Эта ссылка на организацию в настоящее время недоступна. Свяжитесь с владельцем организации и попросите его опубликовать ее."
+}

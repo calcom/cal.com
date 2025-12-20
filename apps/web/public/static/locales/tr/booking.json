@@ -1,0 +1,20 @@
+{
+  "nameless_team": "İsimsiz Takım",
+  "number_member_one": "{{count}} üye",
+  "number_member_other": "{{count}} üye",
+  "org_no_teams_yet": "Bu kuruluşun henüz ekibi yok",
+  "org_no_teams_yet_description": "Yöneticiyseniz burada gösterilecek ekipler oluşturduğunuzdan emin olun.",
+  "you_cannot_see_teams_of_org": "Özel bir kuruluşun takımlarını göremezsiniz.",
+  "you_cannot_see_team_members": "Özel bir ekibin tüm ekip üyelerini göremezsiniz.",
+  "or": "VEYA",
+  "book_a_team_member": "Bunun yerine bir ekip üyesi için rezevasyon yapın",
+  "user_from_team": "{{team}} ekibinden {{user}}",
+  "round_robin": "Round Robin",
+  "collective": "Toplu",
+  "may_require_confirmation": "Onay gerektirebilir",
+  "requires_confirmation": "Onay gerekli",
+  "event_type_seats": "{{numberOfSeats}} yer",
+  "team_is_unpublished": "{{team}} paylaşılmadı",
+  "team_is_unpublished_description": "Bu {{entity}} bağlantısı şu anda kullanılamıyor. Lütfen {{entity}} sahibiyle iletişime geçin veya ondan bir bağlantı paylaşmasını isteyin.",
+  "org_is_unpublished_description": "Bu kuruluş bağlantısı şu anda kullanılamıyor. Lütfen kuruluş sahibiyle iletişime geçin veya ondan bir bağlantı paylaşmasını isteyin."
+}

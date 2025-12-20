@@ -1,0 +1,20 @@
+{
+  "nameless_team": "Zespół bez nazwy",
+  "number_member_one": "{{count}} członek",
+  "number_member_other": "{{count}} członków",
+  "org_no_teams_yet": "W tej organizacji nie ma jeszcze żadnych zespołów",
+  "org_no_teams_yet_description": "Jeśli jesteś administratorem, pamiętaj o utworzeniu zespołów, które będą wyświetlane tutaj.",
+  "you_cannot_see_teams_of_org": "Nie możesz zobaczyć zespołów prywatnej organizacji.",
+  "you_cannot_see_team_members": "Nie możesz zobaczyć wszystkich członków zespołu prywatnego.",
+  "or": "LUB",
+  "book_a_team_member": "Zamiast tego zarezerwuj członka zespołu",
+  "user_from_team": "{{user}} z {{team}}",
+  "round_robin": "Round Robin",
+  "collective": "Zbiór",
+  "may_require_confirmation": "Może wymagać potwierdzenia",
+  "requires_confirmation": "Wymaga potwierdzenia",
+  "event_type_seats": "Liczba stanowisk: {{numberOfSeats}}",
+  "team_is_unpublished": "Zespół {{team}} nie został opublikowany",
+  "team_is_unpublished_description": "Link jednostki {{entity}} jest obecnie niedostępny. Skontaktuj się z właścicielem jednostki {{entity}} lub poproś o jego opublikowanie.",
+  "org_is_unpublished_description": "Link organizacji jest obecnie niedostępny. Skontaktuj się z właścicielem organizacji lub poproś o jego opublikowanie."
+}
