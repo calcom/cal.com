@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 
 import { type Container, createModule, ModuleLoader } from "@calcom/features/di/di";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
 import { DI_TOKENS } from "../tokens";
 
@@ -8,14 +9,38 @@ export const stripeClientModule = createModule();
 const token = DI_TOKENS.STRIPE_CLIENT;
 
 /**
+ * Creates a deep proxy that silently no-ops when a Stripe function is invoked.
+ * Property access (e.g. stripe.customers, stripe.customers.create) returns another proxy so that
+ * code doing capability checks (typeof stripe.customers?.create === "function") does not immediately fail.
+ * Used when billing is not enabled (e.g., during build or onboarding without billing).
+ */
+function createNoOpStripeStub(): Stripe {
+  // Using unknown instead of any to satisfy lint while still allowing broad proxying.
+  function makeDeepProxy(): unknown {
+    return new Proxy(function () { }, {
+      get() {
+        // Return another proxy for any nested property (resources/methods)
+        return makeDeepProxy();
+      },
+      apply() {
+        // Silently return undefined for any method call when billing is not enabled
+        return undefined;
+      },
+    });
+  }
+  return makeDeepProxy() as Stripe;
+}
+
+/**
  * Creates a deep proxy that only throws when a Stripe function is invoked.
  * Property access (e.g. stripe.customers, stripe.customers.create) returns another proxy so that
  * code doing capability checks (typeof stripe.customers?.create === "function") does not immediately throw.
+ * Used when billing is enabled but STRIPE_PRIVATE_KEY is missing (misconfiguration).
  */
 function createLazyThrowingStripeStub(error: Error): Stripe {
   // Using unknown instead of any to satisfy lint while still allowing broad proxying.
   function makeDeepProxy(): unknown {
-    return new Proxy(function () {}, {
+    return new Proxy(function () { }, {
       get() {
         // Return another proxy for any nested property (resources/methods)
         return makeDeepProxy();
@@ -29,6 +54,11 @@ function createLazyThrowingStripeStub(error: Error): Stripe {
 }
 
 stripeClientModule.bind(token).toFactory(() => {
+
+  if (!IS_TEAM_BILLING_ENABLED) {
+    return createNoOpStripeStub();
+  }
+  
   if (!process.env.STRIPE_PRIVATE_KEY) {
     const error = new Error("STRIPE_PRIVATE_KEY is not set");
     // Inject a stub that defers throwing until a method invocation
