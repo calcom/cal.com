@@ -717,7 +717,7 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
-          customCalendarReminder: 10,
+          customCalendarReminder: null,
         },
       ],
     };
@@ -726,7 +726,7 @@ describe("createEvent", () => {
 
     const insertCall = eventsInsertMock.mock.calls[0][0];
 
-    // When no custom reminder is configured (or fetch fails), should use default
+    // When no custom reminder is configured, should use Google Calendar's default
     expect(insertCall.requestBody.reminders).toEqual({
       useDefault: true,
     });

@@ -1,9 +1,11 @@
 import { z } from "zod";
 
+export const VALID_REMINDER_MINUTES = [10, 30, 60] as const;
+
 export const ZSetDestinationReminderInputSchema = z.object({
   credentialId: z.number(),
   integration: z.string(),
-  defaultReminder: z.number().min(0).max(60).default(10),
+  defaultReminder: z.union([z.literal(10), z.literal(30), z.literal(60)]).default(10),
 });
 
 export type TSetDestinationReminderInputSchema = z.infer<typeof ZSetDestinationReminderInputSchema>;

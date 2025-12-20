@@ -1,3 +1,4 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -5,6 +6,7 @@ import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { DestinationCalendarSettings } from "../DestinationCalendar";
 
 export const DestinationCalendarSettingsWebWrapper = () => {
+  const { t } = useLocale();
   const calendars = trpc.viewer.calendars.connectedCalendars.useQuery();
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.calendars.setDestinationCalendar.useMutation({
@@ -15,11 +17,11 @@ export const DestinationCalendarSettingsWebWrapper = () => {
 
   const reminderMutation = trpc.viewer.calendars.setDestinationReminder.useMutation({
     onSuccess: () => {
-      showToast("Reminder updated", "success");
+      showToast(t("reminder_updated"), "success");
       utils.viewer.calendars.connectedCalendars.invalidate();
     },
     onError: () => {
-      showToast("Failed to update reminder", "error");
+      showToast(t("error_updating_reminder"), "error");
     },
   });
 
