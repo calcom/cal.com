@@ -126,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!defaultCalendar?.id) {
     const errorMessage = "no_default_calendar";
     res.redirect(
-      `/apps/installed/calendar?error=${errorMessage}`
+      `${getSafeRedirectUrl(state?.onErrorReturnTo) ?? getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })}?error=${errorMessage}`
     );
     return;
   }
