@@ -2,14 +2,14 @@
 title: "Webhooks"
 ---
 
+Webhooks offer a great way to automate the flow with other apps when invitees schedule, cancel or reschedule events, or when the meeting ends.
 
-Webhooks offer a great way to automate the flow with other apps when invitees schedule, cancel or reschedule events, or when the meeting ends. 
-<iframe style={{ width: "100%", maxWidth: "560px" }} height="315" src="https://www.youtube.com/embed/Yy9me5E09LA?si=_2Mz-CKL2ajsFivd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe style={{ width:"100%",maxWidth:"560px" }} height="315" src="https://www.youtube.com/embed/Yy9me5E09LA?si=_2Mz-CKL2ajsFivd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen />
 
 The webhook subscription allows you to listen to specific trigger events, such as when a booking has been scheduled, for example. You can always listen to the webhook by providing a custom subscriber URL with your own development work. However, if you wish to trigger automations without any development work, you can use the integration with Zapier which connects Cal.com to your apps.
 
 <Note>
-Please note that the webhooks can be associated with user as well as individual event types, including team event types.
+  Please note that the webhooks can be associated with user as well as individual event types, including team event types.
 </Note>
 
 ### Creating a webhook subscription
@@ -17,35 +17,35 @@ Please note that the webhooks can be associated with user as well as individual 
 To create a new webhook subscription, visit `/settings/developer/webhooks` and proceed to enter the following details:
 
 <Steps>
-    <Step title="Subscriber URL">
-        This is the listener URL where the payload will be sent when an event trigger is activated.
-    </Step>
-    <Step title="Event triggers">
-        You can choose which specific triggers to listen to. Currently available triggers include:
-        - `Booking Cancelled`
-        - `Booking Created`
-        - `Booking Rescheduled`
-        - `Booking Rejected`
-        - `Booking Requested`
-        - `Booking Payment Initiated`
-        - `Booking Paid`
-        - `Meeting Started`
-        - `Recording Ready`
-        - `Form Submitted`
-        - `Meeting Ended`
-        - `Instant Meeting Created`
-        - `Booking No-show Updated`
-        - `After Hosts Didn't Join Cal Video`
-        - `After Guests Didn't Join Cal Video`
-    </Step>
-    <Step title="Secret">
-        You can provide a secret key with this webhook to [verify it](/docs/core-features/webhooks#verifying-the-authenticity-of-the-received-payload) on the subscriber URL when receiving a payload. This helps confirm whether the payload is authentic or has been tampered with. You can leave it blank if you don't wish to secure the webhook with a secret key.
-    </Step>
-    <Step title="Custom Payload">
-        You have the option to [customize the payload](/docs/core-features/webhooks#adding-a-custom-payload-template) that you receive when a subscribed event is triggered.
-    </Step>
-</Steps>
+  <Step title="Subscriber URL">
+    This is the listener URL where the payload will be sent when an event trigger is activated.
+  </Step>
+  <Step title="Event triggers">
+    You can choose which specific triggers to listen to. Currently available triggers include:
 
+    - `Booking Cancelled`
+    - `Booking Created`
+    - `Booking Rescheduled`
+    - `Booking Rejected`
+    - `Booking Requested`
+    - `Booking Payment Initiated`
+    - `Booking Paid`
+    - `Meeting Started`
+    - `Recording Ready`
+    - `Form Submitted`
+    - `Meeting Ended`
+    - `Instant Meeting Created`
+    - `Booking No-show Updated`
+    - `After Hosts Didn't Join Cal Video`
+    - `After Guests Didn't Join Cal Video`
+  </Step>
+  <Step title="Secret">
+    You can provide a secret key with this webhook to [verify it](/docs/core-features/webhooks#verifying-the-authenticity-of-the-received-payload) on the subscriber URL when receiving a payload. This helps confirm whether the payload is authentic or has been tampered with. You can leave it blank if you don't wish to secure the webhook with a secret key.
+  </Step>
+  <Step title="Custom Payload">
+    You have the option to [customize the payload](/docs/core-features/webhooks#adding-a-custom-payload-template) that you receive when a subscribed event is triggered.
+  </Step>
+</Steps>
 
 ### Webhook payload reference
 
@@ -68,117 +68,147 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "BOOKING_CREATED",
-          "createdAt": "2024-01-15T09:00:00.000Z",
+          "createdAt": "2024-01-01T00:00:00.000Z",
           "payload": {
-            "bookingId": 123,
-            "uid": "abc123-def456-ghi789",
-            "title": "30 Minute Meeting",
-            "type": "30min",
-            "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T10:30:00.000Z",
-            "description": "Meeting notes or additional notes",
-            "location": "https://cal.com/video/abc123",
-            "status": "ACCEPTED",
+            "bookerUrl": "https://app.example.com",
+            "title": "Strategy Session between Organizer and Guest",
+            "startTime": "2024-01-01T10:00:00Z",
+            "endTime": "2024-01-01T10:15:00Z",
+            "additionalNotes": "",
+            "type": "standard-event-type",
+            "description": "",
+            "eventTypeId": 123,
+            "hideCalendarNotes": false,
+            "hideCalendarEventDetails": false,
+            "hideOrganizerEmail": false,
+            "schedulingType": null,
+            "seatsPerTimeSlot": null,
+            "seatsShowAttendees": true,
+            "seatsShowAvailabilityCount": true,
+            "customReplyToEmail": null,
+            "disableRescheduling": false,
+            "disableCancelling": false,
             "organizer": {
-              "id": 456,
-              "name": "John Doe",
-              "email": "john@example.com",
-              "username": "johndoe",
-              "timeZone": "America/New_York",
+              "id": 1,
+              "name": "Organizer Name",
+              "email": "organizer@example.com",
+              "username": "organizer-handle",
+              "usernameInOrg": "organizer",
+              "timeZone": "UTC",
               "language": {
                 "locale": "en"
               },
-              "utcOffset": -5
+              "timeFormat": "h:mma",
+              "utcOffset": 0
             },
             "attendees": [
               {
-                "id": 789,
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London",
+                "email": "guest@example.com",
+                "name": "Guest User",
+                "firstName": "Guest",
+                "lastName": "User",
+                "timeZone": "UTC",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              },
+              {
+                "email": "additional-guest@example.com",
+                "name": "Additional Guest",
+                "firstName": "",
+                "lastName": "",
+                "timeZone": "UTC",
                 "language": {
                   "locale": "en"
                 },
                 "utcOffset": 0
               }
             ],
-            "team": {
-              "id": 100,
-              "name": "Sales Team",
-              "members": [
-                {
-                  "id": 456,
-                  "name": "John Doe",
-                  "email": "john@example.com",
-                  "timeZone": "America/New_York"
-                }
-              ]
-            },
-            "customInputs": {
-              "company": "Acme Corp"
-            },
+            "customInputs": {},
             "responses": {
               "name": {
-                "label": "Your Name",
-                "value": "Jane Smith",
+                "label": "your_name",
+                "value": "Guest User",
                 "isHidden": false
               },
               "email": {
-                "label": "Email Address",
-                "value": "jane@example.com",
+                "label": "email_address",
+                "value": "guest@example.com",
                 "isHidden": false
               },
+              "attendeePhoneNumber": {
+                "label": "phone_number",
+                "isHidden": true
+              },
+              "location": {
+                "label": "location",
+                "value": {
+                  "optionValue": "",
+                  "value": "integrations:video-provider"
+                },
+                "isHidden": false
+              },
+              "title": {
+                "label": "what_is_this_meeting_about",
+                "isHidden": true
+              },
               "notes": {
-                "label": "Additional Notes",
-                "value": "Looking forward to the meeting",
+                "label": "additional_notes",
+                "isHidden": false
+              },
+              "guests": {
+                "label": "additional_guests",
+                "value": [
+                  "additional-guest@example.com"
+                ],
+                "isHidden": false
+              },
+              "rescheduleReason": {
+                "label": "reason_for_reschedule",
                 "isHidden": false
               }
             },
-            "userFieldsResponses": {
-              "company": {
-                "label": "Company Name",
-                "value": "Acme Corp",
-                "isHidden": false
+            "userFieldsResponses": {},
+            "location": "integrations:video-provider",
+            "destinationCalendar": null,
+            "iCalUID": "unique-identifier-string@example.com",
+            "iCalSequence": 0,
+            "requiresConfirmation": false,
+            "oneTimePassword": null,
+            "organizationId": 1,
+            "hashedLink": null,
+            "uid": "unique-booking-id",
+            "conferenceData": {
+              "createRequest": {
+                "requestId": "00000000-0000-0000-0000-000000000000"
               }
-            },
-            "metadata": {
-              "videoCallUrl": "https://cal.com/video/abc123"
             },
             "videoCallData": {
-              "url": "https://cal.com/video/abc123",
-              "password": "123456",
-              "id": "abc123"
+              "type": "video_provider",
+              "id": "meeting-room-id",
+              "password": "redacted_token",
+              "url": "https://video.example.com/meeting-room-id"
             },
-            "destinationCalendar": [
-              {
-                "id": 1,
-                "integration": "google_calendar",
-                "externalId": "primary",
-                "userId": 456
-              }
-            ],
-            "eventTitle": "30 Minute Meeting",
-            "eventDescription": "A quick sync call",
-            "requiresConfirmation": false,
-            "price": 0,
-            "currency": "usd",
-            "length": 30,
-            "recurringEvent": null,
-            "smsReminderNumber": "+1234567890",
-            "seatsPerTimeSlot": null,
-            "seatsShowAttendees": false,
-            "seatsShowAvailabilityCount": true,
-            "schedulingType": null,
-            "iCalUID": "abc123@google.com",
             "appsStatus": [
               {
-                "appName": "Google Calendar",
-                "type": "google_calendar",
+                "appName": "video-app",
+                "type": "video_provider",
                 "success": 1,
                 "failures": 0,
                 "errors": []
               }
-            ]
+            ],
+            "eventTitle": "Strategy Session",
+            "eventDescription": "",
+            "price": 0,
+            "currency": "usd",
+            "length": 15,
+            "bookingId": 100,
+            "metadata": {
+              "videoCallUrl": "https://app.example.com/video/unique-booking-id"
+            },
+            "status": "ACCEPTED"
           }
         }
         ```
@@ -187,63 +217,96 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "BOOKING_CANCELLED",
-          "createdAt": "2024-01-15T11:00:00.000Z",
+          "createdAt": "2024-01-01T15:00:00.000Z",
           "payload": {
-            "bookingId": 123,
-            "uid": "abc123-def456-ghi789",
-            "title": "30 Minute Meeting",
-            "type": "30min",
-            "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T10:30:00.000Z",
-            "description": "Meeting notes",
-            "location": "https://cal.com/video/abc123",
-            "status": "CANCELLED",
+            "bookerUrl": "https://app.example.com",
+            "title": "Strategy Session: Organizer & Guest",
+            "length": 15,
+            "type": "standard-event-type",
+            "additionalNotes": "Standard meeting notes placeholder",
+            "description": "Standard meeting notes placeholder",
+            "customInputs": {},
+            "eventTypeId": 100,
+            "userFieldsResponses": {},
+            "responses": {
+              "name": {
+                "label": "name",
+                "value": "Guest User"
+              },
+              "email": {
+                "label": "email",
+                "value": "guest@example.com"
+              },
+              "notes": {
+                "label": "notes",
+                "value": "Standard meeting notes placeholder"
+              },
+              "guests": {
+                "label": "guests",
+                "value": [
+                  "additional-guest@example.com"
+                ]
+              },
+              "rescheduleReason": {
+                "label": "rescheduleReason",
+                "value": "Original slot no longer works."
+              }
+            },
+            "startTime": "2024-01-04T10:00:00+00:00",
+            "endTime": "2024-01-04T10:15:00+00:00",
             "organizer": {
-              "id": 456,
-              "name": "John Doe",
-              "email": "john@example.com",
-              "username": "johndoe",
-              "timeZone": "America/New_York",
+              "id": 1,
+              "username": "organizer-handle",
+              "usernameInOrg": "organizer",
+              "email": "organizer@example.com",
+              "name": "Organizer Name",
+              "timeZone": "UTC",
+              "timeFormat": "h:mma",
               "language": {
                 "locale": "en"
               },
-              "utcOffset": -5
+              "utcOffset": 0
             },
             "attendees": [
               {
-                "id": 789,
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London",
+                "name": "Guest User",
+                "email": "guest@example.com",
+                "timeZone": "UTC",
+                "phoneNumber": null,
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              },
+              {
+                "name": "Additional Guest",
+                "email": "additional-guest@example.com",
+                "timeZone": "UTC",
+                "phoneNumber": null,
                 "language": {
                   "locale": "en"
                 },
                 "utcOffset": 0
               }
             ],
-            "team": null,
-            "customInputs": {},
-            "responses": {
-              "name": {
-                "label": "Your Name",
-                "value": "Jane Smith",
-                "isHidden": false
-              },
-              "email": {
-                "label": "Email Address",
-                "value": "jane@example.com",
-                "isHidden": false
-              }
-            },
-            "userFieldsResponses": {},
-            "cancellationReason": "Schedule conflict",
-            "cancelledBy": "john@example.com",
-            "eventTitle": "30 Minute Meeting",
-            "eventDescription": "A quick sync call",
-            "requiresConfirmation": false,
-            "price": 0,
+            "uid": "unique-booking-identifier",
+            "bookingId": 200,
+            "location": "integrations:video-provider",
+            "destinationCalendar": [],
+            "cancellationReason": "I am no longer able to attend this session.",
+            "seatsPerTimeSlot": null,
+            "seatsShowAttendees": false,
+            "iCalUID": "unique-identifier@example.com",
+            "iCalSequence": 2,
+            "hideOrganizerEmail": false,
+            "customReplyToEmail": null,
+            "organizationId": 5,
+            "eventTitle": "Strategy Session",
+            "eventDescription": null,
+            "requiresConfirmation": true,
+            "price": null,
             "currency": "usd",
-            "length": 30
+            "status": "CANCELLED"
           }
         }
         ```
@@ -252,66 +315,151 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "BOOKING_RESCHEDULED",
-          "createdAt": "2024-01-15T12:00:00.000Z",
+          "createdAt": "2024-01-01T10:00:00.000Z",
           "payload": {
-            "bookingId": 124,
-            "uid": "new-booking-uid-xyz",
-            "title": "30 Minute Meeting",
-            "type": "30min",
-            "startTime": "2024-01-16T10:00:00.000Z",
-            "endTime": "2024-01-16T10:30:00.000Z",
-            "description": "Meeting notes",
-            "location": "https://cal.com/video/abc123",
-            "status": "ACCEPTED",
+            "bookerUrl": "https://app.example.com",
+            "title": "Strategy Session: Organizer & Guest",
+            "startTime": "2024-01-10T14:30:00Z",
+            "endTime": "2024-01-10T14:45:00Z",
+            "additionalNotes": "Standard meeting notes placeholder",
+            "type": "standard-event-type",
+            "description": "Standard meeting notes placeholder",
+            "eventTypeId": 100,
+            "hideCalendarNotes": false,
+            "hideCalendarEventDetails": false,
+            "hideOrganizerEmail": false,
+            "schedulingType": null,
+            "seatsPerTimeSlot": null,
+            "seatsShowAttendees": true,
+            "seatsShowAvailabilityCount": true,
+            "customReplyToEmail": null,
+            "disableRescheduling": false,
+            "disableCancelling": false,
             "organizer": {
-              "id": 456,
-              "name": "John Doe",
-              "email": "john@example.com",
-              "username": "johndoe",
-              "timeZone": "America/New_York",
+              "id": 1,
+              "name": "Organizer Name",
+              "email": "organizer@example.com",
+              "username": "organizer-handle",
+              "usernameInOrg": "organizer",
+              "timeZone": "UTC",
               "language": {
                 "locale": "en"
               },
-              "utcOffset": -5
+              "timeFormat": "h:mma",
+              "utcOffset": 0
             },
             "attendees": [
               {
-                "id": 789,
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London",
+                "email": "guest@example.com",
+                "name": "Guest User",
+                "firstName": "Guest",
+                "lastName": "User",
+                "timeZone": "UTC",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              },
+              {
+                "email": "additional-guest@example.com",
+                "name": "Additional Guest",
+                "firstName": "",
+                "lastName": "",
+                "timeZone": "UTC",
                 "language": {
                   "locale": "en"
                 },
                 "utcOffset": 0
               }
             ],
-            "team": null,
             "customInputs": {},
             "responses": {
               "name": {
-                "label": "Your Name",
-                "value": "Jane Smith",
+                "label": "your_name",
+                "value": "Guest User",
                 "isHidden": false
               },
               "email": {
-                "label": "Email Address",
-                "value": "jane@example.com",
+                "label": "email_address",
+                "value": "guest@example.com",
+                "isHidden": false
+              },
+              "attendeePhoneNumber": {
+                "label": "phone_number",
+                "isHidden": true
+              },
+              "location": {
+                "label": "location",
+                "value": {
+                  "value": "integrations:video-provider",
+                  "optionValue": ""
+                },
+                "isHidden": false
+              },
+              "title": {
+                "label": "what_is_this_meeting_about",
+                "isHidden": true
+              },
+              "notes": {
+                "label": "additional_notes",
+                "value": "Standard meeting notes placeholder",
+                "isHidden": false
+              },
+              "guests": {
+                "label": "additional_guests",
+                "value": [
+                  "additional-guest@example.com"
+                ],
+                "isHidden": false
+              },
+              "rescheduleReason": {
+                "label": "reason_for_reschedule",
                 "isHidden": false
               }
             },
             "userFieldsResponses": {},
-            "rescheduleId": 123,
-            "rescheduleUid": "original-booking-uid-abc",
-            "rescheduleStartTime": "2024-01-15T10:00:00.000Z",
-            "rescheduleEndTime": "2024-01-15T10:30:00.000Z",
-            "rescheduledBy": "jane@example.com",
-            "eventTitle": "30 Minute Meeting",
-            "eventDescription": "A quick sync call",
+            "location": "integrations:video-provider",
+            "destinationCalendar": null,
+            "iCalSequence": 1,
             "requiresConfirmation": false,
+            "oneTimePassword": null,
+            "organizationId": 1,
+            "hashedLink": null,
+            "uid": "new-booking-unique-id",
+            "videoCallData": {
+              "type": "video_provider",
+              "id": "meeting-room-id",
+              "password": "redacted_jwt_token",
+              "url": "https://video.example.com/meeting-room-id"
+            },
+            "conferenceData": {
+              "createRequest": {
+                "requestId": "00000000-0000-0000-0000-000000000000"
+              }
+            },
+            "appsStatus": [
+              {
+                "appName": "video-app",
+                "type": "video_provider",
+                "success": 1,
+                "failures": 0,
+                "errors": []
+              }
+            ],
+            "eventTitle": "Strategy Session",
+            "eventDescription": "",
             "price": 0,
             "currency": "usd",
-            "length": 30
+            "length": 15,
+            "bookingId": 201,
+            "rescheduleId": 200,
+            "rescheduleUid": "previous-booking-unique-id",
+            "rescheduleStartTime": "2024-01-05T14:30:00Z",
+            "rescheduleEndTime": "2024-01-05T14:45:00Z",
+            "metadata": {
+              "videoCallUrl": "https://app.example.com/video/new-booking-unique-id"
+            },
+            "status": "ACCEPTED"
           }
         }
         ```
@@ -320,61 +468,126 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "BOOKING_REQUESTED",
-          "createdAt": "2024-01-15T09:00:00.000Z",
+          "createdAt": "2024-01-01T12:00:00.000Z",
           "payload": {
-            "bookingId": 123,
-            "uid": "abc123-def456-ghi789",
-            "title": "30 Minute Meeting",
-            "type": "30min",
-            "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T10:30:00.000Z",
-            "description": "Meeting notes",
-            "location": "https://cal.com/video/abc123",
-            "status": "PENDING",
+            "bookerUrl": "https://app.example.com",
+            "title": "Strategy Session: Organizer & Guest",
+            "startTime": "2024-01-01T13:00:00Z",
+            "endTime": "2024-01-01T13:15:00Z",
+            "additionalNotes": "Standard meeting notes placeholder",
+            "type": "standard-event-type",
+            "description": "Standard meeting notes placeholder",
+            "eventTypeId": 100,
+            "hideCalendarNotes": false,
+            "hideCalendarEventDetails": false,
+            "hideOrganizerEmail": false,
+            "schedulingType": null,
+            "seatsPerTimeSlot": null,
+            "seatsShowAttendees": true,
+            "seatsShowAvailabilityCount": true,
+            "customReplyToEmail": null,
+            "disableRescheduling": false,
+            "disableCancelling": false,
             "organizer": {
-              "id": 456,
-              "name": "John Doe",
-              "email": "john@example.com",
-              "username": "johndoe",
-              "timeZone": "America/New_York",
+              "id": 1,
+              "name": "Organizer Name",
+              "email": "organizer@example.com",
+              "username": "organizer-handle",
+              "usernameInOrg": "organizer",
+              "timeZone": "UTC",
               "language": {
                 "locale": "en"
               },
-              "utcOffset": -5
+              "timeFormat": "h:mma",
+              "utcOffset": 0
             },
             "attendees": [
               {
-                "id": 789,
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London",
+                "email": "guest@example.com",
+                "name": "Guest User",
+                "firstName": "Guest",
+                "lastName": "User",
+                "timeZone": "UTC",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              },
+              {
+                "email": "additional-guest@example.com",
+                "name": "Additional Guest",
+                "firstName": "",
+                "lastName": "",
+                "timeZone": "UTC",
                 "language": {
                   "locale": "en"
                 },
                 "utcOffset": 0
               }
             ],
-            "team": null,
             "customInputs": {},
             "responses": {
               "name": {
-                "label": "Your Name",
-                "value": "Jane Smith",
+                "label": "your_name",
+                "value": "Guest User",
                 "isHidden": false
               },
               "email": {
-                "label": "Email Address",
-                "value": "jane@example.com",
+                "label": "email_address",
+                "value": "guest@example.com",
+                "isHidden": false
+              },
+              "attendeePhoneNumber": {
+                "label": "phone_number",
+                "isHidden": true
+              },
+              "location": {
+                "label": "location",
+                "value": {
+                  "value": "integrations:video-provider",
+                  "optionValue": ""
+                },
+                "isHidden": false
+              },
+              "title": {
+                "label": "what_is_this_meeting_about",
+                "isHidden": true
+              },
+              "notes": {
+                "label": "additional_notes",
+                "value": "Standard meeting notes placeholder",
+                "isHidden": false
+              },
+              "guests": {
+                "label": "additional_guests",
+                "value": [
+                  "additional-guest@example.com"
+                ],
+                "isHidden": false
+              },
+              "rescheduleReason": {
+                "label": "reason_for_reschedule",
                 "isHidden": false
               }
             },
             "userFieldsResponses": {},
-            "eventTitle": "30 Minute Meeting",
-            "eventDescription": "A quick sync call",
+            "location": "integrations:video-provider",
+            "destinationCalendar": null,
+            "iCalUID": "unique-booking-id@example.com",
+            "iCalSequence": 0,
             "requiresConfirmation": true,
+            "oneTimePassword": "00000000-0000-0000-0000-000000000000",
+            "organizationId": 1,
+            "hashedLink": null,
+            "uid": "unique-booking-id",
+            "eventTitle": "Strategy Session",
+            "eventDescription": "",
             "price": 0,
             "currency": "usd",
-            "length": 30
+            "length": 15,
+            "bookingId": 200,
+            "metadata": {},
+            "status": "PENDING"
           }
         }
         ```
@@ -383,62 +596,90 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "BOOKING_REJECTED",
-          "createdAt": "2024-01-15T09:30:00.000Z",
+          "createdAt": "2024-01-01T14:00:00.000Z",
           "payload": {
-            "bookingId": 123,
-            "uid": "abc123-def456-ghi789",
-            "title": "30 Minute Meeting",
-            "type": "30min",
-            "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T10:30:00.000Z",
-            "description": "Meeting notes",
-            "location": "https://cal.com/video/abc123",
-            "status": "REJECTED",
+            "type": "standard-event-type",
+            "title": "Strategy Session: Organizer & Guest",
+            "description": "Standard meeting notes placeholder",
+            "bookerUrl": "https://app.example.com",
+            "userFieldsResponses": {},
+            "responses": {
+              "name": {
+                "label": "name",
+                "value": "Guest User"
+              },
+              "email": {
+                "label": "email",
+                "value": "guest@example.com"
+              },
+              "notes": {
+                "label": "notes",
+                "value": "Standard meeting notes placeholder"
+              },
+              "guests": {
+                "label": "guests",
+                "value": [
+                  "additional-guest@example.com"
+                ]
+              }
+            },
+            "customInputs": {},
+            "startTime": "2024-01-01T15:00:00.000Z",
+            "endTime": "2024-01-01T15:15:00.000Z",
             "organizer": {
-              "id": 456,
-              "name": "John Doe",
-              "email": "john@example.com",
-              "username": "johndoe",
-              "timeZone": "America/New_York",
+              "id": 1,
+              "email": "organizer@example.com",
+              "name": "Organizer Name",
+              "username": "organizer-handle",
+              "usernameInOrg": "organizer",
+              "timeZone": "UTC",
+              "timeFormat": "h:mma",
               "language": {
                 "locale": "en"
               },
-              "utcOffset": -5
+              "utcOffset": 0
             },
             "attendees": [
               {
-                "id": 789,
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London",
+                "name": "Guest User",
+                "email": "guest@example.com",
+                "timeZone": "UTC",
+                "phoneNumber": null,
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 0
+              },
+              {
+                "name": "Additional Guest",
+                "email": "additional-guest@example.com",
+                "timeZone": "UTC",
+                "phoneNumber": null,
                 "language": {
                   "locale": "en"
                 },
                 "utcOffset": 0
               }
             ],
-            "team": null,
-            "customInputs": {},
-            "responses": {
-              "name": {
-                "label": "Your Name",
-                "value": "Jane Smith",
-                "isHidden": false
-              },
-              "email": {
-                "label": "Email Address",
-                "value": "jane@example.com",
-                "isHidden": false
-              }
-            },
-            "userFieldsResponses": {},
-            "rejectionReason": "Not available at this time",
-            "eventTitle": "30 Minute Meeting",
-            "eventDescription": "A quick sync call",
+            "location": "integrations:video-provider",
+            "uid": "unique-booking-identifier",
+            "destinationCalendar": [],
             "requiresConfirmation": true,
+            "hideOrganizerEmail": false,
+            "hideCalendarNotes": false,
+            "hideCalendarEventDetails": false,
+            "eventTypeId": 100,
+            "customReplyToEmail": null,
+            "organizationId": 5,
+            "additionalNotes": "Standard meeting notes placeholder",
+            "rejectionReason": "The organizer is no longer available at this time.",
+            "eventTitle": "Strategy Session",
+            "eventDescription": "",
             "price": 0,
             "currency": "usd",
-            "length": 30
+            "length": 15,
+            "bookingId": 200,
+            "status": "REJECTED"
           }
         }
         ```
@@ -447,76 +688,59 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "BOOKING_PAID",
-          "createdAt": "2024-01-15T09:05:00.000Z",
+          "createdAt": "2024-01-01T12:00:00.000Z",
           "payload": {
-            "bookingId": 123,
-            "uid": "abc123-def456-ghi789",
-            "title": "Paid Consultation",
-            "type": "consultation",
-            "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T11:00:00.000Z",
-            "description": "Paid consultation session",
-            "location": "https://cal.com/video/abc123",
-            "status": "ACCEPTED",
+            "type": "Consultation Session",
+            "title": "Consultation Session: Organizer & Guest",
+            "description": "",
+            "additionalNotes": "",
+            "customInputs": {},
+            "startTime": "2024-01-02T10:00:00.000Z",
+            "endTime": "2024-01-02T10:30:00.000Z",
             "organizer": {
-              "id": 456,
-              "name": "John Doe",
-              "email": "john@example.com",
-              "username": "johndoe",
-              "timeZone": "America/New_York",
-              "language": {
-                "locale": "en"
-              },
-              "utcOffset": -5
+              "id": 1,
+              "name": "Organizer Name",
+              "email": "organizer@example.com",
+              "username": "organizer-handle",
+              "timeZone": "UTC",
+              "language": { "locale": "en" },
+              "timeFormat": 12
             },
             "attendees": [
               {
-                "id": 789,
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London",
-                "language": {
-                  "locale": "en"
-                },
-                "utcOffset": 0
+                "name": "Guest User",
+                "email": "guest@example.com",
+                "timeZone": "UTC",
+                "language": { "locale": "en" }
               }
             ],
-            "team": null,
-            "customInputs": {},
-            "responses": {
-              "name": {
-                "label": "Your Name",
-                "value": "Jane Smith",
-                "isHidden": false
-              },
-              "email": {
-                "label": "Email Address",
-                "value": "jane@example.com",
-                "isHidden": false
-              }
+            "location": "integrations:video-provider",
+            "destinationCalendar": null,
+            "hideCalendarNotes": false,
+            "requiresConfirmation": true,
+            "eventTypeId": 50,
+            "seatsShowAttendees": true,
+            "seatsShowAvailabilityCount": true,
+            "schedulingType": null,
+            "iCalUID": "unique-ical-uid@example.com",
+            "iCalSequence": 0,
+            "uid": "unique-booking-uid",
+            "bookingId": 100,
+            "eventTitle": "Consultation Session",
+            "eventDescription": "",
+            "price": 1000,
+            "currency": "USD",
+            "length": 30,
+            "paymentId": 500,
+            "metadata": {
+              "identifier": "platform.name",
+              "bookingId": 100,
+              "eventTypeId": 50,
+              "bookerEmail": "guest@example.com",
+              "eventTitle": "Consultation Session",
+              "externalId": "pi_0000000000000000"
             },
-            "userFieldsResponses": {},
-            "paymentId": 456,
-            "paymentData": {
-              "id": 456,
-              "success": true,
-              "amount": 5000,
-              "currency": "usd",
-              "refunded": false,
-              "externalId": "pi_abc123xyz"
-            },
-            "paymentInfo": {
-              "link": "https://checkout.stripe.com/pay/cs_xxx",
-              "id": "pi_abc123xyz",
-              "amount": 5000,
-              "currency": "usd"
-            },
-            "eventTitle": "Paid Consultation",
-            "eventDescription": "60-minute paid consultation",
-            "requiresConfirmation": false,
-            "price": 5000,
-            "currency": "usd",
-            "length": 60
+            "status": "ACCEPTED"
           }
         }
         ```
@@ -525,69 +749,56 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "BOOKING_PAYMENT_INITIATED",
-          "createdAt": "2024-01-15T09:00:00.000Z",
+          "createdAt": "2024-01-01T12:00:00.000Z",
           "payload": {
-            "bookingId": 123,
-            "uid": "abc123-def456-ghi789",
-            "title": "Paid Consultation",
-            "type": "consultation",
-            "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T11:00:00.000Z",
-            "description": "Paid consultation session",
-            "location": "https://cal.com/video/abc123",
-            "status": "ACCEPTED",
+            "type": "Consultation Session",
+            "title": "Consultation Session: Organizer & Guest",
+            "description": "",
+            "additionalNotes": "",
+            "customInputs": {},
+            "startTime": "2024-01-02T10:00:00.000Z",
+            "endTime": "2024-01-02T10:30:00.000Z",
             "organizer": {
-              "id": 456,
-              "name": "John Doe",
-              "email": "john@example.com",
-              "username": "johndoe",
-              "timeZone": "America/New_York",
-              "language": {
-                "locale": "en"
-              },
-              "utcOffset": -5
+              "id": 1,
+              "name": "Organizer Name",
+              "email": "organizer@example.com",
+              "username": "organizer-handle",
+              "timeZone": "UTC",
+              "language": { "locale": "en" },
+              "timeFormat": 12
             },
             "attendees": [
               {
-                "id": 789,
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London",
-                "language": {
-                  "locale": "en"
-                },
-                "utcOffset": 0
+                "name": "Guest User",
+                "email": "guest@example.com",
+                "timeZone": "UTC",
+                "language": { "locale": "en" }
               }
             ],
-            "team": null,
-            "customInputs": {},
-            "responses": {
-              "name": {
-                "label": "Your Name",
-                "value": "Jane Smith",
-                "isHidden": false
-              },
-              "email": {
-                "label": "Email Address",
-                "value": "jane@example.com",
-                "isHidden": false
-              }
-            },
-            "userFieldsResponses": {},
-            "paymentId": 456,
-            "paymentData": {},
-            "paymentInfo": {
-              "link": "https://checkout.stripe.com/pay/cs_xxx",
-              "id": "pi_abc123xyz",
-              "amount": 5000,
-              "currency": "usd"
-            },
-            "eventTitle": "Paid Consultation",
-            "eventDescription": "60-minute paid consultation",
+            "location": "integrations:video-provider",
+            "destinationCalendar": null,
+            "hideCalendarNotes": false,
             "requiresConfirmation": false,
-            "price": 5000,
-            "currency": "usd",
-            "length": 60
+            "eventTypeId": 50,
+            "seatsShowAttendees": true,
+            "seatsShowAvailabilityCount": true,
+            "schedulingType": null,
+            "iCalUID": "unique-ical-uid@example.com",
+            "iCalSequence": 0,
+            "uid": "unique-booking-uid",
+            "bookingId": 100,
+            
+            "eventTitle": "Consultation Session",
+            "eventDescription": "",
+            "requiresConfirmation": false,
+            "price": 1000,
+            "currency": "USD",
+            "length": 30,
+            
+            "paymentId": 500,
+            
+            "status": "ACCEPTED",
+            "metadata": {}
           }
         }
         ```
@@ -596,17 +807,17 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "BOOKING_NO_SHOW_UPDATED",
-          "createdAt": "2024-01-15T11:00:00.000Z",
+          "createdAt": "2024-01-01T12:00:00.000Z",
           "payload": {
-            "bookingUid": "abc123-def456-ghi789",
-            "bookingId": 123,
-            "message": "jane@example.com marked as no show",
+            "message": "guest@example.com unmarked as no-show",
             "attendees": [
               {
-                "email": "jane@example.com",
-                "noShow": true
+                "email": "guest@example.com",
+                "noShow": false
               }
-            ]
+            ],
+            "bookingUid": "unique-booking-identifier",
+            "bookingId": 100
           }
         }
         ```
@@ -615,64 +826,127 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "MEETING_STARTED",
-          "createdAt": "2024-01-15T10:00:00.000Z",
-          "payload": {
-            "id": 123,
-            "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T10:30:00.000Z",
-            "title": "30 Minute Meeting",
-            "description": "Meeting description",
-            "customInputs": {
-              "company": "Acme Corp"
+          "id": 100,
+          "uid": "unique-booking-identifier",
+          "idempotencyKey": "00000000-0000-0000-0000-000000000000",
+          "userId": 10,
+          "userPrimaryEmail": "organizer@example.com",
+          "eventTypeId": 50,
+          "title": "Strategy Session: Organizer & Guest",
+          "description": "",
+          "customInputs": {},
+          "responses": {
+            "name": {
+              "label": "your_name",
+              "value": "Guest User",
+              "isHidden": false
             },
-            "responses": {
-              "name": {
-                "label": "Your Name",
-                "value": "Jane Smith"
+            "email": {
+              "label": "email_address",
+              "value": "guest@example.com",
+              "isHidden": false
+            },
+            "attendeePhoneNumber": {
+              "label": "phone_number",
+              "isHidden": true
+            },
+            "location": {
+              "label": "location",
+              "value": {
+                "optionValue": "",
+                "value": "integrations:video-provider"
               },
-              "email": {
-                "label": "Email",
-                "value": "jane@example.com"
-              }
+              "isHidden": false
             },
-            "userFieldsResponses": {
-              "company": {
-                "label": "Company",
-                "value": "Acme Corp"
-              }
+            "title": {
+              "label": "what_is_this_meeting_about",
+              "isHidden": true
             },
-            "location": "https://cal.com/video/abc123",
-            "status": "ACCEPTED",
-            "user": {
-              "username": "johndoe",
-              "name": "John Doe",
-              "email": "john@example.com",
-              "timeZone": "America/New_York",
-              "locale": "en"
+            "notes": {
+              "label": "additional_notes",
+              "isHidden": false
             },
-            "eventType": {
-              "title": "30 Minute Meeting",
-              "description": "Quick sync call",
-              "requiresConfirmation": false,
-              "price": 0,
-              "currency": "usd",
-              "length": 30,
-              "team": {
-                "logoUrl": "https://cal.com/team-logo.png",
-                "parent": {
-                  "logoUrl": "https://cal.com/org-logo.png",
-                  "name": "Acme Organization"
-                }
-              }
+            "guests": {
+              "label": "additional_guests",
+              "value": [
+                "additional-guest@example.com"
+              ],
+              "isHidden": false
             },
-            "attendees": [
-              {
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London"
-              }
-            ]
-          }
+            "rescheduleReason": {
+              "label": "reason_for_reschedule",
+              "isHidden": false
+            }
+          },
+          "startTime": "2024-01-01T10:00:00.000Z",
+          "endTime": "2024-01-01T10:15:00.000Z",
+          "location": "integrations:video-provider",
+          "createdAt": "2024-01-01T09:45:00.000Z",
+          "updatedAt": "2024-01-01T09:45:00.000Z",
+          "status": "ACCEPTED",
+          "paid": false,
+          "destinationCalendarId": null,
+          "cancellationReason": null,
+          "rejectionReason": null,
+          "reassignReason": null,
+          "reassignById": null,
+          "dynamicEventSlugRef": null,
+          "dynamicGroupSlugRef": null,
+          "rescheduled": null,
+          "fromReschedule": null,
+          "recurringEventId": null,
+          "smsReminderNumber": null,
+          "scheduledJobs": [],
+          "metadata": {},
+          "isRecorded": false,
+          "iCalUID": "unique-id@example.com",
+          "iCalSequence": 0,
+          "rating": null,
+          "ratingFeedback": null,
+          "noShowHost": false,
+          "oneTimePassword": null,
+          "cancelledBy": null,
+          "rescheduledBy": null,
+          "creationSource": "WEBAPP",
+          "user": {
+            "email": "organizer@example.com",
+            "name": "Organizer Name",
+            "timeZone": "UTC",
+            "username": "organizer-handle"
+          },
+          "attendees": [
+            {
+              "id": 101,
+              "email": "guest@example.com",
+              "name": "Guest User",
+              "timeZone": "UTC",
+              "phoneNumber": null,
+              "locale": "en",
+              "bookingId": 100,
+              "noShow": false
+            },
+            {
+              "id": 102,
+              "email": "additional-guest@example.com",
+              "name": "Additional Guest",
+              "timeZone": "UTC",
+              "phoneNumber": null,
+              "locale": "en",
+              "bookingId": 100,
+              "noShow": false
+            }
+          ],
+          "payment": [],
+          "references": [],
+          "appsStatus": [
+            {
+              "appName": "video-app",
+              "type": "video_provider",
+              "success": 1,
+              "failures": 0,
+              "errors": []
+            }
+          ]
         }
         ```
       </Accordion>
@@ -680,58 +954,127 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "MEETING_ENDED",
-          "createdAt": "2024-01-15T10:30:00.000Z",
-          "payload": {
-            "id": 123,
-            "startTime": "2024-01-15T10:00:00.000Z",
-            "endTime": "2024-01-15T10:30:00.000Z",
-            "title": "30 Minute Meeting",
-            "description": "Meeting description",
-            "customInputs": {
-              "company": "Acme Corp"
+          "id": 100,
+          "uid": "unique-booking-identifier",
+          "idempotencyKey": "00000000-0000-0000-0000-000000000000",
+          "userId": 10,
+          "userPrimaryEmail": "organizer@example.com",
+          "eventTypeId": 50,
+          "title": "Strategy Session: Organizer & Guest",
+          "description": "",
+          "customInputs": {},
+          "responses": {
+            "name": {
+              "label": "your_name",
+              "value": "Guest User",
+              "isHidden": false
             },
-            "responses": {
-              "name": {
-                "label": "Your Name",
-                "value": "Jane Smith"
+            "email": {
+              "label": "email_address",
+              "value": "guest@example.com",
+              "isHidden": false
+            },
+            "attendeePhoneNumber": {
+              "label": "phone_number",
+              "isHidden": true
+            },
+            "location": {
+              "label": "location",
+              "value": {
+                "optionValue": "",
+                "value": "integrations:video-provider"
               },
-              "email": {
-                "label": "Email",
-                "value": "jane@example.com"
-              }
+              "isHidden": false
             },
-            "userFieldsResponses": {
-              "company": {
-                "label": "Company",
-                "value": "Acme Corp"
-              }
+            "title": {
+              "label": "what_is_this_meeting_about",
+              "isHidden": true
             },
-            "location": "https://cal.com/video/abc123",
-            "status": "ACCEPTED",
-            "user": {
-              "username": "johndoe",
-              "name": "John Doe",
-              "email": "john@example.com",
-              "timeZone": "America/New_York",
-              "locale": "en"
+            "notes": {
+              "label": "additional_notes",
+              "isHidden": false
             },
-            "eventType": {
-              "title": "30 Minute Meeting",
-              "description": "Quick sync call",
-              "requiresConfirmation": false,
-              "price": 0,
-              "currency": "usd",
-              "length": 30,
-              "team": null
+            "guests": {
+              "label": "additional_guests",
+              "value": [
+                "additional-guest@example.com"
+              ],
+              "isHidden": false
             },
-            "attendees": [
-              {
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "timeZone": "Europe/London"
-              }
-            ]
-          }
+            "rescheduleReason": {
+              "label": "reason_for_reschedule",
+              "isHidden": false
+            }
+          },
+          "startTime": "2024-01-01T10:00:00.000Z",
+          "endTime": "2024-01-01T10:15:00.000Z",
+          "location": "integrations:video-provider",
+          "createdAt": "2024-01-01T09:45:00.000Z",
+          "updatedAt": "2024-01-01T10:20:00.000Z",
+          "status": "ACCEPTED",
+          "paid": false,
+          "destinationCalendarId": null,
+          "cancellationReason": null,
+          "rejectionReason": null,
+          "reassignReason": null,
+          "reassignById": null,
+          "dynamicEventSlugRef": null,
+          "dynamicGroupSlugRef": null,
+          "rescheduled": null,
+          "fromReschedule": null,
+          "recurringEventId": null,
+          "smsReminderNumber": null,
+          "scheduledJobs": [],
+          "metadata": {},
+          "isRecorded": false,
+          "iCalUID": "unique-id@example.com",
+          "iCalSequence": 0,
+          "rating": null,
+          "ratingFeedback": null,
+          "noShowHost": false,
+          "oneTimePassword": null,
+          "cancelledBy": null,
+          "rescheduledBy": null,
+          "creationSource": "WEBAPP",
+          "user": {
+            "email": "organizer@example.com",
+            "name": "Organizer Name",
+            "timeZone": "UTC",
+            "username": "organizer-handle"
+          },
+          "attendees": [
+            {
+              "id": 101,
+              "email": "guest@example.com",
+              "name": "Guest User",
+              "timeZone": "UTC",
+              "phoneNumber": null,
+              "locale": "en",
+              "bookingId": 100,
+              "noShow": false
+            },
+            {
+              "id": 102,
+              "email": "additional-guest@example.com",
+              "name": "Additional Guest",
+              "timeZone": "UTC",
+              "phoneNumber": null,
+              "locale": "en",
+              "bookingId": 100,
+              "noShow": false
+            }
+          ],
+          "payment": [],
+          "references": [],
+          "appsStatus": [
+            {
+              "appName": "video-app",
+              "type": "video_provider",
+              "success": 1,
+              "failures": 0,
+              "errors": []
+            }
+          ]
         }
         ```
       </Accordion>
@@ -781,66 +1124,55 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "INSTANT_MEETING",
-          "createdAt": "2024-01-15T10:00:00.000Z",
+          "createdAt": "2024-01-01T12:00:00.000Z",
           "payload": {
-            "title": "Instant Meeting Request",
-            "body": "Someone is requesting an instant meeting with you",
-            "icon": "https://cal.com/icon.png",
-            "url": "https://cal.com/instant/abc123",
-            "actions": [
-              {
-                "action": "accept",
-                "title": "Accept",
-                "type": "button",
-                "image": null
-              },
-              {
-                "action": "reject",
-                "title": "Reject",
-                "type": "button",
-                "image": null
-              }
-            ],
-            "requireInteraction": true,
-            "type": "instant_meeting"
+            "triggerEvent": "INSTANT_MEETING",
+            "uid": "unique-instant-meeting-id",
+            "responses": {
+              "name": "Guest User",
+              "email": "guest@example.com",
+              "notes": "Standard meeting notes placeholder",
+              "guests": [
+                "additional-guest@example.com"
+              ]
+            },
+            "connectAndJoinUrl": "https://app.example.com/connect-and-join?token=REDACTED_ACCESS_TOKEN",
+            "eventTypeId": 100,
+            "eventTypeTitle": "Instant Meeting",
+            "customInputs": {}
           }
         }
         ```
       </Accordion>
       <Accordion title="OOO_CREATED">
         `toUser` is the redirect/forwarding user and can be `null` if no redirect is set.
+
         ```json
         {
           "triggerEvent": "OOO_CREATED",
-          "createdAt": "2024-01-10T12:00:00.000Z",
+          "createdAt": "2024-01-01T08:00:00.000Z",
           "payload": {
             "oooEntry": {
-              "id": 123,
-              "start": "2024-01-20T00:00:00.000Z",
-              "end": "2024-01-25T23:59:59.000Z",
-              "createdAt": "2024-01-10T12:00:00.000Z",
-              "updatedAt": "2024-01-10T12:00:00.000Z",
-              "notes": "On vacation - will respond when I return",
+              "id": 100,
+              "start": "2024-01-05T00:00:00+00:00",
+              "end": "2024-01-07T23:59:59+00:00",
+              "createdAt": "2024-01-01T08:00:00.000Z",
+              "updatedAt": "2024-01-01T08:00:00.000Z",
+              "notes": "Holiday Leave",
               "reason": {
-                "emoji": ":beach_with_umbrella:",
-                "reason": "Vacation"
+                "emoji": "🌴",
+                "reason": "ooo_reasons_vacation"
               },
-              "reasonId": 1,
+              "reasonId": 5,
               "user": {
-                "id": 456,
-                "name": "John Doe",
-                "username": "johndoe",
-                "timeZone": "America/New_York",
-                "email": "john@example.com"
+                "id": 1,
+                "name": "Organizer Name",
+                "username": "organizer-handle",
+                "email": "organizer@example.com",
+                "timeZone": "UTC"
               },
-              "toUser": {
-                "id": 789,
-                "name": "Jane Smith",
-                "username": "janesmith",
-                "timeZone": "America/New_York",
-                "email": "jane@example.com"
-              },
-              "uuid": "ooo-abc123-def456"
+              "toUser": null,
+              "uuid": "00000000-0000-0000-0000-000000000000"
             }
           }
         }
@@ -848,110 +1180,89 @@ Select a version and trigger event to view the example payload:
       </Accordion>
       <Accordion title="FORM_SUBMITTED">
         Root-level fields (e.g., `name`, `email`, `department`) are duplicated for backward compatibility. The `value` field in responses is deprecated; use `response` instead. For select/multiselect fields, `response` includes both the label and ID.
+
         ```json
         {
+          "What Language do you prefer": [
+            "Placeholder Language"
+          ],
+          "Where are you from": [
+            "Placeholder Location"
+          ],
           "triggerEvent": "FORM_SUBMITTED",
-          "createdAt": "2024-01-15T09:00:00.000Z",
+          "createdAt": "2024-01-01T12:00:00.000Z",
           "payload": {
-            "formId": "clm1234567890",
-            "formName": "Contact Form",
-            "teamId": 123,
+            "formId": "00000000-0000-0000-0000-000000000000",
+            "formName": "Customer Intake Form",
+            "teamId": null,
             "responses": {
-              "name": {
-                "value": "Jane Smith",
-                "response": "Jane Smith"
-              },
-              "email": {
-                "value": "jane@example.com",
-                "response": "jane@example.com"
-              },
-              "phone": {
-                "value": "+1234567890",
-                "response": "+1234567890"
-              },
-              "department": {
-                "value": ["Sales"],
+              "What Language do you prefer": {
+                "value": [
+                  "Placeholder Language"
+                ],
                 "response": [
                   {
-                    "label": "Sales",
-                    "id": "opt-sales-123"
+                    "label": "Placeholder Language",
+                    "id": "00000000-0000-0000-0000-000000000000"
                   }
                 ]
               },
-              "services": {
-                "value": ["Consulting", "Support"],
+              "Where are you from": {
+                "value": [
+                  "Placeholder Location"
+                ],
                 "response": [
                   {
-                    "label": "Consulting",
-                    "id": "opt-consulting-456"
-                  },
-                  {
-                    "label": "Support",
-                    "id": "opt-support-789"
+                    "label": "Placeholder Location",
+                    "id": "00000000-0000-0000-0000-000000000000"
                   }
                 ]
               }
-            },
-            "name": "Jane Smith",
-            "email": "jane@example.com",
-            "phone": "+1234567890",
-            "department": ["Sales"],
-            "services": ["Consulting", "Support"]
+            }
           }
         }
         ```
       </Accordion>
       <Accordion title="FORM_SUBMITTED_NO_EVENT">
         Same structure as `FORM_SUBMITTED`. Triggered 15 minutes after form submission if no booking was made from the routing form.
+
         ```json
         {
           "triggerEvent": "FORM_SUBMITTED_NO_EVENT",
-          "createdAt": "2024-01-15T09:00:00.000Z",
+          "createdAt": "2024-01-01T12:00:00.000Z",
           "payload": {
-            "formId": "clm1234567890",
-            "formName": "Contact Form",
-            "teamId": 123,
+            "formId": "00000000-0000-0000-0000-000000000000",
+            "formName": "Customer Inquiry Form",
+            "teamId": null,
+            "redirect": {
+              "type": "customPageMessage",
+              "value": "Thank you for your interest! Our team will review your details."
+            },
+            "responseId": 100,
             "responses": {
-              "name": {
-                "value": "Jane Smith",
-                "response": "Jane Smith"
-              },
-              "email": {
-                "value": "jane@example.com",
-                "response": "jane@example.com"
-              },
-              "phone": {
-                "value": "+1234567890",
-                "response": "+1234567890"
-              },
-              "department": {
-                "value": ["Sales"],
+              "What Language do you prefer": {
+                "value": [
+                  "Placeholder Language"
+                ],
                 "response": [
                   {
-                    "label": "Sales",
-                    "id": "opt-sales-123"
+                    "label": "Placeholder Language",
+                    "id": "00000000-0000-0000-0000-000000000000"
                   }
                 ]
               },
-              "services": {
-                "value": ["Consulting", "Support"],
+              "Where are you from": {
+                "value": [
+                  "Placeholder Location"
+                ],
                 "response": [
                   {
-                    "label": "Consulting",
-                    "id": "opt-consulting-456"
-                  },
-                  {
-                    "label": "Support",
-                    "id": "opt-support-789"
+                    "label": "Placeholder Location",
+                    "id": "00000000-0000-0000-0000-000000000000"
                   }
                 ]
               }
-            },
-            "name": "Jane Smith",
-            "email": "jane@example.com",
-            "phone": "+1234567890",
-            "department": ["Sales"],
-            "services": ["Consulting", "Support"]
+            }
           }
         }
         ```
@@ -1068,22 +1379,22 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "DELEGATION_CREDENTIAL_ERROR",
-          "createdAt": "2024-01-15T10:00:00.000Z",
+          "createdAt": "2024-01-01T12:00:00.000Z",
           "payload": {
             "error": {
               "type": "CalendarAppDelegationCredentialError",
-              "message": "Failed to refresh token for delegation credential"
+              "message": "Invalid grant: account has been disabled or password changed"
             },
             "credential": {
-              "id": 123,
-              "type": "google_calendar",
-              "appId": "google-calendar",
-              "delegationCredentialId": "delegation-cred-abc123"
+              "id": 100,
+              "type": "calendar_provider_type",
+              "appId": "calendar-app-identifier",
+              "delegationCredentialId": "00000000-0000-0000-0000-000000000000"
             },
             "user": {
-              "id": 456,
+              "id": 1,
               "email": "user@example.com",
-              "organizationId": 789
+              "organizationId": 500
             }
           }
         }
@@ -1093,20 +1404,170 @@ Select a version and trigger event to view the example payload:
   </Tab>
 </Tabs>
 
+### Booking No-show Updated webhook payload
+
+This webhook is triggered when an attendee is manually marked or unmarked as no-show on the `/bookings/past` page.
+
+**Example payload when marking an attendee as no-show:**
+
+```json
+{
+  "triggerEvent": "BOOKING_NO_SHOW_UPDATED",
+  "createdAt": "2025-12-01T12:34:34.774Z",
+  "payload": {
+    "message": "test@example.com marked as no-show",
+    "attendees": [
+      {
+        "email": "test@example.com",
+        "noShow": true
+      }
+    ],
+    "bookingUid": "5vQFqxDFMjdgKGMijqtqRw",
+    "bookingId": 31
+  }
+}
+```
+
+**Example payload when unmarking an attendee as no-show:**
+
+```json
+{
+  "triggerEvent": "BOOKING_NO_SHOW_UPDATED",
+  "createdAt": "2025-12-01T12:38:31.663Z",
+  "payload": {
+    "message": "test@example.com unmarked as no-show",
+    "attendees": [
+      {
+        "email": "test@example.com",
+        "noShow": false
+      }
+    ],
+    "bookingUid": "5vQFqxDFMjdgKGMijqtqRw",
+    "bookingId": 31
+  }
+}
+```
+
+### Cal Video No-Show Detection webhooks
+
+These webhooks are triggered **automatically** when hosts or guests don't join a Cal Video meeting within the configured time after the booking starts. Unlike `BOOKING_NO_SHOW_UPDATED` which requires manual action, these are detected automatically by checking Cal Video participant data.
+
+<Note>
+  These webhooks only work for bookings that use Cal Video as the meeting location.
+</Note>
+
+**`Example payload when host didn't join (AFTER_HOSTS_CAL_VIDEO_NO_SHOW):`**
+
+```json
+{
+  "triggerEvent": "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+  "createdAt": "2025-12-01T15:23:30.320Z",
+  "payload": {
+    "title": "30min between Owner 1 and test",
+    "bookingId": 32,
+    "bookingUid": "qVyXscm1ryg2QoQ4K8uHLW",
+    "startTime": "2025-12-02T04:00:00.000Z",
+    "attendees": [
+      {
+        "id": 32,
+        "email": "test@example.com",
+        "name": "test",
+        "timeZone": "Asia/Kolkata",
+        "phoneNumber": null,
+        "locale": "en",
+        "bookingId": 32,
+        "noShow": false
+      }
+    ],
+    "endTime": "2025-12-02T04:30:00.000Z",
+    "participants": [],
+    "hostEmail": "owner1-dunder@example.com",
+    "eventType": {
+      "id": 50,
+      "teamId": null,
+      "parentId": null,
+      "calVideoSettings": null
+    },
+    "webhook": {
+      "id": "2bdfc20b-aa4a-4863-a499-932cb1d4e69a",
+      "subscriberUrl": "https://webhook.site/example",
+      "appId": null,
+      "time": 5,
+      "timeUnit": "MINUTE",
+      "eventTriggers": [
+        "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+        "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
+      ],
+      "payloadTemplate": null
+    },
+    "message": "Host with email owner1-dunder@example.com didn't join the call or didn't join before 2025-12-02 04:05:00 +00:00"
+  }
+}
+```
+
+**`Example payload when guest didn't join (AFTER_GUESTS_CAL_VIDEO_NO_SHOW):`**
+
+```json
+{
+  "triggerEvent": "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+  "createdAt": "2025-12-01T15:23:30.323Z",
+  "payload": {
+    "title": "30min between Owner 1 and test",
+    "bookingId": 32,
+    "bookingUid": "qVyXscm1ryg2QoQ4K8uHLW",
+    "startTime": "2025-12-02T04:00:00.000Z",
+    "attendees": [
+      {
+        "id": 32,
+        "email": "test@example.com",
+        "name": "test",
+        "timeZone": "Asia/Kolkata",
+        "phoneNumber": null,
+        "locale": "en",
+        "bookingId": 32,
+        "noShow": false
+      }
+    ],
+    "endTime": "2025-12-02T04:30:00.000Z",
+    "participants": [],
+    "eventType": {
+      "id": 50,
+      "teamId": null,
+      "parentId": null,
+      "calVideoSettings": null
+    },
+    "webhook": {
+      "id": "2bdfc20b-aa4a-4863-a499-932cb1d4e69a",
+      "subscriberUrl": "https://webhook.site/example",
+      "appId": null,
+      "time": 5,
+      "timeUnit": "MINUTE",
+      "eventTriggers": [
+        "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+        "AFTER_GUESTS_CAL_VIDEO_NO_SHOW"
+      ],
+      "payloadTemplate": null
+    },
+    "message": "Guest didn't join the call or didn't join before 2025-12-02 04:05:00 +00:00"
+  }
+}
+```
+
 ### Verifying the authenticity of the received payload
+
 <Steps>
-    <Step title="Add a new secret key to your webhook">
-        Simply add a new **secret key** to your webhook configuration and save it.
-    </Step>
-    <Step title="Wait for the webhook to be triggered">
-        The webhook will trigger when an event is created, cancelled, rescheduled, or when a meeting ends.
-    </Step>
-    <Step title="Create an HMAC using the secret key">
-        Use the **secret key** to create an HMAC, and update it with the webhook payload received to generate an SHA256 hash.
-    </Step>
-    <Step title="Verify the payload authenticity">
-        Compare the hash received in the header of the webhook `(x-cal-signature-256)` with the one you created using the **secret key** and the body of the payload. If they don't match, the received payload has been adulterated and cannot be trusted.
-    </Step>
+  <Step title="Add a new secret key to your webhook">
+    Simply add a new **secret key** to your webhook configuration and save it.
+  </Step>
+  <Step title="Wait for the webhook to be triggered">
+    The webhook will trigger when an event is created, cancelled, rescheduled, or when a meeting ends.
+  </Step>
+  <Step title="Create an HMAC using the secret key">
+    Use the **secret key** to create an HMAC, and update it with the webhook payload received to generate an SHA256 hash.
+  </Step>
+  <Step title="Verify the payload authenticity">
+    Compare the hash received in the header of the webhook `(x-cal-signature-256)` with the one you created using the **secret key** and the body of the payload. If they don't match, the received payload has been adulterated and cannot be trusted.
+  </Step>
 </Steps>
 
 ### Adding a custom payload template
@@ -1129,31 +1590,31 @@ where `{{type}}` represents the event type slug and `{{title}}` represents the t
 
 #### Webhook variable list
 
-| Variable           | Type         | Description                                                                                                                                                   |
-|--------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| triggerEvent       | String       | The name of the trigger event [BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, MEETING_ENDED, BOOKING_REJECTED, BOOKING_REQUESTED, BOOKING_PAYMENT_INITIATED, BOOKING_PAID, MEETING_STARTED, RECORDING_READY, FORM_SUBMITTED, BOOKING_NO_SHOW_UPDATED, AFTER_HOSTS_CAL_VIDEO_NO_SHOW, AFTER_GUESTS_CAL_VIDEO_NO_SHOW] |
-| createdAt          | Datetime     | The time of the webhook                                                                                                                                       |
-| type               | String       | The event type slug                                                                                                                                           |
-| title              | String       | The event type name                                                                                                                                           |
-| startTime          | Datetime     | The event's start time                                                                                                                                        |
-| endTime            | Datetime     | The event's end time                                                                                                                                          |
-| description        | String       | The event's description as described in the event type settings                                                                                               |
-| location           | String       | Location of the event                                                                                                                                         |
-| organizer          | Person       | The organizer of the event                                                                                                                                    |
-| attendees          | Person[]     | The event booker & any guests                                                                                                                                 |
-| uid                | String       | The UID of the booking                                                                                                                                        |
-| rescheduleUid      | String       | The UID for rescheduling                                                                                                                                      |
-| cancellationReason | String       | Reason for cancellation                                                                                                                                       |
-| rejectionReason    | String       | Reason for rejection                                                                                                                                          |
-| team.name          | String       | Name of the team booked                                                                                                                                       |
-| team.members       | String[]     | Members of the team booked                                                                                                                                    |
-| metadata           | JSON         | Contains metadata of the booking, including the meeting URL (videoCallUrl) in case of Google Meet and Cal Video                                               |
-
+| Variable           | Type     | Description                                                                                                                                                                                                                                                                                                                    |
+| ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| triggerEvent       | String   | The name of the trigger event [BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, MEETING_ENDED, BOOKING_REJECTED, BOOKING_REQUESTED, BOOKING_PAYMENT_INITIATED, BOOKING_PAID, MEETING_STARTED, RECORDING_READY, FORM_SUBMITTED, BOOKING_NO_SHOW_UPDATED, AFTER_HOSTS_CAL_VIDEO_NO_SHOW, AFTER_GUESTS_CAL_VIDEO_NO_SHOW] |
+| createdAt          | Datetime | The time of the webhook                                                                                                                                                                                                                                                                                                        |
+| type               | String   | The event type slug                                                                                                                                                                                                                                                                                                            |
+| title              | String   | The event type name                                                                                                                                                                                                                                                                                                            |
+| startTime          | Datetime | The event's start time                                                                                                                                                                                                                                                                                                         |
+| endTime            | Datetime | The event's end time                                                                                                                                                                                                                                                                                                           |
+| description        | String   | The event's description as described in the event type settings                                                                                                                                                                                                                                                                |
+| location           | String   | Location of the event                                                                                                                                                                                                                                                                                                          |
+| organizer          | Person   | The organizer of the event                                                                                                                                                                                                                                                                                                     |
+| attendees          | Person[] | The event booker & any guests                                                                                                                                                                                                                                                                                                  |
+| uid                | String   | The UID of the booking                                                                                                                                                                                                                                                                                                         |
+| rescheduleUid      | String   | The UID for rescheduling                                                                                                                                                                                                                                                                                                       |
+| cancellationReason | String   | Reason for cancellation                                                                                                                                                                                                                                                                                                        |
+| rejectionReason    | String   | Reason for rejection                                                                                                                                                                                                                                                                                                           |
+| team.name          | String   | Name of the team booked                                                                                                                                                                                                                                                                                                        |
+| team.members       | String[] | Members of the team booked                                                                                                                                                                                                                                                                                                     |
+| metadata           | JSON     | Contains metadata of the booking, including the meeting URL (videoCallUrl) in case of Google Meet and Cal Video                                                                                                                                                                                                                |
 
 #### Person Structure
-| Variable        | Type   | Description                                                          |
-|-----------------|--------|----------------------------------------------------------------------|
-| name            | String | Name of the individual                                               |
-| email           | Email  | Email of the individual                                              |
-| timezone        | String | Timezone of the individual (e.g., "America/New_York", "Asia/Kolkata") |
+
+| Variable         | Type   | Description                                                           |
+| ---------------- | ------ | --------------------------------------------------------------------- |
+| name             | String | Name of the individual                                                |
+| email            | Email  | Email of the individual                                               |
+| timezone         | String | Timezone of the individual (e.g., "America/New_York", "Asia/Kolkata") |
 | language?.locale | String | Locale of the individual (e.g., "en", "fr")                           |
