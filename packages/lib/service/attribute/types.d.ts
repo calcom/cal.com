@@ -1,4 +1,4 @@
-import type { Attribute, AttributeToUser, AttributeOption } from "@calcom/prisma/client";
+import type { Attribute, AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 
 export { Attribute };
@@ -14,9 +14,11 @@ export type BulkAttributeAssigner =
     };
 
 export type AttributeOptionAssignment = AttributeToUser & {
-  attributeOption: Omit<AttributeOption, "value" | "isGroup" | "contains" | "id" | "attributeId"> & {
+  attributeOption: {
     label: string;
+    slug: string;
     attribute: Attribute;
+    assignedUsers: AttributeToUser[];
   };
 };
 
