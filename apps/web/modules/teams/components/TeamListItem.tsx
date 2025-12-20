@@ -2,7 +2,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
@@ -32,6 +31,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 import { MemberInvitationModalWithoutMembers } from "@calcom/web/modules/teams/components/MemberInvitationModal";
 
+import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import { TeamRole } from "./TeamPill";
 
 interface Props {

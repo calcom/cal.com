@@ -4,7 +4,7 @@ import { z } from "zod";
 // import { cookies, headers } from "next/headers";
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-import LegacyPage from "@calcom/web/modules/workflows/WorkflowPage";
+import LegacyPage from "@calcom/web/modules/workflows/views/WorkflowPage";
 
 const querySchema = z.object({
   workflow: z
