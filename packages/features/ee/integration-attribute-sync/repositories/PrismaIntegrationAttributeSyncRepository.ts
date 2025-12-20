@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import { IntegrationAttributeSyncOutputMapper } from "../mappers/IntegrationAttributeSyncOutputMapper";
 import type {
@@ -83,7 +83,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
         enabled,
         attributeSyncRule: {
           create: {
-            rule: rule as unknown as Prisma.InputJsonValue,
+            rule,
           },
         },
         syncFieldMappings: {
@@ -133,7 +133,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
             id: attributeSyncRule.id,
           },
           data: {
-            rule: attributeSyncRule.rule as unknown as Prisma.InputJsonValue,
+            rule: attributeSyncRule.rule as PrismaClient.InputJsonValue,
           },
         }),
         ...fieldMappingsToUpdate.map(({ id, ...mappingData }) =>
