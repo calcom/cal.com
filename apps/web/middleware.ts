@@ -226,14 +226,10 @@ const embeds = {
   },
 };
 
-// Booking page routes that should use the smaller "booking" i18n namespace
-// These routes are under (booking-page-wrapper) and don't need the full common.json translations
+// Routes that should use the smaller "booking" i18n namespace to reduce payload size
+// Currently scoped to /team/[slug] only - can be expanded to other booking routes later
 const BOOKING_ROUTE_PATTERNS = [
   /^\/team(\/|$)/, // /team/[slug], /team/[slug]/[type], etc.
-  /^\/org(\/|$)/, // /org/[orgSlug], /org/[orgSlug]/team/[slug], etc.
-  /^\/booking(\/|$)/, // /booking/[uid], /booking/dry-run-successful, etc.
-  /^\/booking-successful(\/|$)/, // /booking-successful/[uid]
-  /^\/d(\/|$)/, // /d/[link]/[slug]
 ];
 
 const i18nNamespace = {
