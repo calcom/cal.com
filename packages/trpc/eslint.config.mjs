@@ -4,7 +4,7 @@ import { forbid } from "@calcom/eslint-config/base";
 export default [
   ...config,
   {
-    ignores: ["./types/server/**"],
+    ignores: ["./types/**"],
   },
   forbid({
     from: "../apps/web/**",

@@ -9,7 +9,7 @@ import { createTRPCNext } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
-import type { AppRouter } from "../types/app-router";
+import type { AppRouter } from "./app-router";
 import { ENDPOINTS } from "./shared";
 
 type Maybe<T> = T | null | undefined;
