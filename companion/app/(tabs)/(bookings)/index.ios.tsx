@@ -1,12 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import React, { useState, useEffect, useMemo, Activity } from "react";
-import type {
-  NativeStackHeaderItemProps,
-  NativeStackHeaderItemMenuAction,
-} from "@react-navigation/native-stack";
+import type { NativeStackHeaderItemMenuAction } from "@react-navigation/native-stack";
 import {
   View,
   Text,
@@ -15,16 +11,12 @@ import {
   Alert,
   TouchableOpacity,
   RefreshControl,
-  Platform,
   TextInput,
-  ActionSheetIOS,
   Linking,
   ScrollView,
 } from "react-native";
-import type { NativeSyntheticEvent } from "react-native";
 
-import { CalComAPIService, Booking, EventType } from "../../../services/calcom";
-import { Header } from "../../../components/Header";
+import { Booking } from "../../../services/calcom";
 import { FullScreenModal } from "../../../components/FullScreenModal";
 import { LoadingSpinner } from "../../../components/LoadingSpinner";
 import { BookingActionsModal } from "../../../components/BookingActionsModal";
@@ -40,11 +32,9 @@ import {
   useEventTypes,
   useRescheduleBooking,
 } from "../../../hooks";
+import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
 import { showErrorAlert } from "../../../utils/alerts";
 import { offlineAwareRefresh } from "../../../utils/network";
-import { openInAppBrowser } from "../../../utils/browser";
-
-type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
 // Helper to extract clean meeting URL from potentially wrapped URLs
 const extractMeetingUrl = (location: string): string => {
@@ -142,12 +132,7 @@ export default function Bookings() {
   const router = useRouter();
   const { userInfo } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  // const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
-  const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
-  const [eventTypesLoading, setEventTypesLoading] = useState(false);
   const [showBookingActionsModal, setShowBookingActionsModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
@@ -160,33 +145,15 @@ export default function Bookings() {
   const [rejectReason, setRejectReason] = useState("");
   const { data: eventTypes } = useEventTypes();
 
-  console.log("eventTypes", JSON.stringify(eventTypes, null, 2));
-
-  const filterOptions: { key: BookingFilter; label: string }[] = [
-    { key: "upcoming", label: "Upcoming" },
-    { key: "unconfirmed", label: "Unconfirmed" },
-    { key: "past", label: "Past" },
-    { key: "cancelled", label: "Cancelled" },
-  ];
-
-  const filterLabels = filterOptions.map((option) => option.label);
-  const activeIndex = filterOptions.findIndex((option) => option.key === activeFilter);
-
-  // Get filters for the active tab
-  const getFiltersForActiveTab = () => {
-    switch (activeFilter) {
-      case "upcoming":
-        return { status: ["upcoming"], limit: 50 };
-      case "unconfirmed":
-        return { status: ["unconfirmed"], limit: 50 };
-      case "past":
-        return { status: ["past"], limit: 100 };
-      case "cancelled":
-        return { status: ["cancelled"], limit: 100 };
-      default:
-        return { status: ["upcoming"], limit: 50 };
+  // Use the active booking filter hook
+  const { activeFilter, filterOptions, filterParams, handleFilterChange } = useActiveBookingFilter(
+    "upcoming",
+    () => {
+      // Clear dependent filters when status filter changes
+      setSearchQuery("");
+      setSelectedEventTypeId(null);
     }
-  };
+  );
 
   // Use React Query hook for fetching bookings
   const {
@@ -195,7 +162,7 @@ export default function Bookings() {
     isFetching,
     error: queryError,
     refetch,
-  } = useBookings(getFiltersForActiveTab());
+  } = useBookings(filterParams);
 
   // Show refresh indicator when fetching
   const refreshing = isFetching && !loading;
@@ -248,7 +215,6 @@ export default function Bookings() {
   useEffect(() => {
     setSearchQuery("");
     setSelectedEventTypeId(null);
-    setSelectedEventTypeLabel(null);
   }, [activeFilter]);
 
   // Handle pull-to-refresh (offline-aware)
@@ -300,51 +266,8 @@ export default function Bookings() {
     setSearchQuery(query);
   };
 
-  // const fetchEventTypes = async () => {
-  //   try {
-  //     setEventTypesLoading(true);
-  //     const types = await CalComAPIService.getEventTypes();
-  //     setEventTypes(types);
-  //   } catch (err) {
-  //     console.error("Error fetching event types:", err);
-  //     // Error is logged but not displayed to user for event type filter
-  //   } finally {
-  //     setEventTypesLoading(false);
-  //   }
-  // };
-
-  const handleFilterButtonPress = () => {
-    setShowFilterModal(true);
-    // if (eventTypes.length === 0) {
-    //   fetchEventTypes();
-    // }
-  };
-
   const clearEventTypeFilter = () => {
     setSelectedEventTypeId(null);
-    setSelectedEventTypeLabel(null);
-  };
-
-  const handleEventTypeSelect = (eventTypeId: number | null, label?: string | null) => {
-    if (eventTypeId === null) {
-      clearEventTypeFilter();
-    } else {
-      setSelectedEventTypeId(eventTypeId);
-      setSelectedEventTypeLabel(label || null);
-    }
-    setShowFilterModal(false);
-  };
-
-  const handleFilterChange = (filter: BookingFilter) => {
-    setActiveFilter(filter);
-  };
-
-  const handleSegmentChange = (event: NativeSyntheticEvent<{ selectedSegmentIndex: number }>) => {
-    const { selectedSegmentIndex } = event.nativeEvent;
-    const selectedFilter = filterOptions[selectedSegmentIndex];
-    if (selectedFilter) {
-      handleFilterChange(selectedFilter.key);
-    }
   };
 
   const getEmptyStateContent = () => {
@@ -382,229 +305,11 @@ export default function Bookings() {
     }
   };
 
-  const supportsLiquidGlass = isLiquidGlassAvailable();
-
-  const renderSegmentedControl = () => {
-    const segmentedControlContent = (
-      <SegmentedControl
-        values={filterLabels}
-        selectedIndex={activeIndex}
-        onChange={handleSegmentChange}
-        style={{ height: 40 }}
-        appearance="light"
-        activeFontStyle={{ color: "#007AFF", fontWeight: "600", fontSize: 14 }}
-        fontStyle={{ color: "#8E8E93", fontSize: 14 }}
-      />
-    );
-
-    return (
-      <>
-        {supportsLiquidGlass ? (
-          <GlassView
-            glassEffectStyle="regular"
-            style={{ paddingHorizontal: 8, paddingVertical: 12 }}
-          >
-            {segmentedControlContent}
-          </GlassView>
-        ) : (
-          <View className="border-b border-gray-200 bg-white px-2 py-3 md:px-4">
-            {segmentedControlContent}
-          </View>
-        )}
-        <View className="border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
-          <View className="flex-row items-center gap-3">
-            <TouchableOpacity
-              className="flex-row items-center rounded-lg border border-gray-200 bg-white"
-              style={{ width: "20%", paddingHorizontal: 8, paddingVertical: 6 }}
-              onPress={handleFilterButtonPress}
-            >
-              <Ionicons name="options-outline" size={14} color="#333" />
-              <Text className="text-sm text-[#333]" style={{ marginLeft: 4 }}>
-                Filter
-              </Text>
-            </TouchableOpacity>
-            <View style={{ width: "75%" }}>
-              <TextInput
-                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black"
-                placeholder="Search bookings"
-                placeholderTextColor="#8E8E93"
-                value={searchQuery}
-                onChangeText={handleSearch}
-                autoCapitalize="none"
-                autoCorrect={false}
-                clearButtonMode="while-editing"
-              />
-            </View>
-          </View>
-          {selectedEventTypeId !== null ? (
-            <View className="mt-2 flex-row items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2">
-              <Text className="flex-1 text-sm text-[#333]">
-                Filtered by {selectedEventTypeLabel || "event type"}
-              </Text>
-              <TouchableOpacity onPress={clearEventTypeFilter}>
-                <Text className="text-sm font-semibold text-[#007AFF]">Clear filter</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-        </View>
-      </>
-    );
-  };
-
   const handleBookingPress = (booking: Booking) => {
     router.push({
       pathname: "/booking-detail",
       params: { uid: booking.uid },
     });
-  };
-
-  const handleBookingPressOld = (booking: Booking) => {
-    if (Platform.OS !== "ios") {
-      // Fallback for non-iOS platforms
-      const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
-      const startTime = booking.start || booking.startTime || "";
-      const endTime = booking.end || booking.endTime || "";
-
-      const actions = getBookingActions(booking);
-      const alertActions = actions.map((action) => ({
-        text: action.title,
-        style: (action.destructive ? "destructive" : "default") as
-          | "destructive"
-          | "default"
-          | "cancel",
-        onPress: action.onPress,
-      }));
-      alertActions.unshift({ text: "Cancel", style: "cancel" as const, onPress: () => {} });
-
-      Alert.alert(
-        booking.title,
-        `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(
-          startTime
-        )} - ${formatTime(endTime)}\nAttendees: ${attendeesList}\nStatus: ${booking.status}${
-          booking.location ? `\nLocation: ${booking.location}` : ""
-        }`,
-        alertActions
-      );
-      return;
-    }
-
-    const actions = getBookingActions(booking);
-    const options = ["Cancel", ...actions.map((action) => action.title)];
-    const destructiveButtonIndex = actions.findIndex((action) => action.destructive);
-
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options,
-        destructiveButtonIndex:
-          destructiveButtonIndex >= 0 ? destructiveButtonIndex + 1 : undefined,
-        cancelButtonIndex: 0,
-        title: booking.title,
-        message: getBookingDetailsMessage(booking),
-      },
-      (buttonIndex) => {
-        if (buttonIndex === 0) return; // Cancel
-
-        const actionIndex = buttonIndex - 1;
-        if (actions[actionIndex]) {
-          actions[actionIndex].onPress();
-        }
-      }
-    );
-  };
-
-  const getBookingDetailsMessage = (booking: Booking): string => {
-    const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
-    const startTime = booking.start || booking.startTime || "";
-    const endTime = booking.end || booking.endTime || "";
-
-    return `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(
-      startTime
-    )} - ${formatTime(endTime)}\nAttendees: ${attendeesList}\nStatus: ${formatStatusText(booking.status)}${
-      booking.location ? `\nLocation: ${booking.location}` : ""
-    }`;
-  };
-
-  const getBookingActions = (booking: Booking) => {
-    const baseActions = [
-      {
-        title: "Open Location",
-        onPress: () => handleOpenLocation(booking),
-        destructive: false,
-      },
-    ];
-
-    const specificActions = (() => {
-      switch (activeFilter) {
-        case "upcoming":
-          return [
-            {
-              title: "Request Reschedule",
-              onPress: () => handleRescheduleBooking(booking),
-              destructive: false,
-            },
-            {
-              title: "Cancel event",
-              onPress: () => handleCancelEvent(booking),
-              destructive: true,
-            },
-          ];
-        case "unconfirmed":
-          return [
-            {
-              title: "Confirm booking",
-              onPress: () => handleConfirmBooking(booking),
-              destructive: false,
-            },
-            {
-              title: "Decline booking",
-              onPress: () => handleRejectBooking(booking),
-              destructive: true,
-            },
-          ];
-        case "past":
-          return [];
-        case "cancelled":
-          return [];
-        default:
-          return [];
-      }
-    })();
-
-    return [...baseActions, ...specificActions];
-  };
-
-  const handleOpenLocation = async (booking: Booking) => {
-    if (!booking.location) {
-      Alert.alert("No Location", "This booking doesn't have a location set.");
-      return;
-    }
-
-    try {
-      // Check if location is a URL (starts with http:// or https://)
-      if (booking.location.match(/^https?:\/\//)) {
-        // Open web URLs in in-app browser
-        await openInAppBrowser(booking.location, "meeting link");
-      } else {
-        // If it's not a URL, try to open it as a location in maps
-        const mapsUrl =
-          Platform.OS === "ios"
-            ? `maps://maps.apple.com/?q=${encodeURIComponent(booking.location)}`
-            : `geo:0,0?q=${encodeURIComponent(booking.location)}`;
-
-        const supported = await Linking.canOpenURL(mapsUrl);
-        if (supported) {
-          await Linking.openURL(mapsUrl);
-        } else {
-          // Fallback to Google Maps in in-app browser
-          const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            booking.location
-          )}`;
-          await openInAppBrowser(googleMapsUrl, "Google Maps");
-        }
-      }
-    } catch (error) {
-      showErrorAlert("Error", "Failed to open location. Please try again.");
-    }
   };
 
   const handleRescheduleBooking = (booking: Booking) => {
@@ -709,78 +414,6 @@ export default function Bookings() {
     ]);
   };
 
-  const handleConfirmBooking = (booking: Booking) => {
-    Alert.alert("Confirm Booking", `Are you sure you want to confirm "${booking.title}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Confirm",
-        onPress: () => {
-          confirmBookingMutation(
-            { uid: booking.uid },
-            {
-              onSuccess: () => {
-                Alert.alert("Success", "Booking confirmed successfully");
-              },
-              onError: (error) => {
-                showErrorAlert("Error", error.message || "Failed to confirm booking");
-              },
-            }
-          );
-        },
-      },
-    ]);
-  };
-
-  const handleRejectBooking = (booking: Booking) => {
-    Alert.alert("Decline Booking", `Are you sure you want to decline "${booking.title}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Decline",
-        style: "destructive",
-        onPress: () => {
-          // Show optional reason input
-          Alert.prompt(
-            "Decline Reason",
-            "Optionally provide a reason for declining (press OK to skip)",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "OK",
-                onPress: (reason?: string) => {
-                  declineBookingMutation(
-                    { uid: booking.uid, reason: reason || undefined },
-                    {
-                      onSuccess: () => {
-                        Alert.alert("Success", "Booking declined successfully");
-                      },
-                      onError: (error) => {
-                        showErrorAlert("Error", error.message || "Failed to decline booking");
-                      },
-                    }
-                  );
-                },
-              },
-            ],
-            "plain-text",
-            "",
-            "default"
-          );
-        },
-      },
-    ]);
-  };
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
-
   const formatTime = (dateString: string) => {
     if (!dateString) {
       return "";
@@ -837,28 +470,6 @@ export default function Bookings() {
       console.error("Error formatting date:", error, dateString);
       return "";
     }
-  };
-
-  const getStatusColor = (status: string) => {
-    // API v2 2024-08-13 returns status in lowercase, so normalize to uppercase for comparison
-    const normalizedStatus = status.toUpperCase();
-    switch (normalizedStatus) {
-      case "ACCEPTED":
-        return "#34C759";
-      case "PENDING":
-        return "#FF9500";
-      case "CANCELLED":
-        return "#FF3B30";
-      case "REJECTED":
-        return "#FF3B30";
-      default:
-        return "#666";
-    }
-  };
-
-  const formatStatusText = (status: string) => {
-    // Capitalize first letter for display
-    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   };
 
   const formatMonthYear = (dateString: string): string => {
@@ -1138,8 +749,6 @@ export default function Bookings() {
   if (loading) {
     return (
       <View className="flex-1 bg-gray-50">
-        <Header />
-        {renderSegmentedControl()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <LoadingSpinner size="large" />
         </View>
@@ -1150,8 +759,6 @@ export default function Bookings() {
   if (error) {
     return (
       <View className="flex-1 bg-gray-50">
-        <Header />
-        {renderSegmentedControl()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name="alert-circle" size={64} color="#FF3B30" />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
@@ -1170,8 +777,46 @@ export default function Bookings() {
   const showEmptyState = bookings.length === 0 && !loading;
   const showSearchEmptyState =
     filteredBookings.length === 0 && searchQuery.trim() !== "" && !loading && !showEmptyState;
-  const showList = !showEmptyState && !showSearchEmptyState && !loading;
   const emptyState = getEmptyStateContent();
+
+  const buildActiveBookingFilter = () => {
+    const currentFilterOption = filterOptions.find((option) => option.key === activeFilter);
+    const statusMenuItems: NativeStackHeaderItemMenuAction[] = filterOptions.map((option) => {
+      const isSelected = activeFilter === option.key;
+      return {
+        type: "action",
+        label: option.label,
+        icon: {
+          name:
+            option.key === "upcoming"
+              ? "calendar.badge.clock"
+              : option.key === "unconfirmed"
+                ? "calendar.badge.exclamationmark"
+                : option.key === "past"
+                  ? "calendar.badge.checkmark"
+                  : "calendar.badge.minus",
+          type: "sfSymbol",
+        },
+        state: isSelected ? "on" : "off",
+        onPress: () => {
+          handleFilterChange(option.key);
+        },
+      } satisfies NativeStackHeaderItemMenuAction;
+    });
+
+    return {
+      type: "menu" as const,
+      label: currentFilterOption?.label || "Filter",
+      labelStyle: {
+        fontWeight: "600",
+        color: "#007AFF",
+      },
+      menu: {
+        title: "Filter by Status",
+        items: statusMenuItems,
+      },
+    };
+  };
 
   const buildEventTypeFilterMenu = () => {
     const eventTypeMenuItems: NativeStackHeaderItemMenuAction[] = (eventTypes || []).map(
@@ -1191,7 +836,6 @@ export default function Bookings() {
               clearEventTypeFilter();
             } else {
               setSelectedEventTypeId(eventType.id);
-              setSelectedEventTypeLabel(eventType.title);
             }
           },
         };
@@ -1219,10 +863,10 @@ export default function Bookings() {
 
     return {
       type: "menu" as const,
-      label: "Filter",
+      label: "Filter by Event Type",
       icon: {
-        name: "line.3.horizontal.decrease" as any,
-        type: "sfSymbol" as const,
+        name: "line.3.horizontal.decrease",
+        type: "sfSymbol",
       },
       labelStyle: {
         fontWeight: "600",
@@ -1265,57 +909,9 @@ export default function Bookings() {
           },
           unstable_headerRightItems: () => {
             const eventTypeFilterMenu = buildEventTypeFilterMenu();
+            const statusFilterMenu = buildActiveBookingFilter();
 
-            return [
-              eventTypeFilterMenu,
-              {
-                type: "menu",
-                label: "Upcoming",
-                labelStyle: {
-                  fontWeight: "600",
-                  color: "#007AFF",
-                },
-                // icon: {
-                //   name: "line.3.horizontal.decrease",
-                //   type: "sfSymbol",
-                // },
-                menu: {
-                  title: "Filter by",
-                  items: [
-                    {
-                      type: "action",
-                      label: "Event Type",
-                      icon: {
-                        name: "figure.arms.open",
-                        type: "sfSymbol",
-                      },
-                      onPress: () => {},
-                      // state: "off",
-                    },
-                    {
-                      type: "action",
-                      label: "Status",
-                      icon: {
-                        name: "paintbrush.fill",
-                        type: "sfSymbol",
-                      },
-                      onPress: () => {},
-                      // state: filterMode === "styles" ? "on" : "off",
-                    },
-                    {
-                      type: "action",
-                      label: "Date",
-                      icon: {
-                        name: "heart.fill",
-                        type: "sfSymbol",
-                      },
-                      onPress: () => {},
-                      // state: filterMode === "moods" ? "on" : "off",
-                    },
-                  ],
-                },
-              },
-            ];
+            return [eventTypeFilterMenu, statusFilterMenu];
           },
         }}
       />
@@ -1355,63 +951,6 @@ export default function Bookings() {
           </>
         }
       />
-
-      {/* Filter Modal */}
-      <FullScreenModal
-        visible={showFilterModal}
-        animationType="fade"
-        onRequestClose={() => setShowFilterModal(false)}
-      >
-        <TouchableOpacity
-          className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
-          activeOpacity={1}
-          onPress={() => setShowFilterModal(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-            className="w-[85%] max-w-[350px] rounded-2xl bg-white p-5"
-          >
-            <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
-              Filter by Event Type
-            </Text>
-
-            {eventTypesLoading ? (
-              <View className="items-center py-4">
-                <ActivityIndicator size="small" color="#333" />
-                <Text className="mt-2 text-sm text-[#666]">Loading event types...</Text>
-              </View>
-            ) : (
-              <ScrollView showsVerticalScrollIndicator={true} style={{ maxHeight: 400 }}>
-                {eventTypes.map((eventType) => (
-                  <TouchableOpacity
-                    key={eventType.id}
-                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
-                      selectedEventTypeId === eventType.id ? "bg-[#F0F0F0]" : ""
-                    }`}
-                    onPress={() => handleEventTypeSelect(eventType.id, eventType.title)}
-                  >
-                    <Text
-                      className={`text-base text-[#333] ${selectedEventTypeId === eventType.id ? "font-semibold" : ""}`}
-                    >
-                      {eventType.title}
-                    </Text>
-                    {selectedEventTypeId === eventType.id ? (
-                      <Ionicons name="checkmark" size={20} color="#000" />
-                    ) : null}
-                  </TouchableOpacity>
-                ))}
-
-                {eventTypes.length === 0 ? (
-                  <View className="items-center py-4">
-                    <Text className="text-sm text-[#666]">No event types found</Text>
-                  </View>
-                ) : null}
-              </ScrollView>
-            )}
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </FullScreenModal>
 
       {/* Booking Actions Modal */}
       <BookingActionsModal

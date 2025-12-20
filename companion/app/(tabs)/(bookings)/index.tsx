@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -35,11 +35,10 @@ import {
   useDeclineBooking,
   useRescheduleBooking,
 } from "../../../hooks";
+import { useActiveBookingFilter } from "../../../hooks/useActiveBookingFilter";
 import { showErrorAlert } from "../../../utils/alerts";
 import { offlineAwareRefresh } from "../../../utils/network";
 import { openInAppBrowser } from "../../../utils/browser";
-
-type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
 // Helper to extract clean meeting URL from potentially wrapped URLs
 const extractMeetingUrl = (location: string): string => {
@@ -137,7 +136,6 @@ export default function Bookings() {
   const router = useRouter();
   const { userInfo } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
@@ -154,31 +152,20 @@ export default function Bookings() {
   const [rejectBooking, setRejectBooking] = useState<Booking | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
-  const filterOptions: { key: BookingFilter; label: string }[] = [
-    { key: "upcoming", label: "Upcoming" },
-    { key: "unconfirmed", label: "Unconfirmed" },
-    { key: "past", label: "Past" },
-    { key: "cancelled", label: "Cancelled" },
-  ];
-
-  const filterLabels = filterOptions.map((option) => option.label);
-  const activeIndex = filterOptions.findIndex((option) => option.key === activeFilter);
-
-  // Get filters for the active tab
-  const getFiltersForActiveTab = () => {
-    switch (activeFilter) {
-      case "upcoming":
-        return { status: ["upcoming"], limit: 50 };
-      case "unconfirmed":
-        return { status: ["unconfirmed"], limit: 50 };
-      case "past":
-        return { status: ["past"], limit: 100 };
-      case "cancelled":
-        return { status: ["cancelled"], limit: 100 };
-      default:
-        return { status: ["upcoming"], limit: 50 };
-    }
-  };
+  // Use the active booking filter hook
+  const {
+    activeFilter,
+    filterLabels,
+    activeIndex,
+    filterParams,
+    handleFilterChange,
+    handleSegmentChange,
+  } = useActiveBookingFilter("upcoming", () => {
+    // Clear dependent filters when status filter changes
+    setSearchQuery("");
+    setSelectedEventTypeId(null);
+    setSelectedEventTypeLabel(null);
+  });
 
   // Use React Query hook for fetching bookings
   const {
@@ -187,7 +174,7 @@ export default function Bookings() {
     isFetching,
     error: queryError,
     refetch,
-  } = useBookings(getFiltersForActiveTab());
+  } = useBookings(filterParams);
 
   // Show refresh indicator when fetching
   const refreshing = isFetching && !loading;
@@ -235,13 +222,6 @@ export default function Bookings() {
     queryError?.message?.includes("sign in") ||
     queryError?.message?.includes("401");
   const error = queryError && !isAuthError && __DEV__ ? "Failed to load bookings." : null;
-
-  // Clear search and event type filter when status filter changes
-  useEffect(() => {
-    setSearchQuery("");
-    setSelectedEventTypeId(null);
-    setSelectedEventTypeLabel(null);
-  }, [activeFilter]);
 
   // Handle pull-to-refresh (offline-aware)
   const onRefresh = () => offlineAwareRefresh(refetch);
@@ -325,18 +305,6 @@ export default function Bookings() {
       setSelectedEventTypeLabel(label || null);
     }
     setShowFilterModal(false);
-  };
-
-  const handleFilterChange = (filter: BookingFilter) => {
-    setActiveFilter(filter);
-  };
-
-  const handleSegmentChange = (event: NativeSyntheticEvent<{ selectedSegmentIndex: number }>) => {
-    const { selectedSegmentIndex } = event.nativeEvent;
-    const selectedFilter = filterOptions[selectedSegmentIndex];
-    if (selectedFilter) {
-      handleFilterChange(selectedFilter.key);
-    }
   };
 
   const getEmptyStateContent = () => {
