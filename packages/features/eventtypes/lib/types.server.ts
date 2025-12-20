@@ -16,7 +16,6 @@ import {
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -27,9 +26,7 @@ export type AvailabilityOption = {
   isDefault: boolean;
   isManaged?: boolean;
 };
-export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
-export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
+
 export type Host = {
   isFixed: boolean;
   userId: number;
@@ -38,6 +35,7 @@ export type Host = {
   scheduleId?: number | null;
   groupId: string | null;
 };
+
 export type TeamMember = {
   value: string;
   label: string;
@@ -81,127 +79,6 @@ export type PrivateLinkWithOptions = {
   usageCount?: number;
 };
 
-export type FormValues = {
-  id: number;
-  title: string;
-  eventTitle: string;
-  eventName: string;
-  slug: string;
-  interfaceLanguage: string | null;
-  isInstantEvent: boolean;
-  instantMeetingParameters: string[];
-  instantMeetingExpiryTimeOffsetInSeconds: number;
-  length: number;
-  offsetStart: number;
-  description: string;
-  disableGuests: boolean;
-  lockTimeZoneToggleOnBookingPage: boolean;
-  lockedTimeZone: string | null;
-  requiresConfirmation: boolean;
-  requiresConfirmationWillBlockSlot: boolean;
-  requiresConfirmationForFreeEmail: boolean;
-  requiresBookerEmailVerification: boolean;
-  recurringEvent: RecurringEvent | null;
-  schedulingType: SchedulingType | null;
-  hidden: boolean;
-  hideCalendarNotes: boolean;
-  multiplePrivateLinks: (string | PrivateLinkWithOptions)[] | undefined;
-  eventTypeColor: z.infer<typeof eventTypeColor>;
-  customReplyToEmail: string | null;
-  locations: EventLocation[];
-  aiPhoneCallConfig: PhoneCallConfig;
-  customInputs: CustomInputParsed[];
-  schedule: number | null;
-  useEventLevelSelectedCalendars: boolean;
-  disabledCancelling: boolean;
-  disabledRescheduling: boolean;
-  minimumRescheduleNotice: number | null;
-  periodType: PeriodType;
-  /**
-   * Number of days(Applicable only for ROLLING period type)
-   */
-  periodDays: number;
-  /**
-   * Should consider Calendar Days(and not Business Days)(Applicable only for ROLLING period type)
-   */
-  periodCountCalendarDays: boolean;
-  /**
-   * Date Range(Applicable only for RANGE period type)
-   */
-  periodDates: { startDate: Date; endDate: Date };
-  rollingExcludeUnavailableDays: boolean;
-
-  seatsPerTimeSlot: number | null;
-  seatsShowAttendees: boolean | null;
-  seatsShowAvailabilityCount: boolean | null;
-  seatsPerTimeSlotEnabled: boolean;
-  autoTranslateDescriptionEnabled: boolean;
-  autoTranslateInstantMeetingTitleEnabled: boolean;
-  fieldTranslations: EventTypeTranslation[];
-  scheduleName: string;
-  minimumBookingNotice: number;
-  minimumBookingNoticeInDurationType: number;
-  maxActiveBookingsPerBooker: number | null;
-  beforeEventBuffer: number;
-  afterEventBuffer: number;
-  slotInterval: number | null;
-  metadata: z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>;
-  destinationCalendar: {
-    integration: string;
-    externalId: string;
-  };
-  successRedirectUrl: string;
-  durationLimits?: IntervalLimit;
-  bookingLimits?: IntervalLimit;
-  onlyShowFirstAvailableSlot: boolean;
-  showOptimizedSlots: boolean;
-  children: ChildrenEventType[];
-  hosts: Host[];
-  hostGroups: {
-    id: string;
-    name: string;
-  }[];
-  bookingFields: z.infer<typeof eventTypeBookingFields>;
-  availability?: AvailabilityOption;
-  bookerLayouts: BookerLayoutSettings;
-  multipleDurationEnabled: boolean;
-  users: EventTypeSetup["users"];
-  assignAllTeamMembers: boolean;
-  assignRRMembersUsingSegment: boolean;
-  rrSegmentQueryValue: AttributesQueryValue | null;
-  rescheduleWithSameRoundRobinHost: boolean;
-  useEventTypeDestinationCalendarEmail: boolean;
-  forwardParamsSuccessRedirect: boolean | null;
-  secondaryEmailId?: number;
-  isRRWeightsEnabled: boolean;
-  maxLeadThreshold?: number;
-  restrictionScheduleId: number | null;
-  useBookerTimezone: boolean;
-  restrictionScheduleName: string | null;
-  calVideoSettings?: CalVideoSettings;
-  maxActiveBookingPerBookerOfferReschedule: boolean;
-};
-
-export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
-
-export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
-export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
-export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypesHeavy"]["update"];
-export type TabMap = {
-  advanced: React.ReactNode;
-  ai?: React.ReactNode;
-  apps?: React.ReactNode;
-  availability: React.ReactNode;
-  instant?: React.ReactNode;
-  limits: React.ReactNode;
-  recurring: React.ReactNode;
-  setup: React.ReactNode;
-  team?: React.ReactNode;
-  webhooks?: React.ReactNode;
-  workflows?: React.ReactNode;
-  payments?: React.ReactNode;
-};
-
 export type SettingsToggleClassNames = {
   container?: string;
   label?: string;
@@ -215,11 +92,13 @@ export type InputClassNames = {
   input?: string;
   addOn?: string;
 };
+
 export type CheckboxClassNames = {
   checkbox?: string;
   description?: string;
   container?: string;
 };
+
 export type SelectClassNames = {
   innerClassNames?: {
     input?: string;
@@ -306,3 +185,15 @@ export interface CalVideoSettings {
   redirectUrlOnExit?: string;
   requireEmailForGuests?: boolean;
 }
+
+export type { ChildrenEventType };
+export type { EventLocationType };
+export type { IntervalLimit };
+export type { AttributesQueryValue };
+export type { EventTypeTranslation };
+export type { PeriodType };
+export type { BookerLayoutSettings };
+export type { customInputSchema };
+export type { eventTypeBookingFields };
+export type { eventTypeColor };
+export type { RecurringEvent };
