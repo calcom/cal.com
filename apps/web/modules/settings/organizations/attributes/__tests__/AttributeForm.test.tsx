@@ -10,20 +10,23 @@ import { Button } from "@calcom/ui/components/button";
 import { AttributeForm } from "../AttributesForm";
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
-  useLocale: vi.fn(() => ({
+  useLocale: () => ({
     t: (key: string) => key,
-  })),
+  }),
+}));
+
+vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => ({
+  useCompatSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("next/navigation", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next/navigation")>();
   return {
     ...actual,
-    useRouter: vi.fn(() => ({
-      push: vi.fn(() => {
-        return;
-      }),
-    })),
+    useRouter: () => ({
+      push: vi.fn(),
+    }),
+    usePathname: () => "/settings/organizations/attributes",
   };
 });
 
