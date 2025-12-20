@@ -4,14 +4,13 @@ import { useMemo, useState } from "react";
 
 import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useVoicePreview } from "@calcom/features/ee/workflows/hooks/useVoicePreview";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { useVoicePreview } from "../hooks/useVoicePreview";
 
 type Voice = {
   voice_id: string;
