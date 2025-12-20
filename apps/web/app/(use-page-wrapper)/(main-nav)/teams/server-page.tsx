@@ -8,7 +8,8 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { TeamsListing } from "@calcom/web/modules/teams/TeamsListing";
+
+import { TeamsListing } from "~/teams/components/TeamsListing";
 
 import { TeamsCTA } from "./CTA";
 
