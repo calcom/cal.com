@@ -3,6 +3,10 @@ import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { Stack, useRouter } from "expo-router";
 import React, { useState, useEffect, useMemo, Activity } from "react";
+import type {
+  NativeStackHeaderItemProps,
+  NativeStackHeaderItemMenuAction,
+} from "@react-navigation/native-stack";
 import {
   View,
   Text,
@@ -33,6 +37,7 @@ import {
   useCancelBooking,
   useConfirmBooking,
   useDeclineBooking,
+  useEventTypes,
   useRescheduleBooking,
 } from "../../../hooks";
 import { showErrorAlert } from "../../../utils/alerts";
@@ -139,7 +144,7 @@ export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+  // const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
   const [eventTypesLoading, setEventTypesLoading] = useState(false);
@@ -153,6 +158,9 @@ export default function Bookings() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectBooking, setRejectBooking] = useState<Booking | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const { data: eventTypes } = useEventTypes();
+
+  console.log("eventTypes", JSON.stringify(eventTypes, null, 2));
 
   const filterOptions: { key: BookingFilter; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
@@ -292,24 +300,24 @@ export default function Bookings() {
     setSearchQuery(query);
   };
 
-  const fetchEventTypes = async () => {
-    try {
-      setEventTypesLoading(true);
-      const types = await CalComAPIService.getEventTypes();
-      setEventTypes(types);
-    } catch (err) {
-      console.error("Error fetching event types:", err);
-      // Error is logged but not displayed to user for event type filter
-    } finally {
-      setEventTypesLoading(false);
-    }
-  };
+  // const fetchEventTypes = async () => {
+  //   try {
+  //     setEventTypesLoading(true);
+  //     const types = await CalComAPIService.getEventTypes();
+  //     setEventTypes(types);
+  //   } catch (err) {
+  //     console.error("Error fetching event types:", err);
+  //     // Error is logged but not displayed to user for event type filter
+  //   } finally {
+  //     setEventTypesLoading(false);
+  //   }
+  // };
 
   const handleFilterButtonPress = () => {
     setShowFilterModal(true);
-    if (eventTypes.length === 0) {
-      fetchEventTypes();
-    }
+    // if (eventTypes.length === 0) {
+    //   fetchEventTypes();
+    // }
   };
 
   const clearEventTypeFilter = () => {
@@ -1165,109 +1173,150 @@ export default function Bookings() {
   const showList = !showEmptyState && !showSearchEmptyState && !loading;
   const emptyState = getEmptyStateContent();
 
-  return (
-    <>
-      {/* <Stack.Header
-        style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
-        blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
-      >
-        <Stack.Header.Title large>Bookings</Stack.Header.Title>
-        <Stack.Header.Right>
-          <Stack.Header.Button onPress={() => {}} tintColor="#000">
-            <Icon sf="0.circle" />
-            <Label>Back</Label>
-          </Stack.Header.Button>
+  const buildEventTypeFilterMenu = () => {
+    const eventTypeMenuItems: NativeStackHeaderItemMenuAction[] = (eventTypes || []).map(
+      (eventType) => {
+        const isSelected = selectedEventTypeId === eventType.id;
+        return {
+          type: "action",
+          label: eventType.title,
+          icon: {
+            name: "calendar.badge.clock",
+            type: "sfSymbol",
+          },
+          state: isSelected ? "on" : "off",
+          onPress: () => {
+            // Toggle behavior: if already selected, clear filter; otherwise, select it
+            if (isSelected) {
+              clearEventTypeFilter();
+            } else {
+              setSelectedEventTypeId(eventType.id);
+              setSelectedEventTypeLabel(eventType.title);
+            }
+          },
+        };
+      }
+    );
 
-          <Stack.Header.Menu title="Filter" icon={"0.circle.ar"}>
-            <Stack.Header.MenuAction>
-              <Label>Filter</Label>
-            </Stack.Header.MenuAction>
-          </Stack.Header.Menu>
-        </Stack.Header.Right>
-        <Stack.Header.SearchBar
-          placeholder="Search schedules"
-          onChangeText={(e) => handleSearch(e.nativeEvent.text)}
-          obscureBackground={false}
-          barTintColor="#fff"
-        />
-      </Stack.Header> */}
-
-      <Stack.Screen
-        options={{
-          unstable_headerRightItems: () => [
+    const clearFilterItem: NativeStackHeaderItemMenuAction[] =
+      selectedEventTypeId !== null
+        ? [
             {
-              type: "menu",
-              label: "Filter",
+              type: "action",
+              label: "Clear filter",
               icon: {
-                name: "line.3.horizontal.decrease",
+                name: "xmark.circle",
                 type: "sfSymbol",
               },
-              labelStyle: {
-                fontWeight: "600",
-                color: "#007AFF",
-              },
-              menu: {
-                items: [
-                  {
-                    type: "action",
-                    label: "Event Type",
-                    icon: {
-                      name: "figure.arms.open",
-                      type: "sfSymbol",
-                    },
-                    onPress: () => {},
-                  },
-                ],
+              onPress: () => {
+                clearEventTypeFilter();
               },
             },
-            {
-              type: "menu",
-              label: "Upcoming",
-              labelStyle: {
-                fontWeight: "600",
-                color: "#007AFF",
+          ]
+        : [];
+
+    const menuItems = [...eventTypeMenuItems, ...clearFilterItem];
+
+    return {
+      type: "menu" as const,
+      label: "Filter",
+      icon: {
+        name: "line.3.horizontal.decrease" as any,
+        type: "sfSymbol" as const,
+      },
+      labelStyle: {
+        fontWeight: "600",
+        color: "#007AFF",
+      },
+      menu: {
+        title: menuItems.length > 0 ? "Filter by Event Type" : "No Event Types",
+        items: [
+          ...menuItems,
+          // Show message if no event types available
+          ...(menuItems.length === 0
+            ? [
+                {
+                  type: "action",
+                  label: "No event types available",
+                  onPress: () => {},
+                } satisfies NativeStackHeaderItemMenuAction,
+              ]
+            : []),
+        ],
+      },
+    };
+  };
+
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          title: "Bookings",
+          headerBlurEffect: isLiquidGlassAvailable() ? undefined : "light",
+          headerStyle: {
+            backgroundColor: "transparent",
+          },
+          headerLargeTitleEnabled: true,
+          headerSearchBarOptions: {
+            placeholder: "Search bookings",
+            onChangeText: (e) => handleSearch(e.nativeEvent.text),
+            obscureBackground: false,
+            barTintColor: "#fff",
+          },
+          unstable_headerRightItems: () => {
+            const eventTypeFilterMenu = buildEventTypeFilterMenu();
+
+            return [
+              eventTypeFilterMenu,
+              {
+                type: "menu",
+                label: "Upcoming",
+                labelStyle: {
+                  fontWeight: "600",
+                  color: "#007AFF",
+                },
+                // icon: {
+                //   name: "line.3.horizontal.decrease",
+                //   type: "sfSymbol",
+                // },
+                menu: {
+                  title: "Filter by",
+                  items: [
+                    {
+                      type: "action",
+                      label: "Event Type",
+                      icon: {
+                        name: "figure.arms.open",
+                        type: "sfSymbol",
+                      },
+                      onPress: () => {},
+                      // state: "off",
+                    },
+                    {
+                      type: "action",
+                      label: "Status",
+                      icon: {
+                        name: "paintbrush.fill",
+                        type: "sfSymbol",
+                      },
+                      onPress: () => {},
+                      // state: filterMode === "styles" ? "on" : "off",
+                    },
+                    {
+                      type: "action",
+                      label: "Date",
+                      icon: {
+                        name: "heart.fill",
+                        type: "sfSymbol",
+                      },
+                      onPress: () => {},
+                      // state: filterMode === "moods" ? "on" : "off",
+                    },
+                  ],
+                },
               },
-              // icon: {
-              //   name: "line.3.horizontal.decrease",
-              //   type: "sfSymbol",
-              // },
-              menu: {
-                title: "Filter by",
-                items: [
-                  {
-                    type: "action",
-                    label: "Event Type",
-                    icon: {
-                      name: "figure.arms.open",
-                      type: "sfSymbol",
-                    },
-                    onPress: () => {},
-                    // state: "off",
-                  },
-                  {
-                    type: "action",
-                    label: "Status",
-                    icon: {
-                      name: "paintbrush.fill",
-                      type: "sfSymbol",
-                    },
-                    onPress: () => {},
-                    // state: filterMode === "styles" ? "on" : "off",
-                  },
-                  {
-                    type: "action",
-                    label: "Date",
-                    icon: {
-                      name: "heart.fill",
-                      type: "sfSymbol",
-                    },
-                    onPress: () => {},
-                    // state: filterMode === "moods" ? "on" : "off",
-                  },
-                ],
-              },
-            },
-          ],
+            ];
+          },
         }}
       />
 
