@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { Language } from "@calcom/features/calAIPhone/providers/retellAI/types";
+import { restorePromptComplexity } from "@calcom/features/calAIPhone/providers/retellAI/utils/promptUtils";
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -32,7 +33,6 @@ import { OutgoingCallsTab } from "./components/tabs/OutgoingCallsTab";
 import { PhoneNumberTab } from "./components/tabs/PhoneNumberTab";
 import { useAgentForms } from "./hooks/useAgentForms";
 import type { AgentFormValues } from "./types/schemas";
-import { restorePromptComplexity } from "./utils/promptUtils";
 
 type AgentConfigurationSheetProps = {
   open: boolean;
