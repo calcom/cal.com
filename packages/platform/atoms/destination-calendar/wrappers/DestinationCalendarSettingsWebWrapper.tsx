@@ -1,4 +1,5 @@
 import { trpc } from "@calcom/trpc/react";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { DestinationCalendarSettings } from "../DestinationCalendar";
@@ -12,9 +13,30 @@ export const DestinationCalendarSettingsWebWrapper = () => {
     },
   });
 
+  const reminderMutation = trpc.viewer.calendars.setDestinationReminder.useMutation({
+    onSuccess: () => {
+      showToast("Reminder updated", "success");
+      utils.viewer.calendars.connectedCalendars.invalidate();
+    },
+    onError: () => {
+      showToast("Failed to update reminder", "error");
+    },
+  });
+
   if (!calendars.data?.connectedCalendars || calendars.data.connectedCalendars.length < 1) {
     return null;
   }
+
+  const handleReminderChange = (value: number) => {
+    const destCal = calendars.data.destinationCalendar;
+    if (destCal?.credentialId) {
+      reminderMutation.mutate({
+        credentialId: destCal.credentialId,
+        integration: destCal.integration,
+        defaultReminder: value,
+      });
+    }
+  };
 
   return (
     <AtomsWrapper>
@@ -25,6 +47,9 @@ export const DestinationCalendarSettingsWebWrapper = () => {
         value={calendars.data.destinationCalendar.externalId}
         hidePlaceholder
         onChange={mutation.mutate}
+        onReminderChange={handleReminderChange}
+        reminderValue={calendars.data.destinationCalendar.customCalendarReminder ?? 10}
+        isReminderPending={reminderMutation.isPending}
       />
     </AtomsWrapper>
   );
