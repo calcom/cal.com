@@ -18,6 +18,7 @@ export type GetSlots = {
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  datesOutOfOfficeTimeZone?: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -76,6 +77,7 @@ function buildSlotsWithDateRanges({
   offsetStart,
   datesOutOfOffice,
   showOptimizedSlots,
+  datesOutOfOfficeTimeZone,
 }: {
   dateRanges: DateRange[];
   frequency: number;
@@ -85,6 +87,7 @@ function buildSlotsWithDateRanges({
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  datesOutOfOfficeTimeZone?: string;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
@@ -180,11 +183,15 @@ function buildSlotsWithDateRanges({
       }
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
-      // Prefer matching OOO by the slot's UTC date, but also fall back to the
-      // organizer-local day represented by `range.start` to handle cross-timezone edge cases.
-      const slotDateYYYYMMDD = slotStartTime.utc().format("YYYY-MM-DD");
-      const rangeDateYYYYMMDD = range.start.utc().format("YYYY-MM-DD");
-      const dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD] ?? datesOutOfOffice?.[rangeDateYYYYMMDD];
+
+      let dateOutOfOfficeExists = undefined;
+      if (datesOutOfOffice) {
+        const slotDateYYYYMMDD = datesOutOfOfficeTimeZone
+          ? slotStartTime.tz(datesOutOfOfficeTimeZone).format("YYYY-MM-DD")
+          : slotStartTime.utc().format("YYYY-MM-DD");
+        dateOutOfOfficeExists = datesOutOfOffice?.[slotDateYYYYMMDD];
+      }
+
       let slotData: {
         time: Dayjs;
         userIds?: number[];
@@ -231,6 +238,7 @@ const getSlots = ({
   offsetStart = 0,
   datesOutOfOffice,
   showOptimizedSlots,
+  datesOutOfOfficeTimeZone,
 }: GetSlots): {
   time: Dayjs;
   userIds?: number[];
@@ -249,6 +257,7 @@ const getSlots = ({
     offsetStart,
     datesOutOfOffice,
     showOptimizedSlots,
+    datesOutOfOfficeTimeZone,
   });
 };
 
