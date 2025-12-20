@@ -191,23 +191,27 @@ export const AvailableTimeSlots = ({
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
-            <AvailableTimesHeader
-              customClassNames={{
-                availableTimeSlotsHeaderContainer: customClassNames?.availableTimeSlotsHeaderContainer,
-                availableTimeSlotsTitle: customClassNames?.availableTimeSlotsTitle,
-                availableTimeSlotsTimeFormatToggle: customClassNames?.availableTimeSlotsTimeFormatToggle,
-              }}
-              key={slots.date}
-              date={dayjs(slots.date)}
-              showTimeFormatToggle={!isColumnView}
-              availableMonth={
-                dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
-                  ? dayjs(slots.date).format("MMM")
-                  : undefined
-              }
-            />
-          ))
+          slotsPerDay.map((slots) => {
+            // Check if this day is OOO - since OOO is date-level, just check the first slot
+            const isOOODay = slots.slots.length > 0 && slots.slots[0]?.away;
+            return (
+              <AvailableTimesHeader
+                customClassNames={{
+                  availableTimeSlotsHeaderContainer: customClassNames?.availableTimeSlotsHeaderContainer,
+                  availableTimeSlotsTitle: customClassNames?.availableTimeSlotsTitle,
+                  availableTimeSlotsTimeFormatToggle: customClassNames?.availableTimeSlotsTimeFormatToggle,
+                }}
+                key={slots.date}
+                date={dayjs(slots.date)}
+                showTimeFormatToggle={!isColumnView && !isOOODay}
+                availableMonth={
+                  dayjs(selectedDate).format("MM") !== dayjs(slots.date).format("MM")
+                    ? dayjs(slots.date).format("MMM")
+                    : undefined
+                }
+              />
+            );
+          })
         )}
       </div>
 
@@ -223,7 +227,7 @@ export const AvailableTimeSlots = ({
         {!isLoading &&
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
-            <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden!">
+            <div key={slots.date} className="scroll-bar overflow-x-hidden! h-full w-full overflow-y-auto">
               <AvailableTimes
                 className={customClassNames?.availableTimeSlotsContainer}
                 customClassNames={customClassNames?.availableTimes}

@@ -198,14 +198,14 @@ export function TimezoneSelectComponent({
           ),
         menu: (state) =>
           classNames(
-            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
+            "rounded-md bg-default text-sm leading-4 text-default mt-1 p-1 border border-subtle",
             state.selectProps.menuIsOpen && "shadow-dropdown", // Add box-shadow when menu is open
             timezoneClassNames?.menu && timezoneClassNames.menu(state)
           ),
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
         menuList: (state) =>
           classNames(
-            "scroll-bar scrollbar-track-w-20 rounded-md",
+            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-1",
             timezoneClassNames?.menuList && timezoneClassNames.menuList(state)
           ),
         indicatorsContainer: (state) =>

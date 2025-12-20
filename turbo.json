@@ -76,6 +76,7 @@
     "AVATARAPI_PASSWORD",
     "GIPHY_API_KEY",
     "GOOGLE_API_CREDENTIALS",
+    "GOOGLE_CALENDAR_API_KEY",
     "GOOGLE_LOGIN_ENABLED",
     "GOOGLE_WEBHOOK_TOKEN",
     "GOOGLE_WEBHOOK_URL",
@@ -372,7 +373,7 @@
       "cache": false,
       "dependsOn": []
     },
-    "@calcom/atoms#build": {
+    "@calcom/atoms#build-npm": {
       "outputs": ["dist/**", "globals.min.css"]
     },
     "@calcom/api-v2#build": {

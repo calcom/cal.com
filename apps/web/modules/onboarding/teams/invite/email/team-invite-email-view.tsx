@@ -43,13 +43,13 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   // Read teamId from query params and store it (from payment callback or redirect)
   useEffect(() => {
     const teamIdParam = searchParams?.get("teamId");
-    if (teamIdParam) {
-      const teamId = parseInt(teamIdParam, 10);
-      if (!isNaN(teamId)) {
-        setTeamId(teamId);
+    if (teamIdParam && !teamId) {
+      const parsedTeamId = parseInt(teamIdParam, 10);
+      if (!isNaN(parsedTeamId)) {
+        setTeamId(parsedTeamId);
       }
     }
-  }, [searchParams, setTeamId]);
+  }, [searchParams, setTeamId, teamId]);
 
   const formSchema = z.object({
     invites: z.array(
@@ -79,6 +79,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     const teamIdParam = searchParams?.get("teamId");
     const parsedTeamId = !teamId ? parseInt(teamIdParam || "", 10) : teamId;
     if (!parsedTeamId) {
+      console.log("Team ID is missing. Please go back and create your team first.");
       showToast(
         t("team_id_missing") || "Team ID is missing. Please go back and create your team first.",
         "error"
@@ -113,57 +114,57 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       }
     } else {
       // No invites, skip to personal settings
-      const gettingStartedPath = "/onboarding/personal/settings";
-      router.push(gettingStartedPath);
+      console.log("No invites, skipping to personal settings");
+      const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
+      router.replace(gettingStartedPath);
     }
   };
 
   const handleSkip = async () => {
     setTeamInvites([]);
     // Skip inviting members and go to personal settings
-    const gettingStartedPath = "/onboarding/personal/settings";
-    router.push(gettingStartedPath);
+    const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
+    router.replace(gettingStartedPath);
   };
-
-  const hasValidInvites = fields.some((_, index) => {
-    const email = form.watch(`invites.${index}.email`);
-    return email && email.trim().length > 0;
-  });
 
   // Watch form values to pass to browser view for real-time updates
   const watchedInvites = form.watch("invites");
+
+  const hasValidInvites = watchedInvites.some((invite) => {
+    return invite.email && invite.email.trim().length > 0;
+  });
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
       {/* Left column - Main content */}
       <div className="flex h-full w-full flex-col gap-4">
-        <OnboardingCard
-          title={t("invite")}
-          subtitle={t("team_invite_subtitle")}
-          footer={
-            <div className="flex w-full items-center justify-end gap-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  color="minimal"
-                  className="rounded-[10px]"
-                  onClick={handleSkip}
-                  disabled={isSubmitting}>
-                  {t("onboarding_skip_for_now")}
-                </Button>
-                <Button
-                  type="button"
-                  color="primary"
-                  className="rounded-[10px]"
-                  disabled={!hasValidInvites || isSubmitting}
-                  loading={isSubmitting}
-                  onClick={form.handleSubmit(handleContinue)}>
-                  {t("continue")}
-                </Button>
+        <Form form={form} handleSubmit={handleContinue} className="flex h-full w-full flex-col gap-4">
+          <OnboardingCard
+            title={t("invite")}
+            subtitle={t("team_invite_subtitle")}
+            footer={
+              <div className="flex w-full items-center justify-end gap-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    color="minimal"
+                    className="rounded-[10px]"
+                    onClick={handleSkip}
+                    disabled={isSubmitting}>
+                    {t("onboarding_skip_for_now")}
+                  </Button>
+                  <Button
+                    type="submit"
+                    color="primary"
+                    className="rounded-[10px]"
+                    disabled={!hasValidInvites || isSubmitting}
+                    loading={isSubmitting}>
+                    {t("continue")}
+                  </Button>
+                </div>
               </div>
-            </div>
-          }>
-          <div className="flex w-full flex-col gap-4 px-1">
-            <Form form={form} handleSubmit={handleContinue} className="w-full">
+            }>
+            <div className="flex w-full flex-col gap-4 px-1">
               <div className="flex w-full flex-col gap-4">
                 <EmailInviteForm
                   fields={fields}
@@ -184,9 +185,9 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                   showInfoBadge
                 />
               </div>
-            </Form>
-          </div>
-        </OnboardingCard>
+            </div>
+          </OnboardingCard>
+        </Form>
       </div>
 
       {/* Right column - Browser view */}

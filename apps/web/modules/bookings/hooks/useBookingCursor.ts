@@ -4,29 +4,29 @@ import type { BookingOutput } from "../types";
 
 export function useBookingCursor({
   bookings,
-  selectedBookingId,
-  setSelectedBookingId,
+  selectedBookingUid,
+  setSelectedBookingUid,
 }: {
   bookings: BookingOutput[];
-  selectedBookingId: number | null;
-  setSelectedBookingId: (bookingId: number | null) => void;
+  selectedBookingUid: string | null;
+  setSelectedBookingUid: (bookingUid: string | null) => void;
 }) {
   const currentIndex = useMemo(
-    () => bookings.findIndex((booking) => selectedBookingId && booking.id === selectedBookingId),
-    [bookings, selectedBookingId]
+    () => bookings.findIndex((booking) => selectedBookingUid && booking.uid === selectedBookingUid),
+    [bookings, selectedBookingUid]
   );
 
   const onPrevious = useCallback(() => {
     if (currentIndex >= 1) {
-      setSelectedBookingId(bookings[currentIndex - 1].id);
+      setSelectedBookingUid(bookings[currentIndex - 1].uid);
     }
-  }, [bookings, currentIndex, setSelectedBookingId]);
+  }, [bookings, currentIndex, setSelectedBookingUid]);
 
   const onNext = useCallback(() => {
     if (currentIndex >= 0 && currentIndex < bookings.length - 1) {
-      setSelectedBookingId(bookings[currentIndex + 1].id);
+      setSelectedBookingUid(bookings[currentIndex + 1].uid);
     }
-  }, [bookings, currentIndex, setSelectedBookingId]);
+  }, [bookings, currentIndex, setSelectedBookingUid]);
 
   return {
     onPrevious,
