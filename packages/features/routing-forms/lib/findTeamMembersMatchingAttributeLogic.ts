@@ -4,11 +4,11 @@ import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { getAttributesAssignmentData } from "@calcom/features/attributes/lib/getAttributes";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
 import type { dynamicFieldValueOperands, AttributesQueryValue } from "@calcom/lib/raqb/types";
-import type { Attribute } from "@calcom/lib/service/attribute/types";
 
 const {
   getAttributesData: getAttributes,
@@ -121,7 +121,7 @@ function getJsonLogic({
   return { logic, warnings };
 }
 
-function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
+function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, unknown> }) {
   return {
     troubleshooter: {
       type,
@@ -158,7 +158,7 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = jsonLogic.apply(attributeJsonLogic as any, attributesData)
+      const result = jsonLogic.apply(attributeJsonLogic as Parameters<typeof jsonLogic.apply>[0], attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 

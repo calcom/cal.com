@@ -20,7 +20,18 @@ export type AttributeOptionAssignment = AttributeToUser & {
   };
 };
 
+/**
+ * AttributeOption type with transformed `contains` field.
+ * In the database, `contains` is `string[]` (array of option IDs),
+ * but after transformation in getAttributes.ts, it becomes an array of objects.
+ */
+export type TransformedAttributeOption = {
+  isGroup: boolean;
+  value: string;
+  contains: { id: string; value: string; slug: string }[];
+};
+
 export type AttributeOptionValueWithType = {
   type: AttributeType;
-  attributeOption: AttributeOption | AttributeOption[];
+  attributeOption: TransformedAttributeOption | TransformedAttributeOption[];
 };

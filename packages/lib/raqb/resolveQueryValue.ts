@@ -1,7 +1,7 @@
+import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
 import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import type { Attribute } from "@calcom/lib/service/attribute/types";
 
 import { caseInsensitive } from "./utils";
 

@@ -3,15 +3,14 @@ import type { Config } from "react-awesome-query-builder";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
-import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
+import type { LocalRoute, Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { resolveQueryValue } from "@calcom/lib/raqb/resolveQueryValue";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { caseInsensitive } from "@calcom/lib/raqb/utils";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   AttributeOptionValueWithType,
-  AttributeOption,
-  Attribute,
+  TransformedAttributeOption,
 } from "@calcom/lib/service/attribute/types";
 import { AttributeType } from "@calcom/prisma/enums";
 
@@ -94,9 +93,7 @@ export const buildStateFromQueryValue = ({
 };
 
 export function getValueOfAttributeOption(
-  attributeOptions:
-    | Pick<AttributeOption, "isGroup" | "contains" | "value">
-    | Pick<AttributeOption, "isGroup" | "contains" | "value">[]
+  attributeOptions: TransformedAttributeOption | TransformedAttributeOption[]
 ) {
   if (!(attributeOptions instanceof Array)) {
     return transformAttributeOption(attributeOptions);
@@ -106,9 +103,7 @@ export function getValueOfAttributeOption(
     .flat()
     .filter((value, index, self) => self.indexOf(value) === index);
 
-  function transformAttributeOption(
-    attributeOption: Pick<AttributeOption, "isGroup" | "contains" | "value">
-  ) {
+  function transformAttributeOption(attributeOption: TransformedAttributeOption) {
     if (attributeOption.isGroup) {
       const subOptions = attributeOption.contains.map((option) => option.value);
       console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
