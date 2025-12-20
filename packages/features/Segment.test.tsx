@@ -6,7 +6,7 @@ import type { Mock } from "vitest";
 import { Segment } from "@calcom/features/Segment";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
-import { trpc, type RouterOutputs } from "@calcom/trpc";
+import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 
 type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
 type MatchingTeamMembersData = RouterOutputs["viewer"]["attributes"]["findTeamMembersMatchingAttributeLogic"];
