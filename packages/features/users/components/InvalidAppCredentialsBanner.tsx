@@ -4,6 +4,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { type RouterOutputs } from "@calcom/trpc";
 import { TopBanner } from "@calcom/ui/components/top-banner";
 
+import { type InvalidAppCredentialBannerProps } from "../types/invalidAppCredentials";
+
 export type InvalidAppCredentialBannersProps = {
   data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["invalidAppCredentialBanners"];
 };
@@ -22,10 +24,7 @@ export function InvalidAppCredentialBanners({ data }: InvalidAppCredentialBanner
   );
 }
 
-export type InvalidAppCredentialBannerProps = {
-  name: string;
-  slug: string;
-};
+export type { InvalidAppCredentialBannerProps };
 
 export function InvalidAppCredentialBanner({ name, slug }: InvalidAppCredentialBannerProps) {
   const { t } = useLocale();
