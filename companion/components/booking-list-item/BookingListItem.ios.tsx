@@ -189,10 +189,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
           </View>
         ) : null}
       </Pressable>
-      <View
-        className="flex-row items-center justify-end"
-        style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
-      >
+      <View className="flex-row items-center justify-end gap-2">
         {isPending ? (
           <>
             <TouchableOpacity

@@ -338,7 +338,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             data={groupBookingsByMonth(filteredBookings)}
             keyExtractor={(item) => item.key}
             renderItem={renderListItem}
-            contentContainerStyle={{ paddingBottom: 90, paddingHorizontal: 16 }}
+            contentContainerStyle={{ paddingBottom: 90 }}
             refreshControl={
               <RefreshControl refreshing={isManualRefreshing} onRefresh={manualRefresh} />
             }
