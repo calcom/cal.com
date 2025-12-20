@@ -3770,5 +3770,7 @@
   "edit_configuration": "Chỉnh sửa cấu hình",
   "select_event_type_for_inbound_calls": "Cuộc gọi đến chỉ có thể đặt một loại sự kiện. Chọn loại sự kiện mà cuộc họp sẽ được lên lịch khi người gọi kết nối với tổng đài viên của bạn.",
   "setup_inbound_agent_for_incoming_calls": "Thiết lập tổng đài viên nhận cuộc gọi đến",
+  "require_booker_email_verification": "Ngăn giả mạo khi đặt lịch",
+  "require_booker_email_verification_description": "Khi bật, ai đặt lịch bằng email của bạn phải xác minh quyền sở hữu bằng mã một lần hoặc đăng nhập để tránh giả mạo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

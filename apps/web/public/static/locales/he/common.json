@@ -3770,5 +3770,7 @@
   "edit_configuration": "ערוך הגדרות",
   "select_event_type_for_inbound_calls": "שיחות נכנסות יכולות להזמין רק סוג אירוע אחד. בחר את סוג האירוע שבו יתוזמנו פגישות כאשר מתקשרים מגיעים לסוכן שלך.",
   "setup_inbound_agent_for_incoming_calls": "הגדר סוכן נכנס לשיחות נכנסות",
+  "require_booker_email_verification": "מניעת התחזות בהזמנות",
+  "require_booker_email_verification_description": "כאשר מופעל, כל מי שמנסה להזמין עם כתובת המייל שלך חייב לאמת שהיא שלו באמצעות קוד חד-פעמי או להיות מחובר כדי למנוע התחזות",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

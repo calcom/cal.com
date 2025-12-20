@@ -3770,5 +3770,7 @@
   "edit_configuration": "Muuda seadistust",
   "select_event_type_for_inbound_calls": "Sissetulevad kõned saavad broneerida ainult ühe sündmuse tüübi. Vali sündmuse tüüp, millele kohtumised planeeritakse, kui helistajad jõuavad sinu agendini.",
   "setup_inbound_agent_for_incoming_calls": "Seadista sissetulev agent sissetulevate kõnede jaoks",
+  "require_booker_email_verification": "Vältida teesklemist broneeringutel",
+  "require_booker_email_verification_description": "Kui see on sisse lülitatud, peab igaüks, kes proovib broneerida teie e-posti kasutades, kinnitama omandi ühekorra koodiga või olema sisse logitud, et vältida teesklemist",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

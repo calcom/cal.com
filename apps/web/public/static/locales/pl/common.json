@@ -3770,5 +3770,7 @@
   "edit_configuration": "Edytuj konfigurację",
   "select_event_type_for_inbound_calls": "Połączenia przychodzące mogą rezerwować tylko jeden typ wydarzenia. Wybierz typ wydarzenia, w którym będą planowane spotkania, gdy dzwoniący skontaktują się z Twoim agentem.",
   "setup_inbound_agent_for_incoming_calls": "Skonfiguruj agenta przychodzącego do obsługi połączeń przychodzących",
+  "require_booker_email_verification": "Zapobiegaj podszywaniu się przy rezerwacjach",
+  "require_booker_email_verification_description": "Po włączeniu każda osoba próbująca rezerwować używając twojego adresu e-mail musi potwierdzić jego posiadanie jednorazowym kodem lub być zalogowana, aby zapobiec podszywaniu się",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

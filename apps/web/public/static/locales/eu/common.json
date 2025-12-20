@@ -3770,5 +3770,7 @@
   "edit_configuration": "Editatu konfigurazioa",
   "select_event_type_for_inbound_calls": "Sarrerako deiek gertaera mota bakarra erreserbatu dezakete. Aukeratu zein gertaera motatan programatuko diren bilerak deitzaileek zure agentea lortzen dutenean.",
   "setup_inbound_agent_for_incoming_calls": "Konfiguratu sarrerako agentea sarrerako deietarako",
+  "require_booker_email_verification": "Erreserbetan identitate-ustiapena saihestu",
+  "require_booker_email_verification_description": "Aktibatuta dagoenean, zure helbide elektronikoa erabiliz erreserba egiten saiatzen den orok egiaztatu behar du kode bakarreko baten bidez edo saioa hasita egon behar du ustiapena saihesteko",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

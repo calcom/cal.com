@@ -3770,5 +3770,7 @@
   "edit_configuration": "কনফিগারেশন সম্পাদনা করুন",
   "select_event_type_for_inbound_calls": "ইনবাউন্ড কল শুধুমাত্র একটি ইভেন্ট টাইপ বুক করতে পারে। কলারগণ আপনার এজেন্টের সাথে যোগাযোগ করলে যেখানে মিটিং নির্ধারিত হবে সেই ইভেন্ট টাইপ নির্বাচন করুন।",
   "setup_inbound_agent_for_incoming_calls": "ইনকামিং কলের জন্য ইনবাউন্ড এজেন্ট সেট আপ করুন",
+  "require_booker_email_verification": "বুকিংয়ে প্রতারণা প্রতিরোধ করুন",
+  "require_booker_email_verification_description": "চালু করলে, আপনার ইমেল দিয়ে বুক করতে চাইলে সবাইকে একবারের কোড দিয়ে মালিকানা নিশ্চিত করতে হবে বা লগইন থাকতে হবে, যাতে প্রতারণা ঠেকানো যায়",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑ুষান্ত"
 }

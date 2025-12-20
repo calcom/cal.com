@@ -3770,5 +3770,7 @@
   "edit_configuration": "Редагувати налаштування",
   "select_event_type_for_inbound_calls": "Вхідні дзвінки можуть бронювати лише один тип заходу. Виберіть тип заходу, за яким будуть заплановані зустрічі, коли абоненти зв'яжуться з вашим агентом.",
   "setup_inbound_agent_for_incoming_calls": "Налаштувати вхідного агента для вхідних дзвінків",
+  "require_booker_email_verification": "Запобігти видаванню себе за іншого при бронюванні",
+  "require_booker_email_verification_description": "Якщо ввімкнено, кожен, хто намагається бронювати з вашою електронною адресою, має підтвердити, що вона належить йому, одноразовим кодом або бути авторизованим, щоб запобігти підміні",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

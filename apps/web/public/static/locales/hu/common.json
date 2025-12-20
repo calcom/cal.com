@@ -3770,5 +3770,7 @@
   "edit_configuration": "Konfiguráció szerkesztése",
   "select_event_type_for_inbound_calls": "A bejövő hívások csak egy eseménytípust foglalhatnak le. Válassza ki azt az eseménytípust, amelyben a találkozók ütemezve lesznek, amikor a hívók elérik az ügynökét.",
   "setup_inbound_agent_for_incoming_calls": "Bejövő ügynök beállítása bejövő hívásokhoz",
+  "require_booker_email_verification": "Visszaélések megelőzése foglalásoknál",
+  "require_booker_email_verification_description": "Bekapcsolva bárkinek, aki az e-mail címeddel foglalna, egy egyszer használatos kóddal kell igazolnia a tulajdont, vagy be kell jelentkeznie a visszaélés elkerüléséhez",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

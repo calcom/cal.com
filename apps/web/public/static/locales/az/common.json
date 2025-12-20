@@ -3770,5 +3770,7 @@
   "edit_configuration": "Konfiqurasiyanı redaktə edin",
   "select_event_type_for_inbound_calls": "Gələn zənglər yalnız bir tədbir növünü rezerv edə bilər. Zəng edənlər agentinizə çatdıqda görüşlərin planlaşdırılacağı tədbir növünü seçin.",
   "setup_inbound_agent_for_incoming_calls": "Gələn zənglər üçün agent qurun",
+  "require_booker_email_verification": "Rezervasiyalarda şəxsiyyət saxtalaşdırmanın qarşısını alın",
+  "require_booker_email_verification_description": "Aktiv olduqda, e-poçt ünvanınızdan istifadə edərək rezervasiya etmək istəyən hər kəs onun sizə məxsus olduğunu bir dəfəlik kodla təsdiqləməli və ya saxtalaşdırmanın qarşısını almaq üçün daxil olmalıdır",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

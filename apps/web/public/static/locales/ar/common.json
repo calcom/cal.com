@@ -3770,5 +3770,7 @@
   "edit_configuration": "تعديل التكوين",
   "select_event_type_for_inbound_calls": "يمكن للمكالمات الواردة حجز نوع واحد فقط من الأحداث. حدد نوع الحدث الذي سيتم فيه جدولة الاجتماعات عندما يصل المتصلون إلى وكيلك.",
   "setup_inbound_agent_for_incoming_calls": "إعداد وكيل المكالمات الواردة للمكالمات الواردة",
+  "require_booker_email_verification": "منع انتحال الهوية في الحجوزات",
+  "require_booker_email_verification_description": "عند التفعيل، يجب على أي شخص يحاول حجز أحداث باستخدام بريدك الإلكتروني إثبات أنه يملكه برمز لمرة واحدة أو تسجيل الدخول لمنع الانتحال",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

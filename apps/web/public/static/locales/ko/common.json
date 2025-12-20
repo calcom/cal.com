@@ -3770,5 +3770,7 @@
   "edit_configuration": "구성 편집",
   "select_event_type_for_inbound_calls": "인바운드 전화는 하나의 이벤트 타입만 예약할 수 있습니다. 발신자가 에이전트에 연결될 때 미팅이 예약될 이벤트 타입을 선택하세요.",
   "setup_inbound_agent_for_incoming_calls": "수신 전화용 인바운드 에이전트 설정",
+  "require_booker_email_verification": "예약 시 사칭 방지",
+  "require_booker_email_verification_description": "활성화 시, 당신의 이메일로 예약하려는 사람은 일회용 코드로 소유를 확인하거나 로그인하여 사칭을 방지해야 합니다",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

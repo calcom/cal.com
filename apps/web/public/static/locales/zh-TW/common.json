@@ -3770,5 +3770,7 @@
   "edit_configuration": "編輯設定",
   "select_event_type_for_inbound_calls": "來電只能預約一種活動類型。請選擇當來電者聯繫您的代理時，會安排會議的活動類型。",
   "setup_inbound_agent_for_incoming_calls": "設定來電代理以處理來電",
+  "require_booker_email_verification": "防止預訂冒用身分",
+  "require_booker_email_verification_description": "啟用後，任何使用你的信箱預訂的人都必須透過一次性驗證碼或登入來證明信箱屬於他，以防冒用",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

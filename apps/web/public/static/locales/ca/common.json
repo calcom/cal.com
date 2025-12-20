@@ -3770,5 +3770,7 @@
   "edit_configuration": "Edita la configuració",
   "select_event_type_for_inbound_calls": "Les trucades entrants només poden reservar un tipus d'esdeveniment. Selecciona el tipus d'esdeveniment on es programaran les reunions quan els que truquen contactin amb el teu agent.",
   "setup_inbound_agent_for_incoming_calls": "Configura l'agent d'entrada per a trucades entrants",
+  "require_booker_email_verification": "Evita la suplantació en les reserves",
+  "require_booker_email_verification_description": "Quan està activat, qui intenti reservar amb el teu correu ha de verificar que és seu amb un codi d'un sol ús o iniciar sessió per evitar suplantacions",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

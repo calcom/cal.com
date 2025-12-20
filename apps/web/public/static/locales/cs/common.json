@@ -3770,5 +3770,7 @@
   "edit_configuration": "Upravit konfiguraci",
   "select_event_type_for_inbound_calls": "Příchozí hovory mohou rezervovat pouze jeden typ události. Vyberte typ události, kde budou schůzky naplánovány, když volající kontaktují vašeho agenta.",
   "setup_inbound_agent_for_incoming_calls": "Nastavit příchozího agenta pro příchozí hovory",
+  "require_booker_email_verification": "Zabránit vydávání se za jiného při rezervacích",
+  "require_booker_email_verification_description": "Při zapnutí musí každý, kdo se pokouší rezervovat s vaší e-mailovou adresou, ověřit její vlastnictví jednorázovým kódem nebo být přihlášen, aby se předešlo zneužití",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

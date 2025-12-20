@@ -3770,5 +3770,7 @@
   "edit_configuration": "Editar configuración",
   "select_event_type_for_inbound_calls": "Las llamadas entrantes solo pueden reservar un tipo de evento. Selecciona el tipo de evento donde se programarán las reuniones cuando los llamantes contacten con tu agente.",
   "setup_inbound_agent_for_incoming_calls": "Configurar agente entrante para llamadas entrantes",
+  "require_booker_email_verification": "Evitar suplantación en reservas",
+  "require_booker_email_verification_description": "Al activarlo, quien intente reservar usando tu correo debe verificar que es suyo con un código de un solo uso o iniciar sesión para evitar suplantación",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

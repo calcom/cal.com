@@ -3770,5 +3770,7 @@
   "edit_configuration": "Rediger konfiguration",
   "select_event_type_for_inbound_calls": "Indgående opkald kan kun booke én begivenhedstype. Vælg den begivenhedstype, hvor møder vil blive planlagt, når opkaldere når din agent.",
   "setup_inbound_agent_for_incoming_calls": "Opsæt indgående agent til indgående opkald",
+  "require_booker_email_verification": "Forhindr forfalskning ved bookinger",
+  "require_booker_email_verification_description": "Når dette er aktiveret, skal alle der prøver at booke med din e-mailadresse bekræfte ejerskab med en engangskode eller være logget ind for at undgå forfalskning",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

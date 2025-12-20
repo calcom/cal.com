@@ -3770,5 +3770,7 @@
   "edit_configuration": "Izmeni konfiguraciju",
   "select_event_type_for_inbound_calls": "Dolazni pozivi mogu zakazati samo jedan tip događaja. Izaberi tip događaja gde će sastanci biti zakazani kada pozivaoci dođu do tvog agenta.",
   "setup_inbound_agent_for_incoming_calls": "Podesi dolaznog agenta za dolazne pozive",
+  "require_booker_email_verification": "Sprečite lažno predstavljanje pri rezervacijama",
+  "require_booker_email_verification_description": "Kada je uključeno, svako ko pokuša da rezerviše koristeći tvoj e-mail mora da potvrdi da je njegov jednokratnim kodom ili da bude prijavljen kako bi se sprečilo lažno predstavljanje",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

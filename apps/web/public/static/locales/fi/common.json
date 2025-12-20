@@ -3770,5 +3770,7 @@
   "edit_configuration": "Muokkaa määrityksiä",
   "select_event_type_for_inbound_calls": "Saapuvat puhelut voivat varata vain yhden tapahtumatyypin. Valitse tapahtumatyyppi, johon tapaamiset ajoitetaan, kun soittajat tavoittavat agenttisi.",
   "setup_inbound_agent_for_incoming_calls": "Määritä saapuvien puhelujen agentti saapuville puheluille",
+  "require_booker_email_verification": "Estä esiintyminen varauksissa",
+  "require_booker_email_verification_description": "Kun tämä on käytössä, jokaisen, joka yrittää varata käyttäen sähköpostiosoitettasi, on vahvistettava omistus kertakäyttökoodilla tai kirjautumalla sisään, jotta esiintymistä voidaan estää",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

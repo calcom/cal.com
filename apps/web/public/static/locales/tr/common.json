@@ -3770,5 +3770,7 @@
   "edit_configuration": "Yapılandırmayı düzenle",
   "select_event_type_for_inbound_calls": "Gelen çağrılar yalnızca bir etkinlik türü için rezervasyon yapabilir. Arayanlar temsilcinize ulaştığında toplantıların planlanacağı etkinlik türünü seçin.",
   "setup_inbound_agent_for_incoming_calls": "Gelen çağrılar için gelen çağrı temsilcisini kur",
+  "require_booker_email_verification": "Rezervasyonlarda kimlik sahteciliğini önle",
+  "require_booker_email_verification_description": "Etkinleştirildiğinde, e-posta adresinizi kullanarak rezervasyon yapmak isteyen herkesin, ona sahip olduğunu tek kullanımlık bir kodla doğrulaması veya sahteciliği önlemek için giriş yapması gerekir",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

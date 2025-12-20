@@ -3770,5 +3770,7 @@
   "edit_configuration": "Editează configurația",
   "select_event_type_for_inbound_calls": "Apelurile primite pot rezerva un singur tip de eveniment. Selectează tipul de eveniment pentru care se vor programa întâlniri atunci când apelanții contactează agentul tău.",
   "setup_inbound_agent_for_incoming_calls": "Configurează agentul pentru apeluri primite",
+  "require_booker_email_verification": "Preveniți impersonarea la rezervări",
+  "require_booker_email_verification_description": "Când este activat, oricine încearcă să rezerve folosind emailul tău trebuie să confirme că este al lui cu un cod unic sau să fie autentificat pentru a preveni impersonarea",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

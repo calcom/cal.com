@@ -3770,5 +3770,7 @@
   "edit_configuration": "Konfiguration bearbeiten",
   "select_event_type_for_inbound_calls": "Eingehende Anrufe können nur einen Ereignistyp buchen. Wählen Sie den Ereignistyp aus, für den Meetings geplant werden, wenn Anrufer Ihren Agenten erreichen.",
   "setup_inbound_agent_for_incoming_calls": "Inbound-Agent für eingehende Anrufe einrichten",
+  "require_booker_email_verification": "Identitätsdiebstahl bei Buchungen verhindern",
+  "require_booker_email_verification_description": "Wenn aktiviert, muss jeder, der mit deiner E-Mail-Adresse bucht, per Einmalcode oder durch Anmeldung bestätigen, dass sie ihm gehört, um Missbrauch zu verhindern",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

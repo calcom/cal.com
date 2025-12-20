@@ -3770,5 +3770,7 @@
   "edit_configuration": "設定を編集",
   "select_event_type_for_inbound_calls": "着信では1つのイベント種別のみ予約できます。発信者がエージェントに到達したときに会議がスケジュールされるイベント種別を選択してください。",
   "setup_inbound_agent_for_incoming_calls": "着信用の着信エージェントを設定する",
+  "require_booker_email_verification": "予約でのなりすましを防止",
+  "require_booker_email_verification_description": "有効にすると、あなたのメールアドレスで予約しようとする人は、ワンタイムコードで本人確認するかログインして、なりすましを防ぐ必要があります",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

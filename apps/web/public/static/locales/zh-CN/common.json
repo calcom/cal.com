@@ -3770,5 +3770,7 @@
   "edit_configuration": "编辑配置",
   "select_event_type_for_inbound_calls": "来电只能预订一种活动类型。请选择当来电者联系您的代理时将安排会议的活动类型。",
   "setup_inbound_agent_for_incoming_calls": "为来电设置入站代理",
+  "require_booker_email_verification": "防止预订冒用身份",
+  "require_booker_email_verification_description": "启用后，任何使用你的邮箱预订的人都必须通过一次性验证码或登录来证明邮箱归属，以防止冒用",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -3770,5 +3770,7 @@
   "edit_configuration": "Modifier la configuration",
   "select_event_type_for_inbound_calls": "Les appels entrants ne peuvent réserver qu'un seul type d'événement. Sélectionnez le type d'événement où les réunions seront programmées lorsque les appelants joignent votre agent.",
   "setup_inbound_agent_for_incoming_calls": "Configurer l'agent entrant pour les appels entrants",
+  "require_booker_email_verification": "Empêcher l'usurpation lors des réservations",
+  "require_booker_email_verification_description": "Lorsqu'elle est activée, toute personne essayant de réserver un événement avec votre adresse e-mail doit vérifier qu'elle en est propriétaire via un code à usage unique ou être connectée pour éviter l'usurpation.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

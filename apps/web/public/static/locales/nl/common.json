@@ -3770,5 +3770,7 @@
   "edit_configuration": "Configuratie bewerken",
   "select_event_type_for_inbound_calls": "Inkomende gesprekken kunnen slechts één evenementtype boeken. Selecteer het evenementtype waarbij afspraken worden gepland wanneer bellers je agent bereiken.",
   "setup_inbound_agent_for_incoming_calls": "Inkomende agent instellen voor inkomende gesprekken",
+  "require_booker_email_verification": "Voorkom imitatie bij boekingen",
+  "require_booker_email_verification_description": "Als dit aanstaat, moet iedereen die met jouw e-mailadres boekt aantonen dat het van hem/haar is met een eenmalige code of ingelogd zijn om misbruik te voorkomen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

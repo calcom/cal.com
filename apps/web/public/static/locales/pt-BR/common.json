@@ -3770,5 +3770,7 @@
   "edit_configuration": "Editar configuração",
   "select_event_type_for_inbound_calls": "Chamadas recebidas podem agendar apenas um tipo de evento. Selecione o tipo de evento onde as reuniões serão agendadas quando os chamadores alcançarem seu agente.",
   "setup_inbound_agent_for_incoming_calls": "Configurar agente de entrada para chamadas recebidas",
+  "require_booker_email_verification": "Evitar personificação em reservas",
+  "require_booker_email_verification_description": "Quando ativado, quem tentar reservar usando seu e-mail deve comprovar que ele é seu com um código de uso único ou estar logado para evitar personificação",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

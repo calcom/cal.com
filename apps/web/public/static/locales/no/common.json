@@ -3770,5 +3770,7 @@
   "edit_configuration": "Rediger konfigurasjon",
   "select_event_type_for_inbound_calls": "Innkommende anrop kan bare booke én hendelsestype. Velg hendelsestypen der møter vil bli planlagt når innringere når agenten din.",
   "setup_inbound_agent_for_incoming_calls": "Konfigurer innkommende agent for innkommende anrop",
+  "require_booker_email_verification": "Forhindre etterligning ved bestillinger",
+  "require_booker_email_verification_description": "Når dette er aktivert, må alle som prøver å booke med e-posten din bekrefte at den er deres med en engangskode eller være innlogget for å unngå etterligning",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

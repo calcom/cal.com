@@ -3770,5 +3770,7 @@
   "edit_configuration": "Redigera konfiguration",
   "select_event_type_for_inbound_calls": "Inkommande samtal kan endast boka en händelsetyp. Välj den händelsetyp där möten ska schemaläggas när uppringare når din agent.",
   "setup_inbound_agent_for_incoming_calls": "Ställ in inkommande agent för inkommande samtal",
+  "require_booker_email_verification": "Förhindra personifiering vid bokningar",
+  "require_booker_email_verification_description": "När detta är aktiverat måste den som bokar med din e-postadress bekräfta att den är deras via en engångskod eller vara inloggad för att undvika personifiering",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
