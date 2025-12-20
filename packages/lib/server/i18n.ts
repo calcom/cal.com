@@ -5,19 +5,20 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import logger from "../logger";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { i18n } = require("@calcom/config/next-i18next.config");
 const log = logger.getSubLogger({ prefix: ["[i18n]"] });
 
 // Import only English translations directly to avoid HTTP requests
 // Other languages will be loaded dynamically to minimize bundle size
-const englishCommonTranslations: Record<string, string> =
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require("../../../apps/web/public/static/locales/en/common.json");
+const englishCommonTranslations: Record<
+  string,
+  string
+> = require("../../../apps/web/public/static/locales/en/common.json");
 
-const englishBookingTranslations: Record<string, string> =
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require("../../../apps/web/public/static/locales/en/booking.json");
+const englishBookingTranslations: Record<
+  string,
+  string
+> = require("../../../apps/web/public/static/locales/en/booking.json");
 
 // Map of namespace to English translations for fallback
 const englishTranslationsByNamespace: Record<string, Record<string, string>> = {
