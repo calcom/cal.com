@@ -38,6 +38,11 @@ export {
   WorkflowTemplates,
 } from "@calcom/prisma/enums";
 
+export {
+  WebhookVersion,
+  DEFAULT_WEBHOOK_VERSION,
+} from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+
 export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 
 export { handleMarkNoShow };
