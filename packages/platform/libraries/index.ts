@@ -53,7 +53,6 @@ export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/f
 export { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 
 export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
-export { HttpError } from "@calcom/lib/http-error";
 
 export { MINUTES_TO_BOOK, ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 
@@ -80,10 +79,6 @@ export { getTranslation };
 
 export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
-
-export { ErrorCode } from "@calcom/lib/errorCodes";
-export { ErrorWithCode } from "@calcom/lib/errors";
-export { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 

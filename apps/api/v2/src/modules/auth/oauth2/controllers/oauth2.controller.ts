@@ -27,7 +27,7 @@ import { plainToInstance } from "class-transformer";
 import type { Response } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries";
+import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries/errors";
 
 @Controller({
   path: "/v2/auth/oauth2/clients/:clientId",
