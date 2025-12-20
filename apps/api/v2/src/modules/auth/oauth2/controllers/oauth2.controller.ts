@@ -17,7 +17,6 @@ import {
   HttpStatus,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
   Param,
   Post,
   Res,
@@ -98,7 +97,7 @@ export class OAuth2Controller {
     } catch (err: unknown) {
       if (!isValidClient) {
         const message = err instanceof Error ? err.message : "oauth_client_not_found";
-        throw new NotFoundException(message);
+        throw new HttpException(message, HttpStatus.NOT_FOUND);
       }
       const errorRedirectUrl = this.oAuthService.buildErrorRedirectUrl(body.redirectUri, err, body.state);
       return res.redirect(303, errorRedirectUrl);
