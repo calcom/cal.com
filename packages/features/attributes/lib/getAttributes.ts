@@ -53,7 +53,10 @@ async function _findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: num
 
   type Membership = (typeof memberships)[number];
 
-  const { teamMemberships, orgMemberships } = memberships.reduce(
+  const { teamMemberships, orgMemberships } = memberships.reduce<{
+    teamMemberships: Membership[];
+    orgMemberships: Membership[];
+  }>(
     (acc, membership) => {
       if (membership.teamId === teamId) {
         acc.teamMemberships.push(membership);
@@ -62,7 +65,7 @@ async function _findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: num
       }
       return acc;
     },
-    { teamMemberships: [] as Membership[], orgMemberships: [] as Membership[] }
+    { teamMemberships: [], orgMemberships: [] }
   );
 
   return {
