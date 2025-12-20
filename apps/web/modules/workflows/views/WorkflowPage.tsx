@@ -43,20 +43,6 @@ import { DeleteDialog } from "../components/DeleteDialog";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 
-export type FormValues = {
-  name: string;
-  activeOn: Option[];
-  steps: (WorkflowStep & {
-    senderName: string | null;
-    agentId?: string | null;
-    inboundAgentId?: string | null;
-  })[];
-  trigger: WorkflowTriggerEvents;
-  time?: number;
-  timeUnit?: TimeUnit;
-  selectAll: boolean;
-};
-
 type PageProps = {
   workflow: number;
   workflowData?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
