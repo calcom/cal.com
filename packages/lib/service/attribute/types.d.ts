@@ -1,8 +1,6 @@
 import type { Attribute, AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 
-export { Attribute };
-
 export type AttributeName = string;
 export type AttributeId = string;
 export type BulkAttributeAssigner =
