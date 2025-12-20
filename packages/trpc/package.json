@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . ",
-    "build": "yarn trpc:generate || true",
+    "build": "yarn trpc:generate",
     "trpc:generate": "yarn tsc --project tsconfig.json"
   },
   "dependencies": {
