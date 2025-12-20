@@ -3,10 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Membership, Workflow } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
@@ -25,38 +23,12 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { getActionIcon } from "../lib/getActionIcon";
-import type { WorkflowStep } from "../lib/types";
+import { type WorkflowListType } from "../lib/types";
 import { DeleteDialog } from "./DeleteDialog";
 
-export type WorkflowType = Workflow & {
-  team: {
-    id: number;
-    name: string;
-    members: Membership[];
-    slug: string | null;
-    logo?: string | null;
-  } | null;
-  steps: WorkflowStep[];
-  activeOnTeams?: {
-    team: {
-      id: number;
-      name?: string | null;
-    };
-  }[];
-  activeOn?: {
-    eventType: {
-      id: number;
-      title: string;
-      parentId: number | null;
-      _count: {
-        children: number;
-      };
-    };
-  }[];
-  readOnly?: boolean; // Keep for backward compatibility
-  permissions?: WorkflowPermissions;
-  isOrg?: boolean;
-};
+/** @deprecated Use WorkflowListType from ../lib/types instead */
+export type WorkflowType = WorkflowListType;
+
 interface Props {
   workflows: WorkflowType[] | undefined;
 }
