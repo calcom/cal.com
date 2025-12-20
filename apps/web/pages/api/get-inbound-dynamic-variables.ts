@@ -95,6 +95,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       eventTypeId,
       isTeamEvent: !!eventType?.teamId,
       orgSlug,
+      rrHostLoadMode: "partial",
     },
   });
 
