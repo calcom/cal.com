@@ -19,7 +19,8 @@ import {
 } from "react-native";
 import type { NativeSyntheticEvent } from "react-native";
 
-import { CalComAPIService, Booking, EventType } from "../../../services/calcom";
+import type { Booking, EventType } from "../../../services/calcom";
+import { CalComAPIService } from "../../../services/calcom";
 import { Header } from "../../../components/Header";
 import { FullScreenModal } from "../../../components/FullScreenModal";
 import { LoadingSpinner } from "../../../components/LoadingSpinner";
@@ -40,7 +41,17 @@ import { showErrorAlert } from "../../../utils/alerts";
 import { offlineAwareRefresh } from "../../../utils/network";
 import { openInAppBrowser } from "../../../utils/browser";
 import { getMeetingInfo } from "../../../utils/meetings-utils";
-import { getEmptyStateContent } from "../../../utils/bookings-utils";
+import {
+  getEmptyStateContent,
+  formatTime,
+  formatDate,
+  formatMonthYear,
+  getMonthYearKey,
+  groupBookingsByMonth,
+  searchBookings,
+  filterByEventType,
+} from "../../../utils/bookings-utils";
+import type { ListItem } from "../../../utils/bookings-utils";
 
 export default function Bookings() {
   const router = useRouter();
@@ -135,39 +146,10 @@ export default function Bookings() {
     let filtered = bookings;
 
     // Apply event type filter
-    if (selectedEventTypeId !== null) {
-      filtered = filtered.filter((booking) => booking.eventTypeId === selectedEventTypeId);
-    }
+    filtered = filterByEventType(filtered, selectedEventTypeId);
 
     // Apply search filter
-    if (searchQuery.trim() !== "") {
-      const searchLower = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (booking) =>
-          // Search in booking title
-          booking.title?.toLowerCase().includes(searchLower) ||
-          // Search in booking description
-          booking.description?.toLowerCase().includes(searchLower) ||
-          // Search in event type title
-          booking.eventType?.title?.toLowerCase().includes(searchLower) ||
-          // Search in attendee names
-          (booking.attendees &&
-            booking.attendees.some((attendee) =>
-              attendee.name?.toLowerCase().includes(searchLower)
-            )) ||
-          // Search in attendee emails
-          (booking.attendees &&
-            booking.attendees.some((attendee) =>
-              attendee.email?.toLowerCase().includes(searchLower)
-            )) ||
-          // Search in location
-          booking.location?.toLowerCase().includes(searchLower) ||
-          // Search in user name
-          booking.user?.name?.toLowerCase().includes(searchLower) ||
-          // Search in user email
-          booking.user?.email?.toLowerCase().includes(searchLower)
-      );
-    }
+    filtered = searchBookings(filtered, searchQuery);
 
     return filtered;
   }, [bookings, searchQuery, selectedEventTypeId]);
@@ -610,64 +592,6 @@ export default function Bookings() {
     });
   };
 
-  const formatTime = (dateString: string) => {
-    if (!dateString) {
-      return "";
-    }
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        console.warn("Invalid date string:", dateString);
-        return "";
-      }
-      return date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch (error) {
-      console.error("Error formatting time:", error, dateString);
-      return "";
-    }
-  };
-
-  const formatDate = (dateString: string, isUpcoming: boolean) => {
-    if (!dateString) {
-      return "";
-    }
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        console.warn("Invalid date string:", dateString);
-        return "";
-      }
-      const bookingYear = date.getFullYear();
-      const currentYear = new Date().getFullYear();
-      const isDifferentYear = bookingYear !== currentYear;
-
-      if (isUpcoming) {
-        // Format: "ddd, D MMM" or "ddd, D MMM YYYY" if different year
-        const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
-        const day = date.getDate();
-        const month = date.toLocaleDateString("en-US", { month: "short" });
-        if (isDifferentYear) {
-          return `${weekday}, ${day} ${month} ${bookingYear}`;
-        }
-        return `${weekday}, ${day} ${month}`;
-      } else {
-        // Format: "D MMMM YYYY" for past bookings
-        return date.toLocaleDateString("en-US", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        });
-      }
-    } catch (error) {
-      console.error("Error formatting date:", error, dateString);
-      return "";
-    }
-  };
-
   const getStatusColor = (status: string) => {
     // API v2 2024-08-13 returns status in lowercase, so normalize to uppercase for comparison
     const normalizedStatus = status.toUpperCase();
@@ -688,77 +612,6 @@ export default function Bookings() {
   const formatStatusText = (status: string) => {
     // Capitalize first letter for display
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-  };
-
-  const formatMonthYear = (dateString: string): string => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return "";
-      }
-      const now = new Date();
-      const isCurrentMonth =
-        date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
-
-      if (isCurrentMonth) {
-        return "This month";
-      }
-
-      return date.toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      });
-    } catch (error) {
-      return "";
-    }
-  };
-
-  const getMonthYearKey = (dateString: string): string => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return "";
-      }
-      return `${date.getFullYear()}-${date.getMonth()}`;
-    } catch (error) {
-      return "";
-    }
-  };
-
-  type ListItem =
-    | { type: "monthHeader"; monthYear: string; key: string }
-    | { type: "booking"; booking: Booking; key: string };
-
-  const groupBookingsByMonth = (bookings: Booking[]): ListItem[] => {
-    const grouped: ListItem[] = [];
-    let currentMonthYear: string | null = null;
-
-    bookings.forEach((booking) => {
-      const startTime = booking.start || booking.startTime || "";
-      if (!startTime) return;
-
-      const monthYearKey = getMonthYearKey(startTime);
-      const monthYear = formatMonthYear(startTime);
-
-      if (monthYearKey !== currentMonthYear) {
-        currentMonthYear = monthYearKey;
-        grouped.push({
-          type: "monthHeader",
-          monthYear,
-          key: `month-${monthYearKey}`,
-        });
-      }
-
-      grouped.push({
-        type: "booking",
-        booking,
-        key: booking.id.toString(),
-      });
-    });
-
-    return grouped;
   };
 
   const renderBooking = ({ item }: { item: Booking }) => {
