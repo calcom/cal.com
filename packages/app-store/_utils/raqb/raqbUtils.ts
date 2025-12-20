@@ -3,8 +3,8 @@ import type { Config } from "react-awesome-query-builder";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
+import { resolveQueryValue } from "@calcom/app-store/routing-forms/lib/resolveQueryValue";
 import type { LocalRoute, Attribute } from "@calcom/app-store/routing-forms/types/types";
-import { resolveQueryValue } from "@calcom/lib/raqb/resolveQueryValue";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { caseInsensitive } from "@calcom/lib/raqb/utils";
 import { safeStringify } from "@calcom/lib/safeStringify";
