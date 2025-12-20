@@ -3,8 +3,11 @@ import { Button } from "@calcom/ui/components/button";
 import { Input, Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import type {
+  IFieldMappingFormState,
+  IFieldMappingWithOptionalId,
+} from "../repositories/IIntegrationAttributeSyncRepository";
 import { getDefaultFieldMapping } from "../lib/fieldMappingHelpers";
-import type { FieldMapping, FieldMappingFormState } from "../schemas/zod";
 
 type AttributeOptions = {
   label: string;
@@ -12,15 +15,15 @@ type AttributeOptions = {
 }[];
 
 interface FieldMappingBuilderProps {
-  value: FieldMappingFormState;
-  onChange: (value: FieldMappingFormState) => void;
+  value: IFieldMappingFormState;
+  onChange: (value: IFieldMappingFormState) => void;
   attributeOptions: AttributeOptions;
   isLoadingAttributes?: boolean;
 }
 
 interface MappingRowProps {
-  mapping: FieldMapping;
-  onChange: (mapping: FieldMapping) => void;
+  mapping: IFieldMappingWithOptionalId;
+  onChange: (mapping: IFieldMappingWithOptionalId) => void;
   onRemove: () => void;
   attributeOptions: AttributeOptions;
   isLoading?: boolean;
@@ -115,7 +118,7 @@ export const FieldMappingBuilder = ({
     });
   };
 
-  const handleMappingChange = (index: number, newMapping: FieldMapping) => {
+  const handleMappingChange = (index: number, newMapping: IFieldMappingWithOptionalId) => {
     const newMappings = [...value.mappings];
     newMappings[index] = newMapping;
     onChange({

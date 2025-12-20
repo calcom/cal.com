@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma, PrismaClient } from "@calcom/prisma";
 
 import { IntegrationAttributeSyncOutputMapper } from "../mappers/IntegrationAttributeSyncOutputMapper";
 import type {
@@ -83,7 +83,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
         enabled,
         attributeSyncRule: {
           create: {
-            rule,
+            rule: rule as unknown as Prisma.InputJsonValue,
           },
         },
         syncFieldMappings: {
@@ -118,32 +118,30 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
       fieldMappingsToDelete,
     } = params;
 
+    const { id: syncId, ...syncData } = integrationAttributeSync;
+
     return this.prismaClient
       .$transaction([
         this.prismaClient.integrationAttributeSync.update({
           where: {
-            id: integrationAttributeSync.id,
+            id: syncId,
           },
-          data: {
-            ...integrationAttributeSync,
-          },
+          data: syncData,
         }),
         this.prismaClient.attributeSyncRule.update({
           where: {
             id: attributeSyncRule.id,
           },
           data: {
-            ...attributeSyncRule,
+            rule: attributeSyncRule.rule as unknown as Prisma.InputJsonValue,
           },
         }),
-        ...fieldMappingsToUpdate.map((mapping) =>
+        ...fieldMappingsToUpdate.map(({ id, ...mappingData }) =>
           this.prismaClient.attributeSyncFieldMapping.update({
             where: {
-              id: mapping.id,
+              id,
             },
-            data: {
-              ...mapping,
-            },
+            data: mappingData,
           })
         ),
         ...(fieldMappingsToCreate.length > 0
@@ -151,7 +149,7 @@ export class PrismaIntegrationAttributeSyncRepository implements IIntegrationAtt
               this.prismaClient.attributeSyncFieldMapping.createMany({
                 data: fieldMappingsToCreate.map((mapping) => ({
                   ...mapping,
-                  integrationAttributeSyncId: integrationAttributeSync.id,
+                  integrationAttributeSyncId: syncId,
                 })),
               }),
             ]

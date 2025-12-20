@@ -1,9 +1,75 @@
-import type { IAttributeSyncRule } from "../schemas/zod";
-
 export enum AttributeSyncIntegrations {
   SALESFORCE = "salesforce",
 }
 
+export enum RuleOperatorEnum {
+  AND = "AND",
+  OR = "OR",
+}
+
+export enum ConditionIdentifierEnum {
+  TEAM_ID = "teamId",
+  ATTRIBUTE_ID = "attributeId",
+}
+
+export enum ConditionOperatorEnum {
+  EQUALS = "equals",
+  NOT_EQUALS = "notEquals",
+  IN = "in",
+  NOT_IN = "notIn",
+}
+
+// Condition types
+export interface ITeamCondition {
+  identifier: ConditionIdentifierEnum.TEAM_ID;
+  operator: ConditionOperatorEnum;
+  value: number[];
+}
+
+export interface IAttributeCondition {
+  identifier: ConditionIdentifierEnum.ATTRIBUTE_ID;
+  operator: ConditionOperatorEnum;
+  attributeId: string;
+  value: string[];
+}
+
+export type TAttributeSyncRuleCondition = ITeamCondition | IAttributeCondition;
+
+export interface IAttributeSyncRule {
+  operator: RuleOperatorEnum;
+  conditions: TAttributeSyncRuleCondition[];
+}
+
+// Field mapping types
+export interface INewFieldMapping {
+  integrationFieldName: string;
+  attributeId: string;
+  enabled: boolean;
+}
+
+export interface IFieldMapping extends INewFieldMapping {
+  id: string;
+}
+
+export interface IFieldMappingWithOptionalId extends INewFieldMapping {
+  id?: string;
+}
+
+export interface IFieldMappingFormState {
+  mappings: IFieldMappingWithOptionalId[];
+}
+
+export interface ISyncFormData {
+  id: string;
+  name: string;
+  credentialId?: number;
+  enabled: boolean;
+  organizationId: number;
+  ruleId: string;
+  rule: IAttributeSyncRule;
+  syncFieldMappings: (IFieldMapping | INewFieldMapping)[];
+  [key: string]: unknown;
+}
 export interface IntegrationAttributeSync {
   id: string;
   organizationId: number;
@@ -35,6 +101,26 @@ export interface IIntegrationAttributeSyncCreateParams {
   enabled: boolean;
   rule: IAttributeSyncRule;
   syncFieldMappings: Omit<AttributeSyncFieldMapping, "id">[];
+}
+
+// TRPC schema types
+export interface ICreateAttributeSyncInput {
+  name: string;
+  credentialId: number;
+  rule: IAttributeSyncRule;
+  syncFieldMappings: INewFieldMapping[];
+  enabled: boolean;
+}
+
+export interface IUpdateAttributeSyncInput {
+  id: string;
+  name: string;
+  credentialId?: number;
+  enabled: boolean;
+  organizationId: number;
+  ruleId: string;
+  rule: IAttributeSyncRule;
+  syncFieldMappings: IFieldMappingWithOptionalId[];
 }
 
 export interface IIntegrationAttributeSyncRepository {

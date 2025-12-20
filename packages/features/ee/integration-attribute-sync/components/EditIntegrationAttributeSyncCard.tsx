@@ -2,8 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { IntegrationAttributeSync } from "../repositories/IIntegrationAttributeSyncRepository";
-import type { ISyncFormData } from "../schemas/zod";
+import type { IntegrationAttributeSync, ISyncFormData } from "../repositories/IIntegrationAttributeSyncRepository";
 import IntegrationAttributeSyncCard from "./IntegrationAttributeSyncCard";
 import type { IIntegrationAttributeSyncCardProps } from "./IntegrationAttributeSyncCard";
 

@@ -10,8 +10,11 @@ import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { SelectField, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { IntegrationAttributeSync } from "../repositories/IIntegrationAttributeSyncRepository";
-import type { ISyncFormData } from "../schemas/zod";
+import {
+  type IntegrationAttributeSync,
+  type ISyncFormData,
+  RuleOperatorEnum,
+} from "../repositories/IIntegrationAttributeSyncRepository";
 import { FieldMappingBuilder } from "./FieldMappingBuilder";
 import { RuleBuilder } from "./RuleBuilder";
 
@@ -65,7 +68,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
           enabled: sync.enabled,
           organizationId: sync.organizationId,
           ruleId: sync.attributeSyncRules[0]?.id || "",
-          rule: sync.attributeSyncRules[0]?.rule || { operator: "AND", conditions: [] },
+          rule: sync.attributeSyncRules[0]?.rule || { operator: RuleOperatorEnum.AND, conditions: [] },
           syncFieldMappings: Array.isArray(sync.syncFieldMappings) ? sync.syncFieldMappings : [],
         }
       : {
@@ -75,7 +78,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
           enabled: true,
           organizationId,
           ruleId: "",
-          rule: { operator: "AND", conditions: [] },
+          rule: { operator: RuleOperatorEnum.AND, conditions: [] },
           syncFieldMappings: [],
         },
   });
@@ -90,7 +93,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
         enabled: sync.enabled,
         organizationId: sync.organizationId,
         ruleId: sync.attributeSyncRules[0]?.id || "",
-        rule: sync.attributeSyncRules[0]?.rule || { operator: "AND", conditions: [] },
+        rule: sync.attributeSyncRules[0]?.rule || { operator: RuleOperatorEnum.AND, conditions: [] },
         syncFieldMappings: Array.isArray(sync.syncFieldMappings) ? sync.syncFieldMappings : [],
       });
     }

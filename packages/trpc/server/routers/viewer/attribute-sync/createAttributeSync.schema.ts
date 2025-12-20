@@ -1,19 +1,17 @@
 import { z } from "zod";
 
-import { attributeSyncRuleSchema } from "@calcom/features/ee/integration-attribute-sync/schemas/zod";
+import type { ICreateAttributeSyncInput } from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
+import {
+  attributeSyncRuleSchema,
+  newFieldMappingSchema,
+} from "@calcom/features/ee/integration-attribute-sync/schemas/zod";
 
-const fieldMappingSchema = z.object({
-  integrationFieldName: z.string().min(1),
-  attributeId: z.string().min(1),
-  enabled: z.boolean(),
-});
-
-export const createAttributeSyncSchema = z.object({
+export const createAttributeSyncSchema: z.ZodType<ICreateAttributeSyncInput> = z.object({
   name: z.string().min(1, "Name is required"),
   credentialId: z.number(),
   rule: attributeSyncRuleSchema,
-  syncFieldMappings: z.array(fieldMappingSchema),
-  enabled: z.boolean().default(true),
+  syncFieldMappings: z.array(newFieldMappingSchema),
+  enabled: z.boolean(),
 });
 
-export type ZCreateAttributeSyncSchema = z.infer<typeof createAttributeSyncSchema>;
+export type ZCreateAttributeSyncSchema = ICreateAttributeSyncInput;

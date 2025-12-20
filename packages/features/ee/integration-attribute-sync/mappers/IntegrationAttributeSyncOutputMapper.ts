@@ -23,7 +23,7 @@ type PrismaIntegrationAttributeSyncWithRelations = Pick<
 };
 
 export class IntegrationAttributeSyncOutputMapper {
-  static attributeSyncRuleToDomain(prisma: PrismaAttributeSyncRule): Omit<AttributeSyncRule, "syncFieldMappings"> {
+  static attributeSyncRuleToDomain(prisma: PrismaAttributeSyncRule): AttributeSyncRule {
     const parsedRules = attributeSyncRuleSchema.parse(prisma.rule);
 
     return {

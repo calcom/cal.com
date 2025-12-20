@@ -4,9 +4,10 @@ import type { ZCreateAttributeSyncSchema } from "@calcom/trpc/server/routers/vie
 import { enabledAppSlugs } from "../constants";
 import {
   type IIntegrationAttributeSyncRepository,
+  type ISyncFormData,
   AttributeSyncIntegrations,
 } from "../repositories/IIntegrationAttributeSyncRepository";
-import { type ISyncFormData, attributeSyncRuleSchema } from "../schemas/zod";
+import { attributeSyncRuleSchema } from "../schemas/zod";
 
 interface IIntegrationAttributeSyncServiceDeps {
   credentialRepository: CredentialRepository;

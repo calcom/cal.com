@@ -17,15 +17,15 @@ import {
   isArrayOperator,
   isTeamCondition,
 } from "../lib/ruleHelpers";
-import type {
-  AttributeCondition,
-  Condition,
-  ConditionIdentifier,
-  ConditionOperator,
-  IAttributeSyncRule,
-  RuleOperator,
-  TeamCondition,
-} from "../schemas/zod";
+import {
+  ConditionIdentifierEnum,
+  type ConditionOperatorEnum,
+  type IAttributeCondition,
+  type IAttributeSyncRule,
+  type ITeamCondition,
+  type RuleOperatorEnum,
+  type TAttributeSyncRuleCondition,
+} from "../repositories/IIntegrationAttributeSyncRepository";
 
 interface RuleBuilderProps {
   value: IAttributeSyncRule;
@@ -37,8 +37,8 @@ interface RuleBuilderProps {
 }
 
 interface ConditionComponentProps {
-  condition: Condition;
-  onChange: (condition: Condition) => void;
+  condition: TAttributeSyncRuleCondition;
+  onChange: (condition: TAttributeSyncRuleCondition) => void;
   onRemove: () => void;
   teamOptions: { value: string; label: string }[];
   attributes: Attribute[];
@@ -57,10 +57,10 @@ const ConditionComponent = ({
   const conditionTypeOptions = getConditionTypeOptions(t);
   const conditionTypeOption = conditionTypeOptions.find((opt) => opt.value === condition.identifier);
 
-  const handleTypeChange = (newType: { value: ConditionIdentifier; label: string } | null) => {
+  const handleTypeChange = (newType: { value: ConditionIdentifierEnum; label: string } | null) => {
     if (!newType) return;
 
-    if (newType.value === "teamId") {
+    if (newType.value === ConditionIdentifierEnum.TEAM_ID) {
       onChange(getDefaultTeamCondition());
     } else {
       onChange(getDefaultAttributeCondition());
@@ -109,8 +109,8 @@ const ConditionComponent = ({
 };
 
 interface TeamConditionFieldsProps {
-  condition: TeamCondition;
-  onChange: (condition: Condition) => void;
+  condition: ITeamCondition;
+  onChange: (condition: TAttributeSyncRuleCondition) => void;
   teamOptions: { value: string; label: string }[];
   isLoading?: boolean;
 }
@@ -125,7 +125,7 @@ const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: Te
     ? teamOptions.filter((opt) => condition.value.includes(Number(opt.value)))
     : teamOptions.find((opt) => Number(opt.value) === condition.value[0]);
 
-  const handleOperatorChange = (newOperator: { value: ConditionOperator; label: string } | null) => {
+  const handleOperatorChange = (newOperator: { value: ConditionOperatorEnum; label: string } | null) => {
     if (!newOperator) return;
 
     const formattedValue = formatConditionValue(newOperator.value, condition.value) as number[];
@@ -189,8 +189,8 @@ const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: Te
 };
 
 interface AttributeConditionFieldsProps {
-  condition: AttributeCondition;
-  onChange: (condition: Condition) => void;
+  condition: IAttributeCondition;
+  onChange: (condition: TAttributeSyncRuleCondition) => void;
   attributes: Attribute[];
   isLoading?: boolean;
 }
@@ -232,7 +232,7 @@ const AttributeConditionFields = ({
     });
   };
 
-  const handleOperatorChange = (newOperator: { value: ConditionOperator; label: string } | null) => {
+  const handleOperatorChange = (newOperator: { value: ConditionOperatorEnum; label: string } | null) => {
     if (!newOperator) return;
 
     const formattedValue = formatConditionValue(newOperator.value, condition.value) as string[];
@@ -396,7 +396,7 @@ export const RuleBuilder = ({
   const parentOperatorOption = parentOperatorOptions.find((opt) => opt.value === value.operator);
   const isLoading = isLoadingTeams || isLoadingAttributes;
 
-  const handleOperatorChange = (newOperator: { value: RuleOperator; label: string } | null) => {
+  const handleOperatorChange = (newOperator: { value: RuleOperatorEnum; label: string } | null) => {
     if (!newOperator) return;
     onChange({
       ...value,
@@ -411,7 +411,7 @@ export const RuleBuilder = ({
     });
   };
 
-  const handleConditionChange = (index: number, newCondition: Condition) => {
+  const handleConditionChange = (index: number, newCondition: TAttributeSyncRuleCondition) => {
     const newConditions = [...value.conditions];
     newConditions[index] = newCondition;
     onChange({

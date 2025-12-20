@@ -1,38 +1,47 @@
 import type { AttributeType } from "@calcom/prisma/enums";
 
-import type { Condition, TeamCondition, AttributeCondition, ConditionOperator } from "../schemas/zod";
+import {
+  ConditionIdentifierEnum,
+  ConditionOperatorEnum,
+  type IAttributeCondition,
+  type ITeamCondition,
+  RuleOperatorEnum,
+  type TAttributeSyncRuleCondition,
+} from "../repositories/IIntegrationAttributeSyncRepository";
 
 type TFunction = (key: string) => string;
 
 // Factory functions
-export const getDefaultTeamCondition = (): TeamCondition => ({
-  identifier: "teamId",
-  operator: "in",
+export const getDefaultTeamCondition = (): ITeamCondition => ({
+  identifier: ConditionIdentifierEnum.TEAM_ID,
+  operator: ConditionOperatorEnum.IN,
   value: [],
 });
 
-export const getDefaultAttributeCondition = (): AttributeCondition => ({
-  identifier: "attributeId",
+export const getDefaultAttributeCondition = (): IAttributeCondition => ({
+  identifier: ConditionIdentifierEnum.ATTRIBUTE_ID,
   attributeId: "",
-  operator: "equals",
+  operator: ConditionOperatorEnum.EQUALS,
   value: [],
 });
 
 // Type guards
-export const isTeamCondition = (condition: Condition): condition is TeamCondition => {
-  return condition.identifier === "teamId";
+export const isTeamCondition = (condition: TAttributeSyncRuleCondition): condition is ITeamCondition => {
+  return condition.identifier === ConditionIdentifierEnum.TEAM_ID;
 };
 
-export const isAttributeCondition = (condition: Condition): condition is AttributeCondition => {
-  return condition.identifier === "attributeId";
+export const isAttributeCondition = (
+  condition: TAttributeSyncRuleCondition
+): condition is IAttributeCondition => {
+  return condition.identifier === ConditionIdentifierEnum.ATTRIBUTE_ID;
 };
 
-export const isArrayOperator = (operator: ConditionOperator): boolean => {
-  return operator === "in" || operator === "notIn";
+export const isArrayOperator = (operator: ConditionOperatorEnum): boolean => {
+  return operator === ConditionOperatorEnum.IN || operator === ConditionOperatorEnum.NOT_IN;
 };
 
 export const formatConditionValue = (
-  operator: ConditionOperator,
+  operator: ConditionOperatorEnum,
   value: number[] | string[]
 ): number[] | string[] => {
   if (isArrayOperator(operator)) {
@@ -44,8 +53,8 @@ export const formatConditionValue = (
 
 // Operator options for teams
 export const getTeamOperatorOptions = (t: TFunction) => [
-  { value: "in" as const, label: t("attribute_sync_operator_is_any_of") },
-  { value: "notIn" as const, label: t("attribute_sync_operator_is_not_any_of") },
+  { value: ConditionOperatorEnum.IN, label: t("attribute_sync_operator_is_any_of") },
+  { value: ConditionOperatorEnum.NOT_IN, label: t("attribute_sync_operator_is_not_any_of") },
 ];
 
 // Operator options based on attribute type
@@ -53,29 +62,29 @@ export const getOperatorOptionsForAttributeType = (type: AttributeType, t: TFunc
   switch (type) {
     case "SINGLE_SELECT":
       return [
-        { value: "equals" as const, label: t("attribute_sync_operator_is") },
-        { value: "notEquals" as const, label: t("attribute_sync_operator_is_not") },
+        { value: ConditionOperatorEnum.EQUALS, label: t("attribute_sync_operator_is") },
+        { value: ConditionOperatorEnum.NOT_EQUALS, label: t("attribute_sync_operator_is_not") },
       ];
     case "MULTI_SELECT":
       return [
-        { value: "in" as const, label: t("attribute_sync_operator_includes_any_of") },
-        { value: "notIn" as const, label: t("attribute_sync_operator_does_not_include") },
+        { value: ConditionOperatorEnum.IN, label: t("attribute_sync_operator_includes_any_of") },
+        { value: ConditionOperatorEnum.NOT_IN, label: t("attribute_sync_operator_does_not_include") },
       ];
     case "TEXT":
     case "NUMBER":
       return [
-        { value: "equals" as const, label: t("attribute_sync_operator_equals") },
-        { value: "notEquals" as const, label: t("attribute_sync_operator_not_equals") },
+        { value: ConditionOperatorEnum.EQUALS, label: t("attribute_sync_operator_equals") },
+        { value: ConditionOperatorEnum.NOT_EQUALS, label: t("attribute_sync_operator_not_equals") },
       ];
   }
 };
 
 export const getParentOperatorOptions = (t: TFunction) => [
-  { value: "AND" as const, label: t("all") },
-  { value: "OR" as const, label: t("any") },
+  { value: RuleOperatorEnum.AND, label: t("all") },
+  { value: RuleOperatorEnum.OR, label: t("any") },
 ];
 
 export const getConditionTypeOptions = (t: TFunction) => [
-  { value: "teamId" as const, label: t("team") },
-  { value: "attributeId" as const, label: t("attribute") },
+  { value: ConditionIdentifierEnum.TEAM_ID, label: t("team") },
+  { value: ConditionIdentifierEnum.ATTRIBUTE_ID, label: t("attribute") },
 ];

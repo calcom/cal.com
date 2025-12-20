@@ -1,6 +1,6 @@
-import type { FieldMapping } from "../schemas/zod";
+import type { IFieldMappingWithOptionalId } from "../repositories/IIntegrationAttributeSyncRepository";
 
-export const getDefaultFieldMapping = (): FieldMapping => ({
+export const getDefaultFieldMapping = (): IFieldMappingWithOptionalId => ({
   integrationFieldName: "",
   attributeId: "",
   enabled: true,
