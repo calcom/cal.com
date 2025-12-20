@@ -27,7 +27,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.calcom.companion"
+      "package": "com.calcom.companion",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -38,6 +39,7 @@
         "projectId": "f5e97f6f-1e95-44ac-bfa4-f737ef90f198"
       }
     },
-    "owner": "calcoms-organization"
+    "owner": "calcoms-organization",
+    "plugins": ["expo-router", "expo-secure-store", "expo-web-browser"]
   }
 }

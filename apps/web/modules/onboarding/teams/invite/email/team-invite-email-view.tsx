@@ -43,13 +43,13 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   // Read teamId from query params and store it (from payment callback or redirect)
   useEffect(() => {
     const teamIdParam = searchParams?.get("teamId");
-    if (teamIdParam) {
-      const teamId = parseInt(teamIdParam, 10);
-      if (!isNaN(teamId)) {
-        setTeamId(teamId);
+    if (teamIdParam && !teamId) {
+      const parsedTeamId = parseInt(teamIdParam, 10);
+      if (!isNaN(parsedTeamId)) {
+        setTeamId(parsedTeamId);
       }
     }
-  }, [searchParams, setTeamId]);
+  }, [searchParams, setTeamId, teamId]);
 
   const formSchema = z.object({
     invites: z.array(
@@ -79,6 +79,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     const teamIdParam = searchParams?.get("teamId");
     const parsedTeamId = !teamId ? parseInt(teamIdParam || "", 10) : teamId;
     if (!parsedTeamId) {
+      console.log("Team ID is missing. Please go back and create your team first.");
       showToast(
         t("team_id_missing") || "Team ID is missing. Please go back and create your team first.",
         "error"
@@ -113,6 +114,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       }
     } else {
       // No invites, skip to personal settings
+      console.log("No invites, skipping to personal settings");
       const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
       router.replace(gettingStartedPath);
     }
@@ -123,10 +125,6 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     // Skip inviting members and go to personal settings
     const gettingStartedPath = "/onboarding/personal/settings?fromTeamOnboarding=true";
     router.replace(gettingStartedPath);
-  };
-
-  const handleSubmitClick = () => {
-    form.handleSubmit(handleContinue)();
   };
 
   // Watch form values to pass to browser view for real-time updates
@@ -156,12 +154,11 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                     {t("onboarding_skip_for_now")}
                   </Button>
                   <Button
-                    type="button"
+                    type="submit"
                     color="primary"
                     className="rounded-[10px]"
                     disabled={!hasValidInvites || isSubmitting}
-                    loading={isSubmitting}
-                    onClick={handleSubmitClick}>
+                    loading={isSubmitting}>
                     {t("continue")}
                   </Button>
                 </div>
