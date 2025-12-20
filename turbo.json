@@ -321,13 +321,6 @@
       "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/trpc#build": {
-      "inputs": [
-        "../../packages/prisma/zod-utils.ts",
-        "../../packages/features/**/*.ts",
-        "../../packages/features/**/*.tsx",
-        "../../packages/ui/**/*.ts",
-        "../../packages/ui/**/*.tsx"
-      ],
       "outputs": ["./types"]
     },
     "@calcom/web#build": {
