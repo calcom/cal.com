@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { Activity, useMemo, useState } from "react";
-import { View, Text, FlatList, RefreshControl, ScrollView } from "react-native";
+import { View, Text, FlatList, RefreshControl, ScrollView, Alert } from "react-native";
 
 import type { Booking, EventType } from "../../services/calcom";
 import { LoadingSpinner } from "../LoadingSpinner";
@@ -208,6 +208,30 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
           setSelectedBooking(booking);
           setShowBookingActionsModal(true);
         }}
+        // iOS context menu action handlers
+        onReschedule={handleRescheduleBooking}
+        onEditLocation={() => {
+          Alert.alert("Edit Location", "Edit location functionality coming soon");
+        }}
+        onAddGuests={() => {
+          Alert.alert("Add Guests", "Add guests functionality coming soon");
+        }}
+        onViewRecordings={() => {
+          Alert.alert("View Recordings", "View recordings functionality coming soon");
+        }}
+        onMeetingSessionDetails={() => {
+          Alert.alert(
+            "Meeting Session Details",
+            "Meeting session details functionality coming soon"
+          );
+        }}
+        onMarkNoShow={() => {
+          Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
+        }}
+        onReportBooking={() => {
+          Alert.alert("Report Booking", "Report booking functionality coming soon");
+        }}
+        onCancelBooking={handleCancelBooking}
       />
     );
   };

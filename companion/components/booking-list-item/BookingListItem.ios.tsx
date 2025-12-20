@@ -1,6 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text, TouchableOpacity, Linking } from "react-native";
+import { View, Text, TouchableOpacity, Linking, Pressable, Alert } from "react-native";
+import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
+import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 import type { BookingListItemProps } from "./types";
 import { SvgImage } from "../SvgImage";
@@ -18,6 +21,14 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   onConfirm,
   onReject,
   onActionsPress,
+  onReschedule,
+  onEditLocation,
+  onAddGuests,
+  onViewRecordings,
+  onMeetingSessionDetails,
+  onMarkNoShow,
+  onReportBooking,
+  onCancelBooking,
 }) => {
   const startTime = booking.start || booking.startTime || "";
   const endTime = booking.end || booking.endTime || "";
@@ -25,17 +36,93 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
   const isPending = booking.status?.toUpperCase() === "PENDING";
   const isCancelled = booking.status?.toUpperCase() === "CANCELLED";
   const isRejected = booking.status?.toUpperCase() === "REJECTED";
+  const hasLocationUrl = !!booking.location;
 
   const hostAndAttendeesDisplay = getHostAndAttendeesDisplay(booking, userEmail);
   const meetingInfo = getMeetingInfo(booking.location);
 
+  // Define context menu actions based on booking state
+  type ContextMenuAction = {
+    label: string;
+    icon: string;
+    onPress: () => void;
+    role: "default" | "destructive";
+  };
+
+  const allActions: (ContextMenuAction & { visible: boolean })[] = [
+    // Edit Event Section
+    {
+      label: "Reschedule Booking",
+      icon: "calendar",
+      onPress: () => onReschedule?.(booking),
+      role: "default",
+      visible: isUpcoming && !isCancelled && !isPending && !!onReschedule,
+    },
+    {
+      label: "Edit Location",
+      icon: "location",
+      onPress: () => onEditLocation?.(booking),
+      role: "default",
+      visible: isUpcoming && !isCancelled && !isPending && !!onEditLocation,
+    },
+    {
+      label: "Add Guests",
+      icon: "person.badge.plus",
+      onPress: () => onAddGuests?.(booking),
+      role: "default",
+      visible: isUpcoming && !isCancelled && !isPending && !!onAddGuests,
+    },
+    // After Event Section
+    {
+      label: "View Recordings",
+      icon: "video",
+      onPress: () => onViewRecordings?.(booking),
+      role: "default",
+      visible: hasLocationUrl && !isUpcoming && !isCancelled && !isPending && !!onViewRecordings,
+    },
+    {
+      label: "Meeting Session Details",
+      icon: "info.circle",
+      onPress: () => onMeetingSessionDetails?.(booking),
+      role: "default",
+      visible:
+        hasLocationUrl && !isUpcoming && !isCancelled && !isPending && !!onMeetingSessionDetails,
+    },
+    {
+      label: "Mark as No-Show",
+      icon: "eye.slash",
+      onPress: () => onMarkNoShow?.(booking),
+      role: "default",
+      visible: !isUpcoming && !isPending && !!onMarkNoShow,
+    },
+    // Other Actions
+    {
+      label: "Report Booking",
+      icon: "flag",
+      onPress: () => onReportBooking?.(booking),
+      role: "destructive",
+      visible: !!onReportBooking,
+    },
+    {
+      label: "Cancel Event",
+      icon: "xmark.circle",
+      onPress: () => onCancelBooking?.(booking),
+      role: "destructive",
+      visible: isUpcoming && !isCancelled && !!onCancelBooking,
+    },
+  ];
+
+  const contextMenuActions: ContextMenuAction[] = allActions
+    .filter((action) => action.visible)
+    .map(({ label, icon, onPress, role }) => ({ label, icon, onPress, role }));
+
   return (
     <View className="border-b border-[#E5E5EA] bg-white">
-      <TouchableOpacity
-        className="active:bg-[#F8F9FA]"
+      <Pressable
         onPress={() => onPress(booking)}
         onLongPress={() => onLongPress(booking)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
+        className="active:bg-[#F8F9FA]"
       >
         {/* Time and Date Row */}
         <View className="mb-2 flex-row flex-wrap items-center">
@@ -101,7 +188,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
             </TouchableOpacity>
           </View>
         ) : null}
-      </TouchableOpacity>
+      </Pressable>
       <View
         className="flex-row items-center justify-end"
         style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
@@ -142,16 +229,36 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
             </TouchableOpacity>
           </>
         ) : null}
-        <TouchableOpacity
-          className="items-center justify-center rounded-lg border border-[#E5E5EA]"
-          style={{ width: 32, height: 32 }}
-          onPress={(e) => {
-            e.stopPropagation();
-            onActionsPress(booking);
-          }}
-        >
-          <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
-        </TouchableOpacity>
+
+        {/* iOS Context Menu */}
+        <Host matchContents>
+          <ContextMenu
+            modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
+            activationMethod="singlePress"
+          >
+            <ContextMenu.Items>
+              {contextMenuActions.map((action) => (
+                <Button
+                  key={action.label}
+                  systemImage={action.icon as any}
+                  onPress={action.onPress}
+                  role={action.role}
+                  label={action.label}
+                />
+              ))}
+            </ContextMenu.Items>
+            <ContextMenu.Trigger>
+              <HStack>
+                <Image
+                  systemName="ellipsis"
+                  color="primary"
+                  size={24}
+                  modifiers={[frame({ height: 24, width: 17 })]}
+                />
+              </HStack>
+            </ContextMenu.Trigger>
+          </ContextMenu>
+        </Host>
       </View>
     </View>
   );
