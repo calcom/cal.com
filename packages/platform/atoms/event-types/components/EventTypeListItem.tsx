@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
+
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -61,14 +63,14 @@ const EventTypeActions = ({
             type="button"
             variant="icon"
             color="secondary"
-            StartIcon="ellipsis"
+            StartIcon={EllipsisIcon}
             aria-label={t("options")}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {getEventTypeUrl && (
             <DropdownMenuItem className="min-w-40 focus:ring-muted">
-              <DropdownItem type="button" StartIcon="pencil" href={getEventTypeUrl(eventType.id)}>
+              <DropdownItem type="button" StartIcon={PencilIcon} href={getEventTypeUrl(eventType.id)}>
                 {t("edit")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -78,7 +80,7 @@ const EventTypeActions = ({
             <DropdownItem
               type="button"
               color="destructive"
-              StartIcon="trash"
+              StartIcon={TrashIcon}
               data-testid={`delete-event-type-${eventType.id}`}
               className="rounded-t-none"
               onClick={() => {

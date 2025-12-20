@@ -1,5 +1,6 @@
 "use client";
 
+import { ClipboardCheckIcon, ClipboardIcon, LoaderIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
@@ -12,7 +13,6 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
-import { Spinner } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface IAlbyPaymentComponentProps {
@@ -53,7 +53,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
   return (
     <div className="mb-4 mt-8 flex h-full w-full flex-col items-center justify-center gap-4">
       <PaymentChecker {...props.paymentPageProps} />
-      {isPaying && <Spinner className="mt-12 h-8 w-8" />}
+      {isPaying && <LoaderIcon className="mt-12 h-8 w-8 animate-spin" />}
       {!isPaying && (
         <>
           {!showQRCode && (
@@ -84,7 +84,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
           {showQRCode && (
             <>
               <div className="flex items-center justify-center gap-2">
-                <Spinner className="h-4 w-4" />
+                <LoaderIcon className="h-4 w-4 animate-spin" />
                 <p className="text-xs">Waiting for payment</p>
               </div>
               <p className="text-sm">Click or scan the invoice below to pay</p>
@@ -99,7 +99,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
                 color="secondary"
                 onClick={() => copyToClipboard(paymentRequest)}
                 className="text-subtle rounded-md"
-                StartIcon={isCopied ? "clipboard-check" : "clipboard"}>
+                StartIcon={isCopied ? ClipboardCheckIcon : ClipboardIcon}>
                 Copy Invoice
               </Button>
               <Link target="_blank" href="https://getalby.com" className="link mt-4 text-sm underline">

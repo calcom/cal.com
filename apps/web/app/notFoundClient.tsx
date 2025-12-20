@@ -1,5 +1,6 @@
 "use client";
 
+import { BookOpenIcon, CheckIcon, ChevronRightIcon, FileTextIcon, ShieldIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLayoutEffect } from "react";
@@ -10,7 +11,6 @@ import {
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 
 enum PageType {
   ORG = "ORG",
@@ -65,19 +65,19 @@ export function NotFound({ host }: { host: string }) {
     {
       title: t("enterprise"),
       description: "Learn more about organizations and subdomains in our enterprise plan.",
-      icon: "shield" as const,
+      Icon: ShieldIcon,
       href: `${WEBSITE_URL}/enterprise`,
     },
     {
       title: t("documentation"),
       description: t("documentation_description"),
-      icon: "file-text" as const,
+      Icon: FileTextIcon,
       href: DOCS_URL,
     },
     {
       title: t("blog"),
       description: t("blog_description"),
-      icon: "book-open" as const,
+      Icon: BookOpenIcon,
       href: `${WEBSITE_URL}/blog`,
     },
   ];
@@ -153,7 +153,7 @@ export function NotFound({ host }: { host: string }) {
                   rel="noreferrer">
                   <div className="shrink-0">
                     <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                      <Icon name="check" className="h-6 w-6 text-green-500" aria-hidden="true" />
+                      <CheckIcon className="h-6 w-6 text-green-500" aria-hidden="true" />
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
@@ -170,7 +170,7 @@ export function NotFound({ host }: { host: string }) {
                     <p className="text-subtle text-base">{t(`404_claim_entity_${pageType.toLowerCase()}`)}</p>
                   </div>
                   <div className="shrink-0 self-center">
-                    <Icon name="chevron-right" className="text-muted h-5 w-5" aria-hidden="true" />
+                    <ChevronRightIcon className="text-muted h-5 w-5" aria-hidden="true" />
                   </div>
                 </a>
               </li>
@@ -187,7 +187,7 @@ export function NotFound({ host }: { host: string }) {
                     className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                     <div className="shrink-0">
                       <span className="bg-cal-muted flex h-12 w-12 items-center justify-center rounded-lg">
-                        <Icon name={link.icon} className="text-default h-6 w-6" aria-hidden="true" />
+                        <link.Icon className="text-default h-6 w-6" aria-hidden="true" />
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
@@ -200,7 +200,7 @@ export function NotFound({ host }: { host: string }) {
                       <p className="text-subtle text-base">{link.description}</p>
                     </div>
                     <div className="shrink-0 self-center">
-                      <Icon name="chevron-right" className="text-muted h-5 w-5" aria-hidden="true" />
+                      <ChevronRightIcon className="text-muted h-5 w-5" aria-hidden="true" />
                     </div>
                   </a>
                 </li>

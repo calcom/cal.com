@@ -114,7 +114,7 @@ export function AgentConfigForm({
             color="secondary"
             size="sm"
             disabled={readOnly}>
-            <Icon name="plus" className="mr-2 w-4 h-4" />
+            <Plus className="mr-2 w-4 h-4" />
             {t("Add Function")}
           </Button>
         </div>
@@ -125,7 +125,7 @@ export function AgentConfigForm({
               className="flex justify-between items-center p-4 rounded-lg border transition-colors border-subtle bg-cal-muted hover:bg-default">
               <div className="flex gap-3">
                 <div className="flex justify-center items-center w-8 h-8 rounded-md border bg-default border-subtle">
-                  <Icon name="zap" className="w-4 h-4 text-emphasis" />
+                  <Zap className="w-4 h-4 text-emphasis" />
                 </div>
                 <div>
                   <p className="font-medium text-emphasis">{tool.name}</p>
@@ -144,7 +144,7 @@ export function AgentConfigForm({
                   variant="icon"
                   onClick={() => openEditToolDialog(idx)}
                   disabled={readOnly}>
-                  <Icon name="pencil" className="w-4 h-4" />
+                  <Pencil className="w-4 h-4" />
                 </Button>
                 {tool.name !== "end_call" && (
                   <Button
@@ -154,7 +154,7 @@ export function AgentConfigForm({
                     size="sm"
                     onClick={() => handleToolDelete(idx)}
                     disabled={readOnly}>
-                    <Icon name="trash" className="w-4 h-4" />
+                    <Trash className="w-4 h-4" />
                   </Button>
                 )}
               </div>
@@ -162,7 +162,7 @@ export function AgentConfigForm({
           ))}
           {toolFields.length === 0 && (
             <div className="flex flex-col justify-center items-center p-6 text-center rounded-lg border border-subtle bg-cal-muted">
-              <Icon name="zap" className="w-6 h-6 text-subtle" />
+              <Zap className="w-6 h-6 text-subtle" />
               <p className="mt-2 text-sm text-subtle">{t("No functions configured yet")}</p>
               <p className="text-xs text-subtle">
                 {t("Add functions to enable advanced capabilities")}

@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 
@@ -12,7 +13,6 @@ import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import LocationSettingsContainer from "./LocationSettingsContainer";
@@ -38,7 +38,11 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
           <span className="hidden w-full justify-between truncate text-ellipsis lg:flex">
             {!isExpanded ? t("show_advanced_settings") : t("hide_advanced_settings")}
           </span>
-          <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="ml-auto h-4 w-4" />
+          {isExpanded ? (
+            <ChevronUpIcon className="ml-auto h-4 w-4" />
+          ) : (
+            <ChevronDownIcon className="ml-auto h-4 w-4" />
+          )}
         </button>
       </Tooltip>
       <div ref={parent}>

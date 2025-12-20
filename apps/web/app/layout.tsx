@@ -6,7 +6,6 @@ import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/lib/server/i18n";
-import { IconSprites } from "@calcom/ui/components/icon";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -117,8 +116,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/'/g, "")};
+            --font-cal: ${calFont.style.fontFamily.replace(/'/g, "")};
           }
         `}</style>
       </head>
@@ -141,7 +140,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 opacity: 1,
               }
         }>
-        <IconSprites />
         <SpeculationRules
           // URLs In Navigation
           prerenderPathsOnHover={[

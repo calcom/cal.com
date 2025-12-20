@@ -1,3 +1,5 @@
+import { Ban as BanIcon } from "lucide-react";
+
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -28,7 +30,7 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <DataTableSelectionBar.Button icon="ban" color="destructive">
+        <DataTableSelectionBar.Button Icon={BanIcon} color="destructive">
           {t("Delete")}
         </DataTableSelectionBar.Button>
       </DialogTrigger>

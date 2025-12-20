@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import * as React from "react";
 import { DayPicker } from "react-day-picker";
 
@@ -7,7 +8,6 @@ import dayjs from "@calcom/dayjs";
 import cn from "@calcom/ui/classNames";
 
 import { buttonClasses } from "../../button/Button";
-import { Icon } from "../../icon";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -63,8 +63,8 @@ function Calendar({
             </span>
           </div>
         ),
-        IconLeft: () => <Icon name="chevron-left" className="h-4 w-4 stroke-2" />,
-        IconRight: () => <Icon name="chevron-right" className="h-4 w-4 stroke-2" />,
+        IconLeft: () => <ChevronLeftIcon className="h-4 w-4 stroke-2" />,
+        IconRight: () => <ChevronRightIcon className="h-4 w-4 stroke-2" />,
       }}
       {...props}
     />

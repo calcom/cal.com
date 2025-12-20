@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ClipboardIcon, CodeIcon, CopyIcon, EllipsisIcon, ExternalLinkIcon, LinkIcon, PencilIcon, SearchIcon, TrashIcon, UploadIcon, VenetianMaskIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
@@ -54,7 +55,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -124,7 +124,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
     <div>
       <TextField
         className="max-w-64"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+        addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
         containerClassName="max-w-64 focus:ring-offset-0! mb-4"
         type="search"
         value={searchTerm}
@@ -601,7 +601,7 @@ export const InfiniteEventTypeList = ({
                                     target="_blank"
                                     variant="icon"
                                     href={calLink}
-                                    StartIcon="external-link"
+                                    StartIcon={ExternalLinkIcon}
                                   />
                                 </Tooltip>
 
@@ -609,7 +609,7 @@ export const InfiniteEventTypeList = ({
                                   <Button
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon="link"
+                                    StartIcon={LinkIcon}
                                     onClick={() => {
                                       showToast(t("link_copied"), "success");
                                       copyToClipboard(calLink);
@@ -622,7 +622,7 @@ export const InfiniteEventTypeList = ({
                                     <Button
                                       color="secondary"
                                       variant="icon"
-                                      StartIcon="venetian-mask"
+                                      StartIcon={VenetianMaskIcon}
                                       onClick={() => {
                                         showToast(t("private_link_copied"), "success");
                                         copyToClipboard(placeholderHashedLink);
@@ -643,7 +643,7 @@ export const InfiniteEventTypeList = ({
                                   type="button"
                                   variant="icon"
                                   color="secondary"
-                                  StartIcon="ellipsis"
+                                  StartIcon={EllipsisIcon}
                                   // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
                                   className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                                 />
@@ -654,7 +654,7 @@ export const InfiniteEventTypeList = ({
                                     <DropdownItem
                                       type="button"
                                       data-testid={`event-type-edit-${type.id}`}
-                                      StartIcon="pencil"
+                                      StartIcon={PencilIcon}
                                       onClick={() => router.push(`/event-types/${type.id}`)}>
                                       {t("edit")}
                                     </DropdownItem>
@@ -667,7 +667,7 @@ export const InfiniteEventTypeList = ({
                                       <DropdownItem
                                         type="button"
                                         data-testid={`event-type-duplicate-${type.id}`}
-                                        StartIcon="copy"
+                                        StartIcon={CopyIcon}
                                         onClick={() => openDuplicateModal(type, group)}>
                                         {t("duplicate")}
                                       </DropdownItem>
@@ -680,7 +680,7 @@ export const InfiniteEventTypeList = ({
                                       namespace={type.slug}
                                       as={DropdownItem}
                                       type="button"
-                                      StartIcon="code"
+                                      StartIcon={CodeIcon}
                                       className="w-full rounded-none"
                                       embedUrl={encodeURIComponent(embedLink)}
                                       eventId={type.id}>
@@ -700,7 +700,7 @@ export const InfiniteEventTypeList = ({
                                           setDeleteDialogTypeId(type.id);
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
-                                        StartIcon="trash"
+                                        StartIcon={TrashIcon}
                                         className="w-full rounded-t-none">
                                         {t("delete")}
                                       </DropdownItem>
@@ -717,7 +717,7 @@ export const InfiniteEventTypeList = ({
                   <div className="min-w-9 mx-5 flex sm:hidden">
                     <Dropdown>
                       <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
-                        <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
+                        <Button type="button" variant="icon" color="secondary" StartIcon={EllipsisIcon} />
                       </DropdownMenuTrigger>
                       <DropdownMenuPortal>
                         <DropdownMenuContent>
@@ -727,7 +727,7 @@ export const InfiniteEventTypeList = ({
                                 <DropdownItem
                                   href={calLink}
                                   target="_blank"
-                                  StartIcon="external-link"
+                                  StartIcon={ExternalLinkIcon}
                                   className="w-full rounded-none">
                                   {t("preview")}
                                 </DropdownItem>
@@ -739,7 +739,7 @@ export const InfiniteEventTypeList = ({
                                     navigator.clipboard.writeText(calLink);
                                     showToast(t("link_copied"), "success");
                                   }}
-                                  StartIcon="clipboard"
+                                  StartIcon={ClipboardIcon}
                                   className="w-full rounded-none text-left">
                                   {t("copy_link")}
                                 </DropdownItem>
@@ -760,7 +760,7 @@ export const InfiniteEventTypeList = ({
                                     .then(() => showToast(t("link_shared"), "success"))
                                     .catch(() => showToast(t("failed"), "error"));
                                 }}
-                                StartIcon="upload"
+                                StartIcon={UploadIcon}
                                 className="w-full rounded-none">
                                 {t("share")}
                               </DropdownItem>
@@ -770,7 +770,7 @@ export const InfiniteEventTypeList = ({
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
                                 onClick={() => router.push(`/event-types/${type.id}`)}
-                                StartIcon="pencil"
+                                StartIcon={PencilIcon}
                                 className="w-full rounded-none">
                                 {t("edit")}
                               </DropdownItem>
@@ -780,7 +780,7 @@ export const InfiniteEventTypeList = ({
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
                                 onClick={() => openDuplicateModal(type, group)}
-                                StartIcon="copy"
+                                StartIcon={CopyIcon}
                                 data-testid={`event-type-duplicate-${type.id}`}>
                                 {t("duplicate")}
                               </DropdownItem>
@@ -797,7 +797,7 @@ export const InfiniteEventTypeList = ({
                                     setDeleteDialogTypeId(type.id);
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
-                                  StartIcon="trash"
+                                  StartIcon={TrashIcon}
                                   className="w-full rounded-t-none">
                                   {t("delete")}
                                 </DropdownItem>
@@ -866,7 +866,7 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
 
   return (
     <EmptyScreen
-      Icon="link"
+      Icon={LinkIcon}
       headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
@@ -905,7 +905,7 @@ const EmptyEventTypeList = ({
   return (
     <>
       <EmptyScreen
-        Icon="link"
+        Icon={LinkIcon}
         headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
         description={t("new_team_event_type_description")}
         className="mb-16"

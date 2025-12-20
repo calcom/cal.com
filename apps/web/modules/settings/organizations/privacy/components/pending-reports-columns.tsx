@@ -1,4 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { EllipsisIcon, EyeIcon } from "lucide-react";
+
 import { useMemo } from "react";
 
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -70,11 +72,11 @@ export function usePendingReportsColumns({ t, onViewDetails }: UsePendingReports
             <div className="flex items-center justify-end">
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
+                  <Button type="button" variant="icon" color="secondary" StartIcon={EllipsisIcon} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <DropdownItem type="button" StartIcon="eye" onClick={() => onViewDetails(entry)}>
+                    <DropdownItem type="button" StartIcon={EyeIcon} onClick={() => onViewDetails(entry)}>
                       {t("view_details")}
                     </DropdownItem>
                   </DropdownMenuItem>

@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRightIcon } from "lucide-react";
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -113,7 +115,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         </div>
       </div>
       <Button
-        EndIcon="arrow-right"
+        EndIcon={ArrowRightIcon}
         type="submit"
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}

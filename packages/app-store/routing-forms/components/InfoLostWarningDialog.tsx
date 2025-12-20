@@ -1,4 +1,5 @@
 import { useRouter } from "next/navigation";
+import { CircleAlertIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
@@ -25,7 +26,7 @@ const InfoLostWarningDialog = (props: InfoLostWarningDialog) => {
       <DialogContent
         title={t("leave_without_saving")}
         description={`${t("leave_without_saving_description")}`}
-        Icon="circle-alert">
+        Icon={CircleAlertIcon}>
         <DialogFooter className="mt-6">
           <Button
             onClick={() => {

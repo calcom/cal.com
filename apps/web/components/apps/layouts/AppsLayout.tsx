@@ -1,3 +1,4 @@
+import { CircleAlertIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React from "react";
@@ -23,7 +24,7 @@ export default function AppsLayout({ children, actions, emptyStore, isAdmin, ...
         <main className="w-full">
           {emptyStore ? (
             <EmptyScreen
-              Icon="circle-alert"
+              Icon={CircleAlertIcon}
               headline={isAdmin ? t("no_apps") : t("no_apps_configured")}
               description={isAdmin ? t("enable_in_settings") : t("please_contact_admin")}
               buttonText={isAdmin ? t("apps_settings") : ""}

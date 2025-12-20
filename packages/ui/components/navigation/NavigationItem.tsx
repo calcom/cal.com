@@ -1,11 +1,11 @@
 import { cva } from "class-variance-authority";
+import type { LucideIcon } from "lucide-react";
+import { RotateCwIcon } from "lucide-react";
 import { Fragment } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
 import { ButtonOrLink } from "../dropdown";
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
 
 export type NavigationItemType = {
   isLastChild?: boolean;
@@ -15,7 +15,7 @@ export type NavigationItemType = {
   href?: string;
   isLoading?: boolean;
   badge?: React.ReactNode;
-  icon?: IconName;
+  icon?: LucideIcon;
   child?: NavigationItemType[];
   onlyMobile?: boolean;
   onlyDesktop?: boolean;
@@ -73,17 +73,25 @@ const NavigationItemComponent = ({
         })}
         aria-current={item.isCurrent ? "page" : undefined}
         onClick={item.onToggle}>
-        {item.icon && (
-          <Icon
-            name={item.isLoading ? "rotate-cw" : item.icon}
-            className={classNames(
-              "text-subtle mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
-              item.isLoading && "animate-spin"
-            )}
-            aria-hidden="true"
-            aria-current={item.isCurrent ? "page" : undefined}
-          />
-        )}
+                {item.icon && (
+                  item.isLoading ? (
+                    <RotateCwIcon
+                      className={classNames(
+                        "text-subtle mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 animate-spin"
+                      )}
+                      aria-hidden="true"
+                      aria-current={item.isCurrent ? "page" : undefined}
+                    />
+                  ) : (
+                    <item.icon
+                      className={classNames(
+                        "text-subtle mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2"
+                      )}
+                      aria-hidden="true"
+                      aria-current={item.isCurrent ? "page" : undefined}
+                    />
+                  )
+                )}
         <span className="text-emphasis hidden w-full justify-between truncate text-ellipsis lg:flex">
           {item.name}
           {item.badge && item.badge}

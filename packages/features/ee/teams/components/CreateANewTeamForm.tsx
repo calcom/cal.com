@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRightIcon } from "lucide-react";
+
 import { Controller, useForm } from "react-hook-form";
 import posthog from "posthog-js";
 
@@ -71,7 +73,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
       <Button
         disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isPending}
         color="primary"
-        EndIcon="arrow-right"
+        EndIcon={ArrowRightIcon}
         type="submit"
         className="w-full justify-center"
         data-testid="continue-button">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { CalendarIcon, PlusIcon } from "lucide-react";
 import { useReducer, useState } from "react";
 
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
@@ -84,7 +85,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const showToast = (message: string, variant: "success" | "warning" | "error") => {
+  const showToast = (message: string, _variant: "success" | "warning" | "error") => {
     if (!disableToasts) {
       toast({ description: message });
     }
@@ -143,7 +144,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   });
 
   const handleRemoveApp = ({ app }: RemoveAppParams) => {
-    !!app && deleteCredentialMutation.mutate(app);
+    if (app) deleteCredentialMutation.mutate(app);
   };
 
   const handleUpdateUserDefaultConferencingApp = ({
@@ -155,7 +156,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
       onSuccess: () => {
         showToast("Default app updated successfully", "success");
         queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
-        !disableBulkUpdateEventTypes && onSuccessCallback();
+        if (!disableBulkUpdateEventTypes) onSuccessCallback();
       },
       onError: (error) => {
         showToast(`Error: ${error.message}`, "error");
@@ -204,7 +205,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     return (
       <Dropdown>
         <DropdownMenuTrigger asChild>
-          <Button color="secondary" StartIcon="plus">
+          <Button color="secondary" StartIcon={PlusIcon}>
             {t("add")}
           </Button>
         </DropdownMenuTrigger>
@@ -262,7 +263,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
                 if (!data.items.length) {
                   return (
                     <EmptyScreen
-                      Icon="calendar"
+                      Icon={CalendarIcon}
                       headline={t("no_category_apps", {
                         category: t("conferencing").toLowerCase(),
                       })}

@@ -1,4 +1,6 @@
 import { signIn } from "next-auth/react";
+import { LockIcon } from "lucide-react";
+
 import type { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import z from "zod";
@@ -43,7 +45,7 @@ export function SAMLLogin({
 
   return (
     <Button
-      StartIcon="lock"
+      StartIcon={LockIcon}
       color="secondary"
       data-testid="samlAndOidc"
       className="flex w-full justify-center"

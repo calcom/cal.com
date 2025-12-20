@@ -1,14 +1,26 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
+import {
+  ActivityIcon,
+  AtomIcon,
+  CalendarIcon,
+  ExternalLinkIcon,
+  FileTextIcon,
+  InfoIcon,
+  SplitIcon,
+  TriangleAlertIcon,
+  UserCheckIcon,
+  UserIcon,
+  ZapIcon,
+} from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
-import type { IconName } from "@calcom/ui/components/icon";
-import { Icon } from "@calcom/ui/components/icon";
 
 import type { NonRouterRoute } from "../../types/types";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
@@ -16,22 +28,22 @@ import type { MembersMatchResultType } from "./TeamMembersMatchResult";
 export const ResultsSection = ({
   title,
   children,
-  icon,
+  icon: IconComponent,
   hint,
   ...props
 }: {
   title?: string;
   children: ReactNode;
-  icon?: IconName;
+  icon?: LucideIcon;
   hint?: ReactNode;
-  [key: string]: any;
+  [key: string]: unknown;
 }) => (
   <div className="bg-default border-muted mb-0.5 flex flex-col gap-0.5 rounded-2xl border p-1" {...props}>
-    {(title || icon) && (
+    {(title || IconComponent) && (
       <div className="flex items-center gap-2 px-2 py-1">
-        {icon && (
+        {IconComponent && (
           <div className="border-subtle rounded-lg border p-1">
-            <Icon name={icon} className="h-4 w-4" />
+            <IconComponent className="h-4 w-4" />
           </div>
         )}
         <h4 className="text-sm font-medium leading-none" data-testid="chosen-route-title">
@@ -159,111 +171,111 @@ export const ResultsView = ({
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.2 }}
       className="stack-y-4">
-      {chosenRoute.action.type === "externalRedirectUrl" && (
-        <ResultsSection title={chosenRoute.name ?? "External Redirect"} icon="zap">
-          <div className="flex items-center gap-2">
-            <div className="border-subtle rounded-lg border p-1">
-              <Icon name="external-link" className="h-4 w-4" />
-            </div>
-            <span
-              data-testid="test-routing-result"
-              className="text-emphasis text-sm font-medium leading-none">
-              {chosenRoute.action.value}
-            </span>
-          </div>
-        </ResultsSection>
-      )}
+            {chosenRoute.action.type === "externalRedirectUrl" && (
+              <ResultsSection title={chosenRoute.name ?? "External Redirect"} icon={ZapIcon}>
+                <div className="flex items-center gap-2">
+                  <div className="border-subtle rounded-lg border p-1">
+                    <ExternalLinkIcon className="h-4 w-4" />
+                  </div>
+                  <span
+                    data-testid="test-routing-result"
+                    className="text-emphasis text-sm font-medium leading-none">
+                    {chosenRoute.action.value}
+                  </span>
+                </div>
+              </ResultsSection>
+            )}
 
-      {chosenRoute.action.type === "eventTypeRedirectUrl" && (
-        <ResultsSection title={chosenRoute.name ?? "Event Redirect"} icon="zap">
-          <div className="flex items-center gap-2">
-            <div className="border-subtle rounded-lg border p-1">
-              <Icon name="calendar" className="h-4 w-4" />
-            </div>
-            <span
-              data-testid="test-routing-result"
-              className="text-emphasis text-sm font-medium leading-none">
-              {chosenRoute.action.value}
-            </span>
-          </div>
-        </ResultsSection>
-      )}
+            {chosenRoute.action.type === "eventTypeRedirectUrl" && (
+              <ResultsSection title={chosenRoute.name ?? "Event Redirect"} icon={ZapIcon}>
+                <div className="flex items-center gap-2">
+                  <div className="border-subtle rounded-lg border p-1">
+                    <CalendarIcon className="h-4 w-4" />
+                  </div>
+                  <span
+                    data-testid="test-routing-result"
+                    className="text-emphasis text-sm font-medium leading-none">
+                    {chosenRoute.action.value}
+                  </span>
+                </div>
+              </ResultsSection>
+            )}
 
-      {chosenRoute.action.type === "customPageMessage" && (
-        <ResultsSection title={chosenRoute.name ?? "Custom Page"} icon="file-text">
-          <div className="flex items-center gap-2">
-            <div className="border-subtle rounded-lg border p-1">
-              <Icon name="file-text" className="h-4 w-4" />
-            </div>
-            <span
-              data-testid="test-routing-result"
-              className="text-emphasis text-sm font-medium leading-none">
-              {chosenRoute.action.value}
-            </span>
-          </div>
-        </ResultsSection>
-      )}
+            {chosenRoute.action.type === "customPageMessage" && (
+              <ResultsSection title={chosenRoute.name ?? "Custom Page"} icon={FileTextIcon}>
+                <div className="flex items-center gap-2">
+                  <div className="border-subtle rounded-lg border p-1">
+                    <FileTextIcon className="h-4 w-4" />
+                  </div>
+                  <span
+                    data-testid="test-routing-result"
+                    className="text-emphasis text-sm font-medium leading-none">
+                    {chosenRoute.action.value}
+                  </span>
+                </div>
+              </ResultsSection>
+            )}
 
       {supportsTeamMembersMatchingLogic &&
         membersMatchResult &&
         !notSupportingMembersMatching.includes(chosenRoute.action.type) && (
           <>
-            <ResultsSection title="Matching" icon="atom">
-              <div className="relative flex flex-col gap-3">
-                {/* Seperator */}
-                <div className="absolute bottom-3 left-3 top-3 w-px bg-gray-200" />
+                        <ResultsSection title="Matching" icon={AtomIcon}>
+                          <div className="relative flex flex-col gap-3">
+                            {/* Seperator */}
+                            <div className="absolute bottom-3 left-3 top-3 w-px bg-gray-200" />
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="border-subtle bg-default z-10 rounded-lg border p-1 ">
-                      <Icon name="activity" className="h-4 w-4" />
-                    </div>
-                    <span className="text-emphasis text-sm font-medium leading-none">
-                      Attribute logic matched
-                    </span>
-                  </div>
-                  <Badge
-                    data-testid="attribute-logic-matched"
-                    variant={membersMatchResult.checkedFallback ? "error" : "success"}>
-                    {membersMatchResult.checkedFallback ? "No" : "Yes"}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="border-subtle bg-default z-10 rotate-180 rounded-lg border p-1">
-                      <Icon name="split" className="h-4 w-4" />
-                    </div>
-                    <span className="text-emphasis text-sm font-medium leading-none">Attribute fallback</span>
-                  </div>
-                  <Badge
-                    data-testid="attribute-logic-fallback-matched"
-                    variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
-                    {membersMatchResult.checkedFallback ? "Yes" : "Not needed"}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="border-subtle bg-default z-10 rounded-lg border p-1">
-                      <Icon name="user" className="h-4 w-4" />
-                    </div>
-                    <span className="text-emphasis text-sm font-medium leading-none">Contact owner</span>
-                  </div>
-                  <Badge variant={membersMatchResult.contactOwnerEmail ? "success" : "gray"}>
-                    {membersMatchResult.contactOwnerEmail || "Not found"}
-                  </Badge>
-                </div>
-              </div>
-            </ResultsSection>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <div className="border-subtle bg-default z-10 rounded-lg border p-1 ">
+                                  <ActivityIcon className="h-4 w-4" />
+                                </div>
+                                <span className="text-emphasis text-sm font-medium leading-none">
+                                  Attribute logic matched
+                                </span>
+                              </div>
+                              <Badge
+                                data-testid="attribute-logic-matched"
+                                variant={membersMatchResult.checkedFallback ? "error" : "success"}>
+                                {membersMatchResult.checkedFallback ? "No" : "Yes"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <div className="border-subtle bg-default z-10 rotate-180 rounded-lg border p-1">
+                                  <SplitIcon className="h-4 w-4" />
+                                </div>
+                                <span className="text-emphasis text-sm font-medium leading-none">Attribute fallback</span>
+                              </div>
+                              <Badge
+                                data-testid="attribute-logic-fallback-matched"
+                                variant={membersMatchResult.checkedFallback ? "success" : "gray"}>
+                                {membersMatchResult.checkedFallback ? "Yes" : "Not needed"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <div className="border-subtle bg-default z-10 rounded-lg border p-1">
+                                  <UserIcon className="h-4 w-4" />
+                                </div>
+                                <span className="text-emphasis text-sm font-medium leading-none">Contact owner</span>
+                              </div>
+                              <Badge variant={membersMatchResult.contactOwnerEmail ? "success" : "gray"}>
+                                {membersMatchResult.contactOwnerEmail || "Not found"}
+                              </Badge>
+                            </div>
+                          </div>
+                        </ResultsSection>
 
             {membersMatchResult.teamMembersMatchingAttributeLogic && (
-              <ResultsSection
-                title={t("routing_form_next_in_queue", {
-                  count: membersMatchResult.teamMembersMatchingAttributeLogic.length,
-                })}
-                icon="user-check"
-                hint={
-                  <div className="flex items-center gap-2 px-2 py-1">
-                    <Icon name="info" className="h-3 w-3" />
+                            <ResultsSection
+                              title={t("routing_form_next_in_queue", {
+                                count: membersMatchResult.teamMembersMatchingAttributeLogic.length,
+                              })}
+                              icon={UserCheckIcon}
+                              hint={
+                                <div className="flex items-center gap-2 px-2 py-1">
+                                  <InfoIcon className="h-3 w-3" />
                     <span data-testid="matching-members" className="text-subtle text-sm">
                       <ServerTrans
                         t={t}
@@ -282,8 +294,8 @@ export const ResultsView = ({
                   </div>
                 }>
                 <div className="divide-subtle divide-y">
-                  {membersMatchResult.teamMembersMatchingAttributeLogic.map((member, index) => (
-                    <TeamMember
+                                    {membersMatchResult.teamMembersMatchingAttributeLogic.map((member) => (
+                                      <TeamMember
                       key={member.id}
                       email={member.email}
                       name={member.name}
@@ -294,8 +306,8 @@ export const ResultsView = ({
               </ResultsSection>
             )}
 
-            {membersMatchResult.mainWarnings && membersMatchResult.mainWarnings.length > 0 && (
-              <ResultsSection title="Warnings" icon="triangle-alert">
+                        {membersMatchResult.mainWarnings && membersMatchResult.mainWarnings.length > 0 && (
+                          <ResultsSection title="Warnings" icon={TriangleAlertIcon}>
                 <div className="stack-y-2">
                   {membersMatchResult.mainWarnings.map((warning, index) => (
                     <div data-testid="alert" key={index} className="text-warning">
@@ -306,8 +318,8 @@ export const ResultsView = ({
               </ResultsSection>
             )}
 
-            {membersMatchResult.fallbackWarnings && membersMatchResult.fallbackWarnings.length > 0 && (
-              <ResultsSection title="Fallback Warnings" icon="triangle-alert">
+                        {membersMatchResult.fallbackWarnings && membersMatchResult.fallbackWarnings.length > 0 && (
+                          <ResultsSection title="Fallback Warnings" icon={TriangleAlertIcon}>
                 <div className="stack-y-2">
                   {membersMatchResult.fallbackWarnings.map((warning, index) => (
                     <div data-testid="alert" key={index} className="text-warning">

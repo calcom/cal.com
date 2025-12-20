@@ -1,3 +1,6 @@
+import type { LucideIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
+
 import classNames from "@calcom/ui/classNames";
 
 import { Badge } from "../badge/Badge";
@@ -11,8 +14,6 @@ import {
   CommandItem,
   CommandSeparator,
 } from "../command/Command";
-import type { IconName } from "../icon/Icon";
-import { Icon } from "../icon/Icon";
 import { Popover, PopoverTrigger, PopoverContent } from "../popover/Popover";
 
 export interface FilterOption {
@@ -26,7 +27,7 @@ interface FilterSelectProps {
   options: FilterOption[];
   selectedValue?: string | number | null;
   onChange: (value: string | number | null) => void;
-  buttonIcon?: IconName;
+  buttonIcon?: LucideIcon;
   placeholder?: string;
   emptyText?: string;
   testId?: string;
@@ -78,7 +79,7 @@ export function FilterSelect({
                         "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                       )}>
-                      <Icon name="check" className="h-4 w-4" />
+                      <CheckIcon className="h-4 w-4" />
                     </div>
                     {option.icon}
                     <span>{option.label}</span>

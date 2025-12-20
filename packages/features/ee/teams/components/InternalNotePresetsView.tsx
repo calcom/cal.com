@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { CornerDownRightIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 
@@ -12,7 +13,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Input, SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface ProfileViewProps {
@@ -141,11 +141,11 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                           variant="icon"
                           onClick={() => remove(index)}
                           disabled={fields.length === 1}>
-                          <Icon name="trash" className="h-4 w-5" />
+                          <TrashIcon className="h-4 w-5" />
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Icon name="corner-down-right" className="h-4 w-4" />
+                        <CornerDownRightIcon className="h-4 w-4" />
                         <Controller
                           name={`presets.${index}.cancellationReason`}
                           control={form.control}
@@ -165,7 +165,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                 <Button
                   type="button"
                   color="minimal"
-                  StartIcon="plus"
+                  StartIcon={PlusIcon}
                   onClick={addNewPreset}
                   className="mt-4">
                   {t("add_preset")}

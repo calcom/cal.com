@@ -1,5 +1,7 @@
 "use client";
 import posthog from "posthog-js";
+import { PlusIcon } from "lucide-react";
+
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,7 +13,7 @@ export const TeamsCTA = () => {
     <Button
       data-testid="new-team-btn"
       variant="fab"
-      StartIcon="plus"
+      StartIcon={PlusIcon}
       size="sm"
       type="button"
       onClick={() => {

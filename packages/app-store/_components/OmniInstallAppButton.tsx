@@ -1,4 +1,6 @@
 import useApp from "@calcom/features/apps/hooks/useApp";
+import { PlusIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -68,7 +70,7 @@ export default function OmniInstallAppButton({
             loading={mutation.isPending}
             color="secondary"
             className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             {...props}>
             {t("add")}
           </Button>

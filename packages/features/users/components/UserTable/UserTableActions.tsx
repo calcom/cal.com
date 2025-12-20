@@ -1,4 +1,6 @@
 import { useSession } from "next-auth/react";
+import { EllipsisIcon, ExternalLinkIcon, LockIcon, PencilIcon, SendIcon, UserXIcon } from "lucide-react";
+
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -62,7 +64,7 @@ export function TableActions({
             color="secondary"
             className={classNames(!permissionsForUser.canEdit ? "rounded-r-md" : "")}
             variant="icon"
-            StartIcon="external-link"
+            StartIcon={ExternalLinkIcon}
           />
         </Tooltip>
         {(permissionsForUser.canEdit || permissionsForUser.canRemove) && (
@@ -72,7 +74,7 @@ export function TableActions({
                 className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                 color="secondary"
                 variant="icon"
-                StartIcon="ellipsis"
+                StartIcon={EllipsisIcon}
               />
             </DropdownMenuTrigger>
             <DropdownMenuPortal>
@@ -90,7 +92,7 @@ export function TableActions({
                           },
                         })
                       }
-                      StartIcon="pencil">
+                      StartIcon={PencilIcon}>
                       {t("edit")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -109,7 +111,7 @@ export function TableActions({
                             },
                           })
                         }
-                        StartIcon="lock">
+                        StartIcon={LockIcon}>
                         {t("impersonate")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -130,7 +132,7 @@ export function TableActions({
                         })
                       }
                       color="destructive"
-                      StartIcon="user-x">
+                      StartIcon={UserXIcon}>
                       {t("remove")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -147,7 +149,7 @@ export function TableActions({
                           isOrg: true,
                         });
                       }}
-                      StartIcon="send">
+                      StartIcon={SendIcon}>
                       {t("resend_invitation")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -160,12 +162,12 @@ export function TableActions({
       <div className="flex md:hidden">
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+            <Button type="button" variant="icon" color="minimal" StartIcon={EllipsisIcon} />
           </DropdownMenuTrigger>
           <DropdownMenuPortal>
             <DropdownMenuContent>
               <DropdownMenuItem className="outline-none">
-                <DropdownItem type="button" StartIcon="external-link">
+                <DropdownItem type="button" StartIcon={ExternalLinkIcon}>
                   {t("view_public_page")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -183,7 +185,7 @@ export function TableActions({
                           },
                         })
                       }
-                      StartIcon="pencil">
+                      StartIcon={PencilIcon}>
                       {t("edit")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -203,7 +205,7 @@ export function TableActions({
                         },
                       })
                     }
-                    StartIcon="user-x">
+                    StartIcon={UserXIcon}>
                     {t("remove")}
                   </DropdownItem>
                 </DropdownMenuItem>

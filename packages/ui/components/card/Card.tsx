@@ -1,5 +1,7 @@
 // @TODO: turn this into a more generic component that has the same Props API as MUI https://mui.com/material-ui/react-card/
 import type { VariantProps } from "class-variance-authority";
+import { ArrowRightIcon } from "lucide-react";
+
 import { cva } from "class-variance-authority";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -242,7 +244,7 @@ export function Card({
             color="secondary"
             href={actionButton?.href}
             className="mt-10"
-            EndIcon="arrow-right"
+            EndIcon={ArrowRightIcon}
             data-testid={actionButton["data-testid"]}>
             {actionButton?.child}
           </Button>

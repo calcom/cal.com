@@ -1,9 +1,9 @@
 "use client";
 
 import React, { Suspense } from "react";
+import { ArrowLeftIcon, LoaderIcon } from "lucide-react";
 
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import { Button } from "@calcom/ui/components/button";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -57,7 +57,7 @@ export default function Header({
                 color="minimal"
                 onClick={onBackButtonClick}
                 className="rounded-md ltr:mr-2 rtl:ml-2"
-                StartIcon="arrow-left"
+                StartIcon={ArrowLeftIcon}
                 aria-label={t("go_back")}
               />
             )}
@@ -79,7 +79,7 @@ export default function Header({
           <div className={classNames("shrink-0", ctaClassName)}>{CTA}</div>
         </div>
       </header>
-      <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
+      <Suspense fallback={<LoaderIcon className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
     </div>
   );
 }

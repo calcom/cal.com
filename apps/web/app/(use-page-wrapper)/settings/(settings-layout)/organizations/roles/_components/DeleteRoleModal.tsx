@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { TrashIcon } from "lucide-react";
+
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -39,7 +41,7 @@ export function DeleteRoleModal({ roleId, roleName, teamId, onDeleted }: DeleteR
 
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DropdownItem StartIcon="trash" color="destructive" onClick={() => setIsModalOpen(true)}>
+      <DropdownItem StartIcon={TrashIcon} color="destructive" onClick={() => setIsModalOpen(true)}>
         {t("delete")}
       </DropdownItem>
       <ConfirmationDialogContent

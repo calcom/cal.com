@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
+import { UserCheckIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import React from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -26,7 +27,7 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
           props.onSuccess();
         }}>
         <EmptyScreen
-          Icon="user-check"
+          Icon={UserCheckIcon}
           headline={t("admin_user_created")}
           description={t("admin_user_created_description")}
         />

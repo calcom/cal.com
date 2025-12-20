@@ -1,8 +1,10 @@
+import { Mail as MailIcon } from "lucide-react";
+
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { TopBanner } from "@calcom/ui/components/top-banner";
 import { showToast } from "@calcom/ui/components/toast";
+import { TopBanner } from "@calcom/ui/components/top-banner";
 
 import { useFlagMap } from "../../flags/context/provider";
 
@@ -20,7 +22,7 @@ function VerifyEmailBanner({ data }: VerifyEmailBannerProps) {
   return (
     <>
       <TopBanner
-        icon="mail"
+        icon={MailIcon}
         text={t("verify_email_banner_body", { appName: APP_NAME })}
         variant="warning"
         actions={

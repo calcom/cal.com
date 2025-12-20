@@ -24,7 +24,6 @@ describe("pagesAndRewritePaths", () => {
       "workflows",
       "bookings",
       "event-types",
-      "icons",
       "org",
       "payment",
       "routing-forms",

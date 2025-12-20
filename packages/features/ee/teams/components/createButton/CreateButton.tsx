@@ -1,6 +1,8 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { PlusIcon } from "lucide-react";
+
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -81,14 +83,14 @@ export function CreateButton(props: CreateBtnProps) {
         <Button
           size="sm"
           onClick={() =>
-            !!CreateDialog
+            CreateDialog
               ? openModal(options[0])
               : createFunction
               ? createFunction(options[0].teamId || undefined)
               : null
           }
           data-testid="create-button"
-          StartIcon="plus"
+          StartIcon={PlusIcon}
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           {...restProps}>
@@ -99,7 +101,7 @@ export function CreateButton(props: CreateBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant={disableMobileButton ? "button" : "fab"}
-              StartIcon="plus"
+              StartIcon={PlusIcon}
               size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}
@@ -118,7 +120,7 @@ export function CreateButton(props: CreateBtnProps) {
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
                   CustomStartIcon={<Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
                   onClick={() =>
-                    !!CreateDialog
+                    CreateDialog
                       ? openModal(option)
                       : createFunction
                       ? createFunction(option.teamId || undefined, option.platform)

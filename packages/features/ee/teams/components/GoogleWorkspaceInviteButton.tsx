@@ -1,4 +1,6 @@
 import type { PropsWithChildren } from "react";
+import { UsersIcon, XIcon } from "lucide-react";
+
 import { useState } from "react";
 
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -76,7 +78,7 @@ export function GoogleWorkspaceInviteButton(
               mutation.mutate();
             }}
             className="w-full justify-center gap-2"
-            StartIcon="users"
+            StartIcon={UsersIcon}
             loading={mutation.isPending}>
             {t("import_from_google_workspace")}
           </Button>
@@ -85,7 +87,7 @@ export function GoogleWorkspaceInviteButton(
           <Button
             color="secondary"
             loading={removeConnectionMutation.isPending}
-            StartIcon="x"
+            StartIcon={XIcon}
             onClick={() => {
               removeConnectionMutation.mutate();
               utils.viewer.googleWorkspace.checkForGWorkspace.invalidate();

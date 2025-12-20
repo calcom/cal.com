@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { PlusIcon } from "lucide-react";
+
 
 import { DataTableToolbar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -53,7 +55,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         </div>
         <div className="flex items-center gap-2">
           {permissions?.canCreate && (
-            <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
+            <Button color="primary" StartIcon={PlusIcon} onClick={() => setShowCreateModal(true)}>
               {t("add")}
             </Button>
           )}

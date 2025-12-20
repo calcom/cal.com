@@ -1,6 +1,8 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
+import { RotateCcwIcon } from "lucide-react";
+
 import { useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
@@ -75,7 +77,7 @@ const ColorPicker = (props: ColorPickerProps) => {
             variant="icon"
             rel="noreferrer"
             aria-label="Reset to default"
-            StartIcon="rotate-ccw"
+            StartIcon={RotateCcwIcon}
             tooltip="Reset to default"
             onClick={() => {
               setColor(fallBackHex(resetDefaultValue, false));

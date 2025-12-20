@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
-// eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
+import { InfoIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
@@ -35,7 +35,6 @@ import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -220,7 +219,6 @@ const ProfileView = ({ user }: Props) => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const passwordRef = useRef<HTMLInputElement>(null!);
 
   const errorMessages: { [key: string]: string } = {
@@ -328,7 +326,7 @@ const ProfileView = ({ user }: Props) => {
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <SectionBottomActions align="end">
           <DialogTrigger asChild>
-            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon="trash-2">
+            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Trash2Icon}>
               {t("delete_account")}
             </Button>
           </DialogTrigger>
@@ -337,7 +335,7 @@ const ProfileView = ({ user }: Props) => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon="triangle-alert">
+          Icon={TriangleAlertIcon}>
           <>
             <div className="mb-10">
               <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
@@ -381,7 +379,7 @@ const ProfileView = ({ user }: Props) => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon="triangle-alert">
+          Icon={TriangleAlertIcon}>
           <div className="mb-10">
             <div className="mb-4 grid gap-2 md:grid-cols-2">
               <div>
@@ -427,7 +425,7 @@ const ProfileView = ({ user }: Props) => {
           title={t("create_account_password")}
           description={t("create_account_password_hint")}
           type="creation"
-          Icon="triangle-alert">
+          Icon={TriangleAlertIcon}>
           <DialogFooter>
             <DialogClose />
           </DialogFooter>
@@ -439,7 +437,7 @@ const ProfileView = ({ user }: Props) => {
           title={t("disconnect_account")}
           description={t("disconnect_account_hint")}
           type="creation"
-          Icon="triangle-alert">
+          Icon={TriangleAlertIcon}>
           <DialogFooter>
             <Button
               color="primary"
@@ -500,9 +498,9 @@ const ProfileForm = ({
   handleAccountDisconnect,
   extraField,
   isPending = false,
-  isFallbackImg,
+  _isFallbackImg,
   user,
-  userOrganization,
+  _userOrganization,
   isCALIdentityProvider,
 }: {
   defaultValues: FormValues;
@@ -604,7 +602,7 @@ const ProfileForm = ({
     handleAccountDisconnect(getUpdatedFormValues(formMethods.getValues()));
   };
 
-  const { data: usersAttributes, isPending: usersAttributesPending } =
+  const { data: usersAttributes, isPending: _usersAttributesPending } =
     trpc.viewer.attributes.getByUserId.useQuery({
       userId: user.id,
     });
@@ -658,7 +656,7 @@ const ProfileForm = ({
         </div>
         {extraField}
         <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <Icon name="info" className="mt-0.5 shrink-0" />
+          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
@@ -694,7 +692,7 @@ const ProfileForm = ({
             </div>
             <Button
               color="secondary"
-              StartIcon="plus"
+              StartIcon={PlusIcon}
               className="mt-2"
               onClick={() => handleAddSecondaryEmail()}
               data-testid="add-secondary-email">
@@ -719,7 +717,7 @@ const ProfileForm = ({
         {usersAttributes && usersAttributes?.length > 0 && (
           <div className="mt-6 flex flex-col">
             <Label>{t("attributes")}</Label>
-            <div className="flex flex-col stack-y-4">
+            <div className="stack-y-4 flex flex-col">
               {usersAttributes.map((attribute, index) => (
                 <>
                   <DisplayInfo

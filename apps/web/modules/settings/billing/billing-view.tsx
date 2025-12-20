@@ -1,6 +1,8 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { ExternalLinkIcon } from "lucide-react";
+
 import { usePathname } from "next/navigation";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -85,7 +87,7 @@ const BillingView = () => {
               {t("view_and_manage_billing_details")}
             </p>
           </div>
-          <Button color="primary" href={billingHref} target="_blank" size="sm" EndIcon="external-link">
+          <Button color="primary" href={billingHref} target="_blank" size="sm" EndIcon={ExternalLinkIcon}>
             {t("billing_portal")}
           </Button>
         </div>

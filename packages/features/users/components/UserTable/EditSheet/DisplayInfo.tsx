@@ -1,13 +1,12 @@
+import type { LucideIcon } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { Badge } from "@calcom/ui/components/badge";
-import type { IconName } from "@calcom/ui/components/icon";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type DisplayInfoType = {
   label: string;
-  icon?: IconName;
+  icon?: LucideIcon;
   value: string | string[];
   coloredBadges?: boolean;
   labelClassname?: string;
@@ -44,7 +43,7 @@ export function DisplayInfo({
   return (
     <div className="flex items-center gap-6">
       <div className="flex w-[110px] items-center gap-2">
-        {icon ? <Icon className="text-subtle h-4 w-4" name={icon} /> : null}
+        {icon ? (() => { const IconComponent = icon; return <IconComponent className="text-subtle h-4 w-4" />; })() : null}
         <label className={labelClassname ? labelClassname : "text-subtle text-sm font-medium"}>{label}</label>
       </div>
       <div className="flex flex-1">

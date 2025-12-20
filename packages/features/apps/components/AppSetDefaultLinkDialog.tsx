@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CircleAlertIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -51,7 +52,7 @@ export function AppSetDefaultLinkDialog({
         title={t("default_app_link_title")}
         description={t("default_app_link_description")}
         type="creation"
-        Icon="circle-alert">
+        Icon={CircleAlertIcon}>
         <Form
           form={form}
           handleSubmit={(values) => {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { ArrowLeftIcon } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
 import React, { cloneElement } from "react";
@@ -141,7 +143,7 @@ export function ShellMain(props: LayoutProps) {
               onClick={() =>
                 typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
               }
-              StartIcon="arrow-left"
+              StartIcon={ArrowLeftIcon}
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
               data-testid="go-back-button"

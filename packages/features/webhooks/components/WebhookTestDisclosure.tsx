@@ -1,6 +1,8 @@
 "use client";
 
 import { useWatch } from "react-hook-form";
+import { ActivityIcon } from "lucide-react";
+
 import { ZodError } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,7 +33,7 @@ export default function WebhookTestDisclosure() {
           type="button"
           color="secondary"
           disabled={mutation.isPending || !subscriberUrl}
-          StartIcon="activity"
+          StartIcon={ActivityIcon}
           onClick={() => {
             try {
               ZTestTriggerInputSchema.parse({

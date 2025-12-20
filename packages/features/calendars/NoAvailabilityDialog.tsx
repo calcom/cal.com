@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { ArrowRightIcon } from "lucide-react";
+
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -91,7 +93,7 @@ const NoAvailabilityDialog = ({
               color="primary"
               onClick={nextMonthButton}
               data-testid="view_next_month"
-              EndIcon="arrow-right">
+              EndIcon={ArrowRightIcon}>
               {t("view_next_month")}
             </Button>
           )}

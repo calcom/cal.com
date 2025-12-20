@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PencilIcon } from "lucide-react";
 import { useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
@@ -137,7 +138,7 @@ function EmptyState({ onAdd }: Pick<Props, "onAdd">) {
   const { t } = useLocale();
 
   return (
-    <div className="flex flex-col items-center justify-center stack-y-4 py-10">
+    <div className="stack-y-4 flex flex-col items-center justify-center py-10">
       <p className="text-gray-500">{t("no_workspace_platforms")}</p>
       <Button color="secondary" onClick={onAdd}>
         {t("add")}
@@ -282,7 +283,7 @@ function PlatformListItem({ platform, onEdit, onToggle }: Pick<Props, "platform"
                 id: "edit",
                 label: t("edit"),
                 onClick: () => onEdit(platform, "meta"),
-                icon: "pencil",
+                icon: PencilIcon,
               },
               // {
               //   id: "edit-service-account",

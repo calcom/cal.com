@@ -1,4 +1,6 @@
 import * as Popover from "@radix-ui/react-popover";
+import { CalendarIcon } from "lucide-react";
+
 import { format } from "date-fns";
 
 import classNames from "@calcom/ui/classNames";
@@ -42,7 +44,7 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
           <Button
             data-testid="pick-date"
             color="secondary"
-            EndIcon="calendar"
+            EndIcon={CalendarIcon}
             className={classNames("justify-between text-left font-normal", !date && "text-subtle")}>
             {label ?? (date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>)}
           </Button>

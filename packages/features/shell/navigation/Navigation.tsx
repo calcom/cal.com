@@ -1,3 +1,19 @@
+import {
+  AtomIcon,
+  BuildingIcon,
+  CalendarIcon,
+  ChartBarIcon,
+  ClockIcon,
+  CreditCardIcon,
+  EllipsisIcon,
+  Grid3x3Icon,
+  LayoutDashboardIcon,
+  LinkIcon,
+  SplitIcon,
+  TerminalIcon,
+  UsersIcon,
+  ZapIcon,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
@@ -17,7 +33,7 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const preserveBookingsQueryParams = ({
+const _preserveBookingsQueryParams = ({
   prevPathname,
   nextPathname,
 }: {
@@ -29,30 +45,29 @@ const getNavigationItems = (
   orgBranding: OrganizationBranding,
   hasInsightsAccess: boolean
 ): NavigationItemType[] => [
- 
   {
     name: "event_types_page_title",
     href: "/event-types",
-    icon: "link",
+    icon: LinkIcon,
   },
   {
     name: "bookings",
     href: "/bookings/upcoming",
-    icon: "calendar",
+    icon: CalendarIcon,
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
   },
   {
     name: "availability",
     href: "/availability",
-    icon: "clock",
+    icon: ClockIcon,
   },
   ...(orgBranding
     ? [
         {
           name: "members",
           href: `/settings/organizations/${orgBranding.slug}/members`,
-          icon: "building",
+          icon: BuildingIcon,
           moreOnMobile: true,
         } satisfies NavigationItemType,
       ]
@@ -60,14 +75,14 @@ const getNavigationItems = (
   {
     name: "teams",
     href: "/teams",
-    icon: "users",
+    icon: UsersIcon,
     badge: <TeamInviteBadge />,
     moreOnMobile: true,
   },
   {
     name: "apps",
     href: "/apps",
-    icon: "grid-3x3",
+    icon: Grid3x3Icon,
     moreOnMobile: true,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
@@ -98,25 +113,25 @@ const getNavigationItems = (
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
-    icon: "ellipsis",
+    icon: EllipsisIcon,
   },
   {
     name: "routing",
     href: "/routing",
-    icon: "split",
+    icon: SplitIcon,
     isCurrent: ({ pathname }) => pathname?.startsWith("/routing") ?? false,
     moreOnMobile: true,
   },
   {
     name: "workflows",
     href: "/workflows",
-    icon: "zap",
+    icon: ZapIcon,
     moreOnMobile: true,
   },
   {
     name: "insights",
     href: "/insights",
-    icon: "chart-bar",
+    icon: ChartBarIcon,
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
     child: hasInsightsAccess
@@ -139,7 +154,6 @@ const getNavigationItems = (
           {
             name: "call_history",
             href: "/insights/call-history",
-            // icon: "phone",
             isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
           },
         ]
@@ -151,48 +165,48 @@ const platformNavigationItems: NavigationItemType[] = [
   {
     name: "Dashboard",
     href: "/settings/platform/",
-    icon: "layout-dashboard",
+    icon: LayoutDashboardIcon,
   },
   {
     name: "Documentation",
     href: "https://docs.cal.com/docs/platform",
-    icon: "chart-bar",
+    icon: ChartBarIcon,
     target: "_blank",
   },
   {
     name: "API reference",
     href: "https://api.cal.com/v2/docs#/",
-    icon: "terminal",
+    icon: TerminalIcon,
     target: "_blank",
   },
   {
     name: "Atoms",
     href: "https://docs.cal.com/docs/platform#atoms",
-    icon: "atom",
+    icon: AtomIcon,
     target: "_blank",
   },
   {
     name: MORE_SEPARATOR_NAME,
     href: "https://docs.cal.com/docs/platform/faq",
-    icon: "ellipsis",
+    icon: EllipsisIcon,
     target: "_blank",
   },
   {
     name: "Billing",
     href: "/settings/platform/billing",
-    icon: "credit-card",
+    icon: CreditCardIcon,
     moreOnMobile: true,
   },
   {
     name: "Members",
     href: "/settings/platform/members",
-    icon: "users",
+    icon: UsersIcon,
     moreOnMobile: true,
   },
   {
     name: "Managed Users",
     href: "/settings/platform/managed-users",
-    icon: "users",
+    icon: UsersIcon,
     moreOnMobile: true,
   },
 ];

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ClipboardIcon } from "lucide-react";
+
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -119,7 +121,7 @@ export default function ApiKeyDialogForm({
                   }}
                   type="button"
                   className="rounded-l-none text-base"
-                  StartIcon="clipboard">
+                  StartIcon={ClipboardIcon}>
                   {t("copy")}
                 </Button>
               </Tooltip>

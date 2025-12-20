@@ -1,4 +1,5 @@
 import { useSession } from "next-auth/react";
+import { BuildingIcon, LinkIcon, PaperclipIcon, UserIcon, UsersIcon } from "lucide-react";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -25,7 +26,6 @@ import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
@@ -121,15 +121,15 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       {
         value: "INDIVIDUAL",
         label: t("invite_team_individual_segment"),
-        iconLeft: <Icon name="user" />,
+        iconLeft: <UserIcon />,
       },
-      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Icon name="users" /> },
+      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <UsersIcon /> },
     ];
     if (canSeeOrganization) {
       array.unshift({
         value: "ORGANIZATION",
         label: t("organization"),
-        iconLeft: <Icon name="building" />,
+        iconLeft: <BuildingIcon />,
       });
     }
     return array;
@@ -324,7 +324,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       importRef.current.click();
                     }
                   }}
-                  StartIcon="paperclip"
+                  StartIcon={PaperclipIcon}
                   className="mt-3 justify-center stroke-2">
                   {t("upload_csv_file")}
                 </Button>
@@ -440,7 +440,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
-                  StartIcon="link"
+                  StartIcon={LinkIcon}
                   data-testid="copy-invite-link-button">
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>

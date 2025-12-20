@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarIcon, PlusIcon } from "lucide-react";
 import { useReducer } from "react";
 
 import { AppList } from "@calcom/features/apps/components/AppList";
@@ -110,7 +111,7 @@ export const InstalledConferencingApps = ({
   if (integrations.items.length === 0) {
     return (
       <EmptyScreen
-        Icon="calendar"
+        Icon={CalendarIcon}
         headline={t("no_category_apps", {
           category: t("conferencing").toLowerCase(),
         })}
@@ -181,7 +182,7 @@ const AddConferencingButton = () => {
   const { t } = useLocale();
 
   return (
-    <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
+    <Button color="secondary" StartIcon={PlusIcon} href="/apps/categories/conferencing">
       {t("add")}
     </Button>
   );

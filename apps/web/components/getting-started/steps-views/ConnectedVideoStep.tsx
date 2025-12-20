@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { ArrowRightIcon } from "lucide-react";
+
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -93,7 +95,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
     <>
       <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} user={user} />
       <Button
-        EndIcon="arrow-right"
+        EndIcon={ArrowRightIcon}
         data-testid="save-video-button"
         className={classNames(
           "text-inverted border-inverted bg-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",

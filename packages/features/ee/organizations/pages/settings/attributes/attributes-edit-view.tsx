@@ -1,6 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { ArrowLeftIcon } from "lucide-react";
+
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -87,7 +89,7 @@ function EditAttributeHeader(props: { isPending: boolean }) {
         <div className="-ml-12 flex items-center gap-4">
           <Button
             variant="icon"
-            StartIcon="arrow-left"
+            StartIcon={ArrowLeftIcon}
             color="minimal"
             href="/settings/organizations/attributes">
             <span className="sr-only">{t("back_to_attributes")}</span>

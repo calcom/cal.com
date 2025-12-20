@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { CheckIcon, EllipsisIcon, ExternalLinkIcon, GlobeIcon, LinkIcon, LogOutIcon, PencilIcon, SendIcon, TrashIcon, XIcon } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -161,7 +163,7 @@ export default function TeamListItem(props: Props) {
                   type="button"
                   color="secondary"
                   data-testid={`accept-invitation-${team.id}`}
-                  StartIcon="check"
+                  StartIcon={CheckIcon}
                   className="me-2 ms-2"
                   onClick={acceptInvite}>
                   {t("accept")}
@@ -175,17 +177,17 @@ export default function TeamListItem(props: Props) {
                       type="button"
                       color="secondary"
                       variant="icon"
-                      StartIcon="ellipsis"
+                      StartIcon={EllipsisIcon}
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
-                      <DropdownItem type="button" StartIcon="check" onClick={acceptInvite}>
+                      <DropdownItem type="button" StartIcon={CheckIcon} onClick={acceptInvite}>
                         {t("accept")}
                       </DropdownItem>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <DropdownItem color="destructive" type="button" StartIcon="x" onClick={declineInvite}>
+                      <DropdownItem color="destructive" type="button" StartIcon={XIcon} onClick={declineInvite}>
                         {t("reject")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -211,7 +213,7 @@ export default function TeamListItem(props: Props) {
                         showToast(t("link_copied"), "success");
                       }}
                       variant="icon"
-                      StartIcon="link"
+                      StartIcon={LinkIcon}
                     />
                   </Tooltip>
                 )}
@@ -222,7 +224,7 @@ export default function TeamListItem(props: Props) {
                       type="button"
                       color="secondary"
                       variant="icon"
-                      StartIcon="ellipsis"
+                      StartIcon={EllipsisIcon}
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>
@@ -231,7 +233,7 @@ export default function TeamListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           href={`/settings/teams/${team.id}/profile`}
-                          StartIcon="pencil">
+                          StartIcon={PencilIcon}>
                           {t("edit_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -246,7 +248,7 @@ export default function TeamListItem(props: Props) {
                             orgSlug: team.parent ? team.parent.slug : null,
                             teamSlug: team.slug,
                           })}`}
-                          StartIcon="external-link">
+                          StartIcon={ExternalLinkIcon}>
                           {t("preview_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -258,7 +260,7 @@ export default function TeamListItem(props: Props) {
                           onClick={() => {
                             setOpenMemberInvitationModal(true);
                           }}
-                          StartIcon="send">
+                          StartIcon={SendIcon}>
                           {t("invite_team_member") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -271,7 +273,7 @@ export default function TeamListItem(props: Props) {
                             <DropdownItem
                               color="destructive"
                               type="button"
-                              StartIcon="trash"
+                              StartIcon={TrashIcon}
                               className="rounded-t-none"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -300,7 +302,7 @@ export default function TeamListItem(props: Props) {
                             <DropdownItem
                               color="destructive"
                               type="button"
-                              StartIcon="log-out"
+                              StartIcon={LogOutIcon}
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>
@@ -347,7 +349,7 @@ const TeamPublishButton = ({ teamId }: { teamId: number }) => {
         onClick={() => {
           publishTeamMutation.mutate({ teamId });
         }}
-        StartIcon="globe">
+        StartIcon={GlobeIcon}>
         {t("team_publish")}
       </DropdownItem>
     </DropdownMenuItem>

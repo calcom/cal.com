@@ -1,6 +1,8 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
 import type { ColumnDef } from "@tanstack/react-table";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
 import { usePathname } from "next/navigation";
@@ -174,13 +176,13 @@ function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
                 <Button
                   color="minimal"
                   variant="icon"
-                  StartIcon="chevron-left"
+                  StartIcon={ChevronLeftIcon}
                   onClick={() => setBrowsingDate(browsingDate.subtract(1, "day"))}
                 />
                 <Button
                   onClick={() => setBrowsingDate(browsingDate.add(1, "day"))}
                   color="minimal"
-                  StartIcon="chevron-right"
+                  StartIcon={ChevronRightIcon}
                   variant="icon"
                 />
               </ButtonGroup>

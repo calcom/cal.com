@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleArrowUpIcon, CircleCheckIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -36,7 +37,7 @@ export default function UpgradePage() {
           <EmptyScreen
             headline={t("your_upgrade_is_here")}
             description={t("your_upgrade_is_here_description")}
-            Icon="circle-arrow-up"
+            Icon={CircleArrowUpIcon}
             buttonRaw={
               <Button
                 onClick={() => {
@@ -50,7 +51,7 @@ export default function UpgradePage() {
           <EmptyScreen
             headline={t("you_are_all_set")}
             description={t("you_are_all_set_description")}
-            Icon="circle-check"
+            Icon={CircleCheckIcon}
             buttonRaw={<Button href="mailto:support@cal.com">{t("contact_support")}</Button>}
           />
         )}

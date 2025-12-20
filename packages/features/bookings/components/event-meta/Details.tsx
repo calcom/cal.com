@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import { CheckSquareIcon, ClockIcon, RefreshCcwIcon } from "lucide-react";
 import React, { Fragment } from "react";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
@@ -6,8 +8,6 @@ import { PriceIcon } from "@calcom/features/bookings/components/event-meta/Price
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
-import { type IconName } from "@calcom/ui/components/icon";
 
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
@@ -45,10 +45,8 @@ type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | Even
 
 interface EventMetaProps extends React.HTMLAttributes<HTMLDivElement> {
   customIcon?: React.ReactNode;
-  icon?: IconName;
+  Icon?: LucideIcon;
   iconUrl?: string;
-  // Emphasises the text in the block. For now only
-  // applying in dark mode.
   highlight?: boolean;
   contentClassName?: string;
   isDark?: boolean;
@@ -71,7 +69,7 @@ const defaultEventDetailsBlocks = [
  */
 export const EventMetaBlock = ({
   customIcon,
-  icon,
+  Icon,
   iconUrl,
   children,
   highlight,
@@ -94,7 +92,6 @@ export const EventMetaBlock = ({
         <img
           src={iconUrl}
           alt=""
-          // @TODO: Use SVG's instead of images, so we can get rid of the filter.
           className={classNames(
             "mr-2 mt-[2px] h-4 w-4 shrink-0",
             isDark === undefined && "filter-[invert(0.5)_brightness(0.5)]",
@@ -104,9 +101,7 @@ export const EventMetaBlock = ({
       ) : (
         <>
           {customIcon ||
-            (!!icon && (
-              <Icon name={icon} className="relative z-20 mr-2 mt-[2px] h-4 w-4 shrink-0 rtl:ml-2" />
-            ))}
+            (!!Icon && <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 shrink-0 rtl:ml-2" />)}
         </>
       )}
       <div className={classNames("relative z-10 max-w-full wrap-break-word", contentClassName)}>{children}</div>
@@ -143,7 +138,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         switch (block) {
           case EventDetailBlocks.DURATION:
             return (
-              <EventMetaBlock key={block} icon="clock" className="items-center">
+              <EventMetaBlock key={block} Icon={ClockIcon} className="items-center">
                 <EventDuration event={event} />
               </EventMetaBlock>
             );
@@ -160,7 +155,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.requiresConfirmation) return null;
 
             return (
-              <EventMetaBlock key={block} icon="square-check">
+              <EventMetaBlock key={block} Icon={CheckSquareIcon}>
                 {t("requires_confirmation")}
               </EventMetaBlock>
             );
@@ -169,7 +164,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.recurringEvent || rescheduleUid) return null;
 
             return (
-              <EventMetaBlock key={block} icon="refresh-ccw">
+              <EventMetaBlock key={block} Icon={RefreshCcwIcon}>
                 <EventOccurences event={event} />
               </EventMetaBlock>
             );

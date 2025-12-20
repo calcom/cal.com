@@ -1,19 +1,19 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
+import type { LucideIcon } from "lucide-react";
 import { forwardRef } from "react";
 import { createPortal } from "react-dom";
 
 import classNames from "@calcom/ui/classNames";
 import { Button, type ButtonProps } from "@calcom/ui/components/button";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 export type ActionItem<TData> =
   | {
       type: "action";
       label: string;
       onClick: () => void;
-      icon?: IconName;
+      icon?: LucideIcon;
       needsXSelected?: number;
     }
   | {
@@ -24,17 +24,17 @@ export type ActionItem<TData> =
 
 type ResponsiveButtonProps = {
   className?: string;
-  icon: IconName;
+  Icon: LucideIcon;
   onClick?: () => void;
   children: string;
 } & ButtonProps;
 
 const ResponsiveButton = forwardRef<HTMLButtonElement, ResponsiveButtonProps>(
-  ({ icon, onClick, children, ...rest }, ref) => {
+  ({ Icon, onClick, children, ...rest }, ref) => {
     return (
       <Button ref={ref} onClick={onClick} title={children} {...rest}>
-        <Icon name={icon} size={18} className="sm:hidden" />
-        <Icon name={icon} size={16} className="mr-2 hidden shrink-0 sm:inline" />
+        <Icon size={18} className="sm:hidden" />
+        <Icon size={16} className="mr-2 hidden shrink-0 sm:inline" />
         <span className="sr-only shrink-0 md:not-sr-only">{children}</span>
       </Button>
     );

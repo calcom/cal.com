@@ -1,6 +1,9 @@
 "use client";
 
+import { EllipsisIcon, PencilIcon, TrashIcon, ZapIcon } from "lucide-react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 
 import type { Webhook } from "../lib/dto/types";
 import { getWebhookVersionLabel } from "../lib/constants";
@@ -101,7 +104,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon="zap">
+                startIcon={ZapIcon}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
@@ -138,7 +141,7 @@ export default function WebhookListItem(props: {
             <Button
               className="hidden lg:flex"
               color="destructive"
-              StartIcon="trash"
+              StartIcon={TrashIcon}
               variant="icon"
               onClick={onDeleteWebhook}
             />
@@ -146,12 +149,12 @@ export default function WebhookListItem(props: {
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
-              <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
+              <Button className="lg:hidden" StartIcon={EllipsisIcon} variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {props.permissions.canEditWebhook && (
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
+                  <DropdownItem StartIcon={PencilIcon} color="secondary" onClick={props.onEditWebhook}>
                     {t("edit")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -161,7 +164,7 @@ export default function WebhookListItem(props: {
 
               {props.permissions.canDeleteWebhook && (
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                  <DropdownItem StartIcon={TrashIcon} color="destructive" onClick={onDeleteWebhook}>
                     {t("delete")}
                   </DropdownItem>
                 </DropdownMenuItem>

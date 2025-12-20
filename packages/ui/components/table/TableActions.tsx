@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import { ChevronDownIcon, EllipsisIcon } from "lucide-react";
 import type { FC } from "react";
 import React from "react";
 
@@ -11,11 +13,10 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "../dropdown";
-import type { IconName } from "../icon";
 
 export type ActionType = {
   id: string;
-  icon?: IconName;
+  icon?: LucideIcon;
   iconClassName?: string;
   label: string;
   disabled?: boolean;
@@ -46,7 +47,7 @@ export const DropdownActions = ({
     <Dropdown>
       {!actionTrigger ? (
         <DropdownMenuTrigger asChild>
-          <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
+          <Button type="button" color="secondary" variant="icon" StartIcon={EllipsisIcon} />
         </DropdownMenuTrigger>
       ) : (
         <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>
@@ -77,22 +78,22 @@ export const TableActions: FC<Props> = ({ actions }) => {
   return (
     <>
       <div className="flex space-x-2 rtl:space-x-reverse">
-        {actions.map((action) => {
-          const button = (
-            <Button
-              className="whitespace-nowrap"
-              key={action.id}
-              data-testid={action.id}
-              href={action.href}
-              onClick={action.onClick || defaultAction}
-              StartIcon={action.icon}
-              {...(action?.actions ? { EndIcon: "chevron-down" } : null)}
-              disabled={action.disabled}
-              data-booking-uid={action.bookingUid}
-              color={action.color || "secondary"}>
-              {action.label}
-            </Button>
-          );
+                {actions.map((action) => {
+                  const button = (
+                    <Button
+                      className="whitespace-nowrap"
+                      key={action.id}
+                      data-testid={action.id}
+                      href={action.href}
+                      onClick={action.onClick || defaultAction}
+                      StartIcon={action.icon}
+                      {...(action?.actions ? { EndIcon: ChevronDownIcon } : null)}
+                      disabled={action.disabled}
+                      data-booking-uid={action.bookingUid}
+                      color={action.color || "secondary"}>
+                      {action.label}
+                    </Button>
+                  );
           if (!action.actions) {
             return button;
           }

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { ArrowRightIcon } from "lucide-react";
+
 
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import { isValidEmail } from "@calcom/features/isValidEmail";
@@ -73,7 +75,7 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
                 type="button"
                 color="minimal"
                 size="sm"
-                StartIcon="arrow-right"
+                StartIcon={ArrowRightIcon}
                 onClick={() => {
                   if (!!verifiedEmail && isValidEmail(verifiedEmail)) {
                     setIsEmailVerificationModalVisible(true);

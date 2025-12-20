@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -11,7 +12,6 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 
 import { AppCard } from "./AppCard";
 
@@ -90,7 +90,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 flex  lg:left-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+            <ChevronLeftIcon className="text-subtle h-4 w-4" />
           </div>
           <div className="to-default flex h-12 w-5 bg-linear-to-l from-transparent" />
         </button>
@@ -131,7 +131,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex ">
           <div className="to-default flex h-12 w-5 bg-linear-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+            <ChevronRightIcon className="text-subtle h-4 w-4" />
           </div>
         </button>
       )}
@@ -142,7 +142,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
 export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
+  const [appsContainerRef, _enableAnimation] = useAutoAnimate<HTMLDivElement>();
 
   const handleCategoryChange = (category: string | null) => {
     const validCategory =
@@ -189,7 +189,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         </div>
       ) : (
         <EmptyScreen
-          Icon="search"
+          Icon={SearchIcon}
           headline={t("no_results")}
           description={searchText ? searchText?.toString() : ""}
         />

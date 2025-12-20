@@ -1,4 +1,6 @@
 import posthog from "posthog-js";
+import { ExternalLinkIcon } from "lucide-react";
+
 
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -114,7 +116,7 @@ export function BuyNumberDialog({ open, onOpenChange, agentId, workflowId, teamI
               {t("close")}
             </Button>
             <Button
-              StartIcon="external-link"
+              StartIcon={ExternalLinkIcon}
               onClick={() => {
                 if (!agentId || !workflowId) {
                   return;

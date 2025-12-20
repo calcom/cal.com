@@ -1,10 +1,10 @@
 "use client";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import { CheckIcon, ExternalLinkIcon, UserIcon } from "lucide-react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
 import { useWelcomeToCalcomModal } from "../hooks/useWelcomeToCalcomModal";
@@ -73,11 +73,8 @@ export function WelcomeToCalcomModal() {
                   top: "50%",
                   transform: "translate(-50%, -50%)",
                 }}>
-                <Icon
-                  name="user"
-                  className="text-emphasis opacity-70"
-                  style={{ width: LARGE.icon, height: LARGE.icon }}
-                />
+                <UserIcon className="text-emphasis opacity-70"
+                  style={{ width: LARGE.icon, height: LARGE.icon }} />
               </div>
             </div>
           </div>
@@ -92,7 +89,7 @@ export function WelcomeToCalcomModal() {
           <div className="mb-2 flex flex-col gap-3">
             {features.map((feature) => (
               <div key={feature} className="flex items-start gap-2">
-                <Icon name="check" className="text-muted mt-0.5 h-4 w-4 shrink-0" />
+                <CheckIcon className="text-muted mt-0.5 h-4 w-4 shrink-0" />
                 <span className="text-default text-sm font-medium leading-tight">{t(feature)}</span>
               </div>
             ))}
@@ -104,7 +101,7 @@ export function WelcomeToCalcomModal() {
             color="minimal"
             href="https://cal.com/docs"
             target="_blank"
-            EndIcon="external-link"
+            EndIcon={ExternalLinkIcon}
             className="pointer-events-none opacity-0">
             {t("learn_more")}
           </Button>

@@ -1,3 +1,4 @@
+import { CalendarIcon, ClockIcon, RefreshCcwIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import React from "react";
 
@@ -55,7 +56,7 @@ export const BookEventFormWrapperComponent = ({
     <>
       <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
       <div className="my-4 flex flex-wrap gap-2 rounded-md leading-none">
-        <Badge variant="grayWithoutHover" startIcon="calendar" size="lg">
+        <Badge variant="grayWithoutHover" startIcon={CalendarIcon} size="lg">
           <FromTime
             date={selectedTimeslot}
             timeFormat={timeFormat}
@@ -64,13 +65,13 @@ export const BookEventFormWrapperComponent = ({
           />
         </Badge>
         {(selectedDuration || eventLength) && (
-          <Badge variant="grayWithoutHover" startIcon="clock" size="lg">
+          <Badge variant="grayWithoutHover" startIcon={ClockIcon} size="lg">
             <span>{getDurationFormatted(selectedDuration || eventLength, t)}</span>
           </Badge>
         )}
 
         {recurringEventCount && recurringEventCount > 1 && (
-          <Badge variant="grayWithoutHover" startIcon="refresh-ccw" size="lg">
+          <Badge variant="grayWithoutHover" startIcon={RefreshCcwIcon} size="lg">
             <span>
               {t("repeats_num_times", {
                 count: recurringEventCount,

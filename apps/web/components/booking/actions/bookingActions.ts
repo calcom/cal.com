@@ -1,3 +1,21 @@
+import {
+  BanIcon,
+  CheckIcon,
+  CircleXIcon,
+  ClockIcon,
+  CreditCardIcon,
+  EyeIcon,
+  EyeOffIcon,
+  FlagIcon,
+  InfoIcon,
+  MapPinIcon,
+  SendIcon,
+  UserPlusIcon,
+  UsersIcon,
+  VideoIcon,
+  WaypointsIcon,
+} from "lucide-react";
+
 import { isWithinMinimumRescheduleNotice } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
@@ -48,7 +66,7 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
       id: "confirm",
       bookingUid: booking.uid,
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-      icon: "check" as const,
+      icon: CheckIcon,
       disabled: false, // This would be controlled by mutation state in the component
     });
   }
@@ -56,7 +74,7 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
   actions.push({
     id: "reject",
     label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-    icon: "ban",
+    icon: BanIcon,
     disabled: false, // This would be controlled by mutation state in the component
   });
 
@@ -69,7 +87,7 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
   return {
     id: "cancel",
     label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-    icon: "circle-x",
+    icon: CircleXIcon,
     color: "destructive",
     disabled: isActionDisabled("cancel", context),
     bookingUid: booking.uid,
@@ -83,13 +101,13 @@ export function getVideoOptionsActions(context: BookingActionContext): ActionTyp
     {
       id: "view_recordings",
       label: t("view_recordings"),
-      icon: "video",
+      icon: VideoIcon,
       disabled: !(isBookingInPast && isConfirmed && isCalVideoLocation && booking.isRecorded),
     },
     {
       id: "meeting_session_details",
       label: t("view_session_details"),
-      icon: "info",
+      icon: InfoIcon,
       disabled: !(isBookingInPast && isConfirmed && isCalVideoLocation),
     },
   ];
@@ -116,7 +134,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   const actions: (ActionType | null)[] = [
     {
       id: "reschedule",
-      icon: "clock",
+      icon: ClockIcon,
       label: t("reschedule_booking"),
       href: `/reschedule/${booking.uid}${
         booking.seatsReferences.length && isAttendee && seatReferenceUid
@@ -132,7 +150,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     },
     {
       id: "reschedule_request",
-      icon: "send",
+      icon: SendIcon,
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       disabled:
@@ -147,14 +165,14 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       ? {
           id: "reroute",
           label: t("reroute"),
-          icon: "waypoints",
+          icon: WaypointsIcon,
           disabled: false,
         }
       : null,
     {
       id: "change_location",
       label: t("edit_location"),
-      icon: "map-pin",
+      icon: MapPinIcon,
       disabled: false,
     },
     booking.eventType?.disableGuests
@@ -162,14 +180,14 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       : {
           id: "add_members",
           label: t("additional_guests"),
-          icon: "user-plus",
+          icon: UserPlusIcon,
           disabled: false,
         },
     isReassignable
       ? {
           id: "reassign",
           label: t("reassign"),
-          icon: "users",
+          icon: UsersIcon,
           disabled: false,
         }
       : null,
@@ -184,7 +202,7 @@ export function getReportAction(context: BookingActionContext): ActionType {
   return {
     id: "report",
     label: t("report_booking"),
-    icon: "flag",
+    icon: FlagIcon,
     color: "destructive",
     disabled: !!booking.report,
   };
@@ -199,7 +217,7 @@ export function getAfterEventActions(context: BookingActionContext): ActionType[
       ? {
           id: "charge_card",
           label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
-          icon: "credit-card",
+          icon: CreditCardIcon,
           disabled: cardCharged,
         }
       : null,
@@ -207,7 +225,7 @@ export function getAfterEventActions(context: BookingActionContext): ActionType[
       id: "no_show",
       label:
         attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
-      icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : "eye-off",
+      icon: attendeeList.length === 1 && attendeeList[0].noShow ? EyeIcon : EyeOffIcon,
       disabled: false, // This would be controlled by booking state in the component
     },
   ];

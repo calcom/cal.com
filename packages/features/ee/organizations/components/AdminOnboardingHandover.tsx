@@ -1,6 +1,8 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { ArrowLeftIcon, ClipboardIcon } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
@@ -54,7 +56,7 @@ export const AdminOnboardingHandover = () => {
                 navigator.clipboard.writeText(onboardingUrl);
                 showToast(t("link_copied"), "success");
               }}
-              StartIcon="clipboard">
+              StartIcon={ClipboardIcon}>
               {t("copy")}
             </Button>
           </div>
@@ -63,7 +65,7 @@ export const AdminOnboardingHandover = () => {
 
       {/* Actions */}
       <div className="flex items-center justify-between">
-        <Button color="minimal" StartIcon="arrow-left" onClick={() => router.push("/settings/organizations")}>
+        <Button color="minimal" StartIcon={ArrowLeftIcon} onClick={() => router.push("/settings/organizations")}>
           {t("back")}
         </Button>
         <Button

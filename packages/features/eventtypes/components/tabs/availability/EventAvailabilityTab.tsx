@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ExternalLinkIcon, GlobeIcon, UserIcon } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -31,7 +32,6 @@ import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
@@ -262,7 +262,7 @@ const EventTypeScheduleDetails = memo(
         <div className="bg-cal-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
             <span className="text-default flex items-center justify-center text-center text-sm sm:justify-start">
-              <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+              <GlobeIcon className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
           </div>
@@ -274,7 +274,7 @@ const EventTypeScheduleDetails = memo(
                 href={editAvailabilityRedirectUrl}
                 disabled={isSchedulePending}
                 color="minimal"
-                EndIcon="external-link"
+                EndIcon={ExternalLinkIcon}
                 target="_blank"
                 rel="noopener noreferrer">
                 {t("edit_availability")}
@@ -392,10 +392,7 @@ const EventTypeRestrictionScheduleDetails = memo(
                 "text-default flex items-center justify-center text-sm sm:justify-start",
                 useBookerTimezone && "text-muted line-through"
               )}>
-              <Icon
-                name="globe"
-                className={classNames("h-3.5 w-3.5 ltr:mr-2 rtl:ml-2", useBookerTimezone && "text-muted")}
-              />
+              <GlobeIcon className={classNames("h-3.5 w-3.5 ltr:mr-2 rtl:ml-2", useBookerTimezone && "text-muted")} />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
             <div className="ltr:mr-2 rtl:ml-2">
@@ -418,7 +415,7 @@ const EventTypeRestrictionScheduleDetails = memo(
                 href={restrictionScheduleRedirectUrl}
                 disabled={isSchedulePending}
                 color="minimal"
-                EndIcon="external-link"
+                EndIcon={ExternalLinkIcon}
                 target="_blank"
                 rel="noopener noreferrer">
                 {t("edit_availability")}
@@ -469,8 +466,7 @@ const EventTypeSchedule = ({
         shouldDirty: true,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scheduleId, schedulesQueryData]);
+  }, [scheduleId, schedulesQueryData, fieldName, eventType.restrictionScheduleId, isManagedEventType, setValue, formFieldName]);
 
   if (isSchedulesPending || !schedulesQueryData) {
     return <SelectSkeletonLoader />;
@@ -663,7 +659,7 @@ const TeamMemberSchedule = ({
     <>
       <div className={classNames("flex w-full items-center", customClassNames?.labelContainer)}>
         {!isPlatform && <Avatar size="sm" imageSrc={avatar} alt={label || ""} />}
-        {isPlatform && <Icon name="user" className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
+        {isPlatform && <UserIcon className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
         <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{label}</p>
       </div>
       <div className="flex w-full flex-col pt-2">

@@ -1,12 +1,11 @@
 "use client";
 
 import { cva } from "class-variance-authority";
+import { XIcon } from "lucide-react";
 import React, { forwardRef, useId, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-
-import { Icon } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
@@ -208,16 +207,15 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               {addOnSuffix}
             </Addon>
           )}
-          {type === "search" && inputValue?.toString().length > 0 && (
-            <Icon
-              name="x"
-              className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
-              onClick={(e) => {
-                setInputValue("");
-                props.onChange?.(e as unknown as React.ChangeEvent<HTMLInputElement>);
-              }}
-            />
-          )}
+                    {type === "search" && inputValue?.toString().length > 0 && (
+                      <XIcon
+                        className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
+                        onClick={(e) => {
+                          setInputValue("");
+                          props.onChange?.(e as unknown as React.ChangeEvent<HTMLInputElement>);
+                        }}
+                      />
+                    )}
         </div>
       ) : (
         <Input

@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -9,7 +10,6 @@ import classNames from "@calcom/ui/classNames";
 
 import { Avatar } from "../avatar/Avatar";
 import { Badge } from "../badge/Badge";
-import { Icon } from "../icon/Icon";
 import { ListItemText } from "../list/List";
 
 type ShouldHighlight =
@@ -86,13 +86,13 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
           </div>
           <ListItemText
             component="p"
-            className={classNames("whitespace-normal wrap-break-word", classNameObject?.description)}>
+            className={classNames("wrap-break-word whitespace-normal", classNameObject?.description)}>
             {description}
           </ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
-              <Icon name="circle-alert" className="h-8 w-8 shrink-0 text-red-500 sm:h-4 sm:w-4" />
-              <ListItemText component="p" className="whitespace-pre-wrap wrap-break-word text-red-500">
+              <CircleAlertIcon className="h-8 w-8 shrink-0 text-red-500 sm:h-4 sm:w-4" />
+              <ListItemText component="p" className="wrap-break-word whitespace-pre-wrap text-red-500">
                 {t("invalid_credential", { appName: title })}
               </ListItemText>
             </div>

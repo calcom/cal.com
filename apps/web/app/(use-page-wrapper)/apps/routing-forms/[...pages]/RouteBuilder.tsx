@@ -1,6 +1,17 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  BlocksIcon,
+  GlobeIcon,
+  MenuIcon,
+  PlusIcon,
+  SplitIcon,
+  UserCheckIcon,
+  ZapIcon,
+} from "lucide-react";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
@@ -57,8 +68,6 @@ import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/
 import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import type { IconName } from "@calcom/ui/components/icon";
-import { Icon } from "@calcom/ui/components/icon";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
 import SingleForm from "@components/apps/routing-forms/SingleForm";
@@ -103,12 +112,13 @@ function useEnsureEventTypeIdInRedirectUrlAction({
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventOptions, setRoute, route.id, route.action?.value]);
 }
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 
 function getEmptyQueryValue() {
@@ -147,14 +157,14 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata?: Record<string, any>;
+    eventTypeAppMetadata?: Record<string, unknown>;
     isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
-      eventTypeAppMetadata?: Record<string, any>;
+      eventTypeAppMetadata?: Record<string, unknown>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -290,7 +300,7 @@ const WeightedAttributesSelector = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-0.5">
             <div className="border-subtle rounded-lg border p-1">
-              <Icon name="globe" className="text-subtle h-4 w-4" />
+              <GlobeIcon className="text-subtle h-4 w-4" />
             </div>
             <div className="flex flex-col">
               <span className="text-emphasis ml-2 text-sm font-medium">{t("use_attribute_weights")}</span>
@@ -374,7 +384,7 @@ const Route = ({
   attributes?: Attribute[];
   cardOptions?: {
     collapsible?: boolean;
-    leftIcon?: IconName;
+    leftIcon?: LucideIcon;
   };
 }) => {
   const { t } = useLocale();
@@ -398,6 +408,7 @@ const Route = ({
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
     setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEnsureEventTypeIdInRedirectUrlAction({
@@ -525,7 +536,7 @@ const Route = ({
     <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
       <div className="ml-2 flex items-center gap-0.5">
         <div className="border-subtle rounded-lg border p-1">
-          <Icon name="zap" className="text-subtle h-4 w-4" />
+          <ZapIcon className="text-subtle h-4 w-4" />
         </div>
         <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
       </div>
@@ -575,7 +586,7 @@ const Route = ({
         <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
           <div className="ml-2 flex items-center gap-0.5">
             <div className="border-subtle rounded-lg border p-1">
-              <Icon name="user-check" className="text-subtle h-4 w-4" />
+              <UserCheckIcon className="text-subtle h-4 w-4" />
             </div>
             <span className="text-emphasis ml-2 text-sm font-medium">
               And connect with specific team members
@@ -604,7 +615,7 @@ const Route = ({
       <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
         <div className="ml-2 flex items-center gap-0.5">
           <div className="border-subtle rounded-lg border p-1">
-            <Icon name="blocks" className="text-subtle h-4 w-4" />
+            <BlocksIcon className="text-subtle h-4 w-4" />
           </div>
           <span className="text-emphasis ml-2 text-sm font-medium">Fallback</span>
         </div>
@@ -792,7 +803,7 @@ const Route = ({
               <div className="bg-default border-subtle my-3 rounded-xl border p-2">
                 <div className="mb-2 ml-2 flex items-center gap-0.5">
                   <div className="border-subtle rounded-lg border p-1">
-                    <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+                    <ArrowRightIcon className="text-subtle h-4 w-4" />
                   </div>
                   <span className="text-emphasis ml-2 text-sm font-medium">Send booker to</span>
                 </div>
@@ -1158,7 +1169,7 @@ const Routes = ({
     });
   };
 
-  const availableRouters =
+  const _availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
         const routerValidInContext = areTheySiblingEntities({
@@ -1320,19 +1331,19 @@ const Routes = ({
         })}
         {mainRoutes.length === 0 ? (
           <EmptyState
-            icon="menu"
+            Icon={MenuIcon}
             header="Create your first route"
             text="Routes determine where your form responses will be sent based on the answers provided."
             buttonText={t("add_a_new_route")}
             buttonOnClick={createRoute}
-            buttonStartIcon="plus"
+            buttonStartIcon={PlusIcon}
             buttonClassName="mt-6"
             buttonDataTestId="add-route-button"
           />
         ) : (
           <Button
             color="minimal"
-            StartIcon="plus"
+            StartIcon={PlusIcon}
             className="mb-6"
             onClick={createRoute}
             data-testid="add-route-button">
@@ -1345,7 +1356,7 @@ const Routes = ({
             form={form}
             cardOptions={{
               collapsible: false,
-              leftIcon: "split",
+              leftIcon: SplitIcon,
             }}
             formFieldsQueryBuilderConfig={formFieldsQueryBuilderConfig}
             attributesQueryBuilderConfig={attributesQueryBuilderConfig}

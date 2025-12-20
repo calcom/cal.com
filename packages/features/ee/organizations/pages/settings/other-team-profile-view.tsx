@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ExternalLinkIcon, LinkIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -267,7 +268,6 @@ const OtherTeamProfileView = () => {
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
                       className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      // eslint-disable-next-line react/no-danger
                       dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio) }}
                     />
                   </>
@@ -275,10 +275,10 @@ const OtherTeamProfileView = () => {
               </div>
               <div className="">
                 <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
+                  <LinkIconButton Icon={ExternalLinkIcon}>{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
-                  Icon="link"
+                  Icon={LinkIcon}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
@@ -294,7 +294,7 @@ const OtherTeamProfileView = () => {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon="trash-2">
+              <Button color="destructive" className="border" StartIcon={Trash2Icon}>
                 {t("disband_team")}
               </Button>
             </DialogTrigger>

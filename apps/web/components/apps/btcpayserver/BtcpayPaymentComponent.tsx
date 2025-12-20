@@ -1,5 +1,6 @@
 "use client";
 
+import { ClipboardCheckIcon, ClipboardIcon, LoaderIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import z from "zod";
 
@@ -10,7 +11,6 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
-import { Spinner } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface IPaymentComponentProps {
@@ -50,7 +50,7 @@ export const BtcpayPaymentComponent = (props: IPaymentComponentProps) => {
 
       {!iframeLoaded && (
         <div className="flex items-center justify-center">
-          <Spinner className="mr-2 h-5 w-5" />
+          <LoaderIcon className="mr-2 h-5 w-5 animate-spin" />
           <p>Loading payment page...</p>
         </div>
       )}
@@ -70,7 +70,7 @@ export const BtcpayPaymentComponent = (props: IPaymentComponentProps) => {
           color="secondary"
           onClick={() => copyToClipboard(checkoutUrl)}
           className="text-subtle rounded-md"
-          StartIcon={isCopied ? "clipboard-check" : "clipboard"}>
+          StartIcon={isCopied ? ClipboardCheckIcon : ClipboardIcon}>
           Copy Payment Link
         </Button>
 

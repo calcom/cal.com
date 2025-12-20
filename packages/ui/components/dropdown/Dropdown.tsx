@@ -1,4 +1,6 @@
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import type { LucideIcon } from "lucide-react";
+import { CircleCheckIcon } from "lucide-react";
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { forwardRef } from "react";
@@ -6,8 +8,6 @@ import { forwardRef } from "react";
 import classNames from "@calcom/ui/classNames";
 
 import type { ButtonColor } from "../button";
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 
@@ -118,9 +118,9 @@ export const DropdownMenuRadioItem = forwardRef<HTMLDivElement, DropdownMenuRadi
     return (
       <DropdownMenuPrimitive.RadioItem {...props} ref={forwardedRef}>
         {children}
-        <DropdownMenuPrimitive.ItemIndicator>
-          <Icon name="circle-check" />
-        </DropdownMenuPrimitive.ItemIndicator>
+                <DropdownMenuPrimitive.ItemIndicator>
+                  <CircleCheckIcon />
+                </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.RadioItem>
     );
   }
@@ -130,10 +130,10 @@ DropdownMenuRadioItem.displayName = "DropdownMenuRadioItem";
 type DropdownItemProps = {
   children: React.ReactNode;
   color?: ButtonColor;
-  StartIcon?: IconName;
+  StartIcon?: LucideIcon;
   CustomStartIcon?: React.ReactNode;
   kbd?: string;
-  EndIcon?: IconName;
+  EndIcon?: LucideIcon;
   href?: string;
   disabled?: boolean;
   childrenClassName?: string;
@@ -170,11 +170,11 @@ export const DropdownItem = (props: DropdownItemProps) => {
         props.className
       )}>
       <>
-        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4 shrink-0" />)}
+        {CustomStartIcon || (StartIcon && <StartIcon className="mr-1 h-4 w-4 shrink-0" />)}
         <div className={classNames("w-full text-left text-sm font-medium leading-none", childrenClassName)}>
           {children}
         </div>
-        {EndIcon && <Icon name={EndIcon} className="h-4 w-4" />}
+        {EndIcon && <EndIcon className="h-4 w-4" />}
       </>
     </ButtonOrLink>
   );

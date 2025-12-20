@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { EllipsisIcon, TrashIcon } from "lucide-react";
+
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -58,7 +60,7 @@ export default function CredentialActionsDropdown({
     <>
       <Dropdown open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
+          <Button type="button" variant="icon" color="secondary" StartIcon={EllipsisIcon} />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {canDisconnect && (
@@ -66,7 +68,7 @@ export default function CredentialActionsDropdown({
               <DropdownItem
                 type="button"
                 color="destructive"
-                StartIcon="trash"
+                StartIcon={TrashIcon}
                 onClick={() => {
                   setDisconnectModalOpen(true);
                   setDropdownOpen(false);

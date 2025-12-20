@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ChevronUpIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useId, useState } from "react";
 
@@ -8,7 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 
 export function PanelCard({
   title,
@@ -61,15 +61,14 @@ export function PanelCard({
               size="sm"
               variant="icon"
               color="minimal"
-              CustomStartIcon={
-                <Icon
-                  name="chevron-up"
-                  className={classNames(
-                    "text-default h-4 w-4 transition-transform",
-                    isCollapsed && "rotate-180"
-                  )}
-                />
-              }
+                            CustomStartIcon={
+                              <ChevronUpIcon
+                                className={classNames(
+                                  "text-default h-4 w-4 transition-transform",
+                                  isCollapsed && "rotate-180"
+                                )}
+                              />
+                            }
               onClick={toggleCollapse}
               className="text-muted -ml-2"
               aria-expanded={!isCollapsed}

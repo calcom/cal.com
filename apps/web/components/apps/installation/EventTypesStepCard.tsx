@@ -1,3 +1,4 @@
+import { ClockIcon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
 import React from "react";
@@ -74,7 +75,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
           <div className="mt-2 flex flex-row flex-wrap gap-2">
             {Boolean(durations.length) &&
               durations.map((duration) => (
-                <Badge key={`event-type-${id}-duration-${duration}`} variant="gray" startIcon="clock">
+                <Badge key={`event-type-${id}-duration-${duration}`} variant="gray" startIcon={ClockIcon}>
                   {duration}m
                 </Badge>
               ))}

@@ -1,4 +1,5 @@
 import type { Table } from "@tanstack/react-table";
+import { CheckIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -38,7 +39,7 @@ export function DynamicLink<T extends { username: string | null }>({
           <div className="ml-auto flex items-center justify-center gap-1 md:justify-start">
             <Button
               variant="icon"
-              StartIcon={isCopied ? "check" : "copy"}
+              StartIcon={isCopied ? CheckIcon : CopyIcon}
               size="sm"
               onClick={() => copyToClipboard(dynamicLinkOfSelectedUsers)}
               color="secondary">
@@ -46,7 +47,7 @@ export function DynamicLink<T extends { username: string | null }>({
             </Button>
             <Button
               color="secondary"
-              EndIcon="external-link"
+              EndIcon={ExternalLinkIcon}
               size="sm"
               href={dynamicLinkOfSelectedUsers}
               target="_blank"

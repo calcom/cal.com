@@ -1,3 +1,14 @@
+import {
+  CheckCircleIcon,
+  CircleXIcon,
+  ClipboardCheckIcon,
+  ClipboardIcon,
+  EyeIcon,
+  EyeOffIcon,
+  MailIcon,
+  RefreshCcwIcon,
+  SendIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -33,7 +44,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuPortal,
 } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -240,7 +250,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
+      <Badge startIcon={SendIcon} size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );
@@ -471,7 +481,7 @@ function BookingListItem(booking: BookingItemProps) {
                 e.stopPropagation();
                 setIsCancelDialogOpen(true);
               }}
-              StartIcon="circle-x"
+              StartIcon={CircleXIcon}
               disabled={isActionDisabled("cancel", actionContext)}
               data-booking-uid={booking.uid}
               color="destructive">
@@ -652,8 +662,7 @@ const RecurringBookingsTooltip = ({
                 );
               })}>
               <div className="text-default">
-                <Icon
-                  name="refresh-ccw"
+                <RefreshCcwIcon
                   strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
                 />
@@ -738,7 +747,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
             <>
-              {displayName} <Icon name="eye-off" className="inline h-4" />
+              {displayName} <EyeOffIcon className="inline h-4" />
             </>
           ) : (
             <>{displayName}</>
@@ -750,7 +759,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
           {!isSmsCalEmail(email) && (
             <DropdownMenuItem className="focus:outline-none">
               <DropdownItem
-                StartIcon="mail"
+                StartIcon={MailIcon}
                 href={`mailto:${email}`}
                 onClick={(e) => {
                   setOpenDropdown(false);
@@ -763,7 +772,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
 
           <DropdownMenuItem className="focus:outline-none">
             <DropdownItem
-              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+              StartIcon={isCopied ? ClipboardCheckIcon : ClipboardIcon}
               onClick={(e) => {
                 e.preventDefault();
                 const isEmailCopied = isSmsCalEmail(email);
@@ -784,7 +793,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
                   setOpenDropdown(false);
                   noShowMutation.mutate({ bookingUid, attendees: [{ noShow: !noShow, email }] });
                 }}
-                StartIcon={noShow ? "eye" : "eye-off"}>
+                StartIcon={noShow ? EyeIcon : EyeOffIcon}>
                 {noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -939,7 +948,7 @@ const GroupedGuests = ({ guests }: { guests: BookingAttendee[] }) => {
             <DropdownMenuItem key={guest.id}>
               <DropdownItem
                 className="pr-6 focus:outline-none"
-                StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
+                StartIcon={selectedEmail === guest.email ? CheckCircleIcon : undefined}
                 onClick={(e) => {
                   e.preventDefault();
                   setSelectedEmail(guest.email);

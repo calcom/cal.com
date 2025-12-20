@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { EllipsisIcon, PencilIcon, TrashIcon } from "lucide-react";
+
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -75,12 +77,12 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
+            <Button type="button" variant="icon" color="secondary" StartIcon={EllipsisIcon} />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
             <DropdownMenuItem>
-              <DropdownItem type="button" onClick={onEditClick} StartIcon="pencil">
+              <DropdownItem type="button" onClick={onEditClick} StartIcon={PencilIcon}>
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
@@ -90,7 +92,7 @@ const ApiKeyListItem = ({
                 color="destructive"
                 disabled={deleteApiKey.isPending}
                 onClick={() => setDeleteDialogOpen(true)}
-                StartIcon="trash">
+                StartIcon={TrashIcon}>
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>

@@ -9,11 +9,21 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import classNames from "classnames";
+import {
+  EllipsisIcon,
+  ExternalLinkIcon,
+  Handshake as HandshakeIcon,
+  LockIcon,
+  PencilIcon,
+  PlusIcon,
+  SendIcon,
+  UserXIcon,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
-import posthog from "posthog-js";
 import { signIn } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
+import posthog from "posthog-js";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -471,7 +481,7 @@ function MemberListContent(props: Props) {
                         }
                         color="secondary"
                         variant="icon"
-                        StartIcon="clock"
+                        StartIcon={ClockIcon}
                       />
                     </Tooltip> */}
                     {!!user.accepted && (
@@ -482,7 +492,7 @@ function MemberListContent(props: Props) {
                           color="secondary"
                           className={classNames(!editMode ? "rounded-r-md" : "")}
                           variant="icon"
-                          StartIcon="external-link"
+                          StartIcon={ExternalLinkIcon}
                           disabled={!user.accepted}
                         />
                       </Tooltip>
@@ -494,7 +504,7 @@ function MemberListContent(props: Props) {
                             className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                             color="secondary"
                             variant="icon"
-                            StartIcon="ellipsis"
+                            StartIcon={EllipsisIcon}
                           />
                         </DropdownMenuTrigger>
                         <DropdownMenuPortal>
@@ -512,7 +522,7 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="pencil">
+                                  StartIcon={PencilIcon}>
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -531,7 +541,7 @@ function MemberListContent(props: Props) {
                                         },
                                       })
                                     }
-                                    StartIcon="lock">
+                                    StartIcon={LockIcon}>
                                     {t("impersonate")}
                                   </DropdownItem>
                                 </DropdownMenuItem>
@@ -549,7 +559,7 @@ function MemberListContent(props: Props) {
                                       language: i18n.language,
                                     });
                                   }}
-                                  StartIcon="send">
+                                  StartIcon={SendIcon}>
                                   {t("resend_invitation")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -568,7 +578,7 @@ function MemberListContent(props: Props) {
                                     })
                                   }
                                   color="destructive"
-                                  StartIcon="user-x">
+                                  StartIcon={UserXIcon}>
                                   {t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -581,7 +591,7 @@ function MemberListContent(props: Props) {
                   <div className="flex md:hidden">
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
-                        <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+                        <Button type="button" variant="icon" color="minimal" StartIcon={EllipsisIcon} />
                       </DropdownMenuTrigger>
                       <DropdownMenuPortal>
                         <DropdownMenuContent>
@@ -591,7 +601,7 @@ function MemberListContent(props: Props) {
                               href={!user.accepted ? undefined : `/${user.username}`}
                               target="_blank"
                               type="button"
-                              StartIcon="external-link">
+                              StartIcon={ExternalLinkIcon}>
                               {t("view_public_page")}
                             </DropdownItem>
                           </DropdownMenuItem>
@@ -609,7 +619,7 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="pencil">
+                                  StartIcon={PencilIcon}>
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -626,7 +636,7 @@ function MemberListContent(props: Props) {
                                       },
                                     })
                                   }
-                                  StartIcon="user-x">
+                                  StartIcon={UserXIcon}>
                                   {t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -726,8 +736,11 @@ function MemberListContent(props: Props) {
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"
-                StartIcon="plus"
-                onClick={() => { props.setShowMemberInvitationModal(true); posthog.capture("teams_add_new_members_button_clicked") }}
+                StartIcon={PlusIcon}
+                onClick={() => {
+                  props.setShowMemberInvitationModal(true);
+                  posthog.capture("teams_add_new_members_button_clicked");
+                }}
                 data-testid="new-member-button">
                 {t("add")}
               </DataTableToolbar.CTA>
@@ -748,7 +761,7 @@ function MemberListContent(props: Props) {
               <DataTableSelectionBar.Button
                 color="secondary"
                 onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                icon="handshake">
+                Icon={HandshakeIcon}>
                 {t("group_meeting")}
               </DataTableSelectionBar.Button>
             )}
