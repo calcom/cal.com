@@ -473,6 +473,7 @@ export default function EventTypes() {
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
         blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
+        hidden={Platform.OS === "android"}
       >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
         <Stack.Header.Right>
@@ -487,7 +488,7 @@ export default function EventTypes() {
           barTintColor="#fff"
         />
       </Stack.Header>
-      <Activity mode={Platform.OS === "web" ? "visible" : "hidden"}>
+      <Activity mode={Platform.OS === "web" || Platform.OS === "android" ? "visible" : "hidden"}>
         <Header />
         <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
           <TextInput

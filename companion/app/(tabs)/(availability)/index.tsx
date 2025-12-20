@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState, useMemo } from "react";
+import { Stack, useRouter } from "expo-router";
+import React, { useState, useMemo, Activity } from "react";
 import {
   View,
   Text,
@@ -10,27 +10,27 @@ import {
   ActionSheetIOS,
   Alert,
   Platform,
-  Modal,
   TextInput,
-  KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
 
-import { CalComAPIService, Schedule } from "../../services/calcom";
-import { Header } from "../../components/Header";
-import { FullScreenModal } from "../../components/FullScreenModal";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { EmptyScreen } from "../../components/EmptyScreen";
-import { showErrorAlert } from "../../utils/alerts";
-import { offlineAwareRefresh } from "../../utils/network";
-import { shadows } from "../../utils/shadows";
+import { CalComAPIService, Schedule } from "../../../services/calcom";
+import { Header } from "../../../components/Header";
+import { FullScreenModal } from "../../../components/FullScreenModal";
+import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { EmptyScreen } from "../../../components/EmptyScreen";
+import { showErrorAlert } from "../../../utils/alerts";
+import { offlineAwareRefresh } from "../../../utils/network";
+import { shadows } from "../../../utils/shadows";
 import {
   useSchedules,
   useCreateSchedule,
   useDeleteSchedule,
   useDuplicateSchedule,
   useSetScheduleAsDefault,
-} from "../../hooks";
+} from "../../../hooks";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { AvailabilityListItem } from "../../../components/availability-list-item/AvailabilityListItem";
 
 export default function Availability() {
   const router = useRouter();
@@ -261,65 +261,6 @@ export default function Availability() {
     );
   };
 
-  const renderSchedule = ({ item: schedule, index }: { item: Schedule; index: number }) => {
-    return (
-      <TouchableOpacity
-        className="border-b border-[#E5E5EA] bg-white active:bg-[#F8F9FA]"
-        onPress={() => handleSchedulePress(schedule)}
-        onLongPress={() => handleScheduleLongPress(schedule)}
-        style={{ paddingHorizontal: 16, paddingVertical: 16 }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="mr-4 flex-1">
-            <View className="mb-1 flex-row flex-wrap items-center">
-              <Text className="text-base font-semibold text-[#333]">{schedule.name}</Text>
-              {schedule.isDefault ? (
-                <View className="ml-2 rounded bg-[#666] px-2 py-0.5">
-                  <Text className="text-xs font-semibold text-white">Default</Text>
-                </View>
-              ) : null}
-            </View>
-
-            {schedule.availability && schedule.availability.length > 0 ? (
-              <View>
-                {schedule.availability.map((slot, slotIndex) => (
-                  <View
-                    key={`${schedule.id}-${slot.days.join("-")}-${slotIndex}`}
-                    className={slotIndex > 0 ? "mt-2" : ""}
-                  >
-                    <Text className="text-sm text-[#666]">
-                      {slot.days.join(", ")} {slot.startTime} - {slot.endTime}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Text className="text-sm text-[#666]">No availability set</Text>
-            )}
-
-            <View className="mt-2 flex-row items-center">
-              <Ionicons name="globe-outline" size={14} color="#666" />
-              <Text className="ml-1.5 text-sm text-[#666]">{schedule.timeZone}</Text>
-            </View>
-          </View>
-
-          {/* Three dots button - vertically centered on the right */}
-          <TouchableOpacity
-            className="items-center justify-center rounded-lg border border-[#E5E5EA]"
-            style={{ width: 32, height: 32 }}
-            onPress={(e) => {
-              e.stopPropagation();
-              setSelectedSchedule(schedule);
-              setShowActionsModal(true);
-            }}
-          >
-            <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   if (loading) {
     return (
       <View className="flex-1 bg-[#f8f9fa]">
@@ -356,93 +297,126 @@ export default function Availability() {
   const showList = !showEmptyState && !showSearchEmptyState;
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <Header />
+    <>
+      <Stack.Header
+        style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"} // Only looks cool on iOS 18 and below
+        hidden={Platform.OS === "android"}
+      >
+        <Stack.Header.Title large>Availability</Stack.Header.Title>
+        <Stack.Header.Right>
+          <Stack.Header.Button onPress={handleCreateNew} tintColor="#000" variant="prominent">
+            New
+          </Stack.Header.Button>
+        </Stack.Header.Right>
+        <Stack.Header.SearchBar
+          placeholder="Search schedules"
+          onChangeText={(e) => handleSearch(e.nativeEvent.text)}
+          obscureBackground={false}
+          barTintColor="#fff"
+        />
+      </Stack.Header>
+
+      <Activity mode={Platform.OS !== "ios" ? "visible" : "hidden"}>
+        <Header />
+        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+          <TextInput
+            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+            placeholder="Search schedules"
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={handleSearch}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+          />
+          <TouchableOpacity
+            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+            onPress={handleCreateNew}
+          >
+            <Ionicons name="add" size={18} color="#fff" />
+            <Text className="text-base font-semibold text-white">New</Text>
+          </TouchableOpacity>
+        </View>
+      </Activity>
 
       {/* Empty state - no schedules */}
-      {showEmptyState ? (
-        <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
+      <Activity mode={showEmptyState ? "visible" : "hidden"}>
+        <ScrollView
+          style={{ backgroundColor: "white" }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+            paddingBottom: 90,
+          }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <EmptyScreen
+            icon="time-outline"
+            headline="Create an availability schedule"
+            description="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
+            buttonText="New"
+            onButtonPress={handleCreateNew}
+          />
+        </ScrollView>
+      </Activity>
+
+      {/* Search bar and content for non-empty states */}
+      <Activity mode={!showEmptyState ? "visible" : "hidden"}>
+        {/* Search empty state */}
+        <Activity mode={showSearchEmptyState ? "visible" : "hidden"}>
           <ScrollView
+            style={{ backgroundColor: "white" }}
             contentContainerStyle={{
               flexGrow: 1,
               justifyContent: "center",
               alignItems: "center",
               padding: 20,
+              paddingBottom: 90,
             }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           >
             <EmptyScreen
-              icon="time-outline"
-              headline="Create an availability schedule"
-              description="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
-              buttonText="New"
-              onButtonPress={handleCreateNew}
+              icon="search-outline"
+              headline={`No results found for "${searchQuery}"`}
+              description="Try searching with different keywords"
             />
           </ScrollView>
-        </View>
-      ) : null}
+        </Activity>
 
-      {/* Search bar and content for non-empty states */}
-      {!showEmptyState ? (
-        <>
-          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
-            <TextInput
-              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
-              placeholder="Search schedules"
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={handleSearch}
-              autoCapitalize="none"
-              autoCorrect={false}
-              clearButtonMode="while-editing"
-            />
-            <TouchableOpacity
-              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
-              onPress={handleCreateNew}
-            >
-              <Ionicons name="add" size={18} color="#fff" />
-              <Text className="text-base font-semibold text-white">New</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Search empty state */}
-          {showSearchEmptyState ? (
-            <View className="flex-1 bg-gray-50" style={{ paddingBottom: 100 }}>
-              <ScrollView
-                contentContainerStyle={{
-                  flexGrow: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: 20,
-                }}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-              >
-                <EmptyScreen
-                  icon="search-outline"
-                  headline={`No results found for "${searchQuery}"`}
-                  description="Try searching with different keywords"
-                />
-              </ScrollView>
-            </View>
-          ) : null}
-
-          {/* Schedules list */}
-          {showList ? (
-            <View className="flex-1 px-2 pt-4 md:px-4">
-              <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-                <FlatList
-                  data={filteredSchedules}
-                  keyExtractor={(item) => item.id.toString()}
-                  renderItem={renderSchedule}
-                  contentContainerStyle={{ paddingBottom: 90 }}
-                  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-                  showsVerticalScrollIndicator={false}
-                />
-              </View>
-            </View>
-          ) : null}
-        </>
-      ) : null}
+        {/* Schedules list */}
+        <Activity mode={showList ? "visible" : "hidden"}>
+          <FlatList
+            className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
+            contentContainerStyle={{
+              paddingBottom: 90,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+            }}
+            data={filteredSchedules}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item, index }) => (
+              <AvailabilityListItem
+                item={item}
+                index={index}
+                handleSchedulePress={handleSchedulePress}
+                handleScheduleLongPress={handleScheduleLongPress}
+                setSelectedSchedule={setSelectedSchedule}
+                setShowActionsModal={setShowActionsModal}
+                onDuplicate={handleDuplicate}
+                onDelete={handleDelete}
+                onSetAsDefault={handleSetAsDefault}
+              />
+            )}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            showsVerticalScrollIndicator={false}
+            contentInsetAdjustmentBehavior="automatic"
+          />
+        </Activity>
+      </Activity>
 
       {/* Create Schedule Modal */}
       <FullScreenModal
@@ -536,7 +510,9 @@ export default function Availability() {
             {/* Actions List */}
             <View className="p-2">
               {/* Set as Default - only show if not already default */}
-              {selectedSchedule && !selectedSchedule.isDefault ? (
+              <Activity
+                mode={selectedSchedule && !selectedSchedule.isDefault ? "visible" : "hidden"}
+              >
                 <>
                   <TouchableOpacity
                     onPress={() => {
@@ -553,7 +529,7 @@ export default function Availability() {
 
                   <View className="mx-4 my-2 h-px bg-gray-200" />
                 </>
-              ) : null}
+              </Activity>
 
               {/* Duplicate */}
               <TouchableOpacity
@@ -651,6 +627,6 @@ export default function Availability() {
           </View>
         </View>
       </FullScreenModal>
-    </View>
+    </>
   );
 }
