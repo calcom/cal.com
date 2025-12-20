@@ -3,7 +3,81 @@ import { z } from "zod";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
-export const ZUpdateInputSchema = z.object({
+// Note: orgId has .transform() that converts string to number, so input accepts string | number but output is always number
+
+export type TUpdateInputSchemaInput = {
+  name?: string;
+  orgId?: string | number;
+  bio?: string;
+  logoUrl?: string | null;
+  calVideoLogo?: string | null;
+  banner?: string | null;
+  slug?: string;
+  hideBranding?: boolean;
+  hideBookATeamMember?: boolean;
+  brandColor?: string;
+  darkBrandColor?: string;
+  theme?: string | null;
+  timeZone?: string;
+  weekStart?: string;
+  timeFormat?: number;
+  metadata?: z.infer<ReturnType<typeof teamMetadataStrictSchema.unwrap>>;
+  lockEventTypeCreation?: boolean;
+  lockEventTypeCreationOptions?: "DELETE" | "HIDE";
+  adminGetsNoSlotsNotification?: boolean;
+  allowSEOIndexing?: boolean;
+  orgProfileRedirectsToVerifiedDomain?: boolean;
+  disablePhoneOnlySMSNotifications?: boolean;
+  disableAutofillOnBookingPage?: boolean;
+  orgAutoJoinOnSignup?: boolean;
+  disableAttendeeConfirmationEmail?: boolean;
+  disableAttendeeCancellationEmail?: boolean;
+  disableAttendeeRescheduledEmail?: boolean;
+  disableAttendeeRequestEmail?: boolean;
+  disableAttendeeReassignedEmail?: boolean;
+  disableAttendeeAwaitingPaymentEmail?: boolean;
+  disableAttendeeRescheduleRequestEmail?: boolean;
+  disableAttendeeLocationChangeEmail?: boolean;
+  disableAttendeeNewEventEmail?: boolean;
+};
+
+export type TUpdateInputSchema = {
+  name?: string;
+  orgId?: number;
+  bio?: string;
+  logoUrl?: string | null;
+  calVideoLogo?: string | null;
+  banner?: string | null;
+  slug?: string;
+  hideBranding?: boolean;
+  hideBookATeamMember?: boolean;
+  brandColor?: string;
+  darkBrandColor?: string;
+  theme?: string | null;
+  timeZone?: string;
+  weekStart?: string;
+  timeFormat?: number;
+  metadata?: z.infer<ReturnType<typeof teamMetadataStrictSchema.unwrap>>;
+  lockEventTypeCreation?: boolean;
+  lockEventTypeCreationOptions?: "DELETE" | "HIDE";
+  adminGetsNoSlotsNotification?: boolean;
+  allowSEOIndexing?: boolean;
+  orgProfileRedirectsToVerifiedDomain?: boolean;
+  disablePhoneOnlySMSNotifications?: boolean;
+  disableAutofillOnBookingPage?: boolean;
+  orgAutoJoinOnSignup?: boolean;
+  disableAttendeeConfirmationEmail?: boolean;
+  disableAttendeeCancellationEmail?: boolean;
+  disableAttendeeRescheduledEmail?: boolean;
+  disableAttendeeRequestEmail?: boolean;
+  disableAttendeeReassignedEmail?: boolean;
+  disableAttendeeAwaitingPaymentEmail?: boolean;
+  disableAttendeeRescheduleRequestEmail?: boolean;
+  disableAttendeeLocationChangeEmail?: boolean;
+  disableAttendeeNewEventEmail?: boolean;
+};
+
+export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema, z.ZodTypeDef, TUpdateInputSchemaInput> = z.object({
   name: z.string().optional(),
   orgId: z
     .string()
@@ -47,5 +121,3 @@ export const ZUpdateInputSchema = z.object({
   disableAttendeeLocationChangeEmail: z.boolean().optional(),
   disableAttendeeNewEventEmail: z.boolean().optional(),
 });
-
-export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

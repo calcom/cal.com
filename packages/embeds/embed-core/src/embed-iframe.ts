@@ -3,13 +3,16 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { mapOldToNewCssVars } from "./ui/cssVarsMap";
 import type { Message } from "./embed";
-import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
+import { embedStore, EMBED_IFRAME_STATE, resetPageData, setReloadInitiated, incrementView } from "./embed-iframe/lib/embedStore";
 import {
   runAsap,
   isBookerReady,
   isLinkReady,
   recordResponseIfQueued,
   keepParentInformedAboutDimensionChanges,
+  isPrerendering,
+  isBrowser,
+  log,
 } from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
@@ -24,6 +27,7 @@ import type {
   setNonStylesConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
+export { useBookerEmbedEvents } from "./embed-iframe/react-hooks";
 
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
@@ -34,9 +38,10 @@ const eventsAllowedInPrerendering = [
   "__iframeReady",
   // so that iframe height is adjusted according to the content, and iframe is ready to be shown when needed
   "__dimensionChanged",
-
   // When this event is fired, the iframe is still in prerender state but is going to be moved out of prerender state
   "__connectInitiated",
+
+  "linkPrerendered",
 
   // For other events, we should consider introducing prerender specific events and not reuse existing events
 ];
@@ -54,7 +59,6 @@ declare global {
 }
 
 let isSafariBrowser = false;
-const isBrowser = typeof window !== "undefined";
 
 if (isBrowser) {
   window.CalEmbed = window?.CalEmbed || {};
@@ -63,24 +67,6 @@ if (isBrowser) {
   isSafariBrowser = ua.includes("safari") && !ua.includes("chrome");
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
-  }
-}
-
-function log(...args: unknown[]) {
-  if (isBrowser) {
-    const namespace = getNamespace();
-
-    const searchParams = new URL(document.URL).searchParams;
-    const logQueue = (window.CalEmbed.__logQueue = window.CalEmbed.__logQueue || []);
-    args.push({
-      ns: namespace,
-      url: document.URL,
-    });
-    args.unshift("CAL:");
-    logQueue.push(args);
-    if (searchParams.get("debug")) {
-      console.log("Child:", ...args);
-    }
   }
 }
 
@@ -428,10 +414,20 @@ export const methods = {
         return;
       }
 
+      // Check page status again before firing linkReady, in case it was set after initialization
+      if (hasPageError()) {
+        handlePageError(window.CalComPageStatus);
+        return;
+      }
+
       makeBodyVisible();
       log("renderState is 'completed'");
       embedStore.renderState = "completed";
-      sdkActionManager?.fire("linkReady", {});
+      if (isPrerendering()) {
+        sdkActionManager?.fire("linkPrerendered", {});
+      } else {
+        sdkActionManager?.fire("linkReady", {});
+      }
     });
   },
   /**
@@ -495,6 +491,10 @@ export const methods = {
       toBeThereParams,
       toRemoveParams,
     });
+  },
+  __reloadInitiated: function __reloadInitiated(_unused: unknown) {
+    log("Method: __reloadInitiated called");
+    setReloadInitiated(true);
   },
 };
 
@@ -568,6 +568,15 @@ function main() {
     }
   });
 
+  sdkActionManager?.on("linkReady", () => {
+    // Even though linkReady isn't fired in prerendering phase, this is a safe guard for future
+    if (isPrerendering()) {
+      return;
+    }
+    resetPageData();
+    incrementView();
+  });
+
   sdkActionManager?.on("*", (e) => {
     if (isPrerendering() && !eventsAllowedInPrerendering.includes(e.detail.type)) {
       return;
@@ -582,6 +591,29 @@ function main() {
   } else {
     log(`Preloaded scenario - Skipping initialization and setup as only assets need to be loaded`);
   }
+}
+
+/**
+ * Checks if there's a page error (non-200 status).
+ * @returns true if an error exists, false otherwise
+ */
+function hasPageError() {
+  const pageStatus = window.CalComPageStatus;
+  return !!(pageStatus && pageStatus != "200");
+}
+
+/**
+ * Handles a page error by firing the linkFailed event.
+ * @param pageStatus - The error status code (e.g., "404", "500", "403")
+ */
+function handlePageError(pageStatus: string) {
+  sdkActionManager?.fire("linkFailed", {
+    code: pageStatus,
+    msg: "Problem loading the link",
+    data: {
+      url: document.URL,
+    },
+  });
 }
 
 function initializeAndSetupEmbed() {
@@ -601,16 +633,12 @@ function initializeAndSetupEmbed() {
   // HACK
   const pageStatus = window.CalComPageStatus;
 
-  if (!pageStatus || pageStatus == "200") {
+  if (hasPageError()) {
+    handlePageError(pageStatus);
+    return;
+  } else {
     keepParentInformedAboutDimensionChanges({ embedStore });
-  } else
-    sdkActionManager?.fire("linkFailed", {
-      code: pageStatus,
-      msg: "Problem loading the link",
-      data: {
-        url: document.URL,
-      },
-    });
+  }
 }
 
 function runAllUiSetters(uiConfig: UiConfig) {
@@ -662,6 +690,13 @@ async function connectPreloadedEmbed({
         runAsap(tryToFireLinkReady);
         return;
       }
+      // Check page status again before firing linkReady, in case it was set after initialization
+      if (hasPageError()) {
+        handlePageError(window.CalComPageStatus);
+        resolve();
+        return;
+      }
+
       // link is ready now, so we could stop doing it.
       // Also the page is visible to user now.
       stopEnsuringQueryParamsInUrl();
@@ -675,10 +710,6 @@ async function connectPreloadedEmbed({
     stopEnsuringQueryParamsInUrl,
   };
 }
-
-const isPrerendering = () => {
-  return new URL(document.URL).searchParams.get("prerender") === "true";
-};
 
 export function getEmbedBookerState({
   bookerState,

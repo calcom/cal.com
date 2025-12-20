@@ -125,6 +125,7 @@ const mockProps = {
     eventType: {},
   },
   internalNotePresets: [],
+  renderContext: "booking-single-view" as const,
 };
 
 const mockBookingWithoutCancellationFee = {
