@@ -72,7 +72,7 @@ export async function validateSamlAccountConversion(
 ): Promise<AccountConversionValidationResult> {
   if (!samlTenant) {
     // Deny by default - if tenant is missing, we cannot verify IdP authority
-    log.error("SAML conversion blocked - missing tenant", { email, conversionContext });
+    log.error("SAML conversion blocked - missing tenant", { emailDomain: email.split("@")[1], conversionContext });
     return { allowed: false, errorUrl: SAML_NOT_AUTHORITATIVE_ERROR_URL };
   }
 
@@ -86,7 +86,7 @@ export async function validateSamlAccountConversion(
 
   if (!authority.authoritative) {
     log.warn(`Blocking ${conversionContext} conversion - IdP not authoritative`, {
-      email,
+      emailDomain: email.split("@")[1],
       samlOrgTeamId,
       reason: authority.reason,
     });
