@@ -1,4 +1,5 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
+import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";
@@ -25,18 +26,6 @@ type AssignmentForTheTeam = {
     name: string;
     type: AttributeType;
   };
-};
-
-export type Attribute = {
-  name: string;
-  slug: string;
-  type: AttributeType;
-  id: string;
-  options: {
-    id: string;
-    value: string;
-    slug: string;
-  }[];
 };
 
 type FullAttribute = {
