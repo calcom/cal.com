@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Schedule } from "../services/calcom";
 import { ScheduleAvailability } from "../services/types";
 import { FullScreenModal } from "../components/FullScreenModal";
+import { showErrorAlert } from "../utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -220,7 +221,7 @@ export default function AvailabilityDetail() {
       }
     } catch (error) {
       console.error("Error fetching schedule:", error);
-      Alert.alert("Error", "Failed to load schedule. Please try again.");
+      showErrorAlert("Error", "Failed to load schedule. Please try again.");
       router.back();
     } finally {
       setLoading(false);
@@ -348,7 +349,7 @@ export default function AvailabilityDetail() {
         { text: "OK", onPress: () => router.back() },
       ]);
     } catch (error) {
-      Alert.alert("Error", "Failed to update schedule. Please try again.");
+      showErrorAlert("Error", "Failed to update schedule. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -362,7 +363,7 @@ export default function AvailabilityDetail() {
       setIsDefault(true);
       Alert.alert("Success", "Schedule set as default successfully");
     } catch (error) {
-      Alert.alert("Error", "Failed to set schedule as default. Please try again.");
+      showErrorAlert("Error", "Failed to set schedule as default. Please try again.");
     }
   };
 
@@ -379,7 +380,7 @@ export default function AvailabilityDetail() {
               { text: "OK", onPress: () => router.back() },
             ]);
           } catch (error) {
-            Alert.alert("Error", "Failed to delete schedule. Please try again.");
+            showErrorAlert("Error", "Failed to delete schedule. Please try again.");
           }
         },
       },
@@ -536,7 +537,7 @@ export default function AvailabilityDetail() {
                         >
                           {DAY_ABBREVIATIONS[dayIndex]}
                         </Text>
-                        {isEnabled && firstSlot && (
+                        {isEnabled && firstSlot ? (
                           <View className="flex-row items-center gap-2">
                             <TouchableOpacity
                               onPress={() =>
@@ -562,16 +563,16 @@ export default function AvailabilityDetail() {
                               </Text>
                             </TouchableOpacity>
                           </View>
-                        )}
+                        ) : null}
                       </View>
-                      {isEnabled && (
+                      {isEnabled ? (
                         <TouchableOpacity onPress={() => addTimeSlot(dayIndex)} className="p-1">
                           <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
                         </TouchableOpacity>
-                      )}
+                      ) : null}
                     </View>
 
-                    {isEnabled && daySlots.length > 1 && (
+                    {isEnabled && daySlots.length > 1 ? (
                       <View className="mt-2" style={{ marginLeft: 108 }}>
                         {daySlots.slice(1).map((slot, slotIndex) => (
                           <View key={slotIndex + 1} className="mb-2 flex-row items-center gap-2">
@@ -615,7 +616,7 @@ export default function AvailabilityDetail() {
                           </View>
                         ))}
                       </View>
-                    )}
+                    ) : null}
                   </View>
                 );
               })}
@@ -640,7 +641,7 @@ export default function AvailabilityDetail() {
                 Add dates when your availability changes from your daily hours.
               </Text>
 
-              {overrides.length > 0 && (
+              {overrides.length > 0 ? (
                 <View className="mb-4">
                   {overrides.map((override, index) => (
                     <View
@@ -674,7 +675,7 @@ export default function AvailabilityDetail() {
                     </View>
                   ))}
                 </View>
-              )}
+              ) : null}
 
               <TouchableOpacity
                 onPress={handleAddOverride}
@@ -893,7 +894,7 @@ export default function AvailabilityDetail() {
                 </View>
 
                 {/* Time Picker (only if not unavailable) */}
-                {!isUnavailable && (
+                {!isUnavailable ? (
                   <View>
                     <Text className="mb-3 text-base font-semibold text-[#333]">
                       Which hours are you free?
@@ -918,7 +919,7 @@ export default function AvailabilityDetail() {
                       </TouchableOpacity>
                     </View>
                   </View>
-                )}
+                ) : null}
 
                 {/* Save Button */}
                 <TouchableOpacity

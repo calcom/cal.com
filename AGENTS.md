@@ -45,11 +45,20 @@ yarn prettier --write path/to/file.tsx
 # Unit test specific file
 yarn vitest run path/to/file.test.ts
 
+# Unit test specific file + specific test
+yarn vitest run path/to/file.test.ts --testNamePattern="specific test name"
+
 # Integration test specific file
 yarn test path/to/file.integration-test.ts -- --integrationTestsOnly
 
+# Integration test specific file + specific test
+yarn test path/to/file.integration-test.ts --testNamePattern="specific test name" -- --integrationTestsOnly
+
 # E2E test specific file
 PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts
+
+# E2E test specific file + specific test
+PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts --grep "specific test name"
 ```
 
 ### Project-wide (use sparingly)
