@@ -12,13 +12,13 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
@@ -38,7 +38,7 @@ import type {
   RescheduleBookingInput_2024_08_13,
   GetBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
-import type { User, Team, PlatformOAuthClient } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 jest
   .spyOn(AttendeeScheduledEmail.prototype, "getHtml")
@@ -68,107 +68,165 @@ jest
   .spyOn(AttendeeDeclinedEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 
-function responseDataIsBooking(data: unknown): data is BookingOutput_2024_08_13 {
-  return !Array.isArray(data) && typeof data === "object" && data !== null && "id" in data;
-}
+type EmailSetup = {
+  user: User;
+  eventTypeId: number;
+  createdBookingUid: string;
+  rescheduledBookingUid: string;
+};
 
 describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
-  // Use real API key authentication instead of withApiAuth mock to avoid
-  // Passport strategy registration conflicts between test suites.
-  // This ensures the authenticated user is the booking owner, fixing the
-  // flaky 401 errors that occurred when authenticating as a different user.
+  let app: INestApplication;
+  let organization: Team;
 
-  describe("OAuth client managed user bookings - emails disabled", () => {
-    let app: INestApplication;
-    let organization: Team;
-    let oAuthClient: PlatformOAuthClient;
+  let userRepositoryFixture: UserRepositoryFixture;
+  let bookingsRepositoryFixture: BookingsRepositoryFixture;
+  let schedulesService: SchedulesService_2024_04_15;
+  let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+  let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+  let teamRepositoryFixture: TeamRepositoryFixture;
 
-    let userRepositoryFixture: UserRepositoryFixture;
-    let bookingsRepositoryFixture: BookingsRepositoryFixture;
-    let schedulesService: SchedulesService_2024_04_15;
-    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
-    let teamRepositoryFixture: TeamRepositoryFixture;
-    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+  let emailsEnabledSetup: EmailSetup;
+  let emailsDisabledSetup: EmailSetup;
 
-    let user: User;
-    let eventTypeId: number;
-    let createdBookingUid: string;
-    let apiKeyString: string;
+  const authEmail = `confirm-emails-2024-08-13-admin-${randomString()}@api.com`;
+  let userEmailsEnabled = "";
+  const userEmailsDisabled = `confirm-emails-2024-08-13-user-${randomString()}@api.com`;
 
-    beforeAll(async () => {
-      const moduleRef = await Test.createTestingModule({
+  beforeAll(async () => {
+    const moduleRef = await withApiAuth(
+      authEmail,
+      Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
       })
-        .overrideGuard(PermissionsGuard)
-        .useValue({
-          canActivate: () => true,
-        })
-        .compile();
+    )
+      .overrideGuard(PermissionsGuard)
+      .useValue({
+        canActivate: () => true,
+      })
+      .compile();
 
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
-      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
-      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+    userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+    bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+    eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+    oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+    teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+    schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({
-        name: `confirm-emails-disabled-2024-08-13-organization-${randomString()}`,
-      });
-
-      // Create OAuth client with emails disabled
-      oAuthClient = await oauthClientRepositoryFixture.create(
-        organization.id,
-        {
-          logo: "logo-url",
-          name: "name",
-          redirectUris: ["http://localhost:5555"],
-          permissions: 32,
-          areEmailsEnabled: false,
-        },
-        "secret"
-      );
-
-      // Create user who will own the bookings
-      user = await userRepositoryFixture.create({
-        email: `confirm-emails-disabled-2024-08-13-user-${randomString()}@api.com`,
-        platformOAuthClients: {
-          connect: {
-            id: oAuthClient.id,
-          },
-        },
-      });
-
-      // Create API key for the user to authenticate confirm/decline requests
-      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
-      apiKeyString = keyString;
-
-      const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `confirm-emails-disabled-2024-08-13-schedule-${randomString()}`,
-        timeZone: "Europe/Rome",
-        isDefault: true,
-      };
-      await schedulesService.createUserSchedule(user.id, userSchedule);
-
-      const event = await eventTypesRepositoryFixture.create(
-        {
-          title: "peer coding",
-          slug: `confirm-emails-disabled-2024-08-13-event-type-${randomString()}`,
-          length: 60,
-          requiresConfirmation: true,
-        },
-        user.id
-      );
-      eventTypeId = event.id;
-
-      app = moduleRef.createNestApplication();
-      bootstrap(app as NestExpressApplication);
-
-      await app.init();
+    organization = await teamRepositoryFixture.create({
+      name: `confirm-emails-2024-08-13-organization-${randomString()}`,
     });
 
+    await setupEnabledEmails();
+    await setupDisabledEmails();
+
+    await userRepositoryFixture.create({
+      email: authEmail,
+      organization: {
+        connect: {
+          id: organization.id,
+        },
+      },
+      role: "ADMIN",
+    });
+
+    app = moduleRef.createNestApplication();
+    bootstrap(app as NestExpressApplication);
+
+    await app.init();
+  });
+
+  async function setupEnabledEmails() {
+    const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
+
+    userEmailsEnabled = `confirm-emails-2024-08-13-user-${randomString()}+${
+      oAuthClientEmailsEnabled.id
+    }@api.com`;
+
+    const user = await userRepositoryFixture.create({
+      email: userEmailsEnabled,
+      platformOAuthClients: {
+        connect: {
+          id: oAuthClientEmailsEnabled.id,
+        },
+      },
+    });
+
+    const userSchedule: CreateScheduleInput_2024_04_15 = {
+      name: `confirm-emails-2024-08-13-schedule-${randomString()}`,
+      timeZone: "Europe/Rome",
+      isDefault: true,
+    };
+    await schedulesService.createUserSchedule(user.id, userSchedule);
+
+    const event = await eventTypesRepositoryFixture.create(
+      {
+        title: "peer coding",
+        slug: `confirm-emails-2024-08-13-event-type-${randomString()}`,
+        length: 60,
+        requiresConfirmation: true,
+      },
+      user.id
+    );
+
+    emailsEnabledSetup = {
+      user,
+      eventTypeId: event.id,
+      createdBookingUid: "",
+      rescheduledBookingUid: "",
+    };
+  }
+
+  async function setupDisabledEmails() {
+    const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
+
+    const user = await userRepositoryFixture.create({
+      email: userEmailsDisabled,
+      platformOAuthClients: {
+        connect: {
+          id: oAuthClientEmailsDisabled.id,
+        },
+      },
+    });
+    const userSchedule: CreateScheduleInput_2024_04_15 = {
+      name: `confirm-emails-2024-08-13-schedule-${randomString()}`,
+      timeZone: "Europe/Rome",
+      isDefault: true,
+    };
+    await schedulesService.createUserSchedule(user.id, userSchedule);
+    const event = await eventTypesRepositoryFixture.create(
+      {
+        title: "peer coding",
+        slug: `confirm-emails-2024-08-13-event-type-${randomString()}`,
+        length: 60,
+        requiresConfirmation: true,
+      },
+      user.id
+    );
+
+    emailsDisabledSetup = {
+      user,
+      eventTypeId: event.id,
+      createdBookingUid: "",
+      rescheduledBookingUid: "",
+    };
+  }
+
+  async function createOAuthClient(organizationId: number, emailsEnabled: boolean) {
+    const data = {
+      logo: "logo-url",
+      name: "name",
+      redirectUris: ["http://localhost:5555"],
+      permissions: 32,
+      areEmailsEnabled: emailsEnabled,
+    };
+    const secret = "secret";
+
+    const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+    return client;
+  }
+
+  describe("OAuth client managed user bookings - emails disabled", () => {
     beforeEach(async () => {
       jest.clearAllMocks();
     });
@@ -176,7 +234,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     it("should not send an email when creating a booking that requires confirmation", async () => {
       const body: CreateBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
-        eventTypeId: eventTypeId,
+        eventTypeId: emailsDisabledSetup.eventTypeId,
         attendee: {
           name: "Mr Proper",
           email: "mr_proper@gmail.com",
@@ -206,7 +264,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
             expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
             expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
-            createdBookingUid = responseBody.data.uid;
+            emailsDisabledSetup.createdBookingUid = responseBody.data.uid;
           } else {
             throw new Error(
               "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -217,8 +275,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
     it("should not send an email when confirming a booking", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/bookings/${createdBookingUid}/confirm`)
-        .set("Authorization", `Bearer cal_test_${apiKeyString}`)
+        .post(`/v2/bookings/${emailsDisabledSetup.createdBookingUid}/confirm`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -230,10 +287,10 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         });
     });
 
-    it("should not send an email when creating a second booking that requires confirmation", async () => {
+    it("should not send an email when creating a booking that requires confirmation", async () => {
       const body: CreateBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
-        eventTypeId: eventTypeId,
+        eventTypeId: emailsDisabledSetup.eventTypeId,
         attendee: {
           name: "Mr Proper",
           email: "mr_proper@gmail.com",
@@ -261,7 +318,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
             expect(responseBody.data.status).toEqual("pending");
             expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
             expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
-            createdBookingUid = responseBody.data.uid;
+            emailsDisabledSetup.createdBookingUid = responseBody.data.uid;
           } else {
             throw new Error(
               "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -272,8 +329,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
     it("should not send an email when declining a booking", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/bookings/${createdBookingUid}/decline`)
-        .set("Authorization", `Bearer cal_test_${apiKeyString}`)
+        .post(`/v2/bookings/${emailsDisabledSetup.createdBookingUid}/decline`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -283,107 +339,9 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
           expect(AttendeeDeclinedEmail.prototype.getHtml).not.toHaveBeenCalled();
         });
     });
-
-    afterAll(async () => {
-      await oauthClientRepositoryFixture.delete(oAuthClient.id);
-      await teamRepositoryFixture.delete(organization.id);
-      await userRepositoryFixture.deleteByEmail(user.email);
-      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
-      await app.close();
-    });
   });
 
   describe("OAuth client managed user bookings - emails enabled", () => {
-    let app: INestApplication;
-    let organization: Team;
-    let oAuthClient: PlatformOAuthClient;
-
-    let userRepositoryFixture: UserRepositoryFixture;
-    let bookingsRepositoryFixture: BookingsRepositoryFixture;
-    let schedulesService: SchedulesService_2024_04_15;
-    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
-    let teamRepositoryFixture: TeamRepositoryFixture;
-    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
-
-    let user: User;
-    let eventTypeId: number;
-    let createdBookingUid: string;
-    let rescheduledBookingUid: string;
-    let apiKeyString: string;
-
-    beforeAll(async () => {
-      const moduleRef = await Test.createTestingModule({
-        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-      })
-        .overrideGuard(PermissionsGuard)
-        .useValue({
-          canActivate: () => true,
-        })
-        .compile();
-
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
-      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
-      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
-
-      organization = await teamRepositoryFixture.create({
-        name: `confirm-emails-enabled-2024-08-13-organization-${randomString()}`,
-      });
-
-      // Create OAuth client with emails enabled
-      oAuthClient = await oauthClientRepositoryFixture.create(
-        organization.id,
-        {
-          logo: "logo-url",
-          name: "name",
-          redirectUris: ["http://localhost:5555"],
-          permissions: 32,
-          areEmailsEnabled: true,
-        },
-        "secret"
-      );
-
-      // Create user who will own the bookings
-      user = await userRepositoryFixture.create({
-        email: `confirm-emails-enabled-2024-08-13-user-${randomString()}@api.com`,
-        platformOAuthClients: {
-          connect: {
-            id: oAuthClient.id,
-          },
-        },
-      });
-
-      // Create API key for the user to authenticate confirm/decline/reschedule requests
-      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
-      apiKeyString = keyString;
-
-      const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `confirm-emails-enabled-2024-08-13-schedule-${randomString()}`,
-        timeZone: "Europe/Rome",
-        isDefault: true,
-      };
-      await schedulesService.createUserSchedule(user.id, userSchedule);
-
-      const event = await eventTypesRepositoryFixture.create(
-        {
-          title: "peer coding",
-          slug: `confirm-emails-enabled-2024-08-13-event-type-${randomString()}`,
-          length: 60,
-          requiresConfirmation: true,
-        },
-        user.id
-      );
-      eventTypeId = event.id;
-
-      app = moduleRef.createNestApplication();
-      bootstrap(app as NestExpressApplication);
-      await app.init();
-    });
-
     beforeEach(async () => {
       jest.clearAllMocks();
     });
@@ -392,7 +350,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       it("should send an email when creating a booking that requires confirmation", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeId,
+          eventTypeId: emailsEnabledSetup.eventTypeId,
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
@@ -420,7 +378,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
               expect(responseBody.data.status).toEqual("pending");
               expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
               expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
-              createdBookingUid = responseBody.data.uid;
+              emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -431,8 +389,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
       it("should send an email when confirming a booking", async () => {
         return request(app.getHttpServer())
-          .post(`/v2/bookings/${createdBookingUid}/confirm`)
-          .set("Authorization", `Bearer cal_test_${apiKeyString}`)
+          .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/confirm`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -448,13 +405,12 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         it("should send confirmation emails when organizer reschedules a booking that requires confirmation", async () => {
           const body: RescheduleBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2030, 0, 8, 14, 30, 0)).toISOString(),
-            rescheduledBy: user.email,
+            rescheduledBy: userEmailsEnabled,
           };
 
           return request(app.getHttpServer())
-            .post(`/v2/bookings/${createdBookingUid}/reschedule`)
+            .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/reschedule`)
             .send(body)
-            .set("Authorization", `Bearer cal_test_${apiKeyString}`)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
             .then(async (response) => {
@@ -467,7 +423,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
                 expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
                 expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
-                rescheduledBookingUid = responseBody.data.uid;
+                emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
               } else {
                 throw new Error(
                   "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -477,14 +433,12 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         });
 
         it("should send requested rescheduling emails when attendee rescheduling a booking that requires confirmation", async () => {
-          expect(rescheduledBookingUid).toBeDefined();
           const body: RescheduleBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
           };
 
-          // No authentication header to simulate attendee reschedule (uses OptionalApiAuthGuard)
           return request(app.getHttpServer())
-            .post(`/v2/bookings/${rescheduledBookingUid}/reschedule`)
+            .post(`/v2/bookings/${emailsEnabledSetup.rescheduledBookingUid}/reschedule`)
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
@@ -498,7 +452,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
                 expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
                 expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
-                rescheduledBookingUid = responseBody.data.uid;
+                emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
               } else {
                 throw new Error(
                   "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -513,7 +467,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       it("should send an email when creating a booking that requires confirmation", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
-          eventTypeId: eventTypeId,
+          eventTypeId: emailsEnabledSetup.eventTypeId,
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
@@ -541,7 +495,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
               expect(responseBody.data.status).toEqual("pending");
               expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
               expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
-              createdBookingUid = responseBody.data.uid;
+              emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -552,8 +506,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
 
       it("should send an email when declining a booking", async () => {
         return request(app.getHttpServer())
-          .post(`/v2/bookings/${createdBookingUid}/decline`)
-          .set("Authorization", `Bearer cal_test_${apiKeyString}`)
+          .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/decline`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -564,13 +517,25 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
           });
       });
     });
-
-    afterAll(async () => {
-      await oauthClientRepositoryFixture.delete(oAuthClient.id);
-      await teamRepositoryFixture.delete(organization.id);
-      await userRepositoryFixture.deleteByEmail(user.email);
-      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
-      await app.close();
-    });
   });
+
+  afterAll(async () => {
+    await teamRepositoryFixture.delete(organization.id);
+    await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.user.email);
+    await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.user.email);
+    await userRepositoryFixture.deleteByEmail(authEmail);
+    await bookingsRepositoryFixture.deleteAllBookings(
+      emailsEnabledSetup.user.id,
+      emailsEnabledSetup.user.email
+    );
+    await bookingsRepositoryFixture.deleteAllBookings(
+      emailsDisabledSetup.user.id,
+      emailsDisabledSetup.user.email
+    );
+    await app.close();
+  });
+
+  function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
+    return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+  }
 });
