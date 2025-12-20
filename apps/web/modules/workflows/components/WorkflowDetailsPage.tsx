@@ -4,6 +4,15 @@ import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useHasActiveTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useAgentsData } from "@calcom/features/ee/workflows/hooks/useAgentsData";
+import {
+  isCalAIAction,
+  isSMSAction,
+  isFormTrigger,
+  isWhatsappAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
+import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,11 +25,7 @@ import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { useAgentsData } from "../hooks/useAgentsData";
-import { isCalAIAction, isSMSAction, isFormTrigger, isWhatsappAction } from "../lib/actionHelperFunctions";
-import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "../lib/constants";
-import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-import type { FormValues } from "../pages/workflow";
+import type { FormValues } from "../views/WorkflowPage";
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
@@ -183,11 +188,11 @@ export default function WorkflowDetailsPage(props: Props) {
     <>
       <div>
         <FormCard
-          className="mb-0 border-muted"
+          className="border-muted mb-0"
           collapsible={false}
           label={
-            <div className="flex gap-2 items-center pt-1 pb-2">
-              <div className="p-1 ml-1 rounded-lg border border-subtle text-subtle">
+            <div className="flex items-center gap-2 pt-1 pb-2">
+              <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
                 <Icon name="zap" size="16" />
               </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
@@ -225,11 +230,11 @@ export default function WorkflowDetailsPage(props: Props) {
                 <div key={index}>
                   <FormCard
                     key={step.id}
-                    className="mb-0 bg-cal-muted border-muted"
+                    className="bg-cal-muted border-muted mb-0"
                     collapsible={false}
                     label={
-                      <div className="flex gap-2 items-center pt-1 pb-2">
-                        <div className="p-1 rounded-lg border border-subtle text-subtle">
+                      <div className="flex items-center gap-2 pt-1 pb-2">
+                        <div className="border-subtle text-subtle rounded-lg border p-1">
                           <Icon name="arrow-right" size="16" />
                         </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
