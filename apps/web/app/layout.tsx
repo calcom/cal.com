@@ -102,7 +102,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
-  const ns = "common";
+  // Use the namespace from middleware header if set, otherwise default to "common"
+  // Booking routes use the smaller "booking" namespace to reduce payload size
+  const ns = h.get("x-cal-i18n-ns") ?? "common";
   const translations = await loadTranslations(locale, ns);
 
   return (
@@ -117,8 +119,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/'/g, "")};
+            --font-cal: ${calFont.style.fontFamily.replace(/'/g, "")};
           }
         `}</style>
       </head>
