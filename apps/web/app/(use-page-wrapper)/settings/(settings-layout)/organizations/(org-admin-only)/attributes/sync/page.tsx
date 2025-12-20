@@ -21,7 +21,6 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
 
-  // PBAC permission check - redirect if user doesn't have permission
   const session = await validateUserHasOrgPerms({
     permission: "organization.attributes.create",
     fallbackRoles: ["ADMIN", "OWNER"],
@@ -30,12 +29,10 @@ const Page = async () => {
 
   const organizationId = session.user.org.id;
 
-  // Initialize repositories and services
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
   const teamRepository = new TeamRepository(prisma);
   const attributeRepo = new PrismaAttributeRepository(prisma);
 
-  // Fetch all data in parallel for better performance
   const [credentialData, integrationAttributeSyncs, organizationTeams, attributes] = await Promise.all([
     integrationAttributeSyncService.getEnabledAppCredentials(organizationId),
     integrationAttributeSyncService.getAllIntegrationAttributeSyncs(organizationId),
