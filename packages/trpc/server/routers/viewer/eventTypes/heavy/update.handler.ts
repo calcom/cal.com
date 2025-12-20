@@ -684,7 +684,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     slug: true,
     schedulingType: true,
   } satisfies Prisma.EventTypeSelect;
-  let updatedEventType: Prisma.EventTypeGetPayload<{ select: typeof updatedEventTypeSelect }>;
+
+  // Explicit type to avoid Prisma.EventTypeGetPayload conditional types leaking into .d.ts files
+  type UpdatedEventTypeResult = {
+    slug: string;
+    schedulingType: import("@calcom/prisma/enums").SchedulingType | null;
+  };
+
+  let updatedEventType: UpdatedEventTypeResult;
   try {
     updatedEventType = await ctx.prisma.eventType.update({
       where: { id },

@@ -8,13 +8,8 @@ export const WEBHOOK_TOKENS = {
   OOO_WEBHOOK_SERVICE: Symbol("OOO_WEBHOOK_SERVICE"),
   WEBHOOK_NOTIFICATION_HANDLER: Symbol("WebhookNotificationHandler"),
 
-  // Payload builders
-  BOOKING_PAYLOAD_BUILDER: Symbol("BookingPayloadBuilder"),
-  FORM_PAYLOAD_BUILDER: Symbol("FormPayloadBuilder"),
-  OOO_PAYLOAD_BUILDER: Symbol("OOOPayloadBuilder"),
-  RECORDING_PAYLOAD_BUILDER: Symbol("RecordingPayloadBuilder"),
-  MEETING_PAYLOAD_BUILDER: Symbol("MeetingPayloadBuilder"),
-  INSTANT_MEETING_BUILDER: Symbol("InstantMeetingBuilder"),
+  // Payload builder factory (versioning)
+  PAYLOAD_BUILDER_FACTORY: Symbol("PayloadBuilderFactory"),
 
   // Repositories
   WEBHOOK_REPOSITORY: Symbol("IWebhookRepository"),
