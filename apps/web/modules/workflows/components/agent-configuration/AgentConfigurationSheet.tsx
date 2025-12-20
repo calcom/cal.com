@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { Language } from "@calcom/features/calAIPhone/providers/retellAI/types";
+import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -25,7 +26,6 @@ import {
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { FormValues } from "../../pages/workflow";
 import { WebCallDialog } from "../WebCallDialog";
 import { IncomingCallsTab } from "./components/tabs/IncomingCallsTab";
 import { OutgoingCallsTab } from "./components/tabs/OutgoingCallsTab";

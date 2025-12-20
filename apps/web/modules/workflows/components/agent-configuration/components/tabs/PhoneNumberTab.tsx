@@ -1,7 +1,10 @@
+"use client";
+
 import posthog from "posthog-js";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,10 +22,9 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { WebCallDialog } from "@calcom/web/modules/workflows/components/WebCallDialog";
 
-import type { FormValues } from "../../../../pages/workflow";
 import { TestPhoneCallDialog } from "../../../TestPhoneCallDialog";
-import { WebCallDialog } from "../../../WebCallDialog";
 import { usePhoneNumberActions } from "../../hooks/usePhoneNumberActions";
 import { BuyNumberDialog } from "../dialogs/BuyNumberDialog";
 import { ConfirmationDialogs } from "../dialogs/ConfirmationDialogs";
@@ -125,7 +127,7 @@ export function PhoneNumberTab({
 
     return (
       <>
-        <div className="relative stack-y-2">
+        <div className="stack-y-2 relative">
           {updateAgentMutation.isPending && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -275,7 +277,7 @@ export function PhoneNumberTab({
   return (
     <>
       <div className="border-subtle rounded-xl border p-8">
-        <div className="flex flex-col items-center stack-y-6 text-center">
+        <div className="stack-y-6 flex flex-col items-center text-center">
           <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
             <Icon name="phone" className="text-subtle h-8 w-8" />
           </div>

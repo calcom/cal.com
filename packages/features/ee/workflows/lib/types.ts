@@ -7,6 +7,7 @@ import type { Prisma, Membership } from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 
 export type Workflow = {
   id: number;
@@ -146,3 +147,17 @@ export type CallDetailsAction =
   | {
       type: "CLOSE_MODAL";
     };
+
+export type FormValues = {
+  name: string;
+  activeOn: Option[];
+  steps: (WorkflowStep & {
+    senderName: string | null;
+    agentId?: string | null;
+    inboundAgentId?: string | null;
+  })[];
+  trigger: WorkflowTriggerEvents;
+  time?: number;
+  timeUnit?: TimeUnit;
+  selectAll: boolean;
+};

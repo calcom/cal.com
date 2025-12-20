@@ -3,6 +3,8 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
+import { getEventTypeIdForCalAiTest } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -10,9 +12,6 @@ import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { getEventTypeIdForCalAiTest } from "../lib/actionHelperFunctions";
-import type { FormValues } from "../pages/workflow";
 
 interface TestPhoneCallDialogProps {
   open: boolean;

@@ -1,3 +1,5 @@
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";

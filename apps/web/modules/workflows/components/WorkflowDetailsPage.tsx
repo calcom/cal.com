@@ -13,6 +13,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
 import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailReminderTemplate";
+import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,7 +26,6 @@ import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { FormValues } from "../views/WorkflowPage";
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 

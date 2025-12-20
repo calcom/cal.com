@@ -10,6 +10,25 @@ import { useHasActiveTeamPlan } from "@calcom/features/billing/hooks/useHasPaidP
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
+import {
+  isSMSAction,
+  isWhatsappAction,
+  getTemplateBodyForAction,
+  shouldScheduleEmailReminder,
+  isSMSOrWhatsappAction,
+  isCalAIAction,
+  isFormTrigger,
+  hasCalAIAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { DYNAMIC_TEXT_VARIABLES } from "@calcom/features/ee/workflows/lib/constants";
+import {
+  getWorkflowTemplateOptions,
+  getWorkflowTriggerOptions,
+} from "@calcom/features/ee/workflows/lib/getOptions";
+import emailRatingTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailRatingTemplate";
+import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailReminderTemplate";
+import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
+import "@calcom/features/ee/workflows/style/styles.css";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -53,22 +72,6 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
-import {
-  isSMSAction,
-  isWhatsappAction,
-  getTemplateBodyForAction,
-  shouldScheduleEmailReminder,
-  isSMSOrWhatsappAction,
-  isCalAIAction,
-  isFormTrigger,
-  hasCalAIAction,
-} from "../lib/actionHelperFunctions";
-import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
-import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
-import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
-import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-import type { FormValues } from "../pages/workflow";
-import "../style/styles.css";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
@@ -1541,7 +1544,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
 
-                    <div className="test-sm text-emphasis col-span-7 wrap-break-word">
+                    <div className="test-sm text-emphasis wrap-break-word col-span-7">
                       {" "}
                       {`{${t("company_size")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1559,7 +1562,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
-                    <div className="test-sm text-emphasis col-span-7 wrap-break-word">
+                    <div className="test-sm text-emphasis wrap-break-word col-span-7">
                       {" "}
                       {`{${t("what_help_needed")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1706,7 +1709,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
                           <div className="stack-y-2">
                             <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
-                            <ul className="text-attention list-inside list-disc stack-y-1 text-sm">
+                            <ul className="text-attention stack-y-1 list-inside list-disc text-sm">
                               {relevantPhoneNumbers.some(
                                 (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
                               ) && <li>{t("cancel_your_phone_number_subscription")}</li>}
@@ -1716,10 +1719,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </div>
                       </div>
                       {relevantPhoneNumbers.map((phone) => (
-                        <div key={phone.phoneNumber} className="p-3 rounded-lg bg-cal-muted">
-                          <div className="flex gap-2 items-center">
-                            <Icon name="phone" className="w-4 h-4 text-emphasis" />
-                            <span className="text-sm font-medium text-emphasis">
+                        <div key={phone.phoneNumber} className="bg-cal-muted rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <Icon name="phone" className="text-emphasis h-4 w-4" />
+                            <span className="text-emphasis text-sm font-medium">
                               {formatPhoneNumber(phone.phoneNumber)}
                             </span>
                             {phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE && (

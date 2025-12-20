@@ -4,6 +4,8 @@ import type { UseFormReturn } from "react-hook-form";
 import type { RetellWebClient } from "retell-client-js-sdk";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { getEventTypeIdForCalAiTest } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
@@ -12,9 +14,6 @@ import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { getEventTypeIdForCalAiTest } from "../lib/actionHelperFunctions";
-import type { FormValues } from "../pages/workflow";
 
 interface WebCallDialogProps {
   open: boolean;
@@ -402,7 +401,7 @@ export function WebCallDialog({
             )}
           </div>
 
-          <div className="h-60 stack-y-3 overflow-y-auto p-2">
+          <div className="stack-y-3 h-60 overflow-y-auto p-2">
             {transcript.length === 0 ? (
               <div className="flex h-40 items-center justify-center text-center">
                 <div>

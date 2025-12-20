@@ -1,3 +1,5 @@
+"use client";
+
 import posthog from "posthog-js";
 
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";

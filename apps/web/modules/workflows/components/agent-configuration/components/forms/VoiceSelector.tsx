@@ -1,3 +1,5 @@
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
