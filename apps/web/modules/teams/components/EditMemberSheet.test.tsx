@@ -72,7 +72,7 @@ const mockSetEditMode = vi.fn();
 const mockSetMutationLoading = vi.fn();
 
 vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/store", () => ({
-  useEditMode: vi.fn((selector) => {
+  useEditMode: (selector: (state: { editMode: boolean; setEditMode: typeof mockSetEditMode; mutationLoading: boolean; setMutationLoading: typeof mockSetMutationLoading }) => unknown) => {
     const state = {
       editMode: false,
       setEditMode: mockSetEditMode,
@@ -83,7 +83,7 @@ vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/store", () => 
       return selector(state);
     }
     return state;
-  }),
+  },
 }));
 
 // Mock SheetFooterControls to verify props
