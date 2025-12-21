@@ -34,7 +34,15 @@ jobs:
         with:
           filters: |
             has-files-requiring-all-checks:
-              - "!(companion/**|**.md|**.mdx|.github/CODEOWNERS|docs/**|help/**|apps/web/public/static/locales/**/common.json|i18n.lock)"
+              - '**'
+              - '!companion/**'
+              - '!**/*.md'
+              - '!**/*.mdx'
+              - '!.github/CODEOWNERS'
+              - '!docs/**'
+              - '!help/**'
+              - '!apps/web/public/static/locales/**/common.json'
+              - '!i18n.lock'
             has_companion:
               - "companion/**"
       - name: Get Latest Commit SHA
