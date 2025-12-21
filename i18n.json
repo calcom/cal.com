@@ -43,7 +43,10 @@
   },
   "buckets": {
     "json": {
-      "include": ["apps/web/public/static/locales/[locale]/common.json"]
+      "include": [
+        "apps/web/public/static/locales/[locale]/common.json",
+        "apps/web/public/static/locales/[locale]/booking.json"
+      ]
     }
   },
   "$schema": "https://lingo.dev/schema/i18n.json"
