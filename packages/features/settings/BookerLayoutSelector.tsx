@@ -54,11 +54,20 @@ export const BookerLayoutSelector = ({
   user,
   isUserLoading,
 }: BookerLayoutSelectorProps) => {
-  const { control, getValues } = useFormContext();
+  const { control, getValues, setValue } = useFormContext();
   const { t } = useLocale();
   // Only fallback if event current does not have any settings, and the fallbackToUserSettings boolean is set.
   const fieldName = name || defaultFieldName;
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(fieldName)) || false;
+  const [isOverriding, setIsOverriding] = useState(false);
+
+  const handleOverride = () => {
+    setIsOverriding(true);
+    // Initialize form with user's default settings when overriding
+    if (user?.defaultBookerLayouts) {
+      setValue(fieldName, user.defaultBookerLayouts, { shouldDirty: true });
+    }
+  };
 
   return (
     <div className={classNames(isOuterBorder && "border-subtle rounded-lg border p-6")}>
@@ -70,10 +79,12 @@ export const BookerLayoutSelector = ({
           {description ? description : t("bookerlayout_description")}
         </p>
       </div>
-      {shouldShowUserSettings ? (
-        // When showing user settings, don't register the field to avoid affecting form state
+      {shouldShowUserSettings && !isOverriding ? (
         <BookerLayoutFields
-          showUserSettings={shouldShowUserSettings}
+          showUserSettings={true}
+          settings={user?.defaultBookerLayouts}
+          onOverride={handleOverride}
+          isOverriding={false}
           isDark={isDark}
           isOuterBorder={isOuterBorder}
           user={user}
@@ -81,7 +92,6 @@ export const BookerLayoutSelector = ({
         />
       ) : (
         <Controller
-          // Only register when the event has its own settings
           control={control}
           name={fieldName}
           render={({ field: { value, onChange } }) => (
@@ -90,6 +100,8 @@ export const BookerLayoutSelector = ({
                 showUserSettings={shouldShowUserSettings}
                 settings={value}
                 onChange={onChange}
+                onOverride={handleOverride}
+                isOverriding={isOverriding}
                 isDark={isDark}
                 isOuterBorder={isOuterBorder}
                 user={user}
@@ -114,6 +126,8 @@ type BookerLayoutFieldsProps = {
   settings?: BookerLayoutSettings;
   onChange?: (settings: BookerLayoutSettings) => void;
   showUserSettings: boolean;
+  onOverride?: () => void;
+  isOverriding?: boolean;
   isDark?: boolean;
   isOuterBorder?: boolean;
   user?: Partial<Pick<RouterOutputs["viewer"]["me"]["get"], "defaultBookerLayouts">>;
@@ -126,15 +140,17 @@ const BookerLayoutFields = ({
   settings,
   onChange,
   showUserSettings,
+  onOverride,
+  isOverriding = false,
   isDark,
   isOuterBorder,
   user,
   isUserLoading,
 }: BookerLayoutFieldsProps) => {
   const { t } = useLocale();
-  const [isOverridingSettings, setIsOverridingSettings] = useState(false);
 
-  const disableFields = showUserSettings && !isOverridingSettings;
+  // Fields are disabled when showing user settings and override hasn't been clicked
+  const disableFields = showUserSettings && !isOverriding;
   const shownSettings = disableFields ? user?.defaultBookerLayouts : settings;
   const defaultLayout = shownSettings?.defaultLayout || BookerLayouts.MONTH_VIEW;
 
@@ -180,11 +196,6 @@ const BookerLayoutFields = ({
     [toggleValues, onChange]
   );
 
-  const onOverrideSettings = () => {
-    setIsOverridingSettings(true);
-    // Sent default layout settings to form, otherwise it would still have 'null' as it's value.
-    if (user?.defaultBookerLayouts) onChange?.(user.defaultBookerLayouts);
-  };
   return (
     <div className={classNames("stack-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
       <div
@@ -252,7 +263,7 @@ const BookerLayoutFields = ({
               </Link>,
               <Button
                 key="override-button"
-                onClick={onOverrideSettings}
+                onClick={() => onOverride?.()}
                 color="minimal"
                 className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
                 Override
