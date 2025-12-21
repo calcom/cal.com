@@ -10,8 +10,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . ",
     "build": "yarn build:server && yarn build:react",
-    "build:server": "yarn tsc --project tsconfig.server.json || true",
-    "build:react": "yarn tsc --project tsconfig.react.json || true"
+    "build:server": "yarn tsc --project tsconfig.server.json",
+    "build:react": "yarn tsc --project tsconfig.react.json"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.15",
