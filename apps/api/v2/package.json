@@ -16,7 +16,7 @@
     "_dev:build:watch:enums": "yarn workspace @calcom/platform-enums build:watch",
     "_dev:build:watch:utils": "yarn workspace @calcom/platform-utils build:watch",
     "_dev:build:watch:types": "yarn workspace @calcom/platform-types build:watch",
-    "dev:build": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-enums build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && yarn workspace @calcom/platform-libraries build",
+    "dev:build": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-enums build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && yarn workspace @calcom/platform-libraries build && yarn workspace @calcom/trpc build:server",
     "dev": "yarn dev:build && ts-node scripts/docker-start.ts && yarn copy-swagger-module && yarn start --watch",
     "dev:no-docker": "yarn dev:build && yarn copy-swagger-module && yarn start --watch",
     "start:debug": "nest start --debug --watch",
