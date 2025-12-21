@@ -270,9 +270,20 @@ jobs:
           (
             needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
             (
-              contains(needs.*.result, 'failure') ||
-              contains(needs.*.result, 'cancelled') ||
-              contains(needs.*.result, 'skipped')
+              needs.lint.result != 'success' ||
+              needs.type-check.result != 'success' ||
+              needs.unit-test.result != 'success' ||
+              needs.build.result != 'success' ||
+              needs.build-api-v1.result != 'success' ||
+              needs.build-api-v2.result != 'success' ||
+              needs.build-atoms.result != 'success' ||
+              needs.build-docs.result != 'success' ||
+              needs.integration-test.result != 'success' ||
+              needs.e2e.result != 'success' ||
+              needs.e2e-api-v2.result != 'success' ||
+              needs.e2e-embed.result != 'success' ||
+              needs.e2e-embed-react.result != 'success' ||
+              needs.e2e-app-store.result != 'success'
             )
           ) ||
           (
