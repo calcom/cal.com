@@ -42,23 +42,7 @@ env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
-  prepare:
-    timeout-minutes: 15
-    name: Prepare Build
-    runs-on: buildjet-8vcpu-ubuntu-2204
-    steps:
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
-      - uses: ./.github/actions/yarn-playwright-install
-      - uses: ./.github/actions/cache-build
-
   e2e:
-    needs: prepare
     timeout-minutes: 20
     name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-8vcpu-ubuntu-2204
@@ -111,3 +95,4 @@ jobs:
           name: blob-report-${{ matrix.shard }}
           path: blob-report
           retention-days: 30
+          
