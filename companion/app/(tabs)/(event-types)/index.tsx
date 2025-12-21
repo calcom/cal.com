@@ -1,10 +1,33 @@
+import { EmptyScreen } from "../../../components/EmptyScreen";
+import { FullScreenModal } from "../../../components/FullScreenModal";
+import { Header } from "../../../components/Header";
+import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
+import {
+  useEventTypes,
+  useCreateEventType,
+  useDeleteEventType,
+  useDuplicateEventType,
+  useUsername,
+} from "../../../hooks";
+import { CalComAPIService, EventType } from "../../../services/calcom";
+import { showErrorAlert } from "../../../utils/alerts";
+import { openInAppBrowser } from "../../../utils/browser";
+import { getEventDuration } from "../../../utils/getEventDuration";
+import { offlineAwareRefresh } from "../../../utils/network";
+import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
+import { shadows } from "../../../utils/shadows";
+import { slugify } from "../../../utils/slugify";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import React, { useState, useMemo, Activity } from "react";
 import {
   View,
   Text,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   RefreshControl,
   TextInput,
@@ -13,29 +36,6 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
-
-import { CalComAPIService, EventType } from "../../../services/calcom";
-import { Header } from "../../../components/Header";
-import { FullScreenModal } from "../../../components/FullScreenModal";
-import { LoadingSpinner } from "../../../components/LoadingSpinner";
-import { EmptyScreen } from "../../../components/EmptyScreen";
-import { slugify } from "../../../utils/slugify";
-import { showErrorAlert } from "../../../utils/alerts";
-import { shadows } from "../../../utils/shadows";
-import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
-import { offlineAwareRefresh } from "../../../utils/network";
-import { openInAppBrowser } from "../../../utils/browser";
-import {
-  useEventTypes,
-  useCreateEventType,
-  useDeleteEventType,
-  useDuplicateEventType,
-  useUsername,
-} from "../../../hooks";
-import { getEventDuration } from "../../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -380,6 +380,23 @@ export default function EventTypes() {
     );
   };
 
+  // Render function for FlatList items
+  const renderEventTypeItem = ({ item, index }: { item: EventType; index: number }) => (
+    <EventTypeListItem
+      item={item}
+      index={index}
+      filteredEventTypes={filteredEventTypes}
+      copiedEventTypeId={copiedEventTypeId}
+      handleEventTypePress={handleEventTypePress}
+      handleEventTypeLongPress={handleEventTypeLongPress}
+      handleCopyLink={handleCopyLink}
+      handlePreview={handlePreview}
+      onEdit={handleEdit}
+      onDuplicate={handleDuplicate}
+      onDelete={handleDelete}
+    />
+  );
+
   if (loading) {
     return (
       <View className="flex-1 bg-gray-100">
@@ -511,34 +528,19 @@ export default function EventTypes() {
         </View>
       </Activity>
 
-      <ScrollView
-        style={{ backgroundColor: "white" }}
-        contentContainerStyle={{ paddingBottom: 90 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic"
-      >
-        <View className="px-2 pt-4 md:px-4">
-          <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-            {filteredEventTypes.map((item, index) => (
-              <EventTypeListItem
-                key={item.id.toString()}
-                item={item}
-                index={index}
-                filteredEventTypes={filteredEventTypes}
-                copiedEventTypeId={copiedEventTypeId}
-                handleEventTypePress={handleEventTypePress}
-                handleEventTypeLongPress={handleEventTypeLongPress}
-                handleCopyLink={handleCopyLink}
-                handlePreview={handlePreview}
-                onEdit={handleEdit}
-                onDuplicate={handleDuplicate}
-                onDelete={handleDelete}
-              />
-            ))}
-          </View>
+      <View className="flex-1 px-2 pt-4 md:px-4" style={{ backgroundColor: "white" }}>
+        <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+          <FlatList
+            data={filteredEventTypes}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderEventTypeItem}
+            contentContainerStyle={{ paddingBottom: 90 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            showsVerticalScrollIndicator={false}
+            contentInsetAdjustmentBehavior="automatic"
+          />
         </View>
-      </ScrollView>
+      </View>
 
       {/* Create Event Type Modal */}
       <FullScreenModal
