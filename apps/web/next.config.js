@@ -1,3 +1,4 @@
+/* eslint-disable */
 require("dotenv").config({ path: "../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
@@ -107,7 +108,6 @@ const informAboutDuplicateTranslations = () => {
   }
 };
 
-informAboutDuplicateTranslations();
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -210,25 +210,16 @@ const nextConfig = (phase) => {
       webpackBuildWorker: true,
     },
     productionBrowserSourceMaps: true,
-    /* We already do type check on GH actions */
-    typescript: {
-      ignoreBuildErrors: !!process.env.CI,
-    },
-    /* We already do linting on GH actions */
-    eslint: {
-      ignoreDuringBuilds: !!process.env.CI,
-    },
     transpilePackages: [
       "@calcom/app-store",
       "@calcom/dayjs",
       "@calcom/emails",
       "@calcom/embed-core",
-      "@calcom/embed-react",
-      "@calcom/embed-snippet",
       "@calcom/features",
       "@calcom/lib",
       "@calcom/prisma",
       "@calcom/trpc",
+      "@coss/ui",
     ],
     modularizeImports: {
       "@calcom/features/insights/components": {
@@ -243,6 +234,7 @@ const nextConfig = (phase) => {
     images: {
       unoptimized: true,
     },
+    turbopack: {},
     webpack: (config, { webpack, buildId, isServer, dev }) => {
       if (!dev) {
         if (config.cache) {
@@ -406,7 +398,7 @@ const nextConfig = (phase) => {
       }, */
       ];
 
-      if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
+      if (process.env.NEXT_PUBLIC_API_V2_URL) {
         afterFiles.push({
           source: "/api/v2/:path*",
           destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,

@@ -2,13 +2,13 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -368,7 +368,7 @@ export class PaymentService implements IAbstractPaymentService {
       });
       return updatedPayment;
     } catch (e) {
-      const err = getErrorFromUnknown(e);
+      const err = getServerErrorFromUnknown(e);
       throw err;
     }
   }

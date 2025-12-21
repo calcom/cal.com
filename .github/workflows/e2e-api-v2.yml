@@ -72,18 +72,22 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
-      
+
       - name: Generate Swagger
         working-directory: apps/api/v2
         run: yarn generate-swagger
 
       - name: Check breaking changes
-        uses: oasdiff/oasdiff-action/breaking@main
-        with:
-          base: https://raw.githubusercontent.com/calcom/cal.com/refs/heads/main/docs/api-reference/v2/openapi.json
-          revision: docs/api-reference/v2/openapi.json
-          fail-on: ERR
-          
+        run: |
+          docker run --rm \
+            -v "$PWD:/work" -w /work \
+            tufin/oasdiff:latest \
+            breaking \
+            https://raw.githubusercontent.com/calcom/cal.com/refs/heads/main/docs/api-reference/v2/openapi.json \
+            docs/api-reference/v2/openapi.json \
+            --fail-on ERR \
+            --err-ignore .github/oasdiff-err-ignore.txt
+
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
@@ -91,7 +95,7 @@ jobs:
           EXIT_CODE=$?
           echo "yarn workspace @calcom/platform-libraries build && yarn test:e2e command exit code: $EXIT_CODE"
           exit $EXIT_CODE
-          
+
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

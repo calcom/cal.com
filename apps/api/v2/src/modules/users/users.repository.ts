@@ -289,7 +289,7 @@ export class UsersRepository {
         user: true,
       },
     });
-    return profiles.map((profile) => profile.user);
+    return profiles.map((profile: Profile & { user: User }) => profile.user);
   }
 
   async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {

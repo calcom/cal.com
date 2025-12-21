@@ -12,7 +12,10 @@ const transporter = nodemailer.createTransport<TransportOptions>({
   ...(serverConfig.transport as TransportOptions),
 } as TransportOptions);
 
-const sendVerificationRequest = async ({ identifier, url }: SendVerificationRequestParams) => {
+const sendVerificationRequest = async ({
+  identifier,
+  url,
+}: Pick<SendVerificationRequestParams, "identifier" | "url">) => {
   const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   const originalUrl = new URL(url);
   const webappUrl = new URL(process.env.NEXTAUTH_URL || WEBAPP_URL);

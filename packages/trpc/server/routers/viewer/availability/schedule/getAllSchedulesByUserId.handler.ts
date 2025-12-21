@@ -1,3 +1,4 @@
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -5,7 +6,6 @@ import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
-import { getDefaultScheduleId } from "../util";
 import type { TGetAllByUserIdInputSchema } from "./getAllSchedulesByUserId.schema";
 
 const log = logger.getSubLogger({ prefix: ["getAllSchedulesByUserIdHandler"] });
@@ -48,7 +48,8 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
     });
   }
 
-  const defaultScheduleId = await getDefaultScheduleId(input.userId, prisma);
+  const scheduleRepository = new ScheduleRepository(prisma);
+  const defaultScheduleId = await scheduleRepository.getDefaultScheduleId(input.userId);
 
   return {
     schedules: schedules.map((schedule) => {

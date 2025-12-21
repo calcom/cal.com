@@ -176,6 +176,66 @@ describe("getBookingResponsesSchema", () => {
         );
       });
 
+      test(`hidden required email field should not be validated`, async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+              hidden: true,
+            },
+            {
+              name: "attendeePhoneNumber",
+              type: "phone",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "",
+          attendeePhoneNumber: "+919999999999",
+        });
+        expect(parsedResponses.success).toBe(true);
+      });
+
+      test(`hidden required phone field should not be validated`, async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "attendeePhoneNumber",
+              type: "phone",
+              required: true,
+              hidden: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          attendeePhoneNumber: "",
+        });
+        expect(parsedResponses.success).toBe(true);
+      });
+
       test(`firstName is required and lastName is optional by default`, async () => {
         const schema = getBookingResponsesSchema({
           bookingFields: [

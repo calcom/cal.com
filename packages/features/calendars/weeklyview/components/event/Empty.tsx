@@ -3,10 +3,10 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import classNames from "@calcom/ui/classNames";
 
 import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
-import { useBookerTime } from "../../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../../state/store";
 import type { CalendarAvailableTimeslots } from "../../types/state";
 import type { GridCellToDateProps } from "../../utils";
@@ -33,13 +33,13 @@ export function EmptyCell(props: EmptyCellProps) {
 }
 
 type AvailableCellProps = {
+  timezone: string;
   availableSlots: CalendarAvailableTimeslots;
   day: GridCellToDateProps["day"];
   startHour: GridCellToDateProps["startHour"];
 };
 
-export function AvailableCellsForDay({ availableSlots, day, startHour }: AvailableCellProps) {
-  const { timezone } = useBookerTime();
+export function AvailableCellsForDay({ timezone, availableSlots, day, startHour }: AvailableCellProps) {
   const date = dayjs(day);
   const dateFormatted = date.format("YYYY-MM-DD");
   const slotsForToday = availableSlots && availableSlots[dateFormatted];
@@ -78,7 +78,7 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
       const lastSlot = slotsForToday[lastSlotIndex];
       startEndTimeDuration = dayjs(lastSlot.end).diff(dayjs(firstSlot.start), "minutes");
 
-      if (firstSlot.toUser == null) {
+      if (firstSlot.toUser == null && !firstSlot.showNotePublicly) {
         return null;
       }
 
@@ -108,6 +108,8 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
           toUser={firstSlot?.toUser}
           reason={firstSlot?.reason}
           emoji={firstSlot?.emoji}
+          notes={firstSlot?.notes}
+          showNotePublicly={firstSlot?.showNotePublicly}
           borderDashed={false}
           date={dateFormatted}
           className="pb-0"
@@ -136,7 +138,7 @@ type CellProps = {
 };
 
 function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
-  const { timeFormat } = useBookerTime();
+  const { timeFormat } = useTimePreferences();
 
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
     (state) => ({
@@ -151,7 +153,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       className={classNames(
         "group flex w-[calc(100%-1px)] items-center justify-center",
         isDisabled && "pointer-events-none",
-        !isDisabled && "bg-default dark:bg-muted",
+        !isDisabled && "bg-default dark:bg-cal-muted",
         topOffsetMinutes && "absolute"
       )}
       data-disabled={isDisabled}
@@ -163,12 +165,12 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
         top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
       }}
       onClick={() => {
-        onEmptyCellClick && onEmptyCellClick(timeSlot.toDate());
+        onEmptyCellClick?.(timeSlot.toDate());
       }}>
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
           className={classNames(
-            "opacity-4 bg-brand-default hover:bg-brand-default text-brand dark:border-emphasis absolute hidden rounded-[4px] p-[6px] text-xs font-semibold leading-5 group-hover:flex group-hover:cursor-pointer",
+            "bg-brand-default hover:bg-brand-default text-brand dark:border-emphasis absolute hidden rounded-[4px] p-[6px] text-xs font-semibold leading-5 group-hover:flex group-hover:cursor-pointer",
             hoverEventDuration && hoverEventDuration > 15 && "items-start pt-3",
             hoverEventDuration && hoverEventDuration < 15 && "items-center"
           )}
@@ -179,7 +181,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
             // multiple events are stacked next to each other. We might need to add this back later.
             width: "calc(100% - 2px)",
           }}>
-          <div className="overflow-ellipsis leading-[0]">{timeSlot.format(timeFormat)}</div>
+          <div className="text-ellipsis leading-0">{timeSlot.format(timeFormat)}</div>
         </div>
       )}
     </div>
@@ -195,7 +197,7 @@ function CustomCell({
   return (
     <div
       className={classNames(
-        "bg-default dark:bg-muted group absolute z-[65] flex w-[calc(100%-1px)] items-center justify-center"
+        "bg-default dark:bg-cal-muted group absolute z-65 flex w-[calc(100%-1px)] items-center justify-center"
       )}
       data-slot={timeSlot.toISOString()}
       style={{
@@ -204,7 +206,7 @@ function CustomCell({
       }}>
       <div
         className={classNames(
-          "dark:border-emphasis bg-default dark:bg-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
+          "dark:border-emphasis bg-default dark:bg-cal-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
         )}
         style={{
           height: `calc(${startEndTimeDuration}*var(--one-minute-height) - 2px)`,

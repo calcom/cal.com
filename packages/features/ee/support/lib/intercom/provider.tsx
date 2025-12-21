@@ -6,9 +6,9 @@ import { useEffect, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
 
 import { useBootIntercom } from "@calcom/ee/support/lib/intercom/useIntercom";
+import useHasPaidPlan from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { IntercomContactForm } from "@calcom/features/ee/support/components/IntercomContactForm";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
 declare global {

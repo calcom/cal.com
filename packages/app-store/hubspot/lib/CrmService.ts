@@ -6,10 +6,11 @@ import type {
   SimplePublicObject,
   SimplePublicObjectInput,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
+import type { z } from "zod";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
+import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -20,10 +21,7 @@ import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/C
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
-
-interface CustomPublicObjectInput extends SimplePublicObjectInput {
-  id?: string;
-}
+import type { appDataSchema } from "../zod";
 
 export default class HubspotCalendarService implements CRM {
   private url = "";
@@ -33,8 +31,9 @@ export default class HubspotCalendarService implements CRM {
   private client_id = "";
   private client_secret = "";
   private hubspotClient: hubspot.Client;
+  private appOptions: z.infer<typeof appDataSchema>;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, appOptions?: z.infer<typeof appDataSchema>) {
     this.hubspotClient = new hubspot.Client();
 
     this.integrationName = "hubspot_other_calendar";
@@ -42,6 +41,8 @@ export default class HubspotCalendarService implements CRM {
     this.auth = this.hubspotAuth(credential).then((r) => r);
 
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+
+    this.appOptions = appOptions || {};
   }
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
@@ -117,7 +118,17 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
-  private hubspotDeleteMeeting = async (uid: string) => {
+  private hubspotCancelMeeting = async (uid: string) => {
+    const simplePublicObjectInput: SimplePublicObjectInput = {
+      properties: {
+        hs_meeting_outcome: "CANCELED",
+      },
+    };
+
+    return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
+  };
+
+  private hubspotArchiveMeeting = async (uid: string) => {
     return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
@@ -204,17 +215,21 @@ export default class HubspotCalendarService implements CRM {
     return await this.handleMeetingCreation(event, contacts);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     const auth = await this.auth;
     await auth.getToken();
     return await this.hubspotUpdateMeeting(uid, event);
   }
 
-  async deleteEvent(uid: string): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent): Promise<void> {
     const auth = await this.auth;
     await auth.getToken();
-    return await this.hubspotDeleteMeeting(uid);
+
+    if (event?.hasOrganizerChanged) {
+      await this.hubspotArchiveMeeting(uid);
+      return;
+    }
+    await this.hubspotCancelMeeting(uid);
   }
 
   async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
@@ -290,7 +305,7 @@ export default class HubspotCalendarService implements CRM {
   }
 
   getAppOptions() {
-    console.log("No options implemented");
+    return this.appOptions;
   }
 
   async handleAttendeeNoShow() {

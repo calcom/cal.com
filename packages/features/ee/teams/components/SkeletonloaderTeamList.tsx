@@ -21,7 +21,7 @@ function SkeletonItem() {
     <li className="flex w-full items-center justify-between">
       <div className="flex items-center space-x-3 p-5 rtl:space-x-reverse">
         <SkeletonText className="h-8 w-8 rounded-full" />
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col stack-y-2">
           <SkeletonText className="h-4 w-32" />
           <SkeletonText className="h-3 w-24" />
         </div>

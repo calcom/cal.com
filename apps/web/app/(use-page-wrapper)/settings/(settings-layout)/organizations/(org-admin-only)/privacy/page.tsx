@@ -11,7 +11,7 @@ import { validateUserHasOrg } from "../../actions/validateUserHasOrg";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("privacy"),
+    (t) => t("privacy_and_security"),
     (t) => t("privacy_organization_description"),
     undefined,
     undefined,
@@ -19,9 +19,8 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
-
   const session = await validateUserHasOrg();
+  const t = await getTranslate();
 
   if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
     return redirect("/settings/profile");
@@ -42,13 +41,31 @@ const Page = async () => {
     },
   });
 
+  const watchlistPermissions = await getResourcePermissions({
+    userId: session.user.id,
+    teamId: session.user.profile.organizationId,
+    resource: Resource.Watchlist,
+    userRole: session.user.org.role,
+    fallbackRoles: {
+      read: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      create: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      delete: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
   if (!canRead) {
     return redirect("/settings/profile");
   }
 
   return (
-    <SettingsHeader title={t("privacy")} description={t("privacy_organization_description")}>
-      <PrivacyView permissions={{ canRead, canEdit }} />
+    <SettingsHeader title={t("privacy_and_security")} description={t("privacy_organization_description")}>
+      <PrivacyView permissions={{ canRead, canEdit }} watchlistPermissions={watchlistPermissions} />
     </SettingsHeader>
   );
 };

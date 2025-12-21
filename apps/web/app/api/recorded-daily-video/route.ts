@@ -9,15 +9,15 @@ import {
   sendDailyVideoRecordingEmails,
   sendDailyVideoTranscriptEmails,
 } from "@calcom/emails/daily-video-emails";
+import {
+  getAllTranscriptsAccessLinkFromMeetingId,
+  submitBatchProcessorTranscriptionJob,
+} from "@calcom/features/conferencing/lib/videoClient";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import {
-  getAllTranscriptsAccessLinkFromMeetingId,
-  submitBatchProcessorTranscriptionJob,
-} from "@calcom/features/conferencing/lib/videoClient";
 import { generateVideoToken } from "@calcom/lib/videoTokens";
 import prisma from "@calcom/prisma";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";

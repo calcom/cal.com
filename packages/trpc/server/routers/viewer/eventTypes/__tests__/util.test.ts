@@ -7,7 +7,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { authedProcedure } from "../../../procedures/authedProcedure";
-import { createEventPbacProcedure } from "../util";
+import { createEventPbacProcedure, ensureEmailOrPhoneNumberIsPresent } from "../util";
 
 // Mock dependencies
 vi.mock("@calcom/features/pbac/services/permission-check.service");
@@ -511,6 +511,165 @@ describe("createEventPbacProcedure", () => {
           fallbackRoles: [MembershipRole.OWNER],
         })
       );
+    });
+  });
+
+  describe("ensureEmailOrPhoneNumberIsPresent", () => {
+    it("should throw error when both email and phone are hidden", () => {
+      const fields = [
+        {
+          name: "email",
+          type: "email" as const,
+          required: true,
+          hidden: true,
+        },
+        {
+          name: "attendeePhoneNumber",
+          type: "phone" as const,
+          required: true,
+          hidden: true,
+        },
+      ];
+
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).toThrow(TRPCError);
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).toThrow(
+        expect.objectContaining({
+          code: "BAD_REQUEST",
+          message: "booking_fields_email_and_phone_both_hidden",
+        })
+      );
+    });
+
+    it("should throw error when neither email nor phone is required", () => {
+      const fields = [
+        {
+          name: "email",
+          type: "email" as const,
+          required: false,
+          hidden: false,
+        },
+        {
+          name: "attendeePhoneNumber",
+          type: "phone" as const,
+          required: false,
+          hidden: false,
+        },
+      ];
+
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).toThrow(TRPCError);
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).toThrow(
+        expect.objectContaining({
+          code: "BAD_REQUEST",
+          message: "booking_fields_email_or_phone_required",
+        })
+      );
+    });
+
+    it("should throw error when email is hidden and phone is not required", () => {
+      const fields = [
+        {
+          name: "email",
+          type: "email" as const,
+          required: true,
+          hidden: true,
+        },
+        {
+          name: "attendeePhoneNumber",
+          type: "phone" as const,
+          required: false,
+          hidden: false,
+        },
+      ];
+
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).toThrow(TRPCError);
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).toThrow(
+        expect.objectContaining({
+          code: "BAD_REQUEST",
+          message: "booking_fields_phone_required_when_email_hidden",
+        })
+      );
+    });
+
+    it("should throw error when phone is hidden and email is not required", () => {
+      const fields = [
+        {
+          name: "email",
+          type: "email" as const,
+          required: false,
+          hidden: false,
+        },
+        {
+          name: "attendeePhoneNumber",
+          type: "phone" as const,
+          required: true,
+          hidden: true,
+        },
+      ];
+
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).toThrow(TRPCError);
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).toThrow(
+        expect.objectContaining({
+          code: "BAD_REQUEST",
+          message: "booking_fields_email_required_when_phone_hidden",
+        })
+      );
+    });
+
+    it("should pass when email is visible and required while phone is hidden", () => {
+      const fields = [
+        {
+          name: "email",
+          type: "email" as const,
+          required: true,
+          hidden: false,
+        },
+        {
+          name: "attendeePhoneNumber",
+          type: "phone" as const,
+          required: false,
+          hidden: true,
+        },
+      ];
+
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).not.toThrow();
+    });
+
+    it("should pass when phone is visible and required while email is hidden", () => {
+      const fields = [
+        {
+          name: "email",
+          type: "email" as const,
+          required: false,
+          hidden: true,
+        },
+        {
+          name: "attendeePhoneNumber",
+          type: "phone" as const,
+          required: true,
+          hidden: false,
+        },
+      ];
+
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).not.toThrow();
+    });
+
+    it("should pass when both email and phone are visible and required", () => {
+      const fields = [
+        {
+          name: "email",
+          type: "email" as const,
+          required: true,
+          hidden: false,
+        },
+        {
+          name: "attendeePhoneNumber",
+          type: "phone" as const,
+          required: true,
+          hidden: false,
+        },
+      ];
+
+      expect(() => ensureEmailOrPhoneNumberIsPresent(fields)).not.toThrow();
     });
   });
 });

@@ -251,7 +251,7 @@ const DeleteOrgDialog = ({
         cancelBtnText={t("cancel")}
         variety="danger"
         onConfirm={onConfirm}>
-        <ul className="ml-4 mt-5 list-disc space-y-2">
+        <ul className="ml-4 mt-5 list-disc stack-y-2">
           <li>{t("admin_delete_organization_description_1")}</li>
           <li>{t("admin_delete_organization_description_2")}</li>
           <li>{t("admin_delete_organization_description_3")}</li>

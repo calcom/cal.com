@@ -1,18 +1,15 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-import logger from "@calcom/lib/logger";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TDeleteInputSchema } from "./delete.schema";
-import {
-  isAuthorized,
-  removeSmsReminderFieldForEventTypes,
-  removeAIAgentCallPhoneNumberFieldForEventTypes,
-} from "./util";
+import { removeSmsReminderFieldForEventTypes, removeAIAgentCallPhoneNumberFieldForEventTypes } from "./util";
 
 type DeleteOptions = {
   ctx: {
@@ -142,10 +139,6 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     where: {
       workflowStep: {
         workflowId: id,
-      },
-      scheduled: true,
-      NOT: {
-        referenceId: null,
       },
     },
   });

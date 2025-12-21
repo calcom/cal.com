@@ -6,7 +6,7 @@ import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensur
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/ee/organizations/lib/orgDomains";
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -301,13 +301,11 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
   });
 
   if (returningUser) {
-    // Skip for none org users
     const inOrg =
       returningUser.organizationId || // Keep for backwards compatibility
       returningUser.profiles.some((profile) => profile.organizationId !== undefined); // New way of seeing if the user has a profile in orgs.
-    if (returningUser.role !== UserPermissionRole.ADMIN && !inOrg) return;
-
     const hasTeams = returningUser.teams.length >= 1;
+    if (returningUser.role !== UserPermissionRole.ADMIN && !inOrg && !hasTeams) return;
 
     const profile = await findProfile(returningUser);
     return {

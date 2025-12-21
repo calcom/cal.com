@@ -29,6 +29,8 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         select: {
           id: true,
           email: true,
+          timeFormat: true,
+          locale: true,
         },
       },
     },

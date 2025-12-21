@@ -1,4 +1,4 @@
-import type { RouterOutputs } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 export type UserTableUser = RouterOutputs["viewer"]["organizations"]["listMembers"]["rows"][number];
 
@@ -59,4 +59,6 @@ export interface MemberPermissions {
   canChangeMemberRole: boolean;
   canRemove: boolean;
   canImpersonate: boolean;
+  canEditAttributesForUser?: boolean;
+  canViewAttributes?: boolean;
 }

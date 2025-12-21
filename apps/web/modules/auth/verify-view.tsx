@@ -10,13 +10,10 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
-import Loader from "@components/Loader";
 
 async function sendVerificationLogin(email: string, username: string, t: (key: string) => string) {
   await signIn("email", {
@@ -54,14 +51,15 @@ function useSendFirstVerificationLogin({
 }
 
 const querySchema = z.object({
-  stripeCustomerId: z.string().optional(),
-  sessionId: z.string().optional(),
+  email: z.string().optional(),
+  username: z.string().optional(),
+  paymentStatus: z.string().optional(),
   t: z.string().optional(),
 });
 
 const PaymentFailedIcon = () => (
   <div className="rounded-full bg-orange-900 p-3">
-    <Icon name="triangle-alert" className="h-6 w-6 flex-shrink-0 p-0.5 font-extralight text-orange-100" />
+    <Icon name="triangle-alert" className="h-6 w-6 shrink-0 p-0.5 font-extralight text-orange-100" />
   </div>
 );
 
@@ -110,7 +108,7 @@ const PaymentSuccess = () => (
 
 const MailOpenIcon = () => (
   <div className="bg-default rounded-full p-3">
-    <Icon name="mail-open" className="text-emphasis h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
+    <Icon name="mail-open" className="text-emphasis h-12 w-12 shrink-0 p-0.5 font-extralight" />
   </div>
 );
 
@@ -119,20 +117,20 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const routerQuery = useRouterQuery();
-  const { t: tParam, sessionId, stripeCustomerId } = querySchema.parse(routerQuery);
+  const { email, username, paymentStatus } = querySchema.parse(routerQuery);
   const { t } = useLocale();
   const [secondsLeft, setSecondsLeft] = useState(30);
-  const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery(
-    {
-      stripeCustomerId,
-      checkoutSessionId: sessionId,
-    },
-    {
-      enabled: !!stripeCustomerId || !!sessionId,
-      staleTime: Infinity,
-    }
-  );
-  useSendFirstVerificationLogin({ email: data?.customer?.email, username: data?.customer?.username });
+
+  // Derive payment failed status from payment status
+  const hasPaymentFailed = paymentStatus !== undefined && paymentStatus !== "paid";
+  const isPremiumUsername = !!paymentStatus; // If paymentStatus exists, it's from premium username flow
+
+  // Only send verification login if we DON'T have the email yet (for resend button)
+  // The email is already sent server-side in paymentCallback
+  useSendFirstVerificationLogin({
+    email: !isPremiumUsername ? email : undefined,
+    username: !isPremiumUsername ? username : undefined,
+  });
   // @note: check for t=timestamp and apply disabled state and secondsLeft accordingly
   // to avoid refresh to skip waiting 30 seconds to re-send email
   useEffect(() => {
@@ -159,34 +157,31 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
     }
   }, [secondsLeft]);
 
-  if (!data) {
-    // Loading state
-    return <Loader />;
-  }
-  const { valid, hasPaymentFailed, customer } = data;
-  if (!valid) {
-    throw new Error("Invalid session or customer id");
-  }
-
-  if (!stripeCustomerId && !sessionId) {
+  if (!email) {
     return <div>{t("invalid_link")}</div>;
   }
 
   return (
-    <div className="text-default bg-muted bg-opacity-90 backdrop-blur-md backdrop-grayscale backdrop-filter">
+    <div className="text-default bg-cal-muted/90 backdrop-blur-md backdrop-grayscale backdrop-filter">
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
         <div className="border-subtle bg-default m-10 flex max-w-2xl flex-col items-center rounded-xl border px-8 py-14 text-left">
-          {hasPaymentFailed ? <PaymentFailedIcon /> : sessionId ? <PaymentSuccess /> : <MailOpenIcon />}
+          {hasPaymentFailed ? (
+            <PaymentFailedIcon />
+          ) : isPremiumUsername ? (
+            <PaymentSuccess />
+          ) : (
+            <MailOpenIcon />
+          )}
           <h3 className="font-cal text-emphasis my-6 text-2xl font-normal leading-none">
             {hasPaymentFailed
               ? t("your_payment_failed")
-              : sessionId
+              : isPremiumUsername
               ? t("payment_successful")
               : t("check_your_inbox")}
           </h3>
           {hasPaymentFailed && <p className="my-6">{t("account_created_premium_not_reserved")}</p>}
           <p className="text-muted dark:text-subtle text-base font-normal">
-            {t("email_sent_with_activation_link", { email: customer?.email })}{" "}
+            {t("email_sent_with_activation_link", { email })}{" "}
             {hasPaymentFailed && t("activate_account_to_purchase_username")}
           </p>
           <div className="mt-7">
@@ -212,7 +207,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
             )}
             disabled={secondsLeft > 0}
             onClick={async (e) => {
-              if (!customer) {
+              if (!email || !username) {
                 return;
               }
               e.preventDefault();
@@ -221,7 +216,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
               const _searchParams = new URLSearchParams(searchParams?.toString());
               _searchParams.set("t", `${Date.now()}`);
               router.replace(`${pathname}?${_searchParams.toString()}`);
-              return await sendVerificationLogin(customer.email, customer.username, t);
+              return await sendVerificationLogin(email, username, t);
             }}>
             {secondsLeft > 0 ? t("resend_in_seconds", { seconds: secondsLeft }) : t("resend")}
           </button>

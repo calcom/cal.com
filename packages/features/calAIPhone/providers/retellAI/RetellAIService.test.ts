@@ -11,7 +11,6 @@ import { RetellAIError } from "./errors";
 import { createMockDatabaseAgent } from "./services/__tests__/test-utils";
 import type { RetellAIRepository } from "./types";
 
-
 vi.mock("@calcom/app-store/stripepayment/lib/customer", () => ({
   getStripeCustomerIdFromUserId: vi.fn(),
 }));
@@ -918,7 +917,7 @@ describe("RetellAIService", () => {
 
       expect(vi.mocked(checkRateLimitAndThrowError)).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:1",
+        identifier: "createTestCall:1",
       });
       expect(result).toEqual({
         callId: "call-123",

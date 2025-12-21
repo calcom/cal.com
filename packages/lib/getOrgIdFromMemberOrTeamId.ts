@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { prisma, type PrismaTransaction } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | null) => {
@@ -44,11 +44,15 @@ const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | nul
   };
 };
 
-export default async function getOrgIdFromMemberOrTeamId(args: {
-  memberId?: number | null;
-  teamId?: number | null;
-}) {
-  const orgId = await prisma.team.findFirst({
+export default async function getOrgIdFromMemberOrTeamId(
+  args: {
+    memberId?: number | null;
+    teamId?: number | null;
+  },
+  tx?: PrismaTransaction
+) {
+  const client = tx ?? prisma;
+  const orgId = await client.team.findFirst({
     where: getOrgMemberOrTeamWhere(args.memberId, args.teamId),
     select: {
       id: true,

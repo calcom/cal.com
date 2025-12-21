@@ -41,7 +41,7 @@ function AppsSearch({
     <TextField
       addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
-      containerClassName={classNames("focus:!ring-offset-0 m-1", className)}
+      containerClassName={classNames("focus:ring-offset-0! m-1", className)}
       type="search"
       autoComplete="false"
       onChange={onChange}

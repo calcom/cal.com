@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
@@ -10,10 +9,11 @@ import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calc
 import getApps from "@calcom/app-store/utils";
 import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
 import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import CrmManager from "@calcom/features/crmManager/crmManager";
+import CRMScheduler from "@calcom/features/crmManager/crmScheduler";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
-import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
@@ -24,7 +24,6 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar, BookingReference } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -510,9 +509,8 @@ export default class EventManager {
         ? reference.thirdPartyRecurringEventId
         : reference.uid;
 
-    const calendarCredential = await this.getCredentialAndWarnIfNotFound(
+    const calendarCredential = await this.getCalendarCredential(
       credentialId,
-      this.calendarCredentials,
       credentialType,
       reference.delegationCredentialId
     );
@@ -531,51 +529,72 @@ export default class EventManager {
     log.debug("deleteVideoEventForBookingReference", safeStringify({ bookingVideoReference: reference }));
     const { uid: bookingRefUid, credentialId } = reference;
 
-    const videoCredential = await this.getCredentialAndWarnIfNotFound(
-      credentialId,
-      this.videoCredentials,
-      reference.type
-    );
+    const videoCredential = await this.getVideoCredential(credentialId, reference.type);
 
     if (videoCredential) {
       await deleteMeeting(videoCredential, bookingRefUid);
     }
   }
 
-  private async getCredentialAndWarnIfNotFound(
+  private async getVideoCredential(
     credentialId: number | null | undefined,
-    credentials: CredentialForCalendarService[],
+    type: string
+  ): Promise<CredentialForCalendarService | null | undefined> {
+    const credential = this.videoCredentials.find((cred) => cred.id === credentialId);
+    if (credential) {
+      return credential;
+    }
+
+    const foundCredential =
+      typeof credentialId === "number" && credentialId > 0
+        ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
+        : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
+          this.videoCredentials.find((cred) => cred.type === type) || null;
+
+    if (!foundCredential) {
+      log.error(
+        "getVideoCredential: Could not find video credential",
+        safeStringify({
+          credentialId,
+          type,
+          videoCredentialIds: this.videoCredentials.map((cred) => cred.id),
+        })
+      );
+    }
+
+    return foundCredential;
+  }
+
+  private async getCalendarCredential(
+    credentialId: number | null | undefined,
     type: string,
     delegationCredentialId?: string | null
-  ) {
+  ): Promise<CredentialForCalendarService | null | undefined> {
     if (delegationCredentialId) {
       return this.calendarCredentials.find((cred) => cred.delegatedToId === delegationCredentialId);
     }
-    const credential = credentials.find((cred) => cred.id === credentialId);
+    const credential = this.calendarCredentials.find((cred) => cred.id === credentialId);
     if (credential) {
       return credential;
-    } else {
-      const credential =
-        typeof credentialId === "number" && credentialId > 0
-          ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
-          : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
-            this.videoCredentials.find((cred) => cred.type === type) ||
-            this.calendarCredentials.find((cred) => cred.type === type) ||
-            null;
-
-      if (!credential) {
-        log.error(
-          "getCredentialAndWarnIfNotFound: Could not find credential",
-          safeStringify({
-            credentialId,
-            type,
-            videoCredentials: this.videoCredentials,
-          })
-        );
-      }
-
-      return credential;
     }
+
+    const foundCredential =
+      typeof credentialId === "number" && credentialId > 0
+        ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
+        : this.calendarCredentials.find((cred) => cred.type === type) || null;
+
+    if (!foundCredential) {
+      log.error(
+        "getCalendarCredential: Could not find calendar credential",
+        safeStringify({
+          credentialId,
+          type,
+          calendarCredentialIds: this.calendarCredentials.map((cred) => cred.id),
+        })
+      );
+    }
+
+    return foundCredential;
   }
 
   /**
@@ -995,7 +1014,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): CredentialForCalendarService | undefined {
+  private getVideoCredentialByCalendarEvent(event: CalendarEvent): CredentialForCalendarService | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -1039,7 +1058,7 @@ export default class EventManager {
    * @private
    */
   private async createVideoEvent(event: CalendarEvent) {
-    const credential = this.getVideoCredential(event);
+    const credential = this.getVideoCredentialByCalendarEvent(event);
     if (credential) {
       return createMeeting(credential, event);
     } else {
@@ -1199,7 +1218,7 @@ export default class EventManager {
    * @private
    */
   private async updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
-    const credential = this.getVideoCredential(event);
+    const credential = this.getVideoCredentialByCalendarEvent(event);
 
     if (credential) {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;

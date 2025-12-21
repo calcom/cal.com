@@ -1,5 +1,5 @@
 import { AppConfig } from "@/config/type";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
@@ -305,11 +305,24 @@ export class BillingService implements IBillingService, OnModuleDestroy {
         new Date(invoice.period_end * 1000)
       );
 
+      const existingSubscription = await this.stripeService
+        .getStripe()
+        .subscriptions.retrieve(subscriptionId);
+
+      const perActiveUserPrice = this.billingConfigService.get(PlatformPlan.PER_ACTIVE_USER)?.base;
+      const subscriptionItem = existingSubscription.items.data.find(
+        (item) => item.price?.id === perActiveUserPrice
+      );
+
+      if (!subscriptionItem) {
+        throw new NotFoundException(
+          "No subscription item found for PER_ACTIVE_USER plan with matching price ID"
+        );
+      }
+
       await this.stripeService.getStripe().subscriptions.update(subscriptionId, {
         items: [
-          {
-            quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1,
-          },
+          { id: subscriptionItem.id, quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1 },
         ],
       });
     }

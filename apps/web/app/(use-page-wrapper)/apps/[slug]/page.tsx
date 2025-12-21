@@ -17,21 +17,21 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   if (!p.success) {
     return notFound();
   }
-
-  const props = await getStaticProps(p.data.slug);
+  const slugFromUrl = p.data.slug;
+  const props = await getStaticProps(slugFromUrl);
 
   if (!props) {
     notFound();
   }
-  const { name, logo, description } = props.data;
+  const { name, logo, dirName: appStoreDirSlug, slug: appSlug, description } = props.data;
 
   return await generateAppMetadata(
-    { slug: logo, name, description },
+    { slug: appStoreDirSlug ?? appSlug, logoUrl: logo, name, description },
     () => name,
     () => description,
     undefined,
     undefined,
-    `/apps/${p.data.slug}`
+    `/apps/${appSlug}`
   );
 };
 

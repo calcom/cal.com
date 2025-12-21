@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import posthog from "posthog-js";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -143,7 +144,7 @@ export function WorkflowCreationDialog({
               icon="circle-plus"
               isSelected={selectedOption === "scratch"}
               onClick={() => setSelectedOption("scratch")}
-              iconWrapperClassName="bg-muted"
+              iconWrapperClassName="bg-cal-muted"
               value="scratch"
             />
             <WorkflowOptionCard
@@ -182,6 +183,7 @@ export function useWorkflowCreation() {
   const openDialog = (teamId?: number) => {
     setPendingTeamId(teamId);
     setShowDialog(true);
+    posthog.capture("create_new_workflow_button_clicked", { teamId });
   };
 
   return {

@@ -38,7 +38,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
             {t("directory_sync_title")}
           </p>
         </div>
-        <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
+        <div className="shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
           <Button color="primary" onClick={() => setOpenModal(true)}>
             {t("configure")}
           </Button>
@@ -61,7 +61,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
               </h2>
               <p className="mt-1 text-sm text-gray-500">{t("directory_sync_configure_description")}</p>
             </div>
-            <fieldset className="space-y-6 py-2">
+            <fieldset className="stack-y-6 py-2">
               <Controller
                 control={form.control}
                 name="name"

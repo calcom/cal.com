@@ -84,6 +84,8 @@ const mockForm: TargetRoutingFormForResponse = {
   user: {
     id: 1,
     email: "test@example.com",
+    timeFormat: null,
+    locale: null,
   },
   team: {
     parentId: 2,

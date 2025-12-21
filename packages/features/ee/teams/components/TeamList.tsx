@@ -1,10 +1,10 @@
 import { useState } from "react";
 
+import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import {
   ORG_SELF_SERVE_ENABLED,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
 } from "@calcom/lib/constants";
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";

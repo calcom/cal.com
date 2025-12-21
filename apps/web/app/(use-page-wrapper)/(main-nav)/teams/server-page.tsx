@@ -3,13 +3,12 @@ import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { TeamService } from "@calcom/lib/server/service/teamService";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import { TeamsCTA } from "./CTA";
 
@@ -33,7 +32,9 @@ export const ServerTeamsListing = async ({
   session: Session;
 }) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
-  const autoAccept = Array.isArray(searchParams?.autoAccept) ? searchParams.autoAccept[0] : searchParams?.autoAccept;
+  const autoAccept = Array.isArray(searchParams?.autoAccept)
+    ? searchParams.autoAccept[0]
+    : searchParams?.autoAccept;
   const userId = session.user.id;
   let invitationAccepted = false;
 
@@ -42,7 +43,7 @@ export const ServerTeamsListing = async ({
 
   if (token) {
     try {
-       if (autoAccept === "true") {
+      if (autoAccept === "true") {
         await TeamService.acceptInvitationByToken(token, userId);
         invitationAccepted = true;
       } else {
@@ -50,7 +51,7 @@ export const ServerTeamsListing = async ({
       }
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
-      if (e instanceof TRPCError) errorMsgFromInvite = e.message;
+      if (e instanceof ErrorWithCode) errorMsgFromInvite = e.message;
     }
   }
 

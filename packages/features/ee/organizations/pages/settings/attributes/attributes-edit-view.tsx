@@ -83,7 +83,7 @@ function EditAttributeHeader(props: { isPending: boolean }) {
 
   return (
     <>
-      <div className="mb-6 mt-6 flex flex-grow items-center justify-between lg:mt-12">
+      <div className="mb-6 mt-6 flex grow items-center justify-between lg:mt-12">
         <div className="-ml-12 flex items-center gap-4">
           <Button
             variant="icon"

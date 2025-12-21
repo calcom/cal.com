@@ -149,16 +149,18 @@ describe("handleNewBooking", () => {
               organizer,
               apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
             },
-            org?.organization ? {
-              ...org.organization,
-              profileUsername: "username-in-org"
-            } : null
+            org?.organization
+              ? {
+                  ...org.organization,
+                  profileUsername: "username-in-org",
+                }
+              : null
           )
         );
 
         const orgProfiles = await prismaMock.profile.findMany({
           where: {
-            organizationId: org?.organization.id,
+            organizationId: org?.organization.id ?? undefined,
           },
         });
         const orgProfile = orgProfiles[0];
@@ -257,8 +259,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer: {
             ...organizer,
-            ...(orgProfile?.username ?
-              { usernameInOrg: orgProfile?.username } : null),
+            ...(orgProfile?.username ? { usernameInOrg: orgProfile?.username } : null),
           },
           location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",

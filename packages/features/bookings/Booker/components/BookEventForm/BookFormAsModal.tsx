@@ -46,6 +46,7 @@ export const BookEventFormWrapperComponent = ({
   const { i18n, t } = useLocale();
   const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const recurringEventCount = useBookerStoreContext((state) => state.recurringEventCount);
   const { timeFormat, timezone } = useBookerTime();
   if (!selectedTimeslot) {
     return null;
@@ -65,6 +66,16 @@ export const BookEventFormWrapperComponent = ({
         {(selectedDuration || eventLength) && (
           <Badge variant="grayWithoutHover" startIcon="clock" size="lg">
             <span>{getDurationFormatted(selectedDuration || eventLength, t)}</span>
+          </Badge>
+        )}
+
+        {recurringEventCount && recurringEventCount > 1 && (
+          <Badge variant="grayWithoutHover" startIcon="refresh-ccw" size="lg">
+            <span>
+              {t("repeats_num_times", {
+                count: recurringEventCount,
+              })}
+            </span>
           </Badge>
         )}
       </div>

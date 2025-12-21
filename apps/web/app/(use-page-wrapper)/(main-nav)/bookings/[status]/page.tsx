@@ -6,13 +6,15 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
-import BookingsList from "~/bookings/views/bookings-listing-view";
+import BookingsList from "~/bookings/views/bookings-view";
 
 const querySchema = z.object({
   status: z.enum(validStatuses),
@@ -52,12 +54,21 @@ const Page = async ({ params }: PageProps) => {
     canReadOthersBookings = teamIdsWithPermission.length > 0;
   }
 
+  const featuresRepository = new FeaturesRepository(prisma);
+  const bookingsV3Enabled = session?.user?.id
+    ? await featuresRepository.checkIfUserHasFeature(session.user.id, "bookings-v3")
+    : false;
+
   return (
-    <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
+    <ShellMainAppDir
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
+      headerClassName="bookings-shell-heading">
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}
         permissions={{ canReadOthersBookings }}
+        bookingsV3Enabled={bookingsV3Enabled}
       />
     </ShellMainAppDir>
   );
