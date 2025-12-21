@@ -120,6 +120,11 @@ const workspaces = packagedEmbedTestsOnly
           exclude: ["packages/features/form-builder/**/*", "packages/features/bookings/**/*"],
           environment: "jsdom",
           setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.tsx"],
+          server: {
+            deps: {
+              inline: ["react-select", "react-timezone-select"],
+            },
+          },
         },
       },
 
