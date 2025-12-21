@@ -528,19 +528,25 @@ export default function EventTypes() {
         </View>
       </Activity>
 
-      <View className="flex-1 px-2 pt-4 md:px-4" style={{ backgroundColor: "white" }}>
-        <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-          <FlatList
-            data={filteredEventTypes}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderEventTypeItem}
-            contentContainerStyle={{ paddingBottom: 90 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            showsVerticalScrollIndicator={false}
-            contentInsetAdjustmentBehavior="automatic"
-          />
-        </View>
-      </View>
+      <FlatList
+        data={filteredEventTypes}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderEventTypeItem}
+        style={{ backgroundColor: "white" }}
+        contentContainerStyle={{
+          paddingBottom: 90,
+          marginHorizontal: 8,
+          marginTop: 16,
+          borderWidth: 1,
+          borderColor: "#E5E5EA",
+          borderRadius: 8,
+          overflow: "hidden",
+          backgroundColor: "white",
+        }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
+      />
 
       {/* Create Event Type Modal */}
       <FullScreenModal
