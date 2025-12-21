@@ -15,6 +15,7 @@ import {
   validateLocationItem,
 } from "../../utils/locationHelpers";
 import { slugify } from "../../utils/slugify";
+import { AppPressable } from "../AppPressable";
 import { AdvancedTab } from "../event-type-detail/tabs/AdvancedTab";
 import { AvailabilityTab } from "../event-type-detail/tabs/AvailabilityTab";
 import { BasicsTab } from "../event-type-detail/tabs/BasicsTab";
@@ -38,7 +39,6 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   TextInput,
   Switch,
   Modal,
@@ -1038,12 +1038,12 @@ export function EventTypeDetailScreen({
         glassEffectStyle="clear"
       >
         <View className="min-h-[44px] flex-row items-center justify-between">
-          <TouchableOpacity
+          <AppPressable
             className="h-10 w-10 items-start justify-center"
             onPress={() => router.back()}
           >
             <Ionicons name="chevron-back" size={24} color="#000" />
-          </TouchableOpacity>
+          </AppPressable>
 
           <Text
             className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
@@ -1052,7 +1052,7 @@ export function EventTypeDetailScreen({
             {id === "new" ? "Create Event Type" : truncateTitle(title)}
           </Text>
 
-          <TouchableOpacity
+          <AppPressable
             className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
               saving ? "opacity-60" : ""
             }`}
@@ -1062,7 +1062,7 @@ export function EventTypeDetailScreen({
             <Text className="text-base font-semibold text-white">
               {id === "new" ? "Create" : "Save"}
             </Text>
-          </TouchableOpacity>
+          </AppPressable>
         </View>
       </GlassView>
 
@@ -1086,7 +1086,7 @@ export function EventTypeDetailScreen({
             contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
           >
             {tabs.map((tab) => (
-              <TouchableOpacity
+              <AppPressable
                 key={tab.id}
                 className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
                   activeTab === tab.id ? "bg-[rgba(0,0,0,0.08)]" : ""
@@ -1107,7 +1107,7 @@ export function EventTypeDetailScreen({
                     {tab.label}
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </AppPressable>
             ))}
           </ScrollView>
         </GlassView>
@@ -1132,7 +1132,7 @@ export function EventTypeDetailScreen({
             contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}
           >
             {tabs.map((tab) => (
-              <TouchableOpacity
+              <AppPressable
                 key={tab.id}
                 className={`min-w-[90px] items-center rounded-[24px] px-3 py-3 md:px-5 ${
                   activeTab === tab.id ? "bg-[#EEEFF2]" : ""
@@ -1153,7 +1153,7 @@ export function EventTypeDetailScreen({
                     {tab.label}
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </AppPressable>
             ))}
           </ScrollView>
         </View>
@@ -1202,7 +1202,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowDurationDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowDurationDropdown(false)}
           >
@@ -1212,7 +1212,7 @@ export function EventTypeDetailScreen({
               </Text>
               <ScrollView style={{ maxHeight: 400, marginBottom: 16 }}>
                 {availableDurations.map((duration) => (
-                  <TouchableOpacity
+                  <AppPressable
                     key={duration}
                     className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
                       selectedDurations.includes(duration) ? "bg-[#F0F0F0]" : ""
@@ -1229,17 +1229,17 @@ export function EventTypeDetailScreen({
                     {selectedDurations.includes(duration) ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
                     ) : null}
-                  </TouchableOpacity>
+                  </AppPressable>
                 ))}
               </ScrollView>
-              <TouchableOpacity
+              <AppPressable
                 className="items-center rounded-lg bg-black px-6 py-3"
                 onPress={() => setShowDurationDropdown(false)}
               >
                 <Text className="text-base font-semibold text-white">Done</Text>
-              </TouchableOpacity>
+              </AppPressable>
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Default Duration Dropdown Modal */}
@@ -1249,7 +1249,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowDefaultDurationDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowDefaultDurationDropdown(false)}
           >
@@ -1258,7 +1258,7 @@ export function EventTypeDetailScreen({
                 Select Default Duration
               </Text>
               {selectedDurations.map((duration) => (
-                <TouchableOpacity
+                <AppPressable
                   key={duration}
                   className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                     defaultDuration === duration ? "bg-[#F0F0F0]" : ""
@@ -1278,10 +1278,10 @@ export function EventTypeDetailScreen({
                   {defaultDuration === duration ? (
                     <Ionicons name="checkmark" size={20} color="#000" />
                   ) : null}
-                </TouchableOpacity>
+                </AppPressable>
               ))}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Schedule Dropdown Modal */}
@@ -1291,7 +1291,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowScheduleDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowScheduleDropdown(false)}
           >
@@ -1300,7 +1300,7 @@ export function EventTypeDetailScreen({
                 Select Schedule
               </Text>
               {schedules.map((schedule) => (
-                <TouchableOpacity
+                <AppPressable
                   key={schedule.id}
                   className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                     selectedSchedule?.id === schedule.id ? "bg-[#F0F0F0]" : ""
@@ -1328,10 +1328,10 @@ export function EventTypeDetailScreen({
                   {selectedSchedule?.id === schedule.id ? (
                     <Ionicons name="checkmark" size={20} color="#000" />
                   ) : null}
-                </TouchableOpacity>
+                </AppPressable>
               ))}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Timezone Dropdown Modal */}
@@ -1341,7 +1341,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowTimezoneDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowTimezoneDropdown(false)}
           >
@@ -1367,7 +1367,7 @@ export function EventTypeDetailScreen({
                   "Australia/Sydney",
                   "UTC",
                 ].map((tz) => (
-                  <TouchableOpacity
+                  <AppPressable
                     key={tz}
                     className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
                       selectedTimezone === tz ||
@@ -1394,11 +1394,11 @@ export function EventTypeDetailScreen({
                     (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? (
                       <Ionicons name="checkmark" size={20} color="#000" />
                     ) : null}
-                  </TouchableOpacity>
+                  </AppPressable>
                 ))}
               </ScrollView>
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Before Event Buffer Dropdown Modal */}
@@ -1408,7 +1408,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowBeforeBufferDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowBeforeBufferDropdown(false)}
           >
@@ -1417,7 +1417,7 @@ export function EventTypeDetailScreen({
                 Before event buffer
               </Text>
               {bufferTimeOptions.map((option) => (
-                <TouchableOpacity
+                <AppPressable
                   key={option}
                   className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                     beforeEventBuffer === option ? "bg-[#F0F0F0]" : ""
@@ -1437,10 +1437,10 @@ export function EventTypeDetailScreen({
                   {beforeEventBuffer === option ? (
                     <Ionicons name="checkmark" size={20} color="#000" />
                   ) : null}
-                </TouchableOpacity>
+                </AppPressable>
               ))}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* After Event Buffer Dropdown Modal */}
@@ -1450,7 +1450,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowAfterBufferDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowAfterBufferDropdown(false)}
           >
@@ -1459,7 +1459,7 @@ export function EventTypeDetailScreen({
                 After event buffer
               </Text>
               {bufferTimeOptions.map((option) => (
-                <TouchableOpacity
+                <AppPressable
                   key={option}
                   className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                     afterEventBuffer === option ? "bg-[#F0F0F0]" : ""
@@ -1479,10 +1479,10 @@ export function EventTypeDetailScreen({
                   {afterEventBuffer === option ? (
                     <Ionicons name="checkmark" size={20} color="#000" />
                   ) : null}
-                </TouchableOpacity>
+                </AppPressable>
               ))}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Minimum Notice Unit Dropdown Modal */}
@@ -1492,14 +1492,14 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowMinimumNoticeUnitDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowMinimumNoticeUnitDropdown(false)}
           >
             <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
               <Text className="mb-4 text-center text-lg font-semibold text-[#333]">Time unit</Text>
               {timeUnitOptions.map((option) => (
-                <TouchableOpacity
+                <AppPressable
                   key={option}
                   className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                     minimumNoticeUnit === option ? "bg-[#F0F0F0]" : ""
@@ -1519,10 +1519,10 @@ export function EventTypeDetailScreen({
                   {minimumNoticeUnit === option ? (
                     <Ionicons name="checkmark" size={20} color="#000" />
                   ) : null}
-                </TouchableOpacity>
+                </AppPressable>
               ))}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Frequency Unit Dropdown Modal */}
@@ -1532,7 +1532,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowFrequencyUnitDropdown(null)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowFrequencyUnitDropdown(null)}
           >
@@ -1546,7 +1546,7 @@ export function EventTypeDetailScreen({
                 );
                 const isSelected = selectedLimit?.unit === option;
                 return (
-                  <TouchableOpacity
+                  <AppPressable
                     key={option}
                     className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
                       isSelected ? "bg-[#F0F0F0]" : ""
@@ -1562,11 +1562,11 @@ export function EventTypeDetailScreen({
                       {option}
                     </Text>
                     {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
-                  </TouchableOpacity>
+                  </AppPressable>
                 );
               })}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Duration Unit Dropdown Modal */}
@@ -1576,7 +1576,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowDurationUnitDropdown(null)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowDurationUnitDropdown(null)}
           >
@@ -1590,7 +1590,7 @@ export function EventTypeDetailScreen({
                 );
                 const isSelected = selectedLimit?.unit === option;
                 return (
-                  <TouchableOpacity
+                  <AppPressable
                     key={option}
                     className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
                       isSelected ? "bg-[#F0F0F0]" : ""
@@ -1606,11 +1606,11 @@ export function EventTypeDetailScreen({
                       {option}
                     </Text>
                     {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
-                  </TouchableOpacity>
+                  </AppPressable>
                 );
               })}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Slot Interval Dropdown Modal */}
@@ -1620,7 +1620,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowSlotIntervalDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowSlotIntervalDropdown(false)}
           >
@@ -1629,7 +1629,7 @@ export function EventTypeDetailScreen({
                 Slot interval
               </Text>
               {slotIntervalOptions.map((option) => (
-                <TouchableOpacity
+                <AppPressable
                   key={option}
                   className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                     slotInterval === option ? "bg-[#F0F0F0]" : ""
@@ -1649,10 +1649,10 @@ export function EventTypeDetailScreen({
                   {slotInterval === option ? (
                     <Ionicons name="checkmark" size={20} color="#000" />
                   ) : null}
-                </TouchableOpacity>
+                </AppPressable>
               ))}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {/* Recurring Frequency Dropdown Modal */}
@@ -1662,7 +1662,7 @@ export function EventTypeDetailScreen({
           animationType="fade"
           onRequestClose={() => setShowRecurringFrequencyDropdown(false)}
         >
-          <TouchableOpacity
+          <AppPressable
             className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
             onPress={() => setShowRecurringFrequencyDropdown(false)}
           >
@@ -1671,7 +1671,7 @@ export function EventTypeDetailScreen({
                 Repeats every
               </Text>
               {(["weekly", "monthly", "yearly"] as const).map((option) => (
-                <TouchableOpacity
+                <AppPressable
                   key={option}
                   className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                     recurringFrequency === option ? "bg-[#F0F0F0]" : ""
@@ -1691,10 +1691,10 @@ export function EventTypeDetailScreen({
                   {recurringFrequency === option ? (
                     <Ionicons name="checkmark" size={20} color="#000" />
                   ) : null}
-                </TouchableOpacity>
+                </AppPressable>
               ))}
             </View>
-          </TouchableOpacity>
+          </AppPressable>
         </Modal>
 
         {activeTab === "availability" ? (
@@ -1830,7 +1830,7 @@ export function EventTypeDetailScreen({
 
             <View className="overflow-hidden rounded-lg border border-[#E5E5EA]">
               {/* Apps */}
-              <TouchableOpacity
+              <AppPressable
                 onPress={() => {
                   if (id === "new") {
                     Alert.alert("Info", "Save the event type first to configure this setting.");
@@ -1854,10 +1854,10 @@ export function EventTypeDetailScreen({
                   </View>
                 </View>
                 <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-              </TouchableOpacity>
+              </AppPressable>
 
               {/* Workflows */}
-              <TouchableOpacity
+              <AppPressable
                 onPress={() => {
                   if (id === "new") {
                     Alert.alert("Info", "Save the event type first to configure this setting.");
@@ -1881,10 +1881,10 @@ export function EventTypeDetailScreen({
                   </View>
                 </View>
                 <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-              </TouchableOpacity>
+              </AppPressable>
 
               {/* Webhooks */}
-              <TouchableOpacity
+              <AppPressable
                 onPress={() => {
                   if (id === "new") {
                     Alert.alert("Info", "Save the event type first to configure this setting.");
@@ -1907,7 +1907,7 @@ export function EventTypeDetailScreen({
                   </View>
                 </View>
                 <Ionicons name="open-outline" size={20} color="#C7C7CC" />
-              </TouchableOpacity>
+              </AppPressable>
             </View>
           </View>
         ) : null}
@@ -1945,36 +1945,36 @@ export function EventTypeDetailScreen({
               className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
               glassEffectStyle="clear"
             >
-              <TouchableOpacity
+              <AppPressable
                 className="h-11 w-11 items-center justify-center"
                 onPress={handlePreview}
               >
                 <Ionicons name="open-outline" size={20} color="#000" />
-              </TouchableOpacity>
+              </AppPressable>
             </GlassView>
 
             <GlassView
               className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
               glassEffectStyle="clear"
             >
-              <TouchableOpacity
+              <AppPressable
                 className="h-11 w-11 items-center justify-center"
                 onPress={handleCopyLink}
               >
                 <Ionicons name="link-outline" size={20} color="#000" />
-              </TouchableOpacity>
+              </AppPressable>
             </GlassView>
 
             <GlassView
               className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
               glassEffectStyle="clear"
             >
-              <TouchableOpacity
+              <AppPressable
                 className="h-11 w-11 items-center justify-center"
                 onPress={handleDelete}
               >
                 <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-              </TouchableOpacity>
+              </AppPressable>
             </GlassView>
           </View>
         </View>
