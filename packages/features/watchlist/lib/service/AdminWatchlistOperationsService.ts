@@ -1,10 +1,13 @@
 import type { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import logger from "@calcom/lib/logger";
-import { BookingReportStatus } from "@calcom/prisma/enums";
+import { SystemReportStatus, WatchlistType } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
+import { extractDomainFromEmail, normalizeEmail } from "../utils/normalization";
 import type {
+  AddReportsToWatchlistInput,
+  AddReportsToWatchlistResult,
   DeleteWatchlistEntryInput,
   DeleteWatchlistEntryResult,
   WatchlistOperationsScope,
@@ -61,12 +64,85 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
 
   protected async findReports(
     reportIds: string[]
-  ): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>> {
+  ): Promise<
+    Array<{ id: string; bookerEmail: string; watchlistId: string | null; globalWatchlistId: string | null }>
+  > {
     const reports = await this.deps.bookingReportRepo.findReportsByIds({
       reportIds,
     });
 
     return reports;
+  }
+
+  async addReportsToWatchlist(input: AddReportsToWatchlistInput): Promise<AddReportsToWatchlistResult> {
+    const scope = this.getScope();
+
+    const validReports = await this.findReports(input.reportIds);
+
+    if (validReports.length !== input.reportIds.length) {
+      const foundIds = new Set(validReports.map((r) => r.id));
+      const missingIds = input.reportIds.filter((id) => !foundIds.has(id));
+      throw WatchlistErrors.notFound(`Report(s) not found: ${missingIds.join(", ")}`);
+    }
+
+    const reportsToAdd = validReports.filter((report) => !report.globalWatchlistId);
+
+    if (reportsToAdd.length === 0) {
+      throw WatchlistErrors.alreadyInWatchlist("All selected reports are already in the global blocklist");
+    }
+
+    const normalizedValues = new Map<string, string>();
+    try {
+      for (const report of reportsToAdd) {
+        const value =
+          input.type === WatchlistType.EMAIL
+            ? normalizeEmail(report.bookerEmail)
+            : extractDomainFromEmail(report.bookerEmail);
+        normalizedValues.set(report.id, value);
+      }
+    } catch (error) {
+      this.adminLog.error("Email normalization failed", {
+        error: error instanceof Error ? error.message : String(error),
+        reportIds: reportsToAdd.map((r) => r.id),
+      });
+      throw WatchlistErrors.invalidEmail(error instanceof Error ? error.message : "Invalid email format");
+    }
+
+    const results = await Promise.all(
+      reportsToAdd.map(async (report) => {
+        const normalizedValue = normalizedValues.get(report.id);
+        if (!normalizedValue) {
+          throw new Error("Unable to process the selected report. Please try again.");
+        }
+
+        const { watchlistEntry } = await this.deps.watchlistRepo.createEntryFromReport({
+          type: input.type,
+          value: normalizedValue,
+          organizationId: scope.organizationId,
+          isGlobal: scope.isGlobal,
+          userId: input.userId,
+          description: input.description,
+        });
+
+        return {
+          reportId: report.id,
+          watchlistId: watchlistEntry.id,
+        };
+      })
+    );
+
+    await this.deps.bookingReportRepo.bulkLinkGlobalWatchlistWithSystemStatus({
+      links: results.map((r) => ({ reportId: r.reportId, globalWatchlistId: r.watchlistId })),
+      systemStatus: SystemReportStatus.BLOCKED,
+    });
+
+    return {
+      success: true,
+      message: `Successfully added ${results.length} report(s) to global blocklist`,
+      addedCount: results.length,
+      skippedCount: validReports.length - reportsToAdd.length,
+      results,
+    };
   }
 
   async bulkDeleteWatchlistEntries(
@@ -149,15 +225,15 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
 
     const report = reports[0];
 
-    if (report.watchlistId) {
+    if (report.globalWatchlistId) {
       throw WatchlistErrors.validationError(
-        "Cannot dismiss a report that has already been added to the blocklist"
+        "Cannot dismiss a report that has already been added to the global blocklist"
       );
     }
 
-    await this.deps.bookingReportRepo.updateReportStatus({
+    await this.deps.bookingReportRepo.updateSystemReportStatus({
       reportId: input.reportId,
-      status: BookingReportStatus.DISMISSED,
+      systemStatus: SystemReportStatus.DISMISSED,
     });
 
     return { success: true };
@@ -180,8 +256,8 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
         continue;
       }
 
-      if (report.watchlistId) {
-        failed.push({ id: reportId, reason: "Already added to blocklist" });
+      if (report.globalWatchlistId) {
+        failed.push({ id: reportId, reason: "Already added to global blocklist" });
         continue;
       }
 
@@ -190,9 +266,9 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
 
     let successCount = 0;
     if (validReportIds.length > 0) {
-      const result = await this.deps.bookingReportRepo.bulkUpdateReportStatus({
+      const result = await this.deps.bookingReportRepo.bulkUpdateSystemReportStatus({
         reportIds: validReportIds,
-        status: BookingReportStatus.DISMISSED,
+        systemStatus: SystemReportStatus.DISMISSED,
       });
       successCount = result.updated;
     }

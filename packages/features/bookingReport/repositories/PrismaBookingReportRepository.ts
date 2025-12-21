@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
-import type { BookingReportStatus } from "@calcom/prisma/enums";
+import type { BookingReportStatus, SystemReportStatus } from "@calcom/prisma/enums";
 import type { Prisma } from "@calcom/prisma/generated/prisma/client";
 
 import type {
@@ -7,6 +7,7 @@ import type {
   CreateBookingReportInput,
   BookingReportWithDetails,
   ListBookingReportsFilters,
+  SystemBookingReportsFilters,
 } from "./IBookingReportRepository";
 
 export class PrismaBookingReportRepository implements IBookingReportRepository {
@@ -34,6 +35,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     take?: number;
     searchTerm?: string;
     filters?: ListBookingReportsFilters;
+    systemFilters?: SystemBookingReportsFilters;
   }): Promise<{
     rows: BookingReportWithDetails[];
     meta: { totalRowCount: number };
@@ -71,6 +73,10 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
       where.status = { in: params.filters.status };
     }
 
+    if (params.systemFilters?.systemStatus && params.systemFilters.systemStatus.length > 0) {
+      where.systemStatus = { in: params.systemFilters.systemStatus };
+    }
+
     const [reports, totalCount] = await Promise.all([
       this.prismaClient.bookingReport.findMany({
         where,
@@ -86,7 +92,9 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
           cancelled: true,
           createdAt: true,
           status: true,
+          systemStatus: true,
           watchlistId: true,
+          globalWatchlistId: true,
           organizationId: true,
           reportedBy: {
             select: {
@@ -105,6 +113,15 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
             },
           },
           watchlist: {
+            select: {
+              id: true,
+              type: true,
+              value: true,
+              action: true,
+              description: true,
+            },
+          },
+          globalWatchlist: {
             select: {
               id: true,
               type: true,
@@ -161,7 +178,9 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
         cancelled: true,
         createdAt: true,
         status: true,
+        systemStatus: true,
         watchlistId: true,
+        globalWatchlistId: true,
         organizationId: true,
         reportedBy: {
           select: {
@@ -180,6 +199,15 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
           },
         },
         watchlist: {
+          select: {
+            id: true,
+            type: true,
+            value: true,
+            action: true,
+            description: true,
+          },
+        },
+        globalWatchlist: {
           select: {
             id: true,
             type: true,
@@ -274,12 +302,72 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     );
   }
 
+  async bulkLinkGlobalWatchlistWithSystemStatus(params: {
+    links: Array<{ reportId: string; globalWatchlistId: string }>;
+    systemStatus: SystemReportStatus;
+  }): Promise<void> {
+    if (params.links.length === 0) return;
+
+    const groupedByWatchlist = new Map<string, string[]>();
+    for (const link of params.links) {
+      const reportIds = groupedByWatchlist.get(link.globalWatchlistId) || [];
+      reportIds.push(link.reportId);
+      groupedByWatchlist.set(link.globalWatchlistId, reportIds);
+    }
+
+    await Promise.all(
+      Array.from(groupedByWatchlist.entries()).map(([globalWatchlistId, reportIds]) =>
+        this.prismaClient.bookingReport.updateMany({
+          where: { id: { in: reportIds } },
+          data: { globalWatchlistId, systemStatus: params.systemStatus },
+        })
+      )
+    );
+  }
+
   async countPendingReports(params: { organizationId: number }): Promise<number> {
     return this.prismaClient.bookingReport.count({
       where: {
         organizationId: params.organizationId,
         status: "PENDING",
         watchlistId: null,
+      },
+    });
+  }
+
+  async updateSystemReportStatus(params: {
+    reportId: string;
+    systemStatus: SystemReportStatus;
+    globalWatchlistId?: string | null;
+  }): Promise<void> {
+    await this.prismaClient.bookingReport.update({
+      where: { id: params.reportId },
+      data: {
+        systemStatus: params.systemStatus,
+        ...(params.globalWatchlistId !== undefined && { globalWatchlistId: params.globalWatchlistId }),
+      },
+    });
+  }
+
+  async bulkUpdateSystemReportStatus(params: {
+    reportIds: string[];
+    systemStatus: SystemReportStatus;
+    globalWatchlistId?: string | null;
+  }): Promise<{ updated: number }> {
+    const result = await this.prismaClient.bookingReport.updateMany({
+      where: { id: { in: params.reportIds } },
+      data: {
+        systemStatus: params.systemStatus,
+        ...(params.globalWatchlistId !== undefined && { globalWatchlistId: params.globalWatchlistId }),
+      },
+    });
+    return { updated: result.count };
+  }
+
+  async countSystemPendingReports(): Promise<number> {
+    return this.prismaClient.bookingReport.count({
+      where: {
+        systemStatus: "PENDING",
       },
     });
   }

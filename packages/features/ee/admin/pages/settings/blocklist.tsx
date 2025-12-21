@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import {
@@ -9,24 +10,19 @@ import {
   PendingReportsBadge,
   PendingReportsTable,
 } from "@calcom/features/blocklist";
-import { DataTableToolbar, useDataTable } from "@calcom/features/data-table";
+import { DataTableProvider, DataTableToolbar, useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { BulkDeleteBlocklistEntries } from "./blocklist/BulkDeleteBlocklistEntries";
+import { BulkDismissReports } from "./blocklist/BulkDismissReports";
+
 type ViewType = "blocked" | "pending";
 
-interface BlocklistTableProps {
-  permissions?: {
-    canRead: boolean;
-    canCreate: boolean;
-    canDelete: boolean;
-  };
-}
-
-export function BlocklistTable({ permissions }: BlocklistTableProps) {
+function SystemBlocklistContent() {
   const { t } = useLocale();
   const { limit, offset, searchTerm } = useDataTable();
   const [activeView, setActiveView] = useState<ViewType>("blocked");
@@ -35,30 +31,28 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
 
   const utils = trpc.useUtils();
 
-  const { data: blockedData, isPending: isBlockedPending } =
-    trpc.viewer.organizations.listWatchlistEntries.useQuery(
-      { limit, offset, searchTerm },
-      { placeholderData: keepPreviousData, enabled: activeView === "blocked" }
-    );
+  const { data: blockedData, isPending: isBlockedPending } = trpc.viewer.admin.watchlist.list.useQuery(
+    { limit, offset, searchTerm },
+    { placeholderData: keepPreviousData, enabled: activeView === "blocked" }
+  );
 
-  const { data: reportsData, isPending: isReportsPending } =
-    trpc.viewer.organizations.listBookingReports.useQuery(
-      { limit, offset, searchTerm, filters: { hasWatchlist: false, status: ["PENDING"] } },
-      { placeholderData: keepPreviousData, enabled: activeView === "pending" }
-    );
+  const { data: reportsData, isPending: isReportsPending } = trpc.viewer.admin.watchlist.listReports.useQuery(
+    { limit, offset, searchTerm, systemFilters: { systemStatus: ["PENDING"] } },
+    { placeholderData: keepPreviousData, enabled: activeView === "pending" }
+  );
 
-  const { data: pendingReportsCount } = trpc.viewer.organizations.pendingReportsCount.useQuery();
+  const { data: pendingReportsCount } = trpc.viewer.admin.watchlist.pendingReportsCount.useQuery();
 
   const { data: entryDetails, isLoading: isDetailsLoading } =
-    trpc.viewer.organizations.getWatchlistEntryDetails.useQuery(
+    trpc.viewer.admin.watchlist.getDetails.useQuery(
       { id: selectedEntryId ?? "" },
       { enabled: !!selectedEntryId }
     );
 
-  const createEntry = trpc.viewer.organizations.createWatchlistEntry.useMutation({
+  const createEntry = trpc.viewer.admin.watchlist.create.useMutation({
     onSuccess: async () => {
-      await utils.viewer.organizations.listWatchlistEntries.invalidate();
-      showToast(t("blocklist_entry_created"), "success");
+      await utils.viewer.admin.watchlist.list.invalidate();
+      showToast(t("system_blocklist_entry_created"), "success");
       setShowCreateModal(false);
     },
     onError: (error) => {
@@ -66,33 +60,33 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     },
   });
 
-  const deleteEntry = trpc.viewer.organizations.deleteWatchlistEntry.useMutation({
+  const deleteEntry = trpc.viewer.admin.watchlist.delete.useMutation({
     onSuccess: async () => {
-      await utils.viewer.organizations.listWatchlistEntries.invalidate();
+      await utils.viewer.admin.watchlist.list.invalidate();
       setSelectedEntryId(null);
-      showToast(t("blocklist_entry_deleted"), "success");
+      showToast(t("system_blocklist_entry_deleted"), "success");
     },
     onError: (error) => {
       showToast(error.message, "error");
     },
   });
 
-  const addToWatchlist = trpc.viewer.organizations.addToWatchlist.useMutation({
+  const addToWatchlist = trpc.viewer.admin.watchlist.addToWatchlist.useMutation({
     onSuccess: async () => {
-      await utils.viewer.organizations.listBookingReports.invalidate();
-      await utils.viewer.organizations.listWatchlistEntries.invalidate();
-      await utils.viewer.organizations.pendingReportsCount.invalidate();
-      showToast(t("blocklist_entry_created"), "success");
+      await utils.viewer.admin.watchlist.listReports.invalidate();
+      await utils.viewer.admin.watchlist.list.invalidate();
+      await utils.viewer.admin.watchlist.pendingReportsCount.invalidate();
+      showToast(t("system_blocklist_entry_created"), "success");
     },
     onError: (error) => {
       showToast(error.message, "error");
     },
   });
 
-  const dismissReport = trpc.viewer.organizations.dismissBookingReport.useMutation({
+  const dismissReport = trpc.viewer.admin.watchlist.dismissReport.useMutation({
     onSuccess: async () => {
-      await utils.viewer.organizations.listBookingReports.invalidate();
-      await utils.viewer.organizations.pendingReportsCount.invalidate();
+      await utils.viewer.admin.watchlist.listReports.invalidate();
+      await utils.viewer.admin.watchlist.pendingReportsCount.invalidate();
       showToast(t("booking_report_dismissed"), "success");
     },
     onError: (error) => {
@@ -125,7 +119,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
           <DataTableToolbar.SearchBar />
         </div>
         <div className="flex items-center gap-2">
-          {permissions?.canCreate && (
+          {activeView === "blocked" && (
             <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
               {t("add")}
             </Button>
@@ -135,23 +129,26 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
 
       {activeView === "blocked" ? (
         <BlockedEntriesTable
-          scope="organization"
+          scope="system"
           data={blockedData?.rows ?? []}
           totalRowCount={blockedData?.meta?.totalRowCount ?? 0}
           isPending={isBlockedPending}
           limit={limit}
           searchTerm={searchTerm}
-          permissions={permissions}
           onAddClick={() => setShowCreateModal(true)}
           onDelete={(entry) => deleteEntry.mutate({ id: entry.id })}
           isDeleting={deleteEntry.isPending}
           detailsQuery={{ data: entryDetails, isLoading: isDetailsLoading }}
           selectedEntryId={selectedEntryId ?? undefined}
           onSelectEntry={setSelectedEntryId}
+          enableRowSelection
+          renderBulkActions={(selectedEntries, clearSelection) => (
+            <BulkDeleteBlocklistEntries entries={selectedEntries} onRemove={clearSelection} />
+          )}
         />
       ) : (
         <PendingReportsTable
-          scope="organization"
+          scope="system"
           data={reportsData?.rows ?? []}
           totalRowCount={reportsData?.meta?.totalRowCount ?? 0}
           isPending={isReportsPending}
@@ -162,16 +159,30 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
           onDismiss={(reportId, onSuccess) => dismissReport.mutate({ reportId }, { onSuccess })}
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}
+          enableRowSelection
+          renderBulkActions={(selectedReports, clearSelection) => (
+            <BulkDismissReports reports={selectedReports} onRemove={clearSelection} />
+          )}
         />
       )}
 
       <CreateBlocklistEntryModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        scope="organization"
+        scope="system"
         onCreateEntry={(data) => createEntry.mutate(data)}
         isPending={createEntry.isPending}
       />
     </>
+  );
+}
+
+export default function SystemBlocklistView() {
+  const pathname = usePathname();
+
+  return (
+    <DataTableProvider tableIdentifier={pathname}>
+      <SystemBlocklistContent />
+    </DataTableProvider>
   );
 }

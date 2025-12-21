@@ -4,8 +4,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import {
@@ -18,29 +17,29 @@ import {
 } from "@calcom/ui/components/sheet";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-type BlocklistEntry = RouterOutputs["viewer"]["organizations"]["listWatchlistEntries"]["rows"][number];
+import type { BlocklistEntry, BlocklistEntryDetails, BlocklistScope } from "../types";
 
-interface BlocklistEntryDetailsSheetProps {
-  entry: BlocklistEntry | null;
+export interface BlocklistEntryDetailsSheetProps<T extends BlocklistEntry> {
+  scope: BlocklistScope;
+  entry: T | null;
   isOpen: boolean;
   onClose: () => void;
-  handleDeleteBlocklistEntry: (entry: BlocklistEntry) => void;
+  handleDeleteBlocklistEntry: (entry: T) => void;
+  detailsData?: BlocklistEntryDetails;
+  isLoading: boolean;
 }
 
-export function BlocklistEntryDetailsSheet({
+export function BlocklistEntryDetailsSheet<T extends BlocklistEntry>({
+  scope,
   entry,
   isOpen,
   onClose,
   handleDeleteBlocklistEntry,
-}: BlocklistEntryDetailsSheetProps) {
+  detailsData,
+  isLoading,
+}: BlocklistEntryDetailsSheetProps<T>) {
   const { t } = useLocale();
-
-  const { data, isLoading } = trpc.viewer.organizations.getWatchlistEntryDetails.useQuery(
-    { id: entry?.id ?? "" },
-    {
-      enabled: !!entry?.id && isOpen,
-    }
-  );
+  const isSystem = scope === "system";
 
   return (
     <Sheet
@@ -50,54 +49,85 @@ export function BlocklistEntryDetailsSheet({
       }}>
       <SheetContent className="px-0 pb-0 sm:max-w-xl sm:px-0 sm:pb-0">
         <SheetHeader className="px-6">
-          <SheetTitle>{entry?.value}</SheetTitle>
+          {isSystem ? (
+            <div className="flex items-center gap-2">
+              <SheetTitle>{entry?.value}</SheetTitle>
+              <Badge variant="gray">{t("system_wide")}</Badge>
+            </div>
+          ) : (
+            <SheetTitle>{entry?.value}</SheetTitle>
+          )}
         </SheetHeader>
 
         <SheetBody className="px-6">
           {isLoading ? (
-            <div className="mt-3 stack-y-3">
+            <div className="mt-3 space-y-3">
               <SkeletonText className="h-6 w-32" />
               <SkeletonText className="h-40 w-full" />
             </div>
-          ) : data?.entry ? (
-            <div className="mt-3 stack-y-6">
+          ) : detailsData?.entry ? (
+            <div className="mt-3 space-y-6">
               <div className="bg-subtle rounded-xl p-1">
                 <h2 className="text-default p-5 text-sm font-semibold">{t("details")}</h2>
 
-                <div className="bg-default stack-y-3 rounded-xl p-5">
+                <div className="bg-default space-y-3 rounded-xl p-5">
                   <div>
                     <label className="text-default block text-sm font-semibold">
-                      {data.entry.type === "EMAIL" ? t("email") : t("domain")}
+                      {detailsData.entry.type === "EMAIL" ? t("email") : t("domain")}
                     </label>
-                    <p className="text-subtle text-sm">{data.entry.value}</p>
+                    <p className="text-subtle text-sm">{detailsData.entry.value}</p>
                   </div>
 
                   <div>
                     <label className="text-default block text-sm font-semibold">{t("type")}</label>
                     <p className="text-subtle text-sm">
-                      {data.entry.type === "EMAIL" ? t("email") : t("domain")}
+                      {detailsData.entry.type === "EMAIL" ? t("email") : t("domain")}
                     </p>
                   </div>
 
+                  {isSystem && (
+                    <>
+                      <div>
+                        <label className="text-default block text-sm font-semibold">{t("scope")}</label>
+                        <Badge variant="gray">{t("system_wide_all_organizations")}</Badge>
+                      </div>
+
+                      <div>
+                        <label className="text-default block text-sm font-semibold">{t("source")}</label>
+                        <p className="text-subtle text-sm">
+                          {detailsData.entry.source === "MANUAL"
+                            ? t("manual")
+                            : detailsData.entry.source === "FREE_DOMAIN_POLICY"
+                            ? t("free_domain_policy")
+                            : t("automatic")}
+                        </p>
+                      </div>
+                    </>
+                  )}
+
                   <div>
-                    <label className="text-default block text-sm font-semibold">{t("blocked_by")}</label>
-                    <p className="text-subtle text-sm">{data.auditHistory[0]?.changedByUser?.email || "—"}</p>
+                    <label className="text-default block text-sm font-semibold">
+                      {t(isSystem ? "blocked_by_system_admin" : "blocked_by")}
+                    </label>
+                    <p className="text-subtle text-sm">
+                      {detailsData.auditHistory[0]?.changedByUser?.email || "—"}
+                    </p>
                   </div>
 
                   <div>
                     <label className="text-default block text-sm font-semibold">{t("description")}</label>
                     <p className="text-subtle text-sm">
-                      {data.entry.description || t("no_description_provided")}
+                      {detailsData.entry.description || t("no_description_provided")}
                     </p>
                   </div>
 
-                  {data.entry.bookingReports && data.entry.bookingReports.length > 0 && (
+                  {detailsData.entry.bookingReports && detailsData.entry.bookingReports.length > 0 && (
                     <div>
                       <label className="text-default block text-sm font-semibold">
                         {t("related_booking")}
                       </label>
 
-                      {data.entry.bookingReports.map((report) => {
+                      {detailsData.entry.bookingReports.map((report) => {
                         return (
                           <Link key={report.booking.uid} href={`/booking/${report.booking.uid}`}>
                             <div className="text-subtle flex items-center gap-1 text-sm">
@@ -114,9 +144,9 @@ export function BlocklistEntryDetailsSheet({
 
               <div className="bg-subtle rounded-xl p-1">
                 <h2 className="text-default p-5 text-sm font-semibold">{t("history")}</h2>
-                {data.auditHistory.length > 0 ? (
-                  <div className="stack-y-3">
-                    {data.auditHistory.map((audit) => (
+                {detailsData.auditHistory.length > 0 ? (
+                  <div className="space-y-3">
+                    {detailsData.auditHistory.map((audit) => (
                       <div key={audit.id} className="bg-default border-subtle rounded-xl border p-4">
                         <div className="flex items-start justify-between">
                           <div>
@@ -148,7 +178,7 @@ export function BlocklistEntryDetailsSheet({
             color="secondary"
             onClick={() => entry && handleDeleteBlocklistEntry(entry)}
             disabled={!entry}>
-            {t("remove_from_blocklist")}
+            {t(isSystem ? "remove_from_system_blocklist" : "remove_from_blocklist")}
           </Button>
         </SheetFooter>
       </SheetContent>
