@@ -28,6 +28,6 @@
     "@typescript-eslint/parser": "^5.52.0",
     "prettier": "^2.8.6",
     "prettier-plugin-tailwindcss": "^0.2.5",
-    "typescript": "^5.9.0-beta"
+    "typescript": "5.9.2"
   }
 }
