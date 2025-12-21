@@ -54,7 +54,7 @@ type AddActionFormValues = {
   numberRequired?: boolean;
   senderId?: string;
   senderName?: string;
-};
+}; 
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
@@ -137,7 +137,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent enableOverflow type="creation" title={t("add_action")}>
+      <DialogContent type="creation" title={t("add_action")}>
         <div className="-mt-3 space-x-3">
           <Form
             form={form}
@@ -256,7 +256,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 />
               </div>
             )}
-            <DialogFooter showDivider className="mt-12">
+            <DialogFooter showDivider noSticky className="mt-12">
               <DialogClose
                 onClick={() => {
                   setIsOpenDialog(false);
