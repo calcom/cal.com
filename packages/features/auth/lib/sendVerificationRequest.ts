@@ -18,7 +18,17 @@ const sendVerificationRequest = async ({
 }: Pick<SendVerificationRequestParams, "identifier" | "url">) => {
   const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   const originalUrl = new URL(url);
-  const webappUrl = new URL(process.env.NEXTAUTH_URL || WEBAPP_URL);
+
+  // --- FIX START: Handle missing protocol ---
+let appUrlStr = process.env.NEXTAUTH_URL || WEBAPP_URL || "";
+
+if (appUrlStr && !appUrlStr.startsWith("http")) {
+  appUrlStr = `https://${appUrlStr}`;
+}
+
+const webappUrl = new URL(appUrlStr);
+// --- FIX END ---
+
   if (originalUrl.origin !== webappUrl.origin) {
     url = url.replace(originalUrl.origin, webappUrl.origin);
   }
