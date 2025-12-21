@@ -145,13 +145,13 @@
   },
   "engines": {
     "npm": ">=7.0.0",
-    "yarn": "3.4.1"
+    "yarn": ">=4.12.0"
   },
   "prisma": {
     "schema": "packages/prisma/schema.prisma",
     "seed": "ts-node --transpile-only ./packages/prisma/seed.ts"
   },
-  "packageManager": "yarn@3.4.1",
+  "packageManager": "yarn@4.12.0",
   "syncpack": {
     "filter": "^(?!@calcom).*",
     "semverRange": ""
