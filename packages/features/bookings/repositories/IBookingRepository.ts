@@ -4,41 +4,6 @@
  * Implementations can use Prisma, Kysely, or any other data access layer
  */
 
-// Re-export all DTOs from @calcom/lib/dto for convenience
-export type {
-  BookingStatusDto,
-  BookingBasicDto,
-  BookingInstantLocationDto,
-  BookingExistsDto,
-  TeamSummaryDto,
-  DestinationCalendarDto,
-  CredentialDto,
-  UserProfileDto,
-  BookingUserDto,
-  AttendeeDto,
-  BookingReferenceDto,
-  EventTypeWithTeamDto,
-  BookingFullContextDto,
-  BookingConfirmationUserDto,
-  WorkflowTriggerEventsDto,
-  TimeUnitDto,
-  WorkflowActionsDto,
-  WorkflowTemplatesDto,
-  WorkflowStepDto,
-  WorkflowDto,
-  WorkflowOnEventTypeDto,
-  ParentEventTypeDto,
-  EventTypeOwnerDto,
-  EventTypeForConfirmationDto,
-  PaymentOptionDto,
-  PaymentDto,
-  BookingForConfirmationDto,
-  BookingUpdateResultDto,
-  BookingBatchUpdateResultDto,
-  BookingReferenceCreateInput,
-  UpdateLocationInput,
-} from "@calcom/lib/dto";
-
 import type {
   BookingBasicDto,
   BookingInstantLocationDto,
