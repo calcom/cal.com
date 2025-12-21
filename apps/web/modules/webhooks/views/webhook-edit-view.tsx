@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation";
 
 import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
+import { WEBHOOK_VERSION_OPTIONS, getWebhookVersionLabel } from "@calcom/features/webhooks/lib/constants";
+import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { WebhookVersion } from "../lib/interface/IWebhookRepository";
-import { WEBHOOK_VERSION_OPTIONS, getWebhookVersionLabel } from "../lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
@@ -18,7 +18,6 @@ import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/setti
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
-import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 type WebhookProps = {
   id: string;
