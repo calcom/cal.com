@@ -1,5 +1,6 @@
-import RecordingListItemSkeleton from "@calcom/features/ee/video/components/RecordingListItemSkeleton";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
+
+import RecordingListItemSkeleton from "./RecordingListItemSkeleton";
 
 export default function RecordingListSkeleton() {
   return (
