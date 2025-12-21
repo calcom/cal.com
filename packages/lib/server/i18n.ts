@@ -20,14 +20,12 @@ const englishBookingTranslations: Record<
   string
 > = require("../../../apps/web/public/static/locales/en/booking.json");
 
-// Map of namespace to English translations for fallback
 const englishTranslationsByNamespace: Record<string, Record<string, string>> = {
   common: englishCommonTranslations,
   booking: englishBookingTranslations,
 };
 
 const translationCache = new Map<string, Record<string, string>>();
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common", "booking"];
 
