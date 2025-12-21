@@ -867,6 +867,81 @@ export const unlockedManagedEventTypeProps = {
   destinationCalendar: allManagedEventTypeProps.destinationCalendar,
 };
 
+// Zod-compatible version of allManagedEventTypeProps that only includes scalar fields
+// (excludes Prisma relation fields like children, users, webhooks, availability, etc.)
+// This is used with EventTypeSchema.pick() which requires exact key matching
+// IMPORTANT: This must match the scalar fields in allManagedEventTypeProps exactly
+export const allManagedEventTypePropsForZod = {
+  title: true,
+  description: true,
+  interfaceLanguage: true,
+  isInstantEvent: true,
+  instantMeetingParameters: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  currency: true,
+  periodDays: true,
+  position: true,
+  price: true,
+  slug: true,
+  length: true,
+  offsetStart: true,
+  locations: true,
+  hidden: true,
+  recurringEvent: true,
+  minimumRescheduleNotice: true,
+  disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
+  requiresConfirmation: true,
+  canSendCalVideoTranscriptionEmails: true,
+  requiresConfirmationForFreeEmail: true,
+  requiresConfirmationWillBlockSlot: true,
+  eventName: true,
+  metadata: true,
+  hideCalendarNotes: true,
+  hideCalendarEventDetails: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  successRedirectUrl: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
+  seatsShowAvailabilityCount: true,
+  forwardParamsSuccessRedirect: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodCountCalendarDays: true,
+  bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
+  slotInterval: true,
+  scheduleId: true,
+  bookingFields: true,
+  durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
+  requiresBookerEmailVerification: true,
+  assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
+  eventTypeColor: true,
+  allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
+  rescheduleWithSameRoundRobinHost: true,
+  maxLeadThreshold: true,
+  customReplyToEmail: true,
+  bookingRequiresAuthentication: true,
+} as const;
+
+// Zod-compatible version of unlockedManagedEventTypeProps
+export const unlockedManagedEventTypePropsForZod = {
+  locations: true,
+  scheduleId: true,
+} as const;
+
 export const emailSchema = emailRegexSchema;
 
 // The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
