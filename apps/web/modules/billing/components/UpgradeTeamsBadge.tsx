@@ -2,7 +2,7 @@
 
 import { useHasPaidPlan, useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 
-import { UpgradeTeamsBadge as UpgradeTeamsBadgeBase } from "@calcom/ui/components/badge/UpgradeTeamsBadge";
+import { UpgradeTeamsBadge as UpgradeTeamsBadgeBase } from "@calcom/ui/components/badge";
 
 export const UpgradeTeamsBadge = function UpgradeTeamsBadge({
   checkForActiveStatus,
