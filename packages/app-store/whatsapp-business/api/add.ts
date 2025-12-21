@@ -15,6 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!loggedInUser) {
       throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
     }
+    const calIdTeamId = req.query.calIdTeamId as string | undefined;
 
     // Ideally this should never happen, as email is there in session user but typings aren't accurate it seems
     // TODO: So, confirm and later fix the types
@@ -22,6 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpError({ statusCode: 400, message: "Session user must have an email" });
     }
 
-    return res.status(200).json({ url: "/apps/whatsapp-business/setup" });
+    return res.status(200).json({ url: `/apps/whatsapp-business/setup?calIdTeamId=${calIdTeamId}` });
   }
 }

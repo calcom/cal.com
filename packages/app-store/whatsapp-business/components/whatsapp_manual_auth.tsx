@@ -23,12 +23,16 @@ export function WhatsappManualAuth({ teamId }: { teamId?: number }) {
     },
   });
 
+  const [loading, setLoading] = useState(false);
+
   const [errorMessage, setErrorMessage] = useState("");
 
   return (
     <div>
       <div className="bg-default dark:bg-muted border-subtle rounded">
-        <Form form={form}>
+        <h1 className="mt-1 text-sm font-bold text-center">{t("manual_setup_header")}</h1>
+        <h1 className="mt-1 text-sm font-bold text-center">{t("manual_setup_header2")}</h1>
+        <Form className="mt-4" form={form}>
           <fieldset
             className="space-y-4"
             disabled={form.formState.isSubmitting}
@@ -68,13 +72,12 @@ export function WhatsappManualAuth({ teamId }: { teamId?: number }) {
 
           {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
           <div className="mt-5 justify-end space-x-2 sm:mt-4 sm:flex rtl:space-x-reverse">
-            <Button type="button" color="secondary" onClick={() => router.back()}>
-              {t("cancel")}
-            </Button>
             <Button
+              loading={loading}
               type="button"
               onClick={async () => {
                 try {
+                  setLoading(true);
                   const values = form.getValues();
                   const res = await fetch(
                     `/api/integrations/whatsapp-business/callback?code=${code}${
@@ -90,17 +93,19 @@ export function WhatsappManualAuth({ teamId }: { teamId?: number }) {
                   );
 
                   const json = await res.json();
+
+                  setLoading(false);
                   if (!res.ok) {
                     setErrorMessage(json?.message || json?.error || t("something_went_wrong"));
                   } else {
                     router.push(json.url);
                   }
                 } catch (err) {
+                  setLoading(false);
                   console.log(err);
                   setErrorMessage(t("unable_to_setup_whatsapp_business"));
                 }
               }}
-              loading={form.formState.isSubmitting}
               data-testid="whatsapp-business-login-button">
               {t("save")}
             </Button>

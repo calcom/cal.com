@@ -20,7 +20,7 @@ import getInstalledAppPath from "../../../_utils/getInstalledAppPath";
 import { WhatsAppEmbeddedSignup } from "../../components/whatsapp_embedded_auth";
 import { WhatsappManualAuth } from "../../components/whatsapp_manual_auth";
 
-export default function WhatsappBusinessSetup() {
+export default function WhatsappBusinessSetup({ calIdTeamId }: { calIdTeamId?: string }) {
   const { t } = useLocale();
   const router = useRouter();
   const form = useForm({
@@ -58,7 +58,7 @@ export default function WhatsappBusinessSetup() {
           <WhatsAppEmbeddedSignup
             configId={META_WHATSAPP_BUSINESS_CONFIG_ID}
             appId={META_WHATSAPP_BUSINESS_APP_ID}
-            teamId={null}
+            teamId={calIdTeamId}
             onError={(error: string) => {
               // Don't redirect just showing the error inside `WhatsAppEmbeddedSignup`
               // router.push(
@@ -70,7 +70,7 @@ export default function WhatsappBusinessSetup() {
             }}
           />
         ) : (
-          <WhatsappManualAuth teamId={null} />
+          <WhatsappManualAuth teamId={calIdTeamId} />
         )}
       </div>
       <Toaster position="bottom-right" />

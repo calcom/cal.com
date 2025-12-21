@@ -1,6 +1,8 @@
 import { Button } from "@calid/features/ui/components/button";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRef, useCallback, useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 
 declare global {
@@ -34,8 +36,8 @@ interface FBLoginResponse {
 }
 
 interface WhatsAppEmbeddedSignupProps {
-  configId: string; // Your Meta app configuration ID
-  appId: string; // Your Meta app ID
+  configId: string;
+  appId: string;
   teamId?: number;
   onSuccess?: () => void;
   onError?: (error: string) => void;
@@ -50,8 +52,9 @@ export function WhatsAppEmbeddedSignup({
 }: WhatsAppEmbeddedSignupProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [sdkLoaded, setSdkLoaded] = useState(false);
-
   const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
+  const { t } = useLocale();
 
   const _onError = (error: string) => {
     setErrorMessage(error);
@@ -59,15 +62,12 @@ export function WhatsAppEmbeddedSignup({
   };
 
   useEffect(() => {
-    // Check if SDK is already loaded and initialized
     if (window.FB) {
       setSdkLoaded(true);
       return;
     }
 
-    // Check if script already exists
     if (document.getElementById("facebook-jssdk")) {
-      // Script exists but FB not ready yet, wait for it
       const checkFB = setInterval(() => {
         if (window.FB) {
           clearInterval(checkFB);
@@ -77,9 +77,7 @@ export function WhatsAppEmbeddedSignup({
       return () => clearInterval(checkFB);
     }
 
-    // Define fbAsyncInit before loading script
     window.fbAsyncInit = function () {
-      console.log("Initializing FB SDK:  " + appId);
       window.FB.init({
         appId: appId,
         autoLogAppEvents: true,
@@ -89,13 +87,10 @@ export function WhatsAppEmbeddedSignup({
       setSdkLoaded(true);
     };
 
-    // Session logging message event listener
     window.addEventListener("message", (event) => {
-      console.log("message event received from:", event.origin); // remove after testing
-      console.log("message event :", JSON.stringify(event)); // remove after testing
+      console.log("message event received from:", event.origin);
+      console.log("message event :", JSON.stringify(event));
       if (!event.origin.endsWith(`facebook.com`)) return;
-
-      // Phone number selected
 
       try {
         const data = JSON.parse(event.data);
@@ -104,16 +99,13 @@ export function WhatsAppEmbeddedSignup({
             console.log("Setting embed flow data");
             setEmbedFlowData(data.data);
           }
-          console.log("message event: ", data); // remove after testing
-          // your code goes here
+          console.log("message event: ", data);
         }
       } catch {
-        console.log("message event: ", event.data); // remove after testing
-        // your code goes here
+        console.log("message event: ", event.data);
       }
     });
 
-    // Load the SDK asynchronously
     const script = document.createElement("script");
     script.id = "facebook-jssdk";
     script.src = "https://connect.facebook.net/en_US/sdk.js";
@@ -143,12 +135,13 @@ export function WhatsAppEmbeddedSignup({
 
     setIsLoading(true);
 
-    // Add a small delay to ensure FB is fully ready
     window.FB.login(
       (response: FBLoginResponse) => {
         if (response.authResponse) {
           console.log("Processing auth code:");
-          processAuthCode(response.authResponse.code);
+          setTimeout(() => {
+            processAuthCodeRef.current?.(response.authResponse.code);
+          }, 2000);
         } else {
           setIsLoading(false);
           _onError?.("User cancelled login or did not fully authorize");
@@ -160,19 +153,17 @@ export function WhatsAppEmbeddedSignup({
         override_default_response_type: true,
         extras: {
           setup: {},
-          featureType: "",
+          featureType: "whatsapp_business_app_onboarding",
           sessionInfoVersion: "3",
         },
       }
     );
   }, [embedFlowData]);
 
-  // Separate async function
   const processAuthCode = useCallback(
     async (code: string) => {
       const data = embedFlowData;
       try {
-        // Send code to your backend
         const result = await fetch(
           `/api/integrations/whatsapp-business/callback?code=${code}&wabaId=${data.waba_id}${
             data.phone_number_id ? `&phoneNumberId=${data.phone_number_id}` : ""
@@ -186,31 +177,81 @@ export function WhatsAppEmbeddedSignup({
         );
 
         if (result.ok) {
+          const json = await result.json();
+          router.push(json.url);
           onSuccess?.();
         } else {
           const error = await result.json();
           _onError?.(error.error || "Failed to complete setup");
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error processing embedded signup:", error);
         _onError?.(error instanceof Error ? error.message : "Unknown error");
-      } finally {
         setIsLoading(false);
       }
     },
     [embedFlowData]
   );
 
+  const processAuthCodeRef = useRef<typeof processAuthCode>();
+
+  useEffect(() => {
+    processAuthCodeRef.current = processAuthCode;
+  }, [processAuthCode]);
+
   return (
     <div>
+      <div className="mb-2 mt-1 text-sm">
+        <h1 className="mb-2 mt-1 text-center text-sm font-bold">{t("embedded_signup_header")}</h1>
+        <h1 className="mb-2 mt-1 text-center text-sm font-bold">{t("embedded_signup_header2")}</h1>
+        {t("configure_phone_number_with_embedded_signup")}
+        <div></div>
+        <div>
+          {t("2. View limitations and pricing from Meta for the Cloud API.")}{" "}
+          <a
+            className="text-blue hover:underline"
+            href="https://developers.facebook.com/docs/whatsapp/embedded-signup/custom-flows/onboarding-business-app-users#limitations"
+            target="_blank"
+            rel="noopener noreferrer">
+            ({t("here")})
+          </a>
+        </div>
+        <div>
+          {t("complete_onboarding_flow_payment")}
+          <a
+            className="text-blue hover:underline"
+            href="https://www.facebook.com/business/help/488291839463771"
+            target="_blank"
+            rel="noopener noreferrer">
+            ({t("here")})
+          </a>
+        </div>
+
+        <div>{t("skip_sharing_chat")}</div>
+      </div>
+
       <Button
-        onClick={handleEmbeddedSignup}
+        onClick={() => {
+          window.FB.getLoginStatus((statusResponse) => {
+            if (statusResponse.status === "connected") {
+              window.FB.logout(() => {
+                // Now safe to restart embedded signup
+                handleEmbeddedSignup();
+              });
+            } else {
+              handleEmbeddedSignup();
+            }
+          });
+        }}
         disabled={isLoading || !sdkLoaded}
         className="h-9 w-full justify-center rounded-xl">
         {isLoading ? "Connecting..." : "Connect WhatsApp Business"}
       </Button>
 
       {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
+
+      <div className="mt-6 space-y-4"></div>
     </div>
   );
 }

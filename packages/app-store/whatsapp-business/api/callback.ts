@@ -19,7 +19,7 @@ import { getWhatsAppBusinessAppKeys } from "../lib/getWhatsAppBusinessAppKeys";
 // ============================================================================
 
 const REQUIRED_WHATSAPP_SCOPES = ["whatsapp_business_management", "whatsapp_business_messaging"];
-const WEBHOOK_FIELDS = ["messages"];
+const WEBHOOK_FIELDS = ["messages", "account_update"];
 
 type AuthMethod = "embedded" | "manual";
 
@@ -69,7 +69,7 @@ async function isPhoneNumberVerified(phoneNumberId: string, accessToken: string)
   try {
     const response = await fetch(
       `https://graph.facebook.com/${META_API_VERSION}/${phoneNumberId}?` +
-        `fields=code_verification_status&access_token=${accessToken}`
+        `fields=code_verification_status,is_on_biz_app,platform_type&access_token=${accessToken}`
     );
 
     if (!response.ok) {
@@ -79,6 +79,15 @@ async function isPhoneNumberVerified(phoneNumberId: string, accessToken: string)
 
     const data = await response.json();
     const isVerified = data.code_verification_status === "VERIFIED";
+
+    // Support for coexistance flow.
+    console.log(
+      `[Phone Verification] Phone ${phoneNumberId} on Biz App? ${data.is_on_biz_app} with platform_type? ${data.platform_type}`
+    );
+
+    if (data.is_on_biz_app && data.platform_type === "CLOUD_API") {
+      return true;
+    }
 
     console.log(`[Phone Verification] Phone ${phoneNumberId} verification status: ${isVerified}`);
 
@@ -427,8 +436,6 @@ async function verifyAccessToken(options?: {
     });
   }
 
-  let phoneData;
-
   if (options.phoneNumberId) {
     const phoneRes = await fetch(
       `https://graph.facebook.com/${META_API_VERSION}/${options.phoneNumberId}` +
@@ -443,7 +450,7 @@ async function verifyAccessToken(options?: {
       });
     }
 
-    phoneData = await phoneRes.json();
+    let phoneData = await phoneRes.json();
 
     if (
       options.phoneNumber &&
@@ -458,7 +465,6 @@ async function verifyAccessToken(options?: {
 
   return {
     isValid: true,
-    phoneData,
     wabaIds: [options.wabaId],
   };
 }
@@ -535,18 +541,33 @@ async function getExistingPhoneNumbers(phoneNumbers: PhoneNumberData[]): Promise
   });
 }
 
-async function createCredential(
-  userId: number | null,
-  teamId: number | undefined,
-  accessToken: string,
-  tokenType: string = "bearer",
-  expiresIn?: number
-) {
+async function createCredential({
+  userId,
+  teamId,
+  accessToken,
+  tokenType,
+  wabaId,
+  phoneNumberId,
+  phoneNumber,
+  expiresIn,
+}: {
+  userId: number | null;
+  teamId: number | undefined;
+  accessToken: string;
+  tokenType?: string;
+  wabaId: string;
+  phoneNumberId: string;
+  phoneNumber: string;
+  expiresIn?: number;
+}) {
   const key = {
     access_token: accessToken,
     token_type: tokenType,
     expires_in: expiresIn,
     obtained_at: Date.now(),
+    wabaId,
+    phoneNumberId,
+    phoneNumber,
   };
 
   return await CredentialRepository.create({
@@ -602,7 +623,7 @@ async function handleEmbeddedSignup(
   req: NextApiRequest,
   payload: EmbeddedSignupPayload,
   teamId: number | undefined
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; message: string; url: string }> {
   const { code, wabaId, phoneNumberId } = payload;
 
   console.log(`[Embedded Signup] Processing for WABA: ${wabaId}, Phone: ${phoneNumberId}`);
@@ -661,13 +682,16 @@ async function handleEmbeddedSignup(
 
   // Step 7: Create credential
   console.log("[Embedded Signup] Step 7: Creating credential");
-  const credential = await createCredential(
-    req.session!.user.id,
+  const credential = await createCredential({
+    userId: req.session!.user.id,
     teamId,
-    longLivedToken,
-    longLivedTokenData.token_type || "bearer",
-    longLivedTokenData.expires_in
-  );
+    accessToken: longLivedToken,
+    tokenType: longLivedTokenData.token_type || "bearer",
+    expiresIn: longLivedTokenData.expires_in,
+    wabaId,
+    phoneNumber: phoneData.display_phone_number,
+    phoneNumberId: phoneData.id,
+  });
 
   // Step 8: Create phone record with PIN and webhook token
   console.log("[Embedded Signup] Step 8: Creating phone record");
@@ -678,6 +702,7 @@ async function handleEmbeddedSignup(
   return {
     success: true,
     message: "WhatsApp Business phone number added successfully",
+    url: "/apps/installed/messaging",
   };
 }
 
@@ -685,11 +710,11 @@ async function handleManualAuth(
   req: NextApiRequest,
   payload: ManualAuthPayload,
   teamId: number | undefined
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; message: string; url: string }> {
   const { wabaId, phoneNumberId, phoneNumber, api_key } = payload;
 
   console.log("[Manual Auth] Step 1: Verifying access token");
-  const { phoneData, wabaIds } = await verifyAccessToken(payload);
+  const { wabaIds } = await verifyAccessToken(payload);
 
   if (!wabaIds.includes(wabaId)) {
     throw new HttpError({
@@ -717,8 +742,8 @@ async function handleManualAuth(
     });
   }
 
-  console.log("[Manual Auth] Step 3: Setting up phone number");
-  const { pin } = await setupPhoneNumber(phoneNumberId, api_key);
+  console.log("[Manual Auth] Step 3: Setting up phone number [not needed for manual flow]");
+  // const { pin } = await setupPhoneNumber(phoneNumberId, api_key);
 
   console.log("[Manual Auth] Step 4: Subscribing to webhooks");
   const webhookResult = await subscribeToWebhooks(wabaId, api_key);
@@ -731,14 +756,22 @@ async function handleManualAuth(
   const templates = await getMessageTemplates(wabaId, api_key);
 
   console.log("[Manual Auth] Step 6: Creating credential");
-  const credential = await createCredential(req.session!.user.id, teamId, api_key);
+  const credential = await createCredential({
+    userId: req.session!.user.id,
+    teamId,
+    accessToken: api_key,
+    wabaId,
+    phoneNumber: phoneData.display_phone_number,
+    phoneNumberId: phoneData.id,
+  });
 
   console.log("[Manual Auth] Step 7: Creating phone record");
-  await createPhoneRecord(req.session!.user.id, teamId, credential.id, wabaId, phoneData, templates, pin);
+  await createPhoneRecord(req.session!.user.id, teamId, credential.id, wabaId, phoneData, templates);
 
   return {
     success: true,
     message: "WhatsApp Business phone number added successfully",
+    url: "/apps/installed/messaging",
   };
 }
 
@@ -784,7 +817,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     if (!phoneNumberId || typeof phoneNumberId !== "string") {
       throw new HttpError({
         statusCode: 400,
-        message: "Missing required parameter: phoneNumberId",
+        message:
+          "Missing required parameter: phoneNumberId, You need to add a phone number or a display name.",
       });
     }
 

@@ -209,6 +209,10 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
   const extendsEventType = appMetadata?.extendsFeature === "EventType";
 
+  const allowedMultipleInstalls =
+    // Calendar apps never show account screen so skipping this check. // (appMetadata.categories.indexOf("calendar") > -1 && appMetadata.variant !== "other") ||
+    appMetadata.slug === "whatsapp-business";
+
   const isConferencing = isConferencingApp(appMetadata.categories);
   const showEventTypesStep = extendsEventType || isConferencing;
 
@@ -271,6 +275,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
     id: user.id,
     name: user.name,
     avatarUrl: user.avatarUrl,
+    allowedMultipleInstalls,
     alreadyInstalled: appInstalls.some(
       (install) => !Boolean(install.calIdTeamId) && install.userId === user.id
     ),
@@ -279,6 +284,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
   const calIdTeamsWithIsAppInstalled = hasCalIdTeams
     ? userCalIdTeams.map((team) => ({
         ...team,
+        allowedMultipleInstalls,
         alreadyInstalled: appInstalls.some(
           (install) => Boolean(install.calIdTeamId) && install.calIdTeamId === team.id
         ),
