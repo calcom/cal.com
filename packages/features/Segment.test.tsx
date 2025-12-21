@@ -62,7 +62,7 @@ const mockAttributesWithSingleSelect = () => {
 };
 
 // Mock the TRPC hooks
-vi.mock("@calcom/trpc", () => ({
+vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
       appRoutingForms: {
