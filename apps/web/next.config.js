@@ -231,10 +231,13 @@ const nextConfig = (phase) => {
         transform: "lodash/{{member}}",
       },
     },
-    images: {
-      unoptimized: true,
-    },
-    webpack: (config, { webpack, buildId, isServer, dev }) => {
+        images: {
+          unoptimized: true,
+        },
+        // Empty turbopack config to enable Turbopack for production builds in Next.js 16+
+        // The webpack config below is kept for reference but won't be used when building with Turbopack
+        turbopack: {},
+        webpack: (config, { webpack, buildId, isServer, dev }) => {
       if (!dev) {
         if (config.cache) {
           config.cache = Object.freeze({
