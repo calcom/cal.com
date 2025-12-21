@@ -4168,6 +4168,7 @@
   "timestamp": "Timestamp",
   "json": "JSON",
   "hubspot_ignore_guests": "Do not create new records for guests added to the booking",
+  "saml_idp_not_authoritative_error": "This SAML identity provider is not authorized to manage your account. Please sign in with your original login method.",
   "audit_logs_organization_required": "You must be part of an organization to view audit logs.",
   "audit_logs_booking_not_found_or_permission_denied": "Booking not found or you do not have permission to view its audit logs.",
   "audit_logs_booking_has_no_owner": "Cannot verify permissions: booking has no associated user.",
