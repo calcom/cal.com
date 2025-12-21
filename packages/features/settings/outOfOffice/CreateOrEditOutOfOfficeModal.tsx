@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
@@ -162,8 +163,27 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const watchedTeamUserId = watch("toTeamUserId");
   const watchForUserId = watch("forUserId");
+  const watchedDateRange = watch("dateRange");
   const watchedNotes = watch("notes");
   const hasValidNotes = Boolean(watchedNotes?.trim());
+
+  // Fetch user's holiday settings to show warning if OOO dates overlap with holidays
+  const { data: holidaySettings } = trpc.viewer.holidays.getUserSettings.useQuery({});
+
+  // Check if selected dates overlap with any enabled holidays
+  const overlappingHolidays = useMemo(() => {
+    if (!holidaySettings?.countryCode || !watchedDateRange?.startDate || !watchedDateRange?.endDate) {
+      return [];
+    }
+
+    // Filter holidays that are enabled and fall within the date range
+    const startStr = dayjs(watchedDateRange.startDate).format("YYYY-MM-DD");
+    const endStr = dayjs(watchedDateRange.endDate).format("YYYY-MM-DD");
+
+    return (holidaySettings.holidays || [])
+      .filter((h) => h.enabled && h.date >= startStr && h.date <= endStr)
+      .map((h) => ({ date: h.date, holiday: { id: h.id, name: h.name } }));
+  }, [holidaySettings, watchedDateRange]);
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
@@ -310,6 +330,29 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   )}
                 />
               </div>
+
+              {/* Holiday overlap warning */}
+              {overlappingHolidays.length > 0 && (
+                <Alert
+                  className="mt-2"
+                  severity="info"
+                  title={t("holiday_overlap_info")}
+                  message={
+                    overlappingHolidays.length === 1
+                      ? t("holiday_overlap_message_single", {
+                          holiday: overlappingHolidays[0].holiday.name,
+                          date: dayjs(overlappingHolidays[0].date).format("D MMM"),
+                        })
+                      : t("holiday_overlap_message_multiple", {
+                          count: overlappingHolidays.length,
+                          holidays: overlappingHolidays
+                            .slice(0, 3)
+                            .map((h) => h.holiday.name)
+                            .join(", "),
+                        })
+                  }
+                />
+              )}
             </div>
 
             {/* Reason Select */}

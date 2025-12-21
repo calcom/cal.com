@@ -132,7 +132,7 @@ export default function AppCard({
             {app.isSetupAlready === undefined || app.isSetupAlready ? (
               <div className="relative text-sm [&_input]:mb-0 [&_input]:leading-4">
                 {!hideSettingsIcon && !isPlatform && (
-                  <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
+                  <Link href={`/apps/${app.slug}/setup`} className="absolute right-0 top-0 ">
                     <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
                   </Link>
                 )}
