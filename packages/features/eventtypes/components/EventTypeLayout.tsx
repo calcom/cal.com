@@ -269,7 +269,7 @@ function EventTypeSingleLayout({
             className="ml-4 lg:ml-0"
             type="submit"
             loading={isUpdateMutationLoading}
-            disabled={!formMethods.formState.isDirty}
+            disabled={Object.keys(formMethods.formState.dirtyFields).length === 0}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}

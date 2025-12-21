@@ -70,10 +70,10 @@ import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
-import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
-import RequiresConfirmationController from "./RequiresConfirmationController";
 import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
 import DisableReschedulingController from "./DisableReschedulingController";
+import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
+import RequiresConfirmationController from "./RequiresConfirmationController";
 
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
@@ -225,7 +225,7 @@ const destinationCalendarComponents = {
                   color="minimal"
                   size="sm"
                   aria-label="edit custom name"
-                  className="hover:stroke-3 hover:text-emphasis py-0! min-w-fit px-1.5 -mr-1.5 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis py-0! -mr-1.5 min-w-fit px-1.5 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
                   <Icon name="pencil" className="h-4 w-4" />
                 </Button>
@@ -430,11 +430,6 @@ export const EventAdvancedTab = ({
   const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
-
-  // Reset form on mount to clear false dirty state from object/array reference inequality
-  useEffect(() => {
-    formMethods.reset(formMethods.getValues());
-  }, []);
 
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [darkModeError, setDarkModeError] = useState(false);
