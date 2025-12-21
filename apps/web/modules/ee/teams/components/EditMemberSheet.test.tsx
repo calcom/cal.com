@@ -3,7 +3,7 @@ import React, { type ReactNode } from "react";
 import { vi } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
-import { EditMemberSheet } from "@calcom/web/modules/teams/components/EditMemberSheet";
+import { EditMemberSheet } from "@calcom/web/modules/ee/teams/components/EditMemberSheet";
 import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
 
 import type { State, User } from "./MemberList";
@@ -72,7 +72,14 @@ const mockSetEditMode = vi.fn();
 const mockSetMutationLoading = vi.fn();
 
 vi.mock("@calcom/web/modules/users/components/UserTable/EditSheet/store", () => ({
-  useEditMode: (selector: (state: { editMode: boolean; setEditMode: typeof mockSetEditMode; mutationLoading: boolean; setMutationLoading: typeof mockSetMutationLoading }) => unknown) => {
+  useEditMode: (
+    selector: (state: {
+      editMode: boolean;
+      setEditMode: typeof mockSetEditMode;
+      mutationLoading: boolean;
+      setMutationLoading: typeof mockSetMutationLoading;
+    }) => unknown
+  ) => {
     const state = {
       editMode: false,
       setEditMode: mockSetEditMode,

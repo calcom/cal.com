@@ -57,7 +57,7 @@ import {
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import TeamAvailabilityModal from "@calcom/web/modules/teams/components/TeamAvailabilityModal";
+import TeamAvailabilityModal from "@calcom/web/modules/ee/teams/components/TeamAvailabilityModal";
 import { DynamicLink } from "@calcom/web/modules/users/components/UserTable/BulkActions/DynamicLink";
 import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
 

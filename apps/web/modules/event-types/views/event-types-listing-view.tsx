@@ -54,11 +54,11 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { CreateButton } from "@calcom/web/modules/ee/teams/components/createButton/CreateButton";
 import {
   CreateEventTypeDialog,
   type ProfileOption,
 } from "@calcom/web/modules/event-types/components/CreateEventTypeDialog";
-import { CreateButton } from "@calcom/web/modules/teams/components/createButton/CreateButton";
 
 import { TRPCClientError } from "@trpc/client";
 

@@ -8,7 +8,7 @@ import {
 import {
   TeamsUpgradeBanner,
   type TeamsUpgradeBannerProps,
-} from "@calcom/web/modules/teams/components/TeamsUpgradeBanner";
+} from "@calcom/web/modules/ee/teams/components/TeamsUpgradeBanner";
 import AdminPasswordBanner, {
   type AdminPasswordBannerProps,
 } from "@calcom/web/modules/users/components/AdminPasswordBanner";

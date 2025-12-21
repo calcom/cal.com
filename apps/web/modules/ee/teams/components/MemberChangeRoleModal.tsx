@@ -8,7 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
-import type { User } from "@calcom/web/modules/teams/components/MemberList";
+import type { User } from "@calcom/web/modules/ee/teams/components/MemberList";
 
 type MembershipRoleOption = {
   label: string;
