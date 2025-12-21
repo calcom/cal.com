@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";

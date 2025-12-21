@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";

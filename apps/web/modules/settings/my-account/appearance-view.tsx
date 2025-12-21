@@ -22,7 +22,7 @@ import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
-import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
+import { UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadge";
 import { Button } from "@calcom/ui/components/button";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";

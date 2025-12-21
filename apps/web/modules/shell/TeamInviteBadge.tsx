@@ -1,4 +1,4 @@
-import { useTeamInvites } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useTeamInvites } from "~/billing/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { CalVideoSettings as CalVideoSettingsType } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

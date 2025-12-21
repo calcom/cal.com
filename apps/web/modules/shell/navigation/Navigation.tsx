@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
 import {
   useOrgBranding,
   type OrganizationBranding,

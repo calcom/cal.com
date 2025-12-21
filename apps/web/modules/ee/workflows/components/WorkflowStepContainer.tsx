@@ -6,7 +6,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useWatch } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
-import { useHasActiveTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
@@ -412,7 +412,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {

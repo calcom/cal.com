@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useTransition } from "react";
 
-import { useTeamInvites } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useTeamInvites } from "~/billing/hooks/useHasPaidPlan";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -35,6 +35,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   // Reset onboarding data when visiting this page, but preserve the selected plan
   useEffect(() => {
     resetOnboardingPreservingPlan();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // If user has pending team invites, redirect them directly to personal onboarding

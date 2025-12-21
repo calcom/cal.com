@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

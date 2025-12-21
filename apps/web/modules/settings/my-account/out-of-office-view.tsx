@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
-import { CreateOrEditOutOfOfficeEntryModal } from "@calcom/features/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
-import type { BookingRedirectForm } from "@calcom/features/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
+import { CreateOrEditOutOfOfficeEntryModal } from "~/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
+import type { BookingRedirectForm } from "~/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
 import { HolidaysView } from "./holidays-view";
 import OutOfOfficeEntriesList from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
 import { OutOfOfficeTab } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";

@@ -5,7 +5,7 @@ import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { useHasTeamPlan, useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasTeamPlan, useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -181,6 +181,7 @@ export const useBootIntercom = () => {
       };
       window.dispatchEvent(new Event("support:ready"));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, statsData, hasPaidPlan, isTieredSupportEnabled]);
 };
 

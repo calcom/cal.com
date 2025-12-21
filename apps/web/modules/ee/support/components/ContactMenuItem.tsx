@@ -1,4 +1,4 @@
-import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
+import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
 import { JOIN_COMMUNITY } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
@@ -33,7 +33,7 @@ export default function ContactMenuItem(props: ContactMenuItem) {
       <a
         href={JOIN_COMMUNITY}
         target="_blank"
-        className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium transition">
+        className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium transition" rel="noreferrer">
         {t("community_support")}{" "}
         <Icon
           name="external-link"
