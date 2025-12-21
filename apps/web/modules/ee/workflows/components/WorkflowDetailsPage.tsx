@@ -3,13 +3,11 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
-import { useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import { useAgentsData } from "@calcom/features/ee/workflows/hooks/useAgentsData";
 import {
   isCalAIAction,
   isSMSAction,
   isFormTrigger,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
@@ -26,6 +24,8 @@ import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+
+import { useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
@@ -121,7 +121,6 @@ export default function WorkflowDetailsPage(props: Props) {
       setSelectedOptions(newOptions);
       form.setValue("activeOn", newOptions);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeId]);
 
   const addAction = (
