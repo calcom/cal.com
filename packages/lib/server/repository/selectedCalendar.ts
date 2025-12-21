@@ -158,6 +158,7 @@ export class SelectedCalendarRepository {
                 features: {
                   some: {
                     featureId: "calendar-cache",
+                    enabled: true,
                   },
                 },
               },
@@ -238,6 +239,7 @@ export class SelectedCalendarRepository {
                   features: {
                     none: {
                       featureId: "calendar-cache",
+                      enabled: true,
                     },
                   },
                 },

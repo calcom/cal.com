@@ -107,6 +107,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
             defaultValue=""
             rules={{
               required: t("must_enter_team_name"),
+              validate: (value) => value.trim().length > 0 || t("must_enter_team_name")
             }}
             render={({ field: { value } }) => (
               <>

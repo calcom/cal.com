@@ -4,7 +4,6 @@ import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
- 
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
@@ -213,7 +212,7 @@ export async function setupManagedEvent({
     addManagedEventToTeamMates: true,
     managedEventUnlockedFields: unlockedFields,
   });
-   
+
   const memberUser = users.get().find((u) => u.name === teamMateName)!;
   const { team } = await adminUser.getFirstTeamMembership();
   const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
@@ -371,7 +370,7 @@ async function createUserWithSeatedEvent(users: Fixtures["users"]) {
       },
     ],
   });
-   
+
   const eventType = user.eventTypes.find((e) => e.slug === slug)!;
   return { user, eventType };
 }
@@ -425,7 +424,9 @@ export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: strin
     page.on("requestfailed", onRequestFailed);
     try {
       await page.goto(url);
-    } catch (e) {}
+    } catch {
+      // do nothing
+    }
     page.off("requestfailed", onRequestFailed);
     resolve({ success: true, url: page.url() });
   });
@@ -594,4 +595,28 @@ export async function setupOrgMember(users: CreateUsersFixture) {
   await orgMember.apiLogin();
 
   return { orgMember, org, team, teamEvent, userEvent };
+}
+
+export async function cancelBookingFromBookingsList({
+  page,
+  nth,
+  reason,
+}: {
+  page: Page;
+  reason: string;
+  nth: number;
+}) {
+  await page.locator('[data-testid="booking-actions-dropdown"]').nth(nth).click();
+  const bookingUid = await page.locator('[data-testid="cancel"]').getAttribute("data-booking-uid");
+  // Click the cancel option in the dropdown
+  await page.locator('[data-testid="cancel"]').click();
+  await page.locator('[data-testid="cancel_reason"]').fill(reason);
+  await page.locator('[data-testid="confirm_cancel"]').click();
+  await expect(
+    page.locator('[data-testid="toast-success"]').filter({ hasText: "Booking Canceled" })
+  ).toBeVisible();
+
+  return {
+    bookingUid,
+  };
 }

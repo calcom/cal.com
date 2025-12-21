@@ -19,7 +19,7 @@ import { CallDetailsSheet } from "@calcom/features/ee/workflows/components/CallD
 import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/components/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
@@ -312,14 +312,12 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           </>
         }
         EmptyView={
-          <div className="px-6 py-8">
             <EmptyScreen
               Icon="phone"
               headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_call_history")}
               description={t("no_call_history_description")}
               className="mb-16"
             />
-          </div>
         }
       />
 
