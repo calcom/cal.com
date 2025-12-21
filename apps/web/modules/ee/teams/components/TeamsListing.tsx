@@ -12,8 +12,8 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import SkeletonLoaderTeamList from "@calcom/web/modules/teams/components/SkeletonloaderTeamList";
 
+import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
 import { UpgradeTip } from "~/shell/UpgradeTip";
 
 import TeamList from "./TeamList";

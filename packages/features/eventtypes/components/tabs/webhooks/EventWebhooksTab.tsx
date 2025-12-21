@@ -5,9 +5,6 @@ import { useFormContext } from "react-hook-form";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import { WebhookForm } from "@calcom/features/webhooks/components";
-import EventTypeWebhookListItem from "@calcom/features/webhooks/components/EventTypeWebhookListItem";
-import type { TWebhook, WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -19,6 +16,10 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
+
+import { WebhookForm } from "~/webhooks/components";
+import EventTypeWebhookListItem from "~/webhooks/components/EventTypeWebhookListItem";
+import type { TWebhook, WebhookFormSubmitData } from "~/webhooks/components/WebhookForm";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
@@ -149,7 +150,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       <div className="flex justify-between">
                         <div>
                           <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
-                          <p className="text-subtle max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
+                          <p className="text-subtle wrap-break-word max-w-[280px] text-sm sm:max-w-[500px]">
                             {t("add_webhook_description", { appName: APP_NAME })}
                           </p>
                         </div>

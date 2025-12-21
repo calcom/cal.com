@@ -8,9 +8,6 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetup, FormValues, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
-import { WebhookForm } from "@calcom/features/webhooks/components";
-import type { TWebhook, WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
-import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -26,6 +23,10 @@ import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { WebhookForm } from "~/webhooks/components";
+import type { TWebhook, WebhookFormSubmitData } from "~/webhooks/components/WebhookForm";
+import WebhookListItem from "~/webhooks/components/WebhookListItem";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;

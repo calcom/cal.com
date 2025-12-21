@@ -8,9 +8,9 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import OrgAutoJoinSetting from "@calcom/features/ee/organizations/pages/components/OrgAutoJoinSetting";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import MakeTeamPrivateSwitch from "@calcom/web/modules/teams/components/MakeTeamPrivateSwitch";
 
 import { BlocklistTable } from "~/ee/organizations/privacy/blocklist-table";
+import MakeTeamPrivateSwitch from "~/ee/teams/components/MakeTeamPrivateSwitch";
 
 const PrivacyView = ({
   permissions,

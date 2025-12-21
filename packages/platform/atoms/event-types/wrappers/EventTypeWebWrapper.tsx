@@ -77,7 +77,7 @@ const EventAdvancedTab = dynamic(() =>
 );
 
 const EventInstantTab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/instant/EventInstantTab").then(
+  import("@calcom/web/modules/event-types/components/tabs/instant/EventInstantTab").then(
     (mod) => mod.EventInstantTab
   )
 );

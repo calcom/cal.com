@@ -3,7 +3,8 @@ import cn from "@calcom/ui/classNames";
 import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
-import { CreateButtonWithTeamsList } from "@calcom/web/modules/teams/components/createButton/CreateButtonWithTeamsList";
+
+import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
 
 import { WorkflowCreationDialog, useWorkflowCreation } from "./WorkflowCreationDialog";
 

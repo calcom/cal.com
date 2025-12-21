@@ -18,7 +18,6 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import Shell, { ShellMain } from "@calcom/web/modules/shell/Shell";
-import { CreateButtonWithTeamsList } from "@calcom/web/modules/teams/components/createButton/CreateButtonWithTeamsList";
 import EmptyScreen from "@calcom/web/modules/workflows/components/EmptyScreen";
 import SkeletonLoader from "@calcom/web/modules/workflows/components/SkeletonLoaderList";
 import {
@@ -26,6 +25,8 @@ import {
   useWorkflowCreation,
 } from "@calcom/web/modules/workflows/components/WorkflowCreationDialog";
 import WorkflowList from "@calcom/web/modules/workflows/components/WorkflowListPage";
+
+import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
 
 type PageProps = {
   filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;

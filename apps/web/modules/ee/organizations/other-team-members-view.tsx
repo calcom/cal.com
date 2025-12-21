@@ -16,8 +16,9 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-import MakeTeamPrivateSwitch from "@calcom/web/modules/teams/components/MakeTeamPrivateSwitch";
-import MemberInvitationModal from "@calcom/web/modules/teams/components/MemberInvitationModal";
+
+import MakeTeamPrivateSwitch from "~/ee/teams/components/MakeTeamPrivateSwitch";
+import MemberInvitationModal from "~/ee/teams/components/MemberInvitationModal";
 
 type Members = RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"];
 type Team = RouterOutputs["viewer"]["organizations"]["getOtherTeam"];
