@@ -38,7 +38,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
-import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
+import type { BookingRedirectForm } from "./types";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
