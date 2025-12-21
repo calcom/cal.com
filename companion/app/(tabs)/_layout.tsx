@@ -20,7 +20,7 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="bookings">
+      <NativeTabs.Trigger name="(bookings)">
         <NativeTabs.Trigger.Icon
           sf="calendar"
           src={<VectorIcon family={MaterialCommunityIcons} name="calendar" />}
@@ -76,7 +76,7 @@ function WebTabs() {
       />
 
       <Tabs.Screen
-        name="bookings"
+        name="(bookings)"
         options={{
           title: "Bookings",
           tabBarIcon: ({ color, focused }) => (
@@ -86,7 +86,7 @@ function WebTabs() {
       />
 
       <Tabs.Screen
-        name="availability"
+        name="(availability)"
         options={{
           title: "Availability",
           tabBarIcon: ({ color, focused }) => (
