@@ -3,8 +3,9 @@
  *
  * Helper functions for network-aware operations.
  */
-import NetInfo from "@react-native-community/netinfo";
+
 import { Alert } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
 
 /**
  * Check if the device is currently online

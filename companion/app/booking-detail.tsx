@@ -1,12 +1,3 @@
-import { BookingActionsModal } from "../components/BookingActionsModal";
-import { FullScreenModal } from "../components/FullScreenModal";
-import { SvgImage } from "../components/SvgImage";
-import { CalComAPIService, Booking } from "../services/calcom";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
-import { getDefaultLocationIconUrl, defaultLocations } from "../utils/defaultLocations";
-import { formatAppIdToDisplayName } from "../utils/formatters";
-import { getAppIconUrl } from "../utils/getAppIconUrl";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 import React, { useState, useEffect } from "react";
@@ -21,7 +12,16 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CalComAPIService, Booking } from "../services/calcom";
+import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
 import { shadows } from "../utils/shadows";
+import { SvgImage } from "../components/SvgImage";
+import { FullScreenModal } from "../components/FullScreenModal";
+import { BookingActionsModal } from "../components/BookingActionsModal";
+import { getAppIconUrl } from "../utils/getAppIconUrl";
+import { getDefaultLocationIconUrl, defaultLocations } from "../utils/defaultLocations";
+import { formatAppIdToDisplayName } from "../utils/formatters";
 
 // Format date: "Tuesday, November 25, 2025"
 const formatDateFull = (dateString: string): string => {
@@ -232,13 +232,8 @@ export default function BookingDetail() {
 
     // Pre-fill with the current booking date/time (using local timezone consistently)
     const currentDate = new Date(booking.startTime);
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(currentDate.getDate()).padStart(2, "0")}`;
-    const timeStr = `${String(currentDate.getHours()).padStart(2, "0")}:${String(
-      currentDate.getMinutes()
-    ).padStart(2, "0")}`;
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`;
+    const timeStr = `${String(currentDate.getHours()).padStart(2, "0")}:${String(currentDate.getMinutes()).padStart(2, "0")}`;
 
     setRescheduleDate(dateStr);
     setRescheduleTime(timeStr);
@@ -668,9 +663,7 @@ export default function BookingDetail() {
                   <Text className="text-base font-medium text-[#374151]">Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${
-                    rescheduling ? "opacity-60" : ""
-                  }`}
+                  className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${rescheduling ? "opacity-60" : ""}`}
                   onPress={handleReschedule}
                   disabled={rescheduling}
                 >

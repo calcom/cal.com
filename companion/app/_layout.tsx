@@ -1,10 +1,10 @@
-import LoginScreen from "../components/LoginScreen";
-import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
-import { AuthProvider, useAuth } from "../contexts/AuthContext";
-import { QueryProvider } from "../contexts/QueryContext";
-import "../global.css";
 import { Stack } from "expo-router";
 import { Platform, View, StatusBar } from "react-native";
+import { AuthProvider, useAuth } from "../contexts/AuthContext";
+import { QueryProvider } from "../contexts/QueryContext";
+import { NetworkStatusBanner } from "../components/NetworkStatusBanner";
+import LoginScreen from "../components/LoginScreen";
+import "../global.css";
 
 function RootLayoutContent() {
   const { isAuthenticated } = useAuth();

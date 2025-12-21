@@ -1,17 +1,3 @@
-import { EmptyScreen } from "../../../components/EmptyScreen";
-import { FullScreenModal } from "../../../components/FullScreenModal";
-import { Header } from "../../../components/Header";
-import { LoadingSpinner } from "../../../components/LoadingSpinner";
-import {
-  useSchedules,
-  useCreateSchedule,
-  useDeleteSchedule,
-  useDuplicateSchedule,
-  useSetScheduleAsDefault,
-} from "../../../hooks";
-import { CalComAPIService, Schedule } from "../../../services/calcom";
-import { showErrorAlert } from "../../../utils/alerts";
-import { offlineAwareRefresh } from "../../../utils/network";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState, useMemo, Activity } from "react";
@@ -27,7 +13,22 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
+
+import { CalComAPIService, Schedule } from "../../../services/calcom";
+import { Header } from "../../../components/Header";
+import { FullScreenModal } from "../../../components/FullScreenModal";
+import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { EmptyScreen } from "../../../components/EmptyScreen";
+import { showErrorAlert } from "../../../utils/alerts";
+import { offlineAwareRefresh } from "../../../utils/network";
 import { shadows } from "../../../utils/shadows";
+import {
+  useSchedules,
+  useCreateSchedule,
+  useDeleteSchedule,
+  useDuplicateSchedule,
+  useSetScheduleAsDefault,
+} from "../../../hooks";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { AvailabilityListItem } from "../../../components/availability-list-item/AvailabilityListItem";
 
@@ -471,9 +472,7 @@ export default function Availability() {
                   <Text className="text-base font-medium text-[#374151]">Close</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${
-                    creating ? "opacity-60" : ""
-                  }`}
+                  className={`rounded-xl bg-[#111827] px-2 py-2 md:px-4 ${creating ? "opacity-60" : ""}`}
                   onPress={handleCreateSchedule}
                   disabled={creating}
                 >
@@ -618,9 +617,7 @@ export default function Availability() {
                 <Text className="text-center text-base font-semibold text-gray-700">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`flex-1 rounded-lg bg-gray-900 px-4 py-3 ${
-                  deleting ? "opacity-50" : ""
-                }`}
+                className={`flex-1 rounded-lg bg-gray-900 px-4 py-3 ${deleting ? "opacity-50" : ""}`}
                 onPress={confirmDelete}
                 disabled={deleting}
               >

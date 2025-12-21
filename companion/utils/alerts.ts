@@ -4,6 +4,7 @@
  * Helper functions for showing alerts with environment-aware behavior.
  * Error alerts are only shown in development mode to avoid confusing users in production.
  */
+
 import { Alert } from "react-native";
 
 /**

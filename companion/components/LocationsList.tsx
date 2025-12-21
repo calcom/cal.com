@@ -2,15 +2,7 @@
  * LocationsList Component
  * Reusable component for displaying and managing multiple event type locations
  */
-import { LocationItem, LocationOptionGroup } from "../types/locations";
-import {
-  locationRequiresInput,
-  getLocationInputPlaceholder,
-  getLocationInputLabel,
-  createLocationItemFromOption,
-} from "../utils/locationHelpers";
-import { SvgImage } from "./SvgImage";
-import { Ionicons } from "@expo/vector-icons";
+
 import React, { useState } from "react";
 import {
   View,
@@ -22,6 +14,16 @@ import {
   Platform,
   ActionSheetIOS,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
+import { SvgImage } from "./SvgImage";
+import { LocationItem, LocationOptionGroup } from "../types/locations";
+import {
+  locationRequiresInput,
+  getLocationInputPlaceholder,
+  getLocationInputLabel,
+  createLocationItemFromOption,
+} from "../utils/locationHelpers";
 
 interface LocationsListProps {
   /** Array of current locations */

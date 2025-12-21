@@ -2,6 +2,14 @@
  * Helper functions for handling event type locations
  * Provides utilities for converting between API format and UI format
  */
+
+import { getAppIconUrl } from "./getAppIconUrl";
+import {
+  defaultLocations,
+  getDefaultLocationIconUrl,
+  DefaultLocationType,
+} from "./defaultLocations";
+import { formatAppIdToDisplayName } from "./formatters";
 import {
   LocationItem,
   ApiLocation,
@@ -9,13 +17,6 @@ import {
   LocationOption,
   LocationOptionGroup,
 } from "../types/locations";
-import {
-  defaultLocations,
-  getDefaultLocationIconUrl,
-  DefaultLocationType,
-} from "./defaultLocations";
-import { formatAppIdToDisplayName } from "./formatters";
-import { getAppIconUrl } from "./getAppIconUrl";
 
 // Re-export formatAppIdToDisplayName for backward compatibility
 export { formatAppIdToDisplayName } from "./formatters";

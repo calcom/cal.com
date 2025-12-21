@@ -1,13 +1,13 @@
-import { Tooltip } from "../../components/Tooltip";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
-import { EventTypeListItemProps } from "./types";
-import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
-import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import React from "react";
 import { View, Text, Pressable } from "react-native";
+import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
+
+import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
+import { EventTypeListItemProps } from "./types";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { getEventDuration } from "../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
 
 export const EventTypeListItem = ({
   item,

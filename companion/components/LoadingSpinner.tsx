@@ -1,12 +1,6 @@
-/**
- * LoadingSpinner Component
- *
- * A stylish loading spinner with iOS glass effect support when available.
- * Falls back to a nice styled container on other platforms.
- */
-import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import React from "react";
 import { View, ActivityIndicator, Platform, StyleSheet } from "react-native";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 
 interface LoadingSpinnerProps {
   size?: "small" | "large";

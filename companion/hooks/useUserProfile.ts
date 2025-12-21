@@ -6,9 +6,10 @@
  * - Automatic caching with configurable stale times
  * - Profile update mutations with cache invalidation
  */
-import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
-import { CalComAPIService, UserProfile } from "../services/calcom";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CalComAPIService, UserProfile } from "../services/calcom";
+import { CACHE_CONFIG, queryKeys } from "../config/cache.config";
 
 /**
  * User profile update input type

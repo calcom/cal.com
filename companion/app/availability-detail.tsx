@@ -1,7 +1,3 @@
-import { FullScreenModal } from "../components/FullScreenModal";
-import { CalComAPIService, Schedule } from "../services/calcom";
-import { ScheduleAvailability } from "../services/types";
-import { showErrorAlert } from "../utils/alerts";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
@@ -17,6 +13,11 @@ import {
   Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { CalComAPIService, Schedule } from "../services/calcom";
+import { ScheduleAvailability } from "../services/types";
+import { FullScreenModal } from "../components/FullScreenModal";
+import { showErrorAlert } from "../utils/alerts";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -477,9 +478,7 @@ export default function AvailabilityDetail() {
           ),
           headerRight: () => (
             <TouchableOpacity
-              className={`mr-4 min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
-                saving ? "opacity-60" : ""
-              }`}
+              className={`mr-4 min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${saving ? "opacity-60" : ""}`}
               onPress={handleSave}
               disabled={saving}
             >
@@ -521,9 +520,7 @@ export default function AvailabilityDetail() {
                 return (
                   <View
                     key={dayIndex}
-                    className={`mb-3 border-b border-[#E5E5EA] pb-3 ${
-                      dayIndex === DAYS.length - 1 ? "mb-0 border-b-0 pb-0" : ""
-                    }`}
+                    className={`mb-3 border-b border-[#E5E5EA] pb-3 ${dayIndex === DAYS.length - 1 ? "mb-0 border-b-0 pb-0" : ""}`}
                   >
                     <View className="flex-row items-center">
                       <View className="flex-1 flex-row items-center">
@@ -829,9 +826,7 @@ export default function AvailabilityDetail() {
                     className={`border-b border-[#E5E5EA] py-3 ${isSelected ? "bg-[#E3F2FD]" : ""}`}
                   >
                     <Text
-                      className={`text-base ${
-                        isSelected ? "font-semibold text-[#007AFF]" : "text-[#333]"
-                      }`}
+                      className={`text-base ${isSelected ? "font-semibold text-[#007AFF]" : "text-[#333]"}`}
                     >
                       {time}
                     </Text>
@@ -984,9 +979,7 @@ export default function AvailabilityDetail() {
                     className={`border-b border-[#E5E5EA] py-3 ${isSelected ? "bg-[#F0F9FF]" : ""}`}
                   >
                     <Text
-                      className={`text-base ${
-                        isSelected ? "font-semibold text-[#007AFF]" : "text-[#333]"
-                      }`}
+                      className={`text-base ${isSelected ? "font-semibold text-[#007AFF]" : "text-[#333]"}`}
                     >
                       {formatTime12Hour(time + ":00")}
                     </Text>

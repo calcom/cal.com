@@ -1,24 +1,4 @@
-import { EmptyScreen } from "../../../components/EmptyScreen";
-import { FullScreenModal } from "../../../components/FullScreenModal";
-import { Header } from "../../../components/Header";
-import { LoadingSpinner } from "../../../components/LoadingSpinner";
-import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
-import {
-  useEventTypes,
-  useCreateEventType,
-  useDeleteEventType,
-  useDuplicateEventType,
-  useUsername,
-} from "../../../hooks";
-import { CalComAPIService, EventType } from "../../../services/calcom";
-import { showErrorAlert } from "../../../utils/alerts";
-import { openInAppBrowser } from "../../../utils/browser";
-import { getEventDuration } from "../../../utils/getEventDuration";
-import { offlineAwareRefresh } from "../../../utils/network";
-import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
-import { slugify } from "../../../utils/slugify";
 import { Ionicons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
 import { Stack, useRouter } from "expo-router";
 import React, { useState, useMemo, Activity } from "react";
 import {
@@ -33,8 +13,29 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
+import * as Clipboard from "expo-clipboard";
+
+import { CalComAPIService, EventType } from "../../../services/calcom";
+import { Header } from "../../../components/Header";
+import { FullScreenModal } from "../../../components/FullScreenModal";
+import { LoadingSpinner } from "../../../components/LoadingSpinner";
+import { EmptyScreen } from "../../../components/EmptyScreen";
+import { slugify } from "../../../utils/slugify";
+import { showErrorAlert } from "../../../utils/alerts";
 import { shadows } from "../../../utils/shadows";
+import { EventTypeListItem } from "../../../components/event-type-list-item/EventTypeListItem";
+import { offlineAwareRefresh } from "../../../utils/network";
+import { openInAppBrowser } from "../../../utils/browser";
+import {
+  useEventTypes,
+  useCreateEventType,
+  useDeleteEventType,
+  useDuplicateEventType,
+  useUsername,
+} from "../../../hooks";
+import { getEventDuration } from "../../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../../utils/normalizeMarkdown";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 
 export default function EventTypes() {
   const router = useRouter();

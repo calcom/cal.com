@@ -23,9 +23,7 @@ export function EmptyScreen({
 }: EmptyScreenProps) {
   return (
     <View
-      className={`flex w-full select-none flex-col items-center justify-center rounded-lg border border-gray-300 bg-white p-7 ${
-        className || ""
-      }`}
+      className={`flex w-full select-none flex-col items-center justify-center rounded-lg border border-gray-300 bg-white p-7 ${className || ""}`}
     >
       <View className="h-[72px] w-[72px] items-center justify-center rounded-full border border-gray-300 bg-gray-100">
         <Ionicons name={icon} size={40} color="#374151" />

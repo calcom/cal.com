@@ -4,11 +4,13 @@
  * A reusable modal component for booking actions that can be used in both
  * the bookings list screen and the booking detail screen.
  */
-import type { Booking } from "../services/calcom";
-import { FullScreenModal } from "./FullScreenModal";
+
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
+
+import { FullScreenModal } from "./FullScreenModal";
+import type { Booking } from "../services/calcom";
 
 export interface BookingActionsModalProps {
   visible: boolean;
@@ -102,9 +104,7 @@ export function BookingActionsModal({
                 color={editEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
               />
               <Text
-                className={`ml-3 ${TEXT_CLASS} ${
-                  editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS
-                }`}
+                className={`ml-3 ${TEXT_CLASS} ${editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
               >
                 Reschedule Booking
               </Text>
@@ -126,9 +126,7 @@ export function BookingActionsModal({
                 color={editEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
               />
               <Text
-                className={`ml-3 ${TEXT_CLASS} ${
-                  editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS
-                }`}
+                className={`ml-3 ${TEXT_CLASS} ${editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
               >
                 Edit Location
               </Text>
@@ -150,9 +148,7 @@ export function BookingActionsModal({
                 color={editEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
               />
               <Text
-                className={`ml-3 ${TEXT_CLASS} ${
-                  editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS
-                }`}
+                className={`ml-3 ${TEXT_CLASS} ${editEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
               >
                 Add Guests
               </Text>
@@ -183,9 +179,7 @@ export function BookingActionsModal({
                   color={afterEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
                 />
                 <Text
-                  className={`ml-3 ${TEXT_CLASS} ${
-                    afterEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS
-                  }`}
+                  className={`ml-3 ${TEXT_CLASS} ${afterEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
                 >
                   View Recordings
                 </Text>
@@ -209,9 +203,7 @@ export function BookingActionsModal({
                   color={afterEventActionsDisabled ? DISABLED_ICON_COLOR : ICON_COLOR}
                 />
                 <Text
-                  className={`ml-3 ${TEXT_CLASS} ${
-                    afterEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS
-                  }`}
+                  className={`ml-3 ${TEXT_CLASS} ${afterEventActionsDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
                 >
                   Meeting Session Details
                 </Text>
@@ -234,9 +226,7 @@ export function BookingActionsModal({
                 color={isUpcoming || isUnconfirmed ? DISABLED_ICON_COLOR : ICON_COLOR}
               />
               <Text
-                className={`ml-3 ${TEXT_CLASS} ${
-                  isUpcoming || isUnconfirmed ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS
-                }`}
+                className={`ml-3 ${TEXT_CLASS} ${isUpcoming || isUnconfirmed ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_CLASS}`}
               >
                 Mark as No-Show
               </Text>
@@ -278,9 +268,7 @@ export function BookingActionsModal({
                 color={cancelBookingDisabled ? DISABLED_ICON_COLOR : ICON_COLOR_DANGER}
               />
               <Text
-                className={`ml-3 ${TEXT_CLASS} ${
-                  cancelBookingDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_DANGER_CLASS
-                }`}
+                className={`ml-3 ${TEXT_CLASS} ${cancelBookingDisabled ? DISABLED_TEXT_COLOR_CLASS : TEXT_COLOR_DANGER_CLASS}`}
               >
                 Cancel Event
               </Text>

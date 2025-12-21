@@ -7,12 +7,13 @@
  * - Environment-based cache duration settings
  * - Cross-platform compatibility (mobile + extension)
  */
-import { CACHE_CONFIG } from "../config/cache.config";
-import { createQueryPersister, clearQueryCache } from "../utils/queryPersister";
-import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+
 import React, { ReactNode, useState, useEffect, useCallback, useMemo } from "react";
 import { Platform } from "react-native";
+import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { CACHE_CONFIG } from "../config/cache.config";
+import { createQueryPersister, clearQueryCache } from "../utils/queryPersister";
 
 /**
  * Create and configure the QueryClient instance

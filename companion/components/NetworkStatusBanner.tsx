@@ -6,10 +6,11 @@
  * - Auto-dismisses when internet comes back
  * - Shows again on next disconnect
  */
-import { Ionicons } from "@expo/vector-icons";
-import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
+
 import React, { useEffect, useState, useRef } from "react";
 import { View, Text, TouchableOpacity, Modal, Animated } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 
 export function NetworkStatusBanner() {
   const [showModal, setShowModal] = useState(false);

@@ -11,9 +11,10 @@
  *
  * This is the single source of truth for storage operations across the app.
  */
+
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
 
 /**
  * Check if chrome.storage is available (browser extension context)

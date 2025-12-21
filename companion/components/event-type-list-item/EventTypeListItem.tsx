@@ -1,11 +1,12 @@
-import { Tooltip } from "../../components/Tooltip";
-import { getEventDuration } from "../../utils/getEventDuration";
-import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
-import { EventTypeListItemProps } from "./types";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import Svg, { Path } from "react-native-svg";
+
+import { Tooltip } from "../../components/Tooltip";
+import { EventTypeListItemProps } from "./types";
+import { getEventDuration } from "../../utils/getEventDuration";
+import { normalizeMarkdown } from "../../utils/normalizeMarkdown";
 
 export const EventTypeListItem = ({
   item,
