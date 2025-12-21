@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { OutOfOfficeTab } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -21,7 +21,7 @@ import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
+import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };

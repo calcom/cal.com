@@ -5,6 +5,8 @@ import type { MultiValue } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import Locations from "@calcom/features/eventtypes/components/locations/Locations";
+import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type {
   EventTypeSetupProps,
   InputClassNames,
@@ -25,9 +27,6 @@ import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
-
-import Locations from "../../locations/Locations";
-import type { LocationCustomClassNames } from "../../locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -169,7 +168,7 @@ export const EventSetupTab = (
             className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
-                <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                <span className="max-w-24 md:max-w-56 inline-block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                   {urlPrefix}/
                   {!isManagedEventType
                     ? team
@@ -212,7 +211,7 @@ export const EventSetupTab = (
                   isSearchable={false}
                   isDisabled={lengthLockedProps.disabled}
                   className={classNames(
-                    "h-auto min-h-[36px]! text-sm",
+                    "min-h-[36px]! h-auto text-sm",
                     customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.select
                   )}
                   innerClassNames={

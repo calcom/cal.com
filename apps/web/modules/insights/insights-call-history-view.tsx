@@ -22,7 +22,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { CallDetailsSheet } from "@calcom/web/modules/workflows/components/CallDetailsSheet";
+import { CallDetailsSheet } from "@calcom/web/modules/ee/workflows/components/CallDetailsSheet";
 
 type CallHistoryRow = {
   id: string;
