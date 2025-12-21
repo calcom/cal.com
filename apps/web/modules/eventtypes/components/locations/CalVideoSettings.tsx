@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import LocationSettingsContainer from "@calcom/features/eventtypes/components/locations/LocationSettingsContainer";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { CalVideoSettings as CalVideoSettingsType } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,6 +15,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
 import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
+import LocationSettingsContainer from "~/event-types/components/locations/LocationSettingsContainer";
 
 const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSettingsType }) => {
   const { t } = useLocale();

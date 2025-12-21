@@ -5,7 +5,6 @@ import type { MultiValue } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import Locations from "@calcom/features/eventtypes/components/locations/Locations";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type {
   EventTypeSetupProps,
@@ -27,6 +26,8 @@ import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+
+import Locations from "~/event-types/components/locations/Locations";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;

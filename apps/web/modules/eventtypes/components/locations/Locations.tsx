@@ -8,6 +8,7 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
@@ -23,7 +24,6 @@ import { showToast } from "@calcom/ui/components/toast";
 import CalVideoSettings from "./CalVideoSettings";
 import DefaultLocationSettings from "./DefaultLocationSettings";
 import LocationInput from "./LocationInput";
-import type { LocationCustomClassNames } from "./types";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
@@ -264,7 +264,7 @@ const Locations: React.FC<LocationsProps> = ({
                   customClassNames={customClassNames}
                 />
               ) : eventLocationType?.organizerInputType ? (
-                <div className="mt-2 stack-y-2">
+                <div className="stack-y-2 mt-2">
                   <div className="w-full">
                     <div className="flex gap-2">
                       <div className="flex items-center justify-center">
