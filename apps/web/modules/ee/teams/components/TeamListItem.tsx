@@ -29,7 +29,7 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-import { MemberInvitationModalWithoutMembers } from "@calcom/web/modules/teams/components/MemberInvitationModal";
+import { MemberInvitationModalWithoutMembers } from "@calcom/web/modules/ee/teams/components/MemberInvitationModal";
 
 import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import { TeamRole } from "./TeamPill";

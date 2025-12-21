@@ -6,7 +6,7 @@ import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import usePlatformMe from "@calcom/web/components/settings/platform/hooks/usePlatformMe";
-import MemberInvitationModal from "@calcom/web/modules/teams/components/MemberInvitationModal";
+import MemberInvitationModal from "@calcom/web/modules/ee/teams/components/MemberInvitationModal";
 
 import type { UserTableAction } from "./types";
 

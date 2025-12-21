@@ -22,7 +22,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { MemberInvitationModalWithoutMembers } from "@calcom/web/modules/teams/components/MemberInvitationModal";
+import { MemberInvitationModalWithoutMembers } from "@calcom/web/modules/ee/teams/components/MemberInvitationModal";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
