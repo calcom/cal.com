@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { DataTableWrapper, useDataTable } from "@calcom/features/data-table";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, Dialog, DialogClose } from "@calcom/ui/components/dialog";
