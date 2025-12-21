@@ -96,6 +96,12 @@ const STYLES = `
     vertical-align: middle;
   }
 
+  [data-cal-noshow-marked="true"] .SDqFWd span,
+  [data-cal-noshow-marked="true"] .SDqFWd {
+    text-decoration: line-through;
+    color: #5f6368;
+  }
+
 
   .cal-noshow-spinner {
     width: 10px;
@@ -239,6 +245,15 @@ const STYLES = `
     }
   }
 `;
+
+function setAttendeeMarkedVisual(attendeeElement: Element | null, marked: boolean): void {
+  if (!attendeeElement) return;
+  if (marked) {
+    attendeeElement.setAttribute("data-cal-noshow-marked", "true");
+  } else {
+    attendeeElement.removeAttribute("data-cal-noshow-marked");
+  }
+}
 
 // Inject styles into the page
 function injectStyles(): void {
@@ -777,6 +792,11 @@ async function handleMarkNoShow(
               buttonToUpdate.setAttribute("aria-label", "Unmark no-show");
             }
             container.dataset.marked = "true";
+            setAttendeeMarkedVisual(
+              container.closest('[role="treeitem"][data-email]') ??
+                container.closest("[data-email]"),
+              true
+            );
             showAlert("Marked as no-show", "success");
           } else {
             // Unmark no-show
@@ -786,6 +806,11 @@ async function handleMarkNoShow(
               buttonToUpdate.setAttribute("aria-label", "Mark as no-show");
             }
             container.dataset.marked = "false";
+            setAttendeeMarkedVisual(
+              container.closest('[role="treeitem"][data-email]') ??
+                container.closest("[data-email]"),
+              false
+            );
             showAlert("No-show status removed", "success");
           }
         } else {
@@ -1032,6 +1057,12 @@ async function injectNoShowButtons(eventPopup: Element): Promise<void> {
           btn.setAttribute("aria-label", "Mark as no-show");
         }
       }
+      setAttendeeMarkedVisual(
+        existingContainer.closest('[role="treeitem"][data-email]') ??
+          existingContainer.closest("[data-email]") ??
+          attendee.element,
+        shouldBeMarked
+      );
       existingContainer.dataset.marked = shouldBeMarked ? "true" : "false";
     });
   }
@@ -1140,6 +1171,8 @@ async function injectNoShowButtons(eventPopup: Element): Promise<void> {
         }
       }
     }
+
+    setAttendeeMarkedVisual(attendee.element, isMarked);
   });
 }
 
