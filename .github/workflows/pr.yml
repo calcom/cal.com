@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  changes:
-    name: Detect changes
+  prepare:
+    name: Prepare
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
       pull-requests: read
@@ -26,6 +26,7 @@ jobs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
       has_companion: ${{ steps.filter.outputs.has_companion }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
+      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
@@ -49,16 +50,6 @@ jobs:
         id: get_sha
         run: |
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
-  check-label:
-    needs: [changes]
-    runs-on: buildjet-2vcpu-ubuntu-2204
-    name: Check for E2E label
-    permissions:
-      pull-requests: read
-    outputs:
-      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
-    steps:
       - name: Check if PR exists with ready-for-e2e label for this SHA
         id: check-if-pr-has-label
         uses: actions/github-script@v7
@@ -70,7 +61,7 @@ jobs:
               labels = context.payload.pull_request.labels;
             } else {
               try {
-                const sha = '${{ needs.changes.outputs.commit-sha }}';
+                const sha = '${{ steps.get_sha.outputs.commit-sha }}';
                 console.log('sha', sha);
                 const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
                   owner: context.repo.owner,
@@ -104,112 +95,112 @@ jobs:
 
   deps:
     name: Install dependencies
-    needs: [changes, check-label]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/yarn-install.yml
 
   type-check:
     name: Type check
-    needs: [changes, check-label, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: [changes, check-label, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
-    needs: [changes, check-label, deps]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   build-api-v1:
     name: Production builds
-    needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
-    needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
-    needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build-docs:
     name: Production builds
-    needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
 
   build-companion:
     name: Companion builds
-    needs: [changes, check-label]
-    if: needs.changes.outputs.has_companion == 'true'
+    needs: [prepare]
+    if: needs.prepare.outputs.has_companion == 'true'
     uses: ./.github/workflows/companion-build.yml
     secrets: inherit
 
   build:
     name: Production builds
-    needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, deps]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
   integration-test:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, build, build-api-v1, build-api-v2]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   e2e:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, build, build-api-v1, build-api-v2]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-api-v2:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, build, build-api-v1, build-api-v2]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, build, build-api-v1, build-api-v2]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, build, build-api-v1, build-api-v2]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, build, build-api-v1, build-api-v2]
+    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
@@ -221,42 +212,41 @@ jobs:
 
   merge-reports:
     name: Merge reports
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [prepare, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
   publish-report:
     name: Publish HTML report
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     permissions:
       contents: write
       issues: write
       pull-requests: write
-    needs: [changes, check-label, merge-reports]
+    needs: [prepare, merge-reports]
     uses: ./.github/workflows/publish-report.yml
     secrets: inherit
 
   cleanup-report:
     name: Cleanup HTML report
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && (github.event.pull_request.merged == true || github.event.pull_request.state == 'closed') }}
+    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && (github.event.pull_request.merged == true || github.event.pull_request.state == 'closed') }}
     permissions:
       contents: write
       issues: write
       pull-requests: write
-    needs: [changes, check-label, publish-report]
+    needs: [prepare, publish-report]
     uses: ./.github/workflows/cleanup-report.yml
     secrets: inherit
 
   required:
     needs:
       [
-        changes,
+        prepare,
         lint,
         type-check,
         unit-test,
         integration-test,
-        check-label,
         build,
         build-api-v1,
         build-api-v2,
@@ -276,7 +266,7 @@ jobs:
         run: exit 1
         if: |
           (
-            needs.changes.outputs.has-files-requiring-all-checks == 'true' &&
+            needs.prepare.outputs.has-files-requiring-all-checks == 'true' &&
             (
               needs.lint.result != 'success' ||
               needs.type-check.result != 'success' ||
@@ -295,6 +285,6 @@ jobs:
             )
           ) ||
           (
-            needs.changes.outputs.has_companion == 'true' &&
+            needs.prepare.outputs.has_companion == 'true' &&
             needs.build-companion.result != 'success'
           )
