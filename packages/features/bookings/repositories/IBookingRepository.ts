@@ -13,7 +13,7 @@ import type {
   BookingUpdateResultDto,
   BookingBatchUpdateResultDto,
   UpdateLocationInput,
-} from "@calcom/lib/dto";
+} from "@calcom/lib/dto/BookingDto";
 
 // ============================================================================
 // Repository Interface
