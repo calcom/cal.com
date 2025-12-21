@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} (de) locuri",
   "team_is_unpublished": "Echipa {{team}} nu este publicată",
   "team_is_unpublished_description": "Acest link de {{entity}} nu este disponibil momentan. Contactați proprietarul {{entity}} sau rugați-l să îl publice.",
-  "org_is_unpublished_description": "Acest link de organizație nu este disponibil momentan. Contactați proprietarul organizației sau rugați-l să îl publice."
+  "org_is_unpublished_description": "Acest link de organizație nu este disponibil momentan. Contactați proprietarul organizației sau rugați-l să îl publice.",
+  "repeats_up_to_one": "Se repetă maximum {{count}} dată",
+  "repeats_up_to_other": "Se repetă de maximum {{count}} (de) ori"
 }

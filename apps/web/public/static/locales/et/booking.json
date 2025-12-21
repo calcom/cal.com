@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} kohta",
   "team_is_unpublished": "{{team}} on avaldamata",
   "team_is_unpublished_description": "See meeskonnalink pole praegu saadaval. Võtke ühendust meeskonna omanikuga või paluge tal see avaldada.",
-  "org_is_unpublished_description": "See organisatsiooni link pole praegu saadaval. Võtke ühendust organisatsiooni omanikuga või paluge tal see avaldada."
+  "org_is_unpublished_description": "See organisatsiooni link pole praegu saadaval. Võtke ühendust organisatsiooni omanikuga või paluge tal see avaldada.",
+  "repeats_up_to_one": "Kordub kuni {{count}} korda",
+  "repeats_up_to_other": "Kordub kuni {{count}} korda"
 }

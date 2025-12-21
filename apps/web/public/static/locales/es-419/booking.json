@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} asientos",
   "team_is_unpublished": "{{team}} no está publicado",
   "team_is_unpublished_description": "Este enlace del equipo no está disponible actualmente. Por favor, contacta al propietario del equipo o pídele que lo publique.",
-  "org_is_unpublished_description": "Este enlace de la organización no está disponible actualmente. Por favor, contacta al propietario de la organización o pídele que lo publique."
+  "org_is_unpublished_description": "Este enlace de la organización no está disponible actualmente. Por favor, contacta al propietario de la organización o pídele que lo publique.",
+  "repeats_up_to_one": "Se repite hasta {{count}} vez",
+  "repeats_up_to_other": "Se repite hasta {{count}} veces"
 }

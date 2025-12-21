@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} ülőhely",
   "team_is_unpublished": "{{team}} nincs közzétéve",
   "team_is_unpublished_description": "Ez a csapatlink jelenleg nem érhető el. Kérjük, lépjen kapcsolatba a csapat tulajdonosával, vagy kérje meg, hogy tegye közzé.",
-  "org_is_unpublished_description": "Ez a szervezeti link jelenleg nem érhető el. Kérjük, lépjen kapcsolatba a szervezet tulajdonosával, vagy kérje meg, hogy tegye közzé."
+  "org_is_unpublished_description": "Ez a szervezeti link jelenleg nem érhető el. Kérjük, lépjen kapcsolatba a szervezet tulajdonosával, vagy kérje meg, hogy tegye közzé.",
+  "repeats_up_to_one": "Legfeljebb {{count}} alkalommal ismétlődik",
+  "repeats_up_to_other": "Legfeljebb {{count}} alkalommal ismétlődik"
 }

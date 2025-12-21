@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} seter",
   "team_is_unpublished": "{{team}} er upublisert",
   "team_is_unpublished_description": "Denne teamlinken er for øyeblikket ikke tilgjengelig. Vennligst kontakt teameieren eller be dem publisere den.",
-  "org_is_unpublished_description": "Denne organisasjonslinken er for øyeblikket ikke tilgjengelig. Vennligst kontakt organisasjonseieren eller be dem publisere den."
+  "org_is_unpublished_description": "Denne organisasjonslinken er for øyeblikket ikke tilgjengelig. Vennligst kontakt organisasjonseieren eller be dem publisere den.",
+  "repeats_up_to_one": "Gjentas opptil {{count}} gang",
+  "repeats_up_to_other": "Gjentas opptil {{count}} ganger"
 }

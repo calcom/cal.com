@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} 席",
   "team_is_unpublished": "{{team}} は公開されていません",
   "team_is_unpublished_description": "この {{entity}} のリンクは現在利用できません。{{entity}} の所有者に問い合わせるか、リンクを公開するように依頼してください。",
-  "org_is_unpublished_description": "この組織のリンクは現在利用できません。組織の所有者に連絡するか、リンクを公開するよう依頼してください。"
+  "org_is_unpublished_description": "この組織のリンクは現在利用できません。組織の所有者に連絡するか、リンクを公開するよう依頼してください。",
+  "repeats_up_to_one": "最大で {{count}} 回繰り返す",
+  "repeats_up_to_other": "最大で {{count}} 回繰り返す"
 }

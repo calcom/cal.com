@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} pladser",
   "team_is_unpublished": "{{team}} er upubliceret",
   "team_is_unpublished_description": "Dette teamlink er i øjeblikket ikke tilgængeligt. Kontakt venligst teamindehaveren eller bed dem om at offentliggøre det.",
-  "org_is_unpublished_description": "Dette organisationslink er i øjeblikket ikke tilgængeligt. Kontakt venligst organisationsindehaveren eller bed dem om at offentliggøre det."
+  "org_is_unpublished_description": "Dette organisationslink er i øjeblikket ikke tilgængeligt. Kontakt venligst organisationsindehaveren eller bed dem om at offentliggøre det.",
+  "repeats_up_to_one": "Gentages op til {{count}} gang",
+  "repeats_up_to_other": "Gentages op til {{count}} gange"
 }

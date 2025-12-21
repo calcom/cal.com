@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} paikkaa",
   "team_is_unpublished": "{{team}} ei ole julkaistu",
   "team_is_unpublished_description": "Tämä tiimin linkki ei ole tällä hetkellä käytettävissä. Ota yhteyttä tiimin omistajaan tai pyydä heitä julkaisemaan se.",
-  "org_is_unpublished_description": "Tämä organisaation linkki ei ole tällä hetkellä käytettävissä. Ota yhteyttä organisaation omistajaan tai pyydä heitä julkaisemaan se."
+  "org_is_unpublished_description": "Tämä organisaation linkki ei ole tällä hetkellä käytettävissä. Ota yhteyttä organisaation omistajaan tai pyydä heitä julkaisemaan se.",
+  "repeats_up_to_one": "Toistuu enintään {{count}} kerran",
+  "repeats_up_to_other": "Toistuu enintään {{count}} kertaa"
 }

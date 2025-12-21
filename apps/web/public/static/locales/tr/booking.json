@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} yer",
   "team_is_unpublished": "{{team}} paylaşılmadı",
   "team_is_unpublished_description": "Bu {{entity}} bağlantısı şu anda kullanılamıyor. Lütfen {{entity}} sahibiyle iletişime geçin veya ondan bir bağlantı paylaşmasını isteyin.",
-  "org_is_unpublished_description": "Bu kuruluş bağlantısı şu anda kullanılamıyor. Lütfen kuruluş sahibiyle iletişime geçin veya ondan bir bağlantı paylaşmasını isteyin."
+  "org_is_unpublished_description": "Bu kuruluş bağlantısı şu anda kullanılamıyor. Lütfen kuruluş sahibiyle iletişime geçin veya ondan bir bağlantı paylaşmasını isteyin.",
+  "repeats_up_to_one": "{{count}} defaya kadar tekrar eder",
+  "repeats_up_to_other": "{{count}} defaya kadar tekrar eder"
 }

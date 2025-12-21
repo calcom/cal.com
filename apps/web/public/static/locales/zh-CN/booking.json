@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} 个位置",
   "team_is_unpublished": "{{team}} 已被取消发布",
   "team_is_unpublished_description": "该{{entity}}链接当前不可用。请联系{{entity}}所有者或请他们发布。",
-  "org_is_unpublished_description": "该组织链接当前不可用。请联系组织所有者或要求他们发布。"
+  "org_is_unpublished_description": "该组织链接当前不可用。请联系组织所有者或要求他们发布。",
+  "repeats_up_to_one": "最多重复 {{count}} 次",
+  "repeats_up_to_other": "最多重复 {{count}} 次"
 }

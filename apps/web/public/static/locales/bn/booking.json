@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} আসন",
   "team_is_unpublished": "{{team}} অপ্রকাশিত",
   "team_is_unpublished_description": "এই দলের লিঙ্কটি বর্তমানে উপলভ্য নয়। ",
-  "org_is_unpublished_description": "এই সংস্থার লিঙ্কটি বর্তমানে উপলভ্য নয়। "
+  "org_is_unpublished_description": "এই সংস্থার লিঙ্কটি বর্তমানে উপলভ্য নয়। ",
+  "repeats_up_to_one": "পুনরাবৃত্তি পর্যন্ত {{count}} সময়",
+  "repeats_up_to_other": "পুনরাবৃত্তি পর্যন্ত {{count}} সময়"
 }

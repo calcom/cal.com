@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} chỗ ngồi",
   "team_is_unpublished": "{{team}} chưa được công bố",
   "team_is_unpublished_description": "Liên kết {{entity}} này hiện không khả dụng. Hãy liên lạc với chủ {{entity}} hoặc yêu cầu họ công bố liên kết đó.",
-  "org_is_unpublished_description": "Liên kết tổ chức này hiện không khả dụng. Hãy liên lạc với chủ tổ chức hoặc yêu cầu họ công bố liên kết đó."
+  "org_is_unpublished_description": "Liên kết tổ chức này hiện không khả dụng. Hãy liên lạc với chủ tổ chức hoặc yêu cầu họ công bố liên kết đó.",
+  "repeats_up_to_one": "Lặp lại đến {{count}} lần",
+  "repeats_up_to_other": "Lặp lại đến {{count}} lần"
 }

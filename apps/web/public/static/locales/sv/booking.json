@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} platser",
   "team_is_unpublished": "{{team}} har avpublicerats",
   "team_is_unpublished_description": "Den här {{entity}}-länken är för närvarande inte tillgänglig. Kontakta ägaren till {{entity}} eller be vederbörande att publicera den.",
-  "org_is_unpublished_description": "Den här organisationslänken är för närvarande inte tillgänglig. Kontakta organisationens ägare eller be denne att publicera den."
+  "org_is_unpublished_description": "Den här organisationslänken är för närvarande inte tillgänglig. Kontakta organisationens ägare eller be denne att publicera den.",
+  "repeats_up_to_one": "Upprepas {{count}} gång",
+  "repeats_up_to_other": "Upprepas upp till {{count}} gånger"
 }

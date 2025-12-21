@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} מושבים",
   "team_is_unpublished": "צוות {{team}} אינו מפורסם",
   "team_is_unpublished_description": "קישור ה-{{entity}} הזה אינו זמין כעת. יש ליצור קשר עם הבעלים של ה-{{entity}} או לבקש מהם לפרסם אותו.",
-  "org_is_unpublished_description": "הקישור לארגון הזה אינו זמין כעת. יש ליצור קשר עם הבעלים של הארגון או לבקש מהם לפרסם אותו."
+  "org_is_unpublished_description": "הקישור לארגון הזה אינו זמין כעת. יש ליצור קשר עם הבעלים של הארגון או לבקש מהם לפרסם אותו.",
+  "repeats_up_to_one": "חזרה עד פעם {{count}}",
+  "repeats_up_to_other": "חזרה עד {{count}} פעמים"
 }

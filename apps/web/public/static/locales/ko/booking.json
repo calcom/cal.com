@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}}개 시트",
   "team_is_unpublished": "{{team}} 팀은 게시되지 않았습니다",
   "team_is_unpublished_description": "이 {{entity}} 링크는 현재 사용할 수 없습니다. {{entity}} 소유자에게 연락하거나 게시하라고 요청하십시오.",
-  "org_is_unpublished_description": "이 조직 링크는 현재 사용할 수 없습니다. 조직 소유자에게 문의하거나 게시해 달라고 요청하세요."
+  "org_is_unpublished_description": "이 조직 링크는 현재 사용할 수 없습니다. 조직 소유자에게 문의하거나 게시해 달라고 요청하세요.",
+  "repeats_up_to_one": "최대 {{count}}회까지 반복",
+  "repeats_up_to_other": "최대 {{count}}회까지 반복"
 }

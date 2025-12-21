@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} miest",
   "team_is_unpublished": "{{team}} nie je publikovaný",
   "team_is_unpublished_description": "Tento odkaz tímu momentálne nie je dostupný. Kontaktujte prosím vlastníka tímu alebo ho požiadajte o publikovanie.",
-  "org_is_unpublished_description": "Tento odkaz na organizáciu momentálne nie je dostupný. Kontaktujte prosím vlastníka organizácie alebo ho požiadajte o publikovanie."
+  "org_is_unpublished_description": "Tento odkaz na organizáciu momentálne nie je dostupný. Kontaktujte prosím vlastníka organizácie alebo ho požiadajte o publikovanie.",
+  "repeats_up_to_one": "Opakuje sa maximálne {{count}}-krát",
+  "repeats_up_to_other": "Opakuje sa maximálne {{count}}-krát"
 }

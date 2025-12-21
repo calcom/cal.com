@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} من المقاعد",
   "team_is_unpublished": "لم يُنشر {{team}}",
   "team_is_unpublished_description": "رابط هذا {{entity}} غير متاح حاليًا. يرجى الاتصال بمالك {{entity}} أو طلب نشره منه.",
-  "org_is_unpublished_description": "رابط هذه المنظمة غير متاح حاليًا. يرجى الاتصال بمالك المنظمة أو طلب النشر منه."
+  "org_is_unpublished_description": "رابط هذه المنظمة غير متاح حاليًا. يرجى الاتصال بمالك المنظمة أو طلب النشر منه.",
+  "repeats_up_to_one": "التكرار حتى {{count}} مرة",
+  "repeats_up_to_other": "التكرار حتى {{count}} مرة"
 }

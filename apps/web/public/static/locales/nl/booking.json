@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} plaatsen",
   "team_is_unpublished": "{{team}} is niet gepubliceerd",
   "team_is_unpublished_description": "Deze {{entity}}-link is momenteel niet beschikbaar. Neem contact op met de {{entity}}-eigenaar of vraag hem het te publiceren.",
-  "org_is_unpublished_description": "Deze organisatiekoppeling is momenteel niet beschikbaar. Neem contact op met de organisatie-eigenaar of vraag om het te publiceren."
+  "org_is_unpublished_description": "Deze organisatiekoppeling is momenteel niet beschikbaar. Neem contact op met de organisatie-eigenaar of vraag om het te publiceren.",
+  "repeats_up_to_one": "Wordt tot {{count}} keer herhaald",
+  "repeats_up_to_other": "Wordt tot {{count}} keer herhaald"
 }

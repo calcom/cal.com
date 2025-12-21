@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} eserleku",
   "team_is_unpublished": "{{team}} ez dago argitaratuta",
   "team_is_unpublished_description": "Talde honen esteka ez dago eskuragarri momentu honetan. Mesedez, jarri harremanetan taldearen jabearekin edo eskatu argitaratzeko.",
-  "org_is_unpublished_description": "Erakunde honen esteka ez dago eskuragarri momentu honetan. Mesedez, jarri harremanetan erakundearen jabearekin edo eskatu argitaratzeko."
+  "org_is_unpublished_description": "Erakunde honen esteka ez dago eskuragarri momentu honetan. Mesedez, jarri harremanetan erakundearen jabearekin edo eskatu argitaratzeko.",
+  "repeats_up_to_one": "{{count}} aldiz errepikatzen da gehienez",
+  "repeats_up_to_other": "{{count}} aldiz errepikatzen da"
 }

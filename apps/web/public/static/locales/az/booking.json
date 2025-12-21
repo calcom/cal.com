@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} oturacaq",
   "team_is_unpublished": "{{team}} yayımlanmayıb",
   "team_is_unpublished_description": "Bu komanda bağlantısı hazırda mövcud deyil. Zəhmət olmasa komanda sahibinə müraciət edin və ya onu yayımlamasını xahiş edin.",
-  "org_is_unpublished_description": "Bu təşkilat bağlantısı hazırda mövcud deyil. Zəhmət olmasa təşkilat sahibinə müraciət edin və ya onu yayımlamasını xahiş edin."
+  "org_is_unpublished_description": "Bu təşkilat bağlantısı hazırda mövcud deyil. Zəhmət olmasa təşkilat sahibinə müraciət edin və ya onu yayımlamasını xahiş edin.",
+  "repeats_up_to_one": "{{count}} dəfə təkrarlanır",
+  "repeats_up_to_other": "{{count}} dəfə təkrarlanır"
 }

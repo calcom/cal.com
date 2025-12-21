@@ -16,5 +16,7 @@
   "event_type_seats": "{{numberOfSeats}} mesta",
   "team_is_unpublished": "Opozvano je objavljivanje tima {{team}}",
   "team_is_unpublished_description": "Ovaj link {{entity}} više nije dostupan. Obratite se vlasniku {{entity}} i zamolite ga da objavi.",
-  "org_is_unpublished_description": "Ovaj link Organizacije trenutno nije dostupan. Obratite se vlasniku Organizacije i zamolite ga da ga objavi."
+  "org_is_unpublished_description": "Ovaj link Organizacije trenutno nije dostupan. Obratite se vlasniku Organizacije i zamolite ga da ga objavi.",
+  "repeats_up_to_one": "Ponavlja se do {{count}} put",
+  "repeats_up_to_other": "Ponavlja se do {{count}} puta"
 }
