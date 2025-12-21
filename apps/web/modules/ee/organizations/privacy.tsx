@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import MakeTeamPrivateSwitch from "@calcom/web/modules/teams/components/MakeTeamPrivateSwitch";
 
-import { BlocklistTable } from "~/settings/organizations/privacy/blocklist-table";
+import { BlocklistTable } from "~/ee/organizations/privacy/blocklist-table";
 
 const PrivacyView = ({
   permissions,
