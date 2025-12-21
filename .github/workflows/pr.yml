@@ -2,7 +2,7 @@ name: PR Update
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - gh-actions-test-branch
@@ -57,7 +57,7 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event.action != 'labeled' || github.event.label.name == 'ready-for-e2e') }}
+      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
     steps:
       - name: Check if PR exists with ready-for-e2e label for this SHA
         id: check-if-pr-has-label
