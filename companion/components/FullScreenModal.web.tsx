@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Modal, ModalProps, Platform, View } from "react-native";
+import { Modal, ModalProps } from "react-native";
 
 interface FullScreenModalProps extends ModalProps {
   visible: boolean;
@@ -8,10 +8,10 @@ interface FullScreenModalProps extends ModalProps {
 }
 
 /**
- * A modal wrapper that expands the browser extension iframe to full screen
- * when running in the web platform (browser extension).
+ * Web-specific modal wrapper that expands the browser extension iframe to full screen.
  *
- * For mobile platforms, it behaves like a regular Modal.
+ * This component sends postMessage events to the parent window (content script)
+ * to expand/collapse the iframe when the modal opens/closes.
  */
 export function FullScreenModal({
   visible,
@@ -20,11 +20,6 @@ export function FullScreenModal({
   ...modalProps
 }: FullScreenModalProps) {
   useEffect(() => {
-    // Only send expand/collapse messages on web platform (browser extension)
-    if (Platform.OS !== "web") {
-      return;
-    }
-
     if (visible) {
       // Expand the iframe to full width when modal opens
       window.parent.postMessage({ type: "cal-companion-expand" }, "*");
@@ -35,22 +30,12 @@ export function FullScreenModal({
 
     // Cleanup: collapse on unmount if still visible
     return () => {
-      if (visible && Platform.OS === "web") {
+      if (visible) {
         window.parent.postMessage({ type: "cal-companion-collapse" }, "*");
       }
     };
   }, [visible]);
 
-  // For non-web platforms, just use the regular Modal
-  if (Platform.OS !== "web") {
-    return (
-      <Modal visible={visible} onRequestClose={onRequestClose} {...modalProps}>
-        {children}
-      </Modal>
-    );
-  }
-
-  // For web platform (browser extension), use the modal with full-screen behavior
   return (
     <Modal
       visible={visible}
