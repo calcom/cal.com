@@ -168,6 +168,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     <Select
                       isSearchable={false}
                       className="text-sm"
+                      maxMenuHeight={100}
                       menuPlacement="bottom"
                       defaultValue={actionOptions[0]}
                       onChange={handleSelectAction}
