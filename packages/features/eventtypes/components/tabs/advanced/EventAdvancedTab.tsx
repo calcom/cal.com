@@ -545,10 +545,6 @@ export const EventAdvancedTab = ({
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
-  const [allowReschedulingCancelledBookings, setallowReschedulingCancelledBookings] = useState(
-    eventType.allowReschedulingCancelledBookings ?? false
-  );
-
   const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
@@ -691,7 +687,7 @@ export const EventAdvancedTab = ({
       {!isPlatform && (
         <>
           <Controller
-            name="disableCancelling"
+            name="disabledCancelling"
             render={({ field: { onChange } }) => (
               <SettingsToggle
                 labelClassName="text-sm"
@@ -771,7 +767,6 @@ export const EventAdvancedTab = ({
         <Controller
           name="interfaceLanguage"
           control={formMethods.control}
-          defaultValue={eventType.interfaceLanguage ?? null}
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
               labelClassName="text-sm"
@@ -1257,7 +1252,7 @@ export const EventAdvancedTab = ({
 
       <Controller
         name="allowReschedulingCancelledBookings"
-        render={({ field: { onChange } }) => (
+        render={({ field: { value, onChange } }) => (
           <SettingsToggle
             labelClassName="text-sm"
             toggleSwitchAtTheEnd={true}
@@ -1266,11 +1261,8 @@ export const EventAdvancedTab = ({
             data-testid="allow-rescheduling-cancelled-bookings-toggle"
             {...allowReschedulingCancelledBookingsLocked}
             description={t("description_allow_rescheduling_cancelled_bookings")}
-            checked={allowReschedulingCancelledBookings}
-            onCheckedChange={(val) => {
-              setallowReschedulingCancelledBookings(val);
-              onChange(val);
-            }}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
           />
         )}
       />
