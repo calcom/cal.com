@@ -262,7 +262,7 @@ export function AvailabilityListScreen({
           });
         },
         onError: (error) => {
-          console.error("Failed to create schedule:", error);
+          console.error("Failed to create schedule");
           showErrorAlert("Error", "Failed to create schedule. Please try again.");
         },
       }

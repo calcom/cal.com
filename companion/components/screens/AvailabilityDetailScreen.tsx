@@ -214,7 +214,12 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
         }
       }
     } catch (error) {
-      console.error("Error fetching schedule:", error);
+      // Avoid logging raw error objects from API calls (may contain sensitive response data).
+      console.error("Error fetching schedule");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.debug("[AvailabilityDetailScreen] fetchSchedule failed", { message });
+      }
       showErrorAlert("Error", "Failed to load schedule. Please try again.");
       router.back();
     } finally {

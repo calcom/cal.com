@@ -55,7 +55,7 @@ const sendFile = (res: ServerResponse, filePath: string) => {
 
   const stream = createReadStream(filePath);
   stream.on("error", (error) => {
-    console.error("Failed to read file:", error);
+    console.error("Failed to read file");
     res.statusCode = 500;
     res.end("Internal Server Error");
   });
@@ -76,7 +76,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const filePath = await resolveFilePath(safePath);
     sendFile(res, filePath);
   } catch (error) {
-    console.error("Server render error:", error);
+    console.error("Server render error");
     res.statusCode = 500;
     res.end("Internal Server Error");
   }

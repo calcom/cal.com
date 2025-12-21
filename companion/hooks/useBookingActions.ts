@@ -176,7 +176,7 @@ export const useBookingActions = ({
                         Alert.alert("Success", "Event cancelled successfully");
                       },
                       onError: (error) => {
-                        console.error("Failed to cancel booking:", error);
+                        console.error("Failed to cancel booking");
                         showErrorAlert("Error", "Failed to cancel event. Please try again.");
                       },
                     }
