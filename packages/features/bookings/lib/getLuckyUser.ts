@@ -1,4 +1,4 @@
-import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
@@ -502,10 +502,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: any;
-              operator?: any;
-              value?: any;
-              valueSrc?: any;
+              field?: string | null;
+              operator?: string | null;
+              value?: (string | string[])[];
+              valueSrc?: string[];
             }
           | undefined;
       }
@@ -570,10 +570,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: any;
-              operator?: any;
-              value?: any;
-              valueSrc?: any;
+              field?: string | null;
+              operator?: string | null;
+              value?: (string | string[])[];
+              valueSrc?: string[];
             }
           | undefined;
       }

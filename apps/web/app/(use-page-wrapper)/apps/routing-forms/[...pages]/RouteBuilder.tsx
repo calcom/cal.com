@@ -10,7 +10,8 @@ import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
 
-import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import { buildEmptyQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils.client";
+import { raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
 import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
 import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
@@ -83,32 +84,36 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   eventOptions: { label: string; value: string; eventTypeId: number }[];
   setRoute: SetRoute;
 }) {
+  const routeActionValue = isRouter(route) ? undefined : route.action.value;
+  const routeActionType = isRouter(route) ? undefined : route.action.type;
+  const routeActionEventTypeId = isRouter(route) ? undefined : route.action.eventTypeId;
+
   useEffect(() => {
     if (isRouter(route)) {
       return;
     }
 
     if (
-      route.action.type !== RouteActionType.EventTypeRedirectUrl ||
+      routeActionType !== RouteActionType.EventTypeRedirectUrl ||
       // Must not be set already. Could be zero as well for custom
-      route.action.eventTypeId !== undefined
+      routeActionEventTypeId !== undefined
     ) {
       return;
     }
 
-    const matchingOption = eventOptions.find((eventOption) => eventOption.value === route.action.value);
+    const matchingOption = eventOptions.find((eventOption) => eventOption.value === routeActionValue);
     if (!matchingOption) {
       return;
     }
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+  }, [eventOptions, setRoute, route, routeActionValue, routeActionType, routeActionEventTypeId]);
 }
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 
 function getEmptyQueryValue() {
@@ -147,14 +152,14 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata?: Record<string, any>;
+    eventTypeAppMetadata?: Record<string, unknown>;
     isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
-      eventTypeAppMetadata?: Record<string, any>;
+      eventTypeAppMetadata?: Record<string, unknown>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -392,13 +397,11 @@ const Route = ({
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
 
-  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>("");
-
-  useEffect(() => {
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(() => {
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-    setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
-  }, []);
+    return isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "";
+  });
 
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
@@ -1158,7 +1161,7 @@ const Routes = ({
     });
   };
 
-  const availableRouters =
+  const _availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
         const routerValidInContext = areTheySiblingEntities({
