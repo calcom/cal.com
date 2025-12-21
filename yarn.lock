@@ -1891,6 +1891,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     "@typescript-eslint/eslint-plugin": "npm:^6"
     "@typescript-eslint/parser": "npm:^6"
+    axios: "npm:^1.9.0"
     body-parser: "npm:^1.20.2"
     bull: "npm:^4.12.4"
     class-transformer: "npm:^0.5.1"
@@ -1908,7 +1909,6 @@ __metadata:
     lodash: "npm:4.17.21"
     luxon: "npm:3.4.4"
     nest-winston: "npm:^1.9.4"
-    next-auth: "npm:^4.22.1"
     node-mocks-http: "npm:^1.16.2"
     passport: "npm:^0.7.0"
     passport-jwt: "npm:^4.0.1"
@@ -2057,6 +2057,7 @@ __metadata:
     vite-plugin-node-polyfills: "npm:^0.22.0"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
     typescript: ^5.0.0
   languageName: unknown
   linkType: soft
@@ -2566,6 +2567,13 @@ __metadata:
     trigger.dev: "npm:^4.0.0"
     web-push: "npm:^3.6.7"
     zustand: "npm:^4.3.2"
+  peerDependencies:
+    date-fns-tz: ^3.2.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    react-is: ^18.2.0
+    stripe: ^9.0.0 || ^15.0.0
+    zod: ^3.0.0
   languageName: unknown
   linkType: soft
 
@@ -2791,7 +2799,6 @@ __metadata:
     lingo.dev: "npm:0.117.14"
     rrule: "npm:^2.7.1"
     sharp: "npm:0.33.5"
-    sonner: "npm:^1.7.4"
     tsdav: "npm:2.0.3"
     tslog: "npm:^4.9.2"
     typescript: "npm:5.9.2"
@@ -3258,6 +3265,10 @@ __metadata:
     superjson: "npm:1.9.1"
     typescript: "npm:5.9.2"
     zod: "npm:3.25.76"
+  peerDependencies:
+    next: ">=14.0.0"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -3320,7 +3331,6 @@ __metadata:
     fast-glob: "npm:^3.3.2"
     fs-extra: "npm:^11.2.0"
     lucide-static: "npm:^0.424.0"
-    next-seo: "npm:^6.0.0"
     node-html-parser: "npm:^6.1.13"
     react: "npm:^18.2.0"
     react-colorful: "npm:^5.6.0"
@@ -3331,6 +3341,8 @@ __metadata:
     tailwind-merge: "npm:^1.13.2"
     typescript: "npm:5.9.2"
     uuid: "npm:^11.1.0"
+  peerDependencies:
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -3411,6 +3423,7 @@ __metadata:
     "@microsoft/microsoft-graph-types-beta": "npm:0.15.0-preview"
     "@next-auth/prisma-adapter": "npm:^1.0.4"
     "@next/bundle-analyzer": "npm:^16.1.0"
+    "@next/third-parties": "npm:^14.2.5"
     "@playwright/test": "npm:^1.45.3"
     "@prisma/nextjs-monorepo-workaround-plugin": "npm:^6.16.1"
     "@radix-ui/react-avatar": "npm:1.1.3"
@@ -3476,6 +3489,7 @@ __metadata:
     google-auth-library: "npm:^9.15.0"
     gray-matter: "npm:^4.0.3"
     handlebars: "npm:^4.7.7"
+    i18next: "npm:^23.2.3"
     ical.js: "npm:^1.4.0"
     ics: "npm:^2.37.0"
     isbot: "npm:^5.1.30"
@@ -3517,6 +3531,7 @@ __metadata:
     react-dom: "npm:18.2.0"
     react-easy-crop: "npm:^3.5.2"
     react-hook-form: "npm:^7.43.3"
+    react-i18next: "npm:^12.3.1"
     react-live-chat-loader: "npm:^2.8.1"
     react-multi-email: "npm:^0.5.3"
     react-phone-input-2: "npm:^2.15.1"
@@ -19285,6 +19300,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:^1.9.0":
+  version: 1.13.2
+  resolution: "axios@npm:1.13.2"
+  dependencies:
+    follow-redirects: "npm:^1.15.6"
+    form-data: "npm:^4.0.4"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: 10/ae4e06dcd18289f2fd18179256d550d27f9a53ecb2f9c59f2ccc4efd1d7151839ba8c3e0fb533dac793e4a59a576ca8689a19244dce5c396680837674a47a867
+  languageName: node
+  linkType: hard
+
 "axobject-query@npm:^3.2.1":
   version: 3.2.1
   resolution: "axobject-query@npm:3.2.1"
@@ -20168,7 +20194,6 @@ __metadata:
     "@evyweb/ioctopus": "npm:^1.2.0"
     "@faker-js/faker": "npm:9.2.0"
     "@jetstreamapp/soql-parser-js": "npm:^6.1.0"
-    "@next/third-parties": "npm:^14.2.5"
     "@playwright/test": "npm:^1.45.3"
     "@prisma/internals": "npm:^6.16.2"
     "@snaplet/copycat": "npm:^4.1.0"
@@ -20179,6 +20204,7 @@ __metadata:
     c8: "npm:^7.13.0"
     checkly: "npm:latest"
     city-timezones: "npm:^1.2.1"
+    date-fns: "npm:^3.6.0"
     date-fns-tz: "npm:^3.2.0"
     dotenv-checker: "npm:^1.1.5"
     eslint: "npm:9.36.0"
@@ -25594,6 +25620,19 @@ __metadata:
     combined-stream: "npm:^1.0.8"
     mime-types: "npm:^2.1.12"
   checksum: 10/7264aa760a8cf09482816d8300f1b6e2423de1b02bba612a136857413fdc96d7178298ced106817655facc6b89036c6e12ae31c9eb5bdc16aabf502ae8a5d805
+  languageName: node
+  linkType: hard
+
+"form-data@npm:^4.0.4":
+  version: 4.0.5
+  resolution: "form-data@npm:4.0.5"
+  dependencies:
+    asynckit: "npm:^0.4.0"
+    combined-stream: "npm:^1.0.8"
+    es-set-tostringtag: "npm:^2.1.0"
+    hasown: "npm:^2.0.2"
+    mime-types: "npm:^2.1.12"
+  checksum: 10/52ecd6e927c8c4e215e68a7ad5e0f7c1031397439672fd9741654b4a94722c4182e74cc815b225dcb5be3f4180f36428f67c6dd39eaa98af0dcfdd26c00c19cd
   languageName: node
   linkType: hard
 
@@ -36881,7 +36920,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-i18next@npm:^12.2.0":
+"react-i18next@npm:^12.2.0, react-i18next@npm:^12.3.1":
   version: 12.3.1
   resolution: "react-i18next@npm:12.3.1"
   dependencies:
