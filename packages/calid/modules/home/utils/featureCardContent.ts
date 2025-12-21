@@ -34,7 +34,7 @@ export const newFeatureCardContent: Feature[] = [
     icon: "paperclip",
     title: "Attachments",
     description: "Allow your bookers to upload attachments to their bookings.",
-    isComingSoon: true,
+    isNew: true,
   },
   {
     icon: "calendar-days",

@@ -108,6 +108,7 @@ import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPay
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
+import { getCalEventResponses } from "./getCalEventResponses";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
@@ -127,6 +128,7 @@ import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
+import { processAttachmentResponses } from "./handleNewBooking/processAttachmentResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
@@ -491,6 +493,22 @@ async function handler(
     eventType,
     schema: bookingDataSchema,
   });
+
+  if (bookingData.responses) {
+    const processedResponses = await processAttachmentResponses({
+      responses: bookingData.responses,
+      bookingFields: eventType.bookingFields,
+    });
+
+    const calEventResponses = getCalEventResponses({
+      bookingFields: eventType.bookingFields,
+      responses: processedResponses,
+    });
+
+    bookingData.responses = processedResponses;
+    bookingData.calEventResponses = calEventResponses.responses;
+    bookingData.calEventUserFieldsResponses = calEventResponses.userFieldsResponses;
+  }
 
   const {
     recurringCount,
