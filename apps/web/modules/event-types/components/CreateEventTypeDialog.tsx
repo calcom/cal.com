@@ -15,7 +15,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
-import { TeamEventTypeForm } from "@calcom/web/modules/teams/components/TeamEventTypeForm";
+import { TeamEventTypeForm } from "@calcom/web/modules/ee/teams/components/TeamEventTypeForm";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
