@@ -4,10 +4,11 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
+import { WEBHOOK_VERSION_OPTIONS, getWebhookVersionLabel } from "@calcom/features/webhooks/lib/constants";
+import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WEBHOOK_VERSION_OPTIONS, getWebhookVersionLabel } from "../lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
@@ -17,7 +18,6 @@ import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/setti
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
-import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 type Props = {
   webhooks: RouterOutputs["viewer"]["webhook"]["list"];
