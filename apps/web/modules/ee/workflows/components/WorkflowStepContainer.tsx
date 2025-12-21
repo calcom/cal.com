@@ -71,7 +71,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
+import { useHasPaidPlan, useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
@@ -205,7 +205,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     (team) => team.accepted && (team.role === MembershipRole.ADMIN || team.role === MembershipRole.OWNER)
   )?.id;
 
-  const { hasActiveTeamPlan } = useHasActiveTeamPlan();
+  const { hasPaidPlan } = useHasPaidPlan();
+  const { hasActiveTeamPlan, isTrial } = useHasActiveTeamPlan();
+  const planState = { hasPaidPlan, hasActiveTeamPlan, isTrial };
 
   const { data: _verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({ teamId });
 
@@ -377,8 +379,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     handleCreateAgent,
   ]);
 
-  const triggerOptions = getWorkflowTriggerOptions(t, hasActiveTeamPlan);
-  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
+  const triggerOptions = getWorkflowTriggerOptions(t, planState);
+  const templateOptions = getWorkflowTemplateOptions(t, step?.action, planState, trigger);
 
   const steps = useWatch({
     control: form.control,
@@ -413,7 +415,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only run when verifiedNumbers.length changes
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only run when verifiedEmails.length changes
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {
@@ -594,6 +598,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     label: option.label,
                     value: option.value,
                     needsTeamsUpgrade: option.needsTeamsUpgrade,
+                    upgradeTeamsBadgeProps: option.upgradeTeamsBadgeProps,
                   }))}
                   isOptionDisabled={(option: { label: string; value: string; needsTeamsUpgrade?: boolean }) =>
                     !!option.needsTeamsUpgrade
@@ -1290,13 +1295,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }}
                       defaultValue={selectedTemplate}
                       value={selectedTemplate}
-                      options={templateOptions.map((option) => ({
-                        label: option.label,
-                        value: option.value,
-                        needsTeamsUpgrade:
+                      options={templateOptions.map((option) => {
+                        const needsTeamsUpgrade =
                           option.needsTeamsUpgrade &&
-                          !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
-                      }))}
+                          !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`));
+                        return {
+                          label: option.label,
+                          value: option.value,
+                          needsTeamsUpgrade,
+                          upgradeTeamsBadgeProps: needsTeamsUpgrade
+                            ? option.upgradeTeamsBadgeProps
+                            : undefined,
+                        };
+                      })}
                       isOptionDisabled={(option: {
                         label: string;
                         value: string;
