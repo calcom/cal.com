@@ -13,8 +13,10 @@ import AddMembersWithSwitch, {
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { EditWeightsForAllTeamMembers } from "@calcom/features/eventtypes/components/EditWeightsForAllTeamMembers";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 import type {
   FormValues,
   TeamMember,
@@ -34,9 +36,6 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
-import WeightDescription from "../../WeightDescription";
 
 export type EventTeamAssignmentTabCustomClassNames = {
   assignmentType?: {
