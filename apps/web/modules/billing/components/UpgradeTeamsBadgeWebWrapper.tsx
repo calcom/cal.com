@@ -1,14 +1,10 @@
 "use client";
 
-import { useHasPaidPlan, useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
-
 import { UpgradeTeamsBadge as UpgradeTeamsBadgeBase } from "@calcom/ui/components/badge";
 
-export const UpgradeTeamsBadge = function UpgradeTeamsBadge({
-  checkForActiveStatus,
-}: {
-  checkForActiveStatus?: boolean;
-}) {
+import { useHasPaidPlan, useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
+
+export function UpgradeTeamsBadgeWebWrapper({ checkForActiveStatus }: { checkForActiveStatus?: boolean }) {
   const { hasPaidPlan } = useHasPaidPlan();
   const { hasActiveTeamPlan, isTrial } = useHasActiveTeamPlan();
 
@@ -20,4 +16,4 @@ export const UpgradeTeamsBadge = function UpgradeTeamsBadge({
       isTrial={isTrial}
     />
   );
-};
+}
