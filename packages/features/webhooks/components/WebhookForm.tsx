@@ -424,10 +424,10 @@ const WebhookForm = (props: {
                     options={translatedTriggerOptions}
                     isMulti
                     styles={{
-                      indicatorsContainer: (base) => ({
-                        ...base,
-                        alignItems: "flex-start",
-                      }),
+                      indicatorsContainer: (base) =>
+                        Object.assign({}, base, {
+                          alignItems: "flex-start",
+                        }),
                     }}
                     value={selectValue}
                     onChange={(event) => {

@@ -103,7 +103,7 @@ export type ScheduleEmailReminderAction = Extract<
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
 
-export type WorkflowType = PrismaWorkflow & {
+export type WorkflowListType = PrismaWorkflow & {
   team: {
     id: number;
     name: string;
@@ -128,7 +128,7 @@ export type WorkflowType = PrismaWorkflow & {
       };
     };
   }[];
-  readOnly?: boolean; // Keep for backward compatibility
+  readOnly?: boolean;
   permissions?: WorkflowPermissions;
   isOrg?: boolean;
 };
