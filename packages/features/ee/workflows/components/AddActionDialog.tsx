@@ -173,7 +173,16 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       menuPortalTarget={null}
                       defaultValue={actionOptions[0]}
                       onChange={handleSelectAction}
-                      options={actionOptions}
+                      options={actionOptions.map((option) => ({
+                        label: option.label,
+                        value: option.value,
+                        needsTeamsUpgrade: option.needsTeamsUpgrade,
+                      }))}
+                      isOptionDisabled={(option: {
+                        label: string;
+                        value: WorkflowActions;
+                        needsTeamsUpgrade?: boolean;
+                      }) => !!option.needsTeamsUpgrade}
                     />
                   );
                 }}
