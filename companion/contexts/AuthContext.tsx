@@ -143,7 +143,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           newRefreshToken || refreshToken || undefined
         );
       } catch (error) {
-        console.error("Failed to handle token refresh:", error);
+        console.error("Failed to handle token refresh");
         await logout();
       }
     };
@@ -213,7 +213,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         handleWebSessionAuth();
       }
     } catch (error) {
-      console.error("Failed to check auth state:", error);
+      console.error("Failed to check auth state");
     } finally {
       setLoading(false);
     }
@@ -234,7 +234,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
       }
     } catch (error) {
-      console.error("Failed to login from web session:", error);
+      console.error("Failed to login from web session");
       throw error;
     }
   };
@@ -267,7 +267,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear PKCE parameters
       oauthService.clearPKCEParams();
     } catch (error) {
-      console.error("OAuth login failed:", error);
+      console.error("OAuth login failed");
       throw error;
     } finally {
       setLoading(false);
@@ -279,7 +279,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await clearAuth();
       resetAuthState();
     } catch (error) {
-      console.error("Failed to logout:", error);
+      console.error("Failed to logout");
     }
   };
 

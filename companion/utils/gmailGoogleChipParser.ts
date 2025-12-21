@@ -149,7 +149,7 @@ export function parseGoogleChip(chipElement: HTMLElement): ParsedGoogleChip | nu
       detectedDuration,
     };
   } catch (error) {
-    console.error("Error parsing Google chip:", error);
+    console.error("Error parsing Google chip");
     return null;
   }
 }

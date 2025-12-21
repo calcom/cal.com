@@ -243,7 +243,7 @@ export default function EventTypes() {
         }
       },
       onError: (error) => {
-        console.error("Failed to delete event type:", error);
+        console.error("Failed to delete event type");
         if (Platform.OS === "web") {
           showToastMessage("Failed to delete event type");
         } else {
@@ -283,7 +283,7 @@ export default function EventTypes() {
           });
         },
         onError: (error) => {
-          console.error("Failed to duplicate event type:", error);
+          console.error("Failed to duplicate event type");
           if (Platform.OS === "web") {
             showToastMessage("Failed to duplicate event type");
           } else {
@@ -305,7 +305,7 @@ export default function EventTypes() {
         await openInAppBrowser(link, "event type preview");
       }
     } catch (error) {
-      console.error("Failed to open preview:", error);
+      console.error("Failed to open preview");
       if (Platform.OS === "web") {
         showToastMessage("Failed to open preview");
       } else {
@@ -373,7 +373,7 @@ export default function EventTypes() {
           });
         },
         onError: (error) => {
-          console.error("Failed to create event type:", error);
+          console.error("Failed to create event type");
           showErrorAlert("Error", "Failed to create event type. Please try again.");
         },
       }
@@ -532,6 +532,7 @@ export default function EventTypes() {
         data={filteredEventTypes}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderEventTypeItem}
+        extraData={copiedEventTypeId}
         style={{ backgroundColor: "white" }}
         contentContainerStyle={{
           paddingBottom: 90,

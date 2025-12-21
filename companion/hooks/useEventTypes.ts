@@ -93,7 +93,7 @@ export function useCreateEventType() {
       queryClient.setQueryData(queryKeys.eventTypes.detail(newEventType.id), newEventType);
     },
     onError: (error) => {
-      console.error("Failed to create event type:", error);
+      console.error("Failed to create event type");
     },
   });
 }
@@ -127,7 +127,7 @@ export function useUpdateEventType() {
       queryClient.setQueryData(queryKeys.eventTypes.detail(variables.id), updatedEventType);
     },
     onError: (error) => {
-      console.error("Failed to update event type:", error);
+      console.error("Failed to update event type");
     },
   });
 }
@@ -173,7 +173,7 @@ export function useDeleteEventType() {
       if (context?.previousEventTypes) {
         queryClient.setQueryData(queryKeys.eventTypes.lists(), context.previousEventTypes);
       }
-      console.error("Failed to delete event type:", error);
+      console.error("Failed to delete event type");
     },
     onSettled: () => {
       // Always refetch after error or success
@@ -233,7 +233,7 @@ export function useDuplicateEventType() {
       queryClient.invalidateQueries({ queryKey: queryKeys.eventTypes.lists() });
     },
     onError: (error) => {
-      console.error("Failed to duplicate event type:", error);
+      console.error("Failed to duplicate event type");
     },
   });
 }

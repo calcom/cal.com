@@ -278,7 +278,7 @@ export function EventTypeDetailScreen({
   };
 
   const addFrequencyLimit = () => {
-    const newId = Math.max(...frequencyLimits.map((limit) => limit.id)) + 1;
+    const newId = Math.max(0, ...frequencyLimits.map((limit) => limit.id)) + 1;
     setFrequencyLimits([...frequencyLimits, { id: newId, value: "1", unit: "Per day" }]);
   };
 
@@ -303,7 +303,7 @@ export function EventTypeDetailScreen({
   };
 
   const addDurationLimit = () => {
-    const newId = Math.max(...durationLimits.map((limit) => limit.id)) + 1;
+    const newId = Math.max(0, ...durationLimits.map((limit) => limit.id)) + 1;
     setDurationLimits([...durationLimits, { id: newId, value: "60", unit: "Per day" }]);
   };
 
@@ -330,7 +330,7 @@ export function EventTypeDetailScreen({
         await fetchScheduleDetails(defaultSchedule.id);
       }
     } catch (error) {
-      console.error("Failed to fetch schedules:", error);
+      console.error("Failed to fetch schedules");
     } finally {
       setSchedulesLoading(false);
     }
@@ -345,7 +345,7 @@ export function EventTypeDetailScreen({
         setSelectedTimezone(scheduleDetails.timeZone);
       }
     } catch (error) {
-      console.error("Failed to fetch schedule details:", error);
+      console.error("Failed to fetch schedule details");
       setSelectedScheduleDetails(null);
     } finally {
       setScheduleDetailsLoading(false);
@@ -358,7 +358,7 @@ export function EventTypeDetailScreen({
       const options = await CalComAPIService.getConferencingOptions();
       setConferencingOptions(options);
     } catch (error) {
-      console.error("Failed to fetch conferencing options:", error);
+      console.error("Failed to fetch conferencing options");
     } finally {
       setConferencingLoading(false);
     }
@@ -696,7 +696,7 @@ export function EventTypeDetailScreen({
         }
       }
     } catch (error) {
-      console.error("Failed to fetch event type data:", error);
+      console.error("Failed to fetch event type data");
     }
   };
 
@@ -721,7 +721,7 @@ export function EventTypeDetailScreen({
         const userUsername = await CalComAPIService.getUsername();
         setUsername(userUsername);
       } catch (error) {
-        console.error("Failed to fetch username:", error);
+        console.error("Failed to fetch username");
       }
     };
     fetchUsername();
@@ -752,7 +752,7 @@ export function EventTypeDetailScreen({
     }
   };
 
-  const getDaySchedule = () => {
+  const getDaySchedules = () => {
     if (!selectedScheduleDetails) {
       return [];
     }
@@ -805,7 +805,7 @@ export function EventTypeDetailScreen({
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
       await openInAppBrowser(link, "event type preview");
     } catch (error) {
-      console.error("Failed to generate preview link:", error);
+      console.error("Failed to generate preview link");
       showErrorAlert("Error", "Failed to generate preview link. Please try again.");
     }
   };
@@ -818,7 +818,7 @@ export function EventTypeDetailScreen({
       await Clipboard.setStringAsync(link);
       Alert.alert("Success", "Link copied!");
     } catch (error) {
-      console.error("Failed to copy link:", error);
+      console.error("Failed to copy link");
       showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
   };
@@ -846,7 +846,7 @@ export function EventTypeDetailScreen({
               },
             ]);
           } catch (error) {
-            console.error("Failed to delete event type:", error);
+            console.error("Failed to delete event type");
             const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
             showErrorAlert("Error", `Failed to delete event type: ${errorMessage}`);
           }
@@ -1011,7 +1011,7 @@ export function EventTypeDetailScreen({
         await fetchEventTypeData();
       }
     } catch (error) {
-      console.error("Failed to save event type:", error);
+      console.error("Failed to save event type");
       const action = isCreateMode ? "create" : "update";
       showErrorAlert("Error", `Failed to ${action} event type. Please try again.`);
     } finally {
@@ -1704,7 +1704,7 @@ export function EventTypeDetailScreen({
             schedulesLoading={schedulesLoading}
             scheduleDetailsLoading={scheduleDetailsLoading}
             selectedScheduleDetails={selectedScheduleDetails}
-            getDaySchedule={getDaySchedule}
+            getDaySchedules={getDaySchedules}
             formatTime={formatTime}
             selectedTimezone={selectedTimezone}
           />

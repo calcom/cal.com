@@ -25,7 +25,7 @@ export default function More() {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Logout error");
       showErrorAlert("Error", "Failed to sign out. Please try again.");
     }
   };

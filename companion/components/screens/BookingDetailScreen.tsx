@@ -188,15 +188,16 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
       setLoading(true);
       setError(null);
       const bookingData = await CalComAPIService.getBookingByUid(uid);
-      console.log("Booking data received:", JSON.stringify(bookingData, null, 2));
-      console.log("User:", bookingData.user);
-      console.log("Hosts:", bookingData.hosts);
-      console.log("Attendees:", bookingData.attendees);
-      console.log("Recurring fields:", {
-        recurringEventId: bookingData.recurringEventId,
-        recurringBookingUid: (bookingData as { recurringBookingUid?: string }).recurringBookingUid,
-        metadata: (bookingData as { metadata?: unknown }).metadata,
-      });
+      // Avoid logging booking payloads: they may contain PII (names/emails/notes).
+      if (__DEV__) {
+        console.debug("[BookingDetailScreen] booking fetched", {
+          uid: bookingData.uid,
+          status: bookingData.status,
+          hostCount: bookingData.hosts?.length ?? (bookingData.user ? 1 : 0),
+          attendeeCount: bookingData.attendees?.length ?? 0,
+          hasRecurringEventId: Boolean(bookingData.recurringEventId),
+        });
+      }
       setBooking(bookingData);
     } catch (err) {
       console.error("Error fetching booking:", err);
@@ -285,7 +286,7 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
       // Refresh booking data
       await fetchBooking();
     } catch (error) {
-      console.error("Failed to reschedule booking:", error);
+      console.error("Failed to reschedule booking");
       showErrorAlert("Error", "Failed to reschedule booking. Please try again.");
     } finally {
       setRescheduling(false);
@@ -559,7 +560,8 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
               style: "destructive",
               onPress: () => {
                 // TODO: Implement cancel booking
-                console.log("Cancel booking");
+                if (__DEV__)
+                  console.debug("[BookingDetailScreen] cancel booking (not implemented yet)");
               },
             },
           ]);
