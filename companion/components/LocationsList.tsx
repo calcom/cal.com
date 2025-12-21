@@ -168,7 +168,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
                     {location.displayName}
                   </Text>
                 </View>
-                {!disabled && (
+                {!disabled ? (
                   <TouchableOpacity
                     onPress={() => onRemove(location.id)}
                     className="ml-2 p-1"
@@ -176,7 +176,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
                   >
                     <Ionicons name="close-circle" size={20} color="#9CA3AF" />
                   </TouchableOpacity>
-                )}
+                ) : null}
               </View>
               {renderLocationInput(location)}
             </View>

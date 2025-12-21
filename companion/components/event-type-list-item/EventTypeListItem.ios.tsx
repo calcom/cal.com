@@ -87,11 +87,11 @@ export const EventTypeListItem = ({
             <View className="mb-1 flex-row items-center">
               <Text className="flex-1 text-base font-semibold text-[#333]">{item.title} </Text>
             </View>
-            {item.description && (
+            {item.description ? (
               <Text className="mb-2 mt-0.5 text-sm leading-5 text-[#666]" numberOfLines={2}>
                 {normalizeMarkdown(item.description)}
               </Text>
-            )}
+            ) : null}
             <View className="mt-2 flex-row items-center self-start rounded-lg border border-[#E5E5EA] bg-[#E5E5EA] px-2 py-1">
               <Ionicons name="time-outline" size={14} color="#000" />
               <Text className="ml-1.5 text-xs font-semibold text-black">
@@ -100,17 +100,17 @@ export const EventTypeListItem = ({
             </View>
             {(item.price != null && item.price > 0) || item.requiresConfirmation ? (
               <View className="mt-2 flex-row items-center gap-3">
-                {item.price != null && item.price > 0 && (
+                {item.price != null && item.price > 0 ? (
                   <Text className="text-sm font-medium text-[#34C759]">
                     {item.currency || "$"}
                     {item.price}
                   </Text>
-                )}
-                {item.requiresConfirmation && (
+                ) : null}
+                {item.requiresConfirmation ? (
                   <View className="rounded bg-[#FF9500] px-2 py-0.5">
                     <Text className="text-xs font-medium text-white">Requires Confirmation</Text>
                   </View>
-                )}
+                ) : null}
               </View>
             ) : null}
           </View>
