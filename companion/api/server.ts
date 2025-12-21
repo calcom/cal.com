@@ -56,6 +56,11 @@ const sendFile = (res: ServerResponse, filePath: string) => {
   const stream = createReadStream(filePath);
   stream.on("error", (error) => {
     console.error("Failed to read file");
+    if (process.env.NODE_ENV !== "production") {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.debug("[companion/api] Failed to read file", { message, stack });
+    }
     res.statusCode = 500;
     res.end("Internal Server Error");
   });
@@ -77,6 +82,11 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     sendFile(res, filePath);
   } catch (error) {
     console.error("Server render error");
+    if (process.env.NODE_ENV !== "production") {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.debug("[companion/api] Server render error", { message, stack });
+    }
     res.statusCode = 500;
     res.end("Internal Server Error");
   }

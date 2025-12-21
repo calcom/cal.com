@@ -200,7 +200,12 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
       }
       setBooking(bookingData);
     } catch (err) {
-      console.error("Error fetching booking:", err);
+      console.error("Error fetching booking");
+      if (__DEV__) {
+        const message = err instanceof Error ? err.message : String(err);
+        const stack = err instanceof Error ? err.stack : undefined;
+        console.debug("[BookingDetailScreen] fetchBooking failed", { message, stack });
+      }
       setError("Failed to load booking. Please try again.");
       if (__DEV__) {
         Alert.alert("Error", "Failed to load booking. Please try again.", [
@@ -287,6 +292,11 @@ export function BookingDetailScreen({ uid }: BookingDetailScreenProps) {
       await fetchBooking();
     } catch (error) {
       console.error("Failed to reschedule booking");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[BookingDetailScreen] rescheduleBooking failed", { message, stack });
+      }
       showErrorAlert("Error", "Failed to reschedule booking. Please try again.");
     } finally {
       setRescheduling(false);

@@ -331,6 +331,11 @@ export function EventTypeDetailScreen({
       }
     } catch (error) {
       console.error("Failed to fetch schedules");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[EventTypeDetailScreen] fetchSchedules failed", { message, stack });
+      }
     } finally {
       setSchedulesLoading(false);
     }
@@ -346,6 +351,11 @@ export function EventTypeDetailScreen({
       }
     } catch (error) {
       console.error("Failed to fetch schedule details");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[EventTypeDetailScreen] fetchScheduleDetails failed", { message, stack });
+      }
       setSelectedScheduleDetails(null);
     } finally {
       setScheduleDetailsLoading(false);
@@ -359,6 +369,14 @@ export function EventTypeDetailScreen({
       setConferencingOptions(options);
     } catch (error) {
       console.error("Failed to fetch conferencing options");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[EventTypeDetailScreen] fetchConferencingOptions failed", {
+          message,
+          stack,
+        });
+      }
     } finally {
       setConferencingLoading(false);
     }
@@ -697,6 +715,11 @@ export function EventTypeDetailScreen({
       }
     } catch (error) {
       console.error("Failed to fetch event type data");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[EventTypeDetailScreen] fetchEventTypeData failed", { message, stack });
+      }
     }
   };
 
