@@ -4,7 +4,7 @@
  * Implementations can use Prisma, Kysely, or any other data access layer
  */
 
-// Re-export all DTOs from @calcom/lib/dto/bookings for convenience
+// Re-export all DTOs from @calcom/lib/dto for convenience
 export type {
   BookingStatusDto,
   BookingBasicDto,
@@ -37,7 +37,7 @@ export type {
   BookingBatchUpdateResultDto,
   BookingReferenceCreateInput,
   UpdateLocationInput,
-} from "@calcom/lib/dto/bookings";
+} from "@calcom/lib/dto";
 
 import type {
   BookingBasicDto,
@@ -48,7 +48,7 @@ import type {
   BookingUpdateResultDto,
   BookingBatchUpdateResultDto,
   UpdateLocationInput,
-} from "@calcom/lib/dto/bookings";
+} from "@calcom/lib/dto";
 
 // ============================================================================
 // Repository Interface
