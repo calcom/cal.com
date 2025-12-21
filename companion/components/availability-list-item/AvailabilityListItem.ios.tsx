@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
-import { AvailabilityListItemProps } from "./AvailabilityListItem";
+import type { AvailabilityListItemProps } from "./AvailabilityListItem";
 import { Host, ContextMenu, Button, Image, HStack } from "@expo/ui/swift-ui";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
@@ -44,12 +44,16 @@ export const AvailabilityListItem = ({
 
   return (
     <View
-      className="h-fill border-b border-[#E5E5EA]"
-      style={{ paddingLeft: 16, paddingVertical: 16 }}
+      className="border-b border-[#E5E5EA] bg-white"
+      style={{ paddingHorizontal: 16, paddingVertical: 16 }}
     >
-      <View className="flex-row items-center justify-between ">
-        <Pressable onPress={() => handleSchedulePress(schedule)} className="flex-grow">
-          <View className="mr-4 flex-1">
+      <View className="flex-row items-center">
+        <Pressable
+          onPress={() => handleSchedulePress(schedule)}
+          className="mr-4 flex-1"
+          accessibilityRole="button"
+        >
+          <View>
             <View className="mb-1 flex-row flex-wrap items-center">
               <Text className="text-base font-semibold text-[#333]">{schedule.name}</Text>
               {schedule.isDefault && (
@@ -83,35 +87,40 @@ export const AvailabilityListItem = ({
           </View>
         </Pressable>
 
-        {/* Three dots button - vertically centered on the right */}
-        <Host matchContents>
-          <ContextMenu
-            modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
-            activationMethod="singlePress"
-          >
-            <ContextMenu.Items>
-              {scheduleActions.map((scheduleAction) => (
-                <Button
-                  key={scheduleAction.label}
-                  systemImage={scheduleAction.icon}
-                  onPress={scheduleAction.onPress}
-                  role={scheduleAction.role}
-                  label={scheduleAction.label}
-                />
-              ))}
-            </ContextMenu.Items>
-            <ContextMenu.Trigger>
-              <HStack>
-                <Image
-                  systemName="ellipsis"
-                  color="primary"
-                  size={24}
-                  modifiers={[frame({ height: 24, width: 17 })]}
-                />
-              </HStack>
-            </ContextMenu.Trigger>
-          </ContextMenu>
-        </Host>
+        {/* Three dots menu - fixed hit target so it doesn't get squeezed off-screen */}
+        <View
+          className="items-center justify-center rounded-lg border border-[#E5E5EA]"
+          style={{ width: 32, height: 32 }}
+        >
+          <Host matchContents>
+            <ContextMenu
+              modifiers={[buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"), padding()]}
+              activationMethod="singlePress"
+            >
+              <ContextMenu.Items>
+                {scheduleActions.map((scheduleAction) => (
+                  <Button
+                    key={scheduleAction.label}
+                    systemImage={scheduleAction.icon}
+                    onPress={scheduleAction.onPress}
+                    role={scheduleAction.role}
+                    label={scheduleAction.label}
+                  />
+                ))}
+              </ContextMenu.Items>
+              <ContextMenu.Trigger>
+                <HStack>
+                  <Image
+                    systemName="ellipsis"
+                    color="primary"
+                    size={24}
+                    modifiers={[frame({ height: 24, width: 17 })]}
+                  />
+                </HStack>
+              </ContextMenu.Trigger>
+            </ContextMenu>
+          </Host>
+        </View>
       </View>
     </View>
   );
