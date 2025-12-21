@@ -18,13 +18,13 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import Shell, { ShellMain } from "@calcom/web/modules/shell/Shell";
-import EmptyScreen from "@calcom/web/modules/workflows/components/EmptyScreen";
-import SkeletonLoader from "@calcom/web/modules/workflows/components/SkeletonLoaderList";
+import EmptyScreen from "@calcom/web/modules/ee/workflows/components/EmptyScreen";
+import SkeletonLoader from "@calcom/web/modules/ee/workflows/components/SkeletonLoaderList";
 import {
   WorkflowCreationDialog,
   useWorkflowCreation,
-} from "@calcom/web/modules/workflows/components/WorkflowCreationDialog";
-import WorkflowList from "@calcom/web/modules/workflows/components/WorkflowListPage";
+} from "@calcom/web/modules/ee/workflows/components/WorkflowCreationDialog";
+import WorkflowList from "@calcom/web/modules/ee/workflows/components/WorkflowListPage";
 
 import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
 
@@ -35,6 +35,7 @@ type PageProps = {
 function WorkflowsPage({ filteredList }: PageProps) {
   const { t } = useLocale();
   const session = useSession();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- router is kept for future use
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
@@ -108,6 +109,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Filter component is kept for future use
 const Filter = (props: {
   profiles: {
     readOnly?: boolean | undefined;

@@ -22,7 +22,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { WebCallDialog } from "@calcom/web/modules/workflows/components/WebCallDialog";
+import { WebCallDialog } from "@calcom/web/modules/ee/workflows/components/WebCallDialog";
 
 import { TestPhoneCallDialog } from "../../../TestPhoneCallDialog";
 import { usePhoneNumberActions } from "../../hooks/usePhoneNumberActions";
