@@ -1,4 +1,4 @@
-import type { RouterOutputs } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 export type UserTableUser = RouterOutputs["viewer"]["organizations"]["listMembers"]["rows"][number];
 
