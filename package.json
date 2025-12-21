@@ -102,7 +102,7 @@
     "eslint": "9.36.0",
     "husky": "9.1.7",
     "i18n-unused": "^0.13.0",
-    "jest-diff": "^29.5.0",
+    "jest-diff": "29.7.0",
     "jest-summarizing-reporter": "^1.1.4",
     "lint-staged": "^12.5.0",
     "mailhog": "^4.16.0",
