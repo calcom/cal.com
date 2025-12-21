@@ -6,16 +6,15 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getBookingRepository } from "@calcom/features/di/containers/Booking";
+import { getUserRepository } from "@calcom/features/di/containers/User";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
-import type { Booking } from "@calcom/prisma/client";
+import type { JsonValue } from "@calcom/types/JsonObject";
 import type { PartialBooking } from "@calcom/types/EventManager";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -81,8 +80,8 @@ async function updateBookingLocationInDb({
 }: {
   booking: {
     id: number;
-    metadata: Booking["metadata"];
-    responses: Booking["responses"];
+    metadata: JsonValue;
+    responses: JsonValue;
   };
   evt: Ensure<CalendarEvent, "location">;
   references: PartialReference[];
@@ -260,7 +259,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
-  const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
+  const organizer = await getUserRepository().findByIdOrThrow({ id: booking.userId || 0 });
   const organizationId = booking.user?.profiles?.[0]?.organizationId ?? null;
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
