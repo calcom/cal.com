@@ -42,9 +42,6 @@ env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
-  # Prepare job runs first to build and cache dependencies
-  # This prevents all 4 shards from building in parallel (wasting ~15 min of compute)
-  # Note: cache-db is NOT included here because it requires Postgres service
   prepare:
     timeout-minutes: 15
     name: Prepare Build
