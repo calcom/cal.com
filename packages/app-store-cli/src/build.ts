@@ -456,6 +456,31 @@ function generateFiles() {
     }
   );
 
+  const appListOutput: { name: string; slug: string }[] = [];
+  for (let i = 0; i < appDirs.length; i++) {
+    const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
+    const metadataPath = path.join(APP_STORE_PATH, appDirs[i].path, "_metadata.ts");
+    let appName = "";
+    let appSlug = "";
+
+    if (fs.existsSync(configPath)) {
+      const rawConfig = fs.readFileSync(configPath, "utf8");
+      const parsedConfig = JSON.parse(rawConfig);
+      appName = parsedConfig.name || appDirs[i].name;
+      appSlug = parsedConfig.slug || appDirs[i].name;
+    } else if (fs.existsSync(metadataPath)) {
+      const content = fs.readFileSync(metadataPath, "utf8");
+      const nameMatch = content.match(/name:\s*["']([^"']+)["']/);
+      const slugMatch = content.match(/slug:\s*["']([^"']+)["']/);
+      appName = nameMatch?.[1] || appDirs[i].name;
+      appSlug = slugMatch?.[1] || appDirs[i].name;
+    }
+
+    if (appName && appSlug) {
+      appListOutput.push({ name: appName, slug: appSlug });
+    }
+  }
+
   const videoExportLineIndex = videoAdapters.findIndex((line) =>
     line.startsWith("export const VideoApiAdapterMap")
   );
@@ -493,6 +518,11 @@ function generateFiles() {
     ["payment.services.generated.ts", paymentOutput],
     ["video.adapters.generated.ts", videoOutput],
   ];
+
+  fs.writeFileSync(
+    `${APP_STORE_PATH}/apps.list.generated.json`,
+    JSON.stringify(appListOutput, null, 2)
+  );
   filesToGenerate.forEach(([fileName, output]) => {
     fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
   });

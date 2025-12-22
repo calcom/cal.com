@@ -11,9 +11,8 @@ import {
   useRegisterActions,
 } from "kbar";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
@@ -26,12 +25,12 @@ type shortcutArrayType = {
   shortcuts?: string[];
 };
 
-const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
-  id: slug,
-  name,
-  section: "Installable Apps",
-  keywords: `app ${name}`,
-}));
+type AppAction = {
+  id: string;
+  name: string;
+  section: string;
+  keywords: string;
+};
 
 const useEventTypesAction = () => {
   const router = useRouter();
@@ -65,17 +64,46 @@ const useEventTypesAction = () => {
   return useRegisterActions(actions);
 };
 
+const useAppStoreActions = () => {
+  const router = useRouter();
+  const [appActions, setAppActions] = useState<AppAction[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    import("@calcom/app-store/apps.list.generated.json").then((appList) => {
+      if (isMounted) {
+        const apps = (appList.default as { name: string; slug: string }[]).map(({ name, slug }) => ({
+          id: slug,
+          name,
+          section: "available_apps",
+          keywords: `app ${name}`,
+        }));
+        setAppActions(apps);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return useMemo(
+    () =>
+      appActions.map((item) => ({
+        ...item,
+        perform: () => router.push(`/apps/${item.id}`),
+      })),
+    [appActions, router]
+  );
+};
+
 export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const appStoreActions = useAppStoreActions();
 
   // grab link to events
   // quick nested actions would be extremely useful
 
   const actions = useMemo(() => {
-    const appStoreActions = getApps.map((item) => ({
-      ...item,
-      perform: () => router.push(`/apps/${item.id}`),
-    }));
     return [
       {
         id: "workflows",
@@ -238,7 +266,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       },
       ...appStoreActions,
     ];
-  }, []);
+  }, [router, appStoreActions]);
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
 };
