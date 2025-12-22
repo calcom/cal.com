@@ -1,11 +1,9 @@
 import { z } from "zod";
 
+import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
-import { FeatureOptInService } from "@calcom/features/feature-opt-in/services/FeatureOptInService";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -15,8 +13,7 @@ import { router } from "../../../trpc";
 
 const featureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
 
-const featuresRepository = new FeaturesRepository(prisma);
-const featureOptInService = new FeatureOptInService(featuresRepository);
+const featureOptInService = getFeatureOptInService();
 
 /**
  * Helper to get user's org and team IDs from their memberships.

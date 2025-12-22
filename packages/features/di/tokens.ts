@@ -35,6 +35,8 @@ export const DI_TOKENS = {
   INSIGHTS_BOOKING_SERVICE_MODULE: Symbol("InsightsBookingServiceModule"),
   FEATURES_REPOSITORY: Symbol("FeaturesRepository"),
   FEATURES_REPOSITORY_MODULE: Symbol("FeaturesRepositoryModule"),
+  FEATURE_OPT_IN_SERVICE: Symbol("FeatureOptInService"),
+  FEATURE_OPT_IN_SERVICE_MODULE: Symbol("FeatureOptInServiceModule"),
   CHECK_BOOKING_LIMITS_SERVICE: Symbol("CheckBookingLimitsService"),
   CHECK_BOOKING_LIMITS_SERVICE_MODULE: Symbol("CheckBookingLimitsServiceModule"),
   CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE: Symbol("CheckBookingAndDurationLimitsService"),
