@@ -14,7 +14,7 @@ export function LoginScreen() {
     try {
       await loginWithOAuth();
     } catch (error) {
-      console.error("OAuth login error:", error);
+      console.error("OAuth login error");
       showErrorAlert(
         "Login Failed",
         error instanceof Error
