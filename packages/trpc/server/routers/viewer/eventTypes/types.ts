@@ -13,7 +13,6 @@ import type {
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
-  stringOrNumber,
   rrSegmentQueryValueSchema,
   eventTypeLocations,
   recurringEventType,
@@ -113,11 +112,25 @@ type EventTypeColorInput = {
   darkEventTypeColor: string;
 } | null;
 
-/** Booking field type - using unknown for deeply nested structure to reduce type complexity */
-type BookingFieldInput = Record<string, unknown>;
+/**
+ * Booking field type - minimal type definition for fields that need to be accessed.
+ * Uses index signature for additional properties to reduce type complexity while
+ * still allowing access to known properties like `name`.
+ */
+type BookingFieldInput = {
+  name: string;
+  hidden?: boolean;
+  required?: boolean;
+  [key: string]: unknown;
+};
 
-/** RR Segment query value - using unknown for complex RAQB structure */
-type RRSegmentQueryValueInput = Record<string, unknown> | null;
+/**
+ * RR Segment query value - using index signature for complex RAQB structure.
+ * The values need to be indexable (string keys) for downstream usage.
+ */
+type RRSegmentQueryValueInput = {
+  [key: string]: unknown;
+} | null;
 
 /**
  * Explicit type definition for event type update input.
@@ -222,7 +235,7 @@ export type TUpdateInputSchema = {
   calAiPhoneScript?: string;
   customInputs?: CustomInputSchema[];
   destinationCalendar?: DestinationCalendarInput;
-  users?: (string | number)[];
+  users?: number[];
   children?: ChildInput[];
   hosts?: HostInput[];
   schedule?: number | null;
@@ -406,7 +419,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     calAiPhoneScript: z.string().optional(),
     customInputs: z.array(customInputSchema).optional(),
     destinationCalendar: destinationCalendarInputSchema.optional(),
-    users: z.array(stringOrNumber).optional(),
+    users: z.array(z.number()).optional(),
     children: z.array(childSchema).optional(),
     hosts: z.array(hostSchema).optional(),
     schedule: z.number().nullable().optional(),
