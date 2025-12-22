@@ -209,9 +209,9 @@ export function Header() {
                   <Text className="text-lg font-semibold text-gray-900">
                     {userProfile?.name || "User"}
                   </Text>
-                  {userProfile?.email && (
+                  {userProfile?.email ? (
                     <Text className="text-sm text-gray-600">{userProfile.email}</Text>
-                  )}
+                  ) : null}
                 </View>
               </View>
             </View>

@@ -39,7 +39,7 @@ export function Tooltip({ text, children }: TooltipProps) {
       style={{ position: "relative" }}
     >
       {children}
-      {showTooltip && (
+      {showTooltip ? (
         <View
           // @ts-ignore - web-only styles
           style={{
@@ -63,7 +63,7 @@ export function Tooltip({ text, children }: TooltipProps) {
             {text}
           </Text>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
