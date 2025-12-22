@@ -217,7 +217,7 @@ class ExchangeCalendarService implements Calendar {
  * from leaking into the emitted .d.ts file, which would cause TypeScript to load
  * all EWS SDK declaration files when type-checking dependent packages.
  */
-export default function createExchangeCalendarService(
+export default function BuildCalendarService(
   credential: CredentialPayload
 ): Calendar {
   return new ExchangeCalendarService(credential);

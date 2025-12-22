@@ -319,7 +319,7 @@ class HubspotCalendarService implements CRM {
  * from leaking into the emitted .d.ts file, which would cause TypeScript to load
  * all 1,800+ HubSpot SDK declaration files when type-checking dependent packages.
  */
-export default function createHubspotCrmService(
+export default function BuildCrmService(
   credential: CredentialPayload,
   appOptions?: Record<string, unknown>
 ): CRM {

@@ -204,6 +204,6 @@ class PaypalPaymentService implements IAbstractPaymentService {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export function PaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
+export function BuildPaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
   return new PaypalPaymentService(credentials);
 }

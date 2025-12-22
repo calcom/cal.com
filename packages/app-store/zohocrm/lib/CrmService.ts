@@ -304,7 +304,7 @@ class ZohoCrmCrmService implements CRM {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export default function createZohoCrmService(
+export default function BuildCrmService(
   credential: CredentialPayload,
   _appOptions?: Record<string, unknown>
 ): CRM {

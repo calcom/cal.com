@@ -126,6 +126,6 @@ class DubService implements AnalyticsService {
  * This is exported instead of the class to prevent SDK types (Dub)
  * from leaking into the emitted .d.ts file.
  */
-export default function createDubAnalyticsService(credential: CredentialPayload): AnalyticsService {
+export default function BuildAnalyticsService(credential: CredentialPayload): AnalyticsService {
   return new DubService(credential);
 }

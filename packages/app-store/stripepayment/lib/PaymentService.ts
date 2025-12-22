@@ -491,6 +491,6 @@ class StripePaymentService implements IAbstractPaymentService {
  * This is exported instead of the class to prevent SDK types (Stripe)
  * from leaking into the emitted .d.ts file.
  */
-export function PaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
+export function BuildPaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
   return new StripePaymentService(credentials);
 }

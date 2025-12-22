@@ -14,7 +14,7 @@ import { handleNoShowFee } from "./handleNoShowFee";
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
     stripepayment: Promise.resolve({
-      PaymentService: vi.fn().mockImplementation(() => ({
+      BuildPaymentService: vi.fn().mockImplementation(() => ({
         chargeCard: vi.fn(),
       })),
     }),
@@ -61,8 +61,8 @@ describe("handleNoShowFee", () => {
       chargeCard: vi.fn(),
     };
 
-    const paymentServiceModule = await PaymentServiceMap.stripepayment;
-    vi.mocked(paymentServiceModule.PaymentService).mockImplementation(() => mockPaymentService);
+        const paymentServiceModule = await PaymentServiceMap.stripepayment;
+        vi.mocked(paymentServiceModule.BuildPaymentService).mockImplementation(() => mockPaymentService);
   });
 
   const mockBooking = {

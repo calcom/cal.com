@@ -21,7 +21,7 @@ import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
 
-import CalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
+import BuildCalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
 import {
   createMockJWTInstance,
   createCredentialForCalendarService,
@@ -62,7 +62,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
 
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
       {
@@ -331,7 +331,7 @@ describe("Date Optimization Benchmarks", () => {
   });
 
   test("fetchAvailabilityData should handle both single API call and chunked scenarios correctly", async () => {
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockBusyData = [
@@ -375,7 +375,7 @@ describe("Date Optimization Benchmarks", () => {
 
 describe("createEvent", () => {
   test("should create event with correct input/output format and handle all expected properties", async () => {
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock Google Calendar API response
@@ -573,7 +573,7 @@ describe("createEvent", () => {
   });
 
   test("should handle recurring events correctly", async () => {
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock recurring event response
@@ -676,7 +676,7 @@ describe("createEvent", () => {
 
 describe("Delegation Credential Batching", () => {
   test("getAvailability should fetch availability for selected calendars", async () => {
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockedBusyTimes = [
@@ -738,7 +738,7 @@ describe("Delegation Credential Batching", () => {
     // Import CalendarBatchWrapper for integration test
     const { CalendarBatchWrapper } = await import("@calcom/features/calendar-batch/lib/CalendarBatchWrapper");
 
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     const wrapper = new CalendarBatchWrapper({ originalCalendar: calendarService });
     setFullMockOAuthManagerRequest();
 
@@ -798,7 +798,7 @@ describe("Delegation Credential Batching", () => {
   });
 
   test("getAvailability should fallback to primary calendar when no calendars selected and fallbackToPrimary is true", async () => {
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockedBusyTimes = [
@@ -842,7 +842,7 @@ describe("Delegation Credential Batching", () => {
   });
 
   test("getAvailability should return empty array when only non-google calendars are selected", async () => {
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const selectedCalendars = [

@@ -13,6 +13,6 @@ class AppleCalendarService extends BaseCalendarService {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export default function createAppleCalendarService(credential: CredentialPayload): Calendar {
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
   return new AppleCalendarService(credential);
 }

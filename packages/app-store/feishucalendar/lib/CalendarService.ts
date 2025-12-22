@@ -431,6 +431,6 @@ class FeishuCalendarService implements Calendar {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export default function createFeishuCalendarService(credential: CredentialPayload): Calendar {
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
   return new FeishuCalendarService(credential);
 }

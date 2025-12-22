@@ -431,6 +431,6 @@ class LarkCalendarService implements Calendar {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export default function createLarkCalendarService(credential: CredentialPayload): Calendar {
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
   return new LarkCalendarService(credential);
 }

@@ -810,7 +810,7 @@ class GoogleCalendarService implements Calendar {
  * from leaking into the emitted .d.ts file, which would cause TypeScript to load
  * all Google API SDK declaration files when type-checking dependent packages.
  */
-export default function createGoogleCalendarService(
+export default function BuildCalendarService(
   credential: CredentialForCalendarServiceWithEmail
 ): Calendar {
   return new GoogleCalendarService(credential);

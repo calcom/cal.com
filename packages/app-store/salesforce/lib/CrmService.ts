@@ -1726,7 +1726,7 @@ class SalesforceCRMService implements CRM {
  * from leaking into the emitted .d.ts file, which would cause TypeScript to load
  * all jsforce SDK declaration files when type-checking dependent packages.
  */
-export default function createSalesforceCrmService(
+export default function BuildCrmService(
   credential: CredentialPayload,
   appOptions?: Record<string, unknown>
 ): CRM {

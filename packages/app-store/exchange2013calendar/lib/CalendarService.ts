@@ -240,6 +240,6 @@ class ExchangeCalendarService implements Calendar {
  * This is exported instead of the class to prevent SDK types (like ews-javascript-api types)
  * from leaking into the emitted .d.ts file.
  */
-export default function createExchange2013CalendarService(credential: CredentialPayload): Calendar {
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
   return new ExchangeCalendarService(credential);
 }

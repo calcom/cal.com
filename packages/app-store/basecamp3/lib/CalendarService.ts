@@ -265,6 +265,6 @@ class BasecampCalendarService implements Calendar {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export default function createBasecampCalendarService(credential: CredentialPayload): Calendar {
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
   return new BasecampCalendarService(credential);
 }

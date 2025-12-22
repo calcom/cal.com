@@ -304,7 +304,7 @@ class BiginCrmService implements CRM {
  * This is exported instead of the class to prevent internal types
  * from leaking into the emitted .d.ts file.
  */
-export default function createBiginCrmService(
+export default function BuildCrmService(
   credential: CredentialPayload,
   _appOptions?: Record<string, unknown>
 ): CRM {

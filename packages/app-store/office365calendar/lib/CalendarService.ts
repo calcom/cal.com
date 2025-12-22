@@ -794,7 +794,7 @@ class Office365CalendarService implements Calendar {
  * from leaking into the emitted .d.ts file, which would cause TypeScript to load
  * all Microsoft Graph SDK declaration files when type-checking dependent packages.
  */
-export default function createOffice365CalendarService(
+export default function BuildCalendarService(
   credential: CredentialForCalendarServiceWithTenantId
 ): Calendar {
   return new Office365CalendarService(credential);
