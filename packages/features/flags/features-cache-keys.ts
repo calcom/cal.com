@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { FeatureId, FeatureState } from "./config";
+import type { FeatureId } from "./config";
 
 /**
  * Zod schemas for cached values
@@ -45,65 +45,35 @@ export const FeaturesCacheEntries = {
   userFeatureStates: {
     key: (userId: number) => `${PREFIX}:userFeatureStates:${userId}`,
     schema: FeatureStatesMapSchema,
-  } satisfies CacheEntry<Record<string, FeatureState>, [number]>,
+  },
 
   /** Cache entry for a team's feature states (all features for this team) */
   teamFeatureStates: {
     key: (teamId: number) => `${PREFIX}:teamFeatureStates:${teamId}`,
     schema: FeatureStatesMapSchema,
-  } satisfies CacheEntry<Record<string, FeatureState>, [number]>,
+  },
 
   /** Cache entry for a user's auto opt-in setting */
   userAutoOptIn: {
     key: (userId: number) => `${PREFIX}:userAutoOptIn:${userId}`,
     schema: BooleanSchema,
-  } satisfies CacheEntry<boolean, [number]>,
+  },
 
   /** Cache entry for a team's auto opt-in setting */
   teamAutoOptIn: {
     key: (teamId: number) => `${PREFIX}:teamAutoOptIn:${teamId}`,
     schema: BooleanSchema,
-  } satisfies CacheEntry<boolean, [number]>,
+  },
 
   /** Cache entry for global feature enabled check (TTL-only) */
   globalFeature: {
     key: (slug: FeatureId) => `${PREFIX}:globalFeature:${slug}`,
     schema: BooleanSchema,
-  } satisfies CacheEntry<boolean, [FeatureId]>,
+  },
 
   /** Cache entry for teams with feature enabled (TTL-only) */
   teamsWithFeatureEnabled: {
     key: (slug: FeatureId) => `${PREFIX}:teamsWithFeature:${slug}`,
     schema: NumberArraySchema,
-  } satisfies CacheEntry<number[], [FeatureId]>,
+  },
 } as const;
-
-/**
- * Legacy class for backward compatibility - delegates to FeaturesCacheEntries
- * @deprecated Use FeaturesCacheEntries directly for type-safe caching
- */
-export class FeaturesCacheKeys {
-  static userFeatureStates(userId: number): string {
-    return FeaturesCacheEntries.userFeatureStates.key(userId);
-  }
-
-  static teamFeatureStates(teamId: number): string {
-    return FeaturesCacheEntries.teamFeatureStates.key(teamId);
-  }
-
-  static userAutoOptIn(userId: number): string {
-    return FeaturesCacheEntries.userAutoOptIn.key(userId);
-  }
-
-  static teamAutoOptIn(teamId: number): string {
-    return FeaturesCacheEntries.teamAutoOptIn.key(teamId);
-  }
-
-  static globalFeature(slug: FeatureId): string {
-    return FeaturesCacheEntries.globalFeature.key(slug);
-  }
-
-  static teamsWithFeatureEnabled(slug: FeatureId): string {
-    return FeaturesCacheEntries.teamsWithFeatureEnabled.key(slug);
-  }
-}
