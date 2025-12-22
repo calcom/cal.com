@@ -17,7 +17,8 @@ const fieldsSchemaV1 = z.object({
     endTime: z.number(),
     status: z.nativeEnum(BookingStatus),
     hostUserUuid: z.string().nullable(),
-    seatReferenceUid: z.string().nullable(),
+    // Allowing it to be optional because most of the time(non-seated booking) it won't be there
+    seatReferenceUid: z.string().nullish(),
 });
 
 type Deps = {
