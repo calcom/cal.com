@@ -556,7 +556,7 @@ export class TeamRepository {
       FROM "Membership" m
       INNER JOIN "User" u ON m."userId" = u.id
       LEFT JOIN "Role" r ON m."customRoleId" = r.id
-      LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac'
+      LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac' AND f.enabled = true
       WHERE m."teamId" = ${teamId}
         AND m."accepted" = true
         AND (

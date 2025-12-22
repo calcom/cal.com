@@ -219,6 +219,7 @@ const nextConfig = (phase) => {
       "@calcom/lib",
       "@calcom/prisma",
       "@calcom/trpc",
+      "@coss/ui",
     ],
     modularizeImports: {
       "@calcom/features/insights/components": {
@@ -233,6 +234,7 @@ const nextConfig = (phase) => {
     images: {
       unoptimized: true,
     },
+    turbopack: {},
     webpack: (config, { webpack, buildId, isServer, dev }) => {
       if (!dev) {
         if (config.cache) {
