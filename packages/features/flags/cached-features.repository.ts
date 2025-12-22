@@ -1,10 +1,11 @@
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 
 import type { FeatureId, FeatureState } from "./config";
-import { FeaturesCacheKeys, type VersionStamps } from "./features-cache-keys";
+import { FeaturesCacheKeys } from "./features-cache-keys";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_CACHE_BUSTER = "0";
 
 export class CachedFeaturesRepository implements IFeaturesRepository {
   private readonly cacheTtlMs: number;
@@ -17,37 +18,19 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     this.cacheTtlMs = options?.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
   }
 
-  private async getVersionStamps(options?: {
-    userId?: number;
-    teamId?: number;
-  }): Promise<VersionStamps> {
-    const [global, access, user, team] = await Promise.all([
-      this.redisService.get<string>(FeaturesCacheKeys.versionGlobal()),
-      this.redisService.get<string>(FeaturesCacheKeys.versionAccess()),
-      options?.userId
-        ? this.redisService.get<string>(FeaturesCacheKeys.versionUser(options.userId))
-        : Promise.resolve(null),
-      options?.teamId
-        ? this.redisService.get<string>(FeaturesCacheKeys.versionTeam(options.teamId))
-        : Promise.resolve(null),
-    ]);
-
-    return {
-      global: global ?? "0",
-      access: access ?? "0",
-      user: user ?? undefined,
-      team: team ?? undefined,
-    };
+  private async getCacheBuster(): Promise<string> {
+    const cacheBuster = await this.redisService.get<string>(FeaturesCacheKeys.cacheBuster());
+    return cacheBuster ?? DEFAULT_CACHE_BUSTER;
   }
 
-  private async bumpVersion(key: string): Promise<void> {
-    const newVersion = FeaturesCacheKeys.generateVersionStamp();
-    await this.redisService.set(key, newVersion);
+  private async invalidateCache(): Promise<void> {
+    const newCacheBuster = FeaturesCacheKeys.generateCacheBuster();
+    await this.redisService.set(FeaturesCacheKeys.cacheBuster(), newCacheBuster);
   }
 
   async checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean> {
-    const versions = await this.getVersionStamps();
-    const cacheKey = FeaturesCacheKeys.globalFeature(versions, slug);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.globalFeature(cacheBuster, slug);
 
     const cached = await this.redisService.get<boolean>(cacheKey);
     if (cached !== null) {
@@ -60,8 +43,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async checkIfUserHasFeature(userId: number, slug: string): Promise<boolean> {
-    const versions = await this.getVersionStamps({ userId });
-    const cacheKey = FeaturesCacheKeys.userFeature(versions, userId, slug);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.userFeature(cacheBuster, userId, slug);
 
     const cached = await this.redisService.get<boolean>(cacheKey);
     if (cached !== null) {
@@ -74,8 +57,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
-    const versions = await this.getVersionStamps({ userId });
-    const cacheKey = FeaturesCacheKeys.userFeatureNonHierarchical(versions, userId, slug);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.userFeatureNonHierarchical(cacheBuster, userId, slug);
 
     const cached = await this.redisService.get<boolean>(cacheKey);
     if (cached !== null) {
@@ -88,8 +71,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean> {
-    const versions = await this.getVersionStamps({ teamId });
-    const cacheKey = FeaturesCacheKeys.teamFeature(versions, teamId, slug);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.teamFeature(cacheBuster, teamId, slug);
 
     const cached = await this.redisService.get<boolean>(cacheKey);
     if (cached !== null) {
@@ -102,8 +85,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]> {
-    const versions = await this.getVersionStamps();
-    const cacheKey = FeaturesCacheKeys.teamsWithFeatureEnabled(versions, slug);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.teamsWithFeatureEnabled(cacheBuster, slug);
 
     const cached = await this.redisService.get<number[]>(cacheKey);
     if (cached !== null) {
@@ -121,7 +104,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     await this.featuresRepository.setUserFeatureState(input);
-    await this.bumpVersion(FeaturesCacheKeys.versionUser(input.userId));
+    await this.invalidateCache();
   }
 
   async setTeamFeatureState(
@@ -130,18 +113,15 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     await this.featuresRepository.setTeamFeatureState(input);
-    await Promise.all([
-      this.bumpVersion(FeaturesCacheKeys.versionTeam(input.teamId)),
-      this.bumpVersion(FeaturesCacheKeys.versionAccess()),
-    ]);
+    await this.invalidateCache();
   }
 
   async getUserFeatureStates(input: {
     userId: number;
     featureIds: FeatureId[];
   }): Promise<Record<string, FeatureState>> {
-    const versions = await this.getVersionStamps({ userId: input.userId });
-    const cacheKey = FeaturesCacheKeys.userFeatureStates(versions, input.userId, input.featureIds);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.userFeatureStates(cacheBuster, input.userId, input.featureIds);
 
     const cached = await this.redisService.get<Record<string, FeatureState>>(cacheKey);
     if (cached !== null) {
@@ -157,8 +137,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, Record<number, FeatureState>>> {
-    const versions = await this.getVersionStamps();
-    const cacheKey = FeaturesCacheKeys.teamsFeatureStates(versions, input.teamIds, input.featureIds);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.teamsFeatureStates(cacheBuster, input.teamIds, input.featureIds);
 
     const cached = await this.redisService.get<Record<string, Record<number, FeatureState>>>(cacheKey);
     if (cached !== null) {
@@ -171,8 +151,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async getUserAutoOptIn(userId: number): Promise<boolean> {
-    const versions = await this.getVersionStamps({ userId });
-    const cacheKey = FeaturesCacheKeys.userAutoOptIn(versions, userId);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.userAutoOptIn(cacheBuster, userId);
 
     const cached = await this.redisService.get<boolean>(cacheKey);
     if (cached !== null) {
@@ -185,8 +165,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async getTeamsAutoOptIn(teamIds: number[]): Promise<Record<number, boolean>> {
-    const versions = await this.getVersionStamps();
-    const cacheKey = FeaturesCacheKeys.teamsAutoOptIn(versions, teamIds);
+    const cacheBuster = await this.getCacheBuster();
+    const cacheKey = FeaturesCacheKeys.teamsAutoOptIn(cacheBuster, teamIds);
 
     const cached = await this.redisService.get<Record<number, boolean>>(cacheKey);
     if (cached !== null) {
@@ -200,14 +180,11 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
 
   async setUserAutoOptIn(userId: number, enabled: boolean): Promise<void> {
     await this.featuresRepository.setUserAutoOptIn(userId, enabled);
-    await this.bumpVersion(FeaturesCacheKeys.versionUser(userId));
+    await this.invalidateCache();
   }
 
   async setTeamAutoOptIn(teamId: number, enabled: boolean): Promise<void> {
     await this.featuresRepository.setTeamAutoOptIn(teamId, enabled);
-    await Promise.all([
-      this.bumpVersion(FeaturesCacheKeys.versionTeam(teamId)),
-      this.bumpVersion(FeaturesCacheKeys.versionAccess()),
-    ]);
+    await this.invalidateCache();
   }
 }
