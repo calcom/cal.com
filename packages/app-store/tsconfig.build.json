@@ -23,5 +23,15 @@
     "**/*.ts",
     "**/*.tsx"
   ],
-  "exclude": ["dist", "dist-types", "build", "**/node_modules/**", "**/*.test.ts", "**/*.spec.ts"]
+  "exclude": [
+    "dist",
+    "dist-types",
+    "build",
+    "**/node_modules/**",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**",
+    "**/__mocks__/**",
+    "**/tests/**"
+  ]
 }
