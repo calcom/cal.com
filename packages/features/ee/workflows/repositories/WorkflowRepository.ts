@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
+import type { WorkflowListType as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import { deleteScheduledAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";

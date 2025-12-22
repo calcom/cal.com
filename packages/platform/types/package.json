@@ -13,8 +13,10 @@
   "dependencies": {
     "@calcom/platform-constants": "workspace:*",
     "@calcom/platform-enums": "workspace:*",
-    "@types/express": "^4.17.21",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.21"
   }
 }
