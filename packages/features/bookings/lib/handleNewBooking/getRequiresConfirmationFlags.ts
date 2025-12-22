@@ -74,7 +74,7 @@ export const determineRequiresConfirmation = withReporting(
   "determineRequiresConfirmation"
 );
 
-function isUserReschedulingOwner(
+export function isUserReschedulingOwner(
   userId: number | undefined,
   originalRescheduledBookingOrganizerId: number | undefined
 ): boolean {

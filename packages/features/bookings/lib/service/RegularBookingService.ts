@@ -1,6 +1,9 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import prisma from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -748,6 +751,39 @@ async function handler(
     bookerEmail,
   });
 
+  // Guests (attendees) who are Cal.com users and should be considered in availability
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const guestsList: any[] = [];
+
+  if (rescheduleUid && originalRescheduledBooking && userReschedulingIsOwner) {
+    const attendeesEmails =
+      originalRescheduledBooking.attendees?.map((a) => a.email).filter(Boolean) ?? [];
+
+    if (attendeesEmails.length > 0) {
+      const guests = await prisma.user.findMany({
+        where: {
+          email: {
+            in: attendeesEmails,
+          },
+        },
+        include: {
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
+          selectedCalendars: true,
+        },
+      });
+
+      guests.forEach((guest) => {
+        guestsList.push({
+          ...guest,
+          isFixed: true,
+        });
+      });
+    }
+  }
+
+
   // For unconfirmed bookings or round robin bookings with the same attendee and timeslot, return the original booking
   if (
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
@@ -1009,7 +1045,11 @@ async function handler(
         } else {
           if (!skipAvailabilityCheck) {
             await ensureAvailableUsers(
-              eventTypeWithUsers,
+              {
+                ...eventTypeWithUsers,
+                // hosts + guests (Cal.com users) must all be available
+                users: [...eventTypeWithUsers.users, ...guestsList],
+              },
               {
                 dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
                 dateTo: dayjs(end).tz(reqBody.timeZone).format(),
@@ -1198,8 +1238,10 @@ async function handler(
         }
       }
 
-      // ALL fixed users must be available
-      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
+      if (
+        fixedUserPool.length !==
+        [...users, ...guestsList].filter((user) => user.isFixed).length
+      ) {
         throw new Error(ErrorCode.FixedHostsUnavailableForBooking);
       }
 
