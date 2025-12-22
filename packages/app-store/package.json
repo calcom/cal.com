@@ -4,11 +4,11 @@
   "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.ts",
-  "types": "./dist-types/index.d.ts",
   "typesVersions": {
     "*": {
       "*": [
-        "./dist-types/*"
+        "./dist-types/*",
+        "./*"
       ]
     }
   },
