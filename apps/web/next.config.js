@@ -206,8 +206,6 @@ const nextConfig = (phase) => {
     experimental: {
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
       optimizePackageImports: ["@calcom/ui"],
-      webpackMemoryOptimizations: true,
-      webpackBuildWorker: true,
     },
     productionBrowserSourceMaps: true,
     transpilePackages: [
@@ -235,7 +233,7 @@ const nextConfig = (phase) => {
       unoptimized: true,
     },
     turbopack: {},
-    webpack: (config, { webpack, buildId, isServer, dev }) => {
+    webpack: (config, { webpack, isServer, dev }) => {
       if (!dev) {
         if (config.cache) {
           config.cache = Object.freeze({
@@ -257,8 +255,6 @@ const nextConfig = (phase) => {
 
         config.externals.push("formidable");
       }
-
-      config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
 
       config.resolve.fallback = {
         ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
