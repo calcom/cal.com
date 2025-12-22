@@ -227,7 +227,7 @@ jobs:
 
   merge-reports:
     name: Merge reports
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && (needs.e2e.result == 'failure' || needs.e2e-embed.result == 'failure' || needs.e2e-embed-react.result == 'failure' || needs.e2e-app-store.result == 'failure') }}
     needs: [prepare, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
