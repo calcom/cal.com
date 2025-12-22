@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/billing-email-service";
+import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { CreditType } from "@calcom/prisma/enums";
 
 import { CreditService } from "./credit-service";
@@ -91,6 +91,7 @@ vi.mock("@calcom/prisma/enums", async (importOriginal) => {
 vi.mock("@calcom/lib/server/repository/credits");
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
+vi.mock("@calcom/features/credits/repositories/CreditsRepository");
 vi.mock("@calcom/emails/billing-email-service", () => ({
   sendCreditBalanceLimitReachedEmails: vi.fn().mockResolvedValue(undefined),
   sendCreditBalanceLowWarningEmails: vi.fn().mockResolvedValue(undefined),
@@ -123,10 +124,6 @@ vi.spyOn(creditService, "_getTeamWithAvailableCredits").mockResolvedValue({
 
 vi.spyOn(creditService, "_getAllCredits").mockResolvedValue({
   additionalCredits: 1,
-});
-
-CreditsRepository.findCreditBalance.mockResolvedValueOnce({
-  limitReachedAt: null,
 });
 
 describe("CreditService", () => {

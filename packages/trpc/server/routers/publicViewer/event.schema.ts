@@ -1,6 +1,24 @@
 import z from "zod";
 
-export const ZEventInputSchema = z.object({
+// Note: fromRedirectOfNonOrgLink has .default(false), so input has it optional but output has it required
+
+export type TEventInputSchemaInput = {
+  username: string;
+  eventSlug: string;
+  isTeamEvent?: boolean;
+  org: string | null;
+  fromRedirectOfNonOrgLink?: boolean;
+};
+
+export type TEventInputSchema = {
+  username: string;
+  eventSlug: string;
+  isTeamEvent?: boolean;
+  org: string | null;
+  fromRedirectOfNonOrgLink: boolean;
+};
+
+export const ZEventInputSchema: z.ZodType<TEventInputSchema, z.ZodTypeDef, TEventInputSchemaInput> = z.object({
   username: z.string(),
   eventSlug: z.string(),
   isTeamEvent: z.boolean().optional(),
@@ -11,5 +29,3 @@ export const ZEventInputSchema = z.object({
    */
   fromRedirectOfNonOrgLink: z.boolean().optional().default(false),
 });
-
-export type TEventInputSchema = z.infer<typeof ZEventInputSchema>;

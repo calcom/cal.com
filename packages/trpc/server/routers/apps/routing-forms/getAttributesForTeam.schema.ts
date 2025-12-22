@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZGetAttributesForTeamInputSchema = z.object({
+export type TGetAttributesForTeamInputSchema = {
+  teamId: number;
+};
+
+export const ZGetAttributesForTeamInputSchema: z.ZodType<TGetAttributesForTeamInputSchema> = z.object({
   teamId: z.number(),
 });
-
-export type TGetAttributesForTeamInputSchema = z.infer<typeof ZGetAttributesForTeamInputSchema>;

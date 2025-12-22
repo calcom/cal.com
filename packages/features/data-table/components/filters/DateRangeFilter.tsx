@@ -24,10 +24,10 @@ import {
   CUSTOM_PRESET,
   CUSTOM_PRESET_VALUE,
   DEFAULT_PRESET,
-  PRESET_OPTIONS,
   getDefaultStartDate,
   getDefaultEndDate,
   getDateRangeFromPreset,
+  getCompatiblePresets,
   type PresetOption,
 } from "../../lib/dateRange";
 import { preserveLocalTime } from "../../lib/preserveLocalTime";
@@ -53,8 +53,10 @@ export const DateRangeFilter = ({
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter, removeFilter, timeZone: givenTimeZone } = useDataTable();
   const range = options?.range ?? "past";
-  const forceCustom = range === "custom";
-  const forcePast = range === "past";
+
+  const compatiblePresets = getCompatiblePresets(range);
+  const showPresets = compatiblePresets.length > 1;
+  const forceCustomOnly = range === "customOnly" || !showPresets;
 
   const { t } = useLocale();
   const currentDate = dayjs();
@@ -65,10 +67,10 @@ export const DateRangeFilter = ({
     filterValue?.data.endDate ? dayjs(filterValue.data.endDate) : undefined
   );
   const [selectedPreset, setSelectedPreset] = useState<PresetOption>(
-    forceCustom
+    forceCustomOnly
       ? CUSTOM_PRESET
       : filterValue?.data.preset
-      ? PRESET_OPTIONS.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
+      ? compatiblePresets.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
       : DEFAULT_PRESET
   );
 
@@ -108,14 +110,14 @@ export const DateRangeFilter = ({
   useEffect(() => {
     // initially apply the default value
     // if the query param is not set yet
-    if (!filterValue && !forceCustom) {
+    if (!filterValue && !forceCustomOnly) {
       updateValues({
         preset: DEFAULT_PRESET,
         startDate: getDefaultStartDate(),
         endDate: getDefaultEndDate(),
       });
     }
-  }, [filterValue, forceCustom, updateValues]);
+  }, [filterValue, forceCustomOnly, updateValues]);
 
   const updateDateRangeFromPreset = (val: string | null) => {
     if (val === CUSTOM_PRESET_VALUE) {
@@ -195,13 +197,19 @@ export const DateRangeFilter = ({
                 endDate: endDate?.toDate(),
               }}
               data-testid="date-range-calendar"
-              minDate={forcePast ? currentDate.subtract(2, "year").toDate() : null}
-              maxDate={forcePast ? currentDate.toDate() : undefined}
+              minDate={
+                range === "past"
+                  ? currentDate.subtract(2, "year").toDate()
+                  : range === "future"
+                  ? currentDate.toDate()
+                  : null
+              }
+              maxDate={range === "past" ? currentDate.toDate() : undefined}
               disabled={false}
               onDatesChange={updateDateRangeFromPicker}
               withoutPopover={true}
             />
-            {forceCustom && (
+            {forceCustomOnly && (
               <div className="border-subtle border-t px-2 py-3">
                 <Button
                   color="secondary"
@@ -213,10 +221,10 @@ export const DateRangeFilter = ({
             )}
           </div>
         )}
-        {!forceCustom && (
+        {showPresets && (
           <Command className={classNames("w-40", isCustomPreset && "rounded-b-none")}>
             <CommandList>
-              {PRESET_OPTIONS.map((option) => (
+              {compatiblePresets.map((option) => (
                 <CommandItem
                   key={option.value}
                   data-testid={`date-range-options-${option.value}`}

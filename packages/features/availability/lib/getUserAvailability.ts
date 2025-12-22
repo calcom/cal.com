@@ -11,12 +11,16 @@ import {
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
+import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getHolidayService } from "@calcom/lib/holidays";
+import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -24,7 +28,6 @@ import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "@c
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type {
   Booking,
   Prisma,
@@ -163,6 +166,7 @@ export interface IUserAvailabilityService {
   oooRepo: PrismaOOORepository;
   bookingRepo: BookingRepository;
   redisClient: IRedisService;
+  holidayRepo: PrismaHolidayRepository;
 }
 
 export class UserAvailabilityService {
@@ -558,6 +562,19 @@ export class UserAvailabilityService {
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
+    const holidayBlockedDates = await this.calculateHolidayBlockedDates(
+      user.id,
+      dateFrom.toDate(),
+      dateTo.toDate(),
+      availability
+    );
+
+    for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
+      if (!datesOutOfOffice[date]) {
+        datesOutOfOffice[date] = holidayData;
+      }
+    }
+
     const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
       dateFrom,
       dateTo,
@@ -687,4 +704,68 @@ export class UserAvailabilityService {
   }
 
   getUsersAvailability = withReporting(this._getUsersAvailability.bind(this), "getUsersAvailability");
+
+  async calculateHolidayBlockedDates(
+    userId: number,
+    startDate: Date,
+    endDate: Date,
+    availability: GetUserAvailabilityParamsDTO["availability"]
+  ): Promise<IOutOfOfficeData> {
+    const holidaySettings = await this.dependencies.holidayRepo.findUserSettingsSelect({
+      userId,
+      select: {
+        countryCode: true,
+        disabledIds: true,
+      },
+    });
+
+    if (!holidaySettings || !holidaySettings.countryCode) {
+      return {};
+    }
+
+    // Holidays are stored as midnight UTC (e.g., 2025-12-25T00:00:00Z).
+    // When checking availability for a specific booking slot (e.g., 10:00-11:00),
+    // we need to expand the date range to include the full day so holidays are found.
+    // Otherwise, a booking at 10:00 wouldn't find a holiday stored at 00:00.
+    const startOfDay = dayjs(startDate).utc().startOf("day").toDate();
+    const endOfDay = dayjs(endDate).utc().endOf("day").toDate();
+
+    const holidayService = getHolidayService();
+    const holidayDates = await holidayService.getHolidayDatesInRange(
+      holidaySettings.countryCode,
+      holidaySettings.disabledIds,
+      startOfDay,
+      endOfDay
+    );
+
+    if (holidayDates.length === 0) {
+      return {};
+    }
+
+    // Match OOO pattern: get working days from availability
+    const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
+      (a, b) => a - b
+    );
+
+    const result: IOutOfOfficeData = {};
+
+    for (const { date, holiday } of holidayDates) {
+      // Match OOO pattern: use dayjs.utc() to parse date string and get day of week
+      const dayOfWeek = dayjs.utc(date).day();
+
+      if (!flattenDays.includes(dayOfWeek)) {
+        continue;
+      }
+
+      // Match OOO pattern: key by the date string (already in YYYY-MM-DD UTC format)
+      result[date] = {
+        fromUser: null,
+        toUser: null,
+        reason: holiday.name,
+        emoji: getHolidayEmoji(holiday.name),
+      };
+    }
+
+    return result;
+  }
 }

@@ -21,7 +21,8 @@
     "@calcom/eslint-config": "workspace:*",
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*",
-    "node-mocks-http": "^1.11.0"
+    "node-mocks-http": "1.16.2",
+    "typescript": "5.9.2"
   },
   "dependencies": {
     "@calcom/app-store": "workspace:*",
@@ -35,14 +36,13 @@
     "@sentry/nextjs": "^9.15.0",
     "bcryptjs": "^2.4.3",
     "memory-cache": "^0.2.0",
-    "next": "15.4.9",
+    "next": "16.1.0",
     "next-api-middleware": "^1.0.1",
     "next-axiom": "^0.17.0",
     "next-swagger-doc": "^0.3.6",
     "next-validations": "^0.2.0",
-    "typescript": "^5.9.0-beta",
     "tzdata": "^1.0.30",
     "uuid": "^8.3.2",
-    "zod": "^3.22.4"
+    "zod": "3.25.76"
   }
 }
