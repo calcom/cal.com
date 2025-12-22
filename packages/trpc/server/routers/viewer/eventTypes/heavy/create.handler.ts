@@ -154,10 +154,10 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     });
 
     // Scan successRedirectUrl for toxic links if it was set
-    if (rest.successRedirectUrl && rest.successRedirectUrl.length > 0) {
+    if (eventType.successRedirectUrl && eventType.successRedirectUrl.length > 0) {
       await tasker.create("scanSuccessRedirectUrl", {
         eventTypeId: eventType.id,
-        successRedirectUrl: rest.successRedirectUrl,
+        successRedirectUrl: eventType.successRedirectUrl,
         userId: ctx.user.id,
         createdAt: new Date().toISOString(),
       });
