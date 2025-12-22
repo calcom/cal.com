@@ -24,6 +24,7 @@ const fieldTypeEnum = z.enum([
   "radioInput",
   "boolean",
   "url",
+  "attachment",
 ]);
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;
@@ -170,6 +171,7 @@ export const fieldTypeConfigSchema = z
       "boolean",
       "objectiveWithInput",
       "variants",
+      "attachment",
     ]),
     // It is the config that can tweak what an existing or a new field shows in the App UI or booker UI.
     variantsConfig: z
@@ -298,6 +300,59 @@ export const fieldTypesSchemaMap: Partial<
     }
   >
 > = {
+  attachment: {
+    preprocess: ({ response }) => {
+      // Accept either already-uploaded attachment or a fresh upload payload
+      if (typeof response !== "object" || response === null) return response;
+      return response;
+    },
+    superRefine: ({ response, ctx, m, field, isPartialSchema }) => {
+      const isRequired = field.required && !isPartialSchema;
+      if (!response) {
+        if (isRequired) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
+        }
+        return;
+      }
+
+      const attachments = Array.isArray(response) ? response : [response];
+
+      for (const attachment of attachments) {
+        if (typeof attachment !== "object" || attachment === null) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid attachment") });
+          return;
+        }
+
+        const { url, dataUrl, name, size } = attachment as {
+          url?: unknown;
+          dataUrl?: unknown;
+          name?: unknown;
+          size?: unknown;
+        };
+
+        const hasPayload = typeof url === "string" || typeof dataUrl === "string";
+        if (!hasPayload && isRequired) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
+          return;
+        }
+
+        if (size && typeof size === "number") {
+          const MAX_BYTES = 1 * 1024 * 1024; // 1MB
+          if (size > MAX_BYTES) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("file_size_limit_exceed"),
+            });
+            return;
+          }
+        }
+
+        if (name && typeof name !== "string") {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid attachment") });
+        }
+      }
+    },
+  },
   name: {
     preprocess: ({ response, field }) => {
       const fieldTypeConfig = fieldTypesConfigMap[field.type];
@@ -445,6 +500,15 @@ export const dbReadResponseSchema = z.union([
     optionValue: z.string(),
     value: z.string(),
   }),
+  z.array(
+    z.object({
+      name: z.string().optional(),
+      url: z.string().optional(),
+      dataUrl: z.string().optional(),
+      size: z.number().optional(),
+      type: z.string().optional(),
+    })
+  ),
   // For variantsConfig case
   z.record(z.string()),
 ]);

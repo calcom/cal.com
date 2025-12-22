@@ -18,6 +18,7 @@ const getUserBooking = async (uid: string) => {
       location: true,
       status: true,
       metadata: true,
+      paid: true,
       cancellationReason: true,
       cancelledBy: true,
       responses: true,
