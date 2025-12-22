@@ -94,11 +94,14 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
                   />
                 </div>
               </Tooltip>
-              <Tooltip content={t("webhook_version_docs")}>
+              <Tooltip
+                content={t("webhook_version_docs", {
+                  version: getWebhookVersionLabel(formMethods.watch("version")),
+                })}>
                 <Link
                   href={getWebhookVersionDocsUrl(formMethods.watch("version"))}
                   target="_blank"
-                  className="text-subtle hover:text-emphasis">
+                  className="text-subtle hover:text-emphasis flex items-center">
                   <Icon name="external-link" className="h-4 w-4" />
                 </Link>
               </Tooltip>

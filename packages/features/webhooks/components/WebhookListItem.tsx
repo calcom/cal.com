@@ -96,11 +96,11 @@ export default function WebhookListItem(props: {
               </Badge>
             </div>
           </Tooltip>
-          <Tooltip content={t("webhook_version_docs")}>
+          <Tooltip content={t("webhook_version_docs", { version: getWebhookVersionLabel(webhook.version) })}>
             <Link
               href={getWebhookVersionDocsUrl(webhook.version)}
               target="_blank"
-              className="text-subtle hover:text-emphasis ml-1">
+              className="text-subtle hover:text-emphasis ml-1 flex items-center">
               <Icon name="external-link" className="h-4 w-4" />
             </Link>
           </Tooltip>
