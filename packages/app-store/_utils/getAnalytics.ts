@@ -25,12 +25,14 @@ export const getAnalyticsService = async ({
 
   const analyticsApp = await analyticsAppImportFn;
 
-  const AnalyticsService = analyticsApp.default;
+  // Analytics services now export factory functions instead of classes
+  // to prevent SDK types from leaking into the type system
+  const createAnalyticsService = analyticsApp.default;
 
-  if (!AnalyticsService || typeof AnalyticsService !== "function") {
+  if (!createAnalyticsService || typeof createAnalyticsService !== "function") {
     log.warn(`analytics of type ${analyticsType} is not implemented`);
     return null;
   }
 
-  return new AnalyticsService(credential);
+  return createAnalyticsService(credential);
 };

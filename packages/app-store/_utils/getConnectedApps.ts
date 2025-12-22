@@ -183,9 +183,11 @@ export async function getConnectedApps({
         const paymentAppImportFn = PaymentServiceMap[app.dirName as keyof typeof PaymentServiceMap];
         if (paymentAppImportFn) {
           const paymentApp = await paymentAppImportFn;
+          // Payment services now export factory functions instead of classes
+          // to prevent SDK types from leaking into the type system
           if (paymentApp && "PaymentService" in paymentApp && paymentApp?.PaymentService) {
-            const PaymentService = paymentApp.PaymentService;
-            const paymentInstance = new PaymentService(credential);
+            const createPaymentService = paymentApp.PaymentService;
+            const paymentInstance = createPaymentService(credential);
             isSetupAlready = paymentInstance.isSetupAlready();
           }
         }
