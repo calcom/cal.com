@@ -61,10 +61,8 @@ const handlePayment = async ({
     console.warn(`payment App service not found for key: ${key}`);
     return null;
   }
-    // Payment services now export factory functions instead of classes
-    // to prevent SDK types from leaking into the type system
-    const createPaymentService = paymentAppModule.BuildPaymentService;
-    const paymentInstance = createPaymentService(paymentAppCredentials) as IAbstractPaymentService;
+  const createPaymentService = paymentAppModule.BuildPaymentService;
+  const paymentInstance = createPaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
   const apps = eventTypeMetaDataSchemaWithTypedApps.parse(selectedEventType?.metadata)?.apps;
 

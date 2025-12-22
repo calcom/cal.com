@@ -19,7 +19,6 @@ vi.mock("@calcom/lib/crypto", () => ({
 
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
 
-// Mock functions that we can spy on
 const mockGoogleGetAvailability = vi.fn().mockResolvedValue([]);
 const mockGoogleGetAvailabilityWithTimeZones = vi.fn().mockResolvedValue([]);
 const mockOfficeGetAvailability = vi.fn().mockResolvedValue([]);
