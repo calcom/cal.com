@@ -1,5 +1,4 @@
 import type { NextApiRequest } from "next";
-import { CreationSource } from "@calcom/prisma/enums";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
 import type { BookingResponse } from "@calcom/features/bookings/types";
@@ -45,10 +44,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
 
   const recurringBookingService = getRecurringBookingService();
   const createdBookings: BookingResponse[] = await recurringBookingService.createBooking({
-    bookingData: {
-      ...req.body,
-      creationSource: "WEBAPP",
-    },
+    bookingData: req.body,
     bookingMeta: {
       userId: session?.user?.id || -1,
       platformClientId: req.platformClientId,
@@ -58,6 +54,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
       platformBookingLocation: req.platformBookingLocation,
       noEmail: req.noEmail,
     },
+    creationSource: "WEBAPP",
   });
 
   return createdBookings;

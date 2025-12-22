@@ -59,14 +59,14 @@ const fireBookingEvents = async ({
 
   if (rescheduleUid && originalRescheduledBooking) {
     const movedToDifferentBooking = newBooking.uid && newBooking.uid !== previousSeatedBooking.uid;
-    const newBookingStartTime =
+    const newBookingStartTimeMs =
       movedToDifferentBooking && newBooking.startTime
-        ? new Date(newBooking.startTime).toISOString()
-        : previousSeatedBooking.startTime.toISOString();
-    const newBookingEndTime =
+        ? newBooking.startTime.getTime()
+        : previousSeatedBooking.startTime.getTime();
+    const newBookingEndTimeMs =
       movedToDifferentBooking && newBooking.endTime
-        ? new Date(newBooking.endTime).toISOString()
-        : previousSeatedBooking.endTime.toISOString();
+        ? newBooking.endTime.getTime()
+        : previousSeatedBooking.endTime.getTime();
 
     await deps.bookingEventHandler.onSeatRescheduled({
       bookingUid: previousSeatedBooking.uid,
@@ -76,12 +76,12 @@ const fireBookingEvents = async ({
         seatReferenceUid,
         attendeeEmail: bookerEmail,
         startTime: {
-          old: originalRescheduledBooking.startTime.toISOString(),
-          new: newBookingStartTime,
+          old: originalRescheduledBooking.startTime.getTime(),
+          new: newBookingStartTimeMs,
         },
         endTime: {
-          old: originalRescheduledBooking.endTime.toISOString(),
-          new: newBookingEndTime,
+          old: originalRescheduledBooking.endTime.getTime(),
+          new: newBookingEndTimeMs,
         },
         rescheduledToBookingUid: {
           old: null,

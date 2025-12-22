@@ -236,6 +236,9 @@ describe("BookingAuditViewerService - Integration Tests", () => {
 
         expect(result.auditLogs[0].actionDisplayTitle).toEqual({
           key: "booking_audit_action.created",
+          params: {
+            host: "Unknown"
+          },
         });
       });
 
@@ -607,11 +610,11 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(result.auditLogs).toHaveLength(2);
-        expect(result.auditLogs[0].id).toBe("rescheduled-log");
-        expect(result.auditLogs[0].bookingUid).toBe("new-booking-uid");
-        expect(result.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.rescheduled_from");
-        expect(result.auditLogs[0].displayJson).toHaveProperty("rescheduledFromUid", "old-booking-uid");
-        expect(result.auditLogs[1].id).toBe("current-log");
+        expect(result.auditLogs[1].id).toBe("rescheduled-log");
+        expect(result.auditLogs[1].bookingUid).toBe("new-booking-uid");
+        expect(result.auditLogs[1].actionDisplayTitle.key).toBe("booking_audit_action.rescheduled_from");
+        expect(result.auditLogs[1].displayJson).toHaveProperty("rescheduledFromUid", "old-booking-uid");
+        expect(result.auditLogs[0].id).toBe("current-log");
       });
 
       it("should not include rescheduled from log when booking was not rescheduled", async () => {

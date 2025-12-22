@@ -39,7 +39,7 @@
     "@axiomhq/winston": "^1.2.0",
     "@calcom/platform-constants": "workspace:*",
     "@calcom/platform-enums": "workspace:*",
-    "@calcom/platform-libraries": "workspace:*",
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@9.9.9",
     "@calcom/platform-types": "workspace:*",
     "@calcom/platform-utils": "workspace:*",
     "@calcom/prisma": "workspace:*",
