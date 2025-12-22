@@ -1,6 +1,6 @@
 import chokidar from "chokidar";
 import fs from "fs";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
@@ -16,13 +16,13 @@ import { getAppName } from "./utils/getAppName";
 
 const isInWatchMode = process.argv[2] === "--watch";
 
-const formatOutput = (source: string) =>
+const formatOutput = (source: string, parser: "babel" | "typescript" = "babel") =>
   prettier.format(source, {
-    parser: "babel",
+    parser,
     ...prettierConfig,
   });
 
-const getVariableName = (appName: string) => appName.replace(/[-.\/]/g, "_");
+const getVariableName = (appName: string) => appName.replace(/[-./]/g, "_");
 
 // INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
 const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
@@ -82,7 +82,7 @@ function generateFiles() {
           throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else if (fs.existsSync(metadataPath)) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         app = require(metadataPath).metadata;
       } else {
         app = {};
@@ -339,19 +339,36 @@ function generateFiles() {
     })
   );
 
+  // Add type imports for CRM interface to narrow the type and prevent SDK type leakage
+  // This prevents TypeScript from loading the full SDK types (e.g., @hubspot/api-client with 1,528 files)
+  // when type-checking packages that import CrmServiceMap
+  crmOutput.push(`import type { CRM } from "@calcom/types/CrmService";`);
+  crmOutput.push(`import type { CredentialPayload } from "@calcom/types/Credential";`);
+
+  // Define a type for CRM service constructors that doesn't expose SDK internals
   crmOutput.push(
-    ...getExportedObject(
-      "CrmServiceMap",
-      {
-        importConfig: {
-          fileToBeImported: "lib/CrmService.ts",
-          importName: "default",
-        },
-        lazyImport: true,
-      },
-      isCrmApp
-    )
+    `type CrmServiceConstructor = new (credential: CredentialPayload, appOptions?: Record<string, unknown>) => CRM;`
   );
+
+  // Helper function that takes a non-literal string parameter to prevent TypeScript from resolving
+  // the import at compile time. This is the key trick - TypeScript doesn't resolve import(expr)
+  // when expr is not a string literal, so it won't load the SDK's dependency tree.
+  crmOutput.push(
+    `const importCrmService = (path: string) => import(path) as Promise<{ default: CrmServiceConstructor }>;`
+  );
+
+  // Generate the CRM service map entries using the helper function
+  crmOutput.push(`export const CrmServiceMap: Record<string, Promise<{ default: CrmServiceConstructor }>> = {`);
+
+  forEachAppDir((app) => {
+    const crmServicePath = path.join(APP_STORE_PATH, app.path, "lib/CrmService.ts");
+    if (fs.existsSync(crmServicePath)) {
+      const modulePath = `./${app.path.replace(/\\/g, "/")}/lib/CrmService`;
+      crmOutput.push(`"${app.name}": importCrmService("${modulePath}"),`);
+    }
+  }, isCrmApp);
+
+  crmOutput.push(`};`);
 
   const calendarOutput = [];
   const calendarServices = getExportedObject(
@@ -480,6 +497,9 @@ function generateFiles() {
     Don't modify this file manually.
 **/
 `;
+  // Files that need TypeScript parser due to type annotations
+  const typescriptFiles = new Set(["crm.apps.generated.ts"]);
+
   const filesToGenerate: [string, string[]][] = [
     ["analytics.services.generated.ts", analyticsOutput],
     ["apps.metadata.generated.ts", metadataOutput],
@@ -494,7 +514,8 @@ function generateFiles() {
     ["video.adapters.generated.ts", videoOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
-    fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
+    const parser = typescriptFiles.has(fileName) ? "typescript" : "babel";
+    fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`, parser));
   });
   console.log(`Generated ${filesToGenerate.map(([fileName]) => fileName).join(", ")}`);
 }
