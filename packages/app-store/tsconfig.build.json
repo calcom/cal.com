@@ -4,7 +4,7 @@
     "composite": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "declarationDir": "dist-types",
+    "declarationDir": "types",
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
@@ -25,7 +25,7 @@
   ],
   "exclude": [
     "dist",
-    "dist-types",
+    "types",
     "build",
     "**/node_modules/**",
     "**/*.test.ts",

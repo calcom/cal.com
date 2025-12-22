@@ -321,7 +321,7 @@
       "dependsOn": ["@calcom/prisma#db-up"]
     },
     "@calcom/app-store#build:types": {
-      "outputs": ["dist-types/**"]
+      "outputs": ["types/**"]
     },
     "@calcom/trpc#build": {
       "dependsOn": ["@calcom/prisma#post-install"],

@@ -7,7 +7,7 @@
   "typesVersions": {
     "*": {
       "*": [
-        "./dist-types/*",
+        "./types/*",
         "./*"
       ]
     }

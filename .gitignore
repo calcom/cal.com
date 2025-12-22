@@ -75,7 +75,7 @@ packages/prisma/enums
 
 # Builds
 dist
-packages/app-store/dist-types
+packages/app-store/types
 
 # Linting
 lint-results
