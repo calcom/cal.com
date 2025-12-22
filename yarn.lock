@@ -20222,7 +20222,7 @@ __metadata:
     prismock: "npm:1.35.3"
     resize-observer-polyfill: "npm:^1.5.1"
     tsc-absolute: "npm:^1.0.0"
-    turbo: "npm:^2.5.5"
+    turbo: "npm:2.7.1"
     typescript: "npm:5.9.0-beta"
     vitest: "npm:^2.1.9"
     vitest-fetch-mock: "npm:^0.3.0"
@@ -41736,9 +41736,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"turbo-darwin-64@npm:2.7.1":
+  version: 2.7.1
+  resolution: "turbo-darwin-64@npm:2.7.1"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
 "turbo-darwin-arm64@npm:2.5.5":
   version: 2.5.5
   resolution: "turbo-darwin-arm64@npm:2.5.5"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo-darwin-arm64@npm:2.7.1":
+  version: 2.7.1
+  resolution: "turbo-darwin-arm64@npm:2.7.1"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -41750,9 +41764,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"turbo-linux-64@npm:2.7.1":
+  version: 2.7.1
+  resolution: "turbo-linux-64@npm:2.7.1"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
 "turbo-linux-arm64@npm:2.5.5":
   version: 2.5.5
   resolution: "turbo-linux-arm64@npm:2.5.5"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo-linux-arm64@npm:2.7.1":
+  version: 2.7.1
+  resolution: "turbo-linux-arm64@npm:2.7.1"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
@@ -41764,10 +41792,53 @@ __metadata:
   languageName: node
   linkType: hard
 
+"turbo-windows-64@npm:2.7.1":
+  version: 2.7.1
+  resolution: "turbo-windows-64@npm:2.7.1"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
 "turbo-windows-arm64@npm:2.5.5":
   version: 2.5.5
   resolution: "turbo-windows-arm64@npm:2.5.5"
   conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo-windows-arm64@npm:2.7.1":
+  version: 2.7.1
+  resolution: "turbo-windows-arm64@npm:2.7.1"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo@npm:2.7.1":
+  version: 2.7.1
+  resolution: "turbo@npm:2.7.1"
+  dependencies:
+    turbo-darwin-64: "npm:2.7.1"
+    turbo-darwin-arm64: "npm:2.7.1"
+    turbo-linux-64: "npm:2.7.1"
+    turbo-linux-arm64: "npm:2.7.1"
+    turbo-windows-64: "npm:2.7.1"
+    turbo-windows-arm64: "npm:2.7.1"
+  dependenciesMeta:
+    turbo-darwin-64:
+      optional: true
+    turbo-darwin-arm64:
+      optional: true
+    turbo-linux-64:
+      optional: true
+    turbo-linux-arm64:
+      optional: true
+    turbo-windows-64:
+      optional: true
+    turbo-windows-arm64:
+      optional: true
+  bin:
+    turbo: bin/turbo
+  checksum: 10/0497f55a9d26499914d871b5393354ce6b84d946ce61970564c5e1ce05346980e5d96164cffee975e78d80fc50f040ddc9f2ef608ba0bfd1c645de2e225ee7d7
   languageName: node
   linkType: hard
 
