@@ -39,6 +39,12 @@ export interface GoogleCalendar extends Calendar {
   upsertSelectedCalendar(
     data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
   ): Promise<unknown>;
+
+  createSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+  ): Promise<unknown>;
+
+  authedCalendar(): Promise<calendar_v3.Calendar>;
 }
 
 interface GoogleCalError extends Error {
