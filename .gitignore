@@ -60,7 +60,7 @@ yarn-error.log*
 .history/
 
 # Typescript
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # turbo
 .turbo
