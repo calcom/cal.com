@@ -6,21 +6,13 @@ import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetAuditLogsInputSchema } from "./getAuditLogs.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
+import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
+import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { bookingsProcedure } from "./util";
-
-type BookingsRouterHandlerCache = {
-  get?: typeof import("./get.handler").getHandler;
-  requestReschedule?: typeof import("./requestReschedule.handler").requestRescheduleHandler;
-  editLocation?: typeof import("./editLocation.handler").editLocationHandler;
-  addGuests?: typeof import("./addGuests.handler").addGuestsHandler;
-  confirm?: typeof import("./confirm.handler").confirmHandler;
-  getBookingAttendees?: typeof import("./getBookingAttendees.handler").getBookingAttendeesHandler;
-  find?: typeof import("./find.handler").getHandler;
-  getInstantBookingLocation?: typeof import("./getInstantBookingLocation.handler").getHandler;
-};
 
 export const bookingsRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
@@ -79,6 +71,15 @@ export const bookingsRouter = router({
       });
     }),
 
+  getBookingDetails: authedProcedure.input(ZGetBookingDetailsInputSchema).query(async ({ input, ctx }) => {
+    const { getBookingDetailsHandler } = await import("./getBookingDetails.handler");
+
+    return getBookingDetailsHandler({
+      ctx,
+      input,
+    });
+  }),
+
   find: publicProcedure.input(ZFindInputSchema).query(async ({ input, ctx }) => {
     const { getHandler } = await import("./find.handler");
 
@@ -98,4 +99,21 @@ export const bookingsRouter = router({
         input,
       });
     }),
+
+  reportBooking: authedProcedure.input(ZReportBookingInputSchema).mutation(async ({ input, ctx }) => {
+    const { reportBookingHandler } = await import("./reportBooking.handler");
+
+    return reportBookingHandler({
+      ctx,
+      input,
+    });
+  }),
+  getAuditLogs: authedProcedure.input(ZGetAuditLogsInputSchema).query(async ({ input, ctx }) => {
+    const { getAuditLogsHandler } = await import("./getAuditLogs.handler");
+
+    return getAuditLogsHandler({
+      ctx,
+      input,
+    });
+  }),
 });

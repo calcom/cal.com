@@ -18,6 +18,7 @@ import { UpgradeTip } from "../../../tips";
 import TeamList from "./TeamList";
 
 type TeamsListingProps = {
+  invitationAccepted: boolean;
   orgId: number | null;
   permissions: {
     canCreateTeam: boolean;
@@ -28,6 +29,7 @@ type TeamsListingProps = {
 };
 
 export function TeamsListing({
+  invitationAccepted,
   orgId,
   permissions,
   teams: data,
@@ -93,13 +95,18 @@ export function TeamsListing({
       return;
     }
 
-    if (teamNameFromInvite) {
-      showToast(t("team_invite_received", { teamName: teamNameFromInvite }), "success");
+    if (errorMsgFromInvite) {
+      showToast(errorMsgFromInvite, "error");
       return;
     }
 
-    if (errorMsgFromInvite) {
-      showToast(errorMsgFromInvite, "error");
+    if (invitationAccepted) {
+      showToast(t("successfully_joined"), "success");
+      return;
+    }
+
+    if (teamNameFromInvite) {
+      showToast(t("team_invite_received", { teamName: teamNameFromInvite }), "success");
       return;
     }
   }, []);
@@ -131,7 +138,7 @@ export function TeamsListing({
           background="/tips/teams"
           buttons={
             !orgId || permissions.canCreateTeam ? (
-              <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+              <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
                 <ButtonGroup>
                   <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                     {t("create_team")}

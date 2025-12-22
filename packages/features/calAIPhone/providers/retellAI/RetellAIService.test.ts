@@ -11,31 +11,6 @@ import { RetellAIError } from "./errors";
 import { createMockDatabaseAgent } from "./services/__tests__/test-utils";
 import type { RetellAIRepository } from "./types";
 
-vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
-  PrismaPhoneNumberRepository: {
-    createPhoneNumber: vi.fn(),
-    findByPhoneNumberAndUserId: vi.fn(),
-    deletePhoneNumber: vi.fn(),
-    updateAgents: vi.fn(),
-    updateSubscriptionStatus: vi.fn(),
-    findByIdAndUserId: vi.fn(),
-  },
-}));
-vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
-  PrismaAgentRepository: {
-    findByIdWithUserAccess: vi.fn(),
-    findByProviderAgentIdWithUserAccess: vi.fn(),
-    findManyWithUserAccess: vi.fn(),
-    findByIdWithUserAccessAndDetails: vi.fn(),
-    canManageTeamResources: vi.fn(),
-    create: vi.fn(),
-    linkToWorkflowStep: vi.fn(),
-    findByIdWithAdminAccess: vi.fn(),
-    delete: vi.fn(),
-    findByIdWithCallAccess: vi.fn(),
-  },
-}));
-
 vi.mock("@calcom/app-store/stripepayment/lib/customer", () => ({
   getStripeCustomerIdFromUserId: vi.fn(),
 }));
@@ -104,7 +79,7 @@ describe("RetellAIService", () => {
       getLLM: vi.fn(),
       updateLLM: vi.fn(),
       deleteLLM: vi.fn(),
-      createAgent: vi.fn(),
+      createOutboundAgent: vi.fn(),
       getAgent: vi.fn(),
       updateAgent: vi.fn(),
       deleteAgent: vi.fn(),
@@ -128,7 +103,7 @@ describe("RetellAIService", () => {
       findByIdWithAdminAccess: vi.fn(),
       findByIdWithCallAccess: vi.fn(),
       delete: vi.fn(),
-      linkToWorkflowStep: vi.fn(),
+      linkOutboundAgentToWorkflow: vi.fn(),
     };
     mockAgentRepository = agentRepository as unknown as AgentRepositoryInterface;
 
@@ -192,7 +167,7 @@ describe("RetellAIService", () => {
       const mockLLM = { llm_id: "llm-123" };
       const mockAgent = { agent_id: "agent-123" };
       mockRepository.createLLM.mockResolvedValue(mockLLM);
-      mockRepository.createAgent.mockResolvedValue(mockAgent);
+      mockRepository.createOutboundAgent.mockResolvedValue(mockAgent);
 
       const result = await service.setupAIConfiguration({});
 
@@ -215,7 +190,7 @@ describe("RetellAIService", () => {
       const mockAgent = { agent_id: "agent-123" };
 
       mockRepository.createLLM.mockResolvedValue(mockLLM);
-      mockRepository.createAgent.mockResolvedValue(mockAgent);
+      mockRepository.createOutboundAgent.mockResolvedValue(mockAgent);
 
       await service.setupAIConfiguration({
         calApiKey: "cal-key",
@@ -566,7 +541,7 @@ describe("RetellAIService", () => {
       expect(mockRepository.updateLLM).toHaveBeenCalledWith("llm-123", {
         general_prompt: "Updated prompt",
         begin_message: "Updated message",
-        general_tools: null,
+        general_tools: undefined,
       });
     });
   });
@@ -732,7 +707,7 @@ describe("RetellAIService", () => {
       expect(mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: true,
       });
     });
   });
@@ -813,10 +788,10 @@ describe("RetellAIService", () => {
     });
   });
 
-  describe("createAgent", () => {
+  describe("createOutboundAgent", () => {
     it("should create agent successfully", async () => {
       mockRepository.createLLM.mockResolvedValue({ llm_id: "llm-123" });
-      mockRepository.createAgent.mockResolvedValue({ agent_id: "agent-123" });
+      mockRepository.createOutboundAgent.mockResolvedValue({ agent_id: "agent-123" });
       mockAgentRepository.create.mockResolvedValue({
         id: "db-agent-123",
         name: "Test Agent",
@@ -828,7 +803,7 @@ describe("RetellAIService", () => {
         updatedAt: new Date(),
       });
 
-      const result = await service.createAgent({
+      const result = await service.createOutboundAgent({
         name: "Test Agent",
         userId: 1,
         userTimeZone: "America/New_York",
@@ -942,7 +917,7 @@ describe("RetellAIService", () => {
 
       expect(vi.mocked(checkRateLimitAndThrowError)).toHaveBeenCalledWith({
         rateLimitingType: "core",
-        identifier: "test-call:1",
+        identifier: "createTestCall:1",
       });
       expect(result).toEqual({
         callId: "call-123",
@@ -996,7 +971,6 @@ describe("RetellAIService", () => {
     it("should throw error if agent not found", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
-      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
       // Mock sufficient credits
       const mockHasAvailableCredits = vi.fn().mockResolvedValue(true);
@@ -1005,7 +979,7 @@ describe("RetellAIService", () => {
       }));
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
-      (PrismaAgentRepository.findByIdWithCallAccess as any).mockResolvedValue(null);
+      mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(null);
 
       await expect(
         service.createTestCall({

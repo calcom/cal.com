@@ -1,3 +1,4 @@
+import { getCredentialForSelectedCalendar } from "@calcom/app-store/delegationCredential";
 import type {
   AdapterFactory,
   CalendarSubscriptionProvider,
@@ -9,9 +10,8 @@ import type {
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
+import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository.interface";
 import logger from "@calcom/lib/logger";
-import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
@@ -35,15 +35,18 @@ export class CalendarSubscriptionService {
    */
   async subscribe(selectedCalendarId: string): Promise<void> {
     log.debug("subscribe", { selectedCalendarId });
-    const selectedCalendar = await this.deps.selectedCalendarRepository.findByIdWithCredentials(
-      selectedCalendarId
-    );
-    if (!selectedCalendar?.credentialId) {
+    const selectedCalendar = await this.deps.selectedCalendarRepository.findById(selectedCalendarId);
+    if (!selectedCalendar) {
       log.debug("Selected calendar not found", { selectedCalendarId });
       return;
     }
 
-    const credential = await this.getCredential(selectedCalendar.credentialId);
+    if (!selectedCalendar.credentialId && !selectedCalendar.delegationCredentialId) {
+      log.debug("Selected calendar doesn't have credentials", { selectedCalendarId });
+      return;
+    }
+
+    const credential = await this.getCredential(selectedCalendar);
     if (!credential) {
       log.debug("Calendar credential not found", { selectedCalendarId });
       return;
@@ -72,12 +75,18 @@ export class CalendarSubscriptionService {
    */
   async unsubscribe(selectedCalendarId: string): Promise<void> {
     log.debug("unsubscribe", { selectedCalendarId });
-    const selectedCalendar = await this.deps.selectedCalendarRepository.findByIdWithCredentials(
-      selectedCalendarId
-    );
-    if (!selectedCalendar?.credentialId) return;
+    const selectedCalendar = await this.deps.selectedCalendarRepository.findById(selectedCalendarId);
+    if (!selectedCalendar) {
+      log.debug("Selected calendar not found", { selectedCalendarId });
+      return;
+    }
 
-    const credential = await this.getCredential(selectedCalendar.credentialId);
+    if (!selectedCalendar.credentialId && !selectedCalendar.delegationCredentialId) {
+      log.debug("Selected calendar doesn't have credentials", { selectedCalendarId });
+      return;
+    }
+
+    const credential = await this.getCredential(selectedCalendar);
     if (!credential) return;
 
     const calendarSubscriptionAdapter = this.deps.adapterFactory.get(
@@ -133,10 +142,11 @@ export class CalendarSubscriptionService {
       selectedCalendar.integration as CalendarSubscriptionProvider
     );
 
-    if (!selectedCalendar.credentialId) {
-      log.debug("Selected calendar credential not found", { channelId: selectedCalendar.channelId });
+    if (!selectedCalendar.credentialId && !selectedCalendar.delegationCredentialId) {
+      log.debug("Selected Calendar doesn't have credentials", { selectedCalendarId: selectedCalendar.id });
       return;
     }
+
     // for cache the feature should be enabled globally and by user/team features
     const [cacheEnabled, syncEnabled, cacheEnabledForUser] = await Promise.all([
       this.isCacheEnabled(),
@@ -150,7 +160,7 @@ export class CalendarSubscriptionService {
     }
 
     log.debug("Processing events", { channelId: selectedCalendar.channelId });
-    const credential = await this.getCredential(selectedCalendar.credentialId);
+    const credential = await this.getCredential(selectedCalendar);
     if (!credential) return;
 
     let events: CalendarSubscriptionEvent | null = null;
@@ -194,9 +204,14 @@ export class CalendarSubscriptionService {
    * Subscribe periodically to new calendars
    */
   async checkForNewSubscriptions() {
+    const teamIds = await this.deps.featuresRepository.getTeamsWithFeatureEnabled(
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+    );
+
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
+      teamIds,
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
     await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
@@ -236,8 +251,12 @@ export class CalendarSubscriptionService {
   /**
    * Get credential with delegation if available
    */
-  private async getCredential(credentialId: number): Promise<CalendarCredential | null> {
-    const credential = await getCredentialForCalendarCache({ credentialId });
+  private async getCredential(selectedCalendar: SelectedCalendar): Promise<CalendarCredential | null> {
+    if (!selectedCalendar.credentialId && !selectedCalendar.delegationCredentialId) {
+      log.debug("Selected calendar doesn't have any credential");
+      return null;
+    }
+    const credential = await getCredentialForSelectedCalendar(selectedCalendar);
     if (!credential) return null;
     return {
       ...credential,

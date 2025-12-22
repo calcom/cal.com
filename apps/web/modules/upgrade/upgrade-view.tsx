@@ -31,7 +31,7 @@ export default function UpgradePage() {
 
   return (
     <Shell>
-      <div className="max-w-screen-lg">
+      <div className="max-w-(--breakpoint-lg)">
         {doesUserHaveOrgToUpgrade.data ? (
           <EmptyScreen
             headline={t("your_upgrade_is_here")}

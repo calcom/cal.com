@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -5,6 +7,8 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { Dialog } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -28,6 +32,7 @@ const ApiKeyListItem = ({
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const isExpired = apiKey?.expiresAt ? apiKey.expiresAt < new Date() : null;
   const neverExpires = apiKey?.expiresAt === null;
@@ -84,11 +89,7 @@ const ApiKeyListItem = ({
                 type="button"
                 color="destructive"
                 disabled={deleteApiKey.isPending}
-                onClick={() =>
-                  deleteApiKey.mutate({
-                    id: apiKey.id,
-                  })
-                }
+                onClick={() => setDeleteDialogOpen(true)}
                 StartIcon="trash">
                 {t("delete") as string}
               </DropdownItem>
@@ -96,6 +97,25 @@ const ApiKeyListItem = ({
           </DropdownMenuContent>
         </Dropdown>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_api_key_confirm_title")}
+          confirmBtnText={t("confirm_delete_api_key")}
+          loadingText={t("confirm_delete_api_key")}
+          isPending={deleteApiKey.isPending}
+          onConfirm={() => {
+            deleteApiKey.mutate({
+              id: apiKey.id,
+            });
+            setDeleteDialogOpen(false);
+          }}>
+          <div className="mt-2">
+            <p className="text-subtle text-sm">{t("delete_api_key_warning")}</p>
+          </div>
+        </ConfirmationDialogContent>
+      </Dialog>
     </div>
   );
 };

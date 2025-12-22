@@ -106,10 +106,10 @@ export const EventSetupTab = (
 
   return (
     <div>
-      <div className={classNames("space-y-4", customClassNames?.wrapper)}>
+      <div className={classNames("stack-y-4", customClassNames?.wrapper)}>
         <div
           className={classNames(
-            "border-subtle space-y-6 rounded-lg border p-6",
+            "border-subtle stack-y-6 rounded-lg border p-6",
             customClassNames?.titleSection?.container
           )}>
           <TextField
@@ -169,7 +169,7 @@ export const EventSetupTab = (
             className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
-                <>
+                <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
                   {urlPrefix}/
                   {!isManagedEventType
                     ? team
@@ -177,7 +177,7 @@ export const EventSetupTab = (
                       : formMethods.getValues("users")[0].username
                     : t("username_placeholder")}
                   /
-                </>
+                </span>
               )
             }
             {...formMethods.register("slug", {
@@ -193,7 +193,7 @@ export const EventSetupTab = (
           {multipleDuration ? (
             <div
               className={classNames(
-                "space-y-6",
+                "stack-y-6",
                 customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.container
               )}>
               <div>
@@ -212,7 +212,7 @@ export const EventSetupTab = (
                   isSearchable={false}
                   isDisabled={lengthLockedProps.disabled}
                   className={classNames(
-                    "h-auto !min-h-[36px] text-sm",
+                    "h-auto min-h-[36px]! text-sm",
                     customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.select
                   )}
                   innerClassNames={
@@ -312,7 +312,7 @@ export const EventSetupTab = (
             />
           )}
           {!lengthLockedProps.disabled && (
-            <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
+            <div className="mt-4! [&_label]:my-1 [&_label]:font-normal">
               <SettingsToggle
                 title={t("allow_multiple_durations")}
                 checked={multipleDuration !== undefined}

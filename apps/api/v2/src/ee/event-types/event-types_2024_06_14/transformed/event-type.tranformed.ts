@@ -38,6 +38,8 @@ export type InputEventTransformed_2024_06_14 = Omit<
   bookingFields?: ReturnType<typeof transformBookingFieldsApiToInternal>;
   durationLimits?: ReturnType<typeof transformIntervalLimitsApiToInternal>;
   recurringEvent?: ReturnType<typeof transformRecurrenceApiToInternal>;
+  maxActiveBookingsPerBooker?: number;
+  maxActiveBookingPerBookerOfferReschedule?: boolean;
   eventTypeColor?: ReturnType<typeof transformEventColorsApiToInternal>;
   useEventTypeDestinationCalendarEmail?: boolean;
 } & Partial<

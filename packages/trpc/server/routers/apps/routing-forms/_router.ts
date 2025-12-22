@@ -8,10 +8,11 @@ import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 import { ZGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
+import { ZFormByResponseIdInputSchema } from "./getResponseWithFormFields.schema";
 import { forms } from "./procedures/forms";
 import { ZSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const UNSTABLE_HANDLER_CACHE: Record<string, Function> = {};
 
 // TODO: Move getHandler and UNSTABLE_HANDLER_CACHE to a common utils file making sure that there is no name collision across routes
@@ -24,7 +25,7 @@ const UNSTABLE_HANDLER_CACHE: Record<string, Function> = {};
  */
 const getHandler = async <
   T extends {
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     default: Function;
   }
 >(
@@ -44,10 +45,6 @@ const getHandler = async <
 
   return UNSTABLE_HANDLER_CACHE[nameInCache] as unknown as T["default"];
 };
-
-export const ZFormByResponseIdInputSchema = z.object({
-  formResponseId: z.number(),
-});
 
 export type TFormQueryInputSchema = z.infer<typeof ZFormQueryInputSchema>;
 

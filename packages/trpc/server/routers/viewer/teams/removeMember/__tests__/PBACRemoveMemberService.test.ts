@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach, type Mock } from "vitest";
 
 import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { TeamService } from "@calcom/lib/server/service/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -18,7 +18,7 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/service/teamService");
+vi.mock("@calcom/features/ee/teams/services/teamService");
 vi.mock("@calcom/features/ee/teams/lib/queries");
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/pbac/domain/mappers/PermissionMapper");

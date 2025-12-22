@@ -62,13 +62,13 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
   return (
     <div
       className={classNames(
-        highlight && "dark:bg-muted bg-yellow-100",
+        highlight && "dark:bg-cal-muted bg-yellow-100",
         className || classNameObject?.container
       )}>
       <div className="flex items-start gap-x-3 px-4 py-4 sm:px-6">
         {logo ? (
           <img
-            className={classNames(logo.includes("-dark") && "dark:invert", "h-10 w-10 flex-shrink-0")}
+            className={classNames(logo.includes("-dark") && "dark:invert", "h-10 w-10 shrink-0")}
             src={logo}
             alt={`${title} logo`}
           />
@@ -79,27 +79,27 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
               className={classNames("text-emphasis truncate text-sm font-semibold", classNameObject?.title)}>
               {title}
             </h3>
-            <div className="flex flex-shrink-0 items-center gap-x-2">
+            <div className="flex shrink-0 items-center gap-x-2">
               {isDefault && <Badge variant="green">{t("default")}</Badge>}
               {isTemplate && <Badge variant="red">Template</Badge>}
             </div>
           </div>
           <ListItemText
             component="p"
-            className={classNames("whitespace-normal break-words", classNameObject?.description)}>
+            className={classNames("whitespace-normal wrap-break-word", classNameObject?.description)}>
             {description}
           </ListItemText>
           {invalidCredential && (
             <div className="flex gap-x-2 pt-2">
-              <Icon name="circle-alert" className="h-8 w-8 flex-shrink-0 text-red-500 sm:h-4 sm:w-4" />
-              <ListItemText component="p" className="whitespace-pre-wrap break-words text-red-500">
+              <Icon name="circle-alert" className="h-8 w-8 shrink-0 text-red-500 sm:h-4 sm:w-4" />
+              <ListItemText component="p" className="whitespace-pre-wrap wrap-break-word text-red-500">
                 {t("invalid_credential", { appName: title })}
               </ListItemText>
             </div>
           )}
         </div>
         {credentialOwner && (
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Badge variant="gray">
               <div className="flex items-center">
                 <Avatar
@@ -113,7 +113,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
             </Badge>
           </div>
         )}
-        {actions && <div className="flex-shrink-0">{actions}</div>}
+        {actions && <div className="shrink-0">{actions}</div>}
       </div>
       <div className="w-full">{children}</div>
     </div>

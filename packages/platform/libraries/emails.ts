@@ -1,3 +1,4 @@
+import AttendeeAddGuestsEmail from "@calcom/emails/templates/attendee-add-guests-email";
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
 import AttendeeRequestEmail from "@calcom/emails/templates/attendee-request-email";
@@ -5,6 +6,7 @@ import AttendeeRescheduledEmail from "@calcom/emails/templates/attendee-reschedu
 import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-email";
 import AttendeeUpdatedEmail from "@calcom/emails/templates/attendee-updated-email";
 import AttendeeVerifyEmail from "@calcom/emails/templates/attendee-verify-email";
+import OrganizerAddGuestsEmail from "@calcom/emails/templates/organizer-add-guests-email";
 import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
 import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
 import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-email";
@@ -15,6 +17,10 @@ import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewe
 import { verifyEmailCodeHandler } from "@calcom/trpc/server/routers/viewer/workflows/verifyEmailCode.handler";
 
 export { AttendeeVerifyEmail };
+
+export { AttendeeAddGuestsEmail };
+
+export { OrganizerAddGuestsEmail };
 
 export { AttendeeScheduledEmail };
 

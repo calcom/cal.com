@@ -1,20 +1,21 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
+import { DateRangePicker, TextArea, Input, Checkbox } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
@@ -29,6 +30,7 @@ export type BookingRedirectForm = {
   toTeamUserId: number | null;
   reasonId: number;
   notes?: string;
+  showNotePublicly?: boolean;
   uuid?: string | null;
   forUserId: number | null;
   forUserName?: string;
@@ -67,7 +69,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     value: number;
     label: string;
     avatarUrl: string | null;
-  }[] = !!currentlyEditingOutOfOfficeEntry
+  }[] = currentlyEditingOutOfOfficeEntry
     ? [
         {
           value: currentlyEditingOutOfOfficeEntry.forUserId || -1,
@@ -155,11 +157,33 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           toTeamUserId: null,
           reasonId: 1,
           forUserId: null,
+          showNotePublicly: false,
         },
   });
 
   const watchedTeamUserId = watch("toTeamUserId");
   const watchForUserId = watch("forUserId");
+  const watchedDateRange = watch("dateRange");
+  const watchedNotes = watch("notes");
+  const hasValidNotes = Boolean(watchedNotes?.trim());
+
+  // Fetch user's holiday settings to show warning if OOO dates overlap with holidays
+  const { data: holidaySettings } = trpc.viewer.holidays.getUserSettings.useQuery({});
+
+  // Check if selected dates overlap with any enabled holidays
+  const overlappingHolidays = useMemo(() => {
+    if (!holidaySettings?.countryCode || !watchedDateRange?.startDate || !watchedDateRange?.endDate) {
+      return [];
+    }
+
+    // Filter holidays that are enabled and fall within the date range
+    const startStr = dayjs(watchedDateRange.startDate).format("YYYY-MM-DD");
+    const endStr = dayjs(watchedDateRange.endDate).format("YYYY-MM-DD");
+
+    return (holidaySettings.holidays || [])
+      .filter((h) => h.enabled && h.date >= startStr && h.date <= endStr)
+      .map((h) => ({ date: h.date, holiday: { id: h.id, name: h.name } }));
+  }, [holidaySettings, watchedDateRange]);
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
@@ -236,7 +260,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                     />
                     <div
                       className={`scroll-bar bg-default mt-2 flex ${
-                        !!currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
+                        currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
                       } flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1`}>
                       {oooMemberListOptions.map((member) => (
                         <label
@@ -306,6 +330,29 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   )}
                 />
               </div>
+
+              {/* Holiday overlap warning */}
+              {overlappingHolidays.length > 0 && (
+                <Alert
+                  className="mt-2"
+                  severity="info"
+                  title={t("holiday_overlap_info")}
+                  message={
+                    overlappingHolidays.length === 1
+                      ? t("holiday_overlap_message_single", {
+                          holiday: overlappingHolidays[0].holiday.name,
+                          date: dayjs(overlappingHolidays[0].date).format("D MMM"),
+                        })
+                      : t("holiday_overlap_message_multiple", {
+                          count: overlappingHolidays.length,
+                          holidays: overlappingHolidays
+                            .slice(0, 3)
+                            .map((h) => h.holiday.name)
+                            .join(", "),
+                        })
+                  }
+                />
+              )}
             </div>
 
             {/* Reason Select */}
@@ -336,19 +383,46 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
             {/* Notes input */}
             <div className="mt-4">
-              <p className="text-emphasis block text-sm font-medium">{t("notes")}</p>
+              <p className="text-emphasis text-sm font-medium">{t("notes")}</p>
               <TextArea
                 data-testid="notes_input"
-                className="border-subtle mt-1 h-10 w-full rounded-lg border px-2"
+                className="border-subtle mt-2 h-10 w-full rounded-lg border px-2"
                 placeholder={t("additional_notes")}
                 {...register("notes")}
                 onChange={(e) => {
-                  setValue("notes", e?.target.value);
+                  const newNotes = e?.target.value;
+                  setValue("notes", newNotes);
+                  if (!newNotes?.trim()) {
+                    setValue("showNotePublicly", false);
+                  }
                 }}
+              />
+              <Controller
+                control={control}
+                name="showNotePublicly"
+                render={({ field: { value, onChange } }) => (
+                  <div className="mt-2 flex items-center">
+                    <Checkbox
+                      id="show-note-publicly"
+                      data-testid="show-note-publicly-checkbox"
+                      checked={value ?? false}
+                      onCheckedChange={onChange}
+                      disabled={!hasValidNotes}
+                    />
+                    <label
+                      htmlFor="show-note-publicly"
+                      className={classNames(
+                        "ml-2 text-sm",
+                        hasValidNotes ? "text-emphasis cursor-pointer" : "text-muted cursor-not-allowed"
+                      )}>
+                      {t("show_note_publicly_description")}
+                    </label>
+                  </div>
+                )}
               />
             </div>
 
-            <div className="bg-muted my-4 rounded-xl p-5">
+            <div className="bg-cal-muted my-4 rounded-xl p-5">
               <div className="flex flex-row">
                 <Switch
                   disabled={!hasTeamPlan}

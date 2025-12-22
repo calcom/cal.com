@@ -7,8 +7,6 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger }
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 
-import type { Team } from "@calcom/prisma/client";
-
 @Injectable()
 export class RolesGuard implements CanActivate {
   private readonly logger = new Logger("RolesGuard Logger");
@@ -19,7 +17,13 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { team: Team }>();
+    const request = context.switchToHttp().getRequest<Request & { pbacAuthorizedRequest?: boolean }>();
+
+    if (request.pbacAuthorizedRequest === true) {
+      this.logger.debug("PBAC authorized request, skipping legacy role checking");
+      return true;
+    }
+
     const teamId = request.params.teamId as string;
     const orgId = request.params.orgId as string;
     const user = request.user as ApiAuthGuardUser;

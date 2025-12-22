@@ -1,8 +1,11 @@
 import { lookup } from "dns";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
+import { isNotACompanyEmail } from "@calcom/ee/organizations/lib/server/orgCreationUtils";
+import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import {
   RESERVED_SUBDOMAINS,
@@ -12,8 +15,6 @@ import {
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -22,47 +23,6 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
-
-/**
- * We can only say for sure that the email is not a company email. We can't say for sure if it is a company email.
- */
-function isNotACompanyEmail(email: string) {
-  // A list of popular @domains that can't be used to allow automatic acceptance of memberships to organization
-  const emailProviders = [
-    "gmail.com",
-    "yahoo.com",
-    "outlook.com",
-    "hotmail.com",
-    "aol.com",
-    "icloud.com",
-    "mail.com",
-    "protonmail.com",
-    "zoho.com",
-    "yandex.com",
-    "gmx.com",
-    "fastmail.com",
-    "inbox.com",
-    "me.com",
-    "hushmail.com",
-    "live.com",
-    "rediffmail.com",
-    "tutanota.com",
-    "mail.ru",
-    "usa.com",
-    "qq.com",
-    "163.com",
-    "web.de",
-    "rocketmail.com",
-    "excite.com",
-    "lycos.com",
-    "outlook.co",
-    "hotmail.co.uk",
-  ];
-
-  const emailParts = email.split("@");
-  if (emailParts.length < 2) return true;
-  return emailProviders.includes(emailParts[1]);
-}
 
 type CreateOptions = {
   ctx: {
@@ -84,6 +44,7 @@ const getIPAddress = async (url: string): Promise<string> => {
  * TODO: To be removed. We need to reuse the logic from orgCreationUtils like in intentToCreateOrgHandler
  */
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
+  const organizationRepository = getOrganizationRepository();
   const {
     slug,
     name,
@@ -223,11 +184,13 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     logoUrl: null,
     bio: null,
     paymentSubscriptionId: null,
+    brandColor: null,
+    bannerUrl: null,
   };
 
   // Create a new user and invite them as the owner of the organization
   if (!orgOwner) {
-    const data = await OrganizationRepository.createWithNonExistentOwner({
+    const data = await organizationRepository.createWithNonExistentOwner({
       orgData,
       owner: {
         email: orgOwnerEmail,
@@ -284,7 +247,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     const nonOrgUsernameForOwner = orgOwner.username || "";
-    const { organization, ownerProfile } = await OrganizationRepository.createWithExistingUserAsOwner({
+    const { organization, ownerProfile } = await organizationRepository.createWithExistingUserAsOwner({
       orgData,
       owner: {
         id: orgOwner.id,

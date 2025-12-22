@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
@@ -14,7 +14,7 @@ import type { PermissionService } from "../permission.service";
 
 vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
-vi.mock("@calcom/lib/server/repository/membership");
+vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("../permission.service");
 
 vi.mock("@calcom/prisma", () => ({
@@ -123,9 +123,10 @@ describe("PermissionCheckService", () => {
       expect(mockRepository.checkRolePermission).not.toHaveBeenCalled();
     });
 
-    it("should return false if membership not found when PBAC disabled", async () => {
+    it("should return false if no team or org membership found when PBAC disabled", async () => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(null);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValue(null);
+      mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 100 });
 
       const result = await service.checkPermission({
         userId: 1,
@@ -135,6 +136,136 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(false);
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledTimes(2);
+    });
+
+    it("should use org membership when team membership not found (PBAC disabled)", async () => {
+      const orgMembership = {
+        id: 2,
+        teamId: 100,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock)
+        .mockResolvedValueOnce(null) // No team membership
+        .mockResolvedValueOnce(orgMembership); // Has org membership
+      mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 100 });
+
+      const result = await service.checkPermission({
+        userId: 1,
+        teamId: 1,
+        permission: "eventType.create",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(true);
+      expect(mockRepository.getTeamById).toHaveBeenCalledWith(1);
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(1, {
+        userId: 1,
+        teamId: 1,
+      });
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(2, {
+        userId: 1,
+        teamId: 100,
+      });
+    });
+
+    it("should use highest role when user is MEMBER of sub team but ADMIN of parent org (PBAC disabled)", async () => {
+      const teamMembership = {
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const orgMembership = {
+        id: 2,
+        teamId: 100,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock)
+        .mockResolvedValueOnce(teamMembership) // Has team membership as MEMBER
+        .mockResolvedValueOnce(orgMembership); // Has org membership as ADMIN
+      mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 100 });
+
+      const result = await service.checkPermission({
+        userId: 1,
+        teamId: 1,
+        permission: "eventType.update",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(true);
+      expect(mockRepository.getTeamById).toHaveBeenCalledWith(1);
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(1, {
+        userId: 1,
+        teamId: 1,
+      });
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(2, {
+        userId: 1,
+        teamId: 100,
+      });
+    });
+
+    it("should check org-level permissions when user is MEMBER of sub team but ADMIN of parent org (PBAC enabled)", async () => {
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        customRoleId: "team_member_role",
+        team: { id: 1, parentId: 100 },
+      });
+      mockRepository.getOrgMembership.mockResolvedValueOnce({
+        id: 2,
+        teamId: 100,
+        userId: 1,
+        customRoleId: "org_admin_role",
+      });
+      mockRepository.checkRolePermission
+        .mockResolvedValueOnce(false) // Team member role doesn't have permission
+        .mockResolvedValueOnce(true); // Org admin role has permission
+
+      const result = await service.checkPermission({
+        userId: 1,
+        teamId: 1,
+        permission: "eventType.update",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(true);
+      expect(mockRepository.getMembershipByUserAndTeam).toHaveBeenCalledWith(1, 1);
+      expect(mockRepository.getOrgMembership).toHaveBeenCalledWith(1, 100);
+      expect(mockRepository.checkRolePermission).toHaveBeenNthCalledWith(
+        1,
+        "team_member_role",
+        "eventType.update"
+      );
+      expect(mockRepository.checkRolePermission).toHaveBeenNthCalledWith(
+        2,
+        "org_admin_role",
+        "eventType.update"
+      );
     });
 
     it("should check org-level permissions when user has no team membership but PBAC is enabled", async () => {
@@ -248,6 +379,44 @@ describe("PermissionCheckService", () => {
       });
       expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
       expect(mockRepository.checkRolePermissions).not.toHaveBeenCalled();
+    });
+
+    it("should use org membership for checkPermissions when team membership not found (PBAC disabled)", async () => {
+      const orgMembership = {
+        id: 2,
+        teamId: 100,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock)
+        .mockResolvedValueOnce(null) // No team membership
+        .mockResolvedValueOnce(orgMembership); // Has org membership
+      mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 100 });
+
+      const result = await service.checkPermissions({
+        userId: 1,
+        teamId: 1,
+        permissions: ["eventType.create", "team.invite"],
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(true);
+      expect(mockRepository.getTeamById).toHaveBeenCalledWith(1);
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(1, {
+        userId: 1,
+        teamId: 1,
+      });
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(2, {
+        userId: 1,
+        teamId: 100,
+      });
     });
 
     it("should return false when permissions array is empty", async () => {
@@ -373,6 +542,47 @@ describe("PermissionCheckService", () => {
         fallbackRoles: [],
       });
     });
+
+    it("should include child teams where user has org-level fallback roles", async () => {
+      // User is ADMIN in org (teamId: 100) but MEMBER in child team (teamId: 1)
+      // Should get access to child team via org-level ADMIN role
+      const expectedTeamIds = [1, 100]; // Child team + org team
+      mockRepository.getTeamIdsWithPermission.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "insights.read",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "insights.read",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+    });
+
+    it("should include child teams where user has org-level PBAC permissions", async () => {
+      // User has PBAC permission via custom role in org (teamId: 100) but not in child team (teamId: 1)
+      // When PBAC is enabled, fallback roles are NOT used - only PBAC permissions matter
+      // Should get access to child team via org-level PBAC permission
+      const expectedTeamIds = [1, 100]; // Child team + org team
+      mockRepository.getTeamIdsWithPermission.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "insights.read",
+        fallbackRoles: [], // Empty fallback roles - PBAC permissions work independently when PBAC is enabled
+      });
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "insights.read",
+        fallbackRoles: [], // Verify PBAC permissions work without fallback roles
+      });
+    });
   });
 
   describe("getTeamIdsWithPermissions", () => {
@@ -435,6 +645,48 @@ describe("PermissionCheckService", () => {
         userId: 1,
         permissions,
         fallbackRoles: [],
+      });
+    });
+
+    it("should include child teams where user has org-level fallback roles", async () => {
+      // User is ADMIN in org (teamId: 100) but MEMBER in child team (teamId: 1)
+      // Should get access to child team via org-level ADMIN role
+      const permissions: PermissionString[] = ["insights.read", "insights.create"];
+      const expectedTeamIds = [1, 2, 100]; // Child teams + org team
+      mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermissions({
+        userId: 1,
+        permissions,
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions,
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+    });
+
+    it("should include child teams where user has org-level PBAC permissions", async () => {
+      // User has PBAC permissions in org (teamId: 100) but not in child team (teamId: 1)
+      // Should get access to child team via org-level PBAC permissions
+      const permissions: PermissionString[] = ["insights.read", "insights.create"];
+      const expectedTeamIds = [1, 2, 100]; // Child teams + org team
+      mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermissions({
+        userId: 1,
+        permissions,
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions,
+        fallbackRoles: ["ADMIN", "OWNER"],
       });
     });
   });

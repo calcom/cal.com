@@ -4,7 +4,13 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+import {
+  getBillingProviderService,
+  getTeamBillingServiceFactory,
+} from "@calcom/features/ee/billing/di/containers/Billing";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -17,6 +23,7 @@ const checkoutSessionMetadataSchema = z.object({
   teamName: z.string(),
   teamSlug: z.string(),
   userId: z.string().transform(Number),
+  isOnboarding: z.string().optional(),
 });
 
 const generateRandomString = () => {
@@ -63,6 +70,7 @@ async function getHandler(req: NextRequest) {
         teamName: checkoutSession?.metadata?.teamName ?? generateRandomString(),
         teamSlug: checkoutSession?.metadata?.teamSlug ?? generateRandomString(),
         userId: checkoutSession.metadata.userId,
+        isOnboarding: checkoutSession.metadata.isOnboarding,
       };
 
   const team = await prisma.team.create({
@@ -83,6 +91,35 @@ async function getHandler(req: NextRequest) {
       },
     },
   });
+
+  if (checkoutSession && subscription) {
+    const billingProviderService = getBillingProviderService();
+    const { subscriptionStart } = billingProviderService.extractSubscriptionDates(subscription);
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = teamBillingServiceFactory.init(team);
+    await teamBillingService.saveTeamBilling({
+      teamId: team.id,
+      subscriptionId: subscription.id,
+      subscriptionItemId: subscription.items.data[0].id,
+      customerId: subscription.customer as string,
+      // TODO: Implement true subscription status when webhook events are implemented
+      status: SubscriptionStatus.ACTIVE,
+      planName: Plan.TEAM,
+      subscriptionStart,
+    });
+  }
+
+  // Check if this is from onboarding flow and redirect accordingly
+  const isOnboarding = checkoutSessionMetadata.isOnboarding === "true";
+
+  if (isOnboarding) {
+    // Redirect to invite flow after payment for onboarding with teamId as query param
+    const inviteUrl = new URL("/onboarding/teams/invite", WEBAPP_URL);
+    inviteUrl.searchParams.set("teamId", team.id.toString());
+    return NextResponse.redirect(inviteUrl, {
+      status: 302,
+    });
+  }
 
   // redirect to team screen
   return NextResponse.redirect(

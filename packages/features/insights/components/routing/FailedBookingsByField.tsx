@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
 import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingParameters";
@@ -57,7 +57,7 @@ interface FormCardProps {
   fields: Record<string, { optionId: string; count: number; optionLabel: string }[]>;
 }
 
-function FormCard({ formName, fields }: FormCardProps) {
+function FormCard({ fields }: FormCardProps) {
   const { t } = useLocale();
   const fieldNames = Object.keys(fields);
   const [selectedField, setSelectedField] = useState(fieldNames[0]);
@@ -132,16 +132,17 @@ function FormCard({ formName, fields }: FormCardProps) {
 export function FailedBookingsByField() {
   const { t } = useLocale();
   const insightsRoutingParams = useInsightsRoutingParameters();
-  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery(insightsRoutingParams);
+  const { data, isLoading, isError } =
+    trpc.viewer.insights.failedBookingsByField.useQuery(insightsRoutingParams);
 
-  if (!data || Object.entries(data).length === 0) return null;
+  if (!isLoading && !isError && (!data || Object.entries(data).length === 0)) return null;
 
   // routingFormId is always set, meaning data has only one entry.
-  const [formName, fields] = Object.entries(data)[0];
+  const [formName, fields] = data ? Object.entries(data)[0] : ["", {}];
 
   return (
-    <ChartCard title={t("failed_bookings_by_field")}>
-      <FormCard key={formName} formName={formName} fields={fields} />
+    <ChartCard title={t("failed_bookings_by_field")} isPending={isLoading} isError={isError}>
+      {data && <FormCard key={formName} formName={formName} fields={fields} />}
     </ChartCard>
   );
 }

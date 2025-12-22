@@ -70,8 +70,6 @@ const ConnectedCalendarList = ({
                 <div className="flex w-32 justify-end">
                   <CredentialActionsDropdown
                     credentialId={connectedCalendar.credentialId}
-                    integrationType={connectedCalendar.integration.type}
-                    cacheUpdatedAt={connectedCalendar.cacheUpdatedAt}
                     onSuccess={onChanged}
                     delegationCredentialId={connectedCalendar.delegationCredentialId}
                     disableConnectionModification={disableConnectionModification}
@@ -82,7 +80,7 @@ const ConnectedCalendarList = ({
                 {!fromOnboarding && (
                   <>
                     <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                    <ul className="space-y-4 px-5 py-4">
+                    <ul className="stack-y-4 px-5 py-4">
                       {connectedCalendar.calendars?.map((cal) => (
                         <CalendarSwitch
                           disabled={isDisabled}
@@ -123,8 +121,6 @@ const ConnectedCalendarList = ({
               <div className="flex w-32 justify-end">
                 <CredentialActionsDropdown
                   credentialId={connectedCalendar.credentialId}
-                  integrationType={connectedCalendar.integration.type}
-                  cacheUpdatedAt={connectedCalendar.cacheUpdatedAt}
                   onSuccess={onChanged}
                   delegationCredentialId={connectedCalendar.delegationCredentialId}
                   disableConnectionModification={disableConnectionModification}
@@ -151,7 +147,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
 
   const query = trpc.viewer.calendars.connectedCalendars.useQuery(
     {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       eventTypeId: scope === SelectedCalendarSettingsScope.EventType ? eventTypeId! : null,
     },
     {
@@ -207,14 +203,14 @@ export const SelectedCalendarsSettingsWebWrapperSkeleton = () => {
         <div className="border-subtle mt-4 rounded-lg border p-4">
           <div className="flex items-center">
             <div className="bg-emphasis h-10 w-10 animate-pulse rounded-md" />
-            <div className="ml-4 space-y-2">
+            <div className="ml-4 stack-y-2">
               <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
               <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
             </div>
           </div>
-          <div className="border-subtle mt-4 space-y-4 border-t pt-4">
+          <div className="border-subtle mt-4 stack-y-4 border-t pt-4">
             <div className="bg-emphasis h-4 w-64 animate-pulse rounded-md" />
-            <div className="space-y-2">
+            <div className="stack-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex items-center justify-between">
                   <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />

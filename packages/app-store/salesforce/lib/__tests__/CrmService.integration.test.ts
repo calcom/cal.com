@@ -6,8 +6,6 @@
  *
  * CrmService.test.ts could still focus on testing detailed edge cases as needed.
  */
-import "../../../../../tests/libs/__mocks__/prisma";
-
 import jsforce from "@jsforce/jsforce-node";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -46,7 +44,7 @@ vi.mock("@jsforce/jsforce-node", () => {
   };
 });
 
-vi.mock("@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
   checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
 }));
 
@@ -210,7 +208,7 @@ describe("SalesforceCRMService", () => {
           Website: "https://anything",
         });
 
-        const contact = salesforceMock.addContact({
+        const _contact = salesforceMock.addContact({
           // Contact doesn't have the matching email
           Email: contactEmail,
           FirstName: "Test",
@@ -250,7 +248,7 @@ describe("SalesforceCRMService", () => {
         const contactOwnerEmail = "contact-owner@acme.com";
         const leadOwnerEmail = "lead-owner@acme.com";
         const lookingForEmail = "test1@example.com";
-        const contactEmail = "test2@example.com";
+        const _contactEmail = "test2@example.com";
 
         const account = salesforceMock.addAccount({
           Id: "test-account-id",
@@ -271,7 +269,7 @@ describe("SalesforceCRMService", () => {
           },
         });
 
-        const lead = salesforceMock.addLead({
+        const _lead = salesforceMock.addLead({
           // Lead has the matching email
           Email: lookingForEmail,
           FirstName: "Test",

@@ -1,7 +1,6 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
 
@@ -16,18 +15,11 @@ import { useDataTable, useFilterableColumns } from "../../hooks";
 
 export interface AddFilterButtonProps<TData> {
   table: Table<TData>;
-  variant?: "base" | "sm";
-  hideWhenFilterApplied?: boolean;
-  showWhenFilterApplied?: boolean;
+  variant?: "base" | "minimal";
 }
 
 function AddFilterButtonComponent<TData>(
-  {
-    table,
-    variant = "base",
-    hideWhenFilterApplied = false,
-    showWhenFilterApplied = false,
-  }: AddFilterButtonProps<TData>,
+  { table, variant = "base" }: AddFilterButtonProps<TData>,
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
@@ -39,15 +31,7 @@ function AddFilterButtonComponent<TData>(
     (column) => !activeFilters?.some((filter) => filter.f === column.id)
   );
 
-  if (hideWhenFilterApplied && activeFilters?.length > 0) {
-    return null;
-  }
-
-  if (showWhenFilterApplied && activeFilters?.length === 0) {
-    return null;
-  }
-
-  if (variant === "sm" && availableColumns.length === 0) {
+  if (variant === "minimal" && availableColumns.length === 0) {
     return null;
   }
 
@@ -60,13 +44,13 @@ function AddFilterButtonComponent<TData>(
               ref={ref}
               color="secondary"
               data-testid="add-filter-button"
-              StartIcon="sliders-horizontal"
+              StartIcon="list-filter"
               className="h-full">
               {t("filter")}
             </Button>
           </PopoverTrigger>
         )}
-        {variant === "sm" && (
+        {variant === "minimal" && (
           <Tooltip content={t("add_filter")}>
             <PopoverTrigger asChild>
               <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
@@ -94,7 +78,7 @@ function AddFilterButtonComponent<TData>(
                       addFilter(column.id);
                       setOpen(false);
                     }}
-                    className="flex items-center justify-between px-4 py-2"
+                    className="flex items-center justify-between rounded-none px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>
                     {showHiddenIndicator && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}

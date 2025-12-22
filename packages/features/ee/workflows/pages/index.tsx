@@ -6,11 +6,11 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -73,7 +73,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
           }>
           <>
             {filteredWorkflows?.totalCount ? (
-              <div className="flex">
+              <div className="flex mb-2">
                 <TeamsFilter />
                 <div className="mb-4 ml-auto">
                   <CreateButtonWithTeamsList
@@ -138,7 +138,7 @@ const Filter = (props: {
   return (
     <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
-        <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer">
+        <div className="item-center focus-within:bg-subtle hover:bg-cal-muted flex px-4 py-[6px] transition hover:cursor-pointer">
           <Avatar
             imageSrc={userAvatar || ""}
             size="sm"
@@ -173,7 +173,7 @@ const Filter = (props: {
         </div>
         {teams.map((profile) => (
           <div
-            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
+            className="item-center focus-within:bg-subtle hover:bg-cal-muted flex px-4 py-[6px] transition hover:cursor-pointer"
             key={`${profile.teamId || 0}`}>
             <Avatar
               imageSrc={profile.image || ""}

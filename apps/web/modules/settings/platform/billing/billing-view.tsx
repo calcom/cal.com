@@ -89,7 +89,7 @@ export default function PlatformBillingUpgrade() {
         subtitle={t("manage_billing_description")}
         isPlatformUser={true}>
         <>
-          <div className="border-subtle space-y-6 rounded-lg border px-6 py-8 text-sm sm:space-y-8">
+          <div className="border-subtle stack-y-6 rounded-lg border px-6 py-8 text-sm sm:stack-y-8">
             <CtaRow
               title={t("view_and_manage_billing_details")}
               description={t("view_and_edit_billing_details")}>

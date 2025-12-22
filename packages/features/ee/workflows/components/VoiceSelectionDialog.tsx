@@ -1,13 +1,8 @@
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import {
-  DataTableProvider,
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableFilters,
-  useDataTable,
-} from "@calcom/features/data-table";
+import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -21,8 +16,8 @@ import { useVoicePreview } from "../hooks/useVoicePreview";
 type Voice = {
   voice_id: string;
   voice_name: string;
-  provider: 'elevenlabs' | 'openai' | 'deepgram';
-  gender: 'male' | 'female';
+  provider: "elevenlabs" | "openai" | "deepgram";
+  gender: "male" | "female";
   accent?: string;
   age?: string;
   preview_audio_url?: string;
@@ -35,21 +30,34 @@ type VoiceSelectionDialogProps = {
   onVoiceSelect: (voiceId: string) => void;
 };
 
-function VoiceSelectionTable({ selectedVoiceId, onVoiceSelect }: { selectedVoiceId?: string; onVoiceSelect: (voiceId: string) => void }) {
+function VoiceSelectionTable({
+  selectedVoiceId,
+  onVoiceSelect,
+}: {
+  selectedVoiceId?: string;
+  onVoiceSelect: (voiceId: string) => void;
+}) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={1000}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={1000}>
       <VoiceSelectionContent selectedVoiceId={selectedVoiceId} onVoiceSelect={onVoiceSelect} />
     </DataTableProvider>
   );
 }
 
-function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoiceId?: string; onVoiceSelect: (voiceId: string) => void }) {
+function VoiceSelectionContent({
+  selectedVoiceId,
+  onVoiceSelect,
+}: {
+  selectedVoiceId?: string;
+  onVoiceSelect: (voiceId: string) => void;
+}) {
   const { t } = useLocale();
   const { playingVoiceId, handlePlayVoice } = useVoicePreview();
   const [rowSelection, setRowSelection] = useState({});
 
   const { data: voices, isLoading } = trpc.viewer.aiVoiceAgent.listVoices.useQuery();
-
 
   const handleUseVoice = (voiceId: string) => {
     onVoiceSelect(voiceId);
@@ -78,16 +86,16 @@ function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoi
               onClick={() => handlePlayVoice(row.original.preview_audio_url, row.original.voice_id)}
               className="rounded-full">
               {playingVoiceId === row.original.voice_id ? (
-                <Icon name="pause" className="h-3 w-3 text-default" />
+                <Icon name="pause" className="text-default h-3 w-3" />
               ) : (
-                <Icon name="play" className="h-3 w-3 text-default" />
+                <Icon name="play" className="text-default h-3 w-3" />
               )}
             </Button>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-subtle rounded-full flex items-center justify-center">
-                <Icon name="user" className="h-5 w-5 text-default" />
+              <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-full">
+                <Icon name="user" className="text-default h-5 w-5" />
               </div>
-              <span className="font-medium text-emphasis">{row.original.voice_name}</span>
+              <span className="text-emphasis font-medium">{row.original.voice_name}</span>
             </div>
           </div>
         ),
@@ -100,24 +108,22 @@ function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoi
         cell: ({ row }) => (
           <div className="flex gap-2 text-sm">
             {row.original.accent && (
-              <span className="px-2 py-1 bg-subtle text-default rounded-md text-xs">
+              <span className="bg-subtle text-default rounded-md px-2 py-1 text-xs">
                 {row.original.accent}
               </span>
             )}
             {row.original.gender && (
-              <span className="px-2 py-1 bg-subtle text-default rounded-md text-xs">
+              <span className="bg-subtle text-default rounded-md px-2 py-1 text-xs">
                 {row.original.gender}
               </span>
             )}
             {row.original.provider && (
-              <span className="px-2 py-1 bg-subtle text-default rounded-md text-xs">
+              <span className="bg-subtle text-default rounded-md px-2 py-1 text-xs">
                 {row.original.provider}
               </span>
             )}
             {row.original.age && (
-              <span className="px-2 py-1 bg-subtle text-default rounded-md text-xs">
-                {row.original.age}
-              </span>
+              <span className="bg-subtle text-default rounded-md px-2 py-1 text-xs">{row.original.age}</span>
             )}
           </div>
         ),
@@ -127,9 +133,7 @@ function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoi
         accessorKey: "voice_id",
         header: t("voice_id"),
         size: 200,
-        cell: ({ row }) => (
-          <span className="text-sm text-muted font-mono">{row.original.voice_id}</span>
-        ),
+        cell: ({ row }) => <span className="text-muted font-mono text-sm">{row.original.voice_id}</span>,
       },
       {
         id: "actions",
@@ -142,13 +146,7 @@ function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoi
             color={selectedVoiceId === row.original.voice_id ? "primary" : "secondary"}
             onClick={() => handleUseVoice(row.original.voice_id)}
             className="whitespace-nowrap">
-            {selectedVoiceId === row.original.voice_id ? (
-              <>
-                {t("current_voice")}
-              </>
-            ) : (
-              t("use_voice")
-            )}
+            {selectedVoiceId === row.original.voice_id ? <>{t("current_voice")}</> : t("use_voice")}
           </Button>
         ),
       },
@@ -171,7 +169,7 @@ function VoiceSelectionContent({ selectedVoiceId, onVoiceSelect }: { selectedVoi
   });
 
   return (
-    <div className="max-h-[500px] overflow-auto border border-subtle rounded-lg">
+    <div className="border-subtle max-h-[500px] overflow-auto rounded-lg border">
       <DataTableWrapper<Voice>
         testId="voice-selection-data-table"
         table={table}
@@ -199,17 +197,11 @@ export function VoiceSelectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent enableOverflow className="sm:max-w-7xl h-[80vh] flex flex-col p-6">
-        <DialogHeader
-          title={t("select_voice")}
-          subtitle={t("choose_a_voice_for_your_agent")}
-        />
+      <DialogContent enableOverflow className="flex h-[80vh] flex-col p-6 sm:max-w-7xl">
+        <DialogHeader title={t("select_voice")} subtitle={t("choose_a_voice_for_your_agent")} />
 
-        <div className="flex-1 overflow-hidden min-h-0 mt-4">
-          <VoiceSelectionTable
-            selectedVoiceId={selectedVoiceId}
-            onVoiceSelect={handleVoiceSelect}
-          />
+        <div className="mt-4 min-h-0 flex-1 overflow-hidden">
+          <VoiceSelectionTable selectedVoiceId={selectedVoiceId} onVoiceSelect={handleVoiceSelect} />
         </div>
       </DialogContent>
     </Dialog>

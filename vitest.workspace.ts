@@ -136,8 +136,18 @@ const workspaces = packagedEmbedTestsOnly
           globals: true,
           name: "@calcom/app-store-core",
           include: ["packages/app-store/*.{test,spec}.[jt]s?(x)"],
+          exclude: ["packages/app-store/delegationCredential.test.ts"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.tsx"],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          name: "@calcom/app-store-delegation-credential",
+          include: ["packages/app-store/delegationCredential.test.ts"],
+          environment: "node",
+          setupFiles: ["setupVitest.ts"],
         },
       },
       {

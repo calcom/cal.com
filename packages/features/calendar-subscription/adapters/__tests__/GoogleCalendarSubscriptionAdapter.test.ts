@@ -2,10 +2,24 @@ import "../__mocks__/CalendarAuth";
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import dayjs from "@calcom/dayjs";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { GoogleCalendarSubscriptionAdapter } from "../GoogleCalendarSubscription.adapter";
+
+const addMonthsFromNow = (months: number) => {
+  const date = dayjs();
+  return date.add(months, "months").startOf("day");
+};
+
+const today = dayjs().startOf("day");
+
+const oneWeekFromNow = today.add(7, "days");
+
+const eventEndTime = oneWeekFromNow.add(1, "hours");
+
+const channelExpirationDate = new Date(Date.now() + 86400000);
 
 vi.mock("uuid", () => ({
   v4: vi.fn().mockReturnValue("test-uuid"),
@@ -30,16 +44,16 @@ const mockSelectedCalendar: SelectedCalendar = {
   watchAttempts: 0,
   maxAttempts: 3,
   unwatchAttempts: 0,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: today.toDate(),
+  updatedAt: today.toDate(),
   channelId: "test-channel-id",
   channelKind: "web_hook",
   channelResourceId: "test-resource-id",
   channelResourceUri: "test-resource-uri",
-  channelExpiration: new Date(Date.now() + 86400000),
-  syncSubscribedAt: new Date(),
+  channelExpiration: channelExpirationDate,
+  syncSubscribedAt: today.toDate(),
   syncToken: "test-sync-token",
-  syncedAt: new Date(),
+  syncedAt: today.toDate(),
   syncErrorAt: null,
   syncErrorCount: 0,
 };
@@ -176,7 +190,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
           id: "test-channel-id",
           resourceId: "test-resource-id",
           resourceUri: "test-resource-uri",
-          expiration: "1640995200000",
+          expiration: String(channelExpirationDate.getTime()),
         },
       };
 
@@ -202,17 +216,18 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
         id: "test-channel-id",
         resourceId: "test-resource-id",
         resourceUri: "test-resource-uri",
-        expiration: new Date(1640995200000),
+        expiration: channelExpirationDate,
       });
     });
 
     test("should handle expiration as ISO string", async () => {
+      const mockExpirationDate = new Date(Date.now() + 10000000);
       const mockWatchResponse = {
         data: {
           id: "test-channel-id",
           resourceId: "test-resource-id",
           resourceUri: "test-resource-uri",
-          expiration: "2023-12-01T10:00:00Z",
+          expiration: mockExpirationDate.toISOString(),
         },
       };
 
@@ -220,7 +235,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       const result = await adapter.subscribe(mockSelectedCalendar, mockCredential);
 
-      expect(result.expiration).toEqual(new Date("2023-12-01T10:00:00Z"));
+      expect(result.expiration).toEqual(mockExpirationDate);
     });
 
     test("should handle missing expiration", async () => {
@@ -265,6 +280,19 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
   });
 
   describe("fetchEvents", () => {
+    const commonEventData = {
+      iCalUID: "event-1@cal.com",
+      summary: "Test Event",
+      description: "Test Description",
+      location: "Test Location",
+      status: "confirmed",
+      transparency: "opaque",
+      kind: "calendar#event",
+      etag: "test-etag",
+      created: today.toISOString(),
+      updated: today.toISOString(),
+    };
+
     test("should fetch events with sync token", async () => {
       const mockEventsResponse = {
         data: {
@@ -272,23 +300,14 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
           items: [
             {
               id: "event-1",
-              iCalUID: "event-1@cal.com",
-              summary: "Test Event",
-              description: "Test Description",
-              location: "Test Location",
+              ...commonEventData,
               start: {
-                dateTime: "2023-12-01T10:00:00Z",
+                dateTime: oneWeekFromNow.toISOString(),
                 timeZone: "UTC",
               },
               end: {
-                dateTime: "2023-12-01T11:00:00Z",
+                dateTime: eventEndTime.toISOString(),
               },
-              status: "confirmed",
-              transparency: "opaque",
-              kind: "calendar#event",
-              etag: "test-etag",
-              created: "2023-12-01T09:00:00Z",
-              updated: "2023-12-01T09:30:00Z",
             },
           ],
         },
@@ -312,8 +331,8 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
           {
             id: "event-1",
             iCalUID: "event-1@cal.com",
-            start: new Date("2023-12-01T10:00:00Z"),
-            end: new Date("2023-12-01T11:00:00Z"),
+            start: oneWeekFromNow.toDate(),
+            end: eventEndTime.toDate(),
             busy: true,
             summary: "Test Event",
             description: "Test Description",
@@ -325,14 +344,14 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
             timeZone: "UTC",
             recurringEventId: null,
             originalStartDate: null,
-            createdAt: new Date("2023-12-01T09:00:00Z"),
-            updatedAt: new Date("2023-12-01T09:30:00Z"),
+            createdAt: today.toDate(),
+            updatedAt: today.toDate(),
           },
         ],
       });
     });
 
-    test("should fetch events without sync token (initial sync)", async () => {
+    test("should fetch events without sync token (initial sync) with a 3-month range", async () => {
       const calendarWithoutSyncToken = {
         ...mockSelectedCalendar,
         syncToken: null,
@@ -349,34 +368,37 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       const result = await adapter.fetchEvents(calendarWithoutSyncToken, mockCredential);
 
+      const expectedTimeMin = today.startOf("day").toISOString();
+      const expectedTimeMax = addMonthsFromNow(3).endOf("day").toISOString();
+
       expect(mockClient.events.list).toHaveBeenCalledWith({
         calendarId: "test@example.com",
         pageToken: undefined,
         singleEvents: true,
-        timeMin: expect.any(String),
-        timeMax: expect.any(String),
+        timeMin: expectedTimeMin,
+        timeMax: expectedTimeMax,
       });
 
       expect(result.syncToken).toBe("initial-sync-token");
     });
 
     test("should handle all-day events", async () => {
+      const allDayStart = oneWeekFromNow.startOf("day");
+      const allDayEnd = oneWeekFromNow.endOf("day");
+
       const mockEventsResponse = {
         data: {
           nextSyncToken: "new-sync-token",
           items: [
             {
               id: "event-1",
-              iCalUID: "event-1@cal.com",
-              summary: "All Day Event",
+              ...commonEventData,
               start: {
-                date: "2023-12-01",
+                date: allDayStart.toISOString().split("T")[0],
               },
               end: {
-                date: "2023-12-02",
+                date: allDayEnd.toISOString().split("T")[0],
               },
-              status: "confirmed",
-              transparency: "opaque",
             },
           ],
         },
@@ -387,8 +409,8 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
       const result = await adapter.fetchEvents(mockSelectedCalendar, mockCredential);
 
       expect(result.items[0].isAllDay).toBe(true);
-      expect(result.items[0].start).toEqual(new Date("2023-12-01"));
-      expect(result.items[0].end).toEqual(new Date("2023-12-02"));
+      expect(result.items[0].start).toEqual(new Date(allDayStart.toISOString().split("T")[0]));
+      expect(result.items[0].end).toEqual(new Date(allDayEnd.toISOString().split("T")[0]));
     });
 
     test("should handle free events (transparent)", async () => {
@@ -398,15 +420,14 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
           items: [
             {
               id: "event-1",
-              iCalUID: "event-1@cal.com",
+              ...commonEventData,
               summary: "Free Event",
               start: {
-                dateTime: "2023-12-01T10:00:00Z",
+                dateTime: oneWeekFromNow.toISOString(),
               },
               end: {
-                dateTime: "2023-12-01T11:00:00Z",
+                dateTime: eventEndTime.toISOString(),
               },
-              status: "confirmed",
               transparency: "transparent",
             },
           ],
@@ -421,6 +442,9 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
     });
 
     test("should handle pagination", async () => {
+      const date2 = new Date(oneWeekFromNow.toDate());
+      date2.setDate(date2.getDate() + 1);
+
       const mockEventsResponse1 = {
         data: {
           nextPageToken: "page-2",
@@ -428,8 +452,8 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
             {
               id: "event-1",
               summary: "Event 1",
-              start: { dateTime: "2023-12-01T10:00:00Z" },
-              end: { dateTime: "2023-12-01T11:00:00Z" },
+              start: { dateTime: oneWeekFromNow.toISOString() },
+              end: { dateTime: eventEndTime.toISOString() },
             },
           ],
         },
@@ -442,8 +466,8 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
             {
               id: "event-2",
               summary: "Event 2",
-              start: { dateTime: "2023-12-01T12:00:00Z" },
-              end: { dateTime: "2023-12-01T13:00:00Z" },
+              start: { dateTime: date2.toISOString() },
+              end: { dateTime: new Date(date2.getTime() + 3600000).toISOString() },
             },
           ],
         },
@@ -468,19 +492,19 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
             {
               id: "event-1",
               summary: "Valid Event",
-              start: { dateTime: "2023-12-01T10:00:00Z" },
-              end: { dateTime: "2023-12-01T11:00:00Z" },
+              start: { dateTime: oneWeekFromNow.toISOString() },
+              end: { dateTime: eventEndTime.toISOString() },
             },
             {
               summary: "Invalid Event",
-              start: { dateTime: "2023-12-01T12:00:00Z" },
-              end: { dateTime: "2023-12-01T13:00:00Z" },
+              start: { dateTime: oneWeekFromNow.toISOString() },
+              end: { dateTime: eventEndTime.toISOString() },
             },
             {
               id: "",
               summary: "Empty ID Event",
-              start: { dateTime: "2023-12-01T14:00:00Z" },
-              end: { dateTime: "2023-12-01T15:00:00Z" },
+              start: { dateTime: oneWeekFromNow.toISOString() },
+              end: { dateTime: eventEndTime.toISOString() },
             },
           ],
         },

@@ -1,6 +1,7 @@
 "use client";
 
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
 import {
@@ -17,7 +18,7 @@ import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 
@@ -64,8 +65,10 @@ function reducer(state: CallDetailsState, action: CallDetailsAction): CallDetail
 }
 
 function CallHistoryTable(props: CallHistoryProps) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
       <CallHistoryContent {...props} />
     </DataTableProvider>
   );

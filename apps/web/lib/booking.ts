@@ -44,11 +44,19 @@ export const getEventTypesFromDB = async (id: number) => {
       hideOrganizerEmail: true,
       disableCancelling: true,
       disableRescheduling: true,
+      minimumRescheduleNotice: true,
       disableGuests: true,
       timeZone: true,
       profile: {
         select: {
           organizationId: true,
+          organization: {
+            select: {
+              brandColor: true,
+              darkBrandColor: true,
+              theme: true,
+            },
+          },
         },
       },
       teamId: true,
@@ -71,9 +79,15 @@ export const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideBranding: true,
+          brandColor: true,
+          darkBrandColor: true,
+          theme: true,
           parent: {
             select: {
               hideBranding: true,
+              brandColor: true,
+              darkBrandColor: true,
+              theme: true,
             },
           },
           createdByOAuthClientId: true,
@@ -116,12 +130,11 @@ export const getEventTypesFromDB = async (id: number) => {
   }
 
   const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-  const { profile, ...restEventType } = eventType;
-  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
+  const isOrgTeamEvent = !!eventType?.team && !!eventType.profile?.organizationId;
 
   return {
     isDynamic: false,
-    ...restEventType,
+    ...eventType,
     bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
     metadata,
   };
