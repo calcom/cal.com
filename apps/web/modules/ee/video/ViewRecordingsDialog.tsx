@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,6 +13,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 

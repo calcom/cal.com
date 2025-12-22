@@ -18,9 +18,9 @@ import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
-import { useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 export type BookingRedirectForm = {
