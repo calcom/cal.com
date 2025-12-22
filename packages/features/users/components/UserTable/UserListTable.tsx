@@ -32,7 +32,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";

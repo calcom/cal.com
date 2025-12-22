@@ -3,7 +3,7 @@ import { useCallback } from "react";
 
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 import { bookingStatusToText } from "../lib/bookingStatusToText";
 import type { HeaderRow } from "../lib/types";

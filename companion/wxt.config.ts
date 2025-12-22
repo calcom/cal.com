@@ -66,6 +66,7 @@ export default defineConfig({
       "https://api.cal.com/*",
       "https://app.cal.com/*",
       "https://mail.google.com/*",
+      "https://calendar.google.com/*",
       // Include localhost permission for dev builds (needed for iframe to load)
       ...(!isBuildForStore ? ["http://localhost:*/*"] : []),
     ],
