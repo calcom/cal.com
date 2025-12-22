@@ -12,6 +12,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -378,10 +379,10 @@ export class PaymentService implements IAbstractPaymentService {
       user: { email: string | null; name: string | null; timeZone: string } | null;
       id: number;
       startTime: { toISOString: () => string };
-      j;
       uid: string;
     },
-    paymentData: Payment
+    paymentData: Payment,
+    _eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
     const delayMinutes = process.env.AWAITING_PAYMENT_EMAIL_DELAY_MINUTES ?? 15;
     const scheduledEmailAt = dayjs().add(delayMinutes, "minutes").toDate();
