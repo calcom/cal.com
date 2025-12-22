@@ -143,9 +143,7 @@ if (process.env.ANALYZE === "true") {
   plugins.push(withBundleAnalyzer);
 }
 
-if (process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET) {
-  plugins.push(withAxiom);
-}
+plugins.push(withAxiom);
 
 if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
   plugins.push(withBotId);
