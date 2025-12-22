@@ -4,6 +4,7 @@ import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocation
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import tasker from "@calcom/features/tasker";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -151,6 +152,17 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       ...data,
       profileId: profile.id,
     });
+
+    // Scan successRedirectUrl for toxic links if it was set
+    if (rest.successRedirectUrl && rest.successRedirectUrl.length > 0) {
+      await tasker.create("scanSuccessRedirectUrl", {
+        eventTypeId: eventType.id,
+        successRedirectUrl: rest.successRedirectUrl,
+        userId: ctx.user.id,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
     return { eventType };
   } catch (e) {
     console.warn(e);
