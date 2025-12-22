@@ -185,7 +185,8 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async getTeamsAutoOptIn(teamIds: number[]): Promise<Record<number, boolean>> {
-    const cacheKey = FeaturesCacheKeys.teamsAutoOptIn(teamIds);
+    const versions = await this.getVersionStamps();
+    const cacheKey = FeaturesCacheKeys.teamsAutoOptIn(versions, teamIds);
 
     const cached = await this.redisService.get<Record<number, boolean>>(cacheKey);
     if (cached !== null) {
@@ -204,6 +205,9 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
 
   async setTeamAutoOptIn(teamId: number, enabled: boolean): Promise<void> {
     await this.featuresRepository.setTeamAutoOptIn(teamId, enabled);
-    await this.bumpVersion(FeaturesCacheKeys.versionTeam(teamId));
+    await Promise.all([
+      this.bumpVersion(FeaturesCacheKeys.versionTeam(teamId)),
+      this.bumpVersion(FeaturesCacheKeys.versionAccess()),
+    ]);
   }
 }

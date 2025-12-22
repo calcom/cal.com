@@ -83,9 +83,9 @@ export class FeaturesCacheKeys {
     return `${this.PREFIX}:userAutoOptIn:vU=${versions.user ?? DEFAULT_VERSION}:${userId}`;
   }
 
-  static teamsAutoOptIn(teamIds: number[]): string {
+  static teamsAutoOptIn(versions: Pick<VersionStamps, "access">, teamIds: number[]): string {
     const sortedTeamIds = [...teamIds].sort((a, b) => a - b).join(",");
-    return `${this.PREFIX}:teamsAutoOptIn:${sortedTeamIds}`;
+    return `${this.PREFIX}:teamsAutoOptIn:vA=${versions.access}:${sortedTeamIds}`;
   }
 
   static generateVersionStamp(): string {
