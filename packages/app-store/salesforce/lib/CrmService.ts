@@ -29,6 +29,24 @@ import {
   DateFieldTypeData,
   RoutingReasons,
 } from "./enums";
+
+/**
+ * Extended CRM interface with Salesforce-specific methods.
+ * This interface is used by internal Salesforce modules (routing forms, etc.)
+ * that need access to Salesforce-specific functionality beyond the generic CRM interface.
+ */
+export interface SalesforceCRM extends CRM {
+  findUserEmailFromLookupField(
+    attendeeEmail: string,
+    fieldName: string,
+    salesforceObject: SalesforceRecordEnum
+  ): Promise<string | undefined>;
+
+  incompleteBookingWriteToRecord(
+    email: string,
+    writeToRecordObject: z.infer<typeof writeToRecordDataSchema>
+  ): Promise<void>;
+}
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
@@ -1710,5 +1728,17 @@ export default function createSalesforceCrmService(
   credential: CredentialPayload,
   appOptions?: Record<string, unknown>
 ): CRM {
+  return new SalesforceCRMService(credential, (appOptions ?? {}) as z.infer<typeof appDataSchema>);
+}
+
+/**
+ * Factory function that creates a Salesforce CRM service instance with the extended SalesforceCRM type.
+ * This is used by internal Salesforce modules (routing forms, etc.) that need access to
+ * Salesforce-specific methods beyond the generic CRM interface.
+ */
+export function createSalesforceCrmServiceWithSalesforceType(
+  credential: CredentialPayload,
+  appOptions?: Record<string, unknown>
+): SalesforceCRM {
   return new SalesforceCRMService(credential, (appOptions ?? {}) as z.infer<typeof appDataSchema>);
 }
