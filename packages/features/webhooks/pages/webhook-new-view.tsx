@@ -1,15 +1,20 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WEBHOOK_VERSION_OPTIONS, getWebhookVersionLabel, getWebhookVersionDocsUrl } from "../lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Select } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
@@ -70,22 +75,58 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
       secret: values.secret,
       time: values.time,
       timeUnit: values.timeUnit,
+      version: values.version,
       teamId,
       platform,
     });
   };
 
   return (
-    <SettingsHeaderWithBackButton
-      title={t("add_webhook")}
-      description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
-      <WebhookForm
-        noRoutingFormTriggers={false}
-        onSubmit={onCreateWebhook}
-        apps={installedApps?.items.map((app) => app.slug)}
-      />
-    </SettingsHeaderWithBackButton>
+    <WebhookForm
+      noRoutingFormTriggers={false}
+      onSubmit={onCreateWebhook}
+      apps={installedApps?.items.map((app) => app.slug)}
+      headerWrapper={(formMethods, children) => (
+        <SettingsHeaderWithBackButton
+          title={t("add_webhook")}
+          description={t("add_webhook_description", { appName: APP_NAME })}
+          borderInShellHeader={true}
+          CTA={
+            <div className="flex items-center gap-2">
+              <Tooltip content={t("webhook_version")}>
+                <div>
+                  <Select
+                    className="min-w-36"
+                    options={WEBHOOK_VERSION_OPTIONS}
+                    value={{
+                      value: formMethods.watch("version"),
+                      label: getWebhookVersionLabel(formMethods.watch("version")),
+                    }}
+                    onChange={(option) => {
+                      if (option) {
+                        formMethods.setValue("version", option.value, { shouldDirty: true });
+                      }
+                    }}
+                  />
+                </div>
+              </Tooltip>
+              <Tooltip
+                content={t("webhook_version_docs", {
+                  version: getWebhookVersionLabel(formMethods.watch("version")),
+                })}>
+                <Link
+                  href={getWebhookVersionDocsUrl(formMethods.watch("version"))}
+                  target="_blank"
+                  className="text-subtle hover:text-emphasis flex items-center">
+                  <Icon name="external-link" className="h-4 w-4" />
+                </Link>
+              </Tooltip>
+            </div>
+          }>
+          {children}
+        </SettingsHeaderWithBackButton>
+      )}
+    />
   );
 };
 

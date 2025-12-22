@@ -5,7 +5,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
