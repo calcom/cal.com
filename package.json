@@ -113,7 +113,7 @@
     "prismock": "1.35.3",
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
-    "turbo": "^2.5.5",
+    "turbo": "2.7.1",
     "typescript": "5.9.0-beta",
     "vitest": "^2.1.9",
     "vitest-fetch-mock": "^0.3.0",
