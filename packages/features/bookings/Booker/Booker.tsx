@@ -1,5 +1,5 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
@@ -181,7 +181,8 @@ const BookerComponent = ({
       timeslotsRef.current &&
       !embedUiConfig.disableAutoScroll
     ) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- We are allowing it here because scrollToTimeSlots is called on explicit user action where it makes sense to scroll, remember that the goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too
+      // Note: scrollToTimeSlots is called on explicit user action where it makes sense to scroll.
+      // The goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too.
       scrollIntoViewSmooth(timeslotsRef.current, isEmbed);
       scrolledToTimeslotsOnce.current = true;
     }
@@ -208,6 +209,19 @@ const BookerComponent = ({
   const onAvailableTimeSlotSelect = (time: string) => {
     setSelectedTimeslot(time);
   };
+
+  // State for loading more availability (partial loading feature)
+  const [isLoadingMoreAvailability, setIsLoadingMoreAvailability] = useState(false);
+
+  const onLoadMoreAvailability = useCallback(async () => {
+    if (!schedule?.loadMoreAvailability) return;
+    setIsLoadingMoreAvailability(true);
+    try {
+      await schedule.loadMoreAvailability();
+    } finally {
+      setIsLoadingMoreAvailability(false);
+    }
+  }, [schedule]);
 
   updateEmbedBookerState({ bookerState, slotsQuery: schedule });
 
@@ -526,6 +540,8 @@ const BookerComponent = ({
                 watchedCfToken={watchedCfToken}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={customClassNames?.confirmStep}
+                onLoadMoreAvailability={onLoadMoreAvailability}
+                isLoadingMoreAvailability={isLoadingMoreAvailability}
               />
             </BookerSection>
           </AnimatePresence>

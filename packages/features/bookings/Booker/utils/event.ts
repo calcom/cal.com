@@ -127,5 +127,6 @@ export const useScheduleForEvent = ({
     isLoading: schedule?.isLoading,
     invalidate: schedule?.invalidate,
     dataUpdatedAt: schedule?.dataUpdatedAt,
+    loadMoreAvailability: schedule?.loadMoreAvailability,
   };
 };

@@ -14,6 +14,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
+import { PartialLoadingBanner } from "./PartialLoadingBanner";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 
@@ -50,6 +51,8 @@ type AvailableTimeSlotsProps = {
   unavailableTimeSlots: string[];
   confirmButtonDisabled?: boolean;
   onAvailableTimeSlotSelect: (time: string) => void;
+  onLoadMoreAvailability?: () => void;
+  isLoadingMoreAvailability?: boolean;
 };
 
 /**
@@ -74,6 +77,8 @@ export const AvailableTimeSlots = ({
   confirmButtonDisabled,
   confirmStepClassNames,
   onAvailableTimeSlotSelect,
+  onLoadMoreAvailability,
+  isLoadingMoreAvailability,
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
@@ -83,10 +88,11 @@ export const AvailableTimeSlots = ({
   const [layout] = useBookerStoreContext((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStoreContext((state) => ({
-    setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
-    tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
-  }));
+  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots: _tentativeSelectedTimeslots } =
+    useBookerStoreContext((state) => ({
+      setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
+      tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
+    }));
 
   const onTentativeTimeSelect = ({
     time,
@@ -108,6 +114,7 @@ export const AvailableTimeSlots = ({
   };
 
   const scheduleData = schedule?.data;
+  const partialLoadInfo = scheduleData?.partialLoadInfo;
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(scheduleData?.slots);
   const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
@@ -186,6 +193,14 @@ export const AvailableTimeSlots = ({
 
   return (
     <>
+      {partialLoadInfo?.isPartialLoad && onLoadMoreAvailability && (
+        <PartialLoadingBanner
+          totalHosts={partialLoadInfo.totalHosts}
+          loadedHosts={partialLoadInfo.loadedHosts}
+          onLoadMore={onLoadMoreAvailability}
+          isLoading={isLoadingMoreAvailability}
+        />
+      )}
       <div className={classNames(`flex`, `${customClassNames?.availableTimeSlotsContainer}`)}>
         {isLoading ? (
           <div className="mb-3 h-8" />

@@ -502,10 +502,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: any;
-              operator?: any;
-              value?: any;
-              valueSrc?: any;
+              field?: string;
+              operator?: string;
+              value?: string[][];
+              valueSrc?: string;
             }
           | undefined;
       }
@@ -523,7 +523,7 @@ export class LuckyUserService implements ILuckyUserService {
       const attributeId = obj.field;
       const allRRHostsWeights = new Map<number, number[]>();
 
-      if (attributeId === attributeWithWeights.id) {
+      if (attributeId === attributeWithWeights.id && obj.value) {
         obj.value.forEach((arrayobj: string[]) => {
           arrayobj.forEach((attributeOption: string) => {
             const attributeOptionWithUsers = attributeWithWeights.options.find(
@@ -570,10 +570,10 @@ export class LuckyUserService implements ILuckyUserService {
         type?: string | undefined;
         properties?:
           | {
-              field?: any;
-              operator?: any;
-              value?: any;
-              valueSrc?: any;
+              field?: string;
+              operator?: string;
+              value?: string[][];
+              valueSrc?: string;
             }
           | undefined;
       }
@@ -590,7 +590,7 @@ export class LuckyUserService implements ILuckyUserService {
     fieldValueArray.some((obj) => {
       const attributeId = obj.field;
 
-      if (attributeId === attributeWithWeights.id) {
+      if (attributeId === attributeWithWeights.id && obj.value) {
         obj.value.some((arrayobj: string[]) => {
           arrayobj.some((attributeOptionId: string) => {
             const content = attributeOptionId.slice(1, -1);
@@ -734,7 +734,10 @@ export class LuckyUserService implements ILuckyUserService {
       priority?: number | null;
       weight?: number | null;
     }
-  >(getLuckyUserParams: GetLuckyUserParams<T>): Promise<FetchedData> {
+  >(
+    getLuckyUserParams: GetLuckyUserParams<T>,
+    options?: { skipCalendarBusyTimes?: boolean }
+  ): Promise<FetchedData> {
     const startTime = performance.now();
 
     const { availableUsers, allRRHosts, eventType, meetingStartTime } = getLuckyUserParams;
@@ -777,6 +780,8 @@ export class LuckyUserService implements ILuckyUserService {
     const intervalStartDate = getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime });
     const intervalEndDate = getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime });
 
+    const skipCalendarBusyTimes = options?.skipCalendarBusyTimes ?? false;
+
     const [
       userBusyTimesOfInterval,
       bookingsOfAvailableUsersOfInterval,
@@ -785,12 +790,14 @@ export class LuckyUserService implements ILuckyUserService {
       allRRHostsCreatedInInterval,
       organizersWithLastCreated,
     ] = await Promise.all([
-      this.getCalendarBusyTimesOfInterval(
-        allRRHosts.map((host) => host.user),
-        interval,
-        rrTimestampBasis,
-        meetingStartTime
-      ),
+      skipCalendarBusyTimes
+        ? Promise.resolve([])
+        : this.getCalendarBusyTimesOfInterval(
+            allRRHosts.map((host) => host.user),
+            interval,
+            rrTimestampBasis,
+            meetingStartTime
+          ),
       this.getBookingsOfInterval({
         eventTypeId: eventType.id,
         users: availableUsers.map((user) => {
@@ -1037,8 +1044,29 @@ export class LuckyUserService implements ILuckyUserService {
     return { attributeWeights, virtualQueuesData };
   }
 
+  /**
+   * Gets an ordered list of hosts for partial loading without making calendar API calls.
+   * This is a DB-only variant used to rank hosts by priority/weight/shortfall before
+   * deciding which hosts' calendars to fetch for large round-robin events.
+   *
+   * Note: The ordering uses the same LuckyUser algorithm but without calendar-derived
+   * OOO calibration data. DB-based OOO entries are still included.
+   */
+  public async getOrderedHostsForPartialLoading<AvailableUser extends AvailableUserBase>(
+    getLuckyUserParams: GetLuckyUserParams<AvailableUser>
+  ) {
+    return this.getOrderedListOfLuckyUsersInternal(getLuckyUserParams, { skipCalendarBusyTimes: true });
+  }
+
   public async getOrderedListOfLuckyUsers<AvailableUser extends AvailableUserBase>(
     getLuckyUserParams: GetLuckyUserParams<AvailableUser>
+  ) {
+    return this.getOrderedListOfLuckyUsersInternal(getLuckyUserParams);
+  }
+
+  private async getOrderedListOfLuckyUsersInternal<AvailableUser extends AvailableUserBase>(
+    getLuckyUserParams: GetLuckyUserParams<AvailableUser>,
+    options?: { skipCalendarBusyTimes?: boolean }
   ) {
     const { availableUsers, eventType } = getLuckyUserParams;
 
@@ -1051,7 +1079,7 @@ export class LuckyUserService implements ILuckyUserService {
       attributeWeights,
       virtualQueuesData,
       oooData,
-    } = await this.fetchAllDataNeededForCalculations(getLuckyUserParams);
+    } = await this.fetchAllDataNeededForCalculations(getLuckyUserParams, options);
 
     log.info(
       "getOrderedListOfLuckyUsers",

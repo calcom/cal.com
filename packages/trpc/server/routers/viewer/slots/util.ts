@@ -15,7 +15,9 @@ import type {
 } from "@calcom/features/availability/lib/getUserAvailability";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import type { LuckyUserService } from "@calcom/features/bookings/lib/getLuckyUser";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
+import { selectHostsForPartialLoading } from "@calcom/features/bookings/lib/host-filtering/rankHostsByShortfall";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
@@ -85,6 +87,12 @@ export interface IGetAvailableSlots {
   >;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   troubleshooter?: any;
+  // Partial loading metadata for large round-robin events
+  partialLoadInfo?: {
+    isPartialLoad: boolean;
+    totalHosts: number;
+    loadedHosts: number;
+  };
 }
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -107,6 +115,7 @@ export interface IAvailableSlotsService {
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
   noSlotsNotificationService: NoSlotsNotificationService;
+  luckyUserService: LuckyUserService;
 }
 
 function withSlotsCache(
@@ -1099,6 +1108,89 @@ export class AvailableSlotsService {
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];
 
+    // Partial loading for large round-robin events
+    const rrPartialLoadingConfig = eventType.metadata?.rrPartialLoading;
+    const isRoundRobin = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+    const shouldUsePartialLoading =
+      isRoundRobin &&
+      rrPartialLoadingConfig?.enabled &&
+      input.rrHostLoadMode !== "full" &&
+      allHosts.length > (rrPartialLoadingConfig.minimum ?? 10);
+
+    let hostsToLoad = allHosts;
+    let partialLoadInfo: { isPartialLoad: boolean; totalHosts: number; loadedHosts: number } | undefined;
+
+    if (shouldUsePartialLoading && eventType.team) {
+      // Get RR hosts (non-fixed) for ordering using LuckyUserService
+      const rrHosts = allHosts.filter((h) => !h.isFixed);
+
+      // Use LuckyUserService to get the exact same ordering as booking time
+      // This uses the full weight-based shortfall calculation, priority ranking, and calibration
+      // but skips calendar API calls (DB-only mode for performance)
+      const availableUsers = rrHosts.map((h) => ({
+        ...h.user,
+        priority: h.priority ?? null,
+        weight: h.weight ?? null,
+      }));
+
+      // Only proceed if we have at least one RR host
+      if (availableUsers.length > 0) {
+        const allRRHostsForLuckyUser = rrHosts.map((h) => ({
+          user: {
+            id: h.user.id,
+            email: h.user.email,
+            credentials: h.user.credentials,
+            userLevelSelectedCalendars: h.user.userLevelSelectedCalendars,
+          },
+          createdAt: h.createdAt ?? new Date(),
+          weight: h.weight ?? null,
+        }));
+
+        const orderedHostsResult = await this.dependencies.luckyUserService.getOrderedHostsForPartialLoading({
+          availableUsers: availableUsers as [typeof availableUsers[0], ...typeof availableUsers[0][]],
+          eventType: {
+            id: eventType.id,
+            isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+            team: eventType.team
+              ? {
+                  parentId: eventType.team.parentId ?? null,
+                  rrResetInterval: eventType.team.rrResetInterval,
+                  rrTimestampBasis: eventType.team.rrTimestampBasis,
+                }
+              : null,
+            includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation ?? false,
+          },
+          allRRHosts: allRRHostsForLuckyUser,
+          routingFormResponse: routingFormResponse ?? null,
+        });
+
+        // Extract ordered user IDs from the result
+        const orderedUserIds = orderedHostsResult.users.map((u) => u.id);
+
+        // Select subset of hosts based on the ordered list
+        const rankingResult = selectHostsForPartialLoading({
+          hosts: allHosts,
+          orderedUserIds,
+          partialLoadPercentage: rrPartialLoadingConfig.percentage ?? 20,
+          partialLoadMinimum: rrPartialLoadingConfig.minimum ?? 10,
+        });
+
+        hostsToLoad = rankingResult.selectedHosts;
+        partialLoadInfo = {
+          isPartialLoad: rankingResult.isPartialLoad,
+          totalHosts: rankingResult.totalHosts,
+          loadedHosts: rankingResult.loadedHosts,
+        };
+
+        loggerWithEventDetails.info({
+          partialLoading: true,
+          totalHosts: rankingResult.totalHosts,
+          loadedHosts: rankingResult.loadedHosts,
+          isPartialLoad: rankingResult.isPartialLoad,
+        });
+      }
+    }
+
     const twoWeeksFromNow = dayjs().add(2, "week");
 
     const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
@@ -1107,7 +1199,7 @@ export class AvailableSlotsService {
       await this.calculateHostsAndAvailabilities({
         input,
         eventType,
-        hosts: allHosts,
+        hosts: hostsToLoad,
         loggerWithEventDetails,
         // adjust start time so we can check for available slots in the first two weeks
         startTime:
@@ -1536,6 +1628,8 @@ export class AvailableSlotsService {
     return {
       slots: filteredSlotsMappedToDate,
       ...troubleshooterData,
+      ...(partialLoadInfo ? { partialLoadInfo } : {}),
     };
   }
+
 }

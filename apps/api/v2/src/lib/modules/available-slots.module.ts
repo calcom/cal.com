@@ -1,7 +1,9 @@
+import { PrismaAttributeRepository } from "@/lib/repositories/prisma-attribute.repository";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaHolidayRepository } from "@/lib/repositories/prisma-holiday.repository";
+import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaMembershipRepository } from "@/lib/repositories/prisma-membership.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
@@ -13,6 +15,7 @@ import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { BusyTimesService } from "@/lib/services/busy-times.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { FilterHostsService } from "@/lib/services/filter-hosts.service";
+import { LuckyUserService } from "@/lib/services/lucky-user.service";
 import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
 import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { UserAvailabilityService } from "@/lib/services/user-availability.service";
@@ -32,6 +35,8 @@ import { Module } from "@nestjs/common";
     PrismaEventTypeRepository,
     PrismaRoutingFormResponseRepository,
     PrismaTeamRepository,
+    PrismaHostRepository,
+    PrismaAttributeRepository,
     RedisService,
     PrismaFeaturesRepository,
     PrismaMembershipRepository,
@@ -42,6 +47,7 @@ import { Module } from "@nestjs/common";
     FilterHostsService,
     QualifiedHostsService,
     NoSlotsNotificationService,
+    LuckyUserService,
   ],
   exports: [AvailableSlotsService],
 })
