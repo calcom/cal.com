@@ -370,127 +370,99 @@ function generateFiles() {
 
   crmOutput.push(`};`);
 
-  const calendarOutput = [];
-  const calendarServices = getExportedObject(
-    "CalendarServiceMap",
-    {
-      importConfig: {
-        fileToBeImported: "lib/CalendarService.ts",
-        importName: "default",
-      },
-      lazyImport: true,
-    },
-    isCalendarApp
+  // Calendar services - use helper function pattern to prevent SDK type leakage
+  const calendarOutput: string[] = [];
+  calendarOutput.push(`import type { Calendar } from "@calcom/types/Calendar";`);
+  calendarOutput.push(`import type { CredentialPayload } from "@calcom/types/Credential";`);
+  calendarOutput.push(
+    `type CalendarServiceConstructor = new (credential: CredentialPayload, url?: string, integrationName?: string) => Calendar;`
+  );
+  calendarOutput.push(
+    `const importCalendarService = (path: string) => import(path) as Promise<{ default: CalendarServiceConstructor }>;`
+  );
+  calendarOutput.push(
+    `export const CalendarServiceMap: Record<string, Promise<{ default: CalendarServiceConstructor }>> = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {`
   );
 
-  // Find the export line and wrap it with E2E conditional
-  const exportLineIndex = calendarServices.findIndex((line) =>
-    line.startsWith("export const CalendarServiceMap")
-  );
-  if (exportLineIndex !== -1) {
-    const exportLine = calendarServices[exportLineIndex];
-    const objectContent = calendarServices.slice(exportLineIndex + 1, -1); // Remove export line and closing brace
-
-    calendarOutput.push(
-      exportLine.replace(
-        "export const CalendarServiceMap = {",
-        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
-      ),
-      ...objectContent,
-      "};"
-    );
-  } else {
-    calendarOutput.push(...calendarServices);
-  }
-
-  const analyticsOutput = [];
-  const analyticsServices = getExportedObject(
-    "AnalyticsServiceMap",
-    {
-      importConfig: {
-        fileToBeImported: "lib/AnalyticsService.ts",
-        importName: "default",
-      },
-      lazyImport: true,
-    },
-    (app: App) => {
-      const hasAnalyticsService = fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, "lib/AnalyticsService.ts")
-      );
-      return hasAnalyticsService;
+  forEachAppDir((app) => {
+    const calendarServicePath = path.join(APP_STORE_PATH, app.path, "lib/CalendarService.ts");
+    if (fs.existsSync(calendarServicePath)) {
+      const modulePath = `./${app.path.replace(/\\/g, "/")}/lib/CalendarService`;
+      calendarOutput.push(`"${app.name}": importCalendarService("${modulePath}"),`);
     }
+  }, isCalendarApp);
+
+  calendarOutput.push(`};`);
+
+  // Analytics services - use helper function pattern to prevent SDK type leakage
+  const analyticsOutput: string[] = [];
+  analyticsOutput.push(`import type { AnalyticsService } from "@calcom/types/AnalyticsService";`);
+  analyticsOutput.push(`import type { CredentialPayload } from "@calcom/types/Credential";`);
+  analyticsOutput.push(
+    `type AnalyticsServiceConstructor = new (credential: CredentialPayload) => AnalyticsService;`
+  );
+  analyticsOutput.push(
+    `const importAnalyticsService = (path: string) => import(path) as Promise<{ default: AnalyticsServiceConstructor }>;`
+  );
+  analyticsOutput.push(
+    `export const AnalyticsServiceMap: Record<string, Promise<{ default: AnalyticsServiceConstructor }>> = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {`
   );
 
-  const analyticsExportLineIndex = analyticsServices.findIndex((line) =>
-    line.startsWith("export const AnalyticsServiceMap")
-  );
-  if (analyticsExportLineIndex !== -1) {
-    const exportLine = analyticsServices[analyticsExportLineIndex];
-    const objectContent = analyticsServices.slice(analyticsExportLineIndex + 1, -1);
-
-    analyticsOutput.push(
-      exportLine.replace(
-        "export const AnalyticsServiceMap = {",
-        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
-      ),
-      ...objectContent,
-      "};"
-    );
-  } else {
-    analyticsOutput.push(...analyticsServices);
-  }
-
-  const paymentOutput = [];
-  const paymentServices = getExportedObject(
-    "PaymentServiceMap",
-    {
-      importConfig: {
-        fileToBeImported: "lib/PaymentService.ts",
-        importName: "PaymentService",
-      },
-      lazyImport: true,
-    },
-    (app: App) => {
-      const hasPaymentService = fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts"));
-      return hasPaymentService;
+  forEachAppDir((app) => {
+    const analyticsServicePath = path.join(APP_STORE_PATH, app.path, "lib/AnalyticsService.ts");
+    if (fs.existsSync(analyticsServicePath)) {
+      const modulePath = `./${app.path.replace(/\\/g, "/")}/lib/AnalyticsService`;
+      analyticsOutput.push(`"${app.name}": importAnalyticsService("${modulePath}"),`);
     }
+  });
+
+  analyticsOutput.push(`};`);
+
+  // Payment services - use helper function pattern to prevent SDK type leakage
+  const paymentOutput: string[] = [];
+  paymentOutput.push(`import type { IAbstractPaymentService } from "@calcom/types/PaymentService";`);
+  paymentOutput.push(`import type { Prisma } from "@calcom/prisma/client";`);
+  paymentOutput.push(
+    `type PaymentServiceConstructor = new (credentials: { key: Prisma.JsonValue }) => IAbstractPaymentService;`
+  );
+  paymentOutput.push(
+    `const importPaymentService = (path: string) => import(path) as Promise<{ PaymentService: PaymentServiceConstructor }>;`
+  );
+  paymentOutput.push(
+    `export const PaymentServiceMap: Record<string, Promise<{ PaymentService: PaymentServiceConstructor }>> = {`
   );
 
-  paymentOutput.push(...paymentServices);
-
-  const videoOutput = [];
-  const videoAdapters = getExportedObject(
-    "VideoApiAdapterMap",
-    {
-      importConfig: {
-        fileToBeImported: "lib/VideoApiAdapter.ts",
-        importName: "default",
-      },
-      lazyImport: true,
-    },
-    (app: App) => {
-      return fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts"));
+  forEachAppDir((app) => {
+    const paymentServicePath = path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts");
+    if (fs.existsSync(paymentServicePath)) {
+      const modulePath = `./${app.path.replace(/\\/g, "/")}/lib/PaymentService`;
+      paymentOutput.push(`"${app.name}": importPaymentService("${modulePath}"),`);
     }
+  });
+
+  paymentOutput.push(`};`);
+
+  // Video adapters - use helper function pattern to prevent SDK type leakage
+  const videoOutput: string[] = [];
+  videoOutput.push(`import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";`);
+  videoOutput.push(`import type { CredentialPayload } from "@calcom/types/Credential";`);
+  videoOutput.push(`type VideoApiAdapterFactory = (credential: CredentialPayload) => VideoApiAdapter;`);
+  videoOutput.push(
+    `const importVideoAdapter = (path: string) => import(path) as Promise<{ default: VideoApiAdapterFactory }>;`
+  );
+  videoOutput.push(
+    `export const VideoApiAdapterMap: Record<string, Promise<{ default: VideoApiAdapterFactory }>> = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {`
   );
 
-  const videoExportLineIndex = videoAdapters.findIndex((line) =>
-    line.startsWith("export const VideoApiAdapterMap")
-  );
-  if (videoExportLineIndex !== -1) {
-    const exportLine = videoAdapters[videoExportLineIndex];
-    const objectContent = videoAdapters.slice(videoExportLineIndex + 1, -1);
+  forEachAppDir((app) => {
+    const videoAdapterPath = path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts");
+    if (fs.existsSync(videoAdapterPath)) {
+      const modulePath = `./${app.path.replace(/\\/g, "/")}/lib/VideoApiAdapter`;
+      videoOutput.push(`"${app.name}": importVideoAdapter("${modulePath}"),`);
+    }
+  });
 
-    videoOutput.push(
-      exportLine.replace(
-        "export const VideoApiAdapterMap = {",
-        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
-      ),
-      ...objectContent,
-      "};"
-    );
-  } else {
-    videoOutput.push(...videoAdapters);
-  }
+  videoOutput.push(`};`);
 
   const banner = `/**
     This file is autogenerated using the command \`yarn app-store:build --watch\`.
@@ -498,7 +470,13 @@ function generateFiles() {
 **/
 `;
   // Files that need TypeScript parser due to type annotations
-  const typescriptFiles = new Set(["crm.apps.generated.ts"]);
+  const typescriptFiles = new Set([
+    "crm.apps.generated.ts",
+    "calendar.services.generated.ts",
+    "analytics.services.generated.ts",
+    "payment.services.generated.ts",
+    "video.adapters.generated.ts",
+  ]);
 
   const filesToGenerate: [string, string[]][] = [
     ["analytics.services.generated.ts", analyticsOutput],
