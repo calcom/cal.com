@@ -1,5 +1,6 @@
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
@@ -16,7 +17,8 @@ export class MeService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly schedulesService: SchedulesService_2024_04_15,
-    private readonly featuresRepository: PrismaFeaturesRepository
+    private readonly featuresRepository: PrismaFeaturesRepository,
+    private readonly prismaWrite: PrismaWriteService
   ) {}
 
   async updateMe(params: {
@@ -37,7 +39,36 @@ export class MeService {
     if (hasEmailBeenChanged && newEmail && isEmailVerificationEnabled) {
       const secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
 
-      if (!secondaryEmail?.emailVerified) {
+      // Check if the new email is a verified secondary email
+      if (secondaryEmail && secondaryEmail.emailVerified) {
+        const [, updatedUser] = await this.prismaWrite.prisma.$transaction([
+          this.prismaWrite.prisma.secondaryEmail.update({
+            where: {
+              id: secondaryEmail.id,
+              userId: user.id,
+            },
+            data: {
+              email: user.email,
+              emailVerified: user.emailVerified,
+            },
+          }),
+          this.prismaWrite.prisma.user.update({
+            where: { id: user.id },
+            data: update,
+          }),
+        ]);
+
+        if (update.timeZone && user.defaultScheduleId) {
+          await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
+            timeZone: update.timeZone,
+          });
+        }
+
+        return {
+          updatedUser,
+        };
+      } else {
+        // New email is not a verified secondary email - require verification
         update.metadata = {
           ...(user.metadata as Prisma.JsonObject),
           ...(update.metadata || {}),
@@ -46,14 +77,6 @@ export class MeService {
 
         delete update.email;
         sendEmailVerification = true;
-      } else {
-        // When changing to a verified secondary email, swap the emails:
-        await this.usersRepository.swapPrimaryAndSecondaryEmail(
-          user.id,
-          secondaryEmail.id,
-          user.email,
-          user.emailVerified
-        );
       }
     }
 
