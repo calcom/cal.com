@@ -11,7 +11,6 @@ import {
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import type {
-  IBookingRepository,
   BookingBasicDto,
   BookingInstantLocationDto,
   BookingExistsDto,
@@ -19,7 +18,9 @@ import type {
   BookingForConfirmationDto,
   BookingUpdateResultDto,
   BookingBatchUpdateResultDto,
-} from "./IBookingRepository";
+} from "@calcom/lib/dto/BookingDto";
+
+import type { IBookingRepository } from "./IBookingRepository";
 
 type ManagedEventReassignmentCreateParams = {
   uid: string;

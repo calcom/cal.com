@@ -1,5 +1,5 @@
 import { getBookingRepository } from "@calcom/features/di/containers/Booking";
-import type { BookingFullContextDto } from "@calcom/features/bookings/repositories/IBookingRepository";
+import type { BookingFullContextDto } from "@calcom/lib/dto/BookingDto";
 
 import { TRPCError } from "@trpc/server";
 
