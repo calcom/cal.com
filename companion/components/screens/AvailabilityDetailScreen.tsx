@@ -458,9 +458,53 @@ export function AvailabilityDetailScreen({ id }: AvailabilityDetailScreenProps) 
   }
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-[#f8f9fa]">
+      {/* Glass Header */}
+      <GlassView
+        style={[
+          {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            paddingHorizontal: 16,
+            paddingBottom: 12,
+            paddingTop: insets.top + 8,
+          },
+        ]}
+        glassEffectStyle="clear"
+      >
+        <View className="min-h-[44px] flex-row items-center justify-between">
+          <AppPressable
+            className="h-10 w-10 items-start justify-center"
+            onPress={() => router.back()}
+          >
+            <Ionicons name="chevron-back" size={24} color="#000" />
+          </AppPressable>
+
+          <Text
+            className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
+            numberOfLines={1}
+          >
+            Edit Availability
+          </Text>
+
+          <AppPressable
+            className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${
+              saving ? "opacity-60" : ""
+            }`}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            <Text className="text-base font-semibold text-white">Save</Text>
+          </AppPressable>
+        </View>
+      </GlassView>
+
       <ScrollView
-        className="flex-1 bg-[#f8f9fa]"
+        className="flex-1"
+        style={{ paddingTop: insets.top + 70 }}
         contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
       >
         <View className="gap-4">
