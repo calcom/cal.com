@@ -53,6 +53,7 @@ type EventType = Pick<
   | "rescheduleWithSameRoundRobinHost"
   | "teamId"
   | "includeNoShowInRRCalculation"
+  | "rrHostSubsetEnabled"
 >;
 
 type InputProps = {
@@ -67,6 +68,7 @@ type InputProps = {
   isPlatform: boolean;
   hostname: string | undefined;
   forcedSlug: string | undefined;
+  rrHostSubsetIds?: number[];
 };
 
 const _loadAndValidateUsers = async ({
@@ -81,6 +83,7 @@ const _loadAndValidateUsers = async ({
   isPlatform,
   hostname,
   forcedSlug,
+  rrHostSubsetIds,
 }: InputProps): Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
@@ -155,6 +158,7 @@ const _loadAndValidateUsers = async ({
       rescheduleUid,
       contactOwnerEmail,
       routingFormResponse,
+      rrHostSubsetIds,
     });
   const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
     (acc, host) => {

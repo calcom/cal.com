@@ -21,7 +21,7 @@ import {
 } from "@calcom/features/data-table";
 import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 import { RoutingFormResponsesDownload } from "../../filters/Download";
 import { OrgTeamsFilter } from "../../filters/OrgTeamsFilter";

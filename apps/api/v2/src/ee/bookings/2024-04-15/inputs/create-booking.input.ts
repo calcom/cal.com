@@ -11,6 +11,7 @@ import {
   ValidateNested,
   isEmail,
   Validate,
+  IsInt,
 } from "class-validator";
 import { ValidationOptions, registerDecorator } from "class-validator";
 
@@ -26,7 +27,7 @@ function ValidateBookingName(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any) {
+        validate(value: string | Record<string, string>): boolean {
           if (typeof value === "string") {
             return value.trim().length > 0;
           }
@@ -226,4 +227,16 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   crmOwnerRecordType?: string;
+
+  /* @ApiPropertyOptional({
+    type: [Number],
+    description:
+      "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+    example: [1, 2, 3],
+  }) */
+  @ApiHideProperty()
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  rrHostSubsetIds?: number[];
 }

@@ -81,7 +81,7 @@
     "web": "yarn workspace @calcom/web",
     "changesets-add": "yarn changeset add",
     "changesets-version": "yarn changeset version",
-    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish",
+    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build-npm --filter=@calcom/atoms && yarn changeset publish",
     "lint-staged": "lint-staged"
   },
   "devDependencies": {
@@ -102,7 +102,7 @@
     "eslint": "9.36.0",
     "husky": "9.1.7",
     "i18n-unused": "^0.13.0",
-    "jest-diff": "^29.5.0",
+    "jest-diff": "29.7.0",
     "jest-summarizing-reporter": "^1.1.4",
     "lint-staged": "^12.5.0",
     "mailhog": "^4.16.0",
@@ -122,9 +122,9 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.83.1",
     "@evyweb/ioctopus": "^1.2.0",
-    "@next/third-parties": "^14.2.5",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
+    "date-fns": "^3.6.0",
     "date-fns-tz": "^3.2.0",
     "p-limit": "^6.2.0"
   },
@@ -139,17 +139,19 @@
     "dayjs@1.11.2": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
-    "import-in-the-middle": "1.13.1"
+    "import-in-the-middle": "1.13.1",
+    "react@19.2.0": "19.2.2",
+    "react@19.2.1": "19.2.2"
   },
   "engines": {
     "npm": ">=7.0.0",
-    "yarn": "3.4.1"
+    "yarn": ">=4.12.0"
   },
   "prisma": {
     "schema": "packages/prisma/schema.prisma",
     "seed": "ts-node --transpile-only ./packages/prisma/seed.ts"
   },
-  "packageManager": "yarn@3.4.1",
+  "packageManager": "yarn@4.12.0",
   "syncpack": {
     "filter": "^(?!@calcom).*",
     "semverRange": ""

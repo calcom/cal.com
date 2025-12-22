@@ -35,12 +35,13 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
-import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
+import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -87,7 +88,6 @@ import {
   CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -127,6 +127,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 import { makeGuestActor } from "../types/actor";
 
 const translator = short();
@@ -456,7 +457,6 @@ function buildBookingCreatedPayload({
   };
 }
 
-
 export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
@@ -467,6 +467,57 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+}
+
+async function validateRescheduleRestrictions({
+  rescheduleUid,
+  userId,
+  eventType,
+}: {
+  rescheduleUid: string | null | undefined;
+  userId: number | null;
+  eventType: { seatsPerTimeSlot: number | null; minimumRescheduleNotice: number | null } | null;
+}): Promise<void> {
+  if (!rescheduleUid || !eventType) {
+    return; // Not a reschedule, skip validation
+  }
+
+  const bookingSeat = rescheduleUid ? await getSeatedBooking(rescheduleUid) : null;
+  const actualRescheduleUid = bookingSeat ? bookingSeat.booking.uid : rescheduleUid;
+
+  if (!actualRescheduleUid) {
+    return; // No valid reschedule UID
+  }
+
+  try {
+    const originalRescheduledBooking = await getOriginalRescheduledBooking(
+      actualRescheduleUid,
+      !!eventType.seatsPerTimeSlot
+    );
+
+    // Check if user is the organizer
+    const isUserOrganizer =
+      userId && originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
+
+    // Check minimum reschedule notice (only for non-organizers)
+    const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
+    if (
+      !isUserOrganizer &&
+      isWithinMinimumRescheduleNotice(originalRescheduledBooking.startTime, minimumRescheduleNotice ?? null)
+    ) {
+      throw new HttpError({
+        statusCode: 403,
+        message: "Rescheduling is not allowed within the minimum notice period before the event",
+      });
+    }
+  } catch (error) {
+    // Re-throw HttpError (including our 403 validation error)
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    // For other errors (like booking not found), let the service handle it later
+    // We don't want to fail early validation for these cases
+  }
 }
 
 /**
@@ -548,6 +599,18 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  // Early validation: Check reschedule restrictions if rescheduling
+  await validateRescheduleRestrictions({
+    rescheduleUid: rawBookingData.rescheduleUid,
+    userId: userId ?? null,
+    eventType: eventType
+      ? {
+        seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+        minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+      }
+      : null,
+  });
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
@@ -579,6 +642,7 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
+    rrHostSubsetIds,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -829,6 +893,7 @@ async function handler(
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
     routingFormResponse,
+    rrHostSubsetIds: rrHostSubsetIds ?? undefined,
   });
 
   // We filter out users but ensure allHostUsers remain same.
@@ -894,6 +959,7 @@ async function handler(
       users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
@@ -1654,6 +1720,7 @@ async function handler(
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
       isDryRun,
+      traceContext,
     });
 
     if (newBooking) {
@@ -1991,7 +2058,7 @@ async function handler(
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    evt.description = eventType.description ?? evt.description;
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -2301,23 +2368,53 @@ async function handler(
     organizationId: eventOrganizationId,
   });
 
-  const bookingRescheduledPayload: BookingRescheduledPayload = {
-    ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking ? {
-      startTime: originalRescheduledBooking.startTime,
-      endTime: originalRescheduledBooking.endTime,
-    } : undefined,
-  };
-
   const bookingEventHandler = deps.bookingEventHandler;
+  // TODO: Identify action source correctly
+  const actionSource = 'WEBAPP';
+  // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
+  const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
 
-  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   if (originalRescheduledBooking) {
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+    const bookingRescheduledPayload: BookingRescheduledPayload = {
+      ...bookingCreatedPayload,
+      oldBooking: {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      },
+    };
+    await bookingEventHandler.onBookingRescheduled({
+      payload: bookingRescheduledPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: {
+          old: bookingRescheduledPayload.oldBooking?.startTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.startTime.toISOString(),
+        },
+        endTime: {
+          old: bookingRescheduledPayload.oldBooking?.endTime.toISOString() ?? null,
+          new: bookingRescheduledPayload.booking.endTime.toISOString(),
+        },
+        rescheduledToUid: {
+          old: null,
+          new: bookingRescheduledPayload.booking.uid,
+        },
+      },
+      source: actionSource,
+      operationId: null,
+    });
   } else {
-    // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
-    const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
+    await bookingEventHandler.onBookingCreated({
+      payload: bookingCreatedPayload,
+      actor: auditActor,
+      auditData: {
+        startTime: bookingCreatedPayload.booking.startTime.getTime(),
+        endTime: bookingCreatedPayload.booking.endTime.getTime(),
+        status: bookingCreatedPayload.booking.status,
+      },
+      source: actionSource,
+      operationId: null,
+    });
   }
 
   const webhookData: EventPayloadType = {
@@ -2412,6 +2509,7 @@ async function handler(
         paymentId: payment?.id,
       },
       isDryRun,
+      traceContext,
     });
 
     try {
@@ -2549,6 +2647,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2560,6 +2659,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2603,6 +2703,7 @@ async function handler(
       seatReferenceUid: evt.attendeeSeatId,
       isPlatformNoEmail: noEmail && Boolean(platformClientId),
       isDryRun,
+      traceContext,
     });
   }
 
