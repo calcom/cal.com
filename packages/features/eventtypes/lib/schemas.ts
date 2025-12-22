@@ -1,12 +1,23 @@
 import { z } from "zod";
 
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventTypeLocation, EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations, EventTypeMetaDataSchema, eventTypeSlug } from "@calcom/prisma/zod-utils";
 
-// Note: calVideoSettingsSchema is not annotated with z.ZodType because it's a local
-// variable and the .optional().nullable() chain creates complex type inference
-const calVideoSettingsSchema = z
+type CalVideoSettings =
+  | {
+      disableRecordingForGuests?: boolean | null;
+      disableRecordingForOrganizer?: boolean | null;
+      enableAutomaticTranscription?: boolean | null;
+      enableAutomaticRecordingForOrganizer?: boolean | null;
+      disableTranscriptionForGuests?: boolean | null;
+      disableTranscriptionForOrganizer?: boolean | null;
+      redirectUrlOnExit?: string | null;
+      requireEmailForGuests?: boolean | null;
+    }
+  | null
+  | undefined;
+
+const calVideoSettingsSchema: z.ZodType<CalVideoSettings> = z
   .object({
     disableRecordingForGuests: z.boolean().nullish(),
     disableRecordingForOrganizer: z.boolean().nullish(),
@@ -20,7 +31,18 @@ const calVideoSettingsSchema = z
   .optional()
   .nullable();
 
-type CalVideoSettings = z.infer<typeof calVideoSettingsSchema>;
+type EventTypeLocation = {
+  type: string;
+  address?: string;
+  link?: string;
+  displayLocationPublicly?: boolean;
+  hostPhoneNumber?: string;
+  credentialId?: number;
+  teamName?: string;
+  customLabel?: string;
+};
+
+type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
 export type TEventTypeDuplicateInput = {
   id: number;
