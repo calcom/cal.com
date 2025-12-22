@@ -58,7 +58,6 @@ jobs:
             let labels = [];
             let prNumber = null;
 
-            // Get PR number from event payload or find it via commit SHA
             if (context.payload.pull_request) {
               prNumber = context.payload.pull_request.number;
             } else {
