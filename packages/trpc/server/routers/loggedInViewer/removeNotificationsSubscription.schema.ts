@@ -1,9 +1,10 @@
 import { z } from "zod";
 
-export const ZRemoveNotificationsSubscriptionInputSchema = z.object({
-  subscription: z.string(),
-});
+export type TRemoveNotificationsSubscriptionInputSchema = {
+  subscription: string;
+};
 
-export type TRemoveNotificationsSubscriptionInputSchema = z.infer<
-  typeof ZRemoveNotificationsSubscriptionInputSchema
->;
+export const ZRemoveNotificationsSubscriptionInputSchema: z.ZodType<TRemoveNotificationsSubscriptionInputSchema> =
+  z.object({
+    subscription: z.string(),
+  });

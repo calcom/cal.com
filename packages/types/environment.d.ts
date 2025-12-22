@@ -6,8 +6,6 @@ declare namespace NodeJS {
     readonly GOOGLE_API_CREDENTIALS: string | undefined;
     /** Google Calendar API key for fetching public holiday calendars */
     readonly GOOGLE_CALENDAR_API_KEY: string | undefined;
-    /** Number of days to cache holiday data from Google Calendar (default: 7) */
-    readonly HOLIDAY_CACHE_DAYS: string | undefined;
     /** @deprecated use `NEXT_PUBLIC_WEBAPP_URL` */
     readonly BASE_URL: string | undefined;
     /** @deprecated use `NEXT_PUBLIC_WEBAPP_URL` */
