@@ -191,7 +191,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from update user profile API");
     } catch (error) {
-      console.error("updateUserProfile error:", error);
+      console.error("updateUserProfile error");
       throw error;
     }
   }
@@ -321,7 +321,7 @@ export class CalComAPIService {
         "2024-06-14"
       );
     } catch (error) {
-      console.error("Delete API error:", error);
+      console.error("Delete API error");
       throw error;
     }
   }
@@ -349,7 +349,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from create event type API");
     } catch (error) {
-      console.error("createEventType error:", error);
+      console.error("createEventType error");
       throw error;
     }
   }
@@ -406,7 +406,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from reschedule booking API");
     } catch (error) {
-      console.error("rescheduleBooking error:", error);
+      console.error("rescheduleBooking error");
       throw error;
     }
   }
@@ -431,7 +431,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from confirm booking API");
     } catch (error) {
-      console.error("confirmBooking error:", error);
+      console.error("confirmBooking error");
       throw error;
     }
   }
@@ -462,7 +462,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from decline booking API");
     } catch (error) {
-      console.error("declineBooking error:", error);
+      console.error("declineBooking error");
       throw error;
     }
   }
@@ -502,7 +502,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from mark absent API");
     } catch (error) {
-      console.error("markAbsent error:", error);
+      console.error("markAbsent error");
       throw error;
     }
   }
@@ -589,7 +589,7 @@ export class CalComAPIService {
       }
       throw new Error("Invalid response from get booking API");
     } catch (error) {
-      console.error("getBookingByUid error:", error);
+      console.error("getBookingByUid error");
       throw error;
     }
   }
@@ -775,7 +775,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from create schedule API");
     } catch (error) {
-      console.error("createSchedule error:", error);
+      console.error("createSchedule error");
       throw error;
     }
   }
@@ -802,7 +802,7 @@ export class CalComAPIService {
 
       return null;
     } catch (error) {
-      console.error("getScheduleById error:", error);
+      console.error("getScheduleById error");
       throw error;
     }
   }
@@ -820,7 +820,7 @@ export class CalComAPIService {
 
       return [];
     } catch (error) {
-      console.error("getConferencingOptions error:", error);
+      console.error("getConferencingOptions error");
       throw error;
     }
   }
@@ -849,7 +849,7 @@ export class CalComAPIService {
           return null;
         }
       }
-      console.error("getEventTypeById error:", error);
+      console.error("getEventTypeById error");
       throw error;
     }
   }
@@ -946,7 +946,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from update event type API");
     } catch (error) {
-      console.error("updateEventType error:", error);
+      console.error("updateEventType error");
       throw error;
     }
   }
@@ -992,7 +992,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from update schedule API");
     } catch (error) {
-      console.error("updateSchedule error:", error);
+      console.error("updateSchedule error");
       throw error;
     }
   }
@@ -1017,7 +1017,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from duplicate schedule API");
     } catch (error) {
-      console.error("duplicateSchedule error:", error);
+      console.error("duplicateSchedule error");
       throw error;
     }
   }
@@ -1036,7 +1036,7 @@ export class CalComAPIService {
         "2024-06-11"
       );
     } catch (error) {
-      console.error("deleteSchedule error:", error);
+      console.error("deleteSchedule error");
       throw error;
     }
   }
@@ -1056,7 +1056,7 @@ export class CalComAPIService {
 
       return [];
     } catch (error) {
-      console.error("getWebhooks error:", error);
+      console.error("getWebhooks error");
       throw error;
     }
   }
@@ -1079,7 +1079,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from create webhook API");
     } catch (error) {
-      console.error("createWebhook error:", error);
+      console.error("createWebhook error");
       throw error;
     }
   }
@@ -1105,7 +1105,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from update webhook API");
     } catch (error) {
-      console.error("updateWebhook error:", error);
+      console.error("updateWebhook error");
       throw error;
     }
   }
@@ -1117,7 +1117,7 @@ export class CalComAPIService {
         method: "DELETE",
       });
     } catch (error) {
-      console.error("deleteWebhook error:", error);
+      console.error("deleteWebhook error");
       throw error;
     }
   }
@@ -1135,7 +1135,7 @@ export class CalComAPIService {
 
       return [];
     } catch (error) {
-      console.error("getEventTypeWebhooks error:", error);
+      console.error("getEventTypeWebhooks error");
       throw error;
     }
   }
@@ -1164,7 +1164,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from create event type webhook API");
     } catch (error) {
-      console.error("createEventTypeWebhook error:", error);
+      console.error("createEventTypeWebhook error");
       throw error;
     }
   }
@@ -1194,7 +1194,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from update event type webhook API");
     } catch (error) {
-      console.error("updateEventTypeWebhook error:", error);
+      console.error("updateEventTypeWebhook error");
       throw error;
     }
   }
@@ -1206,7 +1206,7 @@ export class CalComAPIService {
         method: "DELETE",
       });
     } catch (error) {
-      console.error("deleteEventTypeWebhook error:", error);
+      console.error("deleteEventTypeWebhook error");
       throw error;
     }
   }
@@ -1228,7 +1228,7 @@ export class CalComAPIService {
 
       return [];
     } catch (error) {
-      console.error("getEventTypePrivateLinks error:", error);
+      console.error("getEventTypePrivateLinks error");
       throw error;
     }
   }
@@ -1257,7 +1257,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from create private link API");
     } catch (error) {
-      console.error("createEventTypePrivateLink error:", error);
+      console.error("createEventTypePrivateLink error");
       throw error;
     }
   }
@@ -1287,7 +1287,7 @@ export class CalComAPIService {
 
       throw new Error("Invalid response from update private link API");
     } catch (error) {
-      console.error("updateEventTypePrivateLink error:", error);
+      console.error("updateEventTypePrivateLink error");
       throw error;
     }
   }
@@ -1299,7 +1299,7 @@ export class CalComAPIService {
         method: "DELETE",
       });
     } catch (error) {
-      console.error("deleteEventTypePrivateLink error:", error);
+      console.error("deleteEventTypePrivateLink error");
       throw error;
     }
   }
