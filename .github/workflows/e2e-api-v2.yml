@@ -30,7 +30,7 @@ env:
 jobs:
   e2e:
     timeout-minutes: 20
-    name: E2E API v2 (${{ matrix.shard }}/${{ strategy.job-total }})
+    name: E2E API v2
     runs-on: buildjet-16vcpu-ubuntu-2204
     services:
       postgres:
@@ -63,8 +63,6 @@ jobs:
           --health-retries 5
     strategy:
       fail-fast: false
-      matrix:
-        shard: [1, 2]
     steps:
       - uses: docker/login-action@v3
         with:
@@ -74,28 +72,10 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
-      - uses: buildjet/cache@v4
-        id: cache-api-v2-swagger
-        env:
-          cache-name: api-v2-swagger
-          key-1: ${{ hashFiles('yarn.lock') }}
-          key-2: ${{ hashFiles('apps/api/v2/**.[jt]s', 'apps/api/v2/**.[jt]sx', 'packages/platform-*/**.[jt]s', 'packages/platform-*/**.[jt]sx', '!**/node_modules') }}
-          key-3: ${{ github.event.pull_request.number || github.ref }}
-          key-4: ${{ github.sha }}
-        with:
-          path: |
-            apps/api/v2/dist/**
-            docs/api-reference/v2/openapi.json
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
 
       - name: Generate Swagger
-        if: steps.cache-api-v2-swagger.outputs.cache-hit != 'true'
         working-directory: apps/api/v2
         run: yarn generate-swagger
-
-      - name: Log Cache Hit
-        if: steps.cache-api-v2-swagger.outputs.cache-hit == 'true'
-        run: echo "Cache hit for API v2 swagger generation. Skipping build and swagger generation."
 
       - name: Check breaking changes
         run: |
@@ -111,14 +91,14 @@ jobs:
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn workspace @calcom/platform-libraries build && yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+          yarn test:e2e:ci
           EXIT_CODE=$?
-          echo "yarn workspace @calcom/platform-libraries build && yarn test:e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }} command exit code: $EXIT_CODE"
+          echo "yarn test:e2e:ci command exit code: $EXIT_CODE"
           exit $EXIT_CODE
 
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-api-v2-${{ matrix.shard }}
+          name: test-results-api-v2
           path: test-results
