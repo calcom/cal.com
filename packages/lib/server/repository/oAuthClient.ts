@@ -26,6 +26,7 @@ export class OAuthClientRepository {
         redirectUri: true,
         name: true,
         logo: true,
+        websiteUrl: true,
         clientType: true,
         approvalStatus: true,
         userId: true,
@@ -57,6 +58,7 @@ export class OAuthClientRepository {
         redirectUri: true,
         name: true,
         logo: true,
+        websiteUrl: true,
         clientType: true,
         approvalStatus: true,
         userId: true,
@@ -108,11 +110,12 @@ export class OAuthClientRepository {
     name: string;
     redirectUri: string;
     logo?: string;
+    websiteUrl?: string;
     enablePkce?: boolean;
     userId?: number;
     approvalStatus?: OAuthClientApprovalStatus;
   }) {
-    const { name, redirectUri, logo, enablePkce, userId, approvalStatus } = data;
+    const { name, redirectUri, logo, websiteUrl, enablePkce, userId, approvalStatus } = data;
 
     const clientId = randomBytes(32).toString("hex");
 
@@ -131,6 +134,7 @@ export class OAuthClientRepository {
         clientId,
         clientType: enablePkce ? "PUBLIC" : "CONFIDENTIAL",
         logo,
+        websiteUrl,
         approvalStatus: approvalStatus || "PENDING",
         clientSecret: hashedSecret,
         ...(userId && {
@@ -180,6 +184,7 @@ export class OAuthClientRepository {
       name?: string;
       redirectUri?: string;
       logo?: string;
+      websiteUrl?: string;
     }
   ) {
     return this.prismaClient.oAuthClient.update({

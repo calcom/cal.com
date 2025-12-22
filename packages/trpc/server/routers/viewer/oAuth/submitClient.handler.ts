@@ -16,7 +16,7 @@ type SubmitClientOptions = {
 };
 
 export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) => {
-  const { name, redirectUri, logo, enablePkce } = input;
+  const { name, redirectUri, logo, websiteUrl, enablePkce } = input;
   const userId = ctx.user.id;
 
   const oAuthClientRepository = await OAuthClientRepository.withGlobalPrisma();
@@ -25,6 +25,7 @@ export const submitClientHandler = async ({ ctx, input }: SubmitClientOptions) =
     name,
     redirectUri,
     logo,
+    websiteUrl,
     enablePkce,
     userId,
     approvalStatus: "PENDING",

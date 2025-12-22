@@ -61,5 +61,6 @@ export const updateClientStatusHandler = async ({ ctx, input }: UpdateClientStat
     clientId: updatedClient.clientId,
     name: updatedClient.name,
     approvalStatus: updatedClient.approvalStatus,
+    clientSecret,
   };
 };

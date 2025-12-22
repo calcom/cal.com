@@ -23,6 +23,7 @@ import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 type FormValues = {
   name: string;
   redirectUri: string;
+  websiteUrl: string;
   logo: string;
   enablePkce: boolean;
 };
@@ -51,6 +52,7 @@ const OAuthClientsView = () => {
     defaultValues: {
       name: "",
       redirectUri: "",
+      websiteUrl: "",
       logo: "",
       enablePkce: false,
     },
@@ -82,6 +84,7 @@ const OAuthClientsView = () => {
     submitMutation.mutate({
       name: values.name,
       redirectUri: values.redirectUri,
+      websiteUrl: values.websiteUrl,
       logo: values.logo,
       enablePkce: values.enablePkce,
     });
@@ -197,6 +200,15 @@ const OAuthClientsView = () => {
                 required
               />
 
+              <TextField
+                {...oAuthForm.register("websiteUrl", { required: true })}
+                label={t("website_url")}
+                type="url"
+                id="websiteUrl"
+                placeholder="https://example.com"
+                required
+              />
+
               <div>
                 <Label className="text-emphasis mb-2 block text-sm font-medium">
                   {t("authentication_mode")}
@@ -214,11 +226,10 @@ const OAuthClientsView = () => {
                 <Label className="text-emphasis mb-2 block text-sm font-medium">
                   {t("logo")} <span className="text-error">*</span>
                 </Label>
-                <div className="flex items-center">
+                <div className="flex items-center gap-4">
                   <Avatar
                     alt=""
                     fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
-                    className="mr-5 items-center"
                     imageSrc={logo}
                     size="lg"
                   />

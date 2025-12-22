@@ -4,6 +4,7 @@ export const ZSubmitClientInputSchema = z.object({
   name: z.string().min(1, "Client name is required"),
   redirectUri: z.string().url("Must be a valid URL"),
   logo: z.string().min(1, "Logo is required"),
+  websiteUrl: z.string().url("Must be a valid URL"),
   enablePkce: z.boolean().optional().default(false),
 });
 

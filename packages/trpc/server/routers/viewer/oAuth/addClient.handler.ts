@@ -10,7 +10,7 @@ type AddClientOptions = {
 };
 
 export const addClientHandler = async ({ input }: AddClientOptions) => {
-  const { name, redirectUri, logo, enablePkce } = input;
+  const { name, redirectUri, logo, websiteUrl, enablePkce } = input;
 
   const oAuthClientRepository = await OAuthClientRepository.withGlobalPrisma();
 
@@ -19,6 +19,7 @@ export const addClientHandler = async ({ input }: AddClientOptions) => {
     name,
     redirectUri,
     logo,
+    websiteUrl,
     enablePkce,
     approvalStatus: "APPROVED",
   });
