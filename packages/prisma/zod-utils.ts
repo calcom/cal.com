@@ -437,9 +437,9 @@ export const bookingCancelSchema = z.object({
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   skipCancellationReasonValidation: z.boolean().optional(),
-  // note(Volnei): skipCalendarSyncTaskCreation is used to skip calendar event deletion when cancellation
+  // note(Volnei): skipCalendarSyncTaskCancellation is used to skip calendar event deletion when cancellation
   // comes from a calendar subscription webhook, to avoid infinite loops.
-  skipCalendarSyncTaskCreation: z.boolean().optional(),
+  skipCalendarSyncTaskCancellation: z.boolean().optional(),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z

@@ -82,7 +82,7 @@ async function handler(input: CancelBookingInput) {
     cancelSubsequentBookings,
     internalNote,
     skipCancellationReasonValidation = false,
-    skipCalendarSyncTaskCreation = false,
+    skipCalendarSyncTaskCancellation = false,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -517,7 +517,7 @@ async function handler(input: CancelBookingInput) {
 
   // Skip calendar event deletion when cancellation comes from a calendar subscription webhook
   // to avoid infinite loops (Google/Office365 → Cal.com → Google/Office365 → ...)
-  if (!skipCalendarSyncTaskCreation) {
+  if (!skipCalendarSyncTaskCancellation) {
     try {
       const bookingToDeleteEventTypeMetadataParsed = eventTypeMetaDataSchemaWithTypedApps.safeParse(
         bookingToDelete.eventType?.metadata || null

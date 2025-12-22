@@ -6,6 +6,19 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 
 import { CalendarSyncService } from "../CalendarSyncService";
 
+const { mockHandleCancelBooking, mockHandleNewBooking } = vi.hoisted(() => ({
+  mockHandleCancelBooking: vi.fn().mockResolvedValue(undefined),
+  mockHandleNewBooking: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/features/bookings/lib/handleCancelBooking", () => ({
+  default: mockHandleCancelBooking,
+}));
+
+vi.mock("@calcom/features/bookings/lib/handleNewBooking", () => ({
+  default: mockHandleNewBooking,
+}));
+
 const mockSelectedCalendar: SelectedCalendar = {
   id: "test-calendar-id",
   userId: 1,
@@ -98,17 +111,6 @@ const mockCancelledEvent: CalendarSubscriptionEventItem = {
   iCalUID: "cancelled-booking-uid@cal.com",
   status: "cancelled",
 };
-
-const mockHandleCancelBooking = vi.fn().mockResolvedValue(undefined);
-const mockHandleNewBooking = vi.fn().mockResolvedValue(undefined);
-
-vi.mock("@calcom/features/bookings/lib/handleCancelBooking", () => ({
-  default: mockHandleCancelBooking,
-}));
-
-vi.mock("@calcom/features/bookings/lib/handleNewBooking", () => ({
-  default: mockHandleNewBooking,
-}));
 
 describe("CalendarSyncService", () => {
   let service: CalendarSyncService;
@@ -205,7 +207,7 @@ describe("CalendarSyncService", () => {
           cancelSubsequentBookings: true,
           cancellationReason: "Cancelled on user's calendar",
           cancelledBy: mockBooking.userPrimaryEmail,
-          skipCalendarSyncTaskCreation: true,
+          skipCalendarSyncTaskCancellation: true,
         },
       });
     });

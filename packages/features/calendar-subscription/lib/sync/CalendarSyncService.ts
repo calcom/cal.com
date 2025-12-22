@@ -1,3 +1,5 @@
+import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
@@ -72,9 +74,7 @@ export class CalendarSyncService {
       return;
     }
 
-    // causing import issues
-    const handleCancelBooking = await import("@calcom/features/bookings/lib/handleCancelBooking");
-    await handleCancelBooking.default({
+    await handleCancelBooking({
       userId: booking.userId!,
       bookingData: {
         uid: booking.uid,
@@ -84,7 +84,7 @@ export class CalendarSyncService {
         cancelledBy: booking.userPrimaryEmail!,
         // Skip calendar event deletion to avoid infinite loops
         // (Google/Office365 → Cal.com → Google/Office365 → ...)
-        skipCalendarSyncTaskCreation: true,
+        skipCalendarSyncTaskCancellation: true,
       },
     });
   }
@@ -107,9 +107,7 @@ export class CalendarSyncService {
       return;
     }
 
-    // causing import issues
-    const handleNewBooking = await import("@calcom/features/bookings/lib/handleNewBooking");
-    await handleNewBooking.default({
+    await handleNewBooking({
       bookingData: {
         ...booking,
         startTime: event.start?.toISOString() ?? booking.startTime,
