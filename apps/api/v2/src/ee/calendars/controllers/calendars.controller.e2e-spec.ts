@@ -220,13 +220,13 @@ describe("Platform Calendars Endpoints", () => {
       urls: ["https://cal.com/ics/feed.ics"],
       readOnly: false,
     };
-        jest.spyOn(appStore, "IcsFeedCalendarService").mockImplementation(() => ({
-          listCalendars: new IcsCalendarServiceMock().listCalendars,
-          createEvent: jest.fn(),
-          deleteEvent: jest.fn(),
-          updateEvent: jest.fn(),
-          getAvailability: jest.fn(),
-        }));
+    jest.spyOn(appStore, "BuildIcsFeedCalendarService").mockImplementation(() => ({
+      listCalendars: new IcsCalendarServiceMock().listCalendars,
+      createEvent: jest.fn(),
+      deleteEvent: jest.fn(),
+      updateEvent: jest.fn(),
+      getAvailability: jest.fn(),
+    }));
     await request(app.getHttpServer())
       .post(`/v2/calendars/${ICS_CALENDAR}/save`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
