@@ -82,6 +82,9 @@ export class CalendarSyncService {
         cancelSubsequentBookings: true,
         cancellationReason: "Cancelled on user's calendar",
         cancelledBy: booking.userPrimaryEmail!,
+        // Skip calendar event deletion to avoid infinite loops
+        // (Google/Office365 → Cal.com → Google/Office365 → ...)
+        skipCalendarSyncTaskCreation: true,
       },
     });
   }
@@ -112,6 +115,9 @@ export class CalendarSyncService {
         startTime: event.start?.toISOString() ?? booking.startTime,
         endTime: event.end?.toISOString() ?? booking.endTime,
       },
+      // Skip calendar event creation to avoid infinite loops
+      // (Google/Office365 → Cal.com → Google/Office365 → ...)
+      skipCalendarSyncTaskCreation: true,
     });
   }
 }

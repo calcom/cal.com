@@ -82,6 +82,7 @@ async function handler(input: CancelBookingInput) {
     cancelSubsequentBookings,
     internalNote,
     skipCancellationReasonValidation = false,
+    skipCalendarSyncTaskCreation = false,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -514,41 +515,45 @@ async function handler(input: CancelBookingInput) {
     allRemainingBookings
   );
 
-  try {
-    const bookingToDeleteEventTypeMetadataParsed = eventTypeMetaDataSchemaWithTypedApps.safeParse(
-      bookingToDelete.eventType?.metadata || null
-    );
-
-    if (!bookingToDeleteEventTypeMetadataParsed.success) {
-      log.error(
-        `Error parsing metadata`,
-        safeStringify({ error: bookingToDeleteEventTypeMetadataParsed?.error })
+  // Skip calendar event deletion when cancellation comes from a calendar subscription webhook
+  // to avoid infinite loops (Google/Office365 → Cal.com → Google/Office365 → ...)
+  if (!skipCalendarSyncTaskCreation) {
+    try {
+      const bookingToDeleteEventTypeMetadataParsed = eventTypeMetaDataSchemaWithTypedApps.safeParse(
+        bookingToDelete.eventType?.metadata || null
       );
-      throw new Error("Error parsing metadata");
+
+      if (!bookingToDeleteEventTypeMetadataParsed.success) {
+        log.error(
+          `Error parsing metadata`,
+          safeStringify({ error: bookingToDeleteEventTypeMetadataParsed?.error })
+        );
+        throw new Error("Error parsing metadata");
+      }
+
+      const bookingToDeleteEventTypeMetadata = bookingToDeleteEventTypeMetadataParsed.data;
+
+      const credentials = await getAllCredentialsIncludeServiceAccountKey(bookingToDelete.user, {
+        ...bookingToDelete.eventType,
+        metadata: bookingToDeleteEventTypeMetadata,
+      });
+
+      const eventManager = new EventManager(
+        { ...bookingToDelete.user, credentials },
+        bookingToDeleteEventTypeMetadata?.apps
+      );
+
+      await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
+
+      await prisma.bookingReference.updateMany({
+        where: {
+          bookingId: bookingToDelete.id,
+        },
+        data: { deleted: true },
+      });
+    } catch (error) {
+      log.error(`Error deleting integrations`, safeStringify({ error }));
     }
-
-    const bookingToDeleteEventTypeMetadata = bookingToDeleteEventTypeMetadataParsed.data;
-
-    const credentials = await getAllCredentialsIncludeServiceAccountKey(bookingToDelete.user, {
-      ...bookingToDelete.eventType,
-      metadata: bookingToDeleteEventTypeMetadata,
-    });
-
-    const eventManager = new EventManager(
-      { ...bookingToDelete.user, credentials },
-      bookingToDeleteEventTypeMetadata?.apps
-    );
-
-    await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
-
-    await prisma.bookingReference.updateMany({
-      where: {
-        bookingId: bookingToDelete.id,
-      },
-      data: { deleted: true },
-    });
-  } catch (error) {
-    log.error(`Error deleting integrations`, safeStringify({ error }));
   }
 
   try {

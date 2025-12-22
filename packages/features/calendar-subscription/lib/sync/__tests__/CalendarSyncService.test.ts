@@ -205,6 +205,7 @@ describe("CalendarSyncService", () => {
           cancelSubsequentBookings: true,
           cancellationReason: "Cancelled on user's calendar",
           cancelledBy: mockBooking.userPrimaryEmail,
+          skipCalendarSyncTaskCreation: true,
         },
       });
     });
@@ -277,6 +278,7 @@ describe("CalendarSyncService", () => {
           startTime: "2023-12-01T14:00:00.000Z",
           endTime: "2023-12-01T15:00:00.000Z",
         },
+        skipCalendarSyncTaskCreation: true,
       });
     });
 
@@ -297,6 +299,7 @@ describe("CalendarSyncService", () => {
           startTime: mockBooking.startTime,
           endTime: mockBooking.endTime,
         },
+        skipCalendarSyncTaskCreation: true,
       });
     });
 
