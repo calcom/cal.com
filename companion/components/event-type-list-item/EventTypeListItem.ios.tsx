@@ -25,9 +25,12 @@ export const EventTypeListItem = ({
   const duration = getEventDuration(item);
   const isLast = index === filteredEventTypes.length - 1;
 
+  type ButtonSystemImage = React.ComponentProps<typeof Button>["systemImage"];
+  type EventTypeIcon = Exclude<ButtonSystemImage, undefined>;
+
   const eventTypes: {
     label: string;
-    icon: string;
+    icon: EventTypeIcon;
     onPress: () => void;
     role: "default" | "destructive";
   }[] = [

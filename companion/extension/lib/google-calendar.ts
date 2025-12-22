@@ -543,7 +543,7 @@ function parseAttendees(eventPopup: Element): AttendeeInfo[] {
     const whoSection = allText.match(/Who:([\s\S]*?)(?:Where:|When:|$)/i);
     if (whoSection) {
       const whoText = whoSection[1];
-      const whoEmails = whoText.match(emailRegex) || [];
+      const whoEmails: string[] = whoText.match(emailRegex) ?? [];
 
       whoEmails.forEach((email) => {
         const emailLower = email.toLowerCase();
@@ -584,7 +584,7 @@ function parseAttendees(eventPopup: Element): AttendeeInfo[] {
 
     guestListContainers.forEach((container) => {
       const containerText = container.textContent || "";
-      const emails = containerText.match(emailRegex) || [];
+      const emails: string[] = containerText.match(emailRegex) ?? [];
 
       emails.forEach((email) => {
         const emailLower = email.toLowerCase();

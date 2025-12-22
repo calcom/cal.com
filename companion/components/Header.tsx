@@ -34,7 +34,12 @@ export function Header() {
       const profile = await CalComAPIService.getUserProfile();
       setUserProfile(profile);
     } catch (error) {
-      console.error("Failed to fetch user profile:", error);
+      console.error("Failed to fetch user profile");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[Header] fetchUserProfile failed", { message, stack });
+      }
     } finally {
       setLoading(false);
     }
@@ -55,7 +60,12 @@ export function Header() {
       await Clipboard.setStringAsync(publicPageUrl);
       Alert.alert("Link Copied!", "Your public page link has been copied to clipboard.");
     } catch (error) {
-      console.error("Failed to copy public page link:", error);
+      console.error("Failed to copy public page link");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[Header] copyPublicPageLink failed", { message, stack });
+      }
       Alert.alert("Error", "Failed to copy link. Please try again.");
     }
   };

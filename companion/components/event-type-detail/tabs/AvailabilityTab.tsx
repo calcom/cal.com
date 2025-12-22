@@ -16,7 +16,7 @@ interface AvailabilityTabProps {
   schedulesLoading: boolean;
   scheduleDetailsLoading: boolean;
   selectedScheduleDetails: Schedule | null;
-  getDaySchedule: () => DaySchedule[];
+  getDaySchedules: () => DaySchedule[];
   formatTime: (time: string) => string;
   selectedTimezone: string;
 }
@@ -44,8 +44,8 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
             {props.schedulesLoading
               ? "Loading schedules..."
               : props.selectedSchedule
-              ? props.selectedSchedule.name
-              : "Select schedule"}
+                ? props.selectedSchedule.name
+                : "Select schedule"}
           </Text>
           <Ionicons name="chevron-down" size={20} color="#8E8E93" />
         </TouchableOpacity>
@@ -59,7 +59,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                 <Text className="text-sm italic text-[#8E8E93]">Loading schedule details...</Text>
               </View>
             ) : props.selectedScheduleDetails ? (
-              props.getDaySchedule().map((dayInfo, index) => (
+              props.getDaySchedules().map((dayInfo, index) => (
                 <View key={index} className="flex-row items-center justify-between py-4">
                   <Text
                     className={`ml-2 flex-1 text-[15px] font-medium text-[#333] ${
