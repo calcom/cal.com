@@ -75,19 +75,15 @@ export default class HubspotCalendarService implements CRM {
       .join("<br><br>");
 
     const organizerName = event.organizer.name || event.organizer.email;
-    const organizerInfo = `<b>${event.organizer.language.translate("organizer")}:</b> ${organizerName} (${
-      event.organizer.email
-    })`;
+    const organizerInfo = `<b>${event.organizer.language.translate("organizer")}:</b> ${organizerName} (${event.organizer.email
+      })`;
 
-    return `${organizerInfo}<br><br><b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
-      event.attendees[0].timeZone
-    }<br><br>${
-      event.additionalNotes
-        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-            event.additionalNotes
-          }<br><br>`
+    return `${organizerInfo}<br><br><b>${event.organizer.language.translate("invitee_timezone")}:</b> ${event.attendees[0].timeZone
+      }<br><br>${event.additionalNotes
+        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${event.additionalNotes
+        }<br><br>`
         : ""
-    }
+      }
     ${userFieldsHtml}<br><br>
     <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
     ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
@@ -185,15 +181,7 @@ export default class HubspotCalendarService implements CRM {
       this.log.debug("hubspot:owner:not_found");
       return undefined;
     } catch (error) {
-      // Check if this is a 403 (missing scope) error
-      const statusCode = this.getResponseStatusCode(error);
-      if (this.isMissingScopesError(error) || statusCode === 403) {
-        this.log.warn(
-          "hubspot:owner:missing_scope - reconnect HubSpot integration to grant owners.read scope"
-        );
-      } else {
-        this.log.error("hubspot:owner:lookup_error", { error });
-      }
+      this.log.error("hubspot:owner:lookup_error", { error });
       return undefined;
     }
   };
@@ -209,10 +197,10 @@ export default class HubspotCalendarService implements CRM {
 
     const isTokenValid = (token: HubspotToken) =>
       token &&
-    token.tokenType &&
-    token.accessToken &&
-    token.expiryDate &&
-    token.expiryDate > Date.now();
+      token.tokenType &&
+      token.accessToken &&
+      token.expiryDate &&
+      token.expiryDate > Date.now();
 
     const refreshAccessToken = async (refreshToken: string) => {
       try {
