@@ -56,9 +56,10 @@ jobs:
         with:
           script: |
             let labels = [];
+            let prNumber = null;
 
             if (context.payload.pull_request) {
-              labels = context.payload.pull_request.labels;
+              prNumber = context.payload.pull_request.number;
             } else {
               try {
                 const sha = '${{ steps.get_sha.outputs.commit-sha }}';
@@ -75,18 +76,35 @@ jobs:
                   return;
                 }
 
-                const pr = prs[0];
-                console.log(`PR number: ${pr.number}`);
-                console.log(`PR title: ${pr.title}`);
-                console.log(`PR state: ${pr.state}`);
-                console.log(`PR URL: ${pr.html_url}`);
-
-                labels = pr.labels;
+                prNumber = prs[0].number;
               }
               catch (e) {
                 core.setOutput('run-e2e', false);
                 console.log(e);
+                return;
               }
+            }
+
+            // Always fetch fresh PR data to get current labels
+            // This avoids stale label data from event payloads
+            try {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+
+              console.log(`PR number: ${pr.number}`);
+              console.log(`PR title: ${pr.title}`);
+              console.log(`PR state: ${pr.state}`);
+              console.log(`PR URL: ${pr.html_url}`);
+
+              labels = pr.labels;
+            }
+            catch (e) {
+              core.setOutput('run-e2e', false);
+              console.log(e);
+              return;
             }
 
             const labelFound = labels.map(l => l.name).includes('ready-for-e2e');
