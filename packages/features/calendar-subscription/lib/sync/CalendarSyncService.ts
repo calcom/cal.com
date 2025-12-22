@@ -1,5 +1,5 @@
+import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
@@ -92,7 +92,7 @@ export class CalendarSyncService {
       log.info("Successfully cancelled booking from calendar sync", { bookingUid });
     } catch (error) {
       // Log error but don't block - calendar change should still be reflected
-      log.error("Failed to cancel booking from calendar sync", safeStringify({ bookingUid, error }));
+      log.error("Failed to cancel booking from calendar sync", { bookingUid, error: safeStringify(error) });
     }
   }
 
@@ -115,20 +115,23 @@ export class CalendarSyncService {
     }
 
     try {
-      await handleNewBooking({
+      const regularBookingService = getRegularBookingService();
+      await regularBookingService.createBooking({
         bookingData: {
           ...booking,
           startTime: event.start?.toISOString() ?? booking.startTime,
           endTime: event.end?.toISOString() ?? booking.endTime,
         },
-        // Skip calendar event creation to avoid infinite loops
-        // (Google/Office365 → Cal.com → Google/Office365 → ...)
-        skipCalendarSyncTaskCreation: true,
+        bookingMeta: {
+          // Skip calendar event creation to avoid infinite loops
+          // (Google/Office365 → Cal.com → Google/Office365 → ...)
+          skipCalendarSyncTaskCreation: true,
+        },
       });
       log.info("Successfully rescheduled booking from calendar sync", { bookingUid });
     } catch (error) {
       // Log error but don't block - calendar change should still be reflected
-      log.error("Failed to reschedule booking from calendar sync", safeStringify({ bookingUid, error }));
+      log.error("Failed to reschedule booking from calendar sync", { bookingUid, error: safeStringify(error) });
     }
   }
 }
