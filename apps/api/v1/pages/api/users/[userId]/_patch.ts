@@ -164,10 +164,7 @@ export async function patchHandler(req: NextApiRequest) {
     });
 
     if (emailVerification) {
-      // Check if the new email is a verified secondary email
       if (secondaryEmail && secondaryEmail.emailVerified) {
-        // When changing to a verified secondary email, swap the emails:
-        // Use a transaction to ensure atomicity - both updates must succeed or both must fail
         const [, updatedUser] = await prisma.$transaction([
           prisma.secondaryEmail.update({
             where: {
@@ -189,7 +186,6 @@ export async function patchHandler(req: NextApiRequest) {
         const user = schemaUserReadPublic.parse(data);
         return { user };
       } else {
-        // New email is not a verified secondary email - require verification
         prismaData.metadata = {
           ...(currentUser.metadata as Prisma.JsonObject),
           ...(typeof prismaData.metadata === "object" && prismaData.metadata ? prismaData.metadata : {}),

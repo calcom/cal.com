@@ -39,7 +39,6 @@ export class MeService {
     if (hasEmailBeenChanged && newEmail && isEmailVerificationEnabled) {
       const secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
 
-      // Check if the new email is a verified secondary email
       if (secondaryEmail && secondaryEmail.emailVerified) {
         const [, updatedUser] = await this.prismaWrite.prisma.$transaction([
           this.prismaWrite.prisma.secondaryEmail.update({
@@ -68,7 +67,6 @@ export class MeService {
           updatedUser,
         };
       } else {
-        // New email is not a verified secondary email - require verification
         update.metadata = {
           ...(user.metadata as Prisma.JsonObject),
           ...(update.metadata || {}),
