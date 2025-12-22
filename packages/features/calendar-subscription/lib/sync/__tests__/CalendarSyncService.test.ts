@@ -247,11 +247,12 @@ describe("CalendarSyncService", () => {
       expect(mockHandleCancelBooking).not.toHaveBeenCalled();
     });
 
-    test("should handle cancellation errors gracefully", async () => {
+    test("should handle cancellation errors gracefully without throwing", async () => {
       mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
       mockHandleCancelBooking.mockRejectedValue(new Error("Cancellation failed"));
 
-      await expect(service.cancelBooking(mockCancelledEvent)).rejects.toThrow("Cancellation failed");
+      // Should not throw - errors are caught and logged
+      await expect(service.cancelBooking(mockCancelledEvent)).resolves.not.toThrow();
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
       expect(mockHandleCancelBooking).toHaveBeenCalled();
@@ -340,11 +341,12 @@ describe("CalendarSyncService", () => {
       expect(mockHandleNewBooking).not.toHaveBeenCalled();
     });
 
-    test("should handle rescheduling errors gracefully", async () => {
+    test("should handle rescheduling errors gracefully without throwing", async () => {
       mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
       mockHandleNewBooking.mockRejectedValue(new Error("Rescheduling failed"));
 
-      await expect(service.rescheduleBooking(mockCalComEvent)).rejects.toThrow("Rescheduling failed");
+      // Should not throw - errors are caught and logged
+      await expect(service.rescheduleBooking(mockCalComEvent)).resolves.not.toThrow();
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
       expect(mockHandleNewBooking).toHaveBeenCalled();

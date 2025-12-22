@@ -3,6 +3,7 @@ import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
@@ -64,29 +65,35 @@ export class CalendarSyncService {
     log.debug("cancelBooking", { event });
     const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
     if (!bookingUid) {
-      log.debug("Unable to sync, booking not found");
+      log.debug("Unable to sync, booking UID not found in iCalUID");
       return;
     }
 
     const booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
     if (!booking) {
-      log.debug("Unable to sync, booking not found");
+      log.debug("Unable to sync, booking not found in database", { bookingUid });
       return;
     }
 
-    await handleCancelBooking({
-      userId: booking.userId!,
-      bookingData: {
-        uid: booking.uid,
-        allRemainingBookings: true,
-        cancelSubsequentBookings: true,
-        cancellationReason: "Cancelled on user's calendar",
-        cancelledBy: booking.userPrimaryEmail!,
-        // Skip calendar event deletion to avoid infinite loops
-        // (Google/Office365 → Cal.com → Google/Office365 → ...)
-        skipCalendarSyncTaskCancellation: true,
-      },
-    });
+    try {
+      await handleCancelBooking({
+        userId: booking.userId!,
+        bookingData: {
+          uid: booking.uid,
+          allRemainingBookings: true,
+          cancelSubsequentBookings: true,
+          cancellationReason: "Cancelled on user's calendar",
+          cancelledBy: booking.userPrimaryEmail!,
+          // Skip calendar event deletion to avoid infinite loops
+          // (Google/Office365 → Cal.com → Google/Office365 → ...)
+          skipCalendarSyncTaskCancellation: true,
+        },
+      });
+      log.info("Successfully cancelled booking from calendar sync", { bookingUid });
+    } catch (error) {
+      // Log error but don't block - calendar change should still be reflected
+      log.error("Failed to cancel booking from calendar sync", safeStringify({ bookingUid, error }));
+    }
   }
 
   /**
@@ -97,25 +104,31 @@ export class CalendarSyncService {
     log.debug("rescheduleBooking", { event });
     const [bookingUid] = event.iCalUID?.split("@") ?? [undefined];
     if (!bookingUid) {
-      log.debug("Unable to sync, booking not found");
+      log.debug("Unable to sync, booking UID not found in iCalUID");
       return;
     }
 
     const booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
     if (!booking) {
-      log.debug("Unable to sync, booking not found");
+      log.debug("Unable to sync, booking not found in database", { bookingUid });
       return;
     }
 
-    await handleNewBooking({
-      bookingData: {
-        ...booking,
-        startTime: event.start?.toISOString() ?? booking.startTime,
-        endTime: event.end?.toISOString() ?? booking.endTime,
-      },
-      // Skip calendar event creation to avoid infinite loops
-      // (Google/Office365 → Cal.com → Google/Office365 → ...)
-      skipCalendarSyncTaskCreation: true,
-    });
+    try {
+      await handleNewBooking({
+        bookingData: {
+          ...booking,
+          startTime: event.start?.toISOString() ?? booking.startTime,
+          endTime: event.end?.toISOString() ?? booking.endTime,
+        },
+        // Skip calendar event creation to avoid infinite loops
+        // (Google/Office365 → Cal.com → Google/Office365 → ...)
+        skipCalendarSyncTaskCreation: true,
+      });
+      log.info("Successfully rescheduled booking from calendar sync", { bookingUid });
+    } catch (error) {
+      // Log error but don't block - calendar change should still be reflected
+      log.error("Failed to reschedule booking from calendar sync", safeStringify({ bookingUid, error }));
+    }
   }
 }
