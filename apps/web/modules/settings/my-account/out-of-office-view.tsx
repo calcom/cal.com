@@ -6,9 +6,10 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "~/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "~/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
+import OutOfOfficeEntriesList from "~/settings/outOfOffice/OutOfOfficeEntriesList";
+import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
+
 import { HolidaysView } from "./holidays-view";
-import OutOfOfficeEntriesList from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
-import { OutOfOfficeTab } from "@calcom/features/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 export default function OutOfOfficeView() {
   const [openModal, setOpenModal] = useState(false);
@@ -61,4 +62,3 @@ export default function OutOfOfficeView() {
     </>
   );
 }
-
