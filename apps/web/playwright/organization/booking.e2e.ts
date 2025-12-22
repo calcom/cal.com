@@ -443,6 +443,8 @@ test.describe("Bookings", () => {
           await secondPage.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
 
           // Rebook with the same details
+          await selectFirstAvailableTimeSlotNextMonth(secondPage);
+          await bookTimeSlot(secondPage);
           await expect(secondPage.getByTestId("success-page")).toBeVisible();
 
           // Verify a new host is assigned
