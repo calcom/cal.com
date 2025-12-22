@@ -25,20 +25,29 @@ export function isFieldConditionallyVisible(
   const parentValue = responses[parentFieldName];
 
   // If parent field hasn't been answered yet, hide this field
-  if (parentValue === undefined || parentValue === null || parentValue === "") {
+  if (parentValue === undefined || parentValue === null) {
+    return false;
+  }
+
+  // Empty string or empty array should be treated as unanswered
+  if (typeof parentValue === "string" && parentValue === "") {
+    return false;
+  }
+
+  if (Array.isArray(parentValue) && parentValue.length === 0) {
     return false;
   }
 
   // Normalize showWhenParentValues to array for easier comparison
   const expectedValues = Array.isArray(showWhenParentValues)
-    ? showWhenParentValues
-    : [showWhenParentValues];
+    ? showWhenParentValues.map(String)
+    : [String(showWhenParentValues)];
 
-  // Convert parent value to string for comparison
-  const parentValueStr = String(parentValue);
+  // Normalize parent value(s) to array for comparison
+  const parentValues = Array.isArray(parentValue) ? parentValue : [parentValue];
 
-  // Check if parent value matches any of the expected values
-  return expectedValues.includes(parentValueStr);
+  // Check if any parent value matches any expected value
+  return parentValues.some((value) => expectedValues.includes(String(value)));
 }
 
 /**

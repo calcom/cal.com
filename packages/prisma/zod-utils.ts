@@ -1211,7 +1211,6 @@ export const fieldSchema = baseFieldSchema.merge(
       )
       .optional(),
     disableOnPrefill: z.boolean().default(false).optional(),
-    
     /**
      * Conditional field configuration for follow-up questions
      * When specified, this field will only be shown if the parent field has one of the specified values

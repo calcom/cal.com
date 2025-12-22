@@ -1,10 +1,9 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty, ApiPropertyOptional as DocsPropertyOptional } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-import { IsString, IsBoolean, IsArray, IsIn, IsOptional, ValidateNested } from "class-validator";
+import { plainToInstance, Type } from "class-transformer";
+import { IsString, IsBoolean, IsArray, IsIn, IsOptional, ValidateNested, ValidateIf } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
-import { Type } from "class-transformer";
 
 const inputBookingFieldTypes = [
   "name",
@@ -43,6 +42,11 @@ export class ConditionalFieldConfig_2024_06_14 {
     example: ["web", "social-media"],
     oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
   })
+  @ValidateIf((o) => !Array.isArray(o.showWhenParentValues))
+  @IsString()
+  @ValidateIf((o) => Array.isArray(o.showWhenParentValues))
+  @IsArray()
+  @IsString({ each: true })
   showWhenParentValues!: string | string[];
 }
 

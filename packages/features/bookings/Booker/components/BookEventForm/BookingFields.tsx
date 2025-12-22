@@ -48,7 +48,6 @@ export const BookingFields = ({
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
-  
   // Watch all responses for conditional field visibility
   const allResponses = watch("responses") || {};
 
@@ -138,7 +137,6 @@ export const BookingFields = ({
         if (!isFieldConditionallyVisible(field, allResponses)) {
           return null;
         }
-        
         // Don't Display Location field in case of instant meeting as only Cal Video is supported
         if (isInstantMeeting && field.name === "location") return null;
 

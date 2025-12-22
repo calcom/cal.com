@@ -68,6 +68,42 @@ describe("isFieldConditionallyVisible", () => {
     expect(isFieldConditionallyVisible(field, { "contact-method": "Email" })).toBe(false);
   });
 
+  it("should return true when parent array contains matching value for string trigger", () => {
+    const field = {
+      name: "contact-phone",
+      type: "phone" as const,
+      required: true,
+      editable: "user" as const,
+      conditionalOn: {
+        parentFieldName: "contact-methods",
+        showWhenParentValues: "Phone",
+      },
+    };
+
+    expect(
+      isFieldConditionallyVisible(field, { "contact-methods": ["Phone", "SMS"] })
+    ).toBe(true);
+    expect(isFieldConditionallyVisible(field, { "contact-methods": ["Email"] })).toBe(false);
+  });
+
+  it("should return true when parent array contains any of multiple triggers", () => {
+    const field = {
+      name: "contact-phone",
+      type: "phone" as const,
+      required: true,
+      editable: "user" as const,
+      conditionalOn: {
+        parentFieldName: "contact-methods",
+        showWhenParentValues: ["Phone", "SMS", "WhatsApp"],
+      },
+    };
+
+    expect(
+      isFieldConditionallyVisible(field, { "contact-methods": ["Email", "SMS"] })
+    ).toBe(true);
+    expect(isFieldConditionallyVisible(field, { "contact-methods": ["Email", "Fax"] })).toBe(false);
+  });
+
   it("should handle non-string parent values", () => {
     const field = {
       name: "details",

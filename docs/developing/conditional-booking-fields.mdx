@@ -164,33 +164,36 @@ Show the same follow-up for multiple parent values:
 
 ## Platform API Usage (API Version 2024-06-14)
 
-When creating or updating event types via the Platform API, you can now include the `conditionalOn` property:
+When creating or updating event types via the Platform API, include `conditionalOn` in the `bookingFields` payload. Below is an example using the HTTP REST API (`POST /api/v2/event-types`).
 
-```typescript
-import { api } from "@calcom/platform-libraries";
-
-const eventType = await api.eventTypes.create({
-  // ... other event type properties
-  bookingFields: [
-    {
-      type: "radio",
-      slug: "how-did-you-hear",
-      label: "How did you hear about us?",
-      required: true,
-      options: ["Web", "Print", "Social Media", "Personal Reference"]
-    },
-    {
-      type: "text",
-      slug: "source-website",
-      label: "Which website?",
-      required: true,
-      conditionalOn: {
-        parentFieldName: "how-did-you-hear",
-        showWhenParentValues: "Web"
+```bash
+curl -X POST "https://api.cal.com/api/v2/event-types" \
+  -H "Authorization: Bearer <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Product Demo",
+    "slug": "product-demo",
+    "length": 30,
+    "bookingFields": [
+      {
+        "type": "radio",
+        "slug": "how-did-you-hear",
+        "label": "How did you hear about us?",
+        "required": true,
+        "options": ["Web", "Print", "Social Media", "Personal Reference"]
+      },
+      {
+        "type": "text",
+        "slug": "source-website",
+        "label": "Which website?",
+        "required": true,
+        "conditionalOn": {
+          "parentFieldName": "how-did-you-hear",
+          "showWhenParentValues": "Web"
+        }
       }
-    }
-  ]
-});
+    ]
+  }'
 ```
 
 ## Validation
