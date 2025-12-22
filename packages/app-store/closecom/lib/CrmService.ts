@@ -133,7 +133,6 @@ class CloseComCRMService implements CRM {
     });
   }
 
-   
   async updateEvent(uid: string, event: CalendarEvent): Promise<CrmEvent> {
     const updatedEvent = await this.closeComUpdateCustomActivity(uid, event);
     return {

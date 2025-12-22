@@ -25,8 +25,6 @@ export const getAnalyticsService = async ({
 
   const analyticsApp = await analyticsAppImportFn;
 
-  // Analytics services now export factory functions instead of classes
-  // to prevent SDK types from leaking into the type system
   const createAnalyticsService = analyticsApp.default;
 
   if (!createAnalyticsService || typeof createAnalyticsService !== "function") {

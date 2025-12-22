@@ -38,8 +38,6 @@ export const getCalendar = async (
 
   const calendarApp = await calendarAppImportFn;
 
-  // Calendar services now export factory functions instead of classes
-  // to prevent SDK types from leaking into the type system
   const createCalendarService = calendarApp.default;
 
   if (!createCalendarService || typeof createCalendarService !== "function") {
