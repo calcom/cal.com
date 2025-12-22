@@ -1,53 +1,47 @@
 import type { FeatureId } from "./config";
 
+/**
+ * Cache key factory for features caching.
+ *
+ * Strategy: Per-entity canonical caches with exact key invalidation.
+ * - No cache buster needed - invalidation is done via exact DEL
+ * - Batch methods compose from per-entity caches
+ * - Global/cross-entity data uses TTL-only (no explicit invalidation)
+ */
 export class FeaturesCacheKeys {
   private static readonly PREFIX = "features";
 
-  static cacheBuster(): string {
-    return `${this.PREFIX}:cacheBuster`;
+  // === Per-entity canonical caches (invalidated via exact DEL) ===
+
+  /** Cache key for a user's feature states (all features for this user) */
+  static userFeatureStates(userId: number): string {
+    return `${this.PREFIX}:userFeatureStates:${userId}`;
   }
 
-  static globalFeature(cacheBuster: string, slug: FeatureId): string {
-    return `${this.PREFIX}:${cacheBuster}:globalFeature:${slug}`;
+  /** Cache key for a team's feature states (all features for this team) */
+  static teamFeatureStates(teamId: number): string {
+    return `${this.PREFIX}:teamFeatureStates:${teamId}`;
   }
 
-  static userFeature(cacheBuster: string, userId: number, slug: string): string {
-    return `${this.PREFIX}:${cacheBuster}:userFeature:${userId}:${slug}`;
+  /** Cache key for a user's auto opt-in setting */
+  static userAutoOptIn(userId: number): string {
+    return `${this.PREFIX}:userAutoOptIn:${userId}`;
   }
 
-  static userFeatureNonHierarchical(cacheBuster: string, userId: number, slug: string): string {
-    return `${this.PREFIX}:${cacheBuster}:userFeatureNH:${userId}:${slug}`;
+  /** Cache key for a team's auto opt-in setting */
+  static teamAutoOptIn(teamId: number): string {
+    return `${this.PREFIX}:teamAutoOptIn:${teamId}`;
   }
 
-  static teamFeature(cacheBuster: string, teamId: number, slug: FeatureId): string {
-    return `${this.PREFIX}:${cacheBuster}:teamFeature:${teamId}:${slug}`;
+  // === TTL-only caches (no explicit invalidation, controlled at DB level) ===
+
+  /** Cache key for global feature enabled check (TTL-only) */
+  static globalFeature(slug: FeatureId): string {
+    return `${this.PREFIX}:globalFeature:${slug}`;
   }
 
-  static teamsWithFeatureEnabled(cacheBuster: string, slug: FeatureId): string {
-    return `${this.PREFIX}:${cacheBuster}:teamsWithFeature:${slug}`;
-  }
-
-  static userFeatureStates(cacheBuster: string, userId: number, featureIds: FeatureId[]): string {
-    const sortedFeatureIds = [...featureIds].sort().join(",");
-    return `${this.PREFIX}:${cacheBuster}:userFeatureStates:${userId}:${sortedFeatureIds}`;
-  }
-
-  static teamsFeatureStates(cacheBuster: string, teamIds: number[], featureIds: FeatureId[]): string {
-    const sortedTeamIds = [...teamIds].sort((a, b) => a - b).join(",");
-    const sortedFeatureIds = [...featureIds].sort().join(",");
-    return `${this.PREFIX}:${cacheBuster}:teamsFeatureStates:${sortedTeamIds}:${sortedFeatureIds}`;
-  }
-
-  static userAutoOptIn(cacheBuster: string, userId: number): string {
-    return `${this.PREFIX}:${cacheBuster}:userAutoOptIn:${userId}`;
-  }
-
-  static teamsAutoOptIn(cacheBuster: string, teamIds: number[]): string {
-    const sortedTeamIds = [...teamIds].sort((a, b) => a - b).join(",");
-    return `${this.PREFIX}:${cacheBuster}:teamsAutoOptIn:${sortedTeamIds}`;
-  }
-
-  static generateCacheBuster(): string {
-    return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  /** Cache key for teams with feature enabled (TTL-only) */
+  static teamsWithFeatureEnabled(slug: FeatureId): string {
+    return `${this.PREFIX}:teamsWithFeature:${slug}`;
   }
 }
