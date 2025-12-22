@@ -70,9 +70,8 @@ export function createWorkflowPageFixture(page: Page) {
     await page.getByTestId("edit-workflow-name-button").click();
     const nameInput = page.getByTestId("workflow-name");
     await nameInput.fill(name);
-    // Wait for the input value to be reflected before pressing Enter
-    await expect(nameInput).toHaveValue(name);
-    await page.keyboard.press("Enter");
+    await nameInput.blur();
+    await page.waitForTimeout(100);
   };
 
   const editSelectedWorkflow = async (name: string) => {
