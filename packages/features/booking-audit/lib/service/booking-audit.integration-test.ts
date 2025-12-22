@@ -274,6 +274,7 @@ describe("Booking Audit Integration", () => {
           startTime: testData.booking.startTime.getTime(),
           endTime: testData.booking.endTime.getTime(),
           status: testData.booking.status,
+          hostUserUuid: testData.owner.uuid,
         },
         timestamp: Date.now(),
       });
@@ -320,6 +321,7 @@ describe("Booking Audit Integration", () => {
           startTime: testData.booking.startTime.getTime(),
           endTime: testData.booking.endTime.getTime(),
           status: testData.booking.status,
+          hostUserUuid: testData.owner.uuid,
         },
         timestamp: Date.now(),
       });
@@ -351,6 +353,7 @@ describe("Booking Audit Integration", () => {
           startTime: testData.booking.startTime.getTime(),
           endTime: testData.booking.endTime.getTime(),
           status: testData.booking.status,
+          hostUserUuid: testData.owner.uuid,
         },
         timestamp: Date.now(),
       });
@@ -414,6 +417,7 @@ describe("Booking Audit Integration", () => {
                 startTime: testData.booking.startTime.getTime(),
                 endTime: testData.booking.endTime.getTime(),
                 status: testData.booking.status,
+                hostUserUuid: testData.owner.uuid,
               },
             },
             {
@@ -422,6 +426,7 @@ describe("Booking Audit Integration", () => {
                 startTime: booking2.startTime.getTime(),
                 endTime: booking2.endTime.getTime(),
                 status: booking2.status,
+                hostUserUuid: testData.owner.uuid,
               },
             },
             {
@@ -430,6 +435,7 @@ describe("Booking Audit Integration", () => {
                 startTime: booking3.startTime.getTime(),
                 endTime: booking3.endTime.getTime(),
                 status: booking3.status,
+                hostUserUuid: testData.owner.uuid,
               },
             },
           ],
