@@ -15,8 +15,10 @@ const getLeftMostSubdomain = (url: string): string | null => {
     normalizedUrl = `https://${normalizedUrl}`;
   }
   const _url = new URL(normalizedUrl);
-  const regex = new RegExp(/^([a-z]+:\/{2})?((?<subdomain>[\w-.]+)\.[\w-]+\.\w+)$/);
-  return _url.hostname.match(regex)?.groups?.subdomain || null;
+  // Using positional capture instead of named capture group for ES2017 compatibility
+  // Group 1: protocol (optional), Group 2: full domain, Group 3: subdomain
+  const regex = /^([a-z]+:\/{2})?(([\w-.]+)\.[\w-]+\.\w+)$/;
+  return _url.hostname.match(regex)?.[3] ?? null;
 };
 
 const getRegExpNotMatchingLeftMostSubdomain = (url: string): string => {
