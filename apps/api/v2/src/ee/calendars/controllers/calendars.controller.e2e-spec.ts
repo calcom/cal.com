@@ -31,7 +31,7 @@ import {
 } from "@calcom/platform-constants";
 import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
-import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
+import * as appStore from "@calcom/platform-libraries/app-store";
 import type { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
@@ -220,9 +220,13 @@ describe("Platform Calendars Endpoints", () => {
       urls: ["https://cal.com/ics/feed.ics"],
       readOnly: false,
     };
-    jest
-      .spyOn(IcsFeedCalendarService.prototype, "listCalendars")
-      .mockImplementation(IcsCalendarServiceMock.prototype.listCalendars);
+        jest.spyOn(appStore, "IcsFeedCalendarService").mockImplementation(() => ({
+          listCalendars: new IcsCalendarServiceMock().listCalendars,
+          createEvent: jest.fn(),
+          deleteEvent: jest.fn(),
+          updateEvent: jest.fn(),
+          getAvailability: jest.fn(),
+        }));
     await request(app.getHttpServer())
       .post(`/v2/calendars/${ICS_CALENDAR}/save`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
