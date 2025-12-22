@@ -4,6 +4,7 @@ import { Label } from "@calcom/ui/components/form";
 import { cn } from "../src/lib/utils";
 import type { DestinationCalendarProps } from "./DestinationCalendarSelector";
 import { DestinationCalendarSelector } from "./DestinationCalendarSelector";
+import { DestinationReminderSelector } from "./DestinationReminderSelector";
 
 type DestinationHeaderClassnames = {
   container?: string;
@@ -16,10 +17,20 @@ export type DestinationCalendarClassNames = {
   header?: DestinationHeaderClassnames;
 };
 
-export const DestinationCalendarSettings = (
-  props: DestinationCalendarProps & { classNames?: string; classNamesObject?: DestinationCalendarClassNames }
-) => {
+type DestinationCalendarSettingsProps = DestinationCalendarProps & {
+  classNames?: string;
+  classNamesObject?: DestinationCalendarClassNames;
+  onReminderChange?: ((value: number) => void) | null;
+  reminderValue?: number;
+  isReminderPending?: boolean;
+};
+
+export const DestinationCalendarSettings = (props: DestinationCalendarSettingsProps) => {
   const { t } = useLocale();
+  const showReminderSelector =
+    props.onReminderChange !== null &&
+    props.onReminderChange !== undefined &&
+    props.destinationCalendar?.integration === "google_calendar";
 
   return (
     <div
@@ -34,6 +45,17 @@ export const DestinationCalendarSettings = (
             <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
             <DestinationCalendarSelector {...props} />
           </div>
+          {showReminderSelector && (
+            <div className="mt-4">
+              <Label className="text-default mb-0 font-medium">{t("default_reminder")}</Label>
+              <p className="text-subtle mb-2 text-sm">{t("default_reminder_description")}</p>
+              <DestinationReminderSelector
+                value={props.reminderValue ?? 10}
+                onChange={props.onReminderChange!}
+                isPending={props.isReminderPending}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
