@@ -11,7 +11,6 @@ import {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } from "./pagesAndRewritePaths";
-import englishTranslation from "./public/static/locales/en/common.json";
 
 dotenvConfig({ path: "../../.env" });
 
@@ -111,26 +110,6 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
     "\x1b[0m",
     '- Disabled \'Google Calendar\' integration. Reason: Invalid value for GOOGLE_API_CREDENTIALS environment variable. When set, this value needs to contain valid JSON like {"web":{"client_id":"<clid>","client_secret":"<secret>","redirect_uris":["<yourhost>/api/integrations/googlecalendar/callback>"]}. You can download this JSON from your OAuth Client @ https://console.cloud.google.com/apis/credentials.'
   );
-}
-
-function _informAboutDuplicateTranslations(): void {
-  const valueMap: Record<string, string> = {};
-
-  for (const key in englishTranslation) {
-    const value = englishTranslation[key as keyof typeof englishTranslation];
-
-    if (valueMap[value]) {
-      console.warn(
-        "\x1b[33mDuplicate value found in common.json keys:",
-        "\x1b[0m ",
-        key,
-        "and",
-        valueMap[value]
-      );
-    } else {
-      valueMap[value] = key;
-    }
-  }
 }
 
 const plugins: NextConfigPlugin[] = [];
