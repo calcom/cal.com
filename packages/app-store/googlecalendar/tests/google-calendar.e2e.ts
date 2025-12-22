@@ -131,7 +131,7 @@ test.describe("Google Calendar", async () => {
 
       // Ensure that the attendee is on the event
       const bookingAttendee = booking?.attendees[0].email;
-      const attendeeInGCalEvent = gCalEvent.attendees?.find((attendee) => attendee.email === bookingAttendee);
+      const attendeeInGCalEvent = gCalEvent.attendees?.find((attendee: { email?: string }) => attendee.email === bookingAttendee);
       expect(attendeeInGCalEvent).toBeTruthy();
 
       await deleteBookingAndEvent(authedCalendar, booking.uid, gCalReference.uid);
