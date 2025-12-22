@@ -40,6 +40,11 @@ interface IAddActionDialog {
     creditsTeamId?: number;
     isOrganization?: boolean;
     needsTeamsUpgrade?: boolean;
+    upgradeTeamsBadgeProps?: {
+      hasPaidPlan?: boolean;
+      hasActiveTeamPlan?: boolean;
+      isTrial?: boolean;
+    };
   }[];
 }
 
@@ -174,6 +179,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         label: option.label,
                         value: option.value,
                         needsTeamsUpgrade: option.needsTeamsUpgrade,
+                        upgradeTeamsBadgeProps: option.upgradeTeamsBadgeProps,
                       }))}
                       isOptionDisabled={(option: {
                         label: string;

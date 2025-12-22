@@ -8,7 +8,6 @@ import {
   isCalAIAction,
   isSMSAction,
   isFormTrigger,
-  isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
 import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailReminderTemplate";
@@ -25,7 +24,7 @@ import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
+import { useHasPaidPlan, useHasActiveTeamPlan } from "~/billing/hooks/useHasPaidPlan";
 
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
@@ -59,7 +58,8 @@ export default function WorkflowDetailsPage(props: Props) {
     permissions,
   } = props;
   const { t, i18n } = useLocale();
-  const { hasActiveTeamPlan } = useHasActiveTeamPlan();
+  const { hasPaidPlan } = useHasPaidPlan();
+  const { hasActiveTeamPlan, isTrial } = useHasActiveTeamPlan();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
@@ -110,6 +110,9 @@ export default function WorkflowDetailsPage(props: Props) {
             isOrganization: isOrg,
             isCalAi: isCalAIAction(option.value),
             needsTeamsUpgrade,
+            upgradeTeamsBadgeProps: needsTeamsUpgrade
+              ? { hasPaidPlan, hasActiveTeamPlan, isTrial }
+              : undefined,
           };
         })
     : [];
@@ -121,6 +124,7 @@ export default function WorkflowDetailsPage(props: Props) {
       setSelectedOptions(newOptions);
       form.setValue("activeOn", newOptions);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only run when eventTypeId changes
   }, [eventTypeId]);
 
   const addAction = (
