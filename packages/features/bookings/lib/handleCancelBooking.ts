@@ -544,16 +544,22 @@ async function handler(input: CancelBookingInput) {
       );
 
       await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
-
-      await prisma.bookingReference.updateMany({
-        where: {
-          bookingId: bookingToDelete.id,
-        },
-        data: { deleted: true },
-      });
     } catch (error) {
       log.error(`Error deleting integrations`, safeStringify({ error }));
     }
+  }
+
+  // Always mark booking references as deleted for data consistency
+  // (even when skipCalendarSyncTaskCancellation is true, since the external event is already deleted)
+  try {
+    await prisma.bookingReference.updateMany({
+      where: {
+        bookingId: bookingToDelete.id,
+      },
+      data: { deleted: true },
+    });
+  } catch (error) {
+    log.error(`Error marking booking references as deleted`, safeStringify({ error }));
   }
 
   try {

@@ -1,5 +1,5 @@
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
@@ -80,8 +80,6 @@ export class CalendarSyncService {
         userId: booking.userId!,
         bookingData: {
           uid: booking.uid,
-          allRemainingBookings: true,
-          cancelSubsequentBookings: true,
           cancellationReason: "Cancelled on user's calendar",
           cancelledBy: booking.userPrimaryEmail!,
           // Skip calendar event deletion to avoid infinite loops
@@ -115,7 +113,8 @@ export class CalendarSyncService {
     }
 
     try {
-      await handleNewBooking({
+      const regularBookingService = getRegularBookingService();
+      await regularBookingService.createBooking({
         bookingData: {
           eventTypeId: booking.eventTypeId!,
           start: event.start?.toISOString() ?? booking.startTime.toISOString(),
@@ -125,9 +124,11 @@ export class CalendarSyncService {
           metadata: {},
           rescheduleUid: booking.uid,
         },
-        // Skip calendar event creation to avoid infinite loops
-        // (Google/Office365 → Cal.com → Google/Office365 → ...)
-        skipCalendarSyncTaskCreation: true,
+        bookingMeta: {
+          // Skip calendar event creation to avoid infinite loops
+          // (Google/Office365 → Cal.com → Google/Office365 → ...)
+          skipCalendarSyncTaskCreation: true,
+        },
       });
       log.info("Successfully rescheduled booking from calendar sync", { bookingUid });
     } catch (error) {
