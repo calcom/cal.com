@@ -16,6 +16,8 @@ import type {
   PrivateLink,
   CreatePrivateLinkInput,
   UpdatePrivateLinkInput,
+  MarkAbsentRequest,
+  MarkAbsentResponse,
 } from "./types";
 
 const API_BASE_URL = "https://api.cal.com/v2";
@@ -461,6 +463,46 @@ export class CalComAPIService {
       throw new Error("Invalid response from decline booking API");
     } catch (error) {
       console.error("declineBooking error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Mark an attendee as absent (no-show) for a booking
+   * @param bookingUid - The unique identifier of the booking
+   * @param attendeeEmail - The email of the attendee to mark as absent
+   * @param absent - Whether to mark as absent (true) or undo (false)
+   */
+  static async markAbsent(
+    bookingUid: string,
+    attendeeEmail: string,
+    absent: boolean = true
+  ): Promise<Booking> {
+    try {
+      const body: MarkAbsentRequest = {
+        attendees: [{ email: attendeeEmail, absent }],
+      };
+
+      const response = await this.makeRequest<MarkAbsentResponse>(
+        `/bookings/${bookingUid}/mark-absent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+          body: JSON.stringify(body),
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from mark absent API");
+    } catch (error) {
+      console.error("markAbsent error:", error);
       throw error;
     }
   }
