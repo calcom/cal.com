@@ -447,6 +447,14 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withBranding(hideBranding?: boolean) {
+    this.event = {
+      ...this.event,
+      hideBranding,
+    };
+    return this;
+  }
+
   withAppsStatus(appsStatus?: AppsStatus[]) {
     this.event = {
       ...this.event,

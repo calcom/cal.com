@@ -1,9 +1,10 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendReassignedEmailsAndSMS,
+  sendRoundRobinReassignedEmailsAndSMS,
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
+  withHideBranding,
 } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -730,7 +731,7 @@ export class ManagedEventManualReassignmentService {
       calEvent.additionalInformation = additionalInformation;
 
       await sendReassignedScheduledEmailsAndSMS({
-        calEvent,
+        calEvent: withHideBranding(calEvent),
         members: [
           {
             ...newUser,
@@ -763,8 +764,8 @@ export class ManagedEventManualReassignmentService {
           },
         };
 
-        await sendReassignedEmailsAndSMS({
-          calEvent: cancelledCalEvent,
+        await sendRoundRobinReassignedEmailsAndSMS({
+          calEvent: withHideBranding(cancelledCalEvent),
           members: [
             {
               ...originalUser,
@@ -782,7 +783,7 @@ export class ManagedEventManualReassignmentService {
 
       if (dayjs(calEvent.startTime).isAfter(dayjs())) {
         await sendReassignedUpdatedEmailsAndSMS({
-          calEvent,
+          calEvent: withHideBranding(calEvent),
           eventTypeMetadata,
         });
         logger.info("Sent update emails to attendees");

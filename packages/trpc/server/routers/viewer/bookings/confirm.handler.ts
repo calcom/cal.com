@@ -13,6 +13,7 @@ import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflow
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -78,7 +79,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       eventType: {
         select: {
           id: true,
-          owner: true,
+          owner: {
+            select: {
+              id: true,
+              hideBranding: true,
+            },
+          },
           teamId: true,
           recurringEvent: true,
           title: true,
@@ -101,6 +107,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
           workflows: {
@@ -131,6 +143,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          hideBranding: true,
         },
       },
       id: true,
@@ -369,10 +382,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
 
-    if (emailsEnabled) {
-      await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
-    }
-
     const teamId = await getTeamIdFromEventType({
       eventType: {
         team: { id: booking.eventType?.teamId ?? null },
@@ -381,6 +390,28 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    const eventTypeIdForBranding = booking.eventTypeId ?? null;
+    let hideBranding = false;
+
+    if (!eventTypeIdForBranding) {
+      console.warn("Booking missing eventTypeId, defaulting hideBranding to false");
+      hideBranding = false;
+    } else {
+      hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId: eventTypeIdForBranding,
+        team: booking.eventType?.team ?? null,
+        owner: booking.user ?? null,
+        organizationId: orgId ?? null,
+      });
+    }
+
+    if (emailsEnabled) {
+      await sendDeclinedEmailsAndSMS(
+        { ...evt, hideBranding },
+        booking.eventType?.metadata as EventTypeMetadata
+      );
+    }
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
@@ -425,7 +456,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
         creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });

@@ -28,7 +28,7 @@ const mockEventManager = async () => {
 const mockEmails = async () => {
   const emails = await import("@calcom/emails/email-manager");
   vi.spyOn(emails, "sendReassignedScheduledEmailsAndSMS").mockResolvedValue(undefined);
-  vi.spyOn(emails, "sendReassignedEmailsAndSMS").mockResolvedValue(undefined);
+  vi.spyOn(emails, "sendRoundRobinReassignedEmailsAndSMS").mockResolvedValue(undefined);
   vi.spyOn(emails, "sendReassignedUpdatedEmailsAndSMS").mockResolvedValue(undefined);
 };
 
@@ -465,7 +465,7 @@ describe("managedEventManualReassignment - Integration Tests", () => {
 
     // Verify email functions were called
     expect(emails.sendReassignedScheduledEmailsAndSMS).toHaveBeenCalledTimes(1);
-    expect(emails.sendReassignedEmailsAndSMS).toHaveBeenCalledTimes(1);
+    expect(emails.sendRoundRobinReassignedEmailsAndSMS).toHaveBeenCalledTimes(1);
     expect(emails.sendReassignedUpdatedEmailsAndSMS).toHaveBeenCalledTimes(1);
 
     const newBooking = await prisma.booking.findFirst({

@@ -1,8 +1,8 @@
- 
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -20,6 +20,17 @@ const attendeeRescheduleSeatedBooking = async (
 ) => {
   const { tAttendees, bookingSeat, bookerEmail, evt, eventType } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
+  const { organizerUser } = rescheduleSeatedBookingObject;
+
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: eventType.id,
+    team: eventType.team ?? null,
+    owner: organizerUser ?? null,
+    organizationId:
+      eventType.team?.parentId ??
+      (organizerUser as { organizationId?: number | null })?.organizationId ??
+      null,
+  });
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
 
@@ -51,7 +62,11 @@ const attendeeRescheduleSeatedBooking = async (
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
-    await sendRescheduledSeatEmailAndSMS(evt, seatAttendee as Person, eventType.metadata);
+    await sendRescheduledSeatEmailAndSMS(
+      { ...evt, hideBranding },
+      seatAttendee as Person,
+      eventType.metadata
+    );
 
     return null;
   }
@@ -93,7 +108,11 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  await sendRescheduledSeatEmailAndSMS(copyEvent, seatAttendee as Person, eventType.metadata);
+  await sendRescheduledSeatEmailAndSMS(
+    { ...copyEvent, hideBranding },
+    seatAttendee as Person,
+    eventType.metadata
+  );
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });
