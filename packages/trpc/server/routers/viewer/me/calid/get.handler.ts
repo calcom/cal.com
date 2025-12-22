@@ -43,17 +43,22 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     },
   });
 
+  const userWithExtraFields = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    select: {
+      password: true,
+      completedOnboarding: true,
+    },
+  });
+
+  let completedOnboarding = !!userWithExtraFields?.completedOnboarding;
+
   let passwordAdded = false;
+
   if (user.identityProvider !== IdentityProvider.CAL && input?.includePasswordAdded) {
-    const userWithPassword = await prisma.user.findUnique({
-      where: {
-        id: user.id,
-      },
-      select: {
-        password: true,
-      },
-    });
-    if (userWithPassword?.password?.hash) {
+    if (userWithExtraFields?.password?.hash) {
       passwordAdded = true;
     }
   }
@@ -117,7 +122,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     createdDate: user.createdDate,
     trialEndsAt: user.trialEndsAt,
     defaultScheduleId: user.defaultScheduleId,
-    completedOnboarding: user.completedOnboarding,
+    completedOnboarding: completedOnboarding,
     twoFactorEnabled: user.twoFactorEnabled,
     disableImpersonation: user.disableImpersonation,
     identityProvider: user.identityProvider,
