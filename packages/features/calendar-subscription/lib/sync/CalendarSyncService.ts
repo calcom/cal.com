@@ -1,5 +1,5 @@
-import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import logger from "@calcom/lib/logger";
@@ -115,18 +115,19 @@ export class CalendarSyncService {
     }
 
     try {
-      const regularBookingService = getRegularBookingService();
-      await regularBookingService.createBooking({
+      await handleNewBooking({
         bookingData: {
-          ...booking,
-          startTime: event.start?.toISOString() ?? booking.startTime,
-          endTime: event.end?.toISOString() ?? booking.endTime,
+          eventTypeId: booking.eventTypeId!,
+          start: event.start?.toISOString() ?? booking.startTime.toISOString(),
+          end: event.end?.toISOString() ?? booking.endTime.toISOString(),
+          timeZone: event.timeZone ?? "UTC",
+          language: "en",
+          metadata: {},
+          rescheduleUid: booking.uid,
         },
-        bookingMeta: {
-          // Skip calendar event creation to avoid infinite loops
-          // (Google/Office365 → Cal.com → Google/Office365 → ...)
-          skipCalendarSyncTaskCreation: true,
-        },
+        // Skip calendar event creation to avoid infinite loops
+        // (Google/Office365 → Cal.com → Google/Office365 → ...)
+        skipCalendarSyncTaskCreation: true,
       });
       log.info("Successfully rescheduled booking from calendar sync", { bookingUid });
     } catch (error) {

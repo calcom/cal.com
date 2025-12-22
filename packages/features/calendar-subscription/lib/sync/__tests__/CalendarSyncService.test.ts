@@ -6,19 +6,17 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 
 import { CalendarSyncService } from "../CalendarSyncService";
 
-const { mockHandleCancelBooking, mockCreateBooking } = vi.hoisted(() => ({
+const { mockHandleCancelBooking, mockHandleNewBooking } = vi.hoisted(() => ({
   mockHandleCancelBooking: vi.fn().mockResolvedValue(undefined),
-  mockCreateBooking: vi.fn().mockResolvedValue(undefined),
+  mockHandleNewBooking: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@calcom/features/bookings/lib/handleCancelBooking", () => ({
   default: mockHandleCancelBooking,
 }));
 
-vi.mock("@calcom/features/bookings/di/RegularBookingService.container", () => ({
-  getRegularBookingService: () => ({
-    createBooking: mockCreateBooking,
-  }),
+vi.mock("@calcom/features/bookings/lib/handleNewBooking", () => ({
+  default: mockHandleNewBooking,
 }));
 
 const mockSelectedCalendar: SelectedCalendar = {
@@ -59,8 +57,9 @@ const mockBooking = {
   uid: "test-booking-uid",
   userId: 1,
   userPrimaryEmail: "user@example.com",
-  startTime: "2023-12-01T10:00:00Z",
-  endTime: "2023-12-01T11:00:00Z",
+  startTime: new Date("2023-12-01T10:00:00Z"),
+  endTime: new Date("2023-12-01T11:00:00Z"),
+  eventTypeId: 1,
   eventType: {
     id: 1,
     title: "Test Event Type",
@@ -277,15 +276,17 @@ describe("CalendarSyncService", () => {
         bookingUid: "test-booking-uid",
       });
 
-      expect(mockCreateBooking).toHaveBeenCalledWith({
+      expect(mockHandleNewBooking).toHaveBeenCalledWith({
         bookingData: {
-          ...mockBooking,
-          startTime: "2023-12-01T14:00:00.000Z",
-          endTime: "2023-12-01T15:00:00.000Z",
+          eventTypeId: mockBooking.eventTypeId,
+          start: "2023-12-01T14:00:00.000Z",
+          end: "2023-12-01T15:00:00.000Z",
+          timeZone: "UTC",
+          language: "en",
+          metadata: {},
+          rescheduleUid: mockBooking.uid,
         },
-        bookingMeta: {
-          skipCalendarSyncTaskCreation: true,
-        },
+        skipCalendarSyncTaskCreation: true,
       });
     });
 
@@ -300,15 +301,17 @@ describe("CalendarSyncService", () => {
 
       await service.rescheduleBooking(eventWithNullTimes);
 
-      expect(mockCreateBooking).toHaveBeenCalledWith({
+      expect(mockHandleNewBooking).toHaveBeenCalledWith({
         bookingData: {
-          ...mockBooking,
-          startTime: mockBooking.startTime,
-          endTime: mockBooking.endTime,
+          eventTypeId: mockBooking.eventTypeId,
+          start: "2023-12-01T10:00:00.000Z",
+          end: "2023-12-01T11:00:00.000Z",
+          timeZone: "UTC",
+          language: "en",
+          metadata: {},
+          rescheduleUid: mockBooking.uid,
         },
-        bookingMeta: {
-          skipCalendarSyncTaskCreation: true,
-        },
+        skipCalendarSyncTaskCreation: true,
       });
     });
 
@@ -321,7 +324,7 @@ describe("CalendarSyncService", () => {
       await service.rescheduleBooking(eventWithoutUID);
 
       expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
-      expect(mockCreateBooking).not.toHaveBeenCalled();
+      expect(mockHandleNewBooking).not.toHaveBeenCalled();
     });
 
     test("should return early when booking UID is malformed", async () => {
@@ -333,7 +336,7 @@ describe("CalendarSyncService", () => {
       await service.rescheduleBooking(eventWithMalformedUID);
 
       expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
-      expect(mockCreateBooking).not.toHaveBeenCalled();
+      expect(mockHandleNewBooking).not.toHaveBeenCalled();
     });
 
     test("should return early when booking is not found", async () => {
@@ -344,18 +347,18 @@ describe("CalendarSyncService", () => {
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
         bookingUid: "test-booking-uid",
       });
-      expect(mockCreateBooking).not.toHaveBeenCalled();
+      expect(mockHandleNewBooking).not.toHaveBeenCalled();
     });
 
     test("should handle rescheduling errors gracefully without throwing", async () => {
       mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
-      mockCreateBooking.mockRejectedValue(new Error("Rescheduling failed"));
+      mockHandleNewBooking.mockRejectedValue(new Error("Rescheduling failed"));
 
       // Should not throw - errors are caught and logged
       await expect(service.rescheduleBooking(mockCalComEvent)).resolves.not.toThrow();
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
-      expect(mockCreateBooking).toHaveBeenCalled();
+      expect(mockHandleNewBooking).toHaveBeenCalled();
     });
   });
 });
