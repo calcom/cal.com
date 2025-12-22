@@ -1,7 +1,8 @@
 import type { BookingStatus } from "@calcom/prisma/enums";
 
 
-export const buildBookingCreatedAuditData = ({ booking }: {
+export const buildBookingCreatedAuditData = ({ booking, attendeeSeatId }: {
+    attendeeSeatId: string | null;
     booking: {
         startTime: Date;
         endTime: Date;
@@ -14,6 +15,7 @@ export const buildBookingCreatedAuditData = ({ booking }: {
         endTime: booking.endTime.getTime(),
         status: booking.status,
         hostUserUuid: booking.userUuid,
+        seatReferenceUid: attendeeSeatId,
     }
 };
 

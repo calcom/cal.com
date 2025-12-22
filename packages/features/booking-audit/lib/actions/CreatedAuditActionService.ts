@@ -17,6 +17,7 @@ const fieldsSchemaV1 = z.object({
     endTime: z.number(),
     status: z.nativeEnum(BookingStatus),
     hostUserUuid: z.string().nullable(),
+    seatReferenceUid: z.string().nullable(),
 });
 
 type Deps = {
@@ -67,6 +68,9 @@ export class CreatedAuditActionService implements IAuditActionService {
         const { fields } = this.parseStored(storedData);
         const hostUser = fields.hostUserUuid ? await this.deps.userRepository.findByUuid({ uuid: fields.hostUserUuid }) : null;
         const hostName = hostUser?.name || "Unknown";
+        if (fields.seatReferenceUid) {
+            return { key: "booking_audit_action.created_with_seat", params: { host: hostName } };
+        }
         return { key: "booking_audit_action.created", params: { host: hostName } };
     }
 

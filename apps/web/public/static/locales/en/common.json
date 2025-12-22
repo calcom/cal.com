@@ -4145,6 +4145,7 @@
   "booking_history_description": "View the history of actions performed on this booking",
   "booking_audit_action": {
     "created": "Booked with {{host}}",
+    "created_with_seat": "Seat Booked with {{host}}",
     "cancelled": "Cancelled",
     "rescheduled": "Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
     "rescheduled_from": "Rescheduled <0>{{oldDate}}</0> -> {{newDate}}",

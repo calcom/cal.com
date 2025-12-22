@@ -212,7 +212,7 @@ export class RecurringBookingService implements IBookingService {
         .filter(isValidBooking)
         .map((booking) => ({
           bookingUid: booking.uid,
-          auditData: buildBookingCreatedAuditData({ booking }),
+          auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId: null }),
         }));
 
       if (bulkCreatedBookings.length > 0) {

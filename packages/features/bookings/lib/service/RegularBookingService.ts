@@ -2406,6 +2406,7 @@ async function handler(
     originalRescheduledBooking,
     actionSource,
     isRecurringBooking: !!input.bookingData.allRecurringDates,
+    attendeeSeatId: evt.attendeeSeatId ?? null,
     tracingLogger,
   });
 
@@ -2837,6 +2838,7 @@ export class RegularBookingService implements IBookingService {
     originalRescheduledBooking,
     actionSource,
     isRecurringBooking,
+    attendeeSeatId,
     tracingLogger,
   }: {
     booking: {
@@ -2860,6 +2862,7 @@ export class RegularBookingService implements IBookingService {
     actionSource: ActionSource;
     isRecurringBooking: boolean;
     tracingLogger: ReturnType<typeof distributedTracing.getTracingLogger>;
+    attendeeSeatId: string | null;
   }) {
     const bookingCreatedPayload = buildBookingCreatedPayload({
       booking,
@@ -2904,7 +2907,7 @@ export class RegularBookingService implements IBookingService {
         await bookingEventHandler.onBookingCreated({
           payload: bookingCreatedPayload,
           actor: auditActor,
-          auditData: buildBookingCreatedAuditData({ booking }),
+          auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId }),
           source: actionSource,
           operationId: null,
         });
