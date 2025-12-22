@@ -81,7 +81,7 @@ export default class HubspotCalendarService implements CRM {
     const foundFields: Array<{ name: string; type: string;[key: string]: any }> = [];
 
     try {
-      const properties = await this.hubspotClient.crm.properties.coreApi.getAll("meetings", undefined);
+      const properties = await this.hubspotClient.crm.properties.coreApi.getAll("meetings");
 
       for (const property of properties.results) {
         if (foundFields.length === fieldSet.size) break;
@@ -133,10 +133,14 @@ export default class HubspotCalendarService implements CRM {
 
   private async getDateFieldValue(
     fieldValue: string,
-    startTime: string,
+    startTime?: string,
     bookingUid?: string | null
   ): Promise<string | null> {
     if (fieldValue === DateFieldType.BOOKING_START_DATE) {
+      if (!startTime) {
+        this.log.error("StartTime is required for BOOKING_START_DATE but was not provided");
+        return null;
+      }
       return new Date(startTime).toISOString();
     }
 
@@ -167,23 +171,34 @@ export default class HubspotCalendarService implements CRM {
     fieldName,
   }: {
     fieldValue: string | boolean;
-    fieldType: string;
+    fieldType: CrmFieldType;
     calEventResponses?: CalEventResponses | null;
     bookingUid?: string | null;
     startTime?: string;
     fieldName: string;
-  }): Promise<any> {
+  }): Promise<string | boolean | null> {
     const log = logger.getSubLogger({ prefix: [`[getFieldValue]: ${fieldName}`] });
 
     if (fieldType === CrmFieldType.CHECKBOX) {
       return !!fieldValue;
     }
 
-    if (fieldType === CrmFieldType.DATE && startTime) {
+    if (fieldType === CrmFieldType.DATE || fieldType === CrmFieldType.DATETIME) {
       return await this.getDateFieldValue(fieldValue as string, startTime, bookingUid);
     }
 
-    if (typeof fieldValue === "string") {
+    if (
+      fieldType === CrmFieldType.TEXT ||
+      fieldType === CrmFieldType.STRING ||
+      fieldType === CrmFieldType.PHONE ||
+      fieldType === CrmFieldType.TEXTAREA ||
+      fieldType === CrmFieldType.CUSTOM
+    ) {
+      if (typeof fieldValue !== "string") {
+        log.error(`Expected string value for field ${fieldName}, got ${typeof fieldValue}`);
+        return null;
+      }
+
       if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) {
         log.info("Returning static value");
         return fieldValue;
@@ -191,30 +206,32 @@ export default class HubspotCalendarService implements CRM {
 
       let valueToWrite = fieldValue;
 
+      // Extract from UTM tracking
       if (fieldValue.startsWith("{utm:")) {
         if (!bookingUid) {
           log.error(`BookingUid not passed. Cannot get tracking values without it`);
-          return;
+          return null;
         }
         valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid, fieldName);
       } else {
-        // Get the value from the booking response
+        // Extract from booking form responses
         if (!calEventResponses) {
           log.error(`CalEventResponses not passed. Cannot get booking form responses`);
-          return;
+          return null;
         }
         valueToWrite = this.getTextValueFromBookingResponse(fieldValue, calEventResponses);
       }
 
       if (valueToWrite === fieldValue) {
         log.error("No responses found returning nothing");
-        return;
+        return null;
       }
 
       return valueToWrite;
     }
 
-    return fieldValue;
+    log.error(`Unsupported field type ${fieldType} for field ${fieldName}`);
+    return null;
   }
 
   private async generateWriteToMeetingBody(event: CalendarEvent) {
@@ -286,8 +303,6 @@ export default class HubspotCalendarService implements CRM {
   };
 
   private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
-    const writeToMeetingRecord = await this.generateWriteToMeetingBody(event);
-
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
         hs_timestamp: Date.now().toString(),
@@ -297,7 +312,6 @@ export default class HubspotCalendarService implements CRM {
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "RESCHEDULED",
-        ...writeToMeetingRecord,
       },
     };
 

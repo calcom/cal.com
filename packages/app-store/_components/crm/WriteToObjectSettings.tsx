@@ -22,16 +22,16 @@ export interface SelectOption<T = string> {
 }
 
 export interface WriteToRecordEntry {
-  fieldType: string;
+  fieldType: CrmFieldType;
   value: string | boolean;
-  whenToWrite: string;
+  whenToWrite: WhenToWrite;
 }
 
 interface WriteToRecordEntrySchema {
   field: string;
-  fieldType: string;
+  fieldType: CrmFieldType;
   value: string | boolean;
-  whenToWrite: string;
+  whenToWrite: WhenToWrite;
 }
 
 interface WriteToObjectSettingsProps {
@@ -46,8 +46,8 @@ interface WriteToObjectSettingsProps {
   supportedWriteTriggers?: readonly WhenToWrite[];
 }
 
-const DATE_FIELD_TYPE = "date";
-const CHECKBOX_FIELD_TYPE = "checkbox";
+const DATE_FIELD_TYPE = CrmFieldType.DATE;
+const CHECKBOX_FIELD_TYPE = CrmFieldType.CHECKBOX;
 
 const FIELD_TYPE_LABELS: Record<CrmFieldType, string> = {
   [CrmFieldType.TEXT]: "text",
@@ -106,6 +106,8 @@ const WriteToObjectSettings = ({
     };
     return supportedWriteTriggers.map((trigger) => ({ label: t(labelMap[trigger]), value: trigger }));
   }, [supportedWriteTriggers, bookingAction, t]);
+
+  const showWhenToWriteColumn = whenToWriteOptions.length > 1;
 
   const checkboxFieldValueOptions: SelectOption<boolean>[] = [
     { label: t("true"), value: true },
@@ -201,7 +203,7 @@ const WriteToObjectSettings = ({
             <div className="flex-1">{t("field_name")}</div>
             <div className="flex-1">{t("field_type")}</div>
             <div className="flex-1">{t("value")}</div>
-            <div className="flex-1">{t("when_to_write")}</div>
+            {showWhenToWriteColumn && <div className="flex-1">{t("when_to_write")}</div>}
             <div className="w-20" />
           </div>
           <Section.SubSectionNested>
@@ -336,33 +338,35 @@ const WriteToObjectSettings = ({
                       />
                     )}
                   </div>
-                  <div className="flex-1">
-                    {isEditing ? (
-                      <Select
-                        size="sm"
-                        className="w-full"
-                        options={whenToWriteOptions}
-                        value={whenToWriteOptions.find((option) => option.value === editData?.whenToWrite)}
-                        onChange={(e) => {
-                          if (e) {
-                            setEditingData((prev) => ({
-                              ...prev,
-                              [key]: { ...editData, whenToWrite: e.value },
-                            }));
-                          }
-                        }}
-                      />
-                    ) : (
-                      <Select
-                        size="sm"
-                        className="w-full"
-                        value={whenToWriteOptions.find(
-                          (option) => option.value === writeToObjectData[key].whenToWrite
-                        )}
-                        isDisabled={true}
-                      />
-                    )}
-                  </div>
+                  {showWhenToWriteColumn && (
+                    <div className="flex-1">
+                      {isEditing ? (
+                        <Select
+                          size="sm"
+                          className="w-full"
+                          options={whenToWriteOptions}
+                          value={whenToWriteOptions.find((option) => option.value === editData?.whenToWrite)}
+                          onChange={(e) => {
+                            if (e) {
+                              setEditingData((prev) => ({
+                                ...prev,
+                                [key]: { ...editData, whenToWrite: e.value },
+                              }));
+                            }
+                          }}
+                        />
+                      ) : (
+                        <Select
+                          size="sm"
+                          className="w-full"
+                          value={whenToWriteOptions.find(
+                            (option) => option.value === writeToObjectData[key].whenToWrite
+                          )}
+                          isDisabled={true}
+                        />
+                      )}
+                    </div>
+                  )}
                   <div className="flex w-20 justify-center gap-1">
                     {isEditing ? (
                       <>
@@ -489,23 +493,25 @@ const WriteToObjectSettings = ({
                   />
                 )}
               </div>
-              <div className="flex-1">
-                <Select
-                  size="sm"
-                  className="w-full"
-                  options={whenToWriteOptions}
-                  value={whenToWriteSelectedOption}
-                  onChange={(e) => {
-                    if (e) {
-                      setWhenToWriteSelectedOption(e);
-                      setNewOnWriteToRecordEntry({
-                        ...newOnWriteToRecordEntry,
-                        whenToWrite: e.value,
-                      });
-                    }
-                  }}
-                />
-              </div>
+              {showWhenToWriteColumn && (
+                <div className="flex-1">
+                  <Select
+                    size="sm"
+                    className="w-full"
+                    options={whenToWriteOptions}
+                    value={whenToWriteSelectedOption}
+                    onChange={(e) => {
+                      if (e) {
+                        setWhenToWriteSelectedOption(e);
+                        setNewOnWriteToRecordEntry({
+                          ...newOnWriteToRecordEntry,
+                          whenToWrite: e.value,
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              )}
               <div className="w-20" />
             </div>
           </Section.SubSectionNested>

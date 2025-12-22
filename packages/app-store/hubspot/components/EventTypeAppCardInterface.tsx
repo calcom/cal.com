@@ -14,6 +14,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 
 import type { appDataSchema } from "../zod";
+import { WhenToWrite } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
@@ -82,7 +83,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             optionSwitchOnChange={(checked) => {
               setAppData("onBookingWriteToEventObject", checked);
             }}
-            updateWriteToObjectData={(data) => { console.log("data: ", data); setAppData("onBookingWriteToEventObjectFields", data) }}
+            updateWriteToObjectData={(data) => setAppData("onBookingWriteToEventObjectFields", data)}
             supportedFieldTypes={[
               CrmFieldType.TEXT,
               CrmFieldType.DATE,
@@ -90,6 +91,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               CrmFieldType.CHECKBOX,
               CrmFieldType.CUSTOM,
             ]}
+            supportedWriteTriggers={[WhenToWrite.EVERY_BOOKING]}
           />
         </Section.SubSection>
       </Section.Content>

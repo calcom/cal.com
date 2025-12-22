@@ -4,6 +4,7 @@ import { writeToBookingEntry } from "../_lib/crm-schemas";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 
 export { writeToBookingEntry, writeToRecordEntrySchema } from "../_lib/crm-schemas";
+export { CrmFieldType, WhenToWrite, DateFieldType } from "../_lib/crm-enums";
 
 export const appDataSchema = eventTypeAppCardZod.extend({
   ignoreGuests: z.boolean().optional(),
