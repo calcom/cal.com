@@ -27,7 +27,7 @@ import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
-import Locations from "~/event-types/components/locations/Locations";
+import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;

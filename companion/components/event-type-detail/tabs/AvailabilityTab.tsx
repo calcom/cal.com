@@ -1,7 +1,7 @@
+import { Schedule } from "../../../services/calcom";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Schedule } from "../../../services/calcom";
 
 interface DaySchedule {
   day: string;
@@ -16,7 +16,7 @@ interface AvailabilityTabProps {
   schedulesLoading: boolean;
   scheduleDetailsLoading: boolean;
   selectedScheduleDetails: any;
-  getDaySchedule: () => DaySchedule[];
+  getDaySchedules: () => DaySchedule[];
   formatTime: (time: string) => string;
   selectedTimezone: string;
 }
@@ -35,8 +35,8 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
             {props.schedulesLoading
               ? "Loading schedules..."
               : props.selectedSchedule
-                ? props.selectedSchedule.name
-                : "Select schedule"}
+              ? props.selectedSchedule.name
+              : "Select schedule"}
           </Text>
           <Ionicons name="chevron-down" size={20} color="#8E8E93" />
         </TouchableOpacity>
@@ -60,7 +60,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                 <Text className="text-sm italic text-[#8E8E93]">Loading schedule details...</Text>
               </View>
             ) : props.selectedScheduleDetails ? (
-              props.getDaySchedule().map((dayInfo, index) => (
+              props.getDaySchedules().map((dayInfo, index) => (
                 <View key={index} className="flex-row items-center justify-between py-4">
                   <Text
                     className={`ml-2 flex-1 text-[15px] font-medium text-[#333] ${
@@ -71,7 +71,9 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                   </Text>
                   <Text className="mr-4 text-right text-[15px] text-[#666]">
                     {dayInfo.available && dayInfo.startTime && dayInfo.endTime
-                      ? `${props.formatTime(dayInfo.startTime)} - ${props.formatTime(dayInfo.endTime)}`
+                      ? `${props.formatTime(dayInfo.startTime)} - ${props.formatTime(
+                          dayInfo.endTime
+                        )}`
                       : "Unavailable"}
                   </Text>
                 </View>

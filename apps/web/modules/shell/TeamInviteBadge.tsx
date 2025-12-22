@@ -1,6 +1,6 @@
-import { useTeamInvites } from "~/billing/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
+import { useTeamInvites } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 export function TeamInviteBadge() {
   const { isPending, listInvites } = useTeamInvites();

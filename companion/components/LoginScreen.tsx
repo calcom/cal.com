@@ -1,10 +1,10 @@
+import { useAuth } from "../contexts/AuthContext";
+import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
+import { CalComLogo } from "./CalComLogo";
 import React from "react";
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "../contexts/AuthContext";
-import { CalComLogo } from "./CalComLogo";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
 
 export function LoginScreen() {
   const { loginWithOAuth, loading } = useAuth();
@@ -14,7 +14,7 @@ export function LoginScreen() {
     try {
       await loginWithOAuth();
     } catch (error) {
-      console.error("OAuth login error:", error);
+      console.error("OAuth login error");
       showErrorAlert(
         "Login Failed",
         error instanceof Error

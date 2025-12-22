@@ -3,7 +3,21 @@ import { z } from "zod";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeLocations, EventTypeMetaDataSchema, eventTypeSlug } from "@calcom/prisma/zod-utils";
 
-const calVideoSettingsSchema = z
+type CalVideoSettings =
+  | {
+      disableRecordingForGuests?: boolean | null;
+      disableRecordingForOrganizer?: boolean | null;
+      enableAutomaticTranscription?: boolean | null;
+      enableAutomaticRecordingForOrganizer?: boolean | null;
+      disableTranscriptionForGuests?: boolean | null;
+      disableTranscriptionForOrganizer?: boolean | null;
+      redirectUrlOnExit?: string | null;
+      requireEmailForGuests?: boolean | null;
+    }
+  | null
+  | undefined;
+
+const calVideoSettingsSchema: z.ZodType<CalVideoSettings> = z
   .object({
     disableRecordingForGuests: z.boolean().nullish(),
     disableRecordingForOrganizer: z.boolean().nullish(),
@@ -17,7 +31,29 @@ const calVideoSettingsSchema = z
   .optional()
   .nullable();
 
-export const EventTypeDuplicateInput = z
+type EventTypeLocation = {
+  type: string;
+  address?: string;
+  link?: string;
+  displayLocationPublicly?: boolean;
+  hostPhoneNumber?: string;
+  credentialId?: number;
+  teamName?: string;
+  customLabel?: string;
+};
+
+type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
+
+export type TEventTypeDuplicateInput = {
+  id: number;
+  slug: string;
+  title: string;
+  description: string;
+  length: number;
+  teamId?: number | null;
+};
+
+export const EventTypeDuplicateInput: z.ZodType<TEventTypeDuplicateInput> = z
   .object({
     id: z.number(),
     slug: z.string(),
@@ -28,7 +64,26 @@ export const EventTypeDuplicateInput = z
   })
   .strict();
 
-export const createEventTypeInput = z
+export type TCreateEventTypeInput = {
+  title: string;
+  slug: string;
+  description?: string | null;
+  length: number;
+  hidden?: boolean;
+  teamId?: number | null;
+  schedulingType?: SchedulingType | null;
+  locations?: EventTypeLocation[];
+  metadata?: EventTypeMetadata;
+  disableGuests?: boolean;
+  slotInterval?: number | null;
+  minimumBookingNotice?: number;
+  beforeEventBuffer?: number;
+  afterEventBuffer?: number;
+  scheduleId?: number;
+  calVideoSettings?: CalVideoSettings;
+};
+
+export const createEventTypeInput: z.ZodType<TCreateEventTypeInput> = z
   .object({
     title: z.string().trim().min(1),
     slug: eventTypeSlug,

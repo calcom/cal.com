@@ -2,12 +2,12 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
 import {
   useOrgBranding,
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/ui/classNames";
+import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import UnconfirmedBookingBadge from "../../bookings/components/UnconfirmedBookingBadge";
 import { KBarTrigger } from "../Kbar";

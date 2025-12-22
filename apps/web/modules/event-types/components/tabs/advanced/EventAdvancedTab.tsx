@@ -541,8 +541,6 @@ export const EventAdvancedTab = ({
     multiplePrivateLinksLocked.disabled = true;
   }
 
-  const [disableCancelling, setDisableCancelling] = useState(eventType.disableCancelling || false);
-
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
   const [allowReschedulingCancelledBookings, setallowReschedulingCancelledBookings] = useState(
@@ -691,8 +689,8 @@ export const EventAdvancedTab = ({
       {!isPlatform && (
         <>
           <Controller
-            name="disableCancelling"
-            render={({ field: { onChange } }) => (
+            name="disabledCancelling"
+            render={({ field: { onChange, value } }) => (
               <SettingsToggle
                 labelClassName="text-sm"
                 toggleSwitchAtTheEnd={true}
@@ -707,9 +705,8 @@ export const EventAdvancedTab = ({
                     href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
                   />
                 }
-                checked={disableCancelling}
+                checked={value}
                 onCheckedChange={(val) => {
-                  setDisableCancelling(val);
                   onChange(val);
                 }}
               />
