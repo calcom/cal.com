@@ -58,7 +58,7 @@ export default defineConfig({
   outDir: ".output",
   manifest: {
     name: "Cal.com Companion",
-    version: "1.7.4",
+    version: "1.7.5",
     description: "Your calendar companion for quick booking and scheduling",
     permissions: ["activeTab", "storage", "identity"],
     host_permissions: [
