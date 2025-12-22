@@ -21,7 +21,7 @@ import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
 
-import CalendarService from "../CalendarService";
+import CalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
 import {
   createMockJWTInstance,
   createCredentialForCalendarService,
@@ -129,7 +129,7 @@ describe("getAvailability", () => {
 
 describe("getPrimaryCalendar", () => {
   test("should fetch primary calendar using 'primary' keyword", async () => {
-    const calendarService = CalendarService(mockCredential);
+    const calendarService = createGoogleCalendarServiceWithGoogleType(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockPrimaryCalendar = {
       id: "user@example.com",

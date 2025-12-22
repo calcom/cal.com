@@ -28,6 +28,19 @@ type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] 
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
+/**
+ * Extended interface for Google Calendar service that includes Google-specific methods.
+ * This interface is used by internal Google Calendar modules (callback, tests, etc.)
+ * that need access to Google-specific functionality beyond the generic Calendar interface.
+ */
+export interface GoogleCalendar extends Calendar {
+  getPrimaryCalendar(calendar?: unknown): Promise<{ id?: string | null; timeZone?: string | null } | null>;
+
+  upsertSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
+  ): Promise<unknown>;
+}
+
 interface GoogleCalError extends Error {
   code?: number;
 }
@@ -794,5 +807,16 @@ class GoogleCalendarService implements Calendar {
 export default function createGoogleCalendarService(
   credential: CredentialForCalendarServiceWithEmail
 ): Calendar {
+  return new GoogleCalendarService(credential);
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance with the extended GoogleCalendar type.
+ * This is used by internal Google Calendar modules (callback, tests, etc.) that need access to
+ * Google-specific methods beyond the generic Calendar interface.
+ */
+export function createGoogleCalendarServiceWithGoogleType(
+  credential: CredentialForCalendarServiceWithEmail
+): GoogleCalendar {
   return new GoogleCalendarService(credential);
 }

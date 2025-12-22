@@ -46,6 +46,8 @@ export interface SalesforceCRM extends CRM {
     email: string,
     writeToRecordObject: z.infer<typeof writeToRecordDataSchema>
   ): Promise<void>;
+
+  getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string): string;
 }
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
