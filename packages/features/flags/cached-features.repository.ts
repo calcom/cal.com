@@ -5,7 +5,6 @@ import { FeaturesCacheKeys } from "./features-cache-keys";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-const BATCH_COMPOSITION_THRESHOLD = 30; // Skip cache composition for large batches
 
 /**
  * Caching proxy for FeaturesRepository using per-entity canonical caches.
@@ -122,10 +121,6 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, Record<number, FeatureState>>> {
-    if (input.teamIds.length > BATCH_COMPOSITION_THRESHOLD) {
-      return this.featuresRepository.getTeamsFeatureStates(input);
-    }
-
     const teamStatesMap = await Promise.all(
       input.teamIds.map(async (teamId) => ({
         teamId,
@@ -170,10 +165,6 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async getTeamsAutoOptIn(teamIds: number[]): Promise<Record<number, boolean>> {
-    if (teamIds.length > BATCH_COMPOSITION_THRESHOLD) {
-      return this.featuresRepository.getTeamsAutoOptIn(teamIds);
-    }
-
     const results = await Promise.all(
       teamIds.map(async (teamId) => {
         const cacheKey = FeaturesCacheKeys.teamAutoOptIn(teamId);
