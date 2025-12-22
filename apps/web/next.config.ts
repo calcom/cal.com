@@ -21,6 +21,11 @@ const {
 
 type NextConfigPlugin = (config: NextConfig) => NextConfig;
 
+// Type guard to filter out null/undefined values with proper type narrowing
+function isNotNull<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined;
+}
+
 function adjustEnvVariables(): void {
   // Type-safe way to modify process.env (which is typed as readonly in environment.d.ts)
   const envMutable = process.env as Record<string, string | undefined>;
@@ -279,7 +284,7 @@ const nextConfig = (phase: string): NextConfig => {
           source: "/success/:path*",
           has: [
             {
-              type: "query",
+              type: "query" as const,
               key: "uid",
               value: "(?<uid>.*)",
             },
@@ -326,7 +331,7 @@ const nextConfig = (phase: string): NextConfig => {
               },
             ]
           : []),
-      ].filter(Boolean);
+      ].filter(isNotNull);
 
       const afterFiles = [
         {
@@ -423,7 +428,7 @@ const nextConfig = (phase: string): NextConfig => {
           source: "/:path*",
           has: [
             {
-              type: "host",
+              type: "host" as const,
               value: "cal.com",
             },
           ],
@@ -495,7 +500,7 @@ const nextConfig = (phase: string): NextConfig => {
               },
             ]
           : []),
-      ].filter(Boolean);
+      ].filter(isNotNull);
     },
     async redirects() {
       const redirects = [
@@ -568,7 +573,7 @@ const nextConfig = (phase: string): NextConfig => {
           source: "/api/auth/:path*",
           has: [
             {
-              type: "query",
+              type: "query" as const,
               key: "callbackUrl",
               value: "^(?!https?://).*$",
             },
@@ -585,7 +590,7 @@ const nextConfig = (phase: string): NextConfig => {
           source: "/support",
           missing: [
             {
-              type: "header",
+              type: "header" as const,
               key: "host",
               value: nextJsOrgRewriteConfig.orgHostPath,
             },
