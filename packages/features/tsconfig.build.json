@@ -26,12 +26,15 @@
   "exclude": [
     "dist",
     "types",
+    "types/**",
     "build",
     "**/node_modules/**",
     "**/*.test.ts",
     "**/*.spec.ts",
     "**/__tests__/**",
     "**/__mocks__/**",
-    "**/tests/**"
+    "**/tests/**",
+    "**/*.d.ts",
+    "**/*.d.ts.map"
   ]
 }

@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "build:types": "tsc --project tsconfig.build.json",
+    "build:types": "rm -rf types tsconfig.build.tsbuildinfo && npx tsc --project tsconfig.build.json",
     "lint": "eslint .",
     "dev:trigger": "npx trigger.dev@latest dev --analyze",
     "deploy:trigger": "npx trigger.dev@latest deploy"
