@@ -139,8 +139,8 @@ const buildWhereClauseForActiveBookings = ({
       },
       ...(!includeNoShowInRRCalculation
         ? {
-            OR: [{ noShowHost: false }, { noShowHost: null }],
-          }
+          OR: [{ noShowHost: false }, { noShowHost: null }],
+        }
         : {}),
     },
     {
@@ -159,24 +159,24 @@ const buildWhereClauseForActiveBookings = ({
   ...(startDate || endDate
     ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
       ? {
-          createdAt: {
-            ...(startDate ? { gte: startDate } : {}),
-            ...(endDate ? { lte: endDate } : {}),
-          },
-        }
+        createdAt: {
+          ...(startDate ? { gte: startDate } : {}),
+          ...(endDate ? { lte: endDate } : {}),
+        },
+      }
       : {
-          startTime: {
-            ...(startDate ? { gte: startDate } : {}),
-            ...(endDate ? { lte: endDate } : {}),
-          },
-        }
+        startTime: {
+          ...(startDate ? { gte: startDate } : {}),
+          ...(endDate ? { lte: endDate } : {}),
+        },
+      }
     : {}),
   ...(virtualQueuesData
     ? {
-        routedFromRoutingFormReponse: {
-          chosenRouteId: virtualQueuesData.chosenRouteId,
-        },
-      }
+      routedFromRoutingFormReponse: {
+        chosenRouteId: virtualQueuesData.chosenRouteId,
+      },
+    }
     : {}),
 });
 
@@ -325,7 +325,21 @@ const selectStatementToGetBookingForCalEventBuilder = {
 };
 
 export class BookingRepository {
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
+
+  /**
+   * Gets the fromReschedule field for a booking by UID
+   * Used to identify if this booking was created from a reschedule
+   * @param bookingUid - The unique identifier of the booking
+   * @returns The fromReschedule UID or null if not found/not a rescheduled booking
+   */
+  async getFromRescheduleUid(bookingUid: string): Promise<string | null> {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: { fromReschedule: true },
+    });
+    return booking?.fromReschedule ?? null;
+  }
 
   async getBookingAttendees(bookingId: number) {
     return await this.prismaClient.attendee.findMany({
@@ -642,20 +656,20 @@ export class BookingRepository {
 
     const currentBookingsAllUsersQueryThree = eventTypeId
       ? this.prismaClient.booking.findMany({
-          where: {
-            startTime: { lte: endDate },
-            endTime: { gte: startDate },
-            eventType: {
-              id: eventTypeId,
-              requiresConfirmation: true,
-              requiresConfirmationWillBlockSlot: true,
-            },
-            status: {
-              in: [BookingStatus.PENDING],
-            },
+        where: {
+          startTime: { lte: endDate },
+          endTime: { gte: startDate },
+          eventType: {
+            id: eventTypeId,
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: true,
           },
-          select: bookingsSelect,
-        })
+          status: {
+            in: [BookingStatus.PENDING],
+          },
+        },
+        select: bookingsSelect,
+      })
       : [];
 
     const [resultOne, resultTwo, resultThree] = await Promise.all([

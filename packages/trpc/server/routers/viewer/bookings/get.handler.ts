@@ -65,6 +65,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     take,
     skip,
     filters: input.filters,
+    sort: input.sort,
   });
 
   // Generate next cursor for infinite query support

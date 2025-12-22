@@ -19,7 +19,7 @@ import { CallDetailsSheet } from "@calcom/features/ee/workflows/components/CallD
 import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/components/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";

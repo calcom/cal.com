@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-export const ZGetSchema = z.object({
+export type TGetInputSchema = {
+  teamId: number;
+  isOrg?: boolean;
+};
+
+export const ZGetSchema: z.ZodType<TGetInputSchema> = z.object({
   teamId: z.number(),
   isOrg: z.boolean().optional(),
 });
-
-export type TGetInputSchema = z.infer<typeof ZGetSchema>;
