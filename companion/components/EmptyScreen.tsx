@@ -36,7 +36,7 @@ export function EmptyScreen({
           {description}
         </Text>
 
-        {buttonText && onButtonPress && (
+        {buttonText && onButtonPress ? (
           <TouchableOpacity
             className="flex-row items-center justify-center gap-1 rounded-lg bg-gray-900 px-4 py-2.5"
             onPress={onButtonPress}
@@ -44,7 +44,7 @@ export function EmptyScreen({
             <Ionicons name="add" size={18} color="#fff" />
             <Text className="text-base font-medium text-white">{buttonText}</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
     </View>
   );

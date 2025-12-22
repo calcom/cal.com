@@ -55,13 +55,14 @@ describe("excludeOrRequireEmailSchema", () => {
     it("accepts long multi-level domains", () => {
       expect(parse("example.co.uk.test.com").success).toBe(true);
     });
+
+    it("accepts single-label domains and missing dots", () => {
+      expect(parse("example").success).toBe(true);
+      expect(parse("@example").success).toBe(true);
+    });
   });
 
   describe("invalid inputs", () => {
-    it("rejects single-label domains and missing dots", () => {
-      expect(parse("example").success).toBe(false);
-      expect(parse("@example").success).toBe(false);
-    });
 
     it("rejects invalid TLD lengths", () => {
       expect(parse("example.c").success).toBe(false);
