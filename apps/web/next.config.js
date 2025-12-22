@@ -234,6 +234,7 @@ const nextConfig = (phase) => {
     images: {
       unoptimized: true,
     },
+    turbopack: {},
     webpack: (config, { webpack, buildId, isServer, dev }) => {
       if (!dev) {
         if (config.cache) {

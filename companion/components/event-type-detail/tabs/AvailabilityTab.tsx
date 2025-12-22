@@ -51,7 +51,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
         </TouchableOpacity>
       </View>
 
-      {props.selectedSchedule && (
+      {props.selectedSchedule ? (
         <>
           <View className="mt-5 pt-5" style={sectionDividerStyle}>
             {props.scheduleDetailsLoading ? (
@@ -95,7 +95,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
             </View>
           </View>
         </>
-      )}
+      ) : null}
     </View>
   );
 }

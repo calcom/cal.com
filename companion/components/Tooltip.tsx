@@ -81,11 +81,11 @@ export function Tooltip({ text, children }: TooltipProps) {
       style={containerStyle}
     >
       {children}
-      {showTooltip && (
+      {showTooltip ? (
         <View style={tooltipStyle}>
           <Text style={textStyle}>{text}</Text>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }

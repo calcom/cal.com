@@ -50,11 +50,11 @@ export const Select = <
       {...reactSelectProps}
       menuPlacement={menuPlacement}
       styles={{
-        control: (base) => ({
-          ...base,
-          minHeight: size === "sm" ? "28px" : "32px",
-          height: grow ? "auto" : size === "sm" ? "28px" : "32px",
-        }),
+        control: (base, _props) =>
+          Object.assign({}, base, {
+            minHeight: size === "sm" ? "28px" : "32px",
+            height: grow ? "auto" : size === "sm" ? "28px" : "32px",
+          }),
       }}
       classNames={{
         input: () => cx("text-emphasis", innerClassNames?.input),
