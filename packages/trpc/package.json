@@ -9,8 +9,9 @@
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . ",
-    "build": "yarn trpc:generate || true",
-    "trpc:generate": "yarn tsc --project tsconfig.json"
+    "build": "yarn build:server && yarn build:react",
+    "build:server": "yarn tsc --project tsconfig.server.json",
+    "build:react": "yarn tsc --project tsconfig.react.json"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.15",
@@ -19,10 +20,15 @@
     "@trpc/react-query": "11.0.0-next-beta.222",
     "@trpc/server": "11.0.0-next-beta.222",
     "superjson": "1.9.1",
-    "zod": "^3.22.4"
+    "zod": "3.25.76"
+  },
+  "peerDependencies": {
+    "next": ">=14.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",
-    "typescript": "^5.9.0-beta"
+    "typescript": "5.9.2"
   }
 }

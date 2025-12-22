@@ -13,6 +13,13 @@ import {
   type PageProps as ClientPageProps,
 } from "~/bookings/views/bookings-single-view.getServerSideProps";
 
+export const metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 const getEmbedData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
