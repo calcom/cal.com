@@ -122,20 +122,20 @@ export async function handler(req: NextRequest) {
     }
     const referenceUid = reminder.uuid ?? uuidv4();
 
+    // For seated events, get the correct attendee based on seatReferenceId
+    let targetAttendee = reminder.booking?.attendees[0];
+    if (reminder.seatReferenceId) {
+          const bookingSeatRepository = new BookingSeatRepository(prisma);
+      const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
+        reminder.seatReferenceId
+      );
+      if (seatAttendeeData?.attendee) {
+        targetAttendee = seatAttendeeData.attendee;
+      }
+    }
+
     if (!reminder.isMandatoryReminder && reminder.workflowStep) {
       try {
-        // For seated events, get the correct attendee based on seatReferenceId
-        let targetAttendee = reminder.booking?.attendees[0];
-        if (reminder.seatReferenceId) {
-          const bookingSeatRepository = new BookingSeatRepository(prisma);
-          const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
-            reminder.seatReferenceId
-          );
-          if (seatAttendeeData?.attendee) {
-            targetAttendee = seatAttendeeData.attendee;
-          }
-        }
-
         let sendTo;
 
         switch (reminder.workflowStep.action) {
@@ -237,11 +237,9 @@ export async function handler(req: NextRequest) {
             }`,
             ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
             noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true`,
-            attendeeTimezone: targetAttendee?.timeZone || "",
-            eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(targetAttendee?.timeZone || ""),
-            eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
-              targetAttendee?.timeZone || ""
-            ),
+            attendeeTimezone: targetAttendee?.timeZone,
+            eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(targetAttendee?.timeZone),
+            eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(targetAttendee?.timeZone),
           };
           const emailLocale = locale || "en";
           const brandingDisabled = reminder.booking.eventType?.team
@@ -419,18 +417,6 @@ export async function handler(req: NextRequest) {
       }
     } else if (reminder.isMandatoryReminder) {
       try {
-        // For seated events, get the correct attendee based on seatReferenceId
-        let targetAttendee = reminder.booking?.attendees[0];
-        if (reminder.seatReferenceId) {
-          const bookingSeatRepository = new BookingSeatRepository(prisma);
-          const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
-            reminder.seatReferenceId
-          );
-          if (seatAttendeeData?.attendee) {
-            targetAttendee = seatAttendeeData.attendee;
-          }
-        }
-
         const sendTo = targetAttendee?.email;
         const name = targetAttendee?.name;
         const attendeeName = reminder.booking.user?.name;

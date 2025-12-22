@@ -374,9 +374,9 @@ export class EmailWorkflowService {
         rescheduleReason: evt.rescheduleReason,
         ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
         noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
-        attendeeTimezone: evt.attendees[0].timeZone,
-        eventTimeInAttendeeTimezone: dayjs(startTime).tz(evt.attendees[0].timeZone),
-        eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(evt.attendees[0].timeZone),
+        attendeeTimezone: attendeeToBeUsedInMail.timeZone,
+        eventTimeInAttendeeTimezone: dayjs(startTime).tz(attendeeToBeUsedInMail.timeZone),
+        eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendeeToBeUsedInMail.timeZone),
       };
 
       const locale = isEmailAttendeeAction
