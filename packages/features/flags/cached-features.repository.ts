@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 
 import type { FeatureId, FeatureState } from "./config";
@@ -5,6 +7,9 @@ import { FeaturesCacheKeys } from "./features-cache-keys";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+const FeatureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
+const FeatureStatesMapSchema = z.record(z.string(), FeatureStateSchema);
 
 /**
  * Caching proxy for FeaturesRepository using per-entity canonical caches.
@@ -56,20 +61,24 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   // === Per-user caches ===
 
   async checkIfUserHasFeature(userId: number, slug: string): Promise<boolean> {
-    const userStates = await this.getUserFeatureStatesCanonical(userId);
-    const state = userStates[slug];
-    if (state !== undefined) {
-      return state === "enabled";
-    }
+    // Note: This method does hierarchical resolution (user → team → parent teams),
+    // which cannot be cached using per-entity caches without cross-entity invalidation.
+    // We delegate directly to the repository for correctness.
     return this.featuresRepository.checkIfUserHasFeature(userId, slug);
   }
 
   async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
+    // This method checks user-level state first, then direct team memberships (no hierarchy).
+    // We can use the user canonical cache for the user-level check.
     const userStates = await this.getUserFeatureStatesCanonical(userId);
     const state = userStates[slug];
-    if (state !== undefined) {
-      return state === "enabled";
+    if (state === "enabled") {
+      return true;
     }
+    if (state === "disabled") {
+      return false;
+    }
+    // state is "inherit" or not in cache - delegate to repository for team check
     return this.featuresRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
   }
 
@@ -96,6 +105,11 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
         featureIds: missingFeatureIds,
       });
       Object.assign(result, freshStates);
+
+      // Update the canonical cache with the merged data
+      const updatedCache = { ...userStates, ...freshStates };
+      const cacheKey = FeaturesCacheKeys.userFeatureStates(input.userId);
+      await this.redisService.set(cacheKey, updatedCache, { ttl: this.cacheTtlMs });
     }
 
     return result;
@@ -154,10 +168,37 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
         teamIds: teamsNeedingFetch,
         featureIds: input.featureIds,
       });
+
+      // Invert the response to get per-team maps and update caches
+      const perTeamFreshStates: Record<number, Record<string, FeatureState>> = {};
       for (const featureId of input.featureIds) {
         if (freshStates[featureId]) {
           Object.assign(result[featureId], freshStates[featureId]);
+          for (const [teamIdStr, state] of Object.entries(freshStates[featureId])) {
+            const teamId = Number(teamIdStr);
+            if (!perTeamFreshStates[teamId]) {
+              perTeamFreshStates[teamId] = {};
+            }
+            perTeamFreshStates[teamId][featureId] = state;
+          }
         }
+      }
+
+      // Update per-team canonical caches with merged data
+      const existingTeamStates = teamStatesMap.reduce(
+        (acc, { teamId, states }) => {
+          acc[teamId] = states;
+          return acc;
+        },
+        {} as Record<number, Record<string, FeatureState>>
+      );
+
+      for (const teamId of teamsNeedingFetch) {
+        const existingStates = existingTeamStates[teamId] || {};
+        const freshTeamStates = perTeamFreshStates[teamId] || {};
+        const updatedCache = { ...existingStates, ...freshTeamStates };
+        const cacheKey = FeaturesCacheKeys.teamFeatureStates(teamId);
+        await this.redisService.set(cacheKey, updatedCache, { ttl: this.cacheTtlMs });
       }
     }
 
@@ -231,18 +272,28 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
 
   private async getUserFeatureStatesCanonical(userId: number): Promise<Record<string, FeatureState>> {
     const cacheKey = FeaturesCacheKeys.userFeatureStates(userId);
-    const cached = await this.redisService.get<Record<string, FeatureState>>(cacheKey);
+    const cached = await this.redisService.get<unknown>(cacheKey);
     if (cached !== null) {
-      return cached;
+      const parsed = FeatureStatesMapSchema.safeParse(cached);
+      if (parsed.success) {
+        return parsed.data as Record<string, FeatureState>;
+      }
+      // Invalid cache data - delete and treat as miss
+      await this.redisService.del(cacheKey);
     }
     return {};
   }
 
   private async getTeamFeatureStatesCanonical(teamId: number): Promise<Record<string, FeatureState>> {
     const cacheKey = FeaturesCacheKeys.teamFeatureStates(teamId);
-    const cached = await this.redisService.get<Record<string, FeatureState>>(cacheKey);
+    const cached = await this.redisService.get<unknown>(cacheKey);
     if (cached !== null) {
-      return cached;
+      const parsed = FeatureStatesMapSchema.safeParse(cached);
+      if (parsed.success) {
+        return parsed.data as Record<string, FeatureState>;
+      }
+      // Invalid cache data - delete and treat as miss
+      await this.redisService.del(cacheKey);
     }
     return {};
   }
