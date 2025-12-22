@@ -61,7 +61,7 @@ const createMockAuditLog = (
   createdAt: overrides?.createdAt ?? new Date("2024-01-15T10:00:00Z"),
   updatedAt: overrides?.updatedAt ?? new Date("2024-01-15T10:00:00Z"),
   actorId: overrides?.actorId ?? "actor-1",
-  data: overrides?.data ?? { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED", hostUserUuid: null } },
+  data: overrides?.data ?? { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED", hostUserUuid: null, seatReferenceUid: null } },
   source: "WEBAPP" as const,
   operationId: "operation-id-123",
   actor: {
@@ -248,7 +248,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
             id: "log-1",
             action: "CREATED",
             timestamp: new Date("2024-01-15T10:00:00Z"),
-            data: { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED", hostUserUuid: null } }
+            data: { version: 1, fields: { startTime: 1705315200000, endTime: 1705318800000, status: "ACCEPTED", hostUserUuid: null, seatReferenceUid: null } }
           }),
           createMockAuditLog({
             id: "log-2",
@@ -816,12 +816,12 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               seatReferenceUid: "seat-ref-123",
               attendeeEmail: "attendee@example.com",
               startTime: {
-                old: "2024-01-15T10:00:00Z",
-                new: "2024-01-16T10:00:00Z",
+                old: new Date("2024-01-15T10:00:00Z").getTime(),
+                new: new Date("2024-01-16T10:00:00Z").getTime(),
               },
               endTime: {
-                old: "2024-01-15T11:00:00Z",
-                new: "2024-01-16T11:00:00Z",
+                old: new Date("2024-01-15T11:00:00Z").getTime(),
+                new: new Date("2024-01-16T11:00:00Z").getTime(),
               },
               rescheduledToBookingUid: {
                 old: null,
@@ -860,12 +860,12 @@ describe("BookingAuditViewerService - Integration Tests", () => {
               seatReferenceUid: "seat-ref-123",
               attendeeEmail: "attendee@example.com",
               startTime: {
-                old: "2024-01-15T10:00:00Z",
-                new: "2024-01-15T11:00:00Z",
+                old: new Date("2024-01-15T10:00:00Z").getTime(),
+                new: new Date("2024-01-15T11:00:00Z").getTime(),
               },
               endTime: {
-                old: "2024-01-15T11:00:00Z",
-                new: "2024-01-15T12:00:00Z",
+                old: new Date("2024-01-15T11:00:00Z").getTime(),
+                new: new Date("2024-01-15T12:00:00Z").getTime(),
               },
               rescheduledToBookingUid: {
                 old: null,
