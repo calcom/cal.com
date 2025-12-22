@@ -62,3 +62,18 @@ export interface BookingParticipationResult {
   isAttendee: boolean;
   isParticipating: boolean;
 }
+
+// Mark No Show / Absent Types
+export interface MarkAbsentAttendee {
+  email: string;
+  absent: boolean;
+}
+
+export interface MarkAbsentRequest {
+  attendees: MarkAbsentAttendee[];
+}
+
+export interface MarkAbsentResponse {
+  status: "success" | "error";
+  data: Booking;
+}

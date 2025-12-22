@@ -1,4 +1,5 @@
 /// <reference types="chrome" />
+import { initGoogleCalendarIntegration } from "../lib/google-calendar";
 
 export default defineContentScript({
   matches: ["<all_urls>"],
@@ -20,6 +21,27 @@ export default defineContentScript({
       }
     }
 
+    // Initialize Google Calendar integration if on Google Calendar
+    // Wrapped in try-catch to prevent breaking Google Calendar if anything fails
+    if (window.location.hostname === "calendar.google.com") {
+      try {
+        initGoogleCalendarIntegration();
+        console.log("Cal.com: Google Calendar integration initialized successfully");
+      } catch (error) {
+        // Fail silently - don't break Google Calendar UI
+        console.error("Cal.com: Failed to initialize Google Calendar integration:", error);
+      }
+    }
+
+    const sessionToken = generateSecureToken();
+    let iframeSessionValidated = false;
+
+    function generateSecureToken(): string {
+      const array = new Uint8Array(32);
+      crypto.getRandomValues(array);
+      return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+
     let isVisible = false;
     let isClosed = true;
 
@@ -38,25 +60,34 @@ export default defineContentScript({
     sidebarContainer.style.transform = "translateX(100%)";
     sidebarContainer.style.display = "none";
 
-    // Create iframe container with max width
+    // Create iframe container - positioned to right side
     const iframeContainer = document.createElement("div");
-    iframeContainer.style.width = "100%";
-    iframeContainer.style.height = "100%";
-    iframeContainer.style.display = "flex";
-    iframeContainer.style.justifyContent = "flex-end";
-    iframeContainer.style.pointerEvents = "none";
+    iframeContainer.style.position = "absolute";
+    iframeContainer.style.top = "0";
+    iframeContainer.style.right = "0";
+    iframeContainer.style.bottom = "0";
+    iframeContainer.style.width = "400px";
+    iframeContainer.style.overflow = "hidden";
 
     const iframe = document.createElement("iframe");
+    // URL is determined at build time:
+    // - ext:build-dev  → uses EXPO_PUBLIC_COMPANION_DEV_URL (localhost)
+    // - ext:build-prod → uses https://companion.cal.com
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
     iframe.src = COMPANION_URL;
-    iframe.style.width = "400px";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    iframe.style.borderRadius = "0";
-    iframe.style.backgroundColor = "transparent";
-    iframe.style.pointerEvents = "auto";
-    iframe.style.transition = "none";
+    // Use explicit dimensions - Brave has issues with percentage-based sizing
+    iframe.style.cssText = `
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 400px !important;
+      height: 100vh !important;
+      border: none !important;
+      background-color: transparent !important;
+      pointer-events: auto !important;
+      display: block !important;
+    `;
 
     iframeContainer.appendChild(iframe);
 
@@ -69,18 +100,44 @@ export default defineContentScript({
         return;
       }
 
+      if (event.data.type === "cal-extension-request-session") {
+        iframeSessionValidated = true;
+        iframe.contentWindow?.postMessage(
+          {
+            type: "cal-extension-session-token",
+            sessionToken: sessionToken,
+          },
+          iframeOrigin
+        );
+        return;
+      }
+
+      const validateSessionToken = (providedToken: string | undefined): boolean => {
+        if (!iframeSessionValidated) {
+          console.warn("Cal.com: Session not validated yet");
+          return false;
+        }
+        if (providedToken !== sessionToken) {
+          console.warn("Cal.com: Invalid session token");
+          return false;
+        }
+        return true;
+      };
+
       if (event.data.type === "cal-companion-expand") {
         // Disable transition for instant expansion
         iframe.style.transition = "none";
-        iframe.style.width = "100%";
-        iframeContainer.style.pointerEvents = "auto";
-        iframeContainer.style.justifyContent = "center";
+        iframe.style.width = "100vw";
+        iframeContainer.style.width = "100%";
+        iframeContainer.style.left = "0";
+        iframeContainer.style.right = "0";
       } else if (event.data.type === "cal-companion-collapse") {
         // Disable transition for instant collapse
         iframe.style.transition = "none";
         iframe.style.width = "400px";
-        iframeContainer.style.pointerEvents = "none";
-        iframeContainer.style.justifyContent = "flex-end";
+        iframeContainer.style.width = "400px";
+        iframeContainer.style.left = "auto";
+        iframeContainer.style.right = "0";
       } else if (event.data.type === "cal-extension-oauth-request") {
         // Handle OAuth request from iframe
         handleOAuthRequest(event.data.authUrl, iframe.contentWindow);
@@ -92,6 +149,32 @@ export default defineContentScript({
           event.data.state, // Pass state for CSRF validation
           iframe.contentWindow
         );
+      } else if (event.data.type === "cal-extension-sync-tokens") {
+        if (!validateSessionToken(event.data.sessionToken)) {
+          iframe.contentWindow?.postMessage(
+            {
+              type: "cal-extension-sync-tokens-result",
+              success: false,
+              error: "Invalid session token",
+            },
+            iframeOrigin
+          );
+          return;
+        }
+        handleTokenSyncRequest(event.data.tokens, iframe.contentWindow);
+      } else if (event.data.type === "cal-extension-clear-tokens") {
+        if (!validateSessionToken(event.data.sessionToken)) {
+          iframe.contentWindow?.postMessage(
+            {
+              type: "cal-extension-clear-tokens-result",
+              success: false,
+              error: "Invalid session token",
+            },
+            iframeOrigin
+          );
+          return;
+        }
+        handleClearTokensRequest(iframe.contentWindow);
       }
     });
 
@@ -195,6 +278,64 @@ export default defineContentScript({
           }
         }
       );
+    }
+
+    function handleTokenSyncRequest(tokens: any, iframeWindow: Window | null) {
+      chrome.runtime.sendMessage({ action: "sync-oauth-tokens", tokens }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Failed to communicate with background script:",
+            chrome.runtime.lastError.message
+          );
+          iframeWindow?.postMessage(
+            {
+              type: "cal-extension-sync-tokens-result",
+              success: false,
+              error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+            },
+            "*"
+          );
+          return;
+        }
+
+        iframeWindow?.postMessage(
+          {
+            type: "cal-extension-sync-tokens-result",
+            success: response?.success ?? false,
+            error: response?.error,
+          },
+          "*"
+        );
+      });
+    }
+
+    function handleClearTokensRequest(iframeWindow: Window | null) {
+      chrome.runtime.sendMessage({ action: "clear-oauth-tokens" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Failed to communicate with background script:",
+            chrome.runtime.lastError.message
+          );
+          iframeWindow?.postMessage(
+            {
+              type: "cal-extension-clear-tokens-result",
+              success: false,
+              error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+            },
+            "*"
+          );
+          return;
+        }
+
+        iframeWindow?.postMessage(
+          {
+            type: "cal-extension-clear-tokens-result",
+            success: response?.success ?? false,
+            error: response?.error,
+          },
+          "*"
+        );
+      });
     }
 
     sidebarContainer.appendChild(iframeContainer);
@@ -401,6 +542,7 @@ export default defineContentScript({
 
     // Listen for extension icon click
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      // Skip debug-log messages to avoid infinite loop
       if (message.action === "icon-clicked") {
         if (isClosed) {
           openSidebar();
@@ -413,6 +555,15 @@ export default defineContentScript({
           }
         }
         sendResponse({ success: true }); // Send response to acknowledge
+      }
+    });
+
+    // Listen for custom event to open sidebar (from Google Calendar/Gmail integrations)
+    window.addEventListener("cal-companion-open-sidebar", () => {
+      if (isClosed) {
+        openSidebar();
+      } else if (!isVisible) {
+        openSidebar();
       }
     });
 
@@ -554,15 +705,15 @@ export default defineContentScript({
               bottom: 100%;
               left: 0;
               width: 400px;
-              max-height: 250px;
+              max-height: 280px;
               background: white;
-              border-radius: 8px;
-              box-shadow: 0 1px 2px 0 rgba(60,64,67,.3),0 2px 6px 2px rgba(60,64,67,.15);
-              font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
               font-size: 14px;
               z-index: 9999;
               overflow-y: auto;
-              margin-bottom: 4px;
+              margin-bottom: 8px;
             `;
 
             // Show loading state
@@ -779,7 +930,11 @@ export default defineContentScript({
                       ">
                         ${length}min
                       </span>
-                      ${description ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>` : ""}
+                      ${
+                        description
+                          ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                          : ""
+                      }
                     </div>
                   `;
 
@@ -875,7 +1030,9 @@ export default defineContentScript({
 
                   previewBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+                    const bookingUrl = `https://cal.com/${
+                      eventType.users?.[0]?.username || "user"
+                    }/${eventType.slug}`;
                     window.open(bookingUrl, "_blank");
                   });
                   previewBtn.addEventListener("mouseenter", () => {
@@ -915,7 +1072,9 @@ export default defineContentScript({
                   copyBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     // Copy to clipboard
-                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+                    const bookingUrl = `https://cal.com/${
+                      eventType.users?.[0]?.username || "user"
+                    }/${eventType.slug}`;
                     navigator.clipboard
                       .writeText(bookingUrl)
                       .then(() => {
@@ -1013,31 +1172,72 @@ export default defineContentScript({
                 `;
               }
             } catch (error) {
-              menu.innerHTML = `
-                <div style="padding: 16px; text-align: center; color: #ea4335;">
-                  Failed to load event types
-                </div>
-                <div style="padding: 0 16px; text-align: center; color: #5f6368; font-size: 12px;">
-                  Error: ${(error as Error).message}
-                </div>
-                <div style="padding: 16px 16px; text-align: center;">
-                  <button onclick="this.parentElement.parentElement.remove()" style="
-                    background: #1a73e8;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 4px;
+              const errorMessage = (error as Error).message || "";
+              const isAuthError =
+                errorMessage.includes("OAuth") ||
+                errorMessage.includes("access token") ||
+                errorMessage.includes("sign in") ||
+                errorMessage.includes("authentication");
+
+              if (isAuthError) {
+                // Not logged in - open sidebar directly
+                tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                menu.remove();
+                openSidebar();
+                return;
+              } else {
+                // Show generic error for non-auth errors
+                menu.innerHTML = `
+                  <div style="padding: 20px; text-align: center;">
+                    <div style="margin-bottom: 12px;">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                    </div>
+                    <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+                      Something went wrong
+                    </div>
+                    <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                      ${errorMessage || "Failed to load event types"}
+                    </div>
+                    <button class="cal-gmail-close-btn" style="
+                      background: #F3F4F6;
+                      color: #374151;
+                      border: none;
+                      padding: 10px 20px;
+                      border-radius: 8px;
                     font-size: 14px;
+                      font-weight: 500;
                     cursor: pointer;
+                      transition: background 0.2s ease;
                   ">Close</button>
                 </div>
               `;
+
+                const closeBtn = menu.querySelector(".cal-gmail-close-btn") as HTMLButtonElement;
+                if (closeBtn) {
+                  closeBtn.addEventListener("mouseenter", () => {
+                    closeBtn.style.background = "#E5E7EB";
+                  });
+                  closeBtn.addEventListener("mouseleave", () => {
+                    closeBtn.style.background = "#F3F4F6";
+                  });
+                  closeBtn.addEventListener("click", () => {
+                    tooltipsToCleanup.forEach((tooltip) => tooltip.remove());
+                    menu.remove();
+                  });
+                }
+              }
             }
           }
 
           function insertEventTypeLink(eventType) {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+              eventType.slug
+            }`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1059,7 +1259,9 @@ export default defineContentScript({
 
           function copyEventTypeLink(eventType) {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
+              eventType.slug
+            }`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1333,7 +1535,9 @@ export default defineContentScript({
             </div>
             ${datesHTML}
             <div style="margin-top: 13px;">
-              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(timezone)}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(
+          timezone
+        )}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
                 See all available times →
               </a>
             </div>
@@ -1701,7 +1905,9 @@ export default defineContentScript({
           }
 
           console.log(
-            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${parsedData.slots.length > 1 ? "s" : ""} (${parsedData.detectedDuration}min)`
+            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${
+              parsedData.slots.length > 1 ? "s" : ""
+            } (${parsedData.detectedDuration}min)`
           );
 
           // Safely check for parent element
@@ -2249,7 +2455,11 @@ export default defineContentScript({
         header.innerHTML = `
           <div>
             <div style="font-weight: 600; font-size: 16px; color: #000;">📅 Suggest Cal.com Links</div>
-            <div style="font-size: 13px; color: #666; margin-top: 4px;">${parsedData.slots.length} time slot${parsedData.slots.length > 1 ? "s" : ""} • ${parsedData.detectedDuration}min each</div>
+            <div style="font-size: 13px; color: #666; margin-top: 4px;">${
+              parsedData.slots.length
+            } time slot${parsedData.slots.length > 1 ? "s" : ""} • ${
+          parsedData.detectedDuration
+        }min each</div>
           </div>
           <button class="close-menu" style="background: none; border: none; cursor: pointer; font-size: 28px; color: #666; line-height: 1; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s ease;">×</button>
         `;
@@ -2501,7 +2711,9 @@ export default defineContentScript({
                 color: #000;
                 cursor: pointer;
                 transition: background-color 0.1s;
-                border-bottom: ${index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"};
+                border-bottom: ${
+                  index < matchingEventTypes.length - 1 ? "1px solid #f0f0f0" : "none"
+                };
                 pointer-events: auto;
               `;
               option.textContent = `${et.title} (${et.lengthInMinutes}min)`;
@@ -2703,34 +2915,40 @@ export default defineContentScript({
           console.error("Error showing Cal.com suggestion menu:", error);
           loadingDiv.remove();
 
+          const errorMessage = error instanceof Error ? error.message : "";
+          const isContextInvalidated = errorMessage.includes("Extension context invalidated");
+          const isAuthError =
+            errorMessage.includes("OAuth") ||
+            errorMessage.includes("access token") ||
+            errorMessage.includes("sign in") ||
+            errorMessage.includes("authentication");
+
           // Show user-friendly error message
           const errorDiv = document.createElement("div");
-          errorDiv.style.cssText = "padding: 20px 16px; text-align: center;";
+          errorDiv.style.cssText = "padding: 24px 20px; text-align: center;";
 
-          const isContextInvalidated =
-            error instanceof Error && error.message.includes("Extension context invalidated");
-
-          errorDiv.innerHTML = `
+          if (isAuthError) {
+            // Not logged in - close backdrop and open sidebar directly
+            backdrop.remove();
+            openSidebar();
+            return;
+          } else if (isContextInvalidated) {
+            // Extension reloaded error
+            errorDiv.innerHTML = `
             <div style="margin-bottom: 12px;">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="${isContextInvalidated ? "#ff6b6b" : "#666"}" stroke-width="1.5" style="margin: 0 auto;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="1.5" style="margin: 0 auto;">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="15" y1="9" x2="9" y2="15"></line>
                 <line x1="9" y1="9" x2="15" y2="15"></line>
               </svg>
             </div>
             <div style="font-size: 14px; font-weight: 600; color: #000; margin-bottom: 8px;">
-              ${isContextInvalidated ? "Extension Reloaded" : "Failed to Load"}
+                Extension Reloaded
             </div>
             <div style="font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.5;">
-              ${
-                isContextInvalidated
-                  ? "The extension was updated. Please reload this page to continue."
-                  : "Failed to load event types. Please try again."
-              }
+                The extension was updated. Please reload this page to continue.
             </div>
-            ${
-              isContextInvalidated
-                ? `<button class="reload-page-btn" style="
+              <button class="reload-page-btn" style="
                   background: #ff6b6b;
                   color: #fff;
                   border: none;
@@ -2743,15 +2961,11 @@ export default defineContentScript({
                   transition: background 0.15s;
                 ">
                   Reload Page
-                </button>`
-                : ""
-            }
+              </button>
           `;
 
-          contentContainer.appendChild(errorDiv);
+            contentContainer.appendChild(errorDiv);
 
-          // Add reload handler if context invalidated
-          if (isContextInvalidated) {
             const reloadBtn = errorDiv.querySelector(".reload-page-btn");
             reloadBtn?.addEventListener("click", () => {
               window.location.reload();
@@ -2762,6 +2976,25 @@ export default defineContentScript({
             reloadBtn?.addEventListener("mouseleave", (e) => {
               (e.target as HTMLElement).style.backgroundColor = "#ff6b6b";
             });
+          } else {
+            // Generic error
+            errorDiv.innerHTML = `
+              <div style="margin-bottom: 12px;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto; display: block;">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 8px;">
+                Something went wrong
+              </div>
+              <div style="font-size: 13px; color: #6B7280; margin-bottom: 16px;">
+                Failed to load event types. Please try again.
+              </div>
+            `;
+
+            contentContainer.appendChild(errorDiv);
           }
         }
       }
