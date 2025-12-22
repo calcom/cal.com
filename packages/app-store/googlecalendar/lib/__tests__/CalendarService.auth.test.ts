@@ -22,7 +22,7 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 import BuildCalendarService from "../CalendarService";
 import {
   createMockJWTInstance,
-  createInMemoryDelegationCredentialForCalendarService,
+  createInMemoryDelegationCredentialForCalendarService as createInMemoryDelegationCredentialForBuildCalendarService,
   defaultDelegatedCredential,
   createCredentialForCalendarService,
 } from "./utils";
