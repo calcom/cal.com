@@ -1,6 +1,7 @@
 import { withBotId } from "botid/next/config";
 import { config as dotenvConfig } from "dotenv";
 import type { NextConfig } from "next";
+import type { RouteHas } from "next/dist/lib/load-custom-routes";
 import { withAxiom } from "next-axiom";
 
 import i18nConfig from "./next-i18next.config";
@@ -139,7 +140,7 @@ if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
 }
 
 interface OrgDomainMatcher {
-  has: Array<{ type: string; value: string }>;
+  has: RouteHas[];
   source: string;
 }
 
