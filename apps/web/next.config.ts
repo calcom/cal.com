@@ -45,18 +45,21 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_E
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
 
-process.env.NEXT_PUBLIC_CALCOM_VERSION = version;
+// Type-safe way to assign to process.env (which is typed as readonly in environment.d.ts)
+const env = process.env as Record<string, string | undefined>;
+
+env.NEXT_PUBLIC_CALCOM_VERSION = version;
 
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
-  process.env.NEXT_PUBLIC_WEBAPP_URL = `https://${process.env.VERCEL_URL}`;
+  env.NEXT_PUBLIC_WEBAPP_URL = `https://${process.env.VERCEL_URL}`;
 }
 
 if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
-  process.env.NEXTAUTH_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth`;
+  env.NEXTAUTH_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth`;
 }
 
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
-  process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
+  env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
 
 if (
