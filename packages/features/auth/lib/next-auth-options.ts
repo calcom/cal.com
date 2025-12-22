@@ -15,6 +15,7 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import type { TrackingData } from "@calcom/lib/tracking";
+import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
@@ -38,7 +39,6 @@ import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
@@ -49,6 +49,7 @@ import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
+import { validateSamlAccountConversion } from "./samlAccountLinking";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
@@ -135,139 +136,144 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
   return { orgUsername, orgId: existingOrg?.id };
 };
 
-const providers: Provider[] = [
-  CredentialsProvider({
-    id: "credentials",
-    name: "Cal.com",
-    type: "credentials",
-    credentials: {
-      email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
-      password: { label: "Password", type: "password", placeholder: "Your super secure password" },
-      totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
-      backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
-    },
-    async authorize(credentials): Promise<User | null> {
-      log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
-      if (!credentials) {
-        console.error(`For some reason credentials are missing`);
-        throw new Error(ErrorCode.InternalServerError);
-      }
+/**
+ * Authorize function for credentials provider
+ * Extracted for testability
+ */
+export async function authorizeCredentials(
+  credentials: Record<"email" | "password" | "totpCode" | "backupCode", string> | undefined
+): Promise<User | null> {
+  log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
+  if (!credentials) {
+    console.error(`For some reason credentials are missing`);
+    throw new Error(ErrorCode.InternalServerError);
+  }
 
-      const userRepo = new UserRepository(prisma);
-      const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
-        email: credentials.email,
-      });
-      // Don't leak information about it being username or password that is invalid
-      if (!user) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
+  const userRepo = new UserRepository(prisma);
+  const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
+    email: credentials.email,
+  });
+  // Don't leak information about it being username or password that is invalid
+  if (!user) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
 
-      // Locked users cannot login
-      if (user.locked) {
-        throw new Error(ErrorCode.UserAccountLocked);
-      }
+  // Locked users cannot login
+  if (user.locked) {
+    throw new Error(ErrorCode.UserAccountLocked);
+  }
 
-      await checkRateLimitAndThrowError({
-        identifier: hashEmail(user.email),
-      });
+  await checkRateLimitAndThrowError({
+    identifier: hashEmail(user.email),
+  });
 
-      // Users without a password must use their identity provider (Google/SAML) to login
-      if (!user.password?.hash) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
+  // Users without a password must use their identity provider (Google/SAML) to login
+  if (!user.password?.hash) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
 
-      // Always verify password for users who have one
-      const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
-      if (!isCorrectPassword) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
+  // Always verify password for users who have one
+  const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
+  if (!isCorrectPassword) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
 
-      if (user.twoFactorEnabled && credentials.backupCode) {
-        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error("Missing encryption key; cannot proceed with backup code login.");
-          throw new Error(ErrorCode.InternalServerError);
-        }
+  if (user.twoFactorEnabled && credentials.backupCode) {
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error("Missing encryption key; cannot proceed with backup code login.");
+      throw new Error(ErrorCode.InternalServerError);
+    }
 
-        if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
+    if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
 
-        const backupCodes = JSON.parse(
-          symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY)
-        );
+    const backupCodes = JSON.parse(symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY));
 
-        // check if user-supplied code matches one
-        const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
-        if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
+    // check if user-supplied code matches one
+    const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
+    if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
 
-        // delete verified backup code and re-encrypt remaining
-        backupCodes[index] = null;
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
-          },
-        });
-      } else if (user.twoFactorEnabled) {
-        if (!credentials.totpCode) {
-          throw new Error(ErrorCode.SecondFactorRequired);
-        }
+    // delete verified backup code and re-encrypt remaining
+    backupCodes[index] = null;
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
+      },
+    });
+  } else if (user.twoFactorEnabled) {
+    if (!credentials.totpCode) {
+      throw new Error(ErrorCode.SecondFactorRequired);
+    }
 
-        if (!user.twoFactorSecret) {
-          console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
-          throw new Error(ErrorCode.InternalServerError);
-        }
+    if (!user.twoFactorSecret) {
+      console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
 
-        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error(`"Missing encryption key; cannot proceed with two factor login."`);
-          throw new Error(ErrorCode.InternalServerError);
-        }
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
 
-        const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
-        if (secret.length !== 32) {
-          console.error(
-            `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
-          );
-          throw new Error(ErrorCode.InternalServerError);
-        }
+    const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+    if (secret.length !== 32) {
+      console.error(
+        `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+      );
+      throw new Error(ErrorCode.InternalServerError);
+    }
 
-        const isValidToken = (await import("@calcom/lib/totp")).totpAuthenticatorCheck(
-          credentials.totpCode,
-          secret
-        );
-        if (!isValidToken) {
-          throw new Error(ErrorCode.IncorrectTwoFactorCode);
-        }
-      }
-      // Check if the user you are logging into has any active teams
-      const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
+    const isValidToken = (await import("@calcom/lib/totp")).totpAuthenticatorCheck(
+      credentials.totpCode,
+      secret
+    );
+    if (!isValidToken) {
+      throw new Error(ErrorCode.IncorrectTwoFactorCode);
+    }
+  }
+  // Check if the user you are logging into has any active teams
+  const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
 
-      // authentication success- but does it meet the minimum password requirements?
-      const validateRole = (role: UserPermissionRole) => {
-        // User's role is not "ADMIN"
-        if (role !== UserPermissionRole.ADMIN) return role;
-        // User's identity provider is not "CAL"
-        if (user.identityProvider !== IdentityProvider.CAL) return role;
+  // authentication success- but does it meet the minimum password requirements?
+  const validateRole = (role: UserPermissionRole) => {
+    // User's role is not "ADMIN"
+    if (role !== UserPermissionRole.ADMIN) return role;
+    // User's identity provider is not "CAL"
+    if (user.identityProvider !== IdentityProvider.CAL) return role;
 
-        if (process.env.NEXT_PUBLIC_IS_E2E) {
-          console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
-          return role;
-        }
+    if (process.env.NEXT_PUBLIC_IS_E2E) {
+      console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+      return role;
+    }
 
-        // User's password is valid and two-factor authentication is enabled
-        if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
-        // Code is running in a development environment
-        if (isENVDev) return role;
-        // By this point it is an ADMIN without valid security conditions
-        return "INACTIVE_ADMIN";
-      };
+    // User's password is valid and two-factor authentication is enabled
+    if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
+    // Code is running in a development environment
+    if (isENVDev) return role;
+    // By this point it is an ADMIN without valid security conditions
+    return "INACTIVE_ADMIN";
+  };
 
-      // Create a NextAuth compatible user object using our presenter
-      return AdapterUserPresenter.fromCalUser(user, validateRole(user.role), hasActiveTeams);
-    },
-  }),
-  ImpersonationProvider,
-];
+  // Create a NextAuth compatible user object using our presenter
+  return AdapterUserPresenter.fromCalUser(user, validateRole(user.role), hasActiveTeams);
+}
+
+export const CalComCredentialsProvider = CredentialsProvider({
+  id: "credentials",
+  name: "Cal.com",
+  type: "credentials",
+  credentials: {
+    email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
+    password: { label: "Password", type: "password", placeholder: "Your super secure password" },
+    totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
+    backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
+  },
+  authorize: authorizeCredentials,
+});
+
+const providers: Provider[] = [CalComCredentialsProvider, ImpersonationProvider];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
   providers.push(
@@ -312,6 +318,10 @@ if (isSAMLLoginEnabled) {
       lastName?: string;
       email?: string;
       locale?: string;
+      requested?: {
+        tenant?: string;
+        product?: string;
+      };
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
       const userRepo = new UserRepository(prisma);
@@ -326,6 +336,8 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
+        // Pass SAML tenant for domain authority checks in signIn callback
+        samlTenant: profile.requested?.tenant,
         ...(user ? { profile: user.allProfiles[0] } : {}),
       };
     },
@@ -939,6 +951,15 @@ export const getOptions = ({
             existingUserWithEmail.emailVerified &&
             existingUserWithEmail.identityProvider !== IdentityProvider.CAL
           ) {
+            // Verify SAML IdP is authoritative before auto-merge
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "SelfHosted→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail.email);
             } else {
@@ -952,6 +973,15 @@ export const getOptions = ({
             !existingUserWithEmail.emailVerified &&
             !existingUserWithEmail.username
           ) {
+            // Verify SAML IdP is authoritative before claiming invited user
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "Invite→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             await prisma.user.update({
               where: {
                 email: existingUserWithEmail.email,
@@ -981,6 +1011,15 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
+            // Verify SAML IdP is authoritative before converting account
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = (user as { samlTenant?: string }).samlTenant;
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "CAL→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
@@ -1002,6 +1041,13 @@ export const getOptions = ({
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
             idP === IdentityProvider.SAML
           ) {
+            // Verify SAML IdP is authoritative before converting account
+            const samlTenant = (user as { samlTenant?: string }).samlTenant;
+            const validation = await validateSamlAccountConversion(samlTenant, user.email, "Google→SAML");
+            if (!validation.allowed) {
+              return validation.errorUrl;
+            }
+
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email

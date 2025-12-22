@@ -174,6 +174,7 @@ const Item = ({
   const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
   const eventTypeColor =
     parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
+  const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
 
   const content = () => (
     <div>
@@ -189,6 +190,11 @@ const Item = ({
           {`/${group.profile.slug}/${type.slug}`}
         </small>
       ) : null}
+      {!isManagedEventType && type.hidden && (
+        <Badge variant="gray" className="ml-2 sm:hidden">
+          {t("hidden")}
+        </Badge>
+      )}
       {readOnly && (
         <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
           {t("readonly")}
@@ -223,6 +229,11 @@ const Item = ({
                   {`/${group.profile.slug}/${type.slug}`}
                 </small>
               ) : null}
+              {!isManagedEventType && type.hidden && (
+                <Badge variant="gray" className="ml-2 sm:hidden">
+                  {t("hidden")}
+                </Badge>
+              )}
               {readOnly && (
                 <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
                   {t("readonly")}
@@ -283,13 +294,30 @@ export const InfiniteEventTypeList = ({
       });
 
       if (previousValue) {
-        pages?.forEach((page) => {
-          page?.eventTypes?.forEach((eventType) => {
-            if (eventType.id === data.id) {
-              eventType.hidden = !eventType.hidden;
+        await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+          {
+            limit: LIMIT,
+            searchQuery: debouncedSearchTerm,
+            group: { teamId: group?.teamId, parentId: group?.parentId },
+          },
+          (oldData) => {
+            if (!oldData) {
+              return {
+                pages: [],
+                pageParams: [],
+              };
             }
-          });
-        });
+            return {
+              ...oldData,
+              pages: oldData.pages.map((page) => ({
+                ...page,
+                eventTypes: page.eventTypes.map((eventType) =>
+                  eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
+                ),
+              })),
+            };
+          }
+        );
       }
 
       return { previousValue };

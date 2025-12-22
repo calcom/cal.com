@@ -53,6 +53,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     const teammateEmailOne = `slots-2024-09-04-user-1-team-slots-${randomString()}`;
     let teammateApiKeyString: string;
     const teammateEmailTwo = `slots-2024-09-04-user-2-team-slots-${randomString()}`;
+    const teammateEmailThree = `slots-2024-09-04-user-3-team-slots-${randomString()}`;
     let teammateTwoApiKeyString: string;
 
     const outsiderEmail = `slots-2024-09-04-unrelated-team-slots-${randomString()}`;
@@ -63,6 +64,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let team: Team;
     let teammateOne: User;
     let teammateTwo: User;
+    let teammateThree: User;
     let collectiveEventTypeId: number;
     let collectiveEventTypeSlug: string;
     let collectiveEventTypeWithoutHostsId: number;
@@ -114,6 +116,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
         username: teammateEmailTwo,
       });
 
+      teammateThree = await userRepositoryFixture.create({
+        email: teammateEmailThree,
+        name: teammateEmailThree,
+        username: teammateEmailThree,
+      });
+
       outsider = await userRepositoryFixture.create({
         email: outsiderEmail,
         name: outsiderEmail,
@@ -151,6 +159,13 @@ describe("Slots 2024-09-04 Endpoints", () => {
       await membershipsRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: teammateTwo.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: teammateThree.id } },
         team: { connect: { id: team.id } },
         accepted: true,
       });
@@ -243,7 +258,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         bookingFields: [],
         locations: [],
         users: {
-          connect: [{ id: teammateOne.id }, { id: teammateTwo.id }],
+          connect: [{ id: teammateOne.id }, { id: teammateTwo.id }, { id: teammateThree.id }],
         },
         hosts: {
           create: [
@@ -255,8 +270,13 @@ describe("Slots 2024-09-04 Endpoints", () => {
               userId: teammateTwo.id,
               isFixed: false,
             },
+            {
+              userId: teammateThree.id,
+              isFixed: false,
+            },
           ],
         },
+        rrHostSubsetEnabled: true,
       });
 
       roundRobinEventTypeWithoutFixedHostsId = roundRobinEventTypeWithoutFixedHosts.id;
@@ -274,7 +294,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
           bookingFields: [],
           locations: [],
           users: {
-            connect: [{ id: teammateOne.id }, { id: teammateTwo.id }],
+            connect: [{ id: teammateOne.id }, { id: teammateTwo.id }, { id: teammateThree.id }],
           },
           hosts: {
             create: [
@@ -286,8 +306,13 @@ describe("Slots 2024-09-04 Endpoints", () => {
                 userId: teammateTwo.id,
                 isFixed: false,
               },
+              {
+                userId: teammateThree.id,
+                isFixed: false,
+              },
             ],
           },
+          rrHostSubsetEnabled: true,
         });
 
       roundRobinEventTypeWithFixedAndNonFixedHostsId = roundRobinEventTypeWithFixedAndNonFixedHosts.id;
@@ -300,6 +325,17 @@ describe("Slots 2024-09-04 Endpoints", () => {
       // note(Lauris): this creates default schedule monday to friday from 9AM to 5PM in Europe/Rome timezone
       await schedulesService.createUserSchedule(teammateOne.id, userSchedule);
       await schedulesService.createUserSchedule(teammateTwo.id, userSchedule);
+
+      await schedulesService.createUserSchedule(teammateThree.id, {
+        ...userSchedule,
+        availability: [
+          {
+            days: ["Monday", "Friday"],
+            startTime: "09:00",
+            endTime: "17:00",
+          },
+        ],
+      });
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -346,6 +382,79 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get round robin team event slots in UTC", async () => {
       return request(app.getHttpServer())
         .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const slots = responseBody.data;
+
+          expect(slots).toBeDefined();
+          const days = Object.keys(slots);
+          expect(days.length).toEqual(5);
+          expect(slots).toEqual(expectedSlotsUTC);
+        });
+    });
+
+    it("should get round robin team event without fixed hosts slots in UTC with subsetIds for teammateThree who has a smaller schedule", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateThree.id}`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const slots = responseBody.data;
+          expect(slots).toBeDefined();
+          const days = Object.keys(slots);
+          expect(days.length).toEqual(2);
+        });
+    });
+
+    it("should get round robin team event  without fixed hosts slots in UTC with subsetIds for teammateOne", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithoutFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const slots = responseBody.data;
+
+          expect(slots).toBeDefined();
+          const days = Object.keys(slots);
+          expect(days.length).toEqual(5);
+          expect(slots).toEqual(expectedSlotsUTC);
+        });
+    });
+
+    it("should get round robin team event with and without fixed hosts slots in UTC with subsetIds for teammateOne(fixed) and teammateThree(not fixed) ", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}&rrHostSubsetIds[]=${teammateThree.id}`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const slots = responseBody.data;
+
+          expect(slots).toBeDefined();
+          const days = Object.keys(slots);
+          expect(days.length).toEqual(2);
+        });
+    });
+
+    it("should get round robin team event with and without fixed hosts slots in UTC with subsetIds for teammateOne(fixed) and teammateTwo(not fixed) ", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/slots?eventTypeId=${roundRobinEventTypeWithFixedAndNonFixedHostsId}&start=2050-09-05&end=2050-09-09&rrHostSubsetIds[]=${teammateOne.id}&rrHostSubsetIds[]=${teammateTwo.id}`
+        )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -748,6 +857,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(teammateOne.email);
       await userRepositoryFixture.deleteByEmail(teammateTwo.email);
+      await userRepositoryFixture.deleteByEmail(teammateThree.email);
       await userRepositoryFixture.deleteByEmail(outsiderEmail);
       await teamRepositoryFixture.delete(team.id);
       await bookingsRepositoryFixture.deleteById(collectiveBookingId);
