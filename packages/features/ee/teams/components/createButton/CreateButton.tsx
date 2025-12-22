@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import type { ButtonColor } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
@@ -34,6 +35,7 @@ export type CreateBtnProps = {
   disableMobileButton?: boolean;
   "data-testid"?: string;
   color?: ButtonColor;
+  className?: string;
 };
 
 /**
@@ -53,6 +55,7 @@ export function CreateButton(props: CreateBtnProps) {
     buttonText,
     disableMobileButton,
     subtitle,
+    className,
     ...restProps
   } = props;
   const CreateDialog = createDialog ? createDialog() : null;
@@ -91,6 +94,7 @@ export function CreateButton(props: CreateBtnProps) {
           StartIcon="plus"
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
+          className={classNames(disableMobileButton && "md:min-h-min md:min-w-min", className)}
           {...restProps}>
           {buttonText ? buttonText : t("new")}
         </Button>
@@ -103,6 +107,7 @@ export function CreateButton(props: CreateBtnProps) {
               size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}
+              className={classNames(disableMobileButton && "md:min-h-min md:min-w-min", className)}
               {...restProps}>
               {buttonText ? buttonText : t("new")}
             </Button>
