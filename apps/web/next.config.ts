@@ -22,17 +22,19 @@ const {
 type NextConfigPlugin = (config: NextConfig) => NextConfig;
 
 function adjustEnvVariables(): void {
+  // Type-safe way to modify process.env (which is typed as readonly in environment.d.ts)
+  const envMutable = process.env as Record<string, string | undefined>;
   if (process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
     if (process.env.RESERVED_SUBDOMAINS) {
       console.warn(
         `⚠️  WARNING: RESERVED_SUBDOMAINS is ignored when SINGLE_ORG_SLUG is set. Single org mode doesn't need to use reserved subdomain validation.`
       );
-      delete process.env.RESERVED_SUBDOMAINS;
+      delete envMutable.RESERVED_SUBDOMAINS;
     }
 
     if (!process.env.ORGANIZATIONS_ENABLED) {
       console.log("Auto-enabling ORGANIZATIONS_ENABLED because SINGLE_ORG_SLUG is set");
-      process.env.ORGANIZATIONS_ENABLED = "1";
+      envMutable.ORGANIZATIONS_ENABLED = "1";
     }
   }
 }
@@ -90,9 +92,9 @@ function getHttpsUrl(url: string | undefined): string | undefined {
 }
 
 if (process.argv.includes("--experimental-https")) {
-  process.env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
-  process.env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
-  process.env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
+  env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
+  env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
 }
 
 function validJson(jsonString: string): object | false {
