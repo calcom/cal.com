@@ -17,5 +17,6 @@ runs:
           ${{ github.workspace }}/node_modules/playwright
         key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
     - name: Yarn playwright install
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       shell: bash
       run: yarn playwright install --with-deps
