@@ -5,6 +5,7 @@ import type Stripe from "stripe";
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -12,7 +13,6 @@ import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -50,6 +50,65 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
 
   await handlePaymentSuccess(payment.id, payment.bookingId);
 }
+
+const handleCheckoutSessionExpired = async (event: Stripe.Event) => {
+  const session = event.data.object as Stripe.Checkout.Session;
+
+  // Only handle checkout sessions that have a payment_intent (booking payments)
+  if (!session.payment_intent) {
+    log.info("Checkout session expired without payment_intent, skipping", safeStringify(session));
+    throw new HttpCode({ statusCode: 202, message: "No payment_intent in session" });
+  }
+
+  const paymentIntentId =
+    typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id;
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      externalId: paymentIntentId,
+    },
+    select: {
+      id: true,
+      bookingId: true,
+      booking: {
+        select: {
+          id: true,
+          status: true,
+        },
+      },
+    },
+  });
+
+  if (!payment?.bookingId) {
+    log.info("Stripe: Payment not found for expired checkout session", safeStringify(session));
+    throw new HttpCode({ statusCode: 202, message: "Payment not found" });
+  }
+
+  // Only cancel if the booking is still in PENDING status
+  if (payment.booking?.status !== BookingStatus.PENDING) {
+    log.info(
+      "Booking is not in PENDING status, skipping cancellation",
+      safeStringify({ bookingId: payment.bookingId, status: payment.booking?.status })
+    );
+    throw new HttpCode({ statusCode: 202, message: "Booking is not pending" });
+  }
+
+  // Update the booking status to CANCELLED
+  await prisma.booking.update({
+    where: {
+      id: payment.bookingId,
+    },
+    data: {
+      status: BookingStatus.CANCELLED,
+      cancellationReason: "Payment checkout session expired",
+    },
+  });
+
+  log.info(
+    "Booking cancelled due to expired checkout session",
+    safeStringify({ bookingId: payment.bookingId })
+  );
+};
 
 const handleSetupSuccess = async (event: Stripe.Event) => {
   const setupIntent = event.data.object as Stripe.SetupIntent;
@@ -138,6 +197,7 @@ type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handleStripePaymentSuccess,
   "setup_intent.succeeded": handleSetupSuccess,
+  "checkout.session.expired": handleCheckoutSessionExpired,
 };
 
 /**
