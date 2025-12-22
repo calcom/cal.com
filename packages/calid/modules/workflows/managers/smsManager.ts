@@ -157,7 +157,9 @@ const executeImmediateNotification = async (
   senderIdentifier: string,
   userRef?: number | null,
   teamRef?: number | null,
-  eventTypeRef?: number
+  eventTypeRef?: number | null,
+  bookingRef?: string | null,
+  seatRef?: string | null
 ): Promise<void> => {
   try {
     await twilio.sendSMS(
@@ -169,7 +171,7 @@ const executeImmediateNotification = async (
       false,
       undefined,
       undefined,
-      { eventTypeId: eventTypeRef }
+      { eventTypeId: eventTypeRef, bookingUid: bookingRef, ...(seatRef && { seatReferenceUid: seatRef }) }
     );
   } catch (exception) {
     moduleLogger.error(`Immediate SMS delivery failed: ${exception}`);
@@ -199,7 +201,11 @@ const scheduleDelayedNotification = async (
       false,
       undefined,
       undefined,
-      { eventTypeId: eventTypeRef }
+      {
+        eventTypeId: eventTypeRef,
+        bookingUid: bookingReference,
+        ...(seatReference && { seatReferenceUid: seatReference }),
+      }
     );
 
     if (scheduledMessage) {
@@ -357,7 +363,9 @@ export const scheduleSMSReminder = async (parameters: CalIdScheduleTextReminderA
       senderIdentifier,
       userReference,
       teamReference,
-      eventData.eventType.id
+      eventData.eventType.id,
+      bookingId,
+      seatReference
     );
   } else {
     // Schedule for future delivery when valid timestamp exists

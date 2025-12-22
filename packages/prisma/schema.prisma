@@ -870,6 +870,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   calIdWorkflowReminders       CalIdWorkflowReminder[]
+  calIdWorkflowInsights        CalIdWorkflowInsights[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1578,6 +1579,7 @@ enum WorkflowStatus {
   DELIVERED
   READ
   FAILED
+  CANCELLED
 }
 
 model BookingSeat {
@@ -1588,10 +1590,11 @@ model BookingSeat {
   attendeeId   Int       @unique
   payment      Payment[]
 
-  attendee Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  attendee              Attendee                @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   /// @zod.custom(imports.bookingSeatDataSchema)
-  data     Json?
-  metadata Json?
+  data                  Json?
+  metadata              Json?
+  calIdWorkflowInsights CalIdWorkflowInsights[]
 
   @@index([bookingId])
   @@index([attendeeId])
@@ -2754,15 +2757,19 @@ model CalIdWorkflowReminder {
 }
 
 model CalIdWorkflowInsights {
-  msgId       String          @unique
-  eventTypeId Int
-  eventType   EventType?      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  workflowId  Int?
-  workflow    CalIdWorkflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  type        WorkflowMethods
-  status      WorkflowStatus
-  metadata    Json?
-  createdAt   DateTime        @default(now())
+  msgId                   String          @unique
+  eventTypeId             Int
+  eventType               EventType?      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  workflowId              Int?
+  workflow                CalIdWorkflow?  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  type                    WorkflowMethods
+  status                  WorkflowStatus
+  metadata                Json?
+  createdAt               DateTime        @default(now())
+  bookingUid              String?
+  booking                 Booking?        @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  bookingSeatReferenceUid String?
+  bookingSeat             BookingSeat?    @relation(fields: [bookingSeatReferenceUid], references: [referenceUid])
 }
 
 enum RoundRobinResetInterval {

@@ -351,6 +351,8 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
               {
                 ...(notification.booking.eventTypeId && {
                   eventTypeId: notification.booking.eventTypeId,
+                  bookingUid: notification.booking.uid,
+                  ...(notification.seatReferenceId && { seatReferenceUid: notification.seatReferenceId }),
                 }),
               }
             ).then(() =>

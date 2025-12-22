@@ -22,11 +22,11 @@ import type { timeUnitLowerCase } from "../config/constants";
 import type { CalIdScheduleEmailReminderAction } from "../config/types";
 import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/types";
 import { getBatchId, sendSendgridMail } from "../providers/sendgrid";
-import { constructVariablesForTemplate } from "./constructTemplateVariable";
 import customTemplate from "../templates/customTemplate";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
+import { constructVariablesForTemplate } from "./constructTemplateVariable";
 
 const messageLogger = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 
@@ -164,7 +164,6 @@ const resolveRecipientDetails = (
   };
 };
 
-
 const generateEmailContentFromTemplate = (
   templateType: WorkflowTemplates | undefined,
   customSubject: string,
@@ -271,7 +270,9 @@ const prepareEmailTransmission = async (
   emailContentData: EmailContentData,
   shouldIncludeCalendar?: boolean,
   customSender?: string | null,
-  batchId?: string
+  batchId?: string,
+  bookingUid?: string | null,
+  seatReferenceUid?: string | null
 ) => {
   return async (recipientData: Partial<MailData>, eventTrigger?: WorkflowTriggerEvents) => {
     const calendarStatus: EventStatus =
@@ -328,6 +329,8 @@ const prepareEmailTransmission = async (
       {
         ...(eventData.eventTypeId && {
           eventTypeId: eventData.eventTypeId,
+          bookingUid: bookingUid,
+          ...(seatReferenceUid && { seatReferenceUid: seatReferenceUid }),
         }),
       }
     );
@@ -364,7 +367,7 @@ const handleImmediateEmailDispatch = async (
 };
 
 const createReminderRecord = async (
-  eventUid: string,
+  bookingUid: string,
   workflowStepId: number | undefined,
   scheduledTimestamp: dayjs.Dayjs,
   isScheduled: boolean,
@@ -374,7 +377,7 @@ const createReminderRecord = async (
   isMandatory: boolean
 ) => {
   const baseReminderData = {
-    bookingUid: eventUid,
+    bookingUid: bookingUid,
     method: WorkflowMethods.EMAIL,
     scheduledDate: scheduledTimestamp.toDate(),
     scheduled: isScheduled,
@@ -406,7 +409,7 @@ const handleScheduledEmailDispatch = async (
   replyToAddress: string,
   scheduledTimestamp: dayjs.Dayjs,
   triggerType: WorkflowTriggerEvents,
-  eventUid: string,
+  bookingUid: string,
   workflowStepId: number | undefined,
   seatReference: string | undefined,
   participantId: number | undefined,
@@ -431,7 +434,7 @@ const handleScheduledEmailDispatch = async (
       );
 
       await createReminderRecord(
-        eventUid,
+        bookingUid,
         workflowStepId,
         scheduledTimestamp,
         true,
@@ -446,7 +449,7 @@ const handleScheduledEmailDispatch = async (
   } else if (scheduledTimestamp.isAfter(currentMoment.add(2, "hour"))) {
     // Schedule via CRON for times beyond 2 hours
     await createReminderRecord(
-      eventUid,
+      bookingUid,
       workflowStepId,
       scheduledTimestamp,
       false,
@@ -477,7 +480,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
     attendeeId,
   } = params;
 
-  const { startTime, endTime, uid: eventUid } = evt;
+  const { startTime, endTime, uid: bookingUid } = evt;
 
   // Always calculate scheduled timestamp, even for traditionally immediate events
   const scheduledTimestamp = determineScheduledTimestamp(triggerEvent, startTime, endTime, timeSpan);
@@ -504,7 +507,9 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
     emailContentData,
     includeCalendarEvent,
     sender,
-    batchId
+    batchId,
+    bookingUid,
+    seatReferenceUid
   );
 
   const replyToAddress = determineReplyToAddress(sendTo, evt);
@@ -526,7 +531,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
       replyToAddress,
       scheduledTimestamp,
       triggerEvent,
-      eventUid as string,
+      bookingUid as string,
       workflowStepId,
       seatReferenceUid,
       attendeeId,

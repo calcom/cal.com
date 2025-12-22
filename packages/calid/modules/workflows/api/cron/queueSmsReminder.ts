@@ -143,7 +143,13 @@ const processNotificationQueue = async (): Promise<number> => {
           false,
           undefined,
           undefined,
-          notification.booking?.eventTypeId ? { eventTypeId: notification.booking?.eventTypeId } : undefined
+          notification.booking?.eventTypeId
+            ? {
+                eventTypeId: notification.booking?.eventTypeId,
+                bookingUid: notification.booking?.uid,
+                ...(notification.seatReferenceId && { seatReferenceUid: notification.seatReferenceId }),
+              }
+            : undefined
         );
 
         if (dispatchedSMS) {

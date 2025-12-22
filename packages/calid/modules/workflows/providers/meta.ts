@@ -1,32 +1,13 @@
 // meta.ts
-import { Prisma } from "@prisma/client";
-import type { NextRequest } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
-import dayjs from "@calcom/dayjs";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
-import {
-  IS_DEV,
-  NGROK_URL,
-  WEBAPP_URL,
-  INNGEST_ID,
-  META_API_VERSION,
-  WHATSAPP_CANCELLED_SID,
-  WHATSAPP_COMPLETED_SID,
-  WHATSAPP_REMINDER_SID,
-  WHATSAPP_RESCHEDULED_SID,
-} from "@calcom/lib/constants";
+import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { setTestSMS } from "@calcom/lib/testSMS";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import {
-  SMSLockState,
-  WorkflowActions,
-  WorkflowTemplates,
-  WorkflowStatus,
-  WorkflowMethods,
-} from "@calcom/prisma/enums";
+import type { WorkflowActions } from "@calcom/prisma/enums";
+import { SMSLockState, WorkflowTemplates, WorkflowStatus } from "@calcom/prisma/enums";
 import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
@@ -985,13 +966,24 @@ const cancelMetaScheduledMessage = async (scheduledId: string) => {
     });
 
     // Update reminder status
-    await prisma.calIdWorkflowReminder.update({
+    const reminder = await prisma.calIdWorkflowReminder.update({
       where: { id: reminderId },
       data: {
         scheduled: false,
         referenceId: "CANCELLED",
       },
     });
+
+    if (reminder && reminder.referenceId) {
+      await prisma.calIdWorkflowInsights.update({
+        where: {
+          msgId: reminder.referenceId,
+        },
+        data: {
+          status: WorkflowStatus.CANCELLED,
+        },
+      });
+    }
 
     messageLogger.debug(`Cancelled scheduled Meta WhatsApp message ${reminderId}`);
   } catch (error) {
@@ -1020,13 +1012,24 @@ export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
             data: { reminderId },
           });
 
-          await prisma.calIdWorkflowReminder.update({
+          const reminder = await prisma.calIdWorkflowReminder.update({
             where: { id: reminderId },
             data: {
               scheduled: false,
               referenceId: "CANCELLED",
             },
           });
+
+          if (reminder && reminder.referenceId) {
+            await prisma.calIdWorkflowInsights.update({
+              where: {
+                msgId: reminder.referenceId,
+              },
+              data: {
+                status: WorkflowStatus.CANCELLED,
+              },
+            });
+          }
         }
       } catch (error) {
         messageLogger.error(`Error canceling scheduled WhatsApp with id ${referenceId}`, error);

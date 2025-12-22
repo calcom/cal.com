@@ -1,15 +1,11 @@
 import * as meta from "@calid/features/modules/workflows/providers/meta";
 import { MetaError } from "@calid/features/modules/workflows/providers/meta";
+import type { VariablesType } from "@calid/features/modules/workflows/templates/customTemplate";
 import { NonRetriableError } from "inngest";
 
 import logger from "@calcom/lib/logger";
-import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
-import type { WorkflowTemplates } from "@calcom/prisma/enums";
-import { inngestClient } from "@calcom/web/pages/api/inngest";
-
-import type { VariablesType } from "../templates/customTemplate";
+import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[inngest-whatsapp-scheduled]"] });
 
@@ -27,6 +23,7 @@ interface WhatsAppReminderData {
   template: string | null;
   metaTemplateName: string | null;
   metaPhoneNumberId: string | null;
+  seatReferenceUid: string | null;
 }
 
 export const whatsappReminderScheduled = async ({ event, step, logger }) => {
@@ -97,7 +94,7 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         metaPhoneNumberId: data.metaPhoneNumberId,
       });
 
-      if(!response.messageId) {
+      if (!response.messageId) {
         throw new Error("Message sent acknowledgement missing messageId");
       }
 
@@ -106,6 +103,18 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
         data: {
           referenceId: response.messageId,
           scheduled: true,
+        },
+      });
+
+      await prisma.calIdWorkflowInsights.create({
+        data: {
+          workflowId: data.workflowId,
+          msgId: response?.messageId,
+          eventTypeId: data.eventTypeId,
+          type: WorkflowMethods.WHATSAPP,
+          status: WorkflowStatus.QUEUED,
+          bookingUid: data.bookingUid,
+          ...(data.seatReferenceUid && { seatReferenceUid: data.seatReferenceUid }),
         },
       });
 

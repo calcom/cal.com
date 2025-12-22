@@ -46,7 +46,7 @@ type PartialBooking =
 
 export type PartialCalIdWorkflowReminder = Pick<
   CalIdWorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "seatReferenceId"
 > & {
   booking: PartialBooking | null;
   // attendee: Attendee | null;

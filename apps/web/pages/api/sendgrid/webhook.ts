@@ -61,7 +61,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           msgId,
           event,
           eventTypeId,
-        }: { msgId: string; event: keyof typeof statusMap; eventTypeId: number } = eventObj;
+          bookingUid,
+          seatReferenceUid,
+        }: {
+          msgId: string;
+          event: keyof typeof statusMap;
+          eventTypeId: number;
+          bookingUid?: string;
+          seatReferenceUid?: string;
+        } = eventObj;
 
         if (!msgId || !event || !eventTypeId) {
           log.warn("Skipping event due to missing fields", eventObj);
@@ -95,6 +103,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             eventTypeId: eventTypeId,
             type: WorkflowMethods.EMAIL,
             status: status,
+            ...(bookingUid && { bookingUid: bookingUid }),
+            ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
           },
         });
         log.info("Updated workflow insights for event", { msgId, event, eventTypeId, status });

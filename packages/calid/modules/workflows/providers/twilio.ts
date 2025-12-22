@@ -109,8 +109,11 @@ const validateSendingPermissions = async (
   return false;
 };
 
-const buildWebhookCallback = (parameters?: Record<string, any>, useWhatsApp = false): string | undefined => {
-  if (!parameters) return undefined;
+const buildWebhookCallback = (
+  parameters: Record<string, any> = {},
+  useWhatsApp = false
+): string | undefined => {
+  // if (!parameters) return undefined;
 
   const baseUrl = `${IS_DEV ? NGROK_URL : WEBAPP_URL}/api/twilio/webhook`;
 

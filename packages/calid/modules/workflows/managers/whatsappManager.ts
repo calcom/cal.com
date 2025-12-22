@@ -198,6 +198,8 @@ const executeImmediateWhatsapp = async ({
           eventTypeId: Number(eventTypeId),
           type: WorkflowMethods.WHATSAPP,
           status: WorkflowStatus.QUEUED,
+          bookingUid: uid,
+          ...(seatReferenceUid && { seatReferenceUid: seatReferenceUid }),
         },
       });
     }

@@ -25,10 +25,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const rawBody = await getRawBody(req);
     const parsedBody = parse(rawBody.toString());
     const { SmsStatus: event } = parsedBody;
-    const { msgId, eventTypeId, channel } = req.query as {
+    const { msgId, eventTypeId, bookingUid, seatReferenceUid, channel } = req.query as {
       msgId: string;
       eventTypeId: string;
       channel: "SMS" | "WHATSAPP";
+      bookingUid?: string;
+      seatReferenceUid?: string;
     };
 
     if (!msgId || !event || !eventTypeId) {
@@ -59,6 +61,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         eventTypeId: Number(eventTypeId),
         type: channel === "SMS" ? WorkflowMethods.SMS : WorkflowMethods.WHATSAPP,
         status,
+        ...(bookingUid && { bookingUid: bookingUid }),
+        ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
       },
     });
 
