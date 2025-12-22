@@ -1,17 +1,17 @@
-import type { NextConfig } from "next";
-import { config as dotenvConfig } from "dotenv";
-import { withAxiom } from "next-axiom";
 import { withBotId } from "botid/next/config";
+import { config as dotenvConfig } from "dotenv";
+import type { NextConfig } from "next";
+import { withAxiom } from "next-axiom";
 
-import englishTranslation from "./public/static/locales/en/common.json";
-import packageJson from "./package.json";
 import i18nConfig from "./next-i18next.config";
+import packageJson from "./package.json";
 import {
   nextJsOrgRewriteConfig,
   orgUserRoutePath,
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } from "./pagesAndRewritePaths";
+import englishTranslation from "./public/static/locales/en/common.json";
 
 dotenvConfig({ path: "../../.env" });
 
@@ -120,7 +120,13 @@ function _informAboutDuplicateTranslations(): void {
     const value = englishTranslation[key as keyof typeof englishTranslation];
 
     if (valueMap[value]) {
-      console.warn("\x1b[33mDuplicate value found in common.json keys:", "\x1b[0m ", key, "and", valueMap[value]);
+      console.warn(
+        "\x1b[33mDuplicate value found in common.json keys:",
+        "\x1b[0m ",
+        key,
+        "and",
+        valueMap[value]
+      );
     } else {
       valueMap[value] = key;
     }
@@ -137,7 +143,9 @@ if (process.env.ANALYZE === "true") {
   plugins.push(withBundleAnalyzer);
 }
 
-plugins.push(withAxiom);
+if (process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET) {
+  plugins.push(withAxiom);
+}
 
 if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
   plugins.push(withBotId);
