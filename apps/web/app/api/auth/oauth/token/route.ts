@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
+import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 
@@ -13,7 +14,7 @@ async function handler(req: NextRequest) {
   );
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-    return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
+    return NextResponse.json({ message: OAUTH_ERROR_REASONS["encryption_key_missing"] }, { status: 500 });
   }
 
   if (!client_id || !code || !redirect_uri) {

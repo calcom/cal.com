@@ -93,7 +93,7 @@ export class OAuthService {
     const client = await this.oAuthClientRepository.findByClientId(clientId);
 
     if (!client) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client");
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", { reason: "client_not_found" });
     }
 
     // RFC 6749 4.1.2.1: Redirect URI mismatch on Auth step is 'invalid_request'
@@ -101,14 +101,18 @@ export class OAuthService {
 
     if (client.clientType === "PUBLIC") {
       if (!codeChallenge) {
-        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request");
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", { reason: "pkce_required" });
       }
       if (!codeChallengeMethod || codeChallengeMethod !== "S256") {
-        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request");
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", {
+          reason: "invalid_code_challenge_method",
+        });
       }
     } else if (client.clientType === "CONFIDENTIAL") {
       if (codeChallenge && (!codeChallengeMethod || codeChallengeMethod !== "S256")) {
-        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request");
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", {
+          reason: "invalid_code_challenge_method",
+        });
       }
     }
 
@@ -117,7 +121,9 @@ export class OAuthService {
       const team = await this.teamsRepository.findTeamBySlugWithAdminRole(teamSlug, userId);
       if (!team) {
         // Specific OAuth error for user denying or failing permission
-        throw new ErrorWithCode(ErrorCode.Unauthorized, "access_denied");
+        throw new ErrorWithCode(ErrorCode.Unauthorized, "access_denied", {
+          reason: "team_not_found_or_no_access",
+        });
       }
       teamId = team.id;
     }
@@ -144,7 +150,7 @@ export class OAuthService {
 
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
     if (providedUri !== registeredUri) {
-      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", { cause: "redirect_uri_mismatch" });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", { reason: "redirect_uri_mismatch" });
     }
   }
 
@@ -182,16 +188,28 @@ export class OAuthService {
 
     if (error instanceof ErrorWithCode) {
       if (validOAuthErrors.includes(error.message)) {
-        return { error: error.message };
+        return {
+          error: error.message,
+          errorDescription: (error.data?.cause as string | undefined) ?? error.message,
+        };
       }
 
       switch (error.code) {
         case ErrorCode.BadRequest:
-          return { error: "invalid_request", errorDescription: error.message };
+          return {
+            error: "invalid_request",
+            errorDescription: (error.data?.cause as string | undefined) ?? error.message,
+          };
         case ErrorCode.Unauthorized:
-          return { error: "unauthorized_client", errorDescription: error.message };
+          return {
+            error: "unauthorized_client",
+            errorDescription: (error.data?.cause as string | undefined) ?? error.message,
+          };
         default:
-          return { error: "server_error", errorDescription: error.message };
+          return {
+            error: "server_error",
+            errorDescription: (error.data?.cause as string | undefined) ?? error.message,
+          };
       }
     }
 
@@ -210,16 +228,18 @@ export class OAuthService {
   ): Promise<OAuth2Tokens> {
     const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
     if (!client) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client");
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", { reason: "client_not_found" });
     }
 
     // RFC 6749 5.2: Redirect URI mismatch during Token exchange is 'invalid_grant'
     if (redirectUri && client.redirectUri !== redirectUri) {
-      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "redirect_uri_mismatch" });
     }
 
     if (!this.validateClient(client, clientSecret)) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client");
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", {
+        reason: "invalid_client_credentials",
+      });
     }
 
     const accessCode = await this.accessCodeRepository.findValidCode(code, clientId);
@@ -227,13 +247,13 @@ export class OAuthService {
     await this.accessCodeRepository.deleteExpiredAndUsedCodes(code, clientId);
 
     if (!accessCode) {
-      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "code_invalid_or_expired" });
     }
 
     const pkceError = this.verifyPKCE(client, accessCode, codeVerifier);
     if (pkceError) {
       // RFC 7636 4.4.1: If verification fails, return 'invalid_grant'
-      throw new ErrorWithCode(ErrorCode.BadRequest, pkceError);
+      throw new ErrorWithCode(ErrorCode.BadRequest, pkceError.error, { reason: pkceError.reason });
     }
 
     const tokens = this.createTokens({
@@ -256,21 +276,23 @@ export class OAuthService {
     const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
 
     if (!client) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client");
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", { reason: "client_not_found" });
     }
 
     if (!this.validateClient(client, clientSecret)) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client");
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", {
+        reason: "invalid_client_credentials",
+      });
     }
 
     const decodedToken = this.verifyRefreshToken(refreshToken);
 
     if (!decodedToken || decodedToken.token_type !== "Refresh Token") {
-      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "invalid_refresh_token" });
     }
 
     if (decodedToken.clientId !== clientId) {
-      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant");
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "client_id_mismatch" });
     }
 
     const tokens = this.createTokens({
@@ -300,7 +322,10 @@ export class OAuthService {
     client: { clientType: string },
     source: { codeChallenge?: string | null; codeChallengeMethod?: string | null },
     codeVerifier?: string
-  ): string | null {
+  ): {
+    error: "invalid_request" | "invalid_grant";
+    reason: "pkce_missing_parameters_or_invalid_method" | "pkce_verification_failed";
+  } | null {
     const shouldEnforcePKCE =
       client.clientType === "PUBLIC" || (client.clientType === "CONFIDENTIAL" && source.codeChallenge);
 
@@ -310,12 +335,12 @@ export class OAuthService {
 
     // Structural missing params
     if (!source.codeChallenge || !codeVerifier || method !== "S256") {
-      return "invalid_request";
+      return { error: "invalid_request", reason: "pkce_missing_parameters_or_invalid_method" };
     }
 
     // Logical mismatch
     if (!verifyCodeChallenge(codeVerifier, source.codeChallenge, method)) {
-      return "invalid_grant";
+      return { error: "invalid_grant", reason: "pkce_verification_failed" };
     }
 
     return null;
@@ -336,7 +361,9 @@ export class OAuthService {
   }): OAuth2Tokens {
     const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
     if (!secretKey) {
-      throw new ErrorWithCode(ErrorCode.InternalServerError, "server_error");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "server_error", {
+        reason: "encryption_key_missing",
+      });
     }
 
     const accessTokenPayload = {
@@ -380,7 +407,9 @@ export class OAuthService {
   private verifyRefreshToken(refreshToken: string): DecodedRefreshToken | null {
     const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
     if (!secretKey) {
-      throw new ErrorWithCode(ErrorCode.InternalServerError, "server_error");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "server_error", {
+        reason: "encryption_key_missing",
+      });
     }
 
     try {
@@ -391,3 +420,35 @@ export class OAuthService {
     }
   }
 }
+
+export type OAuthErrorReason =
+  | "client_not_found"
+  | "redirect_uri_mismatch"
+  | "pkce_required"
+  | "invalid_code_challenge_method"
+  | "team_not_found_or_no_access"
+  | "access_denied"
+  | "invalid_client_credentials"
+  | "code_invalid_or_expired"
+  | "pkce_missing_parameters_or_invalid_method"
+  | "pkce_verification_failed"
+  | "invalid_refresh_token"
+  | "client_id_mismatch"
+  | "encryption_key_missing";
+
+// Mapping of OAuth error reasons to descriptive messages, keeping previous messages for compatibility
+export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
+  client_not_found: "OAuth client with ID not found",
+  redirect_uri_mismatch: "redirect_uri does not match registered redirect URI",
+  pkce_required: "code_challenge required for public clients",
+  invalid_code_challenge_method: "code_challenge_method must be S256",
+  team_not_found_or_no_access: "Team not found or user is not an admin/owner",
+  access_denied: "The resource owner or authorization server denied the request.",
+  invalid_client_credentials: "invalid_client",
+  code_invalid_or_expired: "invalid_grant",
+  pkce_missing_parameters_or_invalid_method: "invalid_request",
+  pkce_verification_failed: "invalid_grant",
+  invalid_refresh_token: "invalid_grant",
+  client_id_mismatch: "invalid_grant",
+  encryption_key_missing: "CALENDSO_ENCRYPTION_KEY is not set",
+};

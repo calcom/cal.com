@@ -94,7 +94,7 @@ export class OAuth2Controller {
       return res.redirect(303, result.redirectUrl);
     } catch (err: unknown) {
       if (err instanceof ErrorWithCode) {
-        if (err.message === "unauthorized_client" || err?.data?.["cause"] === "redirect_uri_mismatch") {
+        if (err.message === "unauthorized_client" || err?.data?.["reason"] === "redirect_uri_mismatch") {
           const statusCode = getHttpStatusCode(err);
           throw new HttpException(err.message, statusCode);
         }
