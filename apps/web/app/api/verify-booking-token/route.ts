@@ -29,7 +29,6 @@ const querySchema = z.object({
 });
 
 async function getHandler(request: NextRequest) {
-  const url = new URL(request.url);
   const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
 
   try {
@@ -38,21 +37,20 @@ async function getHandler(request: NextRequest) {
     if (action === DirectAction.REJECT) {
       // Rejections should use POST method
       return NextResponse.redirect(
-        `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Rejection requires POST method")}`
+        new URL(`/booking/${bookingUid}?error=${encodeURIComponent("Rejection requires POST method")}`, request.url)
       );
     }
 
     return await handleBookingAction(action, token, bookingUid, userId, request, undefined);
-  } catch (error) {
+  } catch {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
-      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
+      new URL(`/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`, request.url)
     );
   }
 }
 
 async function postHandler(request: NextRequest) {
-  const url = new URL(request.url);
   const queryParams = Object.fromEntries(request.nextUrl.searchParams.entries());
 
   try {
@@ -61,10 +59,10 @@ async function postHandler(request: NextRequest) {
     const { reason } = z.object({ reason: z.string().optional() }).parse(body || {});
 
     return await handleBookingAction(action, token, bookingUid, userId, request, reason);
-  } catch (error) {
+  } catch {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
-      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`,
+      new URL(`/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`, request.url),
       { status: 303 }
     );
   }
@@ -78,14 +76,13 @@ async function handleBookingAction(
   request: NextRequest,
   reason?: string
 ) {
-  const url = new URL(request.url);
   const booking = await prisma.booking.findUnique({
     where: { oneTimePassword: token },
   });
 
   if (!booking) {
     return NextResponse.redirect(
-      `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`,
+      new URL(`/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`, request.url),
       { status: 303 }
     );
   }
@@ -143,7 +140,7 @@ async function handleBookingAction(
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
     return NextResponse.redirect(
-      `${url.origin}/booking/${booking.uid}?error=${encodeURIComponent(message)}`,
+      new URL(`/booking/${booking.uid}?error=${encodeURIComponent(message)}`, request.url),
       { status: 303 }
     );
   }
@@ -153,7 +150,7 @@ async function handleBookingAction(
     data: { oneTimePassword: null },
   });
 
-  return NextResponse.redirect(`${url.origin}/booking/${booking.uid}`, { status: 303 });
+  return NextResponse.redirect(new URL(`/booking/${booking.uid}`, request.url), { status: 303 });
 }
 
 export const GET = defaultResponderForAppDir(getHandler);

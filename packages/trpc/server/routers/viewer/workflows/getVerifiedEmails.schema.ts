@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZGetVerifiedEmailsInputSchema = z.object({
+export type TGetVerifiedEmailsInputSchema = {
+  teamId?: number;
+};
+
+export const ZGetVerifiedEmailsInputSchema: z.ZodType<TGetVerifiedEmailsInputSchema> = z.object({
   teamId: z.number().optional(),
 });
-
-export type TGetVerifiedEmailsInputSchema = z.infer<typeof ZGetVerifiedEmailsInputSchema>;

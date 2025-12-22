@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Button } from "@calcom/ui/components/button";

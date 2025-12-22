@@ -474,7 +474,7 @@ function MembersThatWillBeAffectedOnDisablingDelegationCredential({
         <div>{t("loading")}</div>
       ) : affectedMembers?.length ? (
         <>
-          <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
+          <ul className="stack-y-1 list-disc p-1 pl-5 sm:w-80">
             {affectedMembers.slice(0, 5).map((m) => (
               <li className="text-muted text-sm" key={m.email}>
                 {m.name ? `${m.name} (${m.email})` : m.email}

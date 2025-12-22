@@ -8,6 +8,7 @@ import { TracedError } from "@calcom/lib/tracing/error";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 
 import { HttpError } from "../http-error";
+import { safeStringify } from "../safeStringify";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 import { performance } from "./perfObserver";
 
@@ -54,7 +55,7 @@ export function defaultResponder<T>(
         return res.json(result);
       }
     } catch (err) {
-      tracingLogger.error(`${operation} request failed`, { error: err });
+      tracingLogger.error(`${operation} request failed`, safeStringify(err));
       const tracedError = TracedError.createFromError(err, traceContext);
       let error: HttpError;
       if (err instanceof TRPCError) {

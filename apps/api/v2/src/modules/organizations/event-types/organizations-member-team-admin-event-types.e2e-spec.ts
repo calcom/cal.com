@@ -389,6 +389,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
+          expect(data.rrHostSubsetEnabled).toEqual(false);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
           expect(data.emailSettings).toEqual(body.emailSettings);
           collectiveEventType = responseBody.data;
@@ -537,6 +538,7 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.title).toEqual(collectiveEventType.title);
           expect(data.hosts.length).toEqual(2);
+          expect(data.rrHostSubsetEnabled).toEqual(false);
           evaluateHost(collectiveEventType.hosts[0], data.hosts[0]);
           evaluateHost(collectiveEventType.hosts[1], data.hosts[1]);
 
@@ -1142,6 +1144,7 @@ describe("Organizations Event Types Endpoints", () => {
         hideCalendarEventDetails: true,
         hideOrganizerEmail: true,
         lockTimeZoneToggleOnBookingPage: true,
+        rrHostSubsetEnabled: true,
         color: {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
@@ -1175,6 +1178,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
+          expect(data.rrHostSubsetEnabled).toEqual(true);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
           collectiveEventType = responseBody.data;
         });
@@ -1291,6 +1295,80 @@ describe("Organizations Event Types Endpoints", () => {
         expect(updatedSeats.showAttendeeInfo).toEqual(true);
         expect(updatedSeats.showAvailabilityCount).toEqual(true);
       }
+      expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
+    });
+
+    it("should preserve metadata fields when doing partial update", async () => {
+      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation with metadata",
+        slug: `organizations-event-types-metadata-${randomString()}`,
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 30,
+        lengthInMinutesOptions: [15, 30, 60],
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+          },
+        ],
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            count: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+          blockUnconfirmedBookingsInBooker: true,
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(createBody)
+        .expect(201);
+
+      const createdEventType: TeamEventTypeOutput_2024_06_14 = createResponse.body.data;
+
+      // Verify all metadata fields are set correctly on creation
+      expect(createdEventType.lengthInMinutesOptions).toBeDefined();
+      expect(createdEventType.lengthInMinutesOptions).toEqual([15, 30, 60]);
+      expect(createdEventType.bookerLayouts).toBeDefined();
+      expect(createdEventType.bookerLayouts).toEqual(createBody.bookerLayouts);
+      expect(createdEventType.confirmationPolicy).toBeDefined();
+      expect(createdEventType.confirmationPolicy).toEqual(createBody.confirmationPolicy);
+
+      // Now do a partial update that only changes a different field (not metadata fields)
+      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
+        bookingRequiresAuthentication: false,
+      };
+
+      const updateResponse = await request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${createdEventType.id}`)
+        .send(updateBody)
+        .expect(200);
+
+      const updatedEventType: TeamEventTypeOutput_2024_06_14 = updateResponse.body.data;
+
+      // Verify that all metadata fields are preserved and not reset to undefined
+      expect(updatedEventType.lengthInMinutesOptions).toBeDefined();
+      expect(updatedEventType.lengthInMinutesOptions).toEqual([15, 30, 60]);
+      expect(updatedEventType.bookerLayouts).toBeDefined();
+      expect(updatedEventType.bookerLayouts).toEqual(createBody.bookerLayouts);
+      expect(updatedEventType.confirmationPolicy).toBeDefined();
+      expect(updatedEventType.confirmationPolicy).toEqual(createBody.confirmationPolicy);
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
