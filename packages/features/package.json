@@ -6,7 +6,16 @@
   "authors": "Cal.com, Inc.",
   "version": "1.0.0",
   "main": "index.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./types/*",
+        "./*"
+      ]
+    }
+  },
   "scripts": {
+    "build:types": "tsc --project tsconfig.build.json",
     "lint": "eslint .",
     "dev:trigger": "npx trigger.dev@latest dev --analyze",
     "deploy:trigger": "npx trigger.dev@latest deploy"
