@@ -48,6 +48,7 @@ export const bookingsRouter = router({
     return addGuestsHandler({
       ctx,
       input,
+      actionSource: "WEBAPP",
     });
   }),
 

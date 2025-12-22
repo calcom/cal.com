@@ -66,7 +66,12 @@ export async function handlePaypalPaymentSuccess(
   const traceContext = distributedTracing.createTrace("paypal_webhook", {
     meta: { paymentId: payment.id, bookingId: payment.bookingId },
   });
-  return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+  return await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: "paypal",
+    traceContext,
+  });
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

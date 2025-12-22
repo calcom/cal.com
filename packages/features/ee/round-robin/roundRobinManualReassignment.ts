@@ -8,11 +8,15 @@ import {
   sendReassignedScheduledEmailsAndSMS,
   sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
+import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { makeGuestActor, buildActorEmail, type Actor } from "@calcom/features/bookings/lib/types/actor";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
@@ -42,10 +46,25 @@ import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
+import { type ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 enum ErrorCode {
   InvalidRoundRobinHost = "invalid_round_robin_host",
   UserIsFixed = "user_is_round_robin_fixed",
+}
+
+function getAuditActor({ reassignedByUuid, bookingUid }: {
+  reassignedByUuid: string | null;
+  bookingUid: string;
+  logger: ISimpleLogger;
+}): Actor {
+  if (!reassignedByUuid) {
+    logger.warn("No reassignedByUuid provided, creating fallback guest actor for audit log", safeStringify({
+      bookingUid,
+    }));
+  }
+  return makeGuestActor({ email: buildActorEmail({ identifier: `fallback-${bookingUid}-${Date.now()}`, actorType: "guest" }), name: null });
 }
 
 export const roundRobinManualReassignment = async ({
@@ -54,20 +73,38 @@ export const roundRobinManualReassignment = async ({
   orgId,
   reassignReason,
   reassignedById,
+  reassignedByUuid,
   emailsEnabled = true,
   platformClientParams,
+  actionSource = "UNKNOWN",
 }: {
   bookingId: number;
   newUserId: number;
   orgId: number | null;
   reassignReason?: string;
   reassignedById: number;
+  /**
+   * The UUID of the user performing the reassignment.
+   * Used for audit logging to track who reassigned the booking.
+   * If not provided, audit log is skipped (reassignment requires auth, so this shouldn't happen).
+   */
+  reassignedByUuid?: string;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  actionSource?: ActionSource;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
   });
+
+  if (actionSource === "UNKNOWN") {
+    roundRobinReassignLogger.warn("Round robin manual reassignment called with unknown actionSource", {
+      bookingId,
+      newUserId,
+      reassignedById,
+      reassignedByUuid,
+    });
+  }
 
   roundRobinReassignLogger.info(`User ${reassignedById} initiating manual reassignment to user ${newUserId}`);
 
@@ -103,14 +140,14 @@ export const roundRobinManualReassignment = async ({
   const eventTypeHosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
-        user,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        schedule: null,
-        createdAt: new Date(0), // use earliest possible date as fallback
-        groupId: null,
-      }));
+      user,
+      isFixed: false,
+      priority: 2,
+      weight: 100,
+      schedule: null,
+      createdAt: new Date(0), // use earliest possible date as fallback
+      groupId: null,
+    }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
   const currentRRHost = booking.attendees.find((attendee) =>
@@ -200,6 +237,10 @@ export const roundRobinManualReassignment = async ({
       t: newUserT,
     });
 
+    const oldUserId = booking.userId;
+    const oldEmail = booking.user?.email;
+    const oldTitle = booking.title;
+
     booking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -212,10 +253,34 @@ export const roundRobinManualReassignment = async ({
           startTime: booking.startTime,
           endTime: booking.endTime,
           userId: newUser.id,
-          reassignedById,
+          reassignedById: reassignedById,
         }),
       },
       select: bookingSelect,
+    });
+
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditData: ReassignmentAuditData = {
+      assignedToId: { old: oldUserId ?? null, new: newUserId },
+      assignedById: { old: null, new: reassignedById },
+      reassignmentReason: { old: null, new: reassignReason ?? null },
+      reassignmentType: "manual",
+      userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
+      title: { old: oldTitle, new: newBookingTitle },
+    };
+
+    const actor = getAuditActor({
+      reassignedByUuid: reassignedByUuid ?? null,
+      bookingUid: booking.uid,
+      logger: roundRobinReassignLogger,
+    });
+
+    await bookingEventHandlerService.onReassignment({
+      bookingUid: booking.uid,
+      actor,
+      organizationId: orgId,
+      auditData,
+      source: actionSource,
     });
 
     await AssignmentReasonRecorder.roundRobinReassignment({
@@ -334,8 +399,8 @@ export const roundRobinManualReassignment = async ({
 
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
-        where: { userId: originalOrganizer.id },
-      })
+      where: { userId: originalOrganizer.id },
+    })
     : null;
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
@@ -577,22 +642,22 @@ export async function handleWorkflowsUpdate({
         },
         ...(eventType?.teamId
           ? [
-              {
-                activeOnTeams: {
-                  some: {
-                    teamId: eventType.teamId,
-                  },
+            {
+              activeOnTeams: {
+                some: {
+                  teamId: eventType.teamId,
                 },
               },
-            ]
+            },
+          ]
           : []),
         ...(eventType?.team?.parentId
           ? [
-              {
-                isActiveOnAll: true,
-                teamId: eventType.team.parentId,
-              },
-            ]
+            {
+              isActiveOnAll: true,
+              teamId: eventType.team.parentId,
+            },
+          ]
           : []),
       ],
     },

@@ -120,7 +120,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
         storedData,
         userTimeZone,
     }: GetDisplayJsonParams): RescheduledAuditDisplayData {
-        const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
+        const { fields } = this.parseStored(storedData);
         const timeZone = userTimeZone;
 
         return {

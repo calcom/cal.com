@@ -15,7 +15,7 @@ export class BookingGuestsService_2024_08_13 {
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly bookingsService: BookingsService_2024_08_13,
     private readonly platformBookingsService: PlatformBookingsService
-  ) {}
+  ) { }
 
   async addGuests(bookingUid: string, input: AddGuestsInput_2024_08_13, user: ApiAuthGuardUser) {
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
@@ -33,6 +33,7 @@ export class BookingGuestsService_2024_08_13 {
       ctx: { user },
       input: { bookingId: booking.id, guests: input.guests },
       emailsEnabled,
+      actionSource: "API_V2",
     });
     if (res.message === "Guests added") {
       return await this.bookingsService.getBooking(bookingUid, user);

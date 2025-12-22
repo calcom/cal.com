@@ -157,9 +157,6 @@ export interface BookingAuditProducerService {
                 data: z.infer<typeof SeatRescheduledAuditActionService.latestFieldsSchema>;
         }): Promise<void>;
 
-        /**
-         * Queues a bulk accepted audit task for multiple bookings
-         */
         queueBulkAcceptedAudit(params: {
                 bookings: Array<{
                         bookingUid: string;
@@ -171,13 +168,32 @@ export interface BookingAuditProducerService {
                 operationId?: string | null;
         }): Promise<void>;
 
-        /**
-         * Queues a bulk cancelled audit task for multiple bookings
-         */
         queueBulkCancelledAudit(params: {
                 bookings: Array<{
                         bookingUid: string;
                         data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
+                }>;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                operationId?: string | null;
+        }): Promise<void>;
+
+        queueBulkCreatedAudit(params: {
+                bookings: Array<{
+                        bookingUid: string;
+                        data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
+                }>;
+                actor: Actor;
+                organizationId: number | null;
+                source: ActionSource;
+                operationId?: string | null;
+        }): Promise<void>;
+
+        queueBulkRescheduledAudit(params: {
+                bookings: Array<{
+                        bookingUid: string;
+                        data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
                 }>;
                 actor: Actor;
                 organizationId: number | null;

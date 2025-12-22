@@ -2,11 +2,13 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
@@ -34,6 +36,7 @@ import {
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { v4 as uuidv4 } from "uuid";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -131,6 +134,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          uuid: true,
         },
       },
       id: true,
@@ -172,6 +176,32 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       data: {
         status: BookingStatus.ACCEPTED,
       },
+    });
+
+    // Audit the booking acceptance for payment confirmation
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const paymentConfirmTeamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking.eventType?.parentId ?? null,
+      },
+    });
+    const paymentConfirmOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.userId,
+      teamId: paymentConfirmTeamId,
+    });
+    await bookingEventHandlerService.onBookingAccepted({
+      bookingUid: booking.uid,
+      actor: makeUserActor(ctx.user.uuid),
+      organizationId: paymentConfirmOrgId ?? null,
+      operationId: null,
+      auditData: {
+        status: {
+          old: booking.status,
+          new: BookingStatus.ACCEPTED,
+        },
+      },
+      source: "WEBAPP",
     });
 
     return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
@@ -242,8 +272,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
-      : [],
+        ? [booking.user?.destinationCalendar]
+        : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     hideCalendarNotes: booking.eventType?.hideCalendarNotes,
@@ -252,10 +282,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     team: booking.eventType?.team
       ? {
-          name: booking.eventType.team.name,
-          id: booking.eventType.team.id,
-          members: [],
-        }
+        name: booking.eventType.team.name,
+        id: booking.eventType.team.id,
+        members: [],
+      }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),
     organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
@@ -331,6 +361,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      source: "WEBAPP",
+      actor: makeUserActor(ctx.user.uuid),
       traceContext,
     });
   } else {
@@ -381,6 +413,63 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    // Audit the booking rejection
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    if (recurringEventId) {
+      // For recurring bookings, fetch all affected bookings and audit each one
+      const rejectedBookings = await prisma.booking.findMany({
+        where: {
+          recurringEventId,
+          status: BookingStatus.REJECTED,
+        },
+        select: {
+          uid: true,
+          rejectionReason: true,
+        },
+      });
+      const operationId = uuidv4();
+      await Promise.all(
+        rejectedBookings.map((rejectedBooking) =>
+          bookingEventHandlerService.onBookingRejected({
+            bookingUid: rejectedBooking.uid,
+            actor: makeUserActor(ctx.user.uuid),
+            organizationId: orgId ?? null,
+            operationId,
+            auditData: {
+              rejectionReason: {
+                old: null,
+                new: rejectedBooking.rejectionReason ?? null,
+              },
+              status: {
+                old: BookingStatus.PENDING,
+                new: BookingStatus.REJECTED,
+              },
+            },
+            source: "WEBAPP",
+          })
+        )
+      );
+    } else {
+      // For single booking rejection
+      await bookingEventHandlerService.onBookingRejected({
+        bookingUid: booking.uid,
+        actor: makeUserActor(ctx.user.uuid),
+        organizationId: orgId ?? null,
+        operationId: null,
+        auditData: {
+          rejectionReason: {
+            old: null,
+            new: rejectionReason ?? null,
+          },
+          status: {
+            old: booking.status,
+            new: BookingStatus.REJECTED,
+          },
+        },
+        source: "WEBAPP",
+      });
+    }
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {

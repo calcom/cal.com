@@ -1,9 +1,10 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+
 import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
@@ -117,9 +118,7 @@ export class BookingAuditViewerService {
                 userTimeZone,
             });
             if (rescheduledFromLog) {
-                // Add the rescheduled log from the previous booking as the first entry
-                // (appears last chronologically since logs are ordered by timestamp DESC)
-                enrichedAuditLogs.unshift(rescheduledFromLog);
+                enrichedAuditLogs.push(rescheduledFromLog);
             }
         }
 

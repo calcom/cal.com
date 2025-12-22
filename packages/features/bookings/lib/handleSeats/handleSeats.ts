@@ -12,7 +12,7 @@ import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
-
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   const {
     eventType,
@@ -34,6 +34,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     rescheduledBy,
     rescheduleReason,
     isDryRun = false,
+    bookingEventHandler,
+    organizationId,
+    userUuid,
+    fullName,
     traceContext,
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
@@ -89,6 +93,29 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
   }
 
+  // Helper function to get audit actor with logging for guest actors
+  const getAuditActorForSeats = (): import("../types/actor").Actor => {
+    return getBookingAuditActorForNewBooking({
+      attendeeId: null,
+      userUuid: userUuid ?? null,
+      bookerEmail,
+      bookerName: fullName,
+      logger: loggerWithEventDetails,
+    });
+  };
+
+  // Use actionSource from parameter, defaulting to UNKNOWN to avoid wrong attribution
+  const actionSource = newSeatedBookingObject.actionSource ?? "UNKNOWN";
+
+  if (actionSource === "UNKNOWN") {
+    loggerWithEventDetails.warn("Seat booking/reschedule called with unknown actionSource", {
+      eventTypeId: eventType.id,
+      rescheduleUid,
+      reqBookingUid,
+      bookerEmail,
+    });
+  }
+
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule
   if (rescheduleUid) {
     resultBooking = await rescheduleSeatedBooking(
@@ -98,8 +125,69 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       resultBooking,
       loggerWithEventDetails
     );
+
+    // Log SEAT_RESCHEDULED audit event
+    if (bookingEventHandler && resultBooking && originalRescheduledBooking) {
+      const auditActor = getAuditActorForSeats();
+      const seatReferenceUid = resultBooking.seatReferenceUid;
+      if (seatReferenceUid) {
+        // Determine if seat moved to a different booking (different time slot)
+        const movedToDifferentBooking = resultBooking.uid && resultBooking.uid !== seatedBooking.uid;
+        const newBookingStartTime = movedToDifferentBooking && resultBooking.startTime
+          ? new Date(resultBooking.startTime).toISOString()
+          : seatedBooking.startTime.toISOString();
+        const newBookingEndTime = movedToDifferentBooking && resultBooking.endTime
+          ? new Date(resultBooking.endTime).toISOString()
+          : seatedBooking.endTime.toISOString();
+
+        await bookingEventHandler.onSeatRescheduled({
+          bookingUid: seatedBooking.uid,
+          actor: auditActor,
+          organizationId: organizationId ?? null,
+          auditData: {
+            seatReferenceUid,
+            attendeeEmail: bookerEmail,
+            startTime: {
+              old: originalRescheduledBooking.startTime.toISOString(),
+              new: newBookingStartTime,
+            },
+            endTime: {
+              old: originalRescheduledBooking.endTime.toISOString(),
+              new: newBookingEndTime,
+            },
+            rescheduledToBookingUid: {
+              old: null,
+              new: movedToDifferentBooking ? (resultBooking.uid || null) : null,
+            },
+          },
+          source: actionSource,
+        });
+      }
+    }
   } else {
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
+
+    // Log SEAT_BOOKED audit event
+    if (bookingEventHandler && resultBooking) {
+      const auditActor = getAuditActorForSeats();
+      const seatReferenceUid = resultBooking.seatReferenceUid;
+      if (seatReferenceUid) {
+        await bookingEventHandler.onSeatBooked({
+          bookingUid: seatedBooking.uid,
+          actor: auditActor,
+          organizationId: organizationId ?? null,
+          auditData: {
+            seatReferenceUid,
+            attendeeEmail: bookerEmail,
+            attendeeName: fullName || bookerEmail,
+            startTime: seatedBooking.startTime.getTime(),
+            endTime: seatedBooking.endTime.getTime(),
+          },
+          source: actionSource,
+        }
+        );
+      }
+    }
   }
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking

@@ -31,13 +31,17 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
-import { getCalEventResponses } from "./getCalEventResponses";
-import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import { v4 as uuidv4 } from "uuid";
 
-const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
+import { getCalEventResponses } from "./getCalEventResponses";
+import type { AcceptedAuditData } from "@calcom/features/booking-audit/lib/actions/AcceptedAuditActionService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import type { Actor } from "./types/actor";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 
 export async function handleConfirmation(args: {
-  user: EventManagerUser & { username: string | null };
+  user: EventManagerUser & { username: string | null; uuid: string };
   evt: CalendarEvent;
   recurringEventId?: string;
   prisma: PrismaClient;
@@ -46,6 +50,7 @@ export async function handleConfirmation(args: {
     startTime: Date;
     id: number;
     uid: string;
+    status: BookingStatus;
     eventType: {
       currency: string;
       description: string | null;
@@ -76,6 +81,8 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  source: ActionSource;
+  actor: Actor;
   traceContext: TraceContext;
 }) {
   const {
@@ -261,6 +268,38 @@ export async function handleConfirmation(args: {
 
     const updatedBookingsResult = await Promise.all(updateBookingsPromise);
     updatedBookings = updatedBookings.concat(updatedBookingsResult);
+
+    // Audit each recurring booking acceptance
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const recurringAuditTeamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking.eventType?.parentId ?? null,
+      },
+    });
+    const recurringAuditTriggerForUser =
+      !recurringAuditTeamId || (recurringAuditTeamId && booking.eventType?.parentId);
+    const recurringAuditUserId = recurringAuditTriggerForUser ? booking.userId : null;
+    const recurringAuditOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: recurringAuditUserId,
+      teamId: recurringAuditTeamId,
+    });
+    const operationId = uuidv4();
+    await bookingEventHandlerService.onBulkBookingsAccepted({
+      bookings: updatedBookingsResult.map((updatedRecurringBooking) => ({
+        bookingUid: updatedRecurringBooking.uid,
+        auditData: {
+          status: {
+            old: BookingStatus.PENDING,
+            new: BookingStatus.ACCEPTED,
+          },
+        },
+      })),
+      actor: args.actor,
+      organizationId: recurringAuditOrgId ?? null,
+      operationId,
+      source: args.source,
+    });
   } else {
     // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
     // Should perform update on booking (confirm) -> then trigger the rest handlers
@@ -321,6 +360,31 @@ export async function handleConfirmation(args: {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditData: AcceptedAuditData = {
+      status: {
+        old: booking.status,
+        new: BookingStatus.ACCEPTED,
+      },
+    };
+    const auditTeamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking.eventType?.parentId ?? null,
+      },
+    });
+    const auditTriggerForUser = !auditTeamId || (auditTeamId && booking.eventType?.parentId);
+    const auditUserId = auditTriggerForUser ? booking.userId : null;
+    const auditOrgId = await getOrgIdFromMemberOrTeamId({ memberId: auditUserId, teamId: auditTeamId });
+    await bookingEventHandlerService.onBookingAccepted({
+      bookingUid: updatedBooking.uid,
+      actor: args.actor,
+      organizationId: auditOrgId ?? null,
+      operationId: null,
+      auditData,
+      source: args.source,
+    });
   }
 
   const teamId = await getTeamIdFromEventType({
