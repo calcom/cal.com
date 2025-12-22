@@ -195,9 +195,12 @@ export default class HubspotCalendarService implements CRM {
         this.log.debug("association:creation:ok", { associatedMeeting });
 
         const organizerEmail = event.organizer.email;
-        for (const contact of contacts) {
-          if (contact.id) {
-            await this.setContactOwner(contact.id, organizerEmail);
+        const ownerId = await this.getHubspotOwnerIdFromEmail(organizerEmail);
+        if (ownerId) {
+          for (const contact of contacts) {
+            if (contact.id) {
+              await this.setContactOwner(contact.id, ownerId);
+            }
           }
         }
 
@@ -331,11 +334,8 @@ export default class HubspotCalendarService implements CRM {
     }
   }
 
-  private async setContactOwner(contactId: string, organizerEmail: string): Promise<void> {
+  private async setContactOwner(contactId: string, ownerId: string): Promise<void> {
     try {
-      const ownerId = await this.getHubspotOwnerIdFromEmail(organizerEmail);
-      if (!ownerId) return;
-
       await this.hubspotClient.crm.contacts.basicApi.update(contactId, {
         properties: { hubspot_owner_id: ownerId },
       });
