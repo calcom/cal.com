@@ -175,8 +175,16 @@ export class HolidayService {
       throw new Error("No holiday country selected");
     }
 
-    const holidays = await this.getHolidaysForCountry(settings.countryCode);
-    if (!holidays.some((h) => h.id === holidayId)) {
+    // Validate against both current and next year holidays (matching getHolidaysWithStatus)
+    const currentYear = dayjs().year();
+    const nextYear = currentYear + 1;
+    const [currentYearHolidays, nextYearHolidays] = await Promise.all([
+      this.getHolidaysForCountry(settings.countryCode, currentYear),
+      this.getHolidaysForCountry(settings.countryCode, nextYear),
+    ]);
+    const allHolidays = [...currentYearHolidays, ...nextYearHolidays];
+
+    if (!allHolidays.some((h) => h.id === holidayId)) {
       throw new Error("Holiday not found for this country");
     }
 
@@ -211,8 +219,8 @@ export class HolidayService {
     }
 
     const dateRanges = holidayDates.map((h) => ({
-      start: dayjs(h.date).startOf("day").toDate(),
-      end: dayjs(h.date).endOf("day").toDate(),
+      start: dayjs.utc(h.date).startOf("day").toDate(),
+      end: dayjs.utc(h.date).endOf("day").toDate(),
     }));
 
     const bookings = await HolidayRepository.findBookingsInDateRanges({ userId, dateRanges });
@@ -229,8 +237,8 @@ export class HolidayService {
     const conflicts: HolidayConflict[] = [];
 
     for (const holidayDate of holidayDates) {
-      const holidayStart = dayjs(holidayDate.date).startOf("day").valueOf();
-      const holidayEnd = dayjs(holidayDate.date).endOf("day").valueOf();
+      const holidayStart = dayjs.utc(holidayDate.date).startOf("day").valueOf();
+      const holidayEnd = dayjs.utc(holidayDate.date).endOf("day").valueOf();
 
       const conflictingBookings = bookingsWithTimestamps.filter(
         (booking) => booking.startTimestamp < holidayEnd && booking.endTimestamp > holidayStart
