@@ -1,3 +1,4 @@
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
@@ -27,22 +28,13 @@ export async function joinAnyChildTeamOnOrgInvite({
     user.username ||
     getOrgUsernameFromEmail(user.email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
 
-  // Find child teams with pending memberships before accepting them
-  const pendingChildTeamMemberships = await prisma.membership.findMany({
-    where: {
-      userId,
-      team: {
-        parentId: org.id,
-      },
-      accepted: false,
-    },
-    select: {
-      teamId: true,
-    },
+  const organizationRepository = new OrganizationRepository({ prismaClient: prisma });
+  const pendingChildTeamMemberships = await organizationRepository.findPendingChildTeamMemberships({
+    orgId: org.id,
+    userId,
   });
 
   await prisma.$transaction([
-    // Simply remove this update when we remove the `organizationId` field from the user table
     prisma.user.update({
       where: {
         id: userId,
@@ -94,11 +86,8 @@ export async function joinAnyChildTeamOnOrgInvite({
     }),
   ]);
 
-  // Update event types for the org (likely a no-op since orgs don't have assignAllTeamMembers event types)
   await updateNewTeamMemberEventTypes(userId, org.id);
 
-  // Update event types for each child team that was just accepted
-  // This ensures host records are created for event types with assignAllTeamMembers=true
   await Promise.all(
     pendingChildTeamMemberships.map((membership) => updateNewTeamMemberEventTypes(userId, membership.teamId))
   );
