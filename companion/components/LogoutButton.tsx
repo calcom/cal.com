@@ -35,9 +35,9 @@ export function LogoutButton({ className = "" }: LogoutButtonProps) {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error");
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Logout error", message);
       if (__DEV__) {
-        const message = error instanceof Error ? error.message : String(error);
         const stack = error instanceof Error ? error.stack : undefined;
         console.debug("[LogoutButton] logout failed", { message, stack });
       }

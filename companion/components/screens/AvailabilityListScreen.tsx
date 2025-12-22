@@ -262,9 +262,9 @@ export function AvailabilityListScreen({
           });
         },
         onError: (error) => {
-          console.error("Failed to create schedule");
+          const message = error instanceof Error ? error.message : String(error);
+          console.error("Failed to create schedule", message);
           if (__DEV__) {
-            const message = error instanceof Error ? error.message : String(error);
             const stack = error instanceof Error ? error.stack : undefined;
             console.debug("[AvailabilityListScreen] createSchedule failed", { message, stack });
           }
