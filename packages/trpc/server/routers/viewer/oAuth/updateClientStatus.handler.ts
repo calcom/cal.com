@@ -32,6 +32,8 @@ export const updateClientStatusHandler = async ({ ctx, input }: UpdateClientStat
 
   const updatedClient = await oAuthClientRepository.updateStatus(clientId, status);
 
+  let clientSecret: string | undefined;
+
   // Send approval notification email to user if approved
   if (status === "APPROVED" && clientWithUser?.user) {
     const t = await getTranslation("en", "common");
@@ -41,7 +43,6 @@ export const updateClientStatusHandler = async ({ ctx, input }: UpdateClientStat
     const isFirstApproval = clientWithUser.approvalStatus !== "APPROVED";
     const isConfidentialClient = updatedClient.clientType === "CONFIDENTIAL";
 
-    let clientSecret: string | undefined;
     if (isFirstApproval && isConfidentialClient) {
       const regenerated = await oAuthClientRepository.regenerateSecret(clientId);
       clientSecret = regenerated.clientSecret;
