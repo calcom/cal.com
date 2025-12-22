@@ -162,9 +162,11 @@ jobs:
         run: |
           if [ "${{ steps.set_branch.outputs.branch_name }}" == "main" ]; then
             echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME_PROD }}" >> $GITHUB_OUTPUT
+
             echo "NEXT_PUBLIC_GTM_ID=${{ secrets.NEXT_PUBLIC_GTM_ID_PROD }}" >> $GITHUB_OUTPUT
 
             echo "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID=${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}" >> $GITHUB_OUTPUT
+
             echo "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID=${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID }}" >> $GITHUB_OUTPUT
 
             echo "EC2_HOST=${{ secrets.EC2_HOST_PROD }}" >> $GITHUB_OUTPUT
@@ -184,6 +186,7 @@ jobs:
             echo "HOMEPAGE_URL=${{ secrets.HOMEPAGE_URL_PROD }}" >> $GITHUB_OUTPUT
           else
             echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME_STAG }}" >> $GITHUB_OUTPUT
+
             echo "NEXT_PUBLIC_GTM_ID=${{ secrets.NEXT_PUBLIC_GTM_ID_STAG }}" >> $GITHUB_OUTPUT
 
             echo "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID=${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}" >> $GITHUB_OUTPUT
@@ -288,8 +291,8 @@ jobs:
             CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
             NEXT_PUBLIC_GTM_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_GTM_ID }}
 
-            NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID=${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}
-            NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID=${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID }}
+            NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID=${{ secrets.key_values.outputs.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}
+            NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID=${{ secrets.key_values.outputs.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID }}
 
             # NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_WEBAPP_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
