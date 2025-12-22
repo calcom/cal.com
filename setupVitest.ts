@@ -128,36 +128,36 @@ function createMockPaymentService(_credentials?: unknown) {
 }
 
 vi.mock("@calcom/app-store/stripepayment/index", () => ({
-  PaymentService: createMockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/paypal/index", () => ({
-  PaymentService: createMockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/alby/index", () => ({
-  PaymentService: createMockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/hitpay/index", () => ({
-  PaymentService: createMockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/btcpayserver/index", () => ({
-  PaymentService: createMockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/mock-payment-app/index", () => ({
-  PaymentService: createMockPaymentService,
+  BuildPaymentService: createMockPaymentService,
 }));
 
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
-    stripepayment: Promise.resolve({ PaymentService: createMockPaymentService }),
-    paypal: Promise.resolve({ PaymentService: createMockPaymentService }),
-    alby: Promise.resolve({ PaymentService: createMockPaymentService }),
-    hitpay: Promise.resolve({ PaymentService: createMockPaymentService }),
-    btcpayserver: Promise.resolve({ PaymentService: createMockPaymentService }),
-    "mock-payment-app": Promise.resolve({ PaymentService: createMockPaymentService }),
+    stripepayment: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    paypal: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    alby: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    hitpay: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    btcpayserver: Promise.resolve({ BuildPaymentService: createMockPaymentService }),
+    "mock-payment-app": Promise.resolve({ BuildPaymentService: createMockPaymentService }),
   },
 }));

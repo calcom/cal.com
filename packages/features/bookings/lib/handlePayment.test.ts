@@ -11,7 +11,7 @@ vi.mock("@calcom/app-store/zod-utils", () => ({
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
   PaymentServiceMap: {
     stripepayment: Promise.resolve({
-      PaymentService: () => ({
+      BuildPaymentService: () => ({
         create: async (paymentData: { amount: number; currency: string }) => ({
           ...paymentData,
           id: "mock-payment-id",
