@@ -46,7 +46,8 @@ export default function Authorize() {
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
-      window.location.href = `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+      window.location.href =
+        data.redirectUrl ?? `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
     },
     onError: (error) => {
       let oauthError = "server_error";
@@ -100,6 +101,7 @@ export default function Authorize() {
         scopes,
         codeChallenge: code_challenge || undefined,
         codeChallengeMethod: (code_challenge_method as "S256") || undefined,
+        state,
       });
     }
   }, [client?.isTrusted, selectedAccount]);
@@ -230,6 +232,7 @@ export default function Authorize() {
                   : undefined, // team account starts with /team/<slug>
                 codeChallenge: code_challenge || undefined,
                 codeChallengeMethod: (code_challenge_method as "S256") || undefined,
+                state,
               });
             }}
             data-testid="allow-button">
