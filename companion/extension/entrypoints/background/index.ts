@@ -1,6 +1,6 @@
 /// <reference types="chrome" />
-
 import type { OAuthTokens } from "../../../services/oauthService";
+import type { Booking } from "../../../services/types/bookings.types";
 
 const DEV_API_KEY = import.meta.env.EXPO_PUBLIC_CAL_API_KEY as string | undefined;
 const IS_DEV_MODE = Boolean(DEV_API_KEY && DEV_API_KEY.length > 0);
@@ -305,6 +305,41 @@ export default defineBackground(() => {
         return true;
       }
 
+      if (message.action === "check-auth-status") {
+        checkAuthStatus()
+          .then((isAuthenticated) => sendResponse({ isAuthenticated }))
+          .catch((error) => sendResponse({ isAuthenticated: false, error: error.message }));
+        return true;
+      }
+
+      if (message.action === "get-booking-status") {
+        const { bookingUid } = message.payload as { bookingUid: string };
+
+        getBookingStatus(bookingUid)
+          .then((result) => sendResponse({ success: true, data: result }))
+          .catch((error) => {
+            devLog.error("Get booking status failed:", error);
+            sendResponse({ success: false, error: error.message });
+          });
+        return true;
+      }
+
+      if (message.action === "mark-no-show") {
+        const { bookingUid, attendeeEmail, absent } = message.payload as {
+          bookingUid: string;
+          attendeeEmail: string;
+          absent: boolean;
+        };
+
+        markAttendeeNoShow(bookingUid, attendeeEmail, absent)
+          .then((result) => sendResponse({ success: true, data: result }))
+          .catch((error) => {
+            devLog.error("Mark no-show failed:", error);
+            sendResponse({ success: false, error: error.message });
+          });
+        return true;
+      }
+
       return false;
     });
   }
@@ -581,4 +616,120 @@ async function fetchEventTypes(): Promise<unknown[]> {
   }
 
   return [];
+}
+
+/**
+ * Check if user is authenticated by verifying tokens exist in storage
+ */
+async function checkAuthStatus(): Promise<boolean> {
+  const storageAPI = getStorageAPI();
+
+  if (!storageAPI?.local) {
+    return false;
+  }
+
+  try {
+    const result = await storageAPI.local.get(["cal_oauth_tokens"]);
+    const oauthTokens = result.cal_oauth_tokens
+      ? (JSON.parse(result.cal_oauth_tokens as string) as OAuthTokens)
+      : null;
+
+    return Boolean(oauthTokens?.accessToken);
+  } catch (error) {
+    devLog.error("Failed to check auth status:", error);
+    return false;
+  }
+}
+
+/**
+ * Get booking status to check attendee no-show status
+ */
+async function getBookingStatus(bookingUid: string): Promise<Booking> {
+  const authHeader = await getAuthHeader();
+
+  const response = await fetch(`${API_BASE_URL}/bookings/${bookingUid}`, {
+    method: "GET",
+    headers: {
+      Authorization: authHeader,
+      "Content-Type": "application/json",
+      "cal-api-version": "2024-08-13",
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    let errorMessage = response.statusText;
+
+    try {
+      const errorJson = JSON.parse(errorBody);
+      errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
+    } catch {
+      errorMessage = errorBody || response.statusText;
+    }
+
+    if (response.status === 401) {
+      throw new Error("Session expired. Please login again.");
+    }
+    if (response.status === 403) {
+      throw new Error("You don't have permission to view this booking.");
+    }
+    if (response.status === 404) {
+      throw new Error("Booking not found in Cal.com.");
+    }
+
+    throw new Error(`Failed to get booking status: ${errorMessage}`);
+  }
+
+  const data = await response.json();
+  return (data?.data ?? data) as Booking;
+}
+
+/**
+ * Mark an attendee as no-show for a booking
+ */
+async function markAttendeeNoShow(
+  bookingUid: string,
+  attendeeEmail: string,
+  absent: boolean
+): Promise<Booking> {
+  const authHeader = await getAuthHeader();
+
+  const response = await fetch(`${API_BASE_URL}/bookings/${bookingUid}/mark-absent`, {
+    method: "POST",
+    headers: {
+      Authorization: authHeader,
+      "Content-Type": "application/json",
+      "cal-api-version": "2024-08-13",
+    },
+    body: JSON.stringify({
+      attendees: [{ email: attendeeEmail, absent }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    let errorMessage = response.statusText;
+
+    try {
+      const errorJson = JSON.parse(errorBody);
+      errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
+    } catch {
+      errorMessage = errorBody || response.statusText;
+    }
+
+    if (response.status === 401) {
+      throw new Error("Session expired. Please login again.");
+    }
+    if (response.status === 403) {
+      throw new Error("You don't have permission to modify this booking.");
+    }
+    if (response.status === 404) {
+      throw new Error("Booking not found in Cal.com.");
+    }
+
+    throw new Error(`Failed to mark no-show: ${errorMessage}`);
+  }
+
+  const data = await response.json();
+  return (data?.data ?? data) as Booking;
 }
