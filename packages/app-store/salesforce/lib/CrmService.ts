@@ -40,7 +40,7 @@ export interface SalesforceCRM extends CRM {
     attendeeEmail: string,
     fieldName: string,
     salesforceObject: SalesforceRecordEnum
-  ): Promise<string | undefined>;
+  ): Promise<{ email: string; recordType: RoutingReasons } | undefined>;
 
   incompleteBookingWriteToRecord(
     email: string,
