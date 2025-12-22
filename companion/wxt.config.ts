@@ -68,7 +68,7 @@ export default defineConfig({
       "https://mail.google.com/*",
       "https://calendar.google.com/*",
       // Include localhost permission for dev builds (needed for iframe to load)
-      ...(!isBuildForStore ? ["http://localhost:*/*"] : []),
+      // ...(!isBuildForStore ? ["http://localhost:*/*"] : []),
     ],
     content_security_policy: {
       extension_pages: !isBuildForStore
