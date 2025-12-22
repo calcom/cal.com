@@ -1082,9 +1082,36 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "RECORDING_READY",
-          "createdAt": "2024-01-15T11:00:00.000Z",
+          "createdAt": "2025-12-22T05:50:04.675Z",
           "payload": {
-            "downloadLink": "https://storage.daily.co/recording/abc123.mp4"
+            "type": "meeting between User_A and User_B",
+            "title": "meeting between User_A and User_B",
+            "startTime": "2025-12-22T05:50:00.000Z",
+            "endTime": "2025-12-22T06:00:00.000Z",
+            "organizer": {
+              "email": "organizer@example.com",
+              "name": "Organizer Name",
+              "timeZone": "Asia/Dubai",
+              "language": {
+                "locale": "en"
+              },
+              "utcOffset": 240
+            },
+            "attendees": [
+              {
+                "id": 00000000,
+                "name": "Attendee Name",
+                "email": "attendee@example.com",
+                "timeZone": "Asia/Dubai",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 240
+              }
+            ],
+            "uid": "REDACTED_UID_STRING",
+            "customReplyToEmail": null,
+            "downloadLink": "https://app.cal.com/api/video/recording?token=REDACTED_TOKEN"
           }
         }
         ```
@@ -1093,28 +1120,55 @@ Select a version and trigger event to view the example payload:
         ```json
         {
           "triggerEvent": "RECORDING_TRANSCRIPTION_GENERATED",
-          "createdAt": "2024-01-15T11:30:00.000Z",
+          "createdAt": "2025-12-22T05:52:57.101Z",
           "payload": {
+            "type": "meeting between User_A and User_B",
+            "title": "meeting between User_A and User_B",
+            "startTime": "2025-12-22T05:50:00.000Z",
+            "endTime": "2025-12-22T06:00:00.000Z",
+            "organizer": {
+              "email": "organizer@example.com",
+              "name": "Organizer Name",
+              "timeZone": "Asia/Dubai",
+              "language": {
+                "locale": "en"
+              },
+              "utcOffset": 240
+            },
+            "attendees": [
+              {
+                "id": 00000000,
+                "name": "Attendee Name",
+                "email": "attendee@example.com",
+                "timeZone": "Asia/Dubai",
+                "language": {
+                  "locale": "en"
+                },
+                "utcOffset": 240
+              }
+            ],
+            "uid": "REDACTED_UID",
+            "customReplyToEmail": null,
             "downloadLinks": {
               "transcription": [
                 {
                   "format": "json",
-                  "link": "https://api.daily.co/transcription/abc123.json"
+                  "link": "https://s3.amazonaws.com/path/to/transcript.json?REDACTED_AWS_SIGNATURE"
                 },
                 {
                   "format": "srt",
-                  "link": "https://api.daily.co/transcription/abc123.srt"
+                  "link": "https://s3.amazonaws.com/path/to/transcript.srt?REDACTED_AWS_SIGNATURE"
                 },
                 {
                   "format": "txt",
-                  "link": "https://api.daily.co/transcription/abc123.txt"
+                  "link": "https://s3.amazonaws.com/path/to/transcript.txt?REDACTED_AWS_SIGNATURE"
                 },
                 {
                   "format": "vtt",
-                  "link": "https://api.daily.co/transcription/abc123.vtt"
+                  "link": "https://s3.amazonaws.com/path/to/transcript.vtt?REDACTED_AWS_SIGNATURE"
                 }
               ],
-              "recording": "https://storage.daily.co/recording/abc123.mp4"
+              "recording": "https://app.cal.com/api/video/recording?token=REDACTED_TOKEN"
             }
           }
         }
