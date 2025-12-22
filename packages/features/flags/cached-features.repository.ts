@@ -1,15 +1,10 @@
-import { z } from "zod";
-
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 
 import type { FeatureId, FeatureState } from "./config";
-import { FeaturesCacheKeys } from "./features-cache-keys";
+import { type CacheEntry, FeaturesCacheEntries } from "./features-cache-keys";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-const FeatureStateSchema = z.enum(["enabled", "disabled", "inherit"]);
-const FeatureStatesMapSchema = z.record(z.string(), FeatureStateSchema);
 
 /**
  * Caching proxy for FeaturesRepository using per-entity canonical caches.
@@ -18,11 +13,13 @@ const FeatureStatesMapSchema = z.record(z.string(), FeatureStateSchema);
  * - Per-entity caches: Store canonical state per user/team, invalidate via exact DEL
  * - Batch composition: Batch methods fetch per-entity caches and compose results
  * - TTL-only for global data: No explicit invalidation, relies on TTL expiration
+ * - Type-safe caching: Each cache key is paired with its Zod schema for validation
  *
  * Benefits:
  * - No cache buster needed (no extra Redis read per call)
  * - Simple invalidation via exact key deletion
  * - Batch methods benefit from per-entity cache hits
+ * - Schema validation prevents returning corrupted cache data
  */
 export class CachedFeaturesRepository implements IFeaturesRepository {
   private readonly cacheTtlMs: number;
@@ -35,27 +32,79 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     this.cacheTtlMs = options?.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
   }
 
-  private async withCache<T>(cacheKey: string, fetch: () => Promise<T>): Promise<T> {
-    const cached = await this.redisService.get<T>(cacheKey);
+  /**
+   * Get a validated value from cache using a typed cache entry.
+   * Returns null if cache miss or validation fails (invalid data is deleted).
+   */
+  private async getValidated<T, Args extends unknown[]>(
+    entry: CacheEntry<T, Args>,
+    ...args: Args
+  ): Promise<T | null> {
+    const cacheKey = entry.key(...args);
+    const cached = await this.redisService.get<unknown>(cacheKey);
+    if (cached === null) {
+      return null;
+    }
+    const parsed = entry.schema.safeParse(cached);
+    if (parsed.success) {
+      return parsed.data;
+    }
+    await this.redisService.del(cacheKey);
+    return null;
+  }
+
+  /**
+   * Set a validated value in cache using a typed cache entry.
+   */
+  private async setValidated<T, Args extends unknown[]>(
+    entry: CacheEntry<T, Args>,
+    value: T,
+    ...args: Args
+  ): Promise<void> {
+    const cacheKey = entry.key(...args);
+    await this.redisService.set(cacheKey, value, { ttl: this.cacheTtlMs });
+  }
+
+  /**
+   * Delete a cache entry.
+   */
+  private async delValidated<T, Args extends unknown[]>(
+    entry: CacheEntry<T, Args>,
+    ...args: Args
+  ): Promise<void> {
+    const cacheKey = entry.key(...args);
+    await this.redisService.del(cacheKey);
+  }
+
+  /**
+   * Get or fetch pattern: check cache, fetch if miss, store result.
+   */
+  private async withValidatedCache<T, Args extends unknown[]>(
+    entry: CacheEntry<T, Args>,
+    args: Args,
+    fetch: () => Promise<T>
+  ): Promise<T> {
+    const cached = await this.getValidated(entry, ...args);
     if (cached !== null) {
       return cached;
     }
-
     const result = await fetch();
-    await this.redisService.set(cacheKey, result, { ttl: this.cacheTtlMs });
+    await this.setValidated(entry, result, ...args);
     return result;
   }
 
   // === TTL-only caches (global data, no explicit invalidation) ===
 
   async checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean> {
-    const cacheKey = FeaturesCacheKeys.globalFeature(slug);
-    return this.withCache(cacheKey, () => this.featuresRepository.checkIfFeatureIsEnabledGlobally(slug));
+    return this.withValidatedCache(FeaturesCacheEntries.globalFeature, [slug], () =>
+      this.featuresRepository.checkIfFeatureIsEnabledGlobally(slug)
+    );
   }
 
   async getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]> {
-    const cacheKey = FeaturesCacheKeys.teamsWithFeatureEnabled(slug);
-    return this.withCache(cacheKey, () => this.featuresRepository.getTeamsWithFeatureEnabled(slug));
+    return this.withValidatedCache(FeaturesCacheEntries.teamsWithFeatureEnabled, [slug], () =>
+      this.featuresRepository.getTeamsWithFeatureEnabled(slug)
+    );
   }
 
   // === Per-user caches ===
@@ -68,17 +117,16 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
-    // This method checks user-level state first, then direct team memberships (no hierarchy).
-    // We can use the user canonical cache for the user-level check.
-    const userStates = await this.getUserFeatureStatesCanonical(userId);
-    const state = userStates[slug];
-    if (state === "enabled") {
-      return true;
+    const userStates = await this.getValidated(FeaturesCacheEntries.userFeatureStates, userId);
+    if (userStates) {
+      const state = userStates[slug];
+      if (state === "enabled") {
+        return true;
+      }
+      if (state === "disabled") {
+        return false;
+      }
     }
-    if (state === "disabled") {
-      return false;
-    }
-    // state is "inherit" or not in cache - delegate to repository for team check
     return this.featuresRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
   }
 
@@ -86,7 +134,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     userId: number;
     featureIds: FeatureId[];
   }): Promise<Record<string, FeatureState>> {
-    const userStates = await this.getUserFeatureStatesCanonical(input.userId);
+    const userStates = (await this.getValidated(FeaturesCacheEntries.userFeatureStates, input.userId)) ?? {};
 
     const result: Record<string, FeatureState> = {};
     const missingFeatureIds: FeatureId[] = [];
@@ -106,27 +154,28 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       });
       Object.assign(result, freshStates);
 
-      // Update the canonical cache with the merged data
       const updatedCache = { ...userStates, ...freshStates };
-      const cacheKey = FeaturesCacheKeys.userFeatureStates(input.userId);
-      await this.redisService.set(cacheKey, updatedCache, { ttl: this.cacheTtlMs });
+      await this.setValidated(FeaturesCacheEntries.userFeatureStates, updatedCache, input.userId);
     }
 
     return result;
   }
 
   async getUserAutoOptIn(userId: number): Promise<boolean> {
-    const cacheKey = FeaturesCacheKeys.userAutoOptIn(userId);
-    return this.withCache(cacheKey, () => this.featuresRepository.getUserAutoOptIn(userId));
+    return this.withValidatedCache(FeaturesCacheEntries.userAutoOptIn, [userId], () =>
+      this.featuresRepository.getUserAutoOptIn(userId)
+    );
   }
 
   // === Per-team caches ===
 
   async checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean> {
-    const teamStates = await this.getTeamFeatureStatesCanonical(teamId);
-    const state = teamStates[slug];
-    if (state !== undefined) {
-      return state === "enabled";
+    const teamStates = await this.getValidated(FeaturesCacheEntries.teamFeatureStates, teamId);
+    if (teamStates) {
+      const state = teamStates[slug];
+      if (state !== undefined) {
+        return state === "enabled";
+      }
     }
     return this.featuresRepository.checkIfTeamHasFeature(teamId, slug);
   }
@@ -138,7 +187,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     const teamStatesMap = await Promise.all(
       input.teamIds.map(async (teamId) => ({
         teamId,
-        states: await this.getTeamFeatureStatesCanonical(teamId),
+        states: (await this.getValidated(FeaturesCacheEntries.teamFeatureStates, teamId)) ?? {},
       }))
     );
 
@@ -169,7 +218,6 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
         featureIds: input.featureIds,
       });
 
-      // Invert the response to get per-team maps and update caches
       const perTeamFreshStates: Record<number, Record<string, FeatureState>> = {};
       for (const featureId of input.featureIds) {
         if (freshStates[featureId]) {
@@ -184,7 +232,6 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
         }
       }
 
-      // Update per-team canonical caches with merged data
       const existingTeamStates = teamStatesMap.reduce(
         (acc, { teamId, states }) => {
           acc[teamId] = states;
@@ -197,8 +244,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
         const existingStates = existingTeamStates[teamId] || {};
         const freshTeamStates = perTeamFreshStates[teamId] || {};
         const updatedCache = { ...existingStates, ...freshTeamStates };
-        const cacheKey = FeaturesCacheKeys.teamFeatureStates(teamId);
-        await this.redisService.set(cacheKey, updatedCache, { ttl: this.cacheTtlMs });
+        await this.setValidated(FeaturesCacheEntries.teamFeatureStates, updatedCache, teamId);
       }
     }
 
@@ -207,11 +253,10 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
 
   async getTeamsAutoOptIn(teamIds: number[]): Promise<Record<number, boolean>> {
     const results = await Promise.all(
-      teamIds.map(async (teamId) => {
-        const cacheKey = FeaturesCacheKeys.teamAutoOptIn(teamId);
-        const cached = await this.redisService.get<boolean>(cacheKey);
-        return { teamId, cached };
-      })
+      teamIds.map(async (teamId) => ({
+        teamId,
+        cached: await this.getValidated(FeaturesCacheEntries.teamAutoOptIn, teamId),
+      }))
     );
 
     const result: Record<number, boolean> = {};
@@ -230,8 +275,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       for (const [teamIdStr, value] of Object.entries(freshResults)) {
         const teamId = Number(teamIdStr);
         result[teamId] = value;
-        const cacheKey = FeaturesCacheKeys.teamAutoOptIn(teamId);
-        await this.redisService.set(cacheKey, value, { ttl: this.cacheTtlMs });
+        await this.setValidated(FeaturesCacheEntries.teamAutoOptIn, value, teamId);
       }
     }
 
@@ -246,7 +290,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     await this.featuresRepository.setUserFeatureState(input);
-    await this.redisService.del(FeaturesCacheKeys.userFeatureStates(input.userId));
+    await this.delValidated(FeaturesCacheEntries.userFeatureStates, input.userId);
   }
 
   async setTeamFeatureState(
@@ -255,46 +299,16 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     await this.featuresRepository.setTeamFeatureState(input);
-    await this.redisService.del(FeaturesCacheKeys.teamFeatureStates(input.teamId));
+    await this.delValidated(FeaturesCacheEntries.teamFeatureStates, input.teamId);
   }
 
   async setUserAutoOptIn(userId: number, enabled: boolean): Promise<void> {
     await this.featuresRepository.setUserAutoOptIn(userId, enabled);
-    await this.redisService.del(FeaturesCacheKeys.userAutoOptIn(userId));
+    await this.delValidated(FeaturesCacheEntries.userAutoOptIn, userId);
   }
 
   async setTeamAutoOptIn(teamId: number, enabled: boolean): Promise<void> {
     await this.featuresRepository.setTeamAutoOptIn(teamId, enabled);
-    await this.redisService.del(FeaturesCacheKeys.teamAutoOptIn(teamId));
-  }
-
-  // === Private helpers for canonical per-entity caches ===
-
-  private async getUserFeatureStatesCanonical(userId: number): Promise<Record<string, FeatureState>> {
-    const cacheKey = FeaturesCacheKeys.userFeatureStates(userId);
-    const cached = await this.redisService.get<unknown>(cacheKey);
-    if (cached !== null) {
-      const parsed = FeatureStatesMapSchema.safeParse(cached);
-      if (parsed.success) {
-        return parsed.data as Record<string, FeatureState>;
-      }
-      // Invalid cache data - delete and treat as miss
-      await this.redisService.del(cacheKey);
-    }
-    return {};
-  }
-
-  private async getTeamFeatureStatesCanonical(teamId: number): Promise<Record<string, FeatureState>> {
-    const cacheKey = FeaturesCacheKeys.teamFeatureStates(teamId);
-    const cached = await this.redisService.get<unknown>(cacheKey);
-    if (cached !== null) {
-      const parsed = FeatureStatesMapSchema.safeParse(cached);
-      if (parsed.success) {
-        return parsed.data as Record<string, FeatureState>;
-      }
-      // Invalid cache data - delete and treat as miss
-      await this.redisService.del(cacheKey);
-    }
-    return {};
+    await this.delValidated(FeaturesCacheEntries.teamAutoOptIn, teamId);
   }
 }
