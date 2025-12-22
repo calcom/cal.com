@@ -43,7 +43,7 @@ export class IcsFeedService implements ICSFeedCalendarApp {
     };
 
     try {
-      const dav = new IcsFeedCalendarService({
+      const dav = IcsFeedCalendarService({
         id: 0,
         ...data,
         user: { email: userEmail },
