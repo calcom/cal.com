@@ -11,17 +11,16 @@ import AccountDialog from "./AccountDialog";
 export default function InstallAppButton(props: InstallAppButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const mutation = useAddAppMutation(null);
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const returnTo = await getAppOnboardingUrl({
+      slug: "msteams",
+      step: AppOnboardingSteps.EVENT_TYPES_STEP,
+    });
     mutation.mutate({
       type: "office365_video",
       variant: "conferencing",
       slug: "msteams",
-      returnTo:
-        WEBAPP_URL +
-        getAppOnboardingUrl({
-          slug: "msteams",
-          step: AppOnboardingSteps.EVENT_TYPES_STEP,
-        }),
+      returnTo: WEBAPP_URL + returnTo,
     });
   };
 
