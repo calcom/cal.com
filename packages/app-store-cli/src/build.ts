@@ -233,14 +233,22 @@ function generateFiles() {
     }
   }
 
+  // API handlers - use helper function pattern to prevent SDK type leakage
+  // This prevents TypeScript from loading SDK types when type-checking packages that import apiHandlers
   serverOutput.push(
-    ...getExportedObject("apiHandlers", {
-      importConfig: {
-        fileToBeImported: "api/index.ts",
-      },
-      lazyImport: true,
-    })
+    `const importApiHandler = (path: string) => import(path) as Promise<{ default: { [key: string]: unknown } }>;`
   );
+  serverOutput.push(`export const apiHandlers: Record<string, Promise<{ default: { [key: string]: unknown } }>> = {`);
+
+  forEachAppDir((app) => {
+    const apiPath = path.join(APP_STORE_PATH, app.path, "api/index.ts");
+    if (fs.existsSync(apiPath)) {
+      const modulePath = `./${app.path.replace(/\\/g, "/")}/api`;
+      serverOutput.push(`"${app.name}": importApiHandler("${modulePath}"),`);
+    }
+  });
+
+  serverOutput.push(`};`);
 
   metadataOutput.push(
     ...getExportedObject("appStoreMetadata", {
@@ -443,10 +451,12 @@ function generateFiles() {
   paymentOutput.push(`};`);
 
   // Video adapters - use helper function pattern to prevent SDK type leakage
+  // Note: Some adapters require credentials (e.g., zoomvideo) while others don't (e.g., dailyvideo)
+  // so we use an optional credential parameter to support both patterns
   const videoOutput: string[] = [];
   videoOutput.push(`import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";`);
   videoOutput.push(`import type { CredentialPayload } from "@calcom/types/Credential";`);
-  videoOutput.push(`type VideoApiAdapterFactory = (credential: CredentialPayload) => VideoApiAdapter;`);
+  videoOutput.push(`type VideoApiAdapterFactory = (credential?: CredentialPayload) => VideoApiAdapter;`);
   videoOutput.push(
     `const importVideoAdapter = (path: string) => import(path) as Promise<{ default: VideoApiAdapterFactory }>;`
   );
@@ -476,6 +486,7 @@ function generateFiles() {
     "analytics.services.generated.ts",
     "payment.services.generated.ts",
     "video.adapters.generated.ts",
+    "apps.server.generated.ts",
   ]);
 
   const filesToGenerate: [string, string[]][] = [

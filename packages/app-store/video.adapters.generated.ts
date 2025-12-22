@@ -5,7 +5,7 @@
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";
 
-type VideoApiAdapterFactory = (credential: CredentialPayload) => VideoApiAdapter;
+type VideoApiAdapterFactory = (credential?: CredentialPayload) => VideoApiAdapter;
 const importVideoAdapter = (path: string) => import(path) as Promise<{ default: VideoApiAdapterFactory }>;
 export const VideoApiAdapterMap: Record<string, Promise<{ default: VideoApiAdapterFactory }>> = process.env
   .NEXT_PUBLIC_IS_E2E === "1"
