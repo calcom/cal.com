@@ -53,7 +53,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     },
   });
 
-  let completedOnboarding = userWithExtraFields?.completedOnboarding ?? false;
+  let completedOnboarding = !!userWithExtraFields?.completedOnboarding;
 
   let passwordAdded = false;
 
