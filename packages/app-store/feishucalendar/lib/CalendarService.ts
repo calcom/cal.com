@@ -31,7 +31,7 @@ function parseEventTime2Timestamp(eventTime: string): string {
   return String(+new Date(eventTime) / 1000);
 }
 
-export default class FeishuCalendarService implements Calendar {
+class FeishuCalendarService implements Calendar {
   private url = `https://${FEISHU_HOST}/open-apis`;
   private integrationName = "";
   private log: typeof logger;
@@ -116,7 +116,7 @@ export default class FeishuCalendarService implements Calendar {
     let accessToken = "";
     try {
       accessToken = await this.auth.getToken();
-    } catch (error) {
+    } catch (_error) {
       throw new Error("get access token error");
     }
 
@@ -424,4 +424,13 @@ export default class FeishuCalendarService implements Calendar {
 
     return attendeeArray;
   };
+}
+
+/**
+ * Factory function that creates a Feishu Calendar service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function createFeishuCalendarService(credential: CredentialPayload): Calendar {
+  return new FeishuCalendarService(credential);
 }

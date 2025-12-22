@@ -92,7 +92,7 @@ const salesforceTokenSchema = z.object({
   token_type: z.string(),
 });
 
-export default class SalesforceCRMService implements CRM {
+class SalesforceCRMService implements CRM {
   private integrationName = "";
   private conn!: Promise<Connection>;
   private log: typeof logger;
@@ -1698,4 +1698,17 @@ export default class SalesforceCRMService implements CRM {
       return leadsQuery.records[0] as { Id: string; Email: string };
     }
   }
+}
+
+/**
+ * Factory function that creates a Salesforce CRM service instance.
+ * This is exported instead of the class to prevent SDK types (like jsforce.Connection)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all jsforce SDK declaration files when type-checking dependent packages.
+ */
+export default function createSalesforceCrmService(
+  credential: CredentialPayload,
+  appOptions?: Record<string, unknown>
+): CRM {
+  return new SalesforceCRMService(credential, appOptions);
 }

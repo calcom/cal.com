@@ -8,7 +8,7 @@ import type { AppCategories, Prisma, EventType } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-const isPaymentService = (x: unknown): x is { PaymentService: any } =>
+const isPaymentService = (x: unknown): x is { PaymentService: (credentials: { key: unknown }) => unknown } =>
   !!x && typeof x === "object" && "PaymentService" in x && typeof x.PaymentService === "function";
 
 const handlePayment = async ({
@@ -61,8 +61,10 @@ const handlePayment = async ({
     console.warn(`payment App service not found for key: ${key}`);
     return null;
   }
-  const PaymentService = paymentAppModule.PaymentService;
-  const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
+  // Payment services now export factory functions instead of classes
+  // to prevent SDK types from leaking into the type system
+  const createPaymentService = paymentAppModule.PaymentService;
+  const paymentInstance = createPaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
   const apps = eventTypeMetaDataSchemaWithTypedApps.parse(selectedEventType?.metadata)?.apps;
 

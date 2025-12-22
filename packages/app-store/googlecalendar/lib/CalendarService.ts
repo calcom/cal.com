@@ -35,7 +35,7 @@ interface GoogleCalError extends Error {
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
-export default class GoogleCalendarService implements Calendar {
+class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: CalendarAuth;
   private log: typeof logger;
@@ -783,4 +783,16 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like calendar_v3.Calendar)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all Google API SDK declaration files when type-checking dependent packages.
+ */
+export default function createGoogleCalendarService(
+  credential: CredentialForCalendarServiceWithEmail
+): Calendar {
+  return new GoogleCalendarService(credential);
 }

@@ -25,8 +25,10 @@ const handlePaymentRefund = async (
     console.warn(`payment App service not found for key: ${key}`);
     return false;
   }
-  const PaymentService = paymentAppModule.PaymentService;
-  const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
+  // Payment services now export factory functions instead of classes
+  // to prevent SDK types from leaking into the type system
+  const createPaymentService = paymentAppModule.PaymentService;
+  const paymentInstance = createPaymentService(paymentAppCredentials) as IAbstractPaymentService;
   const refund = await paymentInstance.refund(paymentId);
   return refund;
 };

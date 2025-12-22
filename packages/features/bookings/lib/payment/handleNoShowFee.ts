@@ -149,8 +149,10 @@ export const handleNoShowFee = async ({
     log.error(`Payment service not found for app ${key}`);
     throw new Error("Payment service not found");
   }
-  const PaymentService = paymentApp.PaymentService;
-  const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
+  // Payment services now export factory functions instead of classes
+  // to prevent SDK types from leaking into the type system
+  const createPaymentService = paymentApp.PaymentService;
+  const paymentInstance = createPaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {
     const paymentData = await paymentInstance.chargeCard(payment, booking.id);

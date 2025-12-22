@@ -33,7 +33,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-export default class ExchangeCalendarService implements Calendar {
+class ExchangeCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
@@ -233,4 +233,13 @@ export default class ExchangeCalendarService implements Calendar {
     exch1.Url = new Uri(this.url);
     return exch1;
   }
+}
+
+/**
+ * Factory function that creates an Exchange 2013 Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like ews-javascript-api types)
+ * from leaking into the emitted .d.ts file.
+ */
+export default function createExchange2013CalendarService(credential: CredentialPayload): Calendar {
+  return new ExchangeCalendarService(credential);
 }
