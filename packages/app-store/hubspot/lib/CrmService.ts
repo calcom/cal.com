@@ -45,24 +45,6 @@ export default class HubspotCalendarService implements CRM {
     this.appOptions = appOptions || {};
   }
 
-  private isRecord = (value: unknown): value is Record<string, unknown> =>
-    typeof value === "object" && value !== null;
-
-  private isMissingScopesError = (error: unknown): boolean => {
-    if (!this.isRecord(error)) return false;
-    const body = error.body;
-    return this.isRecord(body) && body.category === "MISSING_SCOPES";
-  };
-
-  private getResponseStatusCode = (error: unknown): number | undefined => {
-    if (!this.isRecord(error)) return undefined;
-    const response = error.response;
-    if (this.isRecord(response) && typeof response.status === "number") {
-      return response.status;
-    }
-    return undefined;
-  };
-
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
     const userFields = getLabelValueMapFromResponses(event);
     const plainText = event?.description?.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
