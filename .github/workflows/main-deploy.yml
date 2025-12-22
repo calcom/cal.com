@@ -91,8 +91,8 @@ jobs:
           check "${{ secrets.NEXTAUTH_SECRET }}" "NEXTAUTH_SECRET"
           check "${{ secrets.CALENDSO_ENCRYPTION_KEY }}" "CALENDSO_ENCRYPTION_KEY"
           check "${{ secrets.NEXT_PUBLIC_API_V2_URL }}" "NEXT_PUBLIC_API_V2_URL"
-          check "${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}" "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID
-          check "${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID }}" "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID
+          check "${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}" "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID"
+          check "${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID }}" "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID"
           check "${{ secrets.SENDGRID_API_KEY }}" "SENDGRID_API_KEY"
           check "${{ secrets.EMAIL_TO }}" "EMAIL_TO"
           check "${{ secrets.EMAIL_FROM }}" "EMAIL_FROM"
@@ -190,6 +190,7 @@ jobs:
             echo "NEXT_PUBLIC_GTM_ID=${{ secrets.NEXT_PUBLIC_GTM_ID_STAG }}" >> $GITHUB_OUTPUT
 
             echo "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID=${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}" >> $GITHUB_OUTPUT
+
             echo "NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID=${{ secrets.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID }}" >> $GITHUB_OUTPUT
 
             echo "EC2_HOST=${{ secrets.EC2_HOST_STAG }}" >> $GITHUB_OUTPUT
@@ -289,10 +290,12 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
           build-args: |
             CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
+
             NEXT_PUBLIC_GTM_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_GTM_ID }}
 
-            NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID=${{ secrets.key_values.outputs.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}
-            NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID=${{ secrets.key_values.outputs.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID }}
+            NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_APP_ID }}
+
+            NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_META_WHATSAPP_BUSINESS_CONFIG_ID }}
 
             # NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_WEBAPP_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
