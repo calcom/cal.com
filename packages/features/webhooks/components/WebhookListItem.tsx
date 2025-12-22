@@ -1,7 +1,9 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import type { Webhook } from "../lib/dto/types";
+import { getWebhookVersionLabel } from "../lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -17,22 +19,12 @@ import {
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
-type WebhookProps = {
-  id: string;
-  subscriberUrl: string;
-  payloadTemplate: string | null;
-  active: boolean;
-  eventTriggers: WebhookTriggerEvents[];
-  secret: string | null;
-  eventTypeId: number | null;
-  teamId: number | null;
-};
-
 export default function WebhookListItem(props: {
-  webhook: WebhookProps;
+  webhook: Webhook;
   canEditWebhook?: boolean;
   onEditWebhook: () => void;
   lastItem: boolean;
@@ -94,6 +86,13 @@ export default function WebhookListItem(props: {
               {t("readonly")}
             </Badge>
           )}
+          <Tooltip content={t("webhook_version")}>
+            <div className="flex items-center">
+              <Badge variant="blue" className="ml-2">
+                {getWebhookVersionLabel(webhook.version)}
+              </Badge>
+            </div>
+          </Tooltip>
         </div>
         <Tooltip content={t("triggers_when")}>
           <div className="flex w-4/5 flex-wrap">
@@ -115,10 +114,10 @@ export default function WebhookListItem(props: {
             defaultChecked={webhook.active}
             data-testid="webhook-switch"
             disabled={!props.permissions.canEditWebhook}
-            onCheckedChange={() =>
+            onCheckedChange={(checked) =>
               toggleWebhook.mutate({
                 id: webhook.id,
-                active: !webhook.active,
+                active: checked,
                 payloadTemplate: webhook.payloadTemplate,
                 eventTypeId: webhook.eventTypeId || undefined,
               })

@@ -27,12 +27,7 @@ async function testDuplicateAPICalls(
   });
 
   await page.goto(url);
-  // Wait for the booking page to fully load and time slots to appear instead of fixed 5s wait
-  await page.waitForLoadState("networkidle");
-  // Also wait for the calendar to be visible as a more specific indicator
-  await page.locator('[data-testid="calendar"]').or(page.locator('[data-testid="time"]')).first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {
-    // If neither element appears, the page might have a different structure - continue anyway
-  });
+  await page.waitForTimeout(5000);
 
   return {
     totalCalls: trpcCalls.length + apiV2Calls.length,
