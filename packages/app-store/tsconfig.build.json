@@ -1,0 +1,27 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "dist-types",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["../../apps/web/components/*"],
+      "@lib/*": ["../../apps/web/lib/*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"]
+    },
+    "resolveJsonModule": true,
+    "experimentalDecorators": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "@calcom/types",
+    "../types/*.d.ts",
+    "../types/next-auth.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": ["dist", "dist-types", "build", "**/node_modules/**", "**/*.test.ts", "**/*.spec.ts"]
+}

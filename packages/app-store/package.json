@@ -4,10 +4,19 @@
   "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.ts",
+  "types": "./dist-types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist-types/*"
+      ]
+    }
+  },
   "files": [
     "components.ts"
   ],
   "scripts": {
+    "build:types": "tsc --project tsconfig.build.json",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint .",
