@@ -3,6 +3,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
+import { Prisma } from "@calcom/prisma/client";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -15,7 +16,6 @@ import type {
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
-import { Prisma } from "@calcom/prisma/client";
 
 const translator = short();
 
@@ -46,7 +46,7 @@ export const getWho = (
   calEvent: {
     attendees: Person[];
     seatsPerTimeSlot?: number | null;
-    seatsShowAttendees?: boolean;
+    seatsShowAttendees?: boolean | null;
     organizer: Person;
     team?: {
       id: number;
@@ -56,7 +56,7 @@ export const getWho = (
   },
   t: TFunction
 ) => {
-  let attendeesFromCalEvent = [...(calEvent.attendees)];
+  let attendeesFromCalEvent = [...calEvent.attendees];
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
     attendeesFromCalEvent = [];
   }
@@ -166,22 +166,20 @@ const htmlToPlainText = (html: string): string => {
   );
 };
 
-export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
-  if (!calEvent.description) {
+export const getDescription = (t: TFunction, description?: string | null) => {
+  if (!description) {
     return "";
   }
-  const plainText = htmlToPlainText(calEvent.description);
+  const plainText = htmlToPlainText(description);
   return `${t("description")}\n${plainText}`;
 };
 
-export const getLocation = (
-  calEvent: {
-    videoCallData?: VideoCallData;
-    additionalInformation?: AdditionalInformation;
-    location?: string;
-    uid?: string | null;
-  }
-) => {
+export const getLocation = (calEvent: {
+  videoCallData?: VideoCallData;
+  additionalInformation?: AdditionalInformation;
+  location?: string;
+  uid?: string | null;
+}) => {
   const meetingUrl = getVideoCallUrlFromCalEvent(calEvent);
   if (meetingUrl) {
     return meetingUrl;
@@ -433,42 +431,38 @@ export const getRescheduleLink = ({
   return url.toString();
 };
 
-type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
-  Parameters<typeof getWhat>[0] &
-  Parameters<typeof getWhen>[0] &
-  Parameters<typeof getLocation>[0] &
-  Parameters<typeof getDescription>[0] &
-  Parameters<typeof getAdditionalNotes>[0] &
-  Parameters<typeof getUserFieldsResponses>[0] &
-  Parameters<typeof getAppsStatus>[0] &
-  Parameters<typeof getManageLink>[0] &
-  Pick<CalendarEvent, "organizer" | "paymentInfo">;
+type RichDescriptionCalEvent = {
+  organizer: Person;
+  paymentInfo?: {
+    link?: string | null;
+  } | null;
+  type: string;
+  cancellationReason?: string | null;
+  title: string;
+  attendees: Person[];
+  seatsPerTimeSlot?: number | null;
+  seatsShowAttendees?: boolean | null;
+  team?: {
+    id: number;
+    members?: TeamMember[];
+  };
+  additionalNotes?: string | null;
+  customInputs?: Prisma.JsonObject | null;
+  description?: string | null;
+  userFieldsResponses?: CalEventResponses | null;
+  responses?: CalEventResponses | null;
+  eventTypeId?: number | null;
+  appsStatus?: AppsStatus[] | null;
+  manageLink?: string | null;
+  hideOrganizerEmail?: boolean;
+  videoCallData?: VideoCallData;
+  additionalInformation?: AdditionalInformation;
+  location?: string;
+  uid?: string | null;
+}
 
 export const getRichDescriptionHTML = (
-  calEvent: {
-    organizer: Person;
-    paymentInfo?: {
-      link?: string | null;
-    } | null;
-    type: string;
-    cancellationReason?: string | null;
-    title: string;
-    attendees: Person[];
-    seatsPerTimeSlot?: number | null;
-    seatsShowAttendees?: boolean | null;
-    team?: {
-      id: number;
-      members?: TeamMember[];
-    };
-    additionalNotes?: string | null;
-    customInputs?: Prisma.JsonObject | null;
-    description?: string | null;
-    userFieldsResponses?: CalEventResponses | null;
-    responses?: CalEventResponses | null;
-    eventTypeId?: number | null;
-    appsStatus?: AppsStatus[] | null;
-    manageLink?: string | null;
-  },
+  calEvent: RichDescriptionCalEvent,
   t_?: TFunction,
   includeAppStatus = false
 ) => {
@@ -504,13 +498,44 @@ export const getRichDescriptionHTML = (
 
   // Build the HTML content for each section
   const parts = [
-    textToHtml(getCancellationReason(calEvent, t)),
+    textToHtml(getCancellationReason(t, calEvent.cancellationReason)),
     textToHtml(getWhat(calEvent.title, t)),
-    textToHtml(getWhen(calEvent, t)),
-    textToHtml(getWho(calEvent, t)),
+    textToHtml(
+      getWhen(
+        {
+          organizer: calEvent.organizer,
+          attendees: calEvent.attendees,
+          seatsPerTimeSlot: calEvent.seatsPerTimeSlot,
+        },
+        t
+      )
+    ),
+    textToHtml(
+      getWho(
+        {
+          attendees: calEvent.attendees,
+          seatsPerTimeSlot: calEvent.seatsPerTimeSlot,
+          seatsShowAttendees: calEvent.seatsShowAttendees,
+          organizer: calEvent.organizer,
+          team: calEvent.team,
+          hideOrganizerEmail: calEvent.hideOrganizerEmail,
+        },
+        t
+      )
+    ),
     textToHtml(getDescription(t, calEvent.description)),
     textToHtml(getAdditionalNotes(t, calEvent.additionalNotes)),
-    textToHtml(getUserFieldsResponses(calEvent, t)),
+    textToHtml(
+      getUserFieldsResponses(
+        {
+          customInputs: calEvent.customInputs,
+          userFieldsResponses: calEvent.userFieldsResponses,
+          responses: calEvent.responses,
+          eventTypeId: calEvent.eventTypeId,
+        },
+        t
+      )
+    ),
     includeAppStatus ? textToHtml(getAppsStatus(t, calEvent.appsStatus)) : "",
     manageLinkHtml,
     calEvent.paymentInfo
@@ -534,15 +559,37 @@ export const getRichDescription = (
 
   // Join all parts with single newlines and remove extra whitespace
   const parts = [
-    getCancellationReason(calEvent, t),
-    getWhat(calEvent, t),
-    getWhen(calEvent, t),
-    getWho(calEvent, t),
-    `${t("where")}:\n${getLocation(calEvent)}`,
-    getDescription(calEvent, t),
-    getAdditionalNotes(calEvent, t),
+    getCancellationReason(t, calEvent.cancellationReason),
+    getWhat(calEvent.title, t),
+    getWhen(
+      {
+        organizer: calEvent.organizer,
+        attendees: calEvent.attendees,
+        seatsPerTimeSlot: calEvent.seatsPerTimeSlot,
+      },
+      t
+    ),
+    getWho(
+      {
+        attendees: calEvent.attendees,
+        seatsPerTimeSlot: calEvent.seatsPerTimeSlot,
+        seatsShowAttendees: calEvent.seatsShowAttendees,
+        organizer: calEvent.organizer,
+        team: calEvent.team,
+        hideOrganizerEmail: calEvent.hideOrganizerEmail,
+      },
+      t
+    ),
+    `${t("where")}:\n${getLocation({
+      videoCallData: calEvent.videoCallData,
+      additionalInformation: calEvent.additionalInformation,
+      location: calEvent.location,
+      uid: calEvent.uid,
+    })}`,
+    getDescription(t, calEvent.description),
+    getAdditionalNotes(t, calEvent.additionalNotes),
     getUserFieldsResponses(calEvent, t),
-    includeAppStatus ? getAppsStatus(calEvent, t) : "",
+    includeAppStatus ? getAppsStatus(t, calEvent.appsStatus) : "",
     // TODO: Only the original attendee can make changes to the event
     // Guests cannot
     calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t),
@@ -556,11 +603,11 @@ export const getRichDescription = (
   return parts;
 };
 
-export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellationReason">, t: TFunction) => {
-  if (!calEvent.cancellationReason) return "";
-  const sanitized = calEvent.cancellationReason.startsWith("$RCH$")
-    ? calEvent.cancellationReason.substring(5).trim()
-    : calEvent.cancellationReason.trim();
+export const getCancellationReason = (t: TFunction, cancellationReason?: string | null) => {
+  if (!cancellationReason) return "";
+  const sanitized = cancellationReason.startsWith("$RCH$")
+    ? cancellationReason.substring(5).trim()
+    : cancellationReason.trim();
   return `${t("cancellation_reason")}:\n${sanitized}`;
 };
 
