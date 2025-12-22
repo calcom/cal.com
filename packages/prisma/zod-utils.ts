@@ -1211,6 +1211,24 @@ export const fieldSchema = baseFieldSchema.merge(
       )
       .optional(),
     disableOnPrefill: z.boolean().default(false).optional(),
+    
+    /**
+     * Conditional field configuration for follow-up questions
+     * When specified, this field will only be shown if the parent field has one of the specified values
+     */
+    conditionalOn: z
+      .object({
+        /**
+         * The name of the parent field that this field depends on
+         */
+        parentFieldName: z.string(),
+        /**
+         * The value(s) of the parent field that should make this field visible
+         * Can be a single value or an array of values
+         */
+        showWhenParentValues: z.union([z.string(), z.array(z.string())]),
+      })
+      .optional(),
   })
 );
 

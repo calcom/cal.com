@@ -8,6 +8,7 @@ import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
+import { isFieldConditionallyVisible } from "@calcom/features/bookings/lib/isFieldConditionallyVisible";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
@@ -47,6 +48,9 @@ export const BookingFields = ({
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  
+  // Watch all responses for conditional field visibility
+  const allResponses = watch("responses") || {};
 
   // Identify all phone fields (except location field)
   const otherPhoneFieldNames = useMemo(
@@ -130,6 +134,11 @@ export const BookingFields = ({
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
     <div>
       {fields.map((field, index) => {
+        // Check conditional visibility first
+        if (!isFieldConditionallyVisible(field, allResponses)) {
+          return null;
+        }
+        
         // Don't Display Location field in case of instant meeting as only Cal Video is supported
         if (isInstantMeeting && field.name === "location") return null;
 

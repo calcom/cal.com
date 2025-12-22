@@ -1,0 +1,249 @@
+# Conditional Booking Fields (Follow-up Questions)
+
+This feature enables you to create dynamic booking forms with conditional/follow-up questions based on answers to previous questions.
+
+## Overview
+
+Conditional booking fields allow you to show or hide specific form fields based on the user's response to a parent field. This is useful for creating more interactive and context-aware booking forms.
+
+## Use Case Example
+
+You want to ask "How did you hear about us?" with the following options:
+- Web
+- Print
+- Social Media
+- Personal Reference
+
+Based on their answer, you want to ask follow-up questions:
+- If they select "Web" → ask "Which website?" (text field)
+- If they select "Social Media" → ask "Which platform?" (dropdown with X/Twitter, Facebook, Mastodon, Other)
+
+## Schema Definition
+
+The `conditionalOn` property is added to booking field configurations:
+
+```typescript
+{
+  conditionalOn: {
+    parentFieldName: string;           // The slug/name of the parent field
+    showWhenParentValues: string | string[];  // Value(s) that trigger visibility
+  }
+}
+```
+
+## Implementation
+
+### Zod Schema (packages/prisma/zod-utils.ts)
+
+The base field schema has been extended with:
+
+```typescript
+conditionalOn: z
+  .object({
+    parentFieldName: z.string(),
+    showWhenParentValues: z.union([z.string(), z.array(z.string())]),
+  })
+  .optional()
+```
+
+### Utility Functions (packages/features/bookings/lib/isFieldConditionallyVisible.ts)
+
+- `isFieldConditionallyVisible(field, responses)` - Determines if a field should be visible
+- `getVisibleFields(fields, responses)` - Filters all fields to only visible ones
+- `validateConditionalFields(fields)` - Validates field dependencies
+
+### UI Integration (packages/features/bookings/Booker/components/BookEventForm/BookingFields.tsx)
+
+The BookingFields component now:
+1. Watches all form responses
+2. Checks conditional visibility for each field
+3. Dynamically shows/hides fields based on parent values
+
+## Example Usage
+
+### Example 1: Basic Conditional Field
+
+```json
+{
+  "bookingFields": [
+    {
+      "type": "radio",
+      "slug": "how-did-you-hear",
+      "label": "How did you hear about us?",
+      "required": true,
+      "options": ["Web", "Print", "Social Media", "Personal Reference"]
+    },
+    {
+      "type": "text",
+      "slug": "source-website",
+      "label": "Which website?",
+      "required": true,
+      "conditionalOn": {
+        "parentFieldName": "how-did-you-hear",
+        "showWhenParentValues": "Web"
+      }
+    }
+  ]
+}
+```
+
+### Example 2: Multiple Parent Values
+
+Show the same follow-up for multiple parent values:
+
+```json
+{
+  "bookingFields": [
+    {
+      "type": "select",
+      "slug": "contact-method",
+      "label": "Preferred contact method",
+      "required": true,
+      "options": ["Email", "Phone", "SMS", "WhatsApp"]
+    },
+    {
+      "type": "phone",
+      "slug": "phone-number",
+      "label": "Your phone number",
+      "required": true,
+      "conditionalOn": {
+        "parentFieldName": "contact-method",
+        "showWhenParentValues": ["Phone", "SMS", "WhatsApp"]
+      }
+    }
+  ]
+}
+```
+
+### Example 3: Complex Multi-Level Form
+
+```json
+{
+  "bookingFields": [
+    {
+      "type": "radio",
+      "slug": "how-did-you-hear",
+      "label": "How did you hear about us?",
+      "required": true,
+      "options": ["Web", "Social Media", "Personal Reference", "Other"]
+    },
+    {
+      "type": "text",
+      "slug": "source-website",
+      "label": "Which website?",
+      "required": false,
+      "conditionalOn": {
+        "parentFieldName": "how-did-you-hear",
+        "showWhenParentValues": "Web"
+      }
+    },
+    {
+      "type": "select",
+      "slug": "social-media-platform",
+      "label": "Which social media platform?",
+      "required": false,
+      "options": ["Twitter/X", "Facebook", "LinkedIn", "Instagram", "Mastodon", "Other"],
+      "conditionalOn": {
+        "parentFieldName": "how-did-you-hear",
+        "showWhenParentValues": "Social Media"
+      }
+    },
+    {
+      "type": "text",
+      "slug": "referrer-name",
+      "label": "Who referred you?",
+      "required": false,
+      "conditionalOn": {
+        "parentFieldName": "how-did-you-hear",
+        "showWhenParentValues": "Personal Reference"
+      }
+    }
+  ]
+}
+```
+
+## Platform API Usage (API Version 2024-06-14)
+
+When creating or updating event types via the Platform API, you can now include the `conditionalOn` property:
+
+```typescript
+import { api } from "@calcom/platform-libraries";
+
+const eventType = await api.eventTypes.create({
+  // ... other event type properties
+  bookingFields: [
+    {
+      type: "radio",
+      slug: "how-did-you-hear",
+      label: "How did you hear about us?",
+      required: true,
+      options: ["Web", "Print", "Social Media", "Personal Reference"]
+    },
+    {
+      type: "text",
+      slug: "source-website",
+      label: "Which website?",
+      required: true,
+      conditionalOn: {
+        parentFieldName: "how-did-you-hear",
+        showWhenParentValues: "Web"
+      }
+    }
+  ]
+});
+```
+
+## Validation
+
+The system validates conditional fields to ensure:
+- Parent field exists
+- No self-referencing (field cannot be conditional on itself)
+- No circular dependencies
+- `showWhenParentValues` is not empty
+
+Validation errors are logged and can be caught during event type creation/update.
+
+## Supported Field Types
+
+The `conditionalOn` property is supported on all custom booking fields:
+- text
+- textarea
+- number
+- phone
+- address
+- select
+- multiselect
+- radio
+- checkbox
+- boolean
+- url
+- multiemail
+
+## Behavior
+
+1. **Initial State**: Conditional fields are hidden until their parent field has a matching value
+2. **Dynamic Updates**: As users change the parent field value, conditional fields appear/disappear in real-time
+3. **Form Validation**: Required conditional fields only validate when visible
+4. **Persistence**: When a conditional field becomes hidden, its value is preserved (not cleared)
+
+## Best Practices
+
+1. **Keep it Simple**: Avoid deeply nested conditional logic (max 2-3 levels)
+2. **Clear Labels**: Make it obvious which fields are related
+3. **Optional Follow-ups**: Consider making conditional fields optional to avoid blocking bookings
+4. **Test Thoroughly**: Test all possible paths through your conditional form
+5. **Parent Field Position**: Always place parent fields before their conditional children
+
+## Limitations
+
+- Currently no support for multi-level dependencies (field conditional on a field that's conditional on another)
+- Parent field must be placed before conditional child in the fields array
+- System fields (name, email, etc.) cannot be conditional
+
+## Future Enhancements
+
+Potential future improvements:
+- Visual grouping of conditional fields
+- Conditional logic based on multiple parent fields (AND/OR conditions)
+- Support for more complex expressions (greater than, less than, etc.)
+- Conditional visibility based on booking metadata

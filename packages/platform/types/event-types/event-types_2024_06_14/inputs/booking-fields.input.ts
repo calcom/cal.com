@@ -1,9 +1,10 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty, ApiPropertyOptional as DocsPropertyOptional } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsBoolean, IsArray, IsIn, IsOptional } from "class-validator";
+import { IsString, IsBoolean, IsArray, IsIn, IsOptional, ValidateNested } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
+import { Type } from "class-transformer";
 
 const inputBookingFieldTypes = [
   "name",
@@ -24,6 +25,26 @@ const inputBookingFieldTypes = [
 ] as const;
 
 const inputBookingFieldSlugs = ["title", "location", "notes", "guests", "rescheduleReason"] as const;
+
+/**
+ * Conditional field configuration for follow-up questions
+ */
+export class ConditionalFieldConfig_2024_06_14 {
+  @IsString()
+  @DocsProperty({
+    description: "The name/slug of the parent field that this field depends on",
+    example: "how-did-you-hear",
+  })
+  parentFieldName!: string;
+
+  @DocsProperty({
+    description:
+      "The value(s) of the parent field that should make this field visible. Can be a single value or an array of values.",
+    example: ["web", "social-media"],
+    oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+  })
+  showWhenParentValues!: string | string[];
+}
 
 export class NameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
@@ -435,6 +456,57 @@ export class TextFieldInput_2024_06_14 {
   slug!: string;
 
   @IsString()
+  @DocsProperty({ example: "Please share anything that will help prepare for our meeting" })
+  label!: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `company` and the URL contains query parameter `&company=cal.com`,\
+      the text field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{company: 'acme'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
+  })
+  disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @ValidateNested()
+  @Type(() => ConditionalFieldConfig_2024_06_14)
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "Conditional field configuration for follow-up questions. When specified, this field will only be shown if the parent field has one of the specified values.",
+    type: ConditionalFieldConfig_2024_06_14,
+  })
+  conditionalOn?: ConditionalFieldConfig_2024_06_14;
+}
+
+  @IsString()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
+  slug!: string;
+
+  @IsString()
   @DocsProperty({ example: "Please enter your text" })
   label!: string;
 
@@ -658,6 +730,16 @@ export class SelectFieldInput_2024_06_14 {
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
   hidden?: boolean;
+
+  @ValidateNested()
+  @Type(() => ConditionalFieldConfig_2024_06_14)
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "Conditional field configuration for follow-up questions. When specified, this field will only be shown if the parent field has one of the specified values.",
+    type: ConditionalFieldConfig_2024_06_14,
+  })
+  conditionalOn?: ConditionalFieldConfig_2024_06_14;
 }
 
 export class MultiSelectFieldInput_2024_06_14 {
@@ -840,6 +922,16 @@ export class RadioGroupFieldInput_2024_06_14 {
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
   hidden?: boolean;
+
+  @ValidateNested()
+  @Type(() => ConditionalFieldConfig_2024_06_14)
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "Conditional field configuration for follow-up questions. When specified, this field will only be shown if the parent field has one of the specified values.",
+    type: ConditionalFieldConfig_2024_06_14,
+  })
+  conditionalOn?: ConditionalFieldConfig_2024_06_14;
 }
 
 export class BooleanFieldInput_2024_06_14 {
