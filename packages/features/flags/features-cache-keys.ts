@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { FeatureId, FeatureState } from "./config";
+import type { FeatureId } from "./config";
 
 /**
  * Zod schemas for cached values
@@ -32,37 +32,37 @@ const PREFIX = "features";
  */
 export const FeaturesCacheEntries = {
   /** Cache entry for a user's feature states (all features for this user) */
-  userFeatureStates: (userId: number): CacheEntry<Record<string, FeatureState>> => ({
+  userFeatureStates: (userId: number) => ({
     key: `${PREFIX}:userFeatureStates:${userId}`,
     schema: FeatureStatesMapSchema,
   }),
 
   /** Cache entry for a team's feature states (all features for this team) */
-  teamFeatureStates: (teamId: number): CacheEntry<Record<string, FeatureState>> => ({
+  teamFeatureStates: (teamId: number) => ({
     key: `${PREFIX}:teamFeatureStates:${teamId}`,
     schema: FeatureStatesMapSchema,
   }),
 
   /** Cache entry for a user's auto opt-in setting */
-  userAutoOptIn: (userId: number): CacheEntry<boolean> => ({
+  userAutoOptIn: (userId: number) => ({
     key: `${PREFIX}:userAutoOptIn:${userId}`,
     schema: BooleanSchema,
   }),
 
   /** Cache entry for a team's auto opt-in setting */
-  teamAutoOptIn: (teamId: number): CacheEntry<boolean> => ({
+  teamAutoOptIn: (teamId: number) => ({
     key: `${PREFIX}:teamAutoOptIn:${teamId}`,
     schema: BooleanSchema,
   }),
 
   /** Cache entry for global feature enabled check (TTL-only) */
-  globalFeature: (slug: FeatureId): CacheEntry<boolean> => ({
+  globalFeature: (slug: FeatureId) => ({
     key: `${PREFIX}:globalFeature:${slug}`,
     schema: BooleanSchema,
   }),
 
   /** Cache entry for teams with feature enabled (TTL-only) */
-  teamsWithFeatureEnabled: (slug: FeatureId): CacheEntry<number[]> => ({
+  teamsWithFeatureEnabled: (slug: FeatureId) => ({
     key: `${PREFIX}:teamsWithFeature:${slug}`,
     schema: NumberArraySchema,
   }),
