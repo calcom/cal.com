@@ -78,7 +78,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       type: "google_calendar",
     });
 
-    const gCalService = new GoogleCalendarService({
+    const gCalService = GoogleCalendarService({
       ...gcalCredential,
       user: null,
       delegatedTo: null,

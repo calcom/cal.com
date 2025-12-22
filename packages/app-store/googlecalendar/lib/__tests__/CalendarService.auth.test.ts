@@ -78,7 +78,7 @@ describe("GoogleCalendarService credential handling", () => {
 
       mockSuccessfulCalendarListFetch();
       expectNoCredentialsInDb();
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = CalendarService(credentialWithDelegation);
       await calendarService.listCalendars();
       expectJWTInstanceToBeCreated();
       await expectCredentialsInDb([
@@ -108,7 +108,7 @@ describe("GoogleCalendarService credential handling", () => {
           },
         },
       });
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = CalendarService(credentialWithDelegation);
       await calendarService.listCalendars();
       expectJWTInstanceToBeCreated();
       await expectCredentialsInDb([
@@ -140,7 +140,7 @@ describe("GoogleCalendarService credential handling", () => {
       mockSuccessfulCalendarListFetch();
       await expectNoCredentialsInDb();
       console.log("TESTS: First instance of CalendarService");
-      const calendarService1 = new CalendarService({
+      const calendarService1 = CalendarService({
         ...credentialWithDelegation,
       });
       await calendarService1.listCalendars();
@@ -169,7 +169,7 @@ describe("GoogleCalendarService credential handling", () => {
           },
         },
       });
-      const calendarService2 = new CalendarService({
+      const calendarService2 = CalendarService({
         ...credentialWithDelegation,
       });
       await calendarService2.listCalendars();
@@ -188,7 +188,7 @@ describe("GoogleCalendarService credential handling", () => {
     test("uses OAuth2 auth when listCalendars is called", async () => {
       const regularCredential = await createCredentialForCalendarService();
       mockSuccessfulCalendarListFetch();
-      const calendarService = new CalendarService(regularCredential);
+      const calendarService = CalendarService(regularCredential);
       await calendarService.listCalendars();
 
       expectOAuth2InstanceToBeCreated();
@@ -223,7 +223,7 @@ describe("GoogleCalendarService credential handling", () => {
         },
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = CalendarService(credentialWithDelegation);
 
       await expect(calendarService.listCalendars()).rejects.toThrow(
         "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
@@ -247,7 +247,7 @@ describe("GoogleCalendarService credential handling", () => {
         },
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = CalendarService(credentialWithDelegation);
 
       await expect(calendarService.listCalendars()).rejects.toThrow(
         "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
@@ -271,7 +271,7 @@ describe("GoogleCalendarService credential handling", () => {
         },
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = CalendarService(credentialWithDelegation);
 
       await expect(calendarService.listCalendars()).rejects.toThrow(
         `User ${credentialWithDelegation.user?.email} might not exist in Google Workspace`
@@ -289,7 +289,7 @@ describe("GoogleCalendarService credential handling", () => {
         authorizeError: new Error("Some unexpected error"),
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = CalendarService(credentialWithDelegation);
 
       await expect(calendarService.listCalendars()).rejects.toThrow(
         "Error authorizing delegation credential"
@@ -303,7 +303,7 @@ describe("GoogleCalendarService credential handling", () => {
         delegationCredentialId: "delegation-credential-id-1",
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = CalendarService(credentialWithDelegation);
       mockSuccessfulCalendarListFetch();
       await calendarService.listCalendars();
       expectOAuth2InstanceToBeCreated();

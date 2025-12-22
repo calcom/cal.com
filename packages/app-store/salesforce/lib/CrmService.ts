@@ -1738,7 +1738,8 @@ export default function createSalesforceCrmService(
  */
 export function createSalesforceCrmServiceWithSalesforceType(
   credential: CredentialPayload,
-  appOptions?: Record<string, unknown>
+  appOptions?: Record<string, unknown>,
+  testMode = false
 ): SalesforceCRM {
-  return new SalesforceCRMService(credential, (appOptions ?? {}) as z.infer<typeof appDataSchema>);
+  return new SalesforceCRMService(credential, (appOptions ?? {}) as z.infer<typeof appDataSchema>, testMode);
 }
