@@ -196,7 +196,13 @@ export class RecurringBookingService implements IBookingService {
     }
 
     function isValidRescheduledBooking(booking: BookingResponse): booking is ValidRescheduledBooking {
-      return !!(booking.previousBooking && booking.previousBooking.uid && booking.previousBooking.startTime && booking.previousBooking.endTime)
+      return !!(
+        isValidBooking(booking) &&
+        booking.previousBooking &&
+        booking.previousBooking.uid &&
+        booking.previousBooking.startTime &&
+        booking.previousBooking.endTime
+      )
     }
 
     if (isReschedule) {
