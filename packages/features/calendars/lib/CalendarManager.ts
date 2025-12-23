@@ -365,7 +365,7 @@ export const createEvent = async (
     })
   );
   return {
-    appName: credential.appName || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -450,7 +450,7 @@ export const updateEvent = async (
   }
 
   return {
-    appName: credential.appName || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
