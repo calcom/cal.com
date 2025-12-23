@@ -10,6 +10,7 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -68,7 +69,14 @@ export const TeamEventTypeForm = ({
         {urlPrefix && urlPrefix.length >= 21 ? (
           <div>
             <TextField
-              label={isPlatform ? "Slug" : `${t("url")}: ${urlPrefix}`}
+              label={
+                <div className="flex items-center">
+                  {isPlatform ? "Slug" : `${t("url")}: ${urlPrefix}`}
+                  <Tooltip content="This is the url">
+                    <Icon name="info" />
+                  </Tooltip>
+                </div>
+              }
               required
               addOnLeading={
                 !isPlatform ? (
@@ -81,7 +89,7 @@ export const TeamEventTypeForm = ({
               }
               {...register("slug")}
               onChange={(e) => {
-                form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                form.setValue("slug", slugify(e?.target.value));
               }}
             />
 
@@ -92,7 +100,14 @@ export const TeamEventTypeForm = ({
         ) : (
           <div>
             <TextField
-              label={isPlatform ? "Slug" : t("url")}
+              label={
+                <div className="flex items-center">
+                  {isPlatform ? "Slug" : t("url")}
+                  <Tooltip content="This is a test tooltip">
+                    <span> (i)</span>
+                  </Tooltip>
+                </div>
+              }
               required
               addOnLeading={
                 !isPlatform ? (
