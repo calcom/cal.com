@@ -103,6 +103,7 @@ export const EventSetupTab = (
   const descriptionLockedProps = shouldLockDisableProps("description");
   const urlLockedProps = shouldLockDisableProps("slug");
   const titleLockedProps = shouldLockDisableProps("title");
+  const locationLockedProps = shouldLockDisableProps("locations");
 
   return (
     <div>
@@ -169,7 +170,7 @@ export const EventSetupTab = (
             className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
-                <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                <span className="max-w-24 md:max-w-56 inline-block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                   {urlPrefix}/
                   {!isManagedEventType
                     ? team
@@ -364,7 +365,8 @@ export const EventSetupTab = (
                   showAppStoreLink={true}
                   isChildrenManagedEventType={isChildrenManagedEventType}
                   isManagedEventType={isManagedEventType}
-                  disableLocationProp={shouldLockDisableProps("locations").disabled}
+                  disableLocationProp={locationLockedProps.disabled}
+                  locationLockedProps={locationLockedProps}
                   getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
                   setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
                   control={formMethods.control as unknown as Control<LocationFormValues>}

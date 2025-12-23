@@ -320,6 +320,54 @@ describe("handleChildrenEventTypes", () => {
       expect(result.deletedUserIds).toEqual([1]);
       expect(result.deletedExistentEventTypes).toEqual(undefined);
     });
+
+    it("Unlocks calVideoSettings and canSendCalVideoTranscriptionEmails when locations unlocked", async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        locations,
+        parentId,
+        userId,
+        scheduleId,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        useEventTypeDestinationCalendarEmail,
+        secondaryEmailId,
+        assignRRMembersUsingSegment,
+        includeNoShowInRRCalculation,
+        instantMeetingScheduleId,
+        ...evType
+      } = mockFindFirstEventType({
+        metadata: { managedEventConfig: { unlockedFields: { locations: true } } },
+        locations: [],
+        // Ensure parent has values for these fields
+        canSendCalVideoTranscriptionEmails: true,
+        // @ts-expect-error test-only shape
+        calVideoSettings: { requireEmailForGuests: true },
+      });
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Capture update call payload and ensure calVideoSettings and canSendCalVideoTranscriptionEmails are omitted
+      const updateArg = prismaMock.eventType.update.mock.calls[0][0];
+      expect(updateArg).toBeTruthy();
+      const updateData = updateArg.data as Record<string, unknown>;
+      expect("calVideoSettings" in updateData).toBe(false);
+      expect("canSendCalVideoTranscriptionEmails" in updateData).toBe(false);
+    });
   });
 
   describe("Slug conflicts", () => {

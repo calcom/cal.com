@@ -297,6 +297,14 @@ export default async function handleChildrenEventTypes({
           return acc;
         }, {});
 
+    // If locations is unlocked, also unlock calVideoSettings and canSendCalVideoTranscriptionEmails
+    if ("locations" in unlockedFieldProps) {
+      // @ts-expect-error dynamic assignment of unlocked fields map
+      unlockedFieldProps.calVideoSettings = true;
+      // @ts-expect-error dynamic assignment of unlocked fields map
+      unlockedFieldProps.canSendCalVideoTranscriptionEmails = true;
+    }
+
     // Add to payload all eventType values that belong to locked fields, changed or unchanged
     // Ignore from payload any eventType values that belong to unlocked fields
     const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
