@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { prisma } from "@calcom/prisma";
 
-import type { FeatureId } from "./config";
-import { FeaturesRepository } from "./features.repository";
+import type { FeatureId } from "../config";
+import { FeaturesRepository } from "../features.repository";
 
 // Helper to generate unique identifiers per test
 const uniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
