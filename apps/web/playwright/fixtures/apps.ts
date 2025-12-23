@@ -13,43 +13,56 @@ export function createAppsFixture(page: Page) {
   return {
     goToAppsCategory: async (category: string) => {
       await page.getByTestId(`app-store-category-${category}`).nth(1).click();
-      await page.goto("apps/categories/analytics");
+      await page.goto("/apps/categories/analytics");
     },
     installAnalyticsAppSkipConfigure: async (app: string) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
-      await page.getByTestId("install-app-button").click();
-      await page.waitForURL(`apps/installation/accounts?slug=${app}`);
+      await Promise.all([
+        page.waitForURL(`**/apps/installation/accounts?slug=${app}`),
+        page.getByTestId("install-app-button").click(),
+      ]);
       await page.reload();
-      await page.click('[data-testid="install-app-button-personal"]');
-      await page.waitForURL(`apps/installation/event-types?slug=${app}`);
+      await Promise.all([
+        page.waitForURL(`**/apps/installation/event-types?slug=${app}`),
+        page.click('[data-testid="install-app-button-personal"]'),
+      ]);
       await page.click('[data-testid="set-up-later"]');
     },
     installAnalyticsApp: async (app: string, eventTypeIds: number[]) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
-      (await page.waitForSelector('[data-testid="install-app-button"]')).click();
-      await page.waitForURL(`apps/installation/accounts?slug=${app}`);
+      await Promise.all([
+        page.waitForURL(`**/apps/installation/accounts?slug=${app}`),
+        page.getByTestId("install-app-button").click(),
+      ]);
       await page.reload();
 
-      await page.click('[data-testid="install-app-button-personal"]');
-      await page.waitForURL(`apps/installation/event-types?slug=${app}`);
+      await Promise.all([
+        page.waitForURL(`**/apps/installation/event-types?slug=${app}`),
+        page.click('[data-testid="install-app-button-personal"]'),
+      ]);
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000);
+      // Wait for event type checkboxes to be visible before clicking
       for (const id of eventTypeIds) {
+        await expect(page.getByTestId(`select-event-type-${id}`)).toBeVisible();
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
 
+      // Wait for save button to be visible before clicking
+      await expect(page.getByTestId("save-event-types")).toBeVisible();
       await page.click(`[data-testid="save-event-types"]`);
 
       // adding random-tracking-id to gtm-tracking-id-input because this field is required and the test fails without it
       if (app === "gtm") {
         await page.waitForLoadState("domcontentloaded");
         for (let index = 0; index < eventTypeIds.length; index++) {
+          await expect(page.getByTestId("gtm-tracking-id-input").nth(index)).toBeVisible();
           await page.getByTestId("gtm-tracking-id-input").nth(index).fill("random-tracking-id");
         }
       }
-      await page.click(`[data-testid="configure-step-save"]`);
-      await page.waitForURL("/event-types");
+
+      // Wait for configure save button to be visible and click with navigation wait
+      await expect(page.getByTestId("configure-step-save")).toBeVisible();
+      await Promise.all([page.waitForURL("**/event-types"), page.click(`[data-testid="configure-step-save"]`)]);
     },
 
     installConferencingAppSkipConfigure: async (app: string) => {
@@ -81,11 +94,12 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000);
+      // Wait for event type checkboxes to be visible before clicking
       for (const id of eventTypeIds) {
+        await expect(page.getByTestId(`select-event-type-${id}`)).toBeVisible();
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
+      await expect(page.getByTestId("save-event-types")).toBeVisible();
       await page.click(`[data-testid="save-event-types"]`);
 
       for (let eindex = 0; eindex < eventTypeIds.length; eindex++) {
@@ -126,9 +140,12 @@ export function createAppsFixture(page: Page) {
       await expect(page.locator(`text=1 apps, ${activeApps} active`)).toBeVisible();
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
-      await page.goto(`event-types/${eventTypeId}?tabName=apps`);
-      await expect(page.getByTestId("vertical-tab-apps")).toHaveAttribute("aria-current", "page"); // fix the race condition
-      await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
+      await page.goto(`/event-types/${eventTypeId}?tabName=apps`);
+      await expect(page.getByTestId("vertical-tab-apps")).toHaveAttribute("aria-current", "page");
+      // First wait for the switch to be visible, then verify it's checked
+      const appSwitch = page.getByTestId(`${app}-app-switch`);
+      await expect(appSwitch).toBeVisible();
+      await expect(appSwitch).toHaveAttribute("data-state", "checked");
     },
   };
 }
