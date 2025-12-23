@@ -369,6 +369,59 @@ describe("Teams Memberships Endpoints", () => {
         });
     });
 
+    it("should clean up hosts and managed event types when membership is deleted", async () => {
+      const cleanupTestUserEmail = `cleanup-test-${randomString()}@api.com`;
+      const cleanupTestUser = await userRepositoryFixture.create({
+        email: cleanupTestUserEmail,
+        username: cleanupTestUserEmail,
+        bio,
+        metadata,
+      });
+
+      const createMembershipBody: CreateTeamMembershipInput = {
+        userId: cleanupTestUser.id,
+        accepted: true,
+        role: "MEMBER",
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post(`/v2/teams/${team.id}/memberships`)
+        .send(createMembershipBody)
+        .expect(201);
+
+      const createdMembership: TeamMembershipOutput = createResponse.body.data;
+
+      const teamEventTypesBeforeDelete = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
+      const collectiveEventBeforeDelete = teamEventTypesBeforeDelete?.find(
+        (eventType) => eventType.slug === teamEventType.slug
+      );
+      const userHostBeforeDelete = collectiveEventBeforeDelete?.hosts.find(
+        (host) => host.userId === cleanupTestUser.id
+      );
+      expect(userHostBeforeDelete).toBeTruthy();
+
+      const managedEventTypesBeforeDelete = await eventTypesRepositoryFixture.getAllUserEventTypes(cleanupTestUser.id);
+      expect(managedEventTypesBeforeDelete?.length).toEqual(1);
+
+      await request(app.getHttpServer())
+        .delete(`/v2/teams/${team.id}/memberships/${createdMembership.id}`)
+        .expect(200);
+
+      const teamEventTypesAfterDelete = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
+      const collectiveEventAfterDelete = teamEventTypesAfterDelete?.find(
+        (eventType) => eventType.slug === teamEventType.slug
+      );
+      const userHostAfterDelete = collectiveEventAfterDelete?.hosts.find(
+        (host) => host.userId === cleanupTestUser.id
+      );
+      expect(userHostAfterDelete).toBeFalsy();
+
+      const managedEventTypesAfterDelete = await eventTypesRepositoryFixture.getAllUserEventTypes(cleanupTestUser.id);
+      expect(managedEventTypesAfterDelete?.length).toEqual(0);
+
+      await userRepositoryFixture.deleteByEmail(cleanupTestUserEmail);
+    });
+
     it("should fail to get the membership of the org's team we just deleted", async () => {
       return request(app.getHttpServer())
         .get(`/v2/teams/${team.id}/memberships/${membershipCreatedViaApi.id}`)
