@@ -31,6 +31,7 @@ import { RejectionReasonDialog } from "@components/dialog/RejectionReasonDialog"
 import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
+import { WrongAssignmentDialog } from "@components/dialog/WrongAssignmentDialog";
 
 import { useBookingConfirmation } from "../hooks/useBookingConfirmation";
 import type { BookingItemProps } from "../types";
@@ -118,6 +119,12 @@ export function BookingActionsDropdown({
   const setIsOpenAddGuestsDialog = useBookingActionsStoreContext((state) => state.setIsOpenAddGuestsDialog);
   const isOpenReportDialog = useBookingActionsStoreContext((state) => state.isOpenReportDialog);
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
+  const isOpenWrongAssignmentDialog = useBookingActionsStoreContext(
+    (state) => state.isOpenWrongAssignmentDialog
+  );
+  const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
+    (state) => state.setIsOpenWrongAssignmentDialog
+  );
   const rerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.rerouteDialogIsOpen);
   const setRerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.setRerouteDialogIsOpen);
   const isCancelDialogOpen = useBookingActionsStoreContext((state) => state.isCancelDialogOpen);
@@ -440,6 +447,18 @@ export function BookingActionsDropdown({
         isRecurring={isRecurring}
         status={getBookingStatus()}
       />
+      {isBookingFromRoutingForm && (
+        <WrongAssignmentDialog
+          isOpenDialog={isOpenWrongAssignmentDialog}
+          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+          bookingUid={booking.uid}
+          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+          guestEmail={booking.attendees[0]?.email ?? ""}
+          hostEmail={booking.user?.email ?? ""}
+          hostName={booking.user?.name ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
+        />
+      )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
@@ -683,6 +702,21 @@ export function BookingActionsDropdown({
                   {reportActionWithHandler.label}
                 </DropdownItem>
               </DropdownMenuItem>
+              {isBookingFromRoutingForm && (
+                <DropdownMenuItem className="rounded-lg" key="report_wrong_assignment">
+                  <DropdownItem
+                    type="button"
+                    color="destructive"
+                    StartIcon="user-x"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsOpenWrongAssignmentDialog(true);
+                    }}
+                    data-testid="report_wrong_assignment">
+                    {t("report_wrong_assignment")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              )}
             </>
             <DropdownMenuSeparator />
             <DropdownMenuItem
