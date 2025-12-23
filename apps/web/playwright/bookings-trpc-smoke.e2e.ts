@@ -62,7 +62,7 @@ test.describe("tRPC bookings route smoke tests", () => {
 
     // Call the tRPC endpoint directly
     const response = await page.request.get(
-      `/api/trpc/viewer/bookings/find?batch=1&input=${encodeURIComponent(
+      `/api/trpc/bookings/find?batch=1&input=${encodeURIComponent(
         JSON.stringify({ "0": { json: { bookingUid } } })
       )}`
     );
@@ -82,7 +82,7 @@ test.describe("tRPC bookings route smoke tests", () => {
     await users.create({ name: "Test User" });
 
     const response = await page.request.get(
-      `/api/trpc/viewer/bookings/find?batch=1&input=${encodeURIComponent(
+      `/api/trpc/bookings/find?batch=1&input=${encodeURIComponent(
         JSON.stringify({ "0": { json: { bookingUid: "non-existent-uid" } } })
       )}`
     );
@@ -135,7 +135,7 @@ test.describe("tRPC bookings route smoke tests", () => {
 
     // Call the tRPC endpoint
     const response = await page.request.get(
-      `/api/trpc/viewer/bookings/getBookingAttendees?batch=1&input=${encodeURIComponent(
+      `/api/trpc/bookings/getBookingAttendees?batch=1&input=${encodeURIComponent(
         JSON.stringify({ "0": { json: { seatReferenceUid } } })
       )}`
     );
@@ -203,7 +203,7 @@ test.describe("tRPC bookings route smoke tests", () => {
 
     // Call the tRPC endpoint (public procedure, no auth needed)
     const response = await page.request.get(
-      `/api/trpc/viewer/bookings/getInstantBookingLocation?batch=1&input=${encodeURIComponent(
+      `/api/trpc/bookings/getInstantBookingLocation?batch=1&input=${encodeURIComponent(
         JSON.stringify({ "0": { json: { bookingId: booking.id } } })
       )}`
     );
@@ -272,7 +272,7 @@ test.describe("tRPC bookings route smoke tests", () => {
 
     // Call the tRPC endpoint - should return null because booking is PENDING, not ACCEPTED
     const response = await page.request.get(
-      `/api/trpc/viewer/bookings/getInstantBookingLocation?batch=1&input=${encodeURIComponent(
+      `/api/trpc/bookings/getInstantBookingLocation?batch=1&input=${encodeURIComponent(
         JSON.stringify({ "0": { json: { bookingId: booking.id } } })
       )}`
     );
@@ -338,7 +338,7 @@ test.describe("tRPC bookings route smoke tests", () => {
     const newLocation = "https://zoom.us/j/123456789";
 
     // Call the tRPC mutation endpoint
-    const response = await page.request.post(`/api/trpc/viewer/bookings/editLocation?batch=1`, {
+    const response = await page.request.post(`/api/trpc/bookings/editLocation?batch=1`, {
       data: {
         "0": {
           json: {
@@ -429,7 +429,7 @@ test.describe("tRPC bookings route smoke tests", () => {
     });
 
     // Try to edit the booking as the other user
-    const response = await page.request.post(`/api/trpc/viewer/bookings/editLocation?batch=1`, {
+    const response = await page.request.post(`/api/trpc/bookings/editLocation?batch=1`, {
       data: {
         "0": {
           json: {
