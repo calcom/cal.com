@@ -68,7 +68,6 @@ export interface ISyncFormData {
   ruleId: string;
   rule: IAttributeSyncRule;
   syncFieldMappings: (IFieldMapping | INewFieldMapping)[];
-  [key: string]: unknown;
 }
 export interface IntegrationAttributeSync {
   id: string;
