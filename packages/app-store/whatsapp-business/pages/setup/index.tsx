@@ -31,7 +31,10 @@ export default function WhatsappBusinessSetup({ calIdTeamId }: { calIdTeamId?: s
   });
 
   const [errorMessage, setErrorMessage] = useState("");
-  const [flowType, setFlowType] = useState<"embedded" | "manual">("embedded");
+  const [flowType, setFlowType] = useState({
+    label: "Embedded",
+    value: "embedded",
+  });
 
   return (
     <div className="bg-emphasis flex h-screen dark:bg-inherit">
@@ -48,13 +51,13 @@ export default function WhatsappBusinessSetup({ calIdTeamId }: { calIdTeamId?: s
 
         <Select
           label={t("select_setup_flow")!}
-          value={flowType.label}
-          onChange={(type) => setFlowType(type.value)}
+          value={flowType}
+          onChange={(type) => setFlowType(type)}
           options={["Embedded", "Manual"].map((flow) => ({ label: flow, value: flow.toLowerCase() }))}
           className="mb-4"
         />
 
-        {flowType === "embedded" ? (
+        {flowType.value === "embedded" ? (
           <WhatsAppEmbeddedSignup
             configId={META_WHATSAPP_BUSINESS_CONFIG_ID}
             appId={META_WHATSAPP_BUSINESS_APP_ID}
