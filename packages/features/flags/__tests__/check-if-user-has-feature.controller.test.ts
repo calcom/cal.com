@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
-import { checkIfUserHasFeatureController } from "./check-if-user-has-feature.controller";
+import { checkIfUserHasFeatureController } from "../operations/check-if-user-has-feature.controller";
 
 /**
  * Since our current controller doesn't run any authentication checks or input validation,
