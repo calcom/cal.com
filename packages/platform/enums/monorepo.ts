@@ -1,9 +1,2 @@
-export * from "./src/event-types/booking-window.enum";
-export * from "./src/event-types/editable";
-export * from "./src/event-types/field-type";
-export * from "./src/event-types/interval-limits.enum";
-export * from "./src/event-types/period-type";
-export * from "./src/event-types/scheduling-type";
-export * from "./src/event-types/frequency";
-export * from "./src/event-types/booker-layouts.enum";
-export * from "./src/event-types/confirmation-policy.enum";
+// Re-export everything from index to avoid divergence
+export * from "./index";

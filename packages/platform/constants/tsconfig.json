@@ -1,7 +1,7 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES2021",
     "resolveJsonModule": true,
     "baseUrl": "./",
     "outDir": "./dist"

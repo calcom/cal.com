@@ -11,8 +11,9 @@
       "types": "./dist/index.d.ts"
     },
     "./monorepo": {
-      "import": "./monorepo.ts",
-      "require": "./monorepo.ts"
+      "import": "./dist/monorepo.js",
+      "require": "./dist/monorepo.js",
+      "types": "./dist/monorepo.d.ts"
     }
   },
   "scripts": {
