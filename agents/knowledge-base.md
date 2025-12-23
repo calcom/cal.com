@@ -255,7 +255,55 @@ import { TRPCError } from "@trpc/server";
 
 ### packages/features Import Restrictions
 
-Files in `packages/features/**` should NOT import from `trpc`. This keeps the features package decoupled from the tRPC layer, making the code more reusable and testable. Use `ErrorWithCode` for error handling in these files, and let the tRPC middleware handle the conversion.
+Files in `packages/features/**` should NOT import from `@calcom/trpc`. This keeps the features package decoupled from the tRPC layer, making the code more reusable and testable. Use `ErrorWithCode` for error handling in these files, and let the tRPC middleware handle the conversion.
+
+**Architecture: packages/features vs apps/web/modules**
+
+The `packages/features` package should contain only framework-agnostic code:
+- Repositories (data access layer)
+- Services (business logic)
+- Core utilities and helpers
+- Types and interfaces
+
+Web-specific code, particularly anything that uses tRPC, should live in `apps/web/modules/...`. This includes:
+- React hooks that use tRPC queries/mutations
+- tRPC-specific utilities
+- Web-only UI components that depend on tRPC
+
+**Example:**
+
+If you have a feature called `feature-opt-in`:
+
+```
+packages/features/feature-opt-in/
+├── repository/
+│   └── FeatureOptInRepository.ts    # Data access - OK here
+├── service/
+│   └── FeatureOptInService.ts       # Business logic - OK here
+└── types.ts                          # Types - OK here
+
+apps/web/modules/feature-opt-in/
+└── hooks/
+    └── useFeatureOptIn.ts           # tRPC hook - MUST be here, not in packages/features
+```
+
+```typescript
+// ❌ Bad - tRPC hook in packages/features
+// packages/features/feature-opt-in/hooks/useFeatureOptIn.ts
+import { trpc } from "@calcom/trpc/react";
+export function useFeatureOptIn() {
+  return trpc.viewer.featureOptIn.useQuery();
+}
+
+// ✅ Good - tRPC hook in apps/web/modules
+// apps/web/modules/feature-opt-in/hooks/useFeatureOptIn.ts
+import { trpc } from "@calcom/trpc/react";
+export function useFeatureOptIn() {
+  return trpc.viewer.featureOptIn.useQuery();
+}
+```
+
+This separation ensures that `packages/features` remains portable and can be used by other apps (like `apps/api/v2`) without pulling in web-specific dependencies like tRPC React hooks.
 
 ## Basic Performance Guidelines
 
