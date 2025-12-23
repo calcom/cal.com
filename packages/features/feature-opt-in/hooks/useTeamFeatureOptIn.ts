@@ -1,11 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { FeatureState } from "../../flags/config";
 import type { NormalizedFeature, UseFeatureOptInResult } from "./types";
+
+type FeatureBlockingState = { orgState?: FeatureState };
 
 /**
  * Hook for managing feature opt-in at the team level.
@@ -45,6 +49,18 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
     },
   });
 
+  const featureBlockingState = useMemo(() => {
+    const map = new Map<string, FeatureBlockingState>();
+
+    (featuresQuery.data ?? []).forEach((feature) => {
+      map.set(feature.featureId, {
+        orgState: feature.orgState,
+      });
+    });
+
+    return map;
+  }, [featuresQuery.data]);
+
   // Normalize features to common shape
   const features: NormalizedFeature[] = (featuresQuery.data ?? []).map((feature) => ({
     slug: feature.featureId,
@@ -61,8 +77,21 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
     setAutoOptInMutation.mutate({ teamId, autoOptIn: checked });
   };
 
-  // Team scope: no blocking warnings
-  const getBlockedWarning = (): string | null => {
+  // Team scope: check if blocked by organization
+  const getBlockedWarning = (feature: NormalizedFeature): string | null => {
+    if (feature.currentState !== "enabled") {
+      return null;
+    }
+
+    const blockingState = featureBlockingState.get(feature.slug);
+    if (!blockingState) {
+      return null;
+    }
+
+    if (blockingState.orgState === "disabled") {
+      return t("feature_blocked_by_org_warning");
+    }
+
     return null;
   };
 

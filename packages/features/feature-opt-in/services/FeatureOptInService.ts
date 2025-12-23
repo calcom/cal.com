@@ -148,15 +148,18 @@ export class FeatureOptInService {
    * List all opt-in features with their raw states for a team.
    * Used for team admin settings page to configure feature opt-in.
    * Only returns features that are in the allowlist and globally enabled.
+   * If parentOrgId is provided, also returns the organization state for each feature.
    */
-  async listFeaturesForTeam(input: { teamId: number }) {
-    const { teamId } = input;
+  async listFeaturesForTeam(input: { teamId: number; parentOrgId?: number | null }) {
+    const { teamId, parentOrgId } = input;
+
+    const teamIdsToQuery = parentOrgId ? [teamId, parentOrgId] : [teamId];
 
     const [allFeatures, teamStates] = await Promise.all([
       this.featuresRepository.getAllFeatures(),
-      // Get all team feature states in a single query
+      // Get all team feature states in a single query (includes org if parentOrgId provided)
       this.featuresRepository.getTeamsFeatureStates({
-        teamIds: [teamId],
+        teamIds: teamIdsToQuery,
         featureIds: OPT_IN_FEATURES.map((config) => config.slug),
       }),
     ]);
@@ -165,11 +168,13 @@ export class FeatureOptInService {
       const globalFeature = allFeatures.find((f) => f.slug === config.slug);
       const globalEnabled = globalFeature?.enabled ?? false;
       const teamState = teamStates[config.slug]?.[teamId] ?? "inherit";
+      const orgState: FeatureState = parentOrgId ? teamStates[config.slug]?.[parentOrgId] ?? "inherit" : "inherit";
 
       return {
         featureId: config.slug,
         globalEnabled,
         teamState,
+        orgState,
       };
     });
 

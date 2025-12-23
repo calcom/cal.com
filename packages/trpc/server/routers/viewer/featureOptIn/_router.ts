@@ -59,9 +59,17 @@ export const featureOptInRouter = router({
   /**
    * Get all opt-in features with states for a team settings page.
    * Used by team admins to configure feature opt-in for their team.
+   * Also returns the organization state if the team belongs to an organization.
    */
   listForTeam: createTeamPbacProcedure("team.read").query(async ({ input }) => {
-    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId });
+    // Get the team's parent organization ID (if any)
+    const team = await prisma.team.findUnique({
+      where: { id: input.teamId },
+      select: { parentId: true },
+    });
+    const parentOrgId = team?.parentId ?? null;
+
+    return featureOptInService.listFeaturesForTeam({ teamId: input.teamId, parentOrgId });
   }),
 
   /**
