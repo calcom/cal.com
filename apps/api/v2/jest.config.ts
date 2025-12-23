@@ -15,7 +15,7 @@ const config: Config = {
   },
   setupFiles: ["<rootDir>/test/setEnvVars.ts"],
   testPathIgnorePatterns: ["/dist/", "/node_modules/"],
-  transformIgnorePatterns: ["/dist/", "/node_modules/"],
+  transformIgnorePatterns: ["/dist/", "/node_modules/(?!@calcom/platform-)"],
 };
 
 export default config;
