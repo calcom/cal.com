@@ -4,9 +4,8 @@
  * Centralized utility for opening links in the in-app browser.
  * Configured for session sharing with Safari/Chrome to maintain login state.
  */
-
-import * as WebBrowser from "expo-web-browser";
 import { showErrorAlert } from "./alerts";
+import * as WebBrowser from "expo-web-browser";
 
 /**
  * Configuration options for in-app browser

@@ -52,7 +52,8 @@ const AssignmentWarningDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/AssignmentWarningDialog")
 );
 
-const EventSetupTab = dynamic(() =>
+const EventSetupTab = dynamic(
+  () =>
     // import web wrapper when it's ready
     import("./EventSetupTabWebWrapper").then((mod) => mod),
   { loading: () => null }
@@ -76,7 +77,7 @@ const EventAdvancedTab = dynamic(() =>
 );
 
 const EventInstantTab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/instant/EventInstantTab").then(
+  import("@calcom/web/modules/event-types/components/tabs/instant/EventInstantTab").then(
     (mod) => mod.EventInstantTab
   )
 );
@@ -87,21 +88,21 @@ const EventRecurringTab = dynamic(() =>
 );
 
 const EventAppsTab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
+  import("@calcom/web/modules/event-types/components/tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
 );
 
 const EventWorkflowsTab = dynamic(
-  () => import("@calcom/features/eventtypes/components/tabs/workflows/EventWorkfowsTab")
+  () => import("@calcom/web/modules/event-types/components/tabs/workflows/EventWorkflowsTab")
 );
 
 const EventWebhooksTab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/webhooks/EventWebhooksTab").then(
+  import("@calcom/web/modules/event-types/components/tabs/webhooks/EventWebhooksTab").then(
     (mod) => mod.EventWebhooksTab
   )
 );
 
 const EventAITab = dynamic(() =>
-  import("@calcom/features/eventtypes/components/tabs/ai/EventAITab").then((mod) => mod.EventAITab)
+  import("@calcom/web/modules/event-types/components/tabs/ai/EventAITab").then((mod) => mod.EventAITab)
 );
 
 export type EventTypeWebWrapperProps = {

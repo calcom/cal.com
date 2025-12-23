@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { WebAuthService } from "../services/webAuth";
 import { CalComAPIService } from "../services/calcom";
 import {
   createCalComOAuthService,
   OAuthTokens,
   CalComOAuthService,
 } from "../services/oauthService";
+import { WebAuthService } from "../services/webAuth";
 import { secureStorage } from "../utils/storage";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface AuthContextType {
   isAuthenticated: boolean;
