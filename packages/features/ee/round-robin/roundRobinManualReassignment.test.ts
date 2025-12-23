@@ -465,9 +465,9 @@ describe("roundRobinManualReassignment test", () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     await mockEventManagerReschedule();
 
-    const sendRoundRobinReassignedEmailsAndSMSSpy = vi.spyOn(
+    const sendReassignedEmailsAndSMSSpy = vi.spyOn(
       await import("@calcom/emails/email-manager"),
-      "sendRoundRobinReassignedEmailsAndSMS"
+      "sendReassignedEmailsAndSMS"
     );
 
     const testDestinationCalendar = createTestDestinationCalendar();
@@ -523,7 +523,7 @@ describe("roundRobinManualReassignment test", () => {
       reassignedById: 1,
     });
 
-    expect(sendRoundRobinReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    expect(sendReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
   });
 });
 

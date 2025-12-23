@@ -45,7 +45,7 @@ export const LargeCalendar = ({
 
   // HACK: force rerender when overlay events change
   // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
-  useEffect(() => {}, [displayOverlay]);
+  useEffect(() => { }, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
     if (!overlayEvents || !displayOverlay) return [];
@@ -57,6 +57,7 @@ export const LargeCalendar = ({
         title: "Busy",
         options: {
           status: "ACCEPTED",
+          borderOnly: true,
         },
       } as CalendarEvent;
     });

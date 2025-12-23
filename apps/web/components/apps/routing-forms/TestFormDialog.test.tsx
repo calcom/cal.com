@@ -60,7 +60,7 @@ function mockEventTypeRedirectUrlMatchingRoute() {
 /**
  * fixes the error due to Formbricks
  */
-vi.mock("@calcom/features/shell/Shell", () => ({
+vi.mock("@calcom/web/modules/shell/Shell", () => ({
   ShellMain: vi.fn(),
 }));
 
@@ -452,7 +452,8 @@ describe("TestFormDialog", () => {
       fireEvent.click(screen.getByText("submit"));
 
       // Verify the URL shows the substituted value, not the variable
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("/team/sales-team/meeting");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("/team/Sales%20Team/meeting");
+      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("/team/sales-team/meeting");
       expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("{name}");
     });
 

@@ -1,6 +1,7 @@
-import { localStorage } from "@calcom/lib/webstorage";
+import { sessionStorage } from "@calcom/lib/webstorage";
 
 const BOOKING_SUCCESS_STORAGE_KEY_PREFIX = "cal.successfulBooking";
+const DECOY_BOOKING_EXPIRATION_MS = 5 * 60 * 1000;
 
 interface DecoyBookingData {
   booking: {
@@ -20,7 +21,8 @@ function getStorageKey(uid: string): string {
 }
 
 /**
- * Stores decoy booking data in localStorage using the booking's uid
+ * Stores decoy booking data in sessionStorage using the booking's uid
+ * Data automatically expires when the browser tab/window is closed or after 5 minutes
  * @param booking - The booking data to store (must include uid)
  */
 export function storeDecoyBooking(booking: Record<string, unknown> & { uid: string }): void {
@@ -29,11 +31,11 @@ export function storeDecoyBooking(booking: Record<string, unknown> & { uid: stri
     timestamp: Date.now(),
   };
   const storageKey = getStorageKey(booking.uid);
-  localStorage.setItem(storageKey, JSON.stringify(bookingSuccessData));
+  sessionStorage.setItem(storageKey, JSON.stringify(bookingSuccessData));
 }
 
 /**
- * Retrieves decoy booking data from localStorage
+ * Retrieves decoy booking data from sessionStorage
  * @param uid - The booking uid
  * @returns The stored booking data or null if not found or expired
  */
@@ -43,7 +45,7 @@ export function getDecoyBooking(uid: string): DecoyBookingData | null {
   }
 
   const storageKey = getStorageKey(uid);
-  const dataStr = localStorage.getItem(storageKey);
+  const dataStr = sessionStorage.getItem(storageKey);
 
   if (!dataStr) {
     return null;
@@ -52,26 +54,22 @@ export function getDecoyBooking(uid: string): DecoyBookingData | null {
   try {
     const data: DecoyBookingData = JSON.parse(dataStr);
 
-    // Check if the data is too old (5 min)
-    const dataAge = Date.now() - data.timestamp;
-    const maxAge = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-    if (dataAge > maxAge) {
-      // Remove the data from localStorage if expired
-      localStorage.removeItem(storageKey);
+    const isExpired = Date.now() - data.timestamp > DECOY_BOOKING_EXPIRATION_MS;
+    if (isExpired) {
+      sessionStorage.removeItem(storageKey);
       return null;
     }
 
     return data;
   } catch {
     // If parsing fails, remove the corrupted data
-    localStorage.removeItem(storageKey);
+    sessionStorage.removeItem(storageKey);
     return null;
   }
 }
 
 /**
- * Removes decoy booking data from localStorage
+ * Removes decoy booking data from sessionStorage
  * @param uid - The booking uid
  */
 export function removeDecoyBooking(uid: string): void {
@@ -80,7 +78,7 @@ export function removeDecoyBooking(uid: string): void {
   }
 
   const storageKey = getStorageKey(uid);
-  localStorage.removeItem(storageKey);
+  sessionStorage.removeItem(storageKey);
 }
 
 export type { DecoyBookingData };

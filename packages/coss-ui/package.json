@@ -1,0 +1,30 @@
+{
+  "name": "@coss/ui",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    "./styles.css": "./src/styles/globals.css",
+    "./lib/*": "./src/lib/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
+    "registry:pull": "ts-node ../../scripts/pull-coss-ui-components.ts"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.0.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "0.555.0",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "tsc-absolute": "1.0.0",
+    "typescript": "5.9.0-beta"
+  }
+}

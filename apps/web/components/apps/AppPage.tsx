@@ -15,7 +15,9 @@ import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calco
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import type { App as AppType } from "@calcom/types/App";
+import type { inferRouterOutputs } from "@trpc/server";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -145,9 +147,10 @@ export const AppPage = ({
     useGrouping: false,
   }).format(price);
 
-  const [existingCredentials, setExistingCredentials] = useState<
-    NonNullable<typeof appDbQuery.data>["credentials"]
-  >([]);
+  type RouterOutput = inferRouterOutputs<AppRouter>;
+  type Credentials = RouterOutput["viewer"]["apps"]["appCredentialsByType"]["credentials"];
+
+  const [existingCredentials, setExistingCredentials] = useState<Credentials>([]);
 
   /**
    * Marks whether the app is installed for all possible teams and the user.
@@ -184,8 +187,7 @@ export const AppPage = ({
     enabled: !!dependencies,
   });
 
-  const disableInstall =
-    dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
+  const disableInstall = dependencyData.data ? dependencyData.data.some((dependency) => !dependency.installed) : false;
 
   // const disableInstall = requiresGCal && !gCalInstalled.data;
 
@@ -497,7 +499,7 @@ export const AppPage = ({
           )}
         </ul>
         <hr className="border-subtle my-8 border" />
-        <span className="leading-1 text-subtle block text-xs">
+        <span className="text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>

@@ -43,7 +43,7 @@ export default function CreateEventTypeForm({
       handleSubmit={(values) => {
         handleSubmit(values);
       }}>
-      <div className="mt-3 space-y-6 pb-11">
+      <div className="mt-3 stack-y-6 pb-11">
         <TextField
           label={t("title")}
           placeholder={t("quick_chat")}

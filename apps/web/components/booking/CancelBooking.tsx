@@ -7,9 +7,11 @@ import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import type { RecurringEvent } from "@calcom/types/Calendar";
+import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
@@ -40,7 +42,7 @@ const InternalNotePresetsSelect = ({
       setCancellationReason("");
     } else {
       setShowOtherInput(false);
-      onPresetSelect && onPresetSelect(option);
+      onPresetSelect?.(option);
     }
   };
 
@@ -50,7 +52,7 @@ const InternalNotePresetsSelect = ({
       <Select
         className="mb-2"
         options={[
-          ...internalNotePresets?.map((preset) => ({
+          ...internalNotePresets.map((preset) => ({
             label: preset.name,
             value: preset.id,
           })),
@@ -105,7 +107,10 @@ type Props = {
   };
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
+  renderContext: "booking-single-view" | "dialog";
   eventTypeMetadata?: Record<string, unknown> | null;
+  showErrorAsToast?: boolean;
+  onCanceled?: () => void;
 };
 
 export default function CancelBooking(props: Props) {
@@ -168,12 +173,13 @@ export default function CancelBooking(props: Props) {
       node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }
-     
   }, []);
+
+  const isRenderedAsCancelDialog = props.renderContext === "dialog";
 
   return (
     <>
-      {error && (
+      {error && !props.showErrorAsToast && (
         <div className="mt-8">
           <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
             <Icon name="x" className="h-6 w-6 text-red-600" />
@@ -186,7 +192,7 @@ export default function CancelBooking(props: Props) {
         </div>
       )}
       {!error && (
-        <div className="mt-5 sm:mt-6">
+        <div className={classNames(isRenderedAsCancelDialog ? "-mt-2 mb-8" : "mt-5 sm:mt-6")}>
           {props.isHost && props.internalNotePresets.length > 0 && (
             <>
               <InternalNotePresetsSelect
@@ -219,13 +225,13 @@ export default function CancelBooking(props: Props) {
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
-            className="mb-4 mt-2 w-full "
+            className={classNames("mb-4 w-full", !isRenderedAsCancelDialog && "mt-2")}
             rows={3}
           />
           {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
               <Icon name="info" className="text-subtle h-4 w-4" />
-              <p className="text-default text-subtle text-sm leading-none">
+              <p className="text-subtle text-sm leading-none">
                 {t("notify_attendee_cancellation_reason_warning")}
               </p>
             </div>
@@ -248,7 +254,11 @@ export default function CancelBooking(props: Props) {
             </div>
           )}
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
-            <div className="ml-auto flex w-full space-x-4 ">
+            <div
+              className={classNames(
+                "ml-auto flex w-full space-x-4",
+                isRenderedAsCancelDialog && "justify-end"
+              )}>
               <Button
                 className="ml-auto"
                 color="secondary"
@@ -295,15 +305,23 @@ export default function CancelBooking(props: Props) {
                       booking: bookingWithCancellationReason,
                     });
                     refreshData();
+                    if (props.onCanceled) {
+                      props.onCanceled();
+                    }
                   } else {
                     const data = await res.json();
                     setLoading(false);
-                    setError(
+                    const errorMessage =
                       data.message ||
-                        `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                          "please_try_again"
-                        )}`
-                    );
+                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
+                        "please_try_again"
+                      )}`;
+
+                    if (props.showErrorAsToast) {
+                      showToast(errorMessage, "error");
+                    } else {
+                      setError(errorMessage);
+                    }
                   }
                 }}
                 loading={loading}>

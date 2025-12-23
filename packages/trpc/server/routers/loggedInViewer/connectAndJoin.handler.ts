@@ -213,6 +213,7 @@ export const Handler = async ({ ctx, input }: Options) => {
     eventTypeId: eventType?.id,
     videoCallData,
     customReplyToEmail: eventType?.customReplyToEmail,
+    organizationId: user?.organizationId ?? null,
     team: updatedBooking.eventType?.team
       ? {
           name: updatedBooking.eventType.team.name,

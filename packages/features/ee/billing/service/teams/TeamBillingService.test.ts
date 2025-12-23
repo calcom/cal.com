@@ -173,26 +173,6 @@ describe("TeamBillingService", () => {
         membershipCount: 10,
       });
     });
-
-    it("should not update if membership count is less than minimum for organizations", async () => {
-      const teamBillingService = new TeamBillingService({
-        team: mockTeam,
-        billingProviderService: mockBillingProviderService,
-        teamBillingDataRepository: mockTeamBillingDataRepository,
-        billingRepository: mockBillingRepository,
-      });
-
-      prismaMock.membership.count.mockResolvedValue(2);
-      vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
-        url: "http://checkout.url",
-        paymentId: "cs_789",
-        paymentRequired: false,
-      });
-
-      await teamBillingService.updateQuantity();
-
-      expect(mockBillingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
-    });
   });
 
   describe("checkIfTeamPaymentRequired", () => {

@@ -169,7 +169,7 @@ const SlotItem = ({
           data-time={slot.time}
           onClick={onButtonClick}
           className={classNames(
-            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
+            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
             `${customClassNames}`
           )}
@@ -242,7 +242,7 @@ const SlotItem = ({
             {isOverlapping && (
               <HoverCard.Portal>
                 <HoverCard.Content side="top" align="end" sideOffset={2}>
-                  <div className="text-emphasis bg-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
+                  <div className="text-emphasis bg-inverted w-(--booker-timeslots-width) rounded-md p-3">
                     <div className="flex items-center gap-2">
                       <p>Busy</p>
                     </div>
@@ -306,13 +306,15 @@ interface IOOOSlotProps {
   toUser?: IOutOfOfficeData["anyDate"]["toUser"];
   reason?: string;
   emoji?: string;
+  notes?: string | null;
+  showNotePublicly?: boolean;
   time?: string;
   className?: string;
 }
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
   const isPlatform = useIsPlatform();
-  const { fromUser, toUser, reason, emoji, time, className = "" } = props;
+  const { fromUser, toUser, reason, emoji, notes, showNotePublicly, time, className = "" } = props;
 
   if (isPlatform) return <></>;
   return (
@@ -322,6 +324,8 @@ const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
       date={dayjs(time).format("YYYY-MM-DD")}
       reason={reason}
       emoji={emoji}
+      notes={notes}
+      showNotePublicly={showNotePublicly}
       borderDashed
       className={className}
     />

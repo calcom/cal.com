@@ -16,16 +16,12 @@ import type { InputFieldProps } from "./types";
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
+    <span className="bg-cal-muted border-default text-subtle inline-flex shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
       {props.children}
     </span>
   );
 }
 
-type PasswordFieldTranslations = {
-  showPasswordText?: string;
-  hidePasswordText?: string;
-};
 
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
@@ -165,7 +161,7 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   return (
     <div
       {...props}
-      className={classNames("bg-default border-default space-y-2 rounded-sm border p-2", props.className)}>
+      className={classNames("bg-default border-default stack-y-2 rounded-sm border p-2", props.className)}>
       {props.children}
     </div>
   );
@@ -194,7 +190,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
       ref={ref}
       addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
-      containerClassName="mx-3 mt-2"
+      containerClassName="mt-1"
       {...props}
     />
   );

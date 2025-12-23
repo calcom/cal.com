@@ -5,9 +5,9 @@ import z from "zod";
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
@@ -368,7 +368,7 @@ export class PaymentService implements IAbstractPaymentService {
       });
       return updatedPayment;
     } catch (e) {
-      const err = getErrorFromUnknown(e);
+      const err = getServerErrorFromUnknown(e);
       throw err;
     }
   }

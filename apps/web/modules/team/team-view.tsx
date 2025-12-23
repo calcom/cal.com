@@ -65,7 +65,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         <li
           key={index}
           className={classNames(
-            "bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "bg-default hover:bg-cal-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
@@ -81,19 +81,14 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
               }}
               data-testid="event-type-link"
               className="flex justify-between">
-              <div className="flex-shrink">
+              <div className="shrink">
                 <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
                   <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
                 </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1 self-center">
-                <UserAvatarGroup
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size="sm"
-                  users={type.users}
-                />
+                <UserAvatarGroup truncateAfter={4} className="flex shrink-0" size="sm" users={type.users} />
               </div>
             </Link>
           </div>
@@ -104,13 +99,13 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
 
   const SubTeams = () =>
     team.children.length ? (
-      <ul className="divide-subtle border-subtle bg-default !static w-full divide-y rounded-md border">
+      <ul className="divide-subtle border-subtle bg-default static! w-full divide-y rounded-md border">
         {team.children.map((ch, i) => {
           const memberCount = team.members.filter(
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full rounded-md transition">
+            <li key={i} className="hover:bg-cal-muted w-full rounded-md transition">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
@@ -134,7 +129,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         })}
       </ul>
     ) : (
-      <div className="space-y-6" data-testid="event-types">
+      <div className="stack-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
             <h2 className="font-cal text-emphasis mb-2 text-3xl">{` ${t("org_no_teams_yet")}`}</h2>
@@ -160,8 +155,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           {!isBioEmpty && (
             <>
               <div
-                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                 
+                className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>

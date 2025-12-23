@@ -36,12 +36,12 @@ export function BookingSuccessCard({
           <div className="flex items-end justify-center px-4 pb-20 pt-4 text-center sm:flex sm:p-0">
             <div className="main inset-0 my-4 flex flex-col transition-opacity sm:my-0" aria-hidden="true">
               <div
-                className="bg-default dark:bg-muted border-booker border-booker-width inline-block transform overflow-hidden rounded-lg px-8 pb-4 pt-5 text-left align-bottom transition-all sm:my-8 sm:w-full sm:max-w-xl sm:py-8 sm:align-middle"
+                className="bg-default dark:bg-cal-muted border-booker border-booker-width inline-block transform overflow-hidden rounded-lg px-8 pb-4 pt-5 text-left align-bottom transition-all sm:my-8 sm:w-full sm:max-w-xl sm:py-8 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 <div>
-                  <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+                  <div className="bg-cal-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
                     <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                 </div>

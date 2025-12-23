@@ -7,10 +7,10 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import type { Membership, Team, User, VerificationToken, Profile } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import { TeamService } from "./teamService";
 
@@ -77,7 +77,7 @@ describe("TeamService", () => {
   describe("inviteMemberByToken", () => {
     it("should throw error if verification token is not found", async () => {
       prismaMock.verificationToken.findFirst.mockResolvedValue(null);
-      await expect(TeamService.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
+      await expect(TeamService.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(ErrorWithCode);
     });
 
     it("should create provisional membership and update billing", async () => {
@@ -235,7 +235,7 @@ describe("TeamService", () => {
   describe("acceptInvitationByToken", () => {
     it("should throw error if verification token is not found", async () => {
       prismaMock.verificationToken.findFirst.mockResolvedValue(null);
-      await expect(TeamService.acceptInvitationByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
+      await expect(TeamService.acceptInvitationByToken("invalid-token", 1)).rejects.toThrow(ErrorWithCode);
     });
 
     it("should throw error if token is not associated with team", async () => {
@@ -251,10 +251,7 @@ describe("TeamService", () => {
       );
 
       await expect(TeamService.acceptInvitationByToken("valid-token", 1)).rejects.toThrow(
-        new TRPCError({
-          code: "NOT_FOUND",
-          message: "Invite token is not associated with any team",
-        })
+        new ErrorWithCode(ErrorCode.NotFound, "Invite token is not associated with any team")
       );
     });
 
@@ -272,7 +269,7 @@ describe("TeamService", () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
       await expect(TeamService.acceptInvitationByToken("valid-token", 1)).rejects.toThrow(
-        new TRPCError({ code: "NOT_FOUND", message: "User not found" })
+        new ErrorWithCode(ErrorCode.NotFound, "User not found")
       );
     });
 
@@ -295,10 +292,7 @@ describe("TeamService", () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser as User);
 
       await expect(TeamService.acceptInvitationByToken("valid-token", 1)).rejects.toThrow(
-        new TRPCError({
-          code: "FORBIDDEN",
-          message: "This invitation is not for your account",
-        })
+        new ErrorWithCode(ErrorCode.Forbidden, "This invitation is not for your account")
       );
     });
 
@@ -321,10 +315,7 @@ describe("TeamService", () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser as User);
 
       await expect(TeamService.acceptInvitationByToken("valid-token", 1)).rejects.toThrow(
-        new TRPCError({
-          code: "FORBIDDEN",
-          message: "This invitation is not for your account",
-        })
+        new ErrorWithCode(ErrorCode.Forbidden, "This invitation is not for your account")
       );
     });
 

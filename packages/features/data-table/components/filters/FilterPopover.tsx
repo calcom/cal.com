@@ -1,6 +1,7 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import startCase from "lodash/startCase";
 
+import type { FilterType } from "@calcom/types/data-table";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";
@@ -18,7 +19,7 @@ import { FilterOptions } from "./FilterOptions";
 import { useFilterPopoverOpen } from "./useFilterPopoverOpen";
 import { numberFilterOperatorOptions, useTextFilterOperatorOptions } from "./utils";
 
-const FILTER_ICONS: Record<ColumnFilterType, IconName> = {
+const FILTER_ICONS: Record<FilterType, IconName> = {
   [ColumnFilterType.TEXT]: "file-text",
   [ColumnFilterType.NUMBER]: "binary",
   [ColumnFilterType.MULTI_SELECT]: "layers",
@@ -84,11 +85,11 @@ function AppliedSelectFilterValue({ column, filterValue }: SelectedLabelsProps) 
   let moreCount = 0;
 
   if (isSingleSelectFilterValue(filterValue)) {
-    const options = (column as Extract<FilterableColumn, { type: ColumnFilterType.SINGLE_SELECT }>).options;
+    const options = (column as FilterableColumn & { type: "ss" }).options;
     text = options.find((opt) => opt.value === filterValue.data)?.label;
     moreCount = 0;
   } else if (isMultiSelectFilterValue(filterValue)) {
-    const options = (column as Extract<FilterableColumn, { type: ColumnFilterType.MULTI_SELECT }>).options;
+    const options = (column as FilterableColumn & { type: "ms" }).options;
     text = options.find((opt) => opt.value === filterValue.data[0])?.label;
     moreCount = filterValue.data.length - 1;
   }
