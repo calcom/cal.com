@@ -1,10 +1,10 @@
+import { useAuth } from "../contexts/AuthContext";
+import { showErrorAlert } from "../utils/alerts";
+import { openInAppBrowser } from "../utils/browser";
+import { CalComLogo } from "./CalComLogo";
 import React from "react";
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "../contexts/AuthContext";
-import { CalComLogo } from "./CalComLogo";
-import { showErrorAlert } from "../utils/alerts";
-import { openInAppBrowser } from "../utils/browser";
 
 export function LoginScreen() {
   const { loginWithOAuth, loading } = useAuth();
@@ -66,7 +66,7 @@ export function LoginScreen() {
         <TouchableOpacity
           onPress={handleSignUp}
           className="mt-3 items-center justify-center py-1"
-          style={{ cursor: "pointer" } as any}
+          style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
           activeOpacity={0.7}
         >
           <View>
