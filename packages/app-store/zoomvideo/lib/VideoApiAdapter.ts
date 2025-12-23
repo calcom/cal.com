@@ -143,14 +143,23 @@ function validatePasswordAgainstRequirements(
 
 function generateCompliantPassword(requirements: NonNullable<MeetingPasswordRequirement>): string {
   const minLength = Math.max(requirements.length ?? 6, 6);
-  const chars: string[] = [];
 
   if (requirements.only_allow_numeric) {
-    for (let i = 0; i < minLength; i++) {
-      chars.push(DIGITS[crypto.randomInt(DIGITS.length)]);
+    // When only_allow_numeric is true and consecutive_characters_length is also set,
+    // avoid generating passwords like "123456" that Zoom will reject.
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const chars: string[] = [];
+      for (let i = 0; i < minLength; i++) {
+        chars.push(DIGITS[crypto.randomInt(DIGITS.length)]);
+      }
+      const candidate = chars.join("");
+      if (!hasInvalidConsecutiveChars(candidate, requirements.consecutive_characters_length)) {
+        return candidate;
+      }
     }
-    return chars.join("");
   }
+
+  const chars: string[] = [];
 
   let allowedChars = "";
 
