@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 
 import { DataTableWrapper, useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 

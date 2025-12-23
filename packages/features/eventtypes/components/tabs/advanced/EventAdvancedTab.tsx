@@ -37,7 +37,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
-  APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -70,10 +69,10 @@ import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
-import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
-import RequiresConfirmationController from "./RequiresConfirmationController";
 import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
 import DisableReschedulingController from "./DisableReschedulingController";
+import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
+import RequiresConfirmationController from "./RequiresConfirmationController";
 
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
@@ -225,7 +224,7 @@ const destinationCalendarComponents = {
                   color="minimal"
                   size="sm"
                   aria-label="edit custom name"
-                  className="hover:stroke-3 hover:text-emphasis py-0! min-w-fit px-1.5 -mr-1.5 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis py-0! -mr-1.5 min-w-fit px-1.5 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
                   <Icon name="pencil" className="h-4 w-4" />
                 </Button>
@@ -260,7 +259,7 @@ const destinationCalendarComponents = {
               />
             </div>
           )}
-          {!showConnectedCalendarSettings && (
+          {!showConnectedCalendarSettings && !isTeamEventType && (
             <p className="text-emphasis mb-2 block text-sm font-medium leading-none">
               {t("add_to_calendar")}
             </p>
@@ -532,7 +531,6 @@ export const EventAdvancedTab = ({
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
-  const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
   const allowReschedulingCancelledBookingsLocked = shouldLockDisableProps(
     "allowReschedulingCancelledBookings"
   );
@@ -542,8 +540,6 @@ export const EventAdvancedTab = ({
   if (isManagedEventType) {
     multiplePrivateLinksLocked.disabled = true;
   }
-
-  const [disableCancelling, setDisableCancelling] = useState(eventType.disableCancelling || false);
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
@@ -693,8 +689,8 @@ export const EventAdvancedTab = ({
       {!isPlatform && (
         <>
           <Controller
-            name="disableCancelling"
-            render={({ field: { onChange } }) => (
+            name="disabledCancelling"
+            render={({ field: { onChange, value } }) => (
               <SettingsToggle
                 labelClassName="text-sm"
                 toggleSwitchAtTheEnd={true}
@@ -709,9 +705,8 @@ export const EventAdvancedTab = ({
                     href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
                   />
                 }
-                checked={disableCancelling}
+                checked={value}
                 onCheckedChange={(val) => {
-                  setDisableCancelling(val);
                   onChange(val);
                 }}
               />

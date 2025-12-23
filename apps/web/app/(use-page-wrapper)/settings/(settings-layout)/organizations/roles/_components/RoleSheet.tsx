@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import type { Resource, PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import {
   CrudAction,
   Scope,
@@ -160,7 +160,7 @@ export function RoleSheet({
         teamId,
         roleId: role.id,
         name: values.name,
-        permissions: values.permissions as any,
+        permissions: values.permissions as PermissionString[],
         color: values.color,
       });
     } else {
@@ -169,7 +169,7 @@ export function RoleSheet({
         name: values.name,
         description: values.description,
         color: values.color,
-        permissions: values.permissions as any,
+        permissions: values.permissions as PermissionString[],
       });
     }
   };
