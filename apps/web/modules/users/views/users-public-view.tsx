@@ -72,7 +72,7 @@ export function UserPage(props: PageProps) {
                 username: profile.username,
               }}
             />
-            <h1 className="font-cal text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
+            <h1 className="font-heading text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
               {profile.name}
               {!isOrg && user.verified && (
                 <Icon
