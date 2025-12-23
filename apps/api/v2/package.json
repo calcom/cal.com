@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "build": "yarn dev:build && nest build && yarn postbuild",
-    "postbuild": "mkdir -p dist/packages/prisma/client && echo 'module.exports = require(\"@prisma/client\");' > dist/packages/prisma/client/index.js && for dir in ../../../packages/*; do name=$(basename $dir); if [ \"$name\" != \"prisma\" ]; then ln -sf ../../../../../packages/$name dist/packages/$name; fi; done",
+    "postbuild": "mkdir -p dist/packages/prisma/client && echo 'module.exports = require(\"@prisma/client\");' > dist/packages/prisma/client/index.js && bash -c 'for dir in ../../../packages/*; do name=$(basename $dir); if [ \"$name\" != \"prisma\" ]; then ln -sf ../../../../../packages/$name dist/packages/$name; fi; done'",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev:build:watch": "concurrently --names \"libraries,lru-fix,constants,enums,utils,types\" \"yarn _dev:build:watch:libraries\" \"yarn _dev:build:watch:libraries:lru-fix\" \"yarn _dev:build:watch:constants\" \"yarn _dev:build:watch:enums\" \"yarn _dev:build:watch:utils\" \"yarn _dev:build:watch:types\"",
