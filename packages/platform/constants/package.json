@@ -9,6 +9,21 @@
       "require": "./dist/index.js",
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./permissions": {
+      "require": "./dist/src/permissions.js",
+      "import": "./dist/src/permissions.js",
+      "types": "./dist/src/permissions.d.ts"
+    },
+    "./apps": {
+      "require": "./dist/src/apps.js",
+      "import": "./dist/src/apps.js",
+      "types": "./dist/src/apps.d.ts"
+    },
+    "./api": {
+      "require": "./dist/src/api.js",
+      "import": "./dist/src/api.js",
+      "types": "./dist/src/api.d.ts"
     }
   },
   "scripts": {
