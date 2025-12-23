@@ -44,8 +44,8 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
             {props.schedulesLoading
               ? "Loading schedules..."
               : props.selectedSchedule
-                ? props.selectedSchedule.name
-                : "Select schedule"}
+              ? props.selectedSchedule.name
+              : "Select schedule"}
           </Text>
           <Ionicons name="chevron-down" size={20} color="#8E8E93" />
         </TouchableOpacity>
