@@ -1,7 +1,7 @@
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 
 import type { FeatureId, FeatureState } from "./config";
-import { type CacheEntry, FeaturesCacheEntries } from "./features-cache-keys";
+import { type CacheEntry, FeaturesCacheEntries as KEYS } from "./features-cache-keys";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -79,13 +79,13 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   // === TTL-only caches (global data, no explicit invalidation) ===
 
   async checkIfFeatureIsEnabledGlobally(slug: FeatureId): Promise<boolean> {
-    return this.withCache(FeaturesCacheEntries.globalFeature(slug), () =>
+    return this.withCache(KEYS.globalFeature(slug), () =>
       this.featuresRepository.checkIfFeatureIsEnabledGlobally(slug)
     );
   }
 
   async getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]> {
-    return this.withCache(FeaturesCacheEntries.teamsWithFeatureEnabled(slug), () =>
+    return this.withCache(KEYS.teamsWithFeatureEnabled(slug), () =>
       this.featuresRepository.getTeamsWithFeatureEnabled(slug)
     );
   }
@@ -100,7 +100,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
   }
 
   async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
-    const userStates = await this.getValue(FeaturesCacheEntries.userFeatureStates(userId));
+    const userStates = await this.getValue(KEYS.userFeatureStates(userId));
     if (userStates) {
       const state = userStates[slug];
       if (state === "enabled") {
@@ -117,7 +117,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     userId: number;
     featureIds: FeatureId[];
   }): Promise<Record<string, FeatureState>> {
-    const userStates = (await this.getValue(FeaturesCacheEntries.userFeatureStates(input.userId))) ?? {};
+    const userStates = (await this.getValue(KEYS.userFeatureStates(input.userId))) ?? {};
 
     const result: Record<string, FeatureState> = {};
     const missingFeatureIds: FeatureId[] = [];
@@ -138,27 +138,22 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       Object.assign(result, freshStates);
 
       const updatedCache = { ...userStates, ...freshStates };
-      await this.setValue(FeaturesCacheEntries.userFeatureStates(input.userId), updatedCache);
+      await this.setValue(KEYS.userFeatureStates(input.userId), updatedCache);
     }
 
     return result;
   }
 
   async getUserAutoOptIn(userId: number): Promise<boolean> {
-    return this.withCache(FeaturesCacheEntries.userAutoOptIn(userId), () =>
-      this.featuresRepository.getUserAutoOptIn(userId)
-    );
+    return this.withCache(KEYS.userAutoOptIn(userId), () => this.featuresRepository.getUserAutoOptIn(userId));
   }
 
   // === Per-team caches ===
 
   async checkIfTeamHasFeature(teamId: number, slug: FeatureId): Promise<boolean> {
-    const teamStates = await this.getValue(FeaturesCacheEntries.teamFeatureStates(teamId));
-    if (teamStates) {
-      const state = teamStates[slug];
-      if (state !== undefined) {
-        return state === "enabled";
-      }
+    const teamStates = await this.getValue(KEYS.teamFeatureStates(teamId));
+    if (teamStates?.[slug] === "enabled") {
+      return true;
     }
     return this.featuresRepository.checkIfTeamHasFeature(teamId, slug);
   }
@@ -170,7 +165,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     const teamStatesMap = await Promise.all(
       input.teamIds.map(async (teamId) => ({
         teamId,
-        states: (await this.getValue(FeaturesCacheEntries.teamFeatureStates(teamId))) ?? {},
+        states: (await this.getValue(KEYS.teamFeatureStates(teamId))) ?? {},
       }))
     );
 
@@ -215,19 +210,16 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
         }
       }
 
-      const existingTeamStates = teamStatesMap.reduce(
-        (acc, { teamId, states }) => {
-          acc[teamId] = states;
-          return acc;
-        },
-        {} as Record<number, Record<string, FeatureState>>
-      );
+      const existingTeamStates = teamStatesMap.reduce((acc, { teamId, states }) => {
+        acc[teamId] = states;
+        return acc;
+      }, {} as Record<number, Record<string, FeatureState>>);
 
       for (const teamId of teamsNeedingFetch) {
         const existingStates = existingTeamStates[teamId] || {};
         const freshTeamStates = perTeamFreshStates[teamId] || {};
         const updatedCache = { ...existingStates, ...freshTeamStates };
-        await this.setValue(FeaturesCacheEntries.teamFeatureStates(teamId), updatedCache);
+        await this.setValue(KEYS.teamFeatureStates(teamId), updatedCache);
       }
     }
 
@@ -238,7 +230,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
     const results = await Promise.all(
       teamIds.map(async (teamId) => ({
         teamId,
-        cached: await this.getValue(FeaturesCacheEntries.teamAutoOptIn(teamId)),
+        cached: await this.getValue(KEYS.teamAutoOptIn(teamId)),
       }))
     );
 
@@ -258,7 +250,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       for (const [teamIdStr, value] of Object.entries(freshResults)) {
         const teamId = Number(teamIdStr);
         result[teamId] = value;
-        await this.setValue(FeaturesCacheEntries.teamAutoOptIn(teamId), value);
+        await this.setValue(KEYS.teamAutoOptIn(teamId), value);
       }
     }
 
@@ -273,7 +265,7 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       | { userId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     await this.featuresRepository.setUserFeatureState(input);
-    await this.del(FeaturesCacheEntries.userFeatureStates(input.userId));
+    await this.del(KEYS.userFeatureStates(input.userId));
   }
 
   async setTeamFeatureState(
@@ -282,16 +274,16 @@ export class CachedFeaturesRepository implements IFeaturesRepository {
       | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
     await this.featuresRepository.setTeamFeatureState(input);
-    await this.del(FeaturesCacheEntries.teamFeatureStates(input.teamId));
+    await this.del(KEYS.teamFeatureStates(input.teamId));
   }
 
   async setUserAutoOptIn(userId: number, enabled: boolean): Promise<void> {
     await this.featuresRepository.setUserAutoOptIn(userId, enabled);
-    await this.del(FeaturesCacheEntries.userAutoOptIn(userId));
+    await this.del(KEYS.userAutoOptIn(userId));
   }
 
   async setTeamAutoOptIn(teamId: number, enabled: boolean): Promise<void> {
     await this.featuresRepository.setTeamAutoOptIn(teamId, enabled);
-    await this.del(FeaturesCacheEntries.teamAutoOptIn(teamId));
+    await this.del(KEYS.teamAutoOptIn(teamId));
   }
 }
