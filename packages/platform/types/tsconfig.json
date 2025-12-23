@@ -2,6 +2,7 @@
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
     "target": "ES2021",
+    "module": "CommonJS",
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
