@@ -33,6 +33,7 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          predicate-quantifier: "every"
           filters: |
             has-files-requiring-all-checks:
               - '**'
@@ -182,42 +183,42 @@ jobs:
 
   integration-test:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build, build-api-v1]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   e2e:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build, build-api-v1]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-api-v2:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build-api-v2]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
-    needs: [prepare, build, build-api-v1, build-api-v2]
+    needs: [prepare, build]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -226,35 +227,6 @@ jobs:
     name: Analyze Build
     needs: [build]
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
-    secrets: inherit
-
-  merge-reports:
-    name: Merge reports
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && (needs.e2e.result == 'failure' || needs.e2e-embed.result == 'failure' || needs.e2e-embed-react.result == 'failure' || needs.e2e-app-store.result == 'failure') }}
-    needs: [prepare, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    uses: ./.github/workflows/merge-reports.yml
-    secrets: inherit
-
-  publish-report:
-    name: Publish HTML report
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' && (needs.e2e.result == 'failure' || needs.e2e-embed.result == 'failure' || needs.e2e-embed-react.result == 'failure' || needs.e2e-app-store.result == 'failure') }}
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    needs: [prepare, merge-reports, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    uses: ./.github/workflows/publish-report.yml
-    secrets: inherit
-
-  cleanup-report:
-    name: Cleanup HTML report
-    if: ${{ !cancelled() && needs.prepare.outputs.run-e2e == 'true' && (github.event.pull_request.merged == true || github.event.pull_request.state == 'closed') }}
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    needs: [prepare, publish-report]
-    uses: ./.github/workflows/cleanup-report.yml
     secrets: inherit
 
   required:
