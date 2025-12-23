@@ -76,16 +76,16 @@ export class BookingHistoryViewerService {
         const emailFieldValueFromResponse = emailFieldResult.success ? emailFieldResult.data : null;
         // A valid string can be the email otherwise we assume it is not an email
         const submitterEmail = typeof emailFieldValueFromResponse === "string" ? emailFieldValueFromResponse : null;
-        const uniqueId = `id: form-submission-${formResponse.id}`;
+        const uniqueId = `form-submission-${formResponse.id}`;
         return {
-            id: `id: ${uniqueId}`,
+            id: uniqueId,
             bookingUid,
             type: "RECORD_CREATED",
             action: "CREATED",
             timestamp,
             createdAt: timestamp,
             source: "WEBAPP",
-            operationId: `operationId: ${uniqueId}`,
+            operationId: uniqueId,
             displayJson: null,
             actionDisplayTitle: { key: "form_submitted" },
             displayFields: null,
