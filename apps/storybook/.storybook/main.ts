@@ -29,13 +29,6 @@ const config: StorybookConfig = {
 
     const merged = mergeConfig(config, {
       plugins: isStaticBuild ? [] : [storybookOnlookPlugin],
-      resolve: {
-        alias: {},
-      },
-      optimizeDeps: {
-        // Workspace packages like @calcom/ui don't need pre-bundling
-        include: [],
-      },
       server: isStaticBuild
         ? {}
         : {
