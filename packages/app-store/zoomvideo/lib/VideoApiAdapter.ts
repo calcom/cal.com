@@ -86,16 +86,38 @@ const LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
 const UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SPECIAL_CHARS = "@_-*";
 
+function hasInvalidConsecutiveChars(password: string, consecutiveLength: number | undefined): boolean {
+  if (!consecutiveLength || consecutiveLength < 4) return false;
+
+  const maxRun = consecutiveLength - 1;
+  let run = 1;
+
+  for (let i = 1; i < password.length; i++) {
+    if (password.charCodeAt(i) === password.charCodeAt(i - 1) + 1) {
+      run++;
+      if (run > maxRun) return true;
+    } else {
+      run = 1;
+    }
+  }
+
+  return false;
+}
+
 function validatePasswordAgainstRequirements(
   password: string,
   requirements: NonNullable<MeetingPasswordRequirement>
 ): boolean {
-  if (requirements.only_allow_numeric) {
-    return /^\d+$/.test(password) && password.length >= (requirements.length ?? 1);
-  }
-
   if (requirements.length && password.length < requirements.length) {
     return false;
+  }
+
+  if (hasInvalidConsecutiveChars(password, requirements.consecutive_characters_length)) {
+    return false;
+  }
+
+  if (requirements.only_allow_numeric) {
+    return /^\d+$/.test(password);
   }
 
   if (requirements.have_letter && !/[a-zA-Z]/.test(password)) {
@@ -113,24 +135,6 @@ function validatePasswordAgainstRequirements(
   if (requirements.have_upper_and_lower_characters) {
     if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
       return false;
-    }
-  }
-
-  if (requirements.consecutive_characters_length && requirements.consecutive_characters_length > 0) {
-    const maxConsecutive = requirements.consecutive_characters_length - 1;
-    for (let i = 0; i <= password.length - maxConsecutive - 1; i++) {
-      let isConsecutive = true;
-      for (let j = 0; j < maxConsecutive; j++) {
-        const charCode = password.charCodeAt(i + j);
-        const nextCharCode = password.charCodeAt(i + j + 1);
-        if (nextCharCode !== charCode + 1) {
-          isConsecutive = false;
-          break;
-        }
-      }
-      if (isConsecutive) {
-        return false;
-      }
     }
   }
 
