@@ -69,7 +69,7 @@ export const useBookingActions = ({
    */
   const handleBookingPress = (booking: Booking) => {
     router.push({
-      pathname: "/booking-detail",
+      pathname: "/(tabs)/(bookings)/booking-detail",
       params: { uid: booking.uid },
     });
   };
