@@ -2,6 +2,7 @@
 
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
@@ -71,12 +72,16 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps) {
                 <div key={feature.slug}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <h3 className="text-emphasis flex items-center text-sm font-medium">
+                      <h3
+                        className={classNames(
+                          "text-emphasis flex items-center text-sm font-medium",
+                          blockedWarning && "text-subtle line-through"
+                        )}>
                         {t(config.titleI18nKey)}
                         {blockedWarning && (
                           <Tooltip side="top" content={blockedWarning}>
                             <span title={blockedWarning}>
-                              <Icon name="info" className="text-error ml-1 h-4 w-4" />
+                              <Icon name="info" className="ml-1 h-4 w-4" />
                             </span>
                           </Tooltip>
                         )}
@@ -85,7 +90,12 @@ export function FeaturesSettings({ featureOptIn }: FeaturesSettingsProps) {
                     </div>
                     <ToggleGroup
                       value={feature.currentState}
-                      onValueChange={(val) => setFeatureState(feature.slug, val as FeatureState)}
+                      onValueChange={(val) => {
+                        if (!val) {
+                          return;
+                        }
+                        setFeatureState(feature.slug, val as FeatureState);
+                      }}
                       options={toggleOptions}
                     />
                   </div>

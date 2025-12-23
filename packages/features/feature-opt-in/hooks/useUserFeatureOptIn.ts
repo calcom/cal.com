@@ -113,8 +113,8 @@ export function useUserFeatureOptIn(): UseFeatureOptInResult {
     isAutoOptInMutationPending: setAutoOptInMutation.isPending,
 
     toggleLabels: {
-      enabled: t("on"),
-      disabled: t("off"),
+      enabled: t("feature_on"),
+      disabled: t("feature_off"),
       inherit: t("use_default"),
     },
 
