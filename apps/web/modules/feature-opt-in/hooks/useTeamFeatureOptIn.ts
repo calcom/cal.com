@@ -80,10 +80,6 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
 
   // Team scope: check if blocked by organization
   const getBlockedWarning = (feature: NormalizedFeature): string | null => {
-    if (feature.currentState !== "enabled") {
-      return null;
-    }
-
     const blockingState = featureBlockingState.get(feature.slug);
     if (!blockingState) {
       return null;
