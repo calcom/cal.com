@@ -114,7 +114,12 @@ export function useUpdateUserProfile() {
       if (context?.previousProfile) {
         queryClient.setQueryData(queryKeys.userProfile.current(), context.previousProfile);
       }
-      console.error("Failed to update user profile:", error);
+      console.error("Failed to update user profile");
+      if (__DEV__) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.debug("[useUpdateUserProfile] failed", { message, stack });
+      }
     },
     onSettled: () => {
       // Always refetch after error or success
