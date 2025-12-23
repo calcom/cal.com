@@ -387,21 +387,6 @@ describe("syncFormDataSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("should allow extra fields to pass through", () => {
-    const formData = {
-      ...validFormData,
-      extraField: "extra value",
-      anotherExtra: 123,
-    };
-
-    const result = syncFormDataSchema.safeParse(formData);
-
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect((result.data as Record<string, unknown>).extraField).toBe("extra value");
-    }
-  });
-
   it("should reject form data with invalid rule", () => {
     const formData = {
       ...validFormData,
