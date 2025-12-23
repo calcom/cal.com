@@ -5,11 +5,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
 
-import { IntercomContactForm } from "@calcom/features/ee/support/components/IntercomContactForm";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
+import { IntercomContactForm } from "~/ee/support/components/IntercomContactForm";
 import { useBootIntercom } from "~/ee/support/lib/intercom/useIntercom";
 
 declare global {
