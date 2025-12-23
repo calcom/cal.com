@@ -46,6 +46,7 @@ jobs:
               - '!i18n.lock'
             has_companion:
               - "companion/**"
+          predicate-quantifier: every
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
