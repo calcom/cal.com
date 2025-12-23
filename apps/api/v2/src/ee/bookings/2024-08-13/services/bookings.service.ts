@@ -67,6 +67,7 @@ import {
   CancelBookingInput,
 } from "@calcom/platform-types";
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
 
@@ -1131,12 +1132,17 @@ export class BookingsService_2024_08_13 {
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
     const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
+    const traceContext = distributedTracing.createTrace("api_v2_confirm_booking", {
+      meta: { bookingId: booking.id, bookingUid },
+    });
+
     await confirmBookingHandler({
       ctx: {
         user: {
           ...requestUser,
           destinationCalendar: userCalendars?.destinationCalendar ?? null,
         },
+        traceContext,
       },
       input: {
         bookingId: booking.id,
@@ -1163,12 +1169,17 @@ export class BookingsService_2024_08_13 {
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
     const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
+    const traceContext = distributedTracing.createTrace("api_v2_decline_booking", {
+      meta: { bookingId: booking.id, bookingUid },
+    });
+
     await confirmBookingHandler({
       ctx: {
         user: {
           ...requestUser,
           destinationCalendar: userCalendars?.destinationCalendar ?? null,
         },
+        traceContext,
       },
       input: {
         bookingId: booking.id,
