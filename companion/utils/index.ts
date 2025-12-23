@@ -31,7 +31,7 @@ export { showErrorAlert } from "./alerts";
 export { openInAppBrowser } from "./browser";
 
 // Network utilities
-export { isOnline, subscribeToNetworkChanges } from "./network";
+export { isOnline } from "./network";
 
 // Slug utilities
 export { slugify } from "./slugify";

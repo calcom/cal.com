@@ -327,7 +327,18 @@ export const bookingResponses = z
 
 export type BookingResponses = z.infer<typeof bookingResponses>;
 
-export const eventTypeLocations = z.array(
+export type EventTypeLocation = {
+  type: string;
+  address?: string;
+  link?: string;
+  displayLocationPublicly?: boolean;
+  hostPhoneNumber?: string;
+  credentialId?: number;
+  teamName?: string;
+  customLabel?: string;
+};
+
+export const eventTypeLocations: z.ZodType<EventTypeLocation[]> = z.array(
   z.object({
     // TODO: Couldn't find a way to make it a union of types from App Store locations
     // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
@@ -866,6 +877,81 @@ export const unlockedManagedEventTypeProps = {
   scheduleId: allManagedEventTypeProps.scheduleId,
   destinationCalendar: allManagedEventTypeProps.destinationCalendar,
 };
+
+// Zod-compatible version of allManagedEventTypeProps that only includes scalar fields
+// (excludes Prisma relation fields like children, users, webhooks, availability, etc.)
+// This is used with EventTypeSchema.pick() which requires exact key matching
+// IMPORTANT: This must match the scalar fields in allManagedEventTypeProps exactly
+export const allManagedEventTypePropsForZod = {
+  title: true,
+  description: true,
+  interfaceLanguage: true,
+  isInstantEvent: true,
+  instantMeetingParameters: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  currency: true,
+  periodDays: true,
+  position: true,
+  price: true,
+  slug: true,
+  length: true,
+  offsetStart: true,
+  locations: true,
+  hidden: true,
+  recurringEvent: true,
+  minimumRescheduleNotice: true,
+  disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
+  requiresConfirmation: true,
+  canSendCalVideoTranscriptionEmails: true,
+  requiresConfirmationForFreeEmail: true,
+  requiresConfirmationWillBlockSlot: true,
+  eventName: true,
+  metadata: true,
+  hideCalendarNotes: true,
+  hideCalendarEventDetails: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  successRedirectUrl: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
+  seatsShowAvailabilityCount: true,
+  forwardParamsSuccessRedirect: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodCountCalendarDays: true,
+  bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
+  slotInterval: true,
+  scheduleId: true,
+  bookingFields: true,
+  durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
+  requiresBookerEmailVerification: true,
+  assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
+  eventTypeColor: true,
+  allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
+  rescheduleWithSameRoundRobinHost: true,
+  maxLeadThreshold: true,
+  customReplyToEmail: true,
+  bookingRequiresAuthentication: true,
+} as const;
+
+// Zod-compatible version of unlockedManagedEventTypeProps
+export const unlockedManagedEventTypePropsForZod = {
+  locations: true,
+  scheduleId: true,
+} as const;
 
 export const emailSchema = emailRegexSchema;
 
