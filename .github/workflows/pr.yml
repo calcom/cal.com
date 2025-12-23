@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: dorny/paths-filter@v3.0.2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
@@ -46,7 +46,7 @@ jobs:
               - '!i18n.lock'
             has_companion:
               - "companion/**"
-          predicate-quantifier: every
+          predicate-quantifier: "every"
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
