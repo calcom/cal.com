@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
@@ -38,7 +39,20 @@ export async function deleteHandler(req: NextApiRequest) {
   const { query } = req;
   const userId_teamId = membershipIdSchema.parse(query);
   await checkPermissions(req);
-  await prisma.membership.delete({ where: { userId_teamId } });
+
+  // Check if the team is an organization to pass the correct isOrg flag
+  const team = await prisma.team.findUnique({
+    where: { id: userId_teamId.teamId },
+    select: { isOrganization: true },
+  });
+
+  // Use TeamService.removeMembers to properly clean up hosts and managed event types
+  await TeamService.removeMembers({
+    teamIds: [userId_teamId.teamId],
+    userIds: [userId_teamId.userId],
+    isOrg: team?.isOrganization ?? false,
+  });
+
   return { message: `Membership with id: ${query.id} deleted successfully` };
 }
 
