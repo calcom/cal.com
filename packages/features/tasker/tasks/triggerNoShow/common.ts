@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -33,14 +34,19 @@ export function sendWebhookPayload(
   participants: ParticipantsWithEmail,
   originalRescheduledBooking?: OriginalRescheduledBooking,
   hostEmail?: string
-): Promise<any> {
+): Promise<{ ok: boolean; status: number } | void> {
   const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
   return sendGenericWebhookPayload({
     secretKey: webhook.secret,
     triggerEvent,
     createdAt: new Date().toISOString(),
-    webhook,
+    webhook: {
+      subscriberUrl: webhook.subscriberUrl,
+      appId: webhook.appId,
+      payloadTemplate: webhook.payloadTemplate,
+      version: webhook.version as WebhookVersion,
+    },
     data: {
       title: booking.title,
       bookingId: booking.id,

@@ -58,7 +58,9 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
     triggerEvent: "FORM_SUBMITTED_NO_EVENT",
     createdAt: new Date().toISOString(),
     webhook: {
-      ...webhook,
+      subscriberUrl: webhook.subscriberUrl,
+      appId: webhook.appId,
+      payloadTemplate: webhook.payloadTemplate,
       version: webhook.version ?? DEFAULT_WEBHOOK_VERSION,
     },
     data: {
