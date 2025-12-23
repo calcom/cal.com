@@ -36,6 +36,7 @@ export function useOrganizationFeatureOptIn(): UseFeatureOptInResult {
   const setAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation({
     onSuccess: () => {
       utils.viewer.featureOptIn.getOrganizationAutoOptIn.invalidate();
+      utils.viewer.featureOptIn.listForOrganization.invalidate();
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {

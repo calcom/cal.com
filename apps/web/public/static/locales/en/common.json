@@ -4199,6 +4199,7 @@
   "auto_opt_in_experimental_description_org": "Automatically opt organization members into new experimental features, unless configured at team or user level",
   "feature_blocked_by_team_warning": "This feature is disabled by your team.",
   "feature_blocked_by_org_warning": "This feature is disabled by your organization.",
+  "feature_no_explicit_enablement_warning": "Turn it on for yourself, or ask your team or organization admin to enable it for everyone.",
   "no_opt_in_features_available": "No opt-in features are currently available",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

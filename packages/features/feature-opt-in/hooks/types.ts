@@ -1,5 +1,7 @@
 import type { FeatureState } from "@calcom/features/flags/config";
 
+import type { EffectiveStateReason } from "../lib/computeEffectiveState";
+
 /**
  * Normalized feature representation used across all scopes (user, team, org).
  */
@@ -8,6 +10,8 @@ export interface NormalizedFeature {
   globalEnabled: boolean;
   /** The current state value for this scope (userState, teamState, etc.) */
   currentState: FeatureState;
+  /** The reason for the effective state (only available for user scope) */
+  effectiveReason?: EffectiveStateReason;
 }
 
 /**

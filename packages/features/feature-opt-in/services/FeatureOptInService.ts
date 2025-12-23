@@ -3,6 +3,7 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 
 import { OPT_IN_FEATURES } from "../config";
 import { applyAutoOptIn } from "../lib/applyAutoOptIn";
+import type { EffectiveStateReason } from "../lib/computeEffectiveState";
 import { computeEffectiveStateAcrossTeams } from "../lib/computeEffectiveState";
 
 type ResolvedFeatureState = {
@@ -12,6 +13,7 @@ type ResolvedFeatureState = {
   teamStates: FeatureState[]; // Raw states
   userState: FeatureState | undefined; // Raw state
   effectiveEnabled: boolean;
+  effectiveReason: EffectiveStateReason;
   // Auto-opt-in flags for UI to show checkbox state
   orgAutoOptIn: boolean;
   teamAutoOptIns: boolean[];
@@ -102,7 +104,7 @@ export class FeatureOptInService {
       });
 
       // Compute effective state with transformed states
-      const effectiveEnabled = computeEffectiveStateAcrossTeams({
+      const { enabled: effectiveEnabled, reason: effectiveReason } = computeEffectiveStateAcrossTeams({
         globalEnabled,
         orgState: effectiveOrgState,
         teamStates: effectiveTeamStates,
@@ -116,6 +118,7 @@ export class FeatureOptInService {
         teamStates, // Raw states
         userState, // Raw state
         effectiveEnabled,
+        effectiveReason,
         // Auto-opt-in flags for UI
         orgAutoOptIn,
         teamAutoOptIns,
@@ -168,7 +171,9 @@ export class FeatureOptInService {
       const globalFeature = allFeatures.find((f) => f.slug === config.slug);
       const globalEnabled = globalFeature?.enabled ?? false;
       const teamState = teamStates[config.slug]?.[teamId] ?? "inherit";
-      const orgState: FeatureState = parentOrgId ? teamStates[config.slug]?.[parentOrgId] ?? "inherit" : "inherit";
+      const orgState: FeatureState = parentOrgId
+        ? teamStates[config.slug]?.[parentOrgId] ?? "inherit"
+        : "inherit";
 
       return {
         featureId: config.slug,

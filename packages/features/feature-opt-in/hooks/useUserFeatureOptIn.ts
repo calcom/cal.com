@@ -9,8 +9,6 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { FeatureState } from "../../flags/config";
 import type { NormalizedFeature, UseFeatureOptInResult } from "./types";
 
-type FeatureBlockingState = { orgState?: FeatureState; teamStates?: FeatureState[] };
-
 /**
  * Hook for managing feature opt-in at the user (personal) level.
  */
@@ -40,6 +38,7 @@ export function useUserFeatureOptIn(): UseFeatureOptInResult {
   const setAutoOptInMutation = trpc.viewer.featureOptIn.setUserAutoOptIn.useMutation({
     onSuccess: () => {
       utils.viewer.featureOptIn.getUserAutoOptIn.invalidate();
+      utils.viewer.featureOptIn.listForUser.invalidate();
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
@@ -47,25 +46,13 @@ export function useUserFeatureOptIn(): UseFeatureOptInResult {
     },
   });
 
-  const featureBlockingState = useMemo(() => {
-    const map = new Map<string, FeatureBlockingState>();
-
-    (featuresQuery.data ?? []).forEach((feature) => {
-      map.set(feature.featureId, {
-        orgState: feature.orgState,
-        teamStates: feature.teamStates,
-      });
-    });
-
-    return map;
-  }, [featuresQuery.data]);
-
   const features: NormalizedFeature[] = useMemo(
     () =>
       (featuresQuery.data ?? []).map((feature) => ({
         slug: feature.featureId,
         globalEnabled: feature.globalEnabled,
         currentState: feature.userState ?? "inherit",
+        effectiveReason: feature.effectiveReason,
       })),
     [featuresQuery.data]
   );
@@ -79,27 +66,22 @@ export function useUserFeatureOptIn(): UseFeatureOptInResult {
     setAutoOptInMutation.mutate({ autoOptIn: checked });
   };
 
-  // User-specific: check if blocked by org or team
+  // User-specific: returns a warning message based on effectiveReason
   const getBlockedWarning = (feature: NormalizedFeature): string | null => {
-    if (feature.currentState !== "enabled") {
+    if (!feature.effectiveReason) {
       return null;
     }
 
-    const blockingState = featureBlockingState.get(feature.slug);
-    if (!blockingState) {
-      return null;
+    switch (feature.effectiveReason) {
+      case "feature_org_disabled":
+        return t("feature_blocked_by_org_warning");
+      case "feature_all_teams_disabled":
+        return t("feature_blocked_by_team_warning");
+      case "feature_no_explicit_enablement":
+        return t("feature_no_explicit_enablement_warning");
+      default:
+        return null;
     }
-
-    if (blockingState.orgState === "disabled") {
-      return t("feature_blocked_by_org_warning");
-    }
-
-    const hasTeamBlock = blockingState.teamStates?.some((state) => state === "disabled");
-    if (hasTeamBlock) {
-      return t("feature_blocked_by_team_warning");
-    }
-
-    return null;
   };
 
   return {

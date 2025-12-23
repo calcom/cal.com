@@ -42,6 +42,7 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
   const setAutoOptInMutation = trpc.viewer.featureOptIn.setTeamAutoOptIn.useMutation({
     onSuccess: () => {
       utils.viewer.featureOptIn.getTeamAutoOptIn.invalidate({ teamId });
+      utils.viewer.featureOptIn.listForTeam.invalidate({ teamId });
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
