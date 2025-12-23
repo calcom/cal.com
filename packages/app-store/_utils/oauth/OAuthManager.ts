@@ -563,11 +563,8 @@ export class OAuthManager {
     const myLog = log.getSubLogger({ prefix: ["getAndValidateOAuth2Response"] });
     const clonedResponse = response.clone();
 
-    // Read the response body once to avoid multiple stream reads
-    const bodyText = (await clonedResponse.text()).trim();
-
     // handle empty response (causes crash otherwise on doing json() as "" is invalid JSON) which is valid in some cases like PATCH calls(with 204 response)
-    if (bodyText === "") {
+    if ((await clonedResponse.text()).trim() === "") {
       return { tokenStatus: TokenStatus.VALID, json: null, invalidReason: null } as const;
     }
 
@@ -575,34 +572,7 @@ export class OAuthManager {
     const accessTokenUsabilityRes = await this.isAccessTokenUnusable(response.clone());
     const isNotOkay = this.isResponseNotOkay(response);
 
-    let json: Record<string, unknown> | null = null;
-    try {
-      json = JSON.parse(bodyText);
-    } catch (e) {
-      const contentType = response.headers.get("content-type") || "unknown";
-      const bodyPreview = bodyText.substring(0, 500);
-      if (response.status >= 400 && response.status < 500) {
-        myLog.warn(
-          "Non-JSON response from OAuth provider",
-          safeStringify({
-            status: response.status,
-            contentType,
-            bodyPreview,
-          })
-        );
-      } else {
-        myLog.error(
-          "Failed to parse OAuth response as JSON",
-          safeStringify({
-            status: response.status,
-            contentType,
-            bodyPreview,
-            error: e instanceof Error ? e.message : String(e),
-          })
-        );
-      }
-      json = { rawBody: bodyPreview, parseError: true };
-    }
+    const json = await response.json();
 
     if (tokenObjectUsabilityRes?.reason) {
       myLog.error("Token Object has become unusable");
