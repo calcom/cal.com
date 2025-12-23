@@ -3,7 +3,6 @@ import { usePathname } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
 
-import FreshChatProvider from "@calcom/features/ee/support/lib/freshchat/FreshChatProvider";
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -21,6 +20,8 @@ import {
 import { Icon } from "@calcom/ui/components/icon";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
+
+import FreshChatProvider from "~/ee/support/lib/freshchat/FreshChatProvider";
 
 declare global {
   interface Window {
