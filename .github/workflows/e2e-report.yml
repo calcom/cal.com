@@ -6,15 +6,13 @@ on:
     types:
       - completed
 
-permissions:
-  actions: read
-  pull-requests: write
-
 jobs:
   get-pr-info:
     name: Get PR Info
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    permissions:
+      actions: read
     outputs:
       pr-number: ${{ steps.get-pr.outputs.pr-number }}
       head-branch: ${{ steps.get-pr.outputs.head-branch }}
@@ -93,125 +91,23 @@ jobs:
     name: Merge reports
     needs: [get-pr-info]
     if: ${{ needs.get-pr-info.outputs.has-blob-reports == 'true' && needs.get-pr-info.outputs.pr-number != '' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-      - uses: ./.github/actions/yarn-install
-      - uses: ./.github/actions/yarn-playwright-install
-      - name: Download blob reports from GitHub Actions Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: all-blob-reports
-          pattern: blob-report-*
-          merge-multiple: true
-      - name: Merge into HTML Report
-        run: yarn playwright merge-reports --reporter html ./all-blob-reports
-      - name: Upload HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: html-report--attempt-${{ github.event.workflow_run.run_number }}-${{ github.event.workflow_run.run_attempt }}
-          path: playwright-report
-          retention-days: 14
+    uses: ./.github/workflows/merge-reports.yml
+    with:
+      source_run_id: ${{ github.event.workflow_run.id }}
+      source_run_number: ${{ github.event.workflow_run.run_number }}
+      source_run_attempt: ${{ github.event.workflow_run.run_attempt }}
+      source_head_sha: ${{ github.event.workflow_run.head_sha }}
+    secrets: inherit
 
   publish-report:
     name: Publish HTML report
     needs: [get-pr-info, merge-reports]
     if: ${{ needs.get-pr-info.outputs.pr-number != '' }}
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    env:
-      HTML_REPORT_URL_PATH: reports/${{ needs.get-pr-info.outputs.head-branch }}/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}
-      BRANCH_REPORTS_DIR: reports/${{ needs.get-pr-info.outputs.head-branch }}
-    steps:
-      - name: Generate GitHub App token
-        id: generate-token
-        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
-        with:
-          app-id: ${{ secrets.CI_CAL_APP_ID }}
-          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
-          repositories: 'test-results-2'
-
-      - name: Checkout GitHub Pages Branch
-        uses: actions/checkout@v4
-        with:
-          repository: calcom/test-results-2
-          ref: gh-pages
-          token: ${{ steps.generate-token.outputs.token }}
-      - name: Set Git User
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - name: Check for workflow reports
-        run: |
-          if [ -z "$(ls -A $BRANCH_REPORTS_DIR 2>/dev/null)" ]; then
-            echo "BRANCH_REPORTS_EXIST="false"" >> $GITHUB_ENV
-          else
-            echo "BRANCH_REPORTS_EXIST="true"" >> $GITHUB_ENV
-          fi
-      - name: Cleanup old HTML reports
-        if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
-        timeout-minutes: 3
-        run: |
-          rm -rf $BRANCH_REPORTS_DIR
-          git add .
-          git commit -m "workflow: remove all reports for branch ${{ needs.get-pr-info.outputs.head-branch }}"
-      - name: Download zipped HTML report
-        uses: actions/download-artifact@v4
-        with:
-          name: html-report--attempt-${{ github.event.workflow_run.run_number }}-${{ github.event.workflow_run.run_attempt }}
-          path: ${{ env.HTML_REPORT_URL_PATH }}
-      - name: Push HTML Report
-        timeout-minutes: 3
-        run: |
-          git add .
-          git commit -m "workflow: add HTML report for run-id ${{ github.event.workflow_run.id }} (attempt:  ${{ github.event.workflow_run.run_attempt }})"
-
-          while true; do
-            git pull --rebase
-            if [ $? -ne 0 ]; then
-              echo "Failed to rebase. Please review manually."
-              exit 1
-            fi
-
-            git push
-            if [ $? -eq 0 ]; then
-              echo "Successfully pushed HTML report to repo."
-              exit 0
-            fi
-          done
-      - name: Output Report URL as Workflow Annotation
-        id: url
-        run: |
-          FULL_HTML_REPORT_URL=https://calcom.github.io/test-results-2/$HTML_REPORT_URL_PATH
-          echo "::notice title=Published Playwright Test Report::$FULL_HTML_REPORT_URL"
-          echo "link=$FULL_HTML_REPORT_URL" >> $GITHUB_OUTPUT
-      - name: Find Comment
-        uses: peter-evans/find-comment@v2
-        id: fc
-        with:
-          issue-number: ${{ needs.get-pr-info.outputs.pr-number }}
-          comment-author: "github-actions[bot]"
-          body-includes: <!-- GENERATED-E2E-RESULTS -->
-      - name: Create comment
-        if: steps.fc.outputs.comment-id == ''
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          issue-number: ${{ needs.get-pr-info.outputs.pr-number }}
-          body: |
-            <!-- GENERATED-E2E-RESULTS -->
-            ## E2E results are ready!
-            - [Workflow #${{ github.event.workflow_run.run_number }}.${{ github.event.workflow_run.run_attempt }} latest results](${{ steps.url.outputs.link }})
-      - name: Update comment
-        if: steps.fc.outputs.comment-id != ''
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          edit-mode: replace
-          body: |
-            <!-- GENERATED-E2E-RESULTS -->
-            ## E2E results are ready!
-            - [Workflow #${{ github.event.workflow_run.run_number }}.${{ github.event.workflow_run.run_attempt }} latest results](${{ steps.url.outputs.link }})
+    uses: ./.github/workflows/publish-report.yml
+    with:
+      head_branch: ${{ needs.get-pr-info.outputs.head-branch }}
+      source_run_id: ${{ github.event.workflow_run.id }}
+      source_run_number: ${{ github.event.workflow_run.run_number }}
+      source_run_attempt: ${{ github.event.workflow_run.run_attempt }}
+      pr_number: ${{ needs.get-pr-info.outputs.pr-number }}
+    secrets: inherit
