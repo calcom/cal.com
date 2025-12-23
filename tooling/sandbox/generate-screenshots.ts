@@ -48,7 +48,8 @@ async function fetchStoryIndex(): Promise<StoryIndexEntry[]> {
 async function startStorybook(): Promise<{ process: ChildProcess; port: number }> {
   console.log('🚀 Starting Storybook...');
 
-  const storybookProcess = spawn('yarn', ['storybook', '--', '--no-open'], {
+  // Run storybook dev directly with --no-open flag
+  const storybookProcess = spawn('npx', ['storybook', 'dev', '-p', '6006', '--no-open'], {
     cwd: APPS_STORYBOOK_DIR,
     stdio: 'pipe',
     detached: false,
