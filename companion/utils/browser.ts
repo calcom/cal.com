@@ -57,7 +57,12 @@ export const openInAppBrowser = async (
 
     await WebBrowser.openBrowserAsync(url, browserOptions);
   } catch (error) {
-    console.error(`Failed to open ${url}:`, error);
+    console.error("Failed to open link");
+    if (__DEV__) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.debug("[openInAppBrowser] failed", { message, stack, fallbackMessage });
+    }
     showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
   }
 };

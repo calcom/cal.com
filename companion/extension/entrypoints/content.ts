@@ -17,7 +17,7 @@ export default defineContentScript({
         console.log("Cal.com: Gmail integration initialized successfully");
       } catch (error) {
         // Fail silently - don't break Gmail UI
-        console.error("Cal.com: Failed to initialize Gmail integration:", error);
+        console.error("Cal.com: Failed to initialize Gmail integration");
       }
     }
 
@@ -29,7 +29,7 @@ export default defineContentScript({
         console.log("Cal.com: Google Calendar integration initialized successfully");
       } catch (error) {
         // Fail silently - don't break Google Calendar UI
-        console.error("Cal.com: Failed to initialize Google Calendar integration:", error);
+        console.error("Cal.com: Failed to initialize Google Calendar integration");
       }
     }
 
@@ -1642,7 +1642,7 @@ export default defineContentScript({
             return false;
           }
         } catch (error) {
-          console.error("Cal.com: Critical error inserting HTML:", error);
+          console.error("Cal.com: Critical error inserting HTML");
           return false;
         }
       }
@@ -1871,7 +1871,7 @@ export default defineContentScript({
           }, 1000);
         } catch (error) {
           // Critical failure - log but don't break Gmail
-          console.error("Cal.com: Failed to initialize chip watcher:", error);
+          console.error("Cal.com: Failed to initialize chip watcher");
         }
       }
 
@@ -2203,7 +2203,7 @@ export default defineContentScript({
               embedButton.style.opacity = "1";
               embedButton.style.cursor = "pointer";
             } catch (error) {
-              console.error("Cal.com: Failed to insert embed:", error);
+              console.error("Cal.com: Failed to insert embed");
 
               // Check if this is the "Extension context invalidated" error
               const isContextInvalidated =
@@ -2371,7 +2371,7 @@ export default defineContentScript({
               window.removeEventListener("resize", updatePosition);
             };
           } catch (error) {
-            console.error("Cal.com: Failed to create or insert action bar:", error);
+            console.error("Cal.com: Failed to create or insert action bar");
             // Clean up if something failed
             try {
               actionBar.remove();
@@ -2381,7 +2381,7 @@ export default defineContentScript({
           }
         } catch (error) {
           // Catch-all to prevent breaking Gmail UI
-          console.error("Cal.com: Error handling Google chip:", error);
+          console.error("Cal.com: Error handling Google chip");
           return;
         }
       }
@@ -2912,7 +2912,7 @@ export default defineContentScript({
             });
           });
         } catch (error) {
-          console.error("Error showing Cal.com suggestion menu:", error);
+          console.error("Error showing Cal.com suggestion menu");
           loadingDiv.remove();
 
           const errorMessage = error instanceof Error ? error.message : "";

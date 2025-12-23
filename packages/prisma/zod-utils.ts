@@ -327,7 +327,18 @@ export const bookingResponses = z
 
 export type BookingResponses = z.infer<typeof bookingResponses>;
 
-export const eventTypeLocations = z.array(
+export type EventTypeLocation = {
+  type: string;
+  address?: string;
+  link?: string;
+  displayLocationPublicly?: boolean;
+  hostPhoneNumber?: string;
+  credentialId?: number;
+  teamName?: string;
+  customLabel?: string;
+};
+
+export const eventTypeLocations: z.ZodType<EventTypeLocation[]> = z.array(
   z.object({
     // TODO: Couldn't find a way to make it a union of types from App Store locations
     // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
