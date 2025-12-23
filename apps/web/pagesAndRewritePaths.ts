@@ -1,16 +1,14 @@
-/* eslint-env node */
-/* eslint-disable @typescript-eslint/no-require-imports, no-undef */
-const glob = require("glob");
-const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
+import { sync as globSync } from "glob";
+
+import { nextJsOrgRewriteConfig } from "./getNextjsOrgRewriteConfig";
 
 // Top-level route names that are explicitly allowed for org rewrite (whitelist)
-
-const topLevelRouteNamesWhitelistedForRewrite = (exports.topLevelRouteNamesWhitelistedForRewrite = [
+export const topLevelRouteNamesWhitelistedForRewrite: string[] = [
   // We don't allow all dashboard route names to be used as slug because people are probably accustomed to access links like acme.cal.com/workflows, acme.cal.com/event-types etc.
   // So, we carefully allow, what is absolutely needed.
   // Allowed to be a team/user slug in organization because onboarding is a common team name
   "onboarding",
-]);
+];
 
 /**
  * Extracts top-level route names from all pages/app files and excludes them from org rewrite.
@@ -19,14 +17,12 @@ const topLevelRouteNamesWhitelistedForRewrite = (exports.topLevelRouteNamesWhite
  * These top-level route names are excluded from rewrites in beforeFiles in next.config.js
  * to prevent conflicts with organization slug rewrites.
  */
-/* eslint-disable no-undef */
-let topLevelRoutesExcludedFromOrgRewrite = (exports.topLevelRoutesExcludedFromOrgRewrite = glob
-  .sync(
-    "{pages,app,app/(booking-page-wrapper),app/(use-page-wrapper),app/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}",
-    {
-      cwd: __dirname,
-    }
-  )
+export const topLevelRoutesExcludedFromOrgRewrite: string[] = globSync(
+  "{pages,app,app/(booking-page-wrapper),app/(use-page-wrapper),app/(use-page-wrapper)/(main-nav)}/**/[^_]*.{tsx,js,ts}",
+  {
+    cwd: __dirname,
+  }
+)
   .map((filename) =>
     filename
       // Remove the directory prefix (pages/, app/ and route group folders.)
@@ -58,7 +54,7 @@ let topLevelRoutesExcludedFromOrgRewrite = (exports.topLevelRoutesExcludedFromOr
   )
   .filter((page) => {
     return !topLevelRouteNamesWhitelistedForRewrite.includes(page);
-  }));
+  });
 
 // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
 // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
@@ -66,14 +62,13 @@ let topLevelRoutesExcludedFromOrgRewrite = (exports.topLevelRoutesExcludedFromOr
 // ?!book ensures it doesn't match /free/book page which doesn't have a corresponding new-booker page.
 // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
 // book$ ensures that only /book is excluded from rewrite(which is at the end always) and not /booked
-/* eslint-disable no-undef */
-exports.nextJsOrgRewriteConfig = nextJsOrgRewriteConfig;
+export { nextJsOrgRewriteConfig };
 
 /**
  * Returns a regex that matches all existing routes, virtual routes (like /forms, /router, /success etc) and nextjs special paths (_next, public)
- * @param {string} suffix - The suffix to append to each route in the regex
+ * @param suffix - The suffix to append to each route in the regex
  */
-function getRegExpMatchingAllReservedRoutes(suffix) {
+function getRegExpMatchingAllReservedRoutes(suffix: string): string {
   // Following routes don't exist but they work by doing rewrite. Thus they need to be excluded from matching the orgRewrite patterns
   // Make sure to keep it upto date as more nonExistingRouteRewrites are added.
   // "app" is reserved for the Cal.com Companion landing page served by Framer at cal.com/app.
@@ -89,7 +84,7 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
   // We should infact scan through all files in public and exclude them instead.
   const nextJsSpecialPaths = ["_next", "public"];
 
-  let allTopLevelRoutesExcludedFromOrgRewrite = topLevelRoutesExcludedFromOrgRewrite
+  const allTopLevelRoutesExcludedFromOrgRewrite = topLevelRoutesExcludedFromOrgRewrite
     .concat(otherNonExistingRoutePrefixes)
     .concat(nextJsSpecialPaths)
     .concat(staticAssets);
@@ -97,12 +92,10 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
 }
 
 // To handle /something
-exports.orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9\-_]+)`;
+export const orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9\\-_]+)`;
 
 // To handle /something/somethingelse
-exports.orgUserTypeRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes(
-  "/"
-)})[^/]+)/:type((?!avatar\.png)[^/]+)`;
+export const orgUserTypeRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/")})[^/]+)/:type((?!avatar\\.png)[^/]+)`;
 
 // To handle /something/somethingelse/embed
-exports.orgUserTypeEmbedRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/")})[^/]+)/:type/embed`;
+export const orgUserTypeEmbedRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/")})[^/]+)/:type/embed`;

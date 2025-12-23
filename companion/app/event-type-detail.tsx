@@ -1678,7 +1678,7 @@ export default function EventTypeDetail() {
               schedulesLoading={schedulesLoading}
               scheduleDetailsLoading={scheduleDetailsLoading}
               selectedScheduleDetails={selectedScheduleDetails}
-              getDaySchedule={getDaySchedule}
+              getDaySchedules={getDaySchedule}
               formatTime={formatTime}
               selectedTimezone={selectedTimezone}
             />
